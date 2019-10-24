@@ -18,9 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
-#if !NewSymbolApi
     [Export(typeof(ICommandHandler))]
-#endif
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FindReferences)]
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>

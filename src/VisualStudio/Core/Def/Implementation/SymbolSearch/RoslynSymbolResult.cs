@@ -23,32 +23,34 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private DefinitionItem Definition { get; set; }
         private SourceReferenceItem Reference { get; set; }
-        private RoslynSymbolSource Source { get; }
+        private RoslynSymbolSource SourceInternal { get; }
+        private string PlainText { get; set; }
 
-        public override string Name => string.Empty;
-        public override string Origin => PredefinedSymbolOrigins.LocalCode;
-        public override ISymbolSource Owner => Source;
+        public override ISymbolOrigin Origin { get; }
+        public override ISymbolSource Source => SourceInternal;
+        public override string Text => PlainText;
 
-        private RoslynSymbolResult(RoslynSymbolSource source)
+        private RoslynSymbolResult(RoslynSymbolSource source, ISymbolOrigin origin)
         {
-            this.Source = source;
+            this.SourceInternal = source;
+            this.Origin = origin;
         }
 
-        internal static async Task<RoslynSymbolResult> MakeAsync(RoslynSymbolSource symbolSource, DefinitionItem definition, DocumentSpan documentSpan, CancellationToken token)
+        internal static async Task<RoslynSymbolResult> MakeAsync(SymbolSearchContext context, DefinitionItem definition, DocumentSpan documentSpan, CancellationToken token)
         {
-            var result = new RoslynSymbolResult(symbolSource);
+            var result = new RoslynSymbolResult(context.SymbolSource, context.RootSymbolOrigin);
             result.Definition = definition;
             await MakeContent(result, documentSpan, token).ConfigureAwait(false);
             return result;
         }
 
-        internal static async Task<RoslynSymbolResult> MakeAsync(RoslynSymbolSource symbolSource, SourceReferenceItem reference, DocumentSpan documentSpan, CancellationToken token)
+        internal static async Task<RoslynSymbolResult> MakeAsync(SymbolSearchContext context, SourceReferenceItem reference, DocumentSpan documentSpan, CancellationToken token)
         {
             // TODO: Understand how Roslyn calls GetReferenceGroupsAsync
             // it seems that at this time, we have full knowledge of definitions
             // and their references
 
-            var result = new RoslynSymbolResult(symbolSource);
+            var result = new RoslynSymbolResult(context.SymbolSource, context.RootSymbolOrigin);
             result.Reference = reference;
             result.Definition = reference.Definition;
             await MakeContent(result, documentSpan, token).ConfigureAwait(false);
@@ -82,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var classifiedText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
                 new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
             result.ClassifiedContext = classifiedText;
+            result.PlainText = excerptResult.Content.ToString();
 
 
             /*result.ClassifiedContext = new ClassifiedTextElement(
@@ -120,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             if (mappedDocumentSpan.HasValue)
             {
                 var location = mappedDocumentSpan.Value;
-                result.PersistentSpan = result.Source.ServiceProvider.PersistentSpanFactory.Create(
+                result.PersistentSpan = result.SourceInternal.ServiceProvider.PersistentSpanFactory.Create(
                     documentSpan.Document.FilePath,
                     location.LinePositionSpan.Start.Line,
                     location.LinePositionSpan.Start.Character,

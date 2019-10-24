@@ -8,22 +8,25 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     class SymbolSearchContext : FindUsagesContext
     {
-        private readonly RoslynSymbolSource SymbolSource;
+        internal RoslynSymbolSource SymbolSource { get; }
+        internal LocalCodeSymbolOrigin RootSymbolOrigin { get; }
+
         private readonly IStreamingSymbolSearchSink SymbolSink;
         public new readonly CancellationToken CancellationToken;
 
-        public SymbolSearchContext(RoslynSymbolSource symbolSource, IStreamingSymbolSearchSink sink)
+        public SymbolSearchContext(RoslynSymbolSource symbolSource, IStreamingSymbolSearchSink sink, string rootNodeName)
         {
             this.SymbolSource = symbolSource;
             this.SymbolSink = sink;
             this.CancellationToken = sink.CancellationToken;
+            this.RootSymbolOrigin = new LocalCodeSymbolOrigin(rootNodeName);
         }
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
             if (definition.SourceSpans.Length == 1)
             {
-                var result = await RoslynSymbolResult.MakeAsync(this.SymbolSource, definition, definition.SourceSpans[0], CancellationToken)
+                var result = await RoslynSymbolResult.MakeAsync(this, definition, definition.SourceSpans[0], CancellationToken)
                     .ConfigureAwait(false);
                 this.SymbolSink.Add(result);
             }
@@ -37,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var builder = ImmutableArray.CreateBuilder<SymbolSearchResult>(definition.SourceSpans.Length);
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    var result = await RoslynSymbolResult.MakeAsync(this.SymbolSource, definition, sourceSpan, CancellationToken)
+                    var result = await RoslynSymbolResult.MakeAsync(this, definition, sourceSpan, CancellationToken)
                         .ConfigureAwait(false);
                     builder.Add(result);
                 }
@@ -48,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public override async Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
-            var result = await RoslynSymbolResult.MakeAsync(this.SymbolSource, reference, reference.SourceSpan, CancellationToken)
+            var result = await RoslynSymbolResult.MakeAsync(this, reference, reference.SourceSpan, CancellationToken)
                 .ConfigureAwait(false);
             this.SymbolSink.Add(result);
             return;

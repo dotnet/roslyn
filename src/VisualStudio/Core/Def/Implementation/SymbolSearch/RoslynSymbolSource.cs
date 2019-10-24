@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -28,11 +29,20 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public string DisplayName => "Local symbol source";
 
+        internal LocalCodeSymbolOrigin LocalOrigin = new LocalCodeSymbolOrigin("Current Solution"); // TODO: Get name of the solution
+
         public async Task<SymbolSearchStatus> FindSymbolsAsync(string navigationKind, VisualStudio.Language.Intellisense.SymbolSearch.Location sourceLocation, IStreamingSymbolSearchSink sink, CancellationToken token)
         {
             var snapshot = sourceLocation.PersistentSpan.Document.TextBuffer.CurrentSnapshot;
             var roslynDocument = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var symbolSearchContext = new SymbolSearchContext(this, sink);
+
+            var solutionPath = roslynDocument.Project.Solution.FilePath;
+            var rootNodeName = string.IsNullOrWhiteSpace(solutionPath)
+                ? $"Solution {Path.GetFileNameWithoutExtension(solutionPath)}"
+                : $"Current Solution";
+
+            var symbolSearchContext = new SymbolSearchContext(this, sink, rootNodeName);
+
             switch (navigationKind)
             {
                 case PredefinedSymbolNavigationKinds.Definition:
