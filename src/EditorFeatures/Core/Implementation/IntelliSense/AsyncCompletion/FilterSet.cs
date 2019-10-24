@@ -25,11 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal sealed class FilterSet
     {
         // Cache all the VS completion filters which essentially make them singletons.
-        // Because all items that should be filtered using the same filter button must 
-        // use the same reference to the instance of CompletionFilter.
+        // Need to map item tags such as Class, Interface, Local, Enum to filter buttons.
+        // There can be tags mapping to the same button:
+        // Local -> Locals and Parameters, Parameter -> Locals and Parameters.
         private static readonly ImmutableDictionary<string, FilterWithMask> s_filterMap;
 
         // Distinct list of all filters.
+        // Need to iterate over a distinct list of filters 
+        // to create a filter list covering a completion session.
         private static readonly ImmutableArray<FilterWithMask> s_filters;
 
         private BitVector32 _vector;
