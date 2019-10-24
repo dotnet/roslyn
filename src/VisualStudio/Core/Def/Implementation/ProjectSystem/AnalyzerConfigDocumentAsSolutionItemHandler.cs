@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
 
         private DTE? _dte;
+        private bool _infoBarShownForCurrentSolution;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,9 +58,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            // Check if a new analyzer config document was added and we have a non-null DTE instance.
-            if (e.Kind != WorkspaceChangeKind.AnalyzerConfigDocumentAdded ||
-                _dte == null)
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionAdded:
+                    _infoBarShownForCurrentSolution = false;
+                    return;
+
+                // Check if a new analyzer config document was added
+                case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                    break;
+
+                default:
+                    return;
+            }
+
+            // Bail out if we have a null DTE instance or we have already shown the info bar for current solution.
+            if (_dte == null ||
+                _infoBarShownForCurrentSolution)
             {
                 return;
             }
@@ -93,10 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-                infoBarService.ShowInfoBarInGlobalView(
-                    ServicesVSResources.A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item,
-                    GetInfoBarUIItems().ToArray());
+                if (!_infoBarShownForCurrentSolution)
+                {
+                    _infoBarShownForCurrentSolution = true;
+                    var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
+                    infoBarService.ShowInfoBarInGlobalView(
+                        ServicesVSResources.A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item,
+                        GetInfoBarUIItems().ToArray());
+                }
             });
 
             return;
