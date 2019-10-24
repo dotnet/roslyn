@@ -639,7 +639,8 @@ $$</Document>
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True, <Document>123123123123123123123123123 + $$</Document>)
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.TextView.TextBuffer.Insert(0, "123123123123123123123123123 + ")
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())

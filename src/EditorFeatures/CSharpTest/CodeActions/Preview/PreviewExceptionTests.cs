@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             out VisualStudio.Text.ITextBuffer textBuffer)
         {
             var document = GetDocument(workspace);
+            textBuffer = workspace.GetTestDocument(document.Id).GetTextBuffer();
             var span = document.GetSyntaxRootAsync().Result.Span;
             var context = new CodeRefactoringContext(document, span, (a) => codeActions.Add(a), CancellationToken.None);
             provider.ComputeRefactoringsAsync(context).Wait();
             var action = codeActions.Single();
             extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
-            textBuffer = document.GetTextAsync().Result.Container.GetTextBuffer();
         }
     }
 }

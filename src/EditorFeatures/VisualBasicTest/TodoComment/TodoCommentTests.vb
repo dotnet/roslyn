@@ -188,6 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
                 Dim worker = DirectCast(provider.CreateIncrementalAnalyzer(workspace), TodoCommentIncrementalAnalyzer)
 
                 Dim document = workspace.Documents.First()
+                Dim initialTextSnapshot = document.GetTextBuffer().CurrentSnapshot
                 Dim documentId = document.Id
                 Await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None)
 
@@ -199,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
                     Dim todo = todoLists(i)
                     Dim span = list(i)
 
-                    Dim line = document.InitialTextSnapshot.GetLineFromPosition(span.Start)
+                    Dim line = initialTextSnapshot.GetLineFromPosition(span.Start)
 
                     Assert.Equal(todo.MappedLine, line.LineNumber)
                     Assert.Equal(todo.MappedColumn, span.Start - line.Start.Position)

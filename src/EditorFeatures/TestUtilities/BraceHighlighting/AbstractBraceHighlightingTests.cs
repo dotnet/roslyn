@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                     AsynchronousOperationListenerProvider.NullProvider);
 
                 var testDocument = workspace.Documents.First();
-                var buffer = testDocument.TextBuffer;
+                var buffer = testDocument.GetTextBuffer();
                 var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
                 var context = new TaggerContext<BraceHighlightTag>(
                     document, buffer.CurrentSnapshot,
