@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this is a type parameter of a reduced extension method, gets the type parameter definition that
         /// this type parameter was reduced from. Otherwise, returns Nothing.
         /// </summary>
-        public virtual TypeParameterSymbol ReducedFrom
+        public virtual TypeParameterSymbol? ReducedFrom
         {
             get
             {
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal virtual DiagnosticInfo GetConstraintsUseSiteErrorInfo()
+        internal virtual DiagnosticInfo? GetConstraintsUseSiteErrorInfo()
         {
             return null;
         }
@@ -99,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AppendConstraintsUseSiteErrorInfo(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            DiagnosticInfo errorInfo = this.GetConstraintsUseSiteErrorInfo();
+            DiagnosticInfo? errorInfo = this.GetConstraintsUseSiteErrorInfo();
 
-            if ((object)errorInfo != null)
+            if ((object?)errorInfo != null)
             {
                 if (useSiteDiagnostics == null)
                 {
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The method that declared this type parameter, or null.
         /// </summary>
-        public MethodSymbol DeclaringMethod
+        public MethodSymbol? DeclaringMethod
         {
             get
             {
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type that declared this type parameter, or null.
         /// </summary>
-        public NamedTypeSymbol DeclaringType
+        public NamedTypeSymbol? DeclaringType
         {
             get
             {
@@ -242,9 +245,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => null;
+        internal sealed override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null)
+        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -261,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the effective base type will be the most derived reference type from which
         /// deduced base type is derived.
         /// </summary>
-        internal NamedTypeSymbol EffectiveBaseClassNoUseSiteDiagnostics
+        internal NamedTypeSymbol? EffectiveBaseClassNoUseSiteDiagnostics
         {
             get
             {
@@ -270,12 +273,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal NamedTypeSymbol EffectiveBaseClass(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol? EffectiveBaseClass(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
             var result = EffectiveBaseClassNoUseSiteDiagnostics;
 
-            if ((object)result != null)
+            if ((object?)result != null)
             {
                 result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
@@ -298,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The most encompassed type (spec 6.4.2) from the constraints.
         /// </summary>
-        internal TypeSymbol DeducedBaseTypeNoUseSiteDiagnostics
+        internal TypeSymbol? DeducedBaseTypeNoUseSiteDiagnostics
         {
             get
             {
@@ -307,12 +310,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeSymbol DeducedBaseType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal TypeSymbol? DeducedBaseType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
             var result = DeducedBaseTypeNoUseSiteDiagnostics;
 
-            if ((object)result != null)
+            if ((object?)result != null)
             {
                 ((TypeSymbol)result.OriginalDefinition).AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
@@ -340,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Since bases affect content of AllInterfaces set, we need to make sure they all are good.
             var current = DeducedBaseType(ref useSiteDiagnostics);
 
-            while ((object)current != null)
+            while ((object?)current != null)
             {
                 current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             }
@@ -377,9 +380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress);
 
-        internal abstract NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress);
+        internal abstract NamedTypeSymbol? GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress);
 
-        internal abstract TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress);
+        internal abstract TypeSymbol? GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress);
 
         private static bool ConstraintImpliesReferenceType(TypeSymbol constraint)
         {
@@ -597,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -624,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
             return this.Equals(t2 as TypeParameterSymbol, comparison, isValueTypeOverrideOpt);
         }
@@ -634,14 +637,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(TypeParameterSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool Equals(TypeParameterSymbol? other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !ReferenceEquals(other.OriginalDefinition, this.OriginalDefinition))
+            if ((object?)other == null || !ReferenceEquals(other.OriginalDefinition, this.OriginalDefinition))
             {
                 return false;
             }
@@ -697,12 +700,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IMethodSymbol ITypeParameterSymbol.DeclaringMethod
+        IMethodSymbol? ITypeParameterSymbol.DeclaringMethod
         {
             get { return this.DeclaringMethod; }
         }
 
-        INamedTypeSymbol ITypeParameterSymbol.DeclaringType
+        INamedTypeSymbol? ITypeParameterSymbol.DeclaringType
         {
             get { return this.DeclaringType; }
         }
@@ -723,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.OriginalDefinition; }
         }
 
-        ITypeParameterSymbol ITypeParameterSymbol.ReducedFrom
+        ITypeParameterSymbol? ITypeParameterSymbol.ReducedFrom
         {
             get { return this.ReducedFrom; }
         }
@@ -737,9 +740,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.VisitTypeParameter(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitTypeParameter(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         #endregion

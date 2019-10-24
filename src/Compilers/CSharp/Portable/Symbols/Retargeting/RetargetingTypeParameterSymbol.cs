@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         public RetargetingTypeParameterSymbol(RetargetingModuleSymbol retargetingModule, TypeParameterSymbol underlyingTypeParameter)
             : base(underlyingTypeParameter)
         {
-            Debug.Assert((object)retargetingModule != null);
+            RoslynDebug.Assert((object)retargetingModule != null);
             Debug.Assert(!(underlyingTypeParameter is RetargetingTypeParameterSymbol));
 
             _retargetingModule = retargetingModule;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -97,15 +99,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
         {
+#nullable disable // Can '_underlyingTypeParameter.GetEffectiveBaseClass(inProgress)' be null? https://github.com/dotnet/roslyn/issues/39166
             return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetEffectiveBaseClass(inProgress), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+#nullable enable
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
+#nullable disable // Can '_underlyingTypeParameter.GetDeducedBaseType(inProgress)' be null? https://github.com/dotnet/roslyn/issues/39166
             return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetDeducedBaseType(inProgress), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+#nullable enable
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }
