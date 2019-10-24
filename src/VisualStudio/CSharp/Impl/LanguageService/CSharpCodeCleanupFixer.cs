@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using __VSHPROPID8 = Microsoft.VisualStudio.Shell.Interop.__VSHPROPID8;
 using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemManager;
@@ -31,7 +30,7 @@ using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemMan
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [Export(typeof(CodeCleanUpFixer))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
         private const string RemoveUnusedImportsFixId = "RemoveUnusedImportsFixId";
@@ -216,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     if (scope != null)
                     {
                         scope.Description = description;
-                        scope.Progress.Report(new ProgressInfo(completed, total));
+                        scope.Progress.Report(new VisualStudio.Utilities.ProgressInfo(completed, total));
                     }
                 });
 

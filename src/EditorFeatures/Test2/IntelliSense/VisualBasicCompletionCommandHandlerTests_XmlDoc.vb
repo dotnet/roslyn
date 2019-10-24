@@ -656,7 +656,7 @@ End Class
                 state.SendTypeChars(keyword.Substring(0, keyword.Length - 1))
                 state.SendInvokeCompletionList()
                 If unique Then
-                    state.SendCommitUniqueCompletionListItem()
+                    Await state.SendCommitUniqueCompletionListItemAsync()
                 Else
                     Await state.AssertSelectedCompletionItem(displayText:=keyword)
                     state.SendTab()
