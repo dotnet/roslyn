@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">  
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net472</TargetFrameworks>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsShipping>true</IsShipping>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Utilities\Compiler\Extensions\ReportDiagnosticExtensions.cs" Link="ReportDiagnosticExtensions.cs" />
+    <Compile Include="..\..\..\Utilities\Compiler\RulesetToEditorconfigConverter.cs" Link="RulesetToEditorconfigConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+</Project>

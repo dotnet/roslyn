@@ -70,6 +70,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\CategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RulesetToEditorconfigConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -11,6 +12,9 @@ namespace Test.Utilities
 {
     public static class AdditionalMetadataReferences
     {
+        private static readonly Lazy<Assembly> s_netstandardAssembly = new Lazy<Assembly>(() => Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"));
+        private static readonly Lazy<MetadataReference> s_netstandardReference = new Lazy<MetadataReference>(() => MetadataReference.CreateFromFile(s_netstandardAssembly.Value.Location));
+
         public static readonly MetadataReference SystemComponentModelCompositionReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
         public static readonly MetadataReference SystemCompositionReference = MetadataReference.CreateFromFile(typeof(System.Composition.ExportAttribute).Assembly.Location);
         internal static readonly MetadataReference SystemXmlReference = MetadataReference.CreateFromFile(typeof(System.Xml.XmlDocument).Assembly.Location);
@@ -28,8 +32,6 @@ namespace Test.Utilities
         internal static readonly MetadataReference SystemXaml = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlReader).Assembly.Location);
         internal static readonly MetadataReference PresentationFramework = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
         internal static readonly MetadataReference SystemWebExtensions = MetadataReference.CreateFromFile(typeof(System.Web.Script.Serialization.JavaScriptSerializer).Assembly.Location);
-        internal static readonly MetadataReference SystemGlobalization = MetadataReference.CreateFromFile(Assembly.Load("System.Globalization, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location);
-
         private static MetadataReference s_systemRuntimeFacadeRef;
         public static MetadataReference SystemRuntimeFacadeRef
         {
@@ -77,5 +79,7 @@ namespace Test.Utilities
                 return s_systemThreadingTasksFacadeRef;
             }
         }
+
+        public static MetadataReference Netstandard => s_netstandardReference.Value;
     }
 }
