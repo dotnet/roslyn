@@ -96,26 +96,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 var stream = new MemoryStream();
 
-                using var logger = CreateLogger(
-                        stream,
-                        toolName: "",
-                        toolFileVersion: "",
-                        toolAssemblyVersion: Version.Parse("1.0.0"),
-                        CultureInfo.InvariantCulture)
-                var location = Location.Create(
-                    inputPath,
-                    textSpan: default,
-                    lineSpan: default);
+                using (var logger = CreateLogger(
+                    stream,
+                    toolName: "",
+                    toolFileVersion: "",
+                    toolAssemblyVersion: Version.Parse("1.0.0"),
+                    CultureInfo.InvariantCulture))
+                {
+                    var location = Location.Create(
+                        inputPath,
+                        textSpan: default,
+                        lineSpan: default);
 
-                logger.LogDiagnostic(Diagnostic.Create(
-                    "uriDiagnostic",
-                    category: "",
-                    message: "blank diagnostic",
-                    DiagnosticSeverity.Warning,
-                    DiagnosticSeverity.Warning,
-                    isEnabledByDefault: true,
-                    warningLevel: 3,
-                    location: location));
+                    logger.LogDiagnostic(Diagnostic.Create(
+                        "uriDiagnostic",
+                        category: "",
+                        message: "blank diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 3,
+                        location: location));
+                }
 
                 var buffer = stream.ToArray();
                 Assert.Equal(
