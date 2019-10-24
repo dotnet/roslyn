@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class TypeSymbol
         Inherits NamespaceOrTypeSymbol
-        Implements ITypeSymbol
+        Implements ITypeSymbol, ITypeSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -233,14 +234,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' that <see cref="IsReferenceType"/> and <see cref="IsValueType"/> both return true. However, for an unconstrained
         ''' type parameter, <see cref="IsReferenceType"/> and <see cref="IsValueType"/> will both return false.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsReferenceType As Boolean Implements ITypeSymbol.IsReferenceType
+        Public MustOverride ReadOnly Property IsReferenceType As Boolean Implements ITypeSymbol.IsReferenceType, ITypeSymbolInternal.IsReferenceType
 
         ''' <summary>
         ''' Returns true if this type is known to be a value type. It is never the case
         ''' that <see cref="IsReferenceType"/> and <see cref="IsValueType"/> both return true. However, for an unconstrained
         ''' type parameter, <see cref="IsReferenceType"/> and <see cref="IsValueType"/> will both return false.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsValueType As Boolean Implements ITypeSymbol.IsValueType
+        Public MustOverride ReadOnly Property IsValueType As Boolean Implements ITypeSymbol.IsValueType, ITypeSymbolInternal.IsValueType
 
         ''' <summary>
         ''' Is this a symbol for an anonymous type (including delegate).
@@ -270,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
         ''' </summary>
-        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType
+        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
             Get
                 Return SpecialType.None
             End Get
@@ -556,7 +557,7 @@ Done:
             End Get
         End Property
 
-        Private ReadOnly Property ITypeSymbol_TypeKind As TYPEKIND Implements ITypeSymbol.TypeKind
+        Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind, ITypeSymbolInternal.TypeKind
             Get
                 Return Me.TypeKind
             End Get
@@ -740,5 +741,20 @@ Done:
         End Class
 
 #End Region
+
+        Private ReadOnly Property ITypeSymbol_NullableAnnotation As NullableAnnotation Implements ITypeSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
+        Private Function ITypeSymbol_WithNullability(nullableAnnotation As NullableAnnotation) As ITypeSymbol Implements ITypeSymbol.WithNullableAnnotation
+            Return Me
+        End Function
+
+        Private Function ITypeSymbolInternal_GetITypeSymbol() As ITypeSymbol Implements ITypeSymbolInternal.GetITypeSymbol
+            Return Me
+        End Function
+
     End Class
 End Namespace

@@ -168,6 +168,17 @@ namespace Microsoft.CodeAnalysis
             NullableFlowState topLevelNullability,
             int position,
             SymbolDisplayFormat? format = null);
+
+        /// <summary>
+        /// Nullable annotation associated with the type, or <see cref="NullableAnnotation.None"/> array if there are none.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
+
+        /// <summary>
+        /// Returns a type with the given nullable annotation.
+        /// </summary>
+        /// <param name="nullableAnnotation">The nullable annotation to use</param>
+        ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes

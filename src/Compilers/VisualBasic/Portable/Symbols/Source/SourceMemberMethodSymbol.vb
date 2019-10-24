@@ -1006,7 +1006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If args.Length = 1 Then
                         Dim arg = args(0)
                         Const DESIGNERSERIALIZATIONVISIBILITYTYPE_CONTENT As Integer = 2
-                        If arg.Kind <> TypedConstantKind.Array AndAlso CInt(arg.Value) = DESIGNERSERIALIZATIONVISIBILITYTYPE_CONTENT Then
+                        If arg.Kind <> TypedConstantKind.Array AndAlso CInt(arg.ValueInternal) = DESIGNERSERIALIZATIONVISIBILITYTYPE_CONTENT Then
                             Return True
                         End If
                     End If

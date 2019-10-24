@@ -84,10 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new NullabilityInfo(ToPublicAnnotation(type, annotation), flowState.ToPublicFlowState());
         }
 
+        internal static ITypeSymbol GetITypeSymbol(this TypeWithAnnotations type)
+        {
+            return type.Type?.GetITypeSymbol(type.ToPublicAnnotation());
+        }
+
         internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this TypeWithAnnotations type) =>
             ToPublicAnnotation(type.Type, type.NullableAnnotation);
 
-        private static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation) =>
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation) =>
             annotation switch
             {
                 CSharp.NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,

@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'
-            Debug.Assert(((INamedTypeSymbol)_sourceAttribute.GetType(context)).GetMembers(HexPropertyName).Any(
+            Debug.Assert(((INamedTypeSymbol)((ISymbolInternal)_sourceAttribute.GetType(context)).GetISymbol()).GetMembers(HexPropertyName).Any(
                 member => member.Kind == SymbolKind.Property && ((IPropertySymbol)member).Type.SpecialType == SpecialType.System_String));
 #endif
 

@@ -2,12 +2,11 @@
 
 #nullable enable
 
-using System;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
-    internal interface ISourceAssemblySymbolInternal : ISourceAssemblySymbol
+    internal interface ISourceAssemblySymbolInternal : IAssemblySymbolInternal
     {
         AssemblyFlags AssemblyFlags { get; }
 
@@ -17,8 +16,6 @@ namespace Microsoft.CodeAnalysis
         string? SignatureKey { get; }
 
         AssemblyHashAlgorithm HashAlgorithm { get; }
-
-        Version? AssemblyVersionPattern { get; }
 
         bool InternalsAreVisible { get; }
     }

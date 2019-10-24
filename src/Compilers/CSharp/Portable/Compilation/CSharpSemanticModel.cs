@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetSymbolInfoFromSymbolOrNone(TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken).Type);
 
                     case SyntaxKind.DiscardDesignation:
-                        return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type);
+                        return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type.GetPublicSymbol());
 
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         if (((TypeSyntax)expression).IsVar)
@@ -871,9 +871,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (parent.Designation.Kind())
                 {
                     case SyntaxKind.SingleVariableDesignation:
-                        var (declarationType, annotation) = ((TypeSymbol, CodeAnalysis.NullableAnnotation))TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
-                        var nullabilityInfo = annotation.ToNullabilityInfo(declarationType);
-                        return new CSharpTypeInfo(declarationType, declarationType, nullabilityInfo, nullabilityInfo, Conversion.Identity);
+                        var (declarationType, annotation) = ((ITypeSymbol, CodeAnalysis.NullableAnnotation))TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
+                        var declarationTypeSymbol = declarationType.GetSymbol();
+                        var nullabilityInfo = annotation.ToNullabilityInfo(declarationTypeSymbol);
+                        return new CSharpTypeInfo(declarationTypeSymbol, declarationTypeSymbol, nullabilityInfo, nullabilityInfo, Conversion.Identity);
 
                     case SyntaxKind.DiscardDesignation:
                         var declarationInfo = GetTypeInfoWorker(parent, cancellationToken);
@@ -989,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(expression);
 
             return CanGetSemanticInfo(expression)
-                ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken))
+                ? this.GetMemberGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken).GetPublicSymbols()
                 : ImmutableArray<ISymbol>.Empty;
         }
 
@@ -1003,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(attribute);
 
             return CanGetSemanticInfo(attribute)
-                ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(attribute, SymbolInfoOptions.DefaultOptions, cancellationToken))
+                ? this.GetMemberGroupWorker(attribute, SymbolInfoOptions.DefaultOptions, cancellationToken).GetPublicSymbols()
                 : ImmutableArray<ISymbol>.Empty;
         }
 
@@ -1017,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(initializer);
 
             return CanGetSemanticInfo(initializer)
-                ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(initializer, SymbolInfoOptions.DefaultOptions, cancellationToken))
+                ? this.GetMemberGroupWorker(initializer, SymbolInfoOptions.DefaultOptions, cancellationToken).GetPublicSymbols()
                 : ImmutableArray<ISymbol>.Empty;
         }
 
@@ -1040,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(expression);
 
             return CanGetSemanticInfo(expression)
-                ? StaticCast<IPropertySymbol>.From(this.GetIndexerGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken))
+                ? this.GetIndexerGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken).GetPublicSymbols()
                 : ImmutableArray<IPropertySymbol>.Empty;
         }
 
@@ -1076,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
 
             SymbolInfo info = GetSymbolInfoWorker(nameSyntax, SymbolInfoOptions.PreferTypeToConstructors | SymbolInfoOptions.PreserveAliases, cancellationToken);
-            return info.Symbol as AliasSymbol;
+            return info.Symbol as IAliasSymbol;
         }
 
         /// <summary>
@@ -1104,14 +1105,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (boundNode == null)
             {
                 return !crefSymbols.IsDefault && crefSymbols.Length == 1
-                    ? crefSymbols[0] as AliasSymbol
+                    ? (crefSymbols[0] as AliasSymbol).GetPublicSymbol()
                     : null;
             }
 
             var symbolInfo = this.GetSymbolInfoForNode(SymbolInfoOptions.PreferTypeToConstructors | SymbolInfoOptions.PreserveAliases,
                 boundNode, boundNode, boundNodeForSyntacticParent: null, binderOpt: binder);
 
-            return symbolInfo.Symbol as AliasSymbol;
+            return symbolInfo.Symbol as IAliasSymbol;
         }
 
         /// <summary>
@@ -1311,14 +1312,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Non-reduced extension methods are considered regardless of the value of <paramref name="includeReducedExtensionMethods"/>.
         /// </remarks>
-        public new ImmutableArray<ISymbol> LookupSymbols(
+        public ImmutableArray<Symbol> LookupSymbols(
             int position,
-            INamespaceOrTypeSymbol container = null,
+            NamespaceOrTypeSymbol container = null,
             string name = null,
             bool includeReducedExtensionMethods = false)
         {
             var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMethods : LookupOptions.Default;
-            return StaticCast<ISymbol>.From(LookupSymbolsInternal(position, ToLanguageSpecific(container), name, options, useBaseReferenceAccessibility: false));
+            return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1360,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
-            return StaticCast<ISymbol>.From(LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, useBaseReferenceAccessibility: true));
+            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, useBaseReferenceAccessibility: true).GetPublicSymbols();
         }
 
         /// <summary>
@@ -1381,12 +1382,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// specified, the "position" location is significant for determining which members of "containing" are
         /// accessible. 
         /// </remarks>
-        public new ImmutableArray<ISymbol> LookupStaticMembers(
+        public ImmutableArray<Symbol> LookupStaticMembers(
             int position,
-            INamespaceOrTypeSymbol container = null,
+            NamespaceOrTypeSymbol container = null,
             string name = null)
         {
-            return StaticCast<ISymbol>.From(LookupSymbolsInternal(position, ToLanguageSpecific(container), name, LookupOptions.MustNotBeInstance, useBaseReferenceAccessibility: false));
+            return LookupSymbolsInternal(position, container, name, LookupOptions.MustNotBeInstance, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1405,14 +1406,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// specified, the "position" location is significant for determining which members of "containing" are
         /// accessible. 
         /// 
-        /// Does not return INamespaceOrTypeSymbol, because there could be aliases.
+        /// Does not return NamespaceOrTypeSymbol, because there could be aliases.
         /// </remarks>
-        public new ImmutableArray<ISymbol> LookupNamespacesAndTypes(
+        public ImmutableArray<Symbol> LookupNamespacesAndTypes(
             int position,
-            INamespaceOrTypeSymbol container = null,
+            NamespaceOrTypeSymbol container = null,
             string name = null)
         {
-            return StaticCast<ISymbol>.From(LookupSymbolsInternal(position, ToLanguageSpecific(container), name, LookupOptions.NamespacesOrTypesOnly, useBaseReferenceAccessibility: false));
+            return LookupSymbolsInternal(position, container, name, LookupOptions.NamespacesOrTypesOnly, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1433,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
-            return StaticCast<ISymbol>.From(LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.LabelsOnly, useBaseReferenceAccessibility: false));
+            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.LabelsOnly, useBaseReferenceAccessibility: false).GetPublicSymbols();
         }
 
         /// <summary>
@@ -1736,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// modifiers on symbol and its containing types. Even if true is returned, the given symbol
         /// may not be able to be referenced for other reasons, such as name hiding.
         /// </remarks>
-        public new bool IsAccessible(int position, ISymbol symbol)
+        public bool IsAccessible(int position, Symbol symbol)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -1745,13 +1746,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(symbol));
             }
 
-            var cssymbol = symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(symbol));
-
             var binder = this.GetEnclosingBinder(position);
             if (binder != null)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return binder.IsAccessible(cssymbol, ref useSiteDiagnostics, null);
+                return binder.IsAccessible(symbol, ref useSiteDiagnostics, null);
             }
 
             return false;
@@ -1761,10 +1760,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Field-like events can be used as fields in types that can access private
         /// members of the declaring type of the event.
         /// </summary>
-        public new bool IsEventUsableAsField(int position, IEventSymbol eventSymbol)
+        public bool IsEventUsableAsField(int position, EventSymbol symbol)
         {
-            var csymbol = (EventSymbol)eventSymbol;
-            return !ReferenceEquals(eventSymbol, null) && csymbol.HasAssociatedField && this.IsAccessible(position, csymbol.AssociatedField); //calls CheckAndAdjustPosition
+            return symbol is object && symbol.HasAssociatedField && this.IsAccessible(position, symbol.AssociatedField); //calls CheckAndAdjustPosition
         }
 
         private bool IsInTypeofExpression(int position)
@@ -1903,15 +1901,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (subpattern.Symbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
             {
-                return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.CastArray<ISymbol>(), originalErrorType.ResultKind.ToCandidateReason());
+                return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.GetPublicSymbols(), originalErrorType.ResultKind.ToCandidateReason());
             }
 
-            return new SymbolInfo(subpattern.Symbol, CandidateReason.None);
+            return new SymbolInfo(subpattern.Symbol.GetPublicSymbol(), CandidateReason.None);
         }
 
         private SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)
         {
-            return new SymbolInfo(pat.DeconstructMethod, CandidateReason.None);
+            return new SymbolInfo(pat.DeconstructMethod.GetPublicSymbol(), CandidateReason.None);
         }
 
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
@@ -2191,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Non-error case. Use constructor that doesn't require creation of a Symbol array.
                 var symbolToReturn = ((options & SymbolInfoOptions.ResolveAliases) != 0) ? unwrapped : symbol;
-                return new SymbolInfo(symbolToReturn, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return new SymbolInfo(symbolToReturn.GetPublicSymbol(), ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
         }
 
@@ -2611,7 +2609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var cdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(destination));
+            TypeSymbol cdestination = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
             if (expression.Kind() == SyntaxKind.DeclarationExpression)
             {
@@ -3046,9 +3044,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachStatement).FirstOrDefault();
-            return local is SourceLocalSymbol { DeclarationKind: LocalDeclarationKind.ForEachIterationVariable } sourceLocal
+            return (local is SourceLocalSymbol { DeclarationKind: LocalDeclarationKind.ForEachIterationVariable } sourceLocal
                 ? GetAdjustedLocalSymbol(sourceLocal)
-                : local;
+                : local).GetPublicSymbol();
         }
 
         /// <summary>
@@ -3087,7 +3085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catchBinder = enclosingBinder.GetBinder(catchClause);
             LocalSymbol local = catchBinder.GetDeclaredLocalsForScope(catchClause).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
-                ? local
+                ? local.GetPublicSymbol()
                 : null;
         }
 
@@ -4251,14 +4249,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)containingInvocationInfo.Symbol != null)
             {
-                ParameterSymbol param = FindNamedParameter(((Symbol)containingInvocationInfo.Symbol).GetParameters(), argumentName);
-                return (object)param == null ? SymbolInfo.None : new SymbolInfo(param, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                ParameterSymbol param = FindNamedParameter(containingInvocationInfo.Symbol.GetSymbol().GetParameters(), argumentName);
+                return (object)param == null ? SymbolInfo.None : new SymbolInfo(param.GetPublicSymbol(), ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
             else
             {
                 ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
 
-                foreach (Symbol invocationSym in containingInvocationInfo.CandidateSymbols)
+                foreach (ISymbol invocationSym in containingInvocationInfo.CandidateSymbols)
                 {
                     switch (invocationSym.Kind)
                     {
@@ -4268,7 +4266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         default:
                             continue; // Definitely doesn't have parameters.
                     }
-                    ParameterSymbol param = FindNamedParameter(invocationSym.GetParameters(), argumentName);
+                    ParameterSymbol param = FindNamedParameter(invocationSym.GetSymbol().GetParameters(), argumentName);
                     if ((object)param != null)
                     {
                         symbols.Add(param);
@@ -4282,7 +4280,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return new SymbolInfo(null, StaticCast<ISymbol>.From(symbols.ToImmutableAndFree()), containingInvocationInfo.CandidateReason);
+                    ImmutableArray<ISymbol> candidateSymbols = symbols.SelectAsArray(s => s.GetPublicSymbol());
+                    symbols.Free();
+                    return new SymbolInfo(null, candidateSymbols, containingInvocationInfo.CandidateReason);
                 }
             }
         }
@@ -4593,7 +4593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
             {
                 bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
-                return new PreprocessingSymbolInfo(new PreprocessingSymbol(node.Identifier.ValueText), isDefined);
+                return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
             }
 
             return PreprocessingSymbolInfo.None;
@@ -4651,7 +4651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
-            return binder == null ? null : binder.ContainingMemberOrLambda;
+            return binder == null ? null : binder.ContainingMemberOrLambda.GetPublicSymbol();
         }
 
         #region SemanticModel Members
@@ -4890,7 +4890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declarationSyntax.Parent is TupleTypeSyntax tupleTypeSyntax)
             {
-                return (GetSymbolInfo(tupleTypeSyntax).Symbol as TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax));
+                return (GetSymbolInfo(tupleTypeSyntax).Symbol.GetSymbol() as TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
             }
 
             return null;
@@ -4944,7 +4944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override ImmutableArray<ISymbol> LookupSymbolsCore(int position, INamespaceOrTypeSymbol container, string name, bool includeReducedExtensionMethods)
         {
-            return LookupSymbols(position, ToLanguageSpecific(container), name, includeReducedExtensionMethods);
+            return LookupSymbols(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name, includeReducedExtensionMethods).GetPublicSymbols();
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupBaseMembersCore(int position, string name)
@@ -4954,32 +4954,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override ImmutableArray<ISymbol> LookupStaticMembersCore(int position, INamespaceOrTypeSymbol container, string name)
         {
-            return LookupStaticMembers(position, ToLanguageSpecific(container), name);
+            return LookupStaticMembers(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name).GetPublicSymbols();
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupNamespacesAndTypesCore(int position, INamespaceOrTypeSymbol container, string name)
         {
-            return LookupNamespacesAndTypes(position, ToLanguageSpecific(container), name);
+            return LookupNamespacesAndTypes(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name).GetPublicSymbols();
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupLabelsCore(int position, string name)
         {
             return LookupLabels(position, name);
-        }
-
-        private static NamespaceOrTypeSymbol ToLanguageSpecific(INamespaceOrTypeSymbol container)
-        {
-            if ((object)container == null)
-            {
-                return null;
-            }
-
-            if (!(container is NamespaceOrTypeSymbol namespaceOrTypeSymbol))
-            {
-                throw new ArgumentException(CSharpResources.NotACSharpSymbol, nameof(container));
-            }
-
-            return namespaceOrTypeSymbol;
         }
 
         protected sealed override ControlFlowAnalysis AnalyzeControlFlowCore(SyntaxNode firstStatement, SyntaxNode lastStatement)
@@ -5081,12 +5066,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
         {
-            return this.IsAccessible(position, symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(symbol)));
+            return this.IsAccessible(position, symbol.EnsureCSharpSymbolOrNull(nameof(symbol)));
         }
 
         protected sealed override bool IsEventUsableAsFieldCore(int position, IEventSymbol symbol)
         {
-            return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull<IEventSymbol, EventSymbol>(nameof(symbol)));
+            return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull(nameof(symbol)));
         }
 
         public sealed override NullableContext GetNullableContext(int position)
