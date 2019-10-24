@@ -65,19 +65,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         foreach (var index in symbolInfoIndices)
                         {
-                            if (syntaxIndex.TryGetDeclaredSymbolInfo(index, out var methodInfo))
-                            {
-                                _simpleItemBuilder.Add(targetType, methodInfo);
-                            }
+                            _simpleItemBuilder.Add(targetType, syntaxIndex.DeclaredSymbolInfos[index]);
                         }
                     }
 
                     foreach (var index in syntaxIndex.ComplexExtensionMethodInfo)
                     {
-                        if (syntaxIndex.TryGetDeclaredSymbolInfo(index, out var methodInfo))
-                        {
-                            _complexItemBuilder.Add(methodInfo);
-                        }
+                        _complexItemBuilder.Add(syntaxIndex.DeclaredSymbolInfos[index]);
                     }
                 }
 
@@ -107,6 +101,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             IImportCompletionCacheService<CacheEntry, object> cacheService,
             CancellationToken cancellationToken)
         {
+            // While we are caching data from SyntaxTreeInfo, all the things we cared about here are actually based on sources symbols.
+            // So using source symbol checksum would suffice.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
             // Cache miss, create all requested items.

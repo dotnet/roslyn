@@ -248,7 +248,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutableAndFree()),
                     new ExtensionMethodInfo(
-                        simpleExtensionMethodInfoBuilder.ToImmutableDictionary(GetKey, GetImmutableValue),
+                        simpleExtensionMethodInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray),
                         complexExtensionMethodInfoBuilder.ToImmutable()));
             }
             finally
@@ -260,53 +260,50 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 complexExtensionMethodInfoBuilder.Free();
                 usingAliases.Free();
             }
+        }
 
-            static void AddExtensionMethodInfo(
-                IDeclaredSymbolInfoFactoryService infoFactory,
-                SyntaxNode node,
-                PooledDictionary<string, string> aliases,
-                int declaredSymbolInfoIndex,
-                DeclaredSymbolInfo declaredSymbolInfo,
-                PooledDictionary<string, ArrayBuilder<int>> simpleInfoBuilder,
-                ArrayBuilder<int> complexInfoBuilder)
+        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, string> s_getKey = kvp => kvp.Key;
+        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, ImmutableArray<int>> s_getValuesAsImmutableArray = kvp => kvp.Value.ToImmutableAndFree();
+
+        private static void AddExtensionMethodInfo(
+            IDeclaredSymbolInfoFactoryService infoFactory,
+            SyntaxNode node,
+            PooledDictionary<string, string> aliases,
+            int declaredSymbolInfoIndex,
+            DeclaredSymbolInfo declaredSymbolInfo,
+            PooledDictionary<string, ArrayBuilder<int>> simpleInfoBuilder,
+            ArrayBuilder<int> complexInfoBuilder)
+        {
+            if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
             {
-                if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
-                {
-                    return;
-                }
-
-                if (!infoFactory.TryGetTargetTypeName(node, out var targetTypeName))
-                {
-                    return;
-                }
-
-                // complex type
-                if (targetTypeName == null)
-                {
-                    complexInfoBuilder.Add(declaredSymbolInfoIndex);
-                    return;
-                }
-
-                if (aliases.TryGetValue(targetTypeName, out var originalName))
-                {
-                    targetTypeName = originalName;
-                }
-
-                // simple type
-                if (!simpleInfoBuilder.TryGetValue(targetTypeName, out var arrayBuilder))
-                {
-                    arrayBuilder = ArrayBuilder<int>.GetInstance();
-                    simpleInfoBuilder[targetTypeName] = arrayBuilder;
-                }
-
-                arrayBuilder.Add(declaredSymbolInfoIndex);
+                return;
             }
 
-            static string GetKey(KeyValuePair<string, ArrayBuilder<int>> kvp)
-                => kvp.Key;
+            if (!infoFactory.TryGetTargetTypeName(node, out var targetTypeName))
+            {
+                return;
+            }
 
-            static ImmutableArray<int> GetImmutableValue(KeyValuePair<string, ArrayBuilder<int>> kvp)
-                => kvp.Value.ToImmutableAndFree();
+            // complex type
+            if (targetTypeName == null)
+            {
+                complexInfoBuilder.Add(declaredSymbolInfoIndex);
+                return;
+            }
+
+            if (aliases.TryGetValue(targetTypeName, out var originalName))
+            {
+                targetTypeName = originalName;
+            }
+
+            // simple type
+            if (!simpleInfoBuilder.TryGetValue(targetTypeName, out var arrayBuilder))
+            {
+                arrayBuilder = ArrayBuilder<int>.GetInstance();
+                simpleInfoBuilder[targetTypeName] = arrayBuilder;
+            }
+
+            arrayBuilder.Add(declaredSymbolInfoIndex);
         }
 
         private static StringTable GetStringTable(Project project)

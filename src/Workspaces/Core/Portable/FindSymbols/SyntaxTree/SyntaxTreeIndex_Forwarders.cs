@@ -17,18 +17,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => SimpleExtensionMethodInfo.Count > 0 || ComplexExtensionMethodInfo.Length > 0;
 
-        public bool TryGetDeclaredSymbolInfo(int index, out DeclaredSymbolInfo declaredSymbolInfo)
-        {
-            if (index >= DeclaredSymbolInfos.Length)
-            {
-                declaredSymbolInfo = default;
-                return false;
-            }
-
-            declaredSymbolInfo = DeclaredSymbolInfos[index];
-            return true;
-        }
-
         public bool ProbablyContainsIdentifier(string identifier) => _identifierInfo.ProbablyContainsIdentifier(identifier);
         public bool ProbablyContainsEscapedIdentifier(string identifier) => _identifierInfo.ProbablyContainsEscapedIdentifier(identifier);
 

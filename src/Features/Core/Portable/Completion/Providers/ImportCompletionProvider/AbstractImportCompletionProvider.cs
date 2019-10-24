@@ -129,11 +129,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst, cancellationToken);
                 var documentWithImport = document.WithSyntaxRoot(rootWithImport);
+                // This only formats the annotated import we just added, not the entire document.
                 var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var builder = ArrayBuilder<TextChange>.GetInstance();
 
-                // Get text change for add improt
+                // Get text change for add import
                 var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
                 builder.AddRange(importChanges);
 

@@ -492,6 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             => method.ParameterList.Parameters.Count > 0 &&
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
 
+        // Root namespace is a VB only concept, which basically means root namespace is always global in C#.
         public override string GetRootNamespace(CompilationOptions compilationOptions)
             => string.Empty;
 

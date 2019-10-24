@@ -37,6 +37,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
     }
 
+    /// <summary>
+    /// Provides completion items for extension methods from unimported namespace.
+    /// </summary>
+    /// <remarks>It runs out-of-proc if it's enabled</remarks>
     internal static partial class ExtensionMethodImportCompletionService
     {
         private static readonly char[] s_dotSeparator = new char[] { '.' };
@@ -174,6 +178,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             using var symbolDisposer = ArrayBuilder<SymbolTreeInfo>.GetInstance(out var symbolBuilder);
             var peReferences = PooledHashSet<PortableExecutableReference>.GetInstance();
 
+            // We will only create missing indices in the following cases, neither would block completion.
+            // 1. User explicitly asked for them using expander. 
+            // 2. We are trying to populate the data in background.
             var shouldCreateIndex = isExpandedCompletion || isPrecalculation;
 
             try

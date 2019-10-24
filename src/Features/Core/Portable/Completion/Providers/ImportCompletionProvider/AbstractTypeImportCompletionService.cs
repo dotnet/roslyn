@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             {
                 IsPublic = 0x1,
                 IsGeneric = 0x2,
-                IsAttribute = 0x4
+                IsAttribute = 0x4,
             }
         }
     }
