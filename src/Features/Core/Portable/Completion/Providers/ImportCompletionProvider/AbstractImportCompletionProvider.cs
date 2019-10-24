@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var importedNamespaces = GetImportedNamespaces(syntaxContext.LeftToken.Parent, semanticModel, cancellationToken);
 
             // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>()!;
             var namespacesInScope = new HashSet<string>(importedNamespaces, syntaxFacts.StringComparer);
 
             // Get containing namespaces.
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
                 // Add required using/imports directive.                              
-                var addImportService = document.GetLanguageService<IAddImportsService>();
+                var addImportService = document.GetLanguageService<IAddImportsService>()!;
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
                 var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;

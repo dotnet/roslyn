@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = completionContext.Document;
             var project = document.Project;
             var workspace = project.Solution.Workspace;
-            var typeImportCompletionService = document.GetLanguageService<ITypeImportCompletionService>();
+            var typeImportCompletionService = document.GetLanguageService<ITypeImportCompletionService>()!;
 
             var tasksToGetCompletionItems = ArrayBuilder<Task<ImmutableArray<CompletionItem>>>.GetInstance();
 
