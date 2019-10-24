@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             for (int i = 0; i < statements.Length; i++)
             {
-                if (TryVisitPossibleUsingDeclaration(statements[i], statements, i))
+                if (VisitStatementsOneOrAll(statements[i], statements, i))
                 {
                     break;
                 }
@@ -1376,18 +1376,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// Visits a node that is possibly a using <see cref="IVariableDeclarationGroupOperation"/>
+        /// Either visits a single operation, or a using <see cref="IVariableDeclarationGroupOperation"/> and all subsequent statements
         /// </summary>
         /// <param name="operation">The statement to visit</param>
         /// <param name="statements">All statements in the block containing this node</param>
         /// <param name="startIndex">The current statement being visited in <paramref name="statements"/></param>
-        /// <returns>True if this visited a using <see cref="IVariableDeclarationGroupOperation"/> operation</returns>
+        /// <returns>True if this visited all of the statements</returns>
         /// <remarks>
         /// The operation being visited is not necessarily equal to statements[startIndex]. 
         /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
         /// as we haven't actually moved down the original statement list
         /// </remarks>
-        private bool TryVisitPossibleUsingDeclaration(IOperation operation, ImmutableArray<IOperation> statements, int startIndex)
+        private bool VisitStatementsOneOrAll(IOperation operation, ImmutableArray<IOperation> statements, int startIndex)
         {
             switch (operation)
             {
@@ -1395,12 +1395,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
                     VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
                     return true;
-                case ILabeledOperation labelOperation when labelOperation.Operation is object:
-                    VisitLabel(labelOperation.Label);
-                    return TryVisitPossibleUsingDeclaration(labelOperation.Operation, statements, startIndex);
+                case ILabeledOperation { Operation: { } } labelOperation:
+                    return visitPossibleUsingDeclarationInLabel(labelOperation);
                 default:
                     VisitStatement(operation);
                     return false;
+            }
+
+            bool visitPossibleUsingDeclarationInLabel(ILabeledOperation labelOperation)
+            {
+                var savedCurrentStatement = _currentStatement;
+                _currentStatement = labelOperation;
+
+                StartVisitingStatement(labelOperation);
+                VisitLabel(labelOperation.Label);
+                bool visitedAll = VisitStatementsOneOrAll(labelOperation.Operation, statements, startIndex);
+                FinishVisitingStatement(labelOperation);
+
+                _currentStatement = savedCurrentStatement;
+                return visitedAll;
             }
         }
 
@@ -5357,6 +5370,8 @@ oneMoreTime:
 
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
+            Debug.Assert(operation.DeclarationKind == VariableDeclarationKind.Default);
+
             // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
             // this should only be encountered by the visitor for declaration statements.
             StartVisitingStatement(operation);
