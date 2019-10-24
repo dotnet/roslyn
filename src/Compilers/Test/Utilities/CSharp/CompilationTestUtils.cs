@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         public static void CheckReducedExtensionMethod(IMethodSymbol reducedMethod, IMethodSymbol reducedFrom)
-        { 
+        {
             Assert.NotNull(reducedFrom);
             Assert.Equal(reducedMethod.ReducedFrom, reducedFrom);
             Assert.Null(reducedFrom.ReducedFrom);
