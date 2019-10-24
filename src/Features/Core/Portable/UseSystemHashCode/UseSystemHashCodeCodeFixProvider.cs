@@ -44,6 +44,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
+            if (declarationService == null)
+            {
+                return;
+            }
 
             var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (!Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))

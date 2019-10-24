@@ -45,7 +45,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             var operations = parentBlock.Operations;
             var index = operations.IndexOf(ifOperation);
-            var analyzer = CreateAnalyzer(document.GetLanguageService<ISyntaxFactsService>(), ifStatement.SyntaxTree.Options);
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService == null)
+            {
+                return;
+            }
+
+            var analyzer = CreateAnalyzer(syntaxFactsService, ifStatement.SyntaxTree.Options);
             var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
             if (sections.IsDefaultOrEmpty)
             {
