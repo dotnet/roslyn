@@ -199,5 +199,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
         }
+
+        public static async Task<SemanticModel> RequireSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return model ?? throw new InvalidOperationException();
+        }
     }
 }
