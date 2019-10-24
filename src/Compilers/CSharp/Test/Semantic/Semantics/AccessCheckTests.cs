@@ -691,7 +691,7 @@ public class A: C
         [Fact]
         public void AccessCheckApi_01()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            Compilation c = CreateCompilation(@"
 using System.Collections.Generic;
 using AliasForA = A;
 class A
@@ -726,117 +726,117 @@ class ADerived2: A
 {}
 ");
             Compilation compilation = c;
-            NamespaceSymbol globalNS = c.GlobalNamespace;
-            AssemblySymbol sourceAssem = c.SourceModule.ContainingAssembly;
-            AssemblySymbol mscorlibAssem = c.GetReferencedAssemblySymbol(c.ExternalReferences[0]);
-            NamedTypeSymbol classA = globalNS.GetMembers("A").Single() as NamedTypeSymbol;
-            var tree = c.SyntaxTrees[0];
+            INamespaceSymbol globalNS = c.GlobalNamespace;
+            IAssemblySymbol sourceAssem = c.SourceModule.ContainingAssembly;
+            IAssemblySymbol mscorlibAssem = ((CSharpCompilation)c).GetReferencedAssemblySymbol(c.ExternalReferences[0]).GetPublicSymbol();
+            INamedTypeSymbol classA = globalNS.GetMembers("A").Single() as INamedTypeSymbol;
+            var tree = c.SyntaxTrees.First();
             var model = c.GetSemanticModel(tree);
-            AliasSymbol aliasA = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(u => u.Alias != null).Single()) as AliasSymbol;
-            NamedTypeSymbol classADerived = globalNS.GetMembers("ADerived").Single() as NamedTypeSymbol;
-            NamedTypeSymbol classADerived2 = globalNS.GetMembers("ADerived2").Single() as NamedTypeSymbol;
-            NamedTypeSymbol classB = globalNS.GetMembers("B").Single() as NamedTypeSymbol;
-            NamedTypeSymbol classK = classA.GetMembers("K").Single() as NamedTypeSymbol;
-            FieldSymbol privField = classA.GetMembers("priv").Single() as FieldSymbol;
-            FieldSymbol pubField = classA.GetMembers("pub").Single() as FieldSymbol;
-            FieldSymbol protField = classA.GetMembers("prot").Single() as FieldSymbol;
-            TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type;
-            TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type;
-            TypeSymbol kptrType = (classA.GetMembers("kptr").Single() as FieldSymbol).Type;
-            TypeSymbol aptrType = (classA.GetMembers("aptr").Single() as FieldSymbol).Type;
-            TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type;
-            TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type;
+            IAliasSymbol aliasA = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(u => u.Alias != null).Single()) as IAliasSymbol;
+            INamedTypeSymbol classADerived = globalNS.GetMembers("ADerived").Single() as INamedTypeSymbol;
+            INamedTypeSymbol classADerived2 = globalNS.GetMembers("ADerived2").Single() as INamedTypeSymbol;
+            INamedTypeSymbol classB = globalNS.GetMembers("B").Single() as INamedTypeSymbol;
+            INamedTypeSymbol classK = classA.GetMembers("K").Single() as INamedTypeSymbol;
+            IFieldSymbol privField = classA.GetMembers("priv").Single() as IFieldSymbol;
+            IFieldSymbol pubField = classA.GetMembers("pub").Single() as IFieldSymbol;
+            IFieldSymbol protField = classA.GetMembers("prot").Single() as IFieldSymbol;
+            ITypeSymbol karrayType = (classA.GetMembers("karray").Single() as IFieldSymbol).Type;
+            ITypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as IFieldSymbol).Type;
+            ITypeSymbol kptrType = (classA.GetMembers("kptr").Single() as IFieldSymbol).Type;
+            ITypeSymbol aptrType = (classA.GetMembers("aptr").Single() as IFieldSymbol).Type;
+            ITypeSymbol kenumType = (classA.GetMembers("kenum").Single() as IFieldSymbol).Type;
+            ITypeSymbol aenumType = (classA.GetMembers("aenum").Single() as IFieldSymbol).Type;
             var discards = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken).ToArray();
-            DiscardSymbol kdiscard = (DiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
-            DiscardSymbol adiscard = (DiscardSymbol)model.GetSymbolInfo(discards[1]).Symbol;
-            TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type;
+            IDiscardSymbol kdiscard = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            IDiscardSymbol adiscard = (IDiscardSymbol)model.GetSymbolInfo(discards[1]).Symbol;
+            ITypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as IFieldSymbol).Type;
 
             ISymbol nullSymbol = null;
             Assert.Throws<ArgumentNullException>(() => { compilation.IsSymbolAccessibleWithin(classA, nullSymbol); });
             Assert.Throws<ArgumentNullException>(() => { compilation.IsSymbolAccessibleWithin(nullSymbol, classA); });
             Assert.Throws<ArgumentException>(() => { compilation.IsSymbolAccessibleWithin(classA, pubField); });
 
-            Assert.True(Symbol.IsSymbolAccessible(classA, classB));
+            Assert.True(Symbol.IsSymbolAccessible(classA.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(classA, classB));
-            Assert.True(Symbol.IsSymbolAccessible(aliasA, classB));
+            Assert.True(Symbol.IsSymbolAccessible(aliasA.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aliasA, classB));
-            Assert.True(Symbol.IsSymbolAccessible(pubField, classB));
+            Assert.True(Symbol.IsSymbolAccessible(pubField.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(pubField, classB));
-            Assert.False(Symbol.IsSymbolAccessible(privField, classB));
+            Assert.False(Symbol.IsSymbolAccessible(privField.GetSymbol(), classB.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(privField, classB));
-            Assert.False(Symbol.IsSymbolAccessible(karrayType, classB));
+            Assert.False(Symbol.IsSymbolAccessible(karrayType.GetSymbol(), classB.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, classB));
-            Assert.True(Symbol.IsSymbolAccessible(aarrayType, classB));
+            Assert.True(Symbol.IsSymbolAccessible(aarrayType.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aarrayType, classB));
-            Assert.False(Symbol.IsSymbolAccessible(kptrType, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kptrType.GetSymbol(), classB.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kptrType, classB));
-            Assert.True(Symbol.IsSymbolAccessible(aptrType, classB));
+            Assert.True(Symbol.IsSymbolAccessible(aptrType.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aptrType, classB));
-            Assert.False(Symbol.IsSymbolAccessible(kdiscard, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kdiscard.GetSymbol(), classB.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kdiscard, classB));
-            Assert.True(Symbol.IsSymbolAccessible(adiscard, classB));
+            Assert.True(Symbol.IsSymbolAccessible(adiscard.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(adiscard, classB));
-            Assert.False(Symbol.IsSymbolAccessible(kenumType, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kenumType.GetSymbol(), classB.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kenumType, classB));
-            Assert.True(Symbol.IsSymbolAccessible(aenumType, classB));
+            Assert.True(Symbol.IsSymbolAccessible(aenumType.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aenumType, classB));
-            Assert.True(Symbol.IsSymbolAccessible(unknownType, classB));
+            Assert.True(Symbol.IsSymbolAccessible(unknownType.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, classB));
-            Assert.True(Symbol.IsSymbolAccessible(globalNS, classB));
+            Assert.True(Symbol.IsSymbolAccessible(globalNS.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(globalNS, classB));
-            Assert.True(Symbol.IsSymbolAccessible(protField, classA));
+            Assert.True(Symbol.IsSymbolAccessible(protField.GetSymbol(), classA.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA));
-            Assert.True(Symbol.IsSymbolAccessible(protField, classA, classADerived));
+            Assert.True(Symbol.IsSymbolAccessible(protField.GetSymbol(), classA.GetSymbol(), classADerived.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA, classADerived));
-            Assert.False(Symbol.IsSymbolAccessible(protField, classB));
+            Assert.False(Symbol.IsSymbolAccessible(protField.GetSymbol(), classB.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(protField, classB));
-            Assert.False(Symbol.IsSymbolAccessible(protField, classB, classADerived));
+            Assert.False(Symbol.IsSymbolAccessible(protField.GetSymbol(), classB.GetSymbol(), classADerived.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(protField, classB, classADerived));
-            Assert.True(Symbol.IsSymbolAccessible(protField, classA));
+            Assert.True(Symbol.IsSymbolAccessible(protField.GetSymbol(), classA.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA));
-            Assert.True(Symbol.IsSymbolAccessible(protField, classADerived, classADerived));
+            Assert.True(Symbol.IsSymbolAccessible(protField.GetSymbol(), classADerived.GetSymbol(), classADerived.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(protField, classADerived, classADerived));
-            Assert.False(Symbol.IsSymbolAccessible(protField, classADerived, classADerived2));
+            Assert.False(Symbol.IsSymbolAccessible(protField.GetSymbol(), classADerived.GetSymbol(), classADerived2.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(protField, classADerived, classADerived2));
 
-            Assert.True(Symbol.IsSymbolAccessible(classA, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(classA.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(classA, sourceAssem));
-            Assert.True(Symbol.IsSymbolAccessible(aliasA, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(aliasA.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aliasA, sourceAssem));
-            Assert.True(Symbol.IsSymbolAccessible(aarrayType, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(aarrayType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aarrayType, sourceAssem));
-            Assert.False(Symbol.IsSymbolAccessible(karrayType, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(karrayType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, sourceAssem));
-            Assert.True(Symbol.IsSymbolAccessible(aptrType, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(aptrType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aptrType, sourceAssem));
-            Assert.False(Symbol.IsSymbolAccessible(kptrType, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(kptrType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kptrType, sourceAssem));
-            Assert.True(Symbol.IsSymbolAccessible(adiscard, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(adiscard.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(adiscard, sourceAssem));
-            Assert.False(Symbol.IsSymbolAccessible(kdiscard, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(kdiscard.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kdiscard, sourceAssem));
-            Assert.False(Symbol.IsSymbolAccessible(classA, mscorlibAssem));
+            Assert.False(Symbol.IsSymbolAccessible(classA.GetSymbol(), mscorlibAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(classA, mscorlibAssem));
-            Assert.False(Symbol.IsSymbolAccessible(aliasA, mscorlibAssem));
+            Assert.False(Symbol.IsSymbolAccessible(aliasA.GetSymbol(), mscorlibAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(aliasA, mscorlibAssem));
-            Assert.True(Symbol.IsSymbolAccessible(unknownType, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(unknownType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, sourceAssem));
-            Assert.True(Symbol.IsSymbolAccessible(mscorlibAssem, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(mscorlibAssem.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(mscorlibAssem, sourceAssem));
 
-            CSharpCompilation otherC = CreateCompilation(@"
+            Compilation otherC = CreateCompilation(@"
 class Other
 {
 }");
-            NamespaceSymbol otherGlobalNS = otherC.GlobalNamespace;
-            NamedTypeSymbol classOther = otherGlobalNS.GetMembers("Other").Single() as NamedTypeSymbol;
+            INamespaceSymbol otherGlobalNS = otherC.GlobalNamespace;
+            INamedTypeSymbol classOther = otherGlobalNS.GetMembers("Other").Single() as INamedTypeSymbol;
             Assert.Throws<ArgumentException>(() => { compilation.IsSymbolAccessibleWithin(classA, classOther); });
         }
 
         [Fact]
         public void AccessCheckApi_02()
         {
-            CSharpCompilation c1 = CreateCompilation(@"
+            Compilation c1 = CreateCompilation(@"
 using SomeAlias = System.Int32;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C3"")]
 internal class Outer
@@ -864,12 +864,12 @@ internal class Derived : Outer
 }
 ");
             Compilation compilation1 = c1;
-            var tree = c1.SyntaxTrees[0];
+            var tree = c1.SyntaxTrees.First();
             var model = c1.GetSemanticModel(tree);
             IAliasSymbol SomeAlias = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(u => u.Alias != null).Single());
             INamespaceSymbol globalNS = c1.GlobalNamespace;
             IAssemblySymbol sourceAssem = c1.SourceModule.ContainingAssembly;
-            IAssemblySymbol mscorlibAssem = c1.GetReferencedAssemblySymbol(c1.ExternalReferences[0]);
+            IAssemblySymbol mscorlibAssem = ((CSharpCompilation)c1).GetReferencedAssemblySymbol(c1.ExternalReferences[0]).GetPublicSymbol();
             INamedTypeSymbol Outer = globalNS.GetMembers("Outer").Single() as INamedTypeSymbol;
             INamedTypeSymbol Outer_Inner = Outer.GetMembers("Inner").Single() as INamedTypeSymbol;
             IFieldSymbol Outer_Inner_Field = Outer_Inner.GetMembers("Field").Single() as IFieldSymbol;
@@ -900,14 +900,14 @@ internal class Derived : Outer
             Assert.False(compilation1.IsSymbolAccessibleWithin(Outer_Protected, sourceAssem));
             Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_Protected, Outer_Inner));
 
-            CSharpCompilation c2 = CreateCompilation(@"
+           Compilation c2 = CreateCompilation(@"
 internal class InOtherCompilation
 {
 }
 ");
             INamedTypeSymbol InOtherCompilation = c2.GlobalNamespace.GetMember("InOtherCompilation") as INamedTypeSymbol;
 
-            CSharpCompilation c3 = CreateCompilation(@"
+            Compilation c3 = CreateCompilation(@"
 internal class InFriendCompilation
 {
 }
@@ -928,8 +928,8 @@ internal class InFriendCompilation
             Compilation compilation = c;
             c.VerifyDiagnostics();
             Assert.NotNull(c.GetReferencedAssemblySymbol(r1));
-            var classC = c.GlobalNamespace.GetMembers("C").OfType<INamedTypeSymbol>().Single();
-            var classQ = c.GlobalNamespace.GetMembers("Q").OfType<INamedTypeSymbol>().Single();
+            var classC = compilation.GlobalNamespace.GetMembers("C").OfType<INamedTypeSymbol>().Single();
+            var classQ = compilation.GlobalNamespace.GetMembers("Q").OfType<INamedTypeSymbol>().Single();
             Assert.True(compilation.IsSymbolAccessibleWithin(classC, classQ));
 
             c = CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(TargetFramework.Standard).AddRange(new[] { r1, r2 }));
@@ -938,11 +938,11 @@ internal class InFriendCompilation
             // duplicate assembly results in no assembly symbol
             Assert.Null(c.GetReferencedAssemblySymbol(r1));
             // The variable classC represents a symbol from r1, which did not result in any symbols in c
-            var c2 = c.GlobalNamespace.GetMembers("C").OfType<INamedTypeSymbol>().Single();
+            var c2 = ((Compilation)c).GlobalNamespace.GetMembers("C").OfType<INamedTypeSymbol>().Single();
             Assert.NotEqual(classC, c2);
 
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2));
-            classQ = c.GlobalNamespace.GetMembers("Q").OfType<INamedTypeSymbol>().Single();
+            classQ = ((Compilation)c).GlobalNamespace.GetMembers("Q").OfType<INamedTypeSymbol>().Single();
             // the below should not throw a null reference exception.
             Assert.Throws<ArgumentException>(() => compilation.IsSymbolAccessibleWithin(classC, classQ));
         }

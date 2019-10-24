@@ -73,7 +73,7 @@ public class ClassA
                             data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
                             9, 10, 11);
 
-            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetType().Name);
+            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetSymbol().GetType().Name);
             Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
 
             Assert.Equal(info0.Type, info2.Type);
@@ -1058,7 +1058,14 @@ public class ClassA
 
         #region "AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit"
 
-        private void CheckAnonymousType(ITypeSymbol type, string name, string metadataName)
+        private static void CheckAnonymousType(TypeSymbol type, string name, string metadataName)
+        {
+            Assert.NotNull(type);
+            Assert.Equal(name, type.Name);
+            Assert.Equal(metadataName, type.MetadataName);
+        }
+
+        private static void CheckAnonymousType(ITypeSymbol type, string name, string metadataName)
         {
             Assert.NotNull(type);
             Assert.Equal(name, type.Name);
@@ -1866,14 +1873,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 
         private void AssertCannotConstruct(ISymbol type)
         {
-            var namedType = type as NamedTypeSymbol;
+            var namedType = type as INamedTypeSymbol;
             Assert.NotNull(namedType);
 
-            var objType = namedType.BaseType();
+            var objType = namedType.BaseType;
             Assert.NotNull(objType);
             Assert.Equal("System.Object", objType.ToTestDisplayString());
 
-            TypeSymbol[] args = new TypeSymbol[namedType.Arity];
+            ITypeSymbol[] args = new ITypeSymbol[namedType.Arity];
             for (int i = 0; i < namedType.Arity; i++)
             {
                 args[i] = objType;
@@ -1906,7 +1913,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 
         private void CheckFieldNameAndLocation(TestData data, ITypeSymbol type, SyntaxNode identifier)
         {
-            var anonymousType = (NamedTypeSymbol)type;
+            var anonymousType = (INamedTypeSymbol)type;
 
             var current = identifier;
             while (current.Span == identifier.Span && !current.IsKind(SyntaxKind.IdentifierName))
@@ -1919,13 +1926,13 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             var span = node.Span;
             var fieldName = node.ToString();
 
-            var property = anonymousType.GetMember<PropertySymbol>(fieldName);
+            var property = anonymousType.GetMember<IPropertySymbol>(fieldName);
             Assert.NotNull(property);
             Assert.Equal(fieldName, property.Name);
             Assert.Equal(1, property.Locations.Length);
             Assert.Equal(span, property.Locations[0].SourceSpan);
 
-            MethodSymbol getter = property.GetMethod;
+            IMethodSymbol getter = property.GetMethod;
             Assert.NotNull(getter);
             Assert.Equal("get_" + fieldName, getter.Name);
         }

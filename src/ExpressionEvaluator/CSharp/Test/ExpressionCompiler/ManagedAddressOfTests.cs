@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(methodData.Method.ReturnType);
+                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(methodData.Method.ReturnType);
+                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(methodData.Method.ReturnType);
+                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        8 (0x8)
@@ -239,7 +239,7 @@ enum E
             });
         }
 
-        private static void AssertIsIntPtrPointer(ITypeSymbol returnType)
+        private static void AssertIsIntPtrPointer(TypeSymbol returnType)
         {
             Assert.Equal(TypeKind.Pointer, returnType.TypeKind);
             Assert.Equal(SpecialType.System_IntPtr, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);

@@ -132,7 +132,7 @@ public class C
                 },
                 comp =>
                 {
-                    var c = comp.GetTypeByMetadataName("C");
+                    var c = ((Compilation)comp).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IFieldSymbol>().ToArray();
                 },
                 member => member.NullableAnnotation,
@@ -194,7 +194,7 @@ public class C
                 },
                 comp =>
                 {
-                    var c = comp.GetTypeByMetadataName("C");
+                    var c = ((Compilation)comp).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IPropertySymbol>().ToArray();
                 },
                 member => member.NullableAnnotation,
@@ -263,7 +263,7 @@ public class C
                 },
                 compilation =>
                 {
-                    var c = compilation.GetTypeByMetadataName("C");
+                    var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).ToArray();
                 },
                 member => member.ReturnNullableAnnotation,
@@ -347,7 +347,7 @@ public class C
                 },
                 compilation =>
                 {
-                    var c = compilation.GetTypeByMetadataName("C");
+                    var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                     return c.GetMembers("M1").OfType<IMethodSymbol>().Single().Parameters.ToArray();
                 },
                 member => member.NullableAnnotation,
@@ -445,7 +445,7 @@ public static class Ext
 
             void verifyCompilation(CSharpCompilation compilation)
             {
-                var c = compilation.GetTypeByMetadataName("C");
+                var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                 var members = c.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).ToArray();
                 assertNullability(members,
                     PublicNullableAnnotation.None,
@@ -453,7 +453,7 @@ public static class Ext
                     PublicNullableAnnotation.None,
                     PublicNullableAnnotation.NotAnnotated);
 
-                var e = compilation.GetTypeByMetadataName("Ext");
+                var e = ((Compilation)compilation).GetTypeByMetadataName("Ext");
                 members = e.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).Select(m => m.ReduceExtensionMethod(m.Parameters[0].Type)).ToArray();
                 assertNullability(members,
                     PublicNullableAnnotation.NotAnnotated,
@@ -593,7 +593,7 @@ public class C
                 },
                 compilation =>
                 {
-                    var c = compilation.GetTypeByMetadataName("C");
+                    var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IEventSymbol>().ToArray();
                 },
                 member => member.NullableAnnotation,
@@ -645,7 +645,7 @@ public class C
                     //     object?[] F6();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(10, 11)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
                 method => ((IArrayTypeSymbol)method.ReturnType).ElementNullableAnnotation,
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
@@ -703,7 +703,7 @@ public interface I<T, U, V>
                     //     U? F8();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 6)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
                 method => method.ReturnNullableAnnotation,
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
@@ -763,7 +763,7 @@ public interface I
                     //     A<string?> F6();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 13)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
                 method => ((INamedTypeSymbol)((INamedTypeSymbol)method.ReturnType).GetMembers("B").Single()).TypeParameters.Single().ConstraintNullableAnnotations.Single(),
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
@@ -824,7 +824,7 @@ public interface IB<T, U, V>
                     //     IA<U?> F8();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 9)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("IB")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("IB")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
                 method => ((INamedTypeSymbol)method.ReturnType).TypeArgumentNullableAnnotations.Single(),
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
@@ -1116,13 +1116,13 @@ class E
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = (Compilation)CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var d = (D)(C?)new B();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)(C?)new B()").WithLocation(10, 17));
 
-            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxTree = comp.SyntaxTrees.First();
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 

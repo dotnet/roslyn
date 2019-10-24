@@ -3897,7 +3897,7 @@ public class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
-            Assert.Equal(SpecialType.System_Int32, ((ArrayTypeSymbol)model.GetTypeInfo(left).Type).ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((IArrayTypeSymbol)model.GetTypeInfo(left).Type).ElementType.SpecialType);
 
             var right = ((RefExpressionSyntax)assignment.Right).Expression;
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
@@ -3925,7 +3925,7 @@ public unsafe class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var left = ((PrefixUnaryExpressionSyntax)assignment.Left).Operand;
-            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
 
             var right = ((RefExpressionSyntax)assignment.Right).Expression;
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
@@ -3953,7 +3953,7 @@ public unsafe class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
-            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
 
             var right = ((RefExpressionSyntax)assignment.Right).Expression;
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);

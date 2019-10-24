@@ -8793,9 +8793,9 @@ class Target<T>
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
 
-            var typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            var typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
 
             var comp2 = CreateCompilation("", new[] { comp.EmitToImageReference() });
@@ -8803,9 +8803,9 @@ class Target<T>
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(type);
 
-            typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
         }
 
