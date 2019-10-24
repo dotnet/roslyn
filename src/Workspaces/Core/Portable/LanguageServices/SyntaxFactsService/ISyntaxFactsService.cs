@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
         bool IsQualifiedName(SyntaxNode node);
+        bool IsUsingAliasDirective(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);
@@ -454,8 +455,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
 
         bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
-
-        bool IsUsingAliasDirective(SyntaxNode node);
     }
 
     [Flags]

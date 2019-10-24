@@ -200,6 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((UsingDirectiveSyntax)node.Parent).Name == node;
         }
 
+        public bool IsUsingAliasDirective(SyntaxNode node)
+            => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
+
         public bool IsForEachStatement(SyntaxNode node)
             => node is ForEachStatementSyntax;
 
@@ -1936,8 +1939,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => CSharpSyntaxGenerator.GetAttributeLists(node);
-
-        public bool IsUsingAliasDirective(SyntaxNode node)
-            => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
     }
 }

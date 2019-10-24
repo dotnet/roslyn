@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -294,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Dim parameterCount = node.SubOrFunctionStatement.ParameterList?.Parameters.Count
 
             ' Extension method must have at least one parameter and declared inside a module
-            If Not parameterCount.HasValue Or parameterCount.Value = 0 Or TypeOf node.Parent IsNot ModuleBlockSyntax Then
+            If Not parameterCount.HasValue OrElse parameterCount.Value = 0 OrElse TypeOf node.Parent IsNot ModuleBlockSyntax Then
                 Return False
             End If
 
@@ -462,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             If funcDecl IsNot Nothing And IsExtensionMethod(funcDecl) Then
 
                 Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
-                targetTypeName = GetTargetTypeName(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames)
+                TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName)
                 Return True
             End If
 
@@ -470,36 +471,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return False
         End Function
 
-        Private Function GetTargetTypeName(typeSyntax As TypeSyntax, typeParameterNames As ImmutableArray(Of String)?) As String
+        Public Overrides Function TryGetAliasesFromUsingDirective(node As SyntaxNode, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean
 
-            If TypeOf typeSyntax Is IdentifierNameSyntax Then
-                Dim identifierName = DirectCast(typeSyntax, IdentifierNameSyntax)
-                Dim text = identifierName.Identifier.Text
-                Return If(typeParameterNames?.Contains(text), Nothing, text)
+            Dim importStatement = TryCast(node, ImportsStatementSyntax)
+            Dim builder = ArrayBuilder(Of (String, String)).GetInstance()
 
-            ElseIf TypeOf typeSyntax Is GenericNameSyntax Then
-                Dim genericName = DirectCast(typeSyntax, GenericNameSyntax)
-                Dim name = genericName.Identifier.Text
-                Dim arity = genericName.Arity
-                Return If(arity = 0, name, name + GetMetadataAritySuffix(arity))
+            If (importStatement IsNot Nothing) Then
+                For Each importsClause In importStatement.ImportsClauses
 
-            ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
-                ' For an identifier to the right of a '.', it can't be a type parameter,
-                ' so we don't need to check for it further.
-                Dim qualifiedName = DirectCast(typeSyntax, QualifiedNameSyntax)
-                Return GetTargetTypeName(qualifiedName.Right, Nothing)
+                    If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
+                        Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
+                        Dim aliasName, name As String
 
-            ElseIf TypeOf typeSyntax Is NullableTypeSyntax Then
-                Return GetTypeName(DirectCast(typeSyntax, NullableTypeSyntax).ElementType)
+#Disable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
+                        If simpleImportsClause.Alias IsNot Nothing And
+                            TryGetSimpleTypeNameWorker(simpleImportsClause.Alias, Nothing, aliasName) And
+                            TryGetSimpleTypeNameWorker(simpleImportsClause, Nothing, name) Then
+#Enable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
 
-            ElseIf TypeOf typeSyntax Is PredefinedTypeSyntax Then
-                Return GetSpecialTypeName(DirectCast(typeSyntax, PredefinedTypeSyntax))
+                            builder.Add((aliasName, name))
+                        End If
+                    End If
+                Next
+
+                aliases = builder.ToImmutableAndFree()
+                Return True
             End If
 
-            Return Nothing
+            aliases = Nothing
+            Return False
         End Function
 
-        Private Function GetSpecialTypeName(predefinedTypeNode As PredefinedTypeSyntax) As String
+        Private Shared Function TryGetSimpleTypeNameWorker(node As SyntaxNode, typeParameterNames As ImmutableArray(Of String)?, ByRef simpleTypeName As String) As Boolean
+            If TypeOf node Is IdentifierNameSyntax Then
+                Dim identifierName = DirectCast(node, IdentifierNameSyntax)
+                Dim text = identifierName.Identifier.Text
+                simpleTypeName = If(typeParameterNames?.Contains(text), Nothing, text)
+                Return simpleTypeName IsNot Nothing
+
+            ElseIf TypeOf node Is GenericNameSyntax Then
+                Dim genericName = DirectCast(node, GenericNameSyntax)
+                Dim name = genericName.Identifier.Text
+                Dim arity = genericName.Arity
+                simpleTypeName = If(arity = 0, name, name + GetMetadataAritySuffix(arity))
+                Return True
+
+            ElseIf TypeOf node Is QualifiedNameSyntax Then
+                ' For an identifier to the right of a '.', it can't be a type parameter,
+                ' so we don't need to check for it further.
+                Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)
+                Return TryGetSimpleTypeNameWorker(qualifiedName.Right, Nothing, simpleTypeName)
+
+            ElseIf TypeOf node Is NullableTypeSyntax Then
+                Return TryGetSimpleTypeNameWorker(DirectCast(node, NullableTypeSyntax).ElementType, typeParameterNames, simpleTypeName)
+
+            ElseIf TypeOf node Is PredefinedTypeSyntax Then
+                simpleTypeName = GetSpecialTypeName(DirectCast(node, PredefinedTypeSyntax))
+                Return simpleTypeName IsNot Nothing
+            End If
+
+            simpleTypeName = Nothing
+            Return False
+        End Function
+
+        Private Shared Function GetSpecialTypeName(predefinedTypeNode As PredefinedTypeSyntax) As String
             Select Case predefinedTypeNode.Keyword.Kind()
                 Case SyntaxKind.BooleanKeyword
                     Return "Boolean"

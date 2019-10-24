@@ -24,15 +24,14 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
             TargetTypeCompletionTicks,
 
+            ExtensionMethodCompletionSuccessCount,
+            // following are only reported when sucessful (i.e. filter is available)
             ExtensionMethodCompletionTicks,
             ExtensionMethodCompletionMethodsProvided,
-            ExtensionMethodCompletionGetFilterTicks,    // only reported when filter is available
-            ExtensionMethodCompletionGetSymbolWithFilterTicks,
-            ExtensionMethodCompletionGetSymbolNoFilterTicks,
-            ExtensionMethodCompletionTypesCheckedWithFilter,
-            ExtensionMethodCompletionTypesCheckedNoFilter,
-            ExtensionMethodCompletionMethodsCheckedWithFilter,
-            ExtensionMethodCompletionMethodsCheckedNoFilter
+            ExtensionMethodCompletionGetFilterTicks,
+            ExtensionMethodCompletionGetSymbolTicks,
+            ExtensionMethodCompletionTypesChecked,
+            ExtensionMethodCompletionMethodsChecked,
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count) =>
@@ -51,27 +50,26 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
 
 
+        internal static void LogExtensionMethodCompletionSuccess() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionSuccessCount);
+
         internal static void LogExtensionMethodCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
+
         internal static void LogExtensionMethodCompletionGetFilterTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetFilterTicks, count);
 
-        internal static void LogExtensionMethodCompletionGetSymbolWithFilterTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolWithFilterTicks, count);
-        internal static void LogExtensionMethodCompletionGetSymbolNoFilterTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolNoFilterTicks, count);
+        internal static void LogExtensionMethodCompletionGetSymbolTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolTicks, count);
 
-        internal static void LogExtensionMethodCompletionTypesCheckedWithFilterDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTypesCheckedWithFilter, count);
-        internal static void LogExtensionMethodCompletionTypesCheckedNoFilterDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTypesCheckedNoFilter, count);
+        internal static void LogExtensionMethodCompletionTypesCheckedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTypesChecked, count);
 
-        internal static void LogExtensionMethodCompletionMethodsCheckedWithFilterDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsCheckedWithFilter, count);
-        internal static void LogExtensionMethodCompletionMethodsCheckedNoFilterDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsCheckedNoFilter, count);
+        internal static void LogExtensionMethodCompletionMethodsCheckedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsChecked, count);
 
 
         internal static void ReportTelemetry()

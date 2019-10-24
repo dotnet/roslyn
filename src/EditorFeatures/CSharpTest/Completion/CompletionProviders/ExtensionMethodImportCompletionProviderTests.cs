@@ -203,6 +203,196 @@ namespace Baz
 
         [MemberData(nameof(ReferenceTypeData))]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UsingAliasInDeclaration_PrimitiveType(ReferenceType refType)
+        {
+            var file1 = $@"
+using System;
+using MyInt = System.Int32;
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this MyInt x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, refType);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [MemberData(nameof(ReferenceTypeData))]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UsingAliasInDeclaration_RegularType(ReferenceType refType)
+        {
+            var file1 = $@"
+using System;
+using MyAlias = System.Exception;
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this MyAlias x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(Exception x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, refType);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [MemberData(nameof(ReferenceTypeData))]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UsingAliasInDeclaration_GenericType(ReferenceType refType)
+        {
+            var file1 = $@"
+using System;
+using MyAlias = System.Collections.Generic.List<int>;
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this MyAlias x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(System.Collections.Generic.List<int> x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, refType);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [MemberData(nameof(ReferenceTypeData))]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UsingAliasInDeclaration_RegularTypeWithSameSimpleName(ReferenceType refType)
+        {
+            var file1 = $@"
+using DataTime = System.Exception;
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this System.DateTime x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(DateTime x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, refType);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [MemberData(nameof(ReferenceTypeData))]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UsingAliasInDeclaration_Namespace(ReferenceType refType)
+        {
+            var file1 = $@"
+using System;
+using GenericCollection = System.Collections.Generic;
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod<T>(this GenericCollection.List<T> x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(System.Collections.Generic.List<int> x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, refType);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 displayTextSuffix: "<>",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [MemberData(nameof(ReferenceTypeData))]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingAliasInUsage(ReferenceType refType)
         {
             var file1 = $@"
@@ -533,6 +723,53 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestConflictingInternalExtensionMethods_NoIVT_InReference(ReferenceType refType)
+        {
+            var file1 = $@"
+using System;
+
+namespace Foo
+{{
+    internal static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this int x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Foo
+{{
+    internal static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this int x)
+            => true;
+    }}
+}}
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = GetMarkup(file2, file1, refType);
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInternalExtensionMethods_NoIVT_InSameProject()
         {
@@ -569,9 +806,9 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
+        // SymbolTreeInfo explicitly ignores non-public types from metadata(likely for perf reasons). So we don't need to test internals in PE reference
         [InlineData(ReferenceType.None)]
         [InlineData(ReferenceType.Project)]
-        [InlineData(ReferenceType.Metadata, Skip = "SymbolTreeInfo explicitly ignores non-public types from metadata(likely for perf reasons). Need to decide if this is the design we'd like.")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInternalExtensionMethods_WithIVT(ReferenceType refType)
         {
@@ -819,42 +1056,6 @@ namespace Baz
                  markup,
                  "ExtentionMethod",
                  inlineDescription: "");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ShouldNotProvideItemsIfIndexIsNotReady()
-        {
-            var file1 = $@"
-using System;
-
-namespace Foo
-{{
-    public static class ExtensionClass
-    {{
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }}
-}}";
-            var file2 = $@"
-using System;
-
-namespace Baz
-{{
-    public class Bat
-    {{
-        public void M(int x)
-        {{
-            x.$$
-        }}
-    }}
-}}";
-            IsExpandedCompletion = false;
-            var markup = GetMarkup(file2, file1, ReferenceType.Project);
-
-            await VerifyTypeImportItemIsAbsentAsync(
-                 markup,
-                 "ExtentionMethod",
-                 inlineDescription: "Foo");
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)

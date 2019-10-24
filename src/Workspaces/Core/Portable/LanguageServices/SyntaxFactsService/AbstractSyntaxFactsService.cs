@@ -100,6 +100,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         public abstract bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName);
 
+        public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
+
         public abstract string GetRootNamespace(CompilationOptions compilationOptions);
     }
 

@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         bool TryGetTargetTypeName(SyntaxNode node, out string instanceTypeName);
 
+        bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
+
         string GetRootNamespace(CompilationOptions compilationOptions);
     }
 
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
 
             var rootNamespace = infoFactory.GetRootNamespace(project.CompilationOptions);
+            var usingAliases = PooledDictionary<string, string>.GetInstance();
 
             try
             {
@@ -83,7 +86,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsDeconstruction = false;
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
-                var containsUsingAliasDirective = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -114,7 +116,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
 
-                            containsUsingAliasDirective = containsUsingAliasDirective || syntaxFacts.IsUsingAliasDirective(node);
+                            if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
+                            {
+                                foreach (var (aliasName, name) in aliases)
+                                {
+                                    Debug.Assert(!usingAliases.ContainsKey(aliasName));
+                                    usingAliases[aliasName] = name;
+                                }
+                            }
 
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
@@ -136,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     AddExtensionMethodInfo(
                                         infoFactory,
                                         node,
-                                        containsUsingAliasDirective,
+                                        usingAliases,
                                         declaredSymbolInfoIndex,
                                         declaredSymbolInfo,
                                         simpleExtensionMethodInfoBuilder,
@@ -249,12 +258,13 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
                 simpleExtensionMethodInfoBuilder.Free();
                 complexExtensionMethodInfoBuilder.Free();
+                usingAliases.Free();
             }
 
             static void AddExtensionMethodInfo(
                 IDeclaredSymbolInfoFactoryService infoFactory,
                 SyntaxNode node,
-                bool containsUsingAliasDirective,
+                PooledDictionary<string, string> aliases,
                 int declaredSymbolInfoIndex,
                 DeclaredSymbolInfo declaredSymbolInfo,
                 PooledDictionary<string, ArrayBuilder<int>> simpleInfoBuilder,
@@ -262,14 +272,6 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             {
                 if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
                 {
-                    return;
-                }
-
-                // If there's using alias, we don't even try to figure out if the alias is related
-                // to the target type, simply treated it as complex type.
-                if (containsUsingAliasDirective)
-                {
-                    complexInfoBuilder.Add(declaredSymbolInfoIndex);
                     return;
                 }
 
@@ -283,6 +285,11 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 {
                     complexInfoBuilder.Add(declaredSymbolInfoIndex);
                     return;
+                }
+
+                if (aliases.TryGetValue(targetTypeName, out var originalName))
+                {
+                    targetTypeName = originalName;
                 }
 
                 // simple type

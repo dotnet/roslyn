@@ -495,78 +495,98 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         public override string GetRootNamespace(CompilationOptions compilationOptions)
             => string.Empty;
 
+        public override bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases)
+        {
+            if (node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null)
+            {
+                if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName) &&
+                    TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name))
+                {
+                    aliases = ImmutableArray.Create<(string, string)>((aliasName, name));
+                    return true;
+                }
+            }
+
+            aliases = default;
+            return false;
+        }
+
         public override bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName)
         {
             if (node is MethodDeclarationSyntax methodDeclaration && IsExtensionMethod(methodDeclaration))
             {
                 var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
-                targetTypeName = GetTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames);
+                TryGetSimpleTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames, out targetTypeName);
+
+                // We always return true here, which indicates we have a valid taget type name. (which would be null for a complex type though).
                 return true;
             }
 
             targetTypeName = null;
             return false;
+        }
 
-            static string GetTypeName(TypeSyntax typeNode, ImmutableArray<string>? typeParameterNames)
+        private static bool TryGetSimpleTypeName(SyntaxNode node, ImmutableArray<string>? typeParameterNames, out string simpleTypeName)
+        {
+            if (node is TypeSyntax typeNode)
             {
                 switch (typeNode)
                 {
                     case IdentifierNameSyntax identifierNameNode:
-                        // We consider it a complext method if the receiver type is a type parameter.
+                        // We consider it a complex method if the receiver type is a type parameter.
                         var text = identifierNameNode.Identifier.Text;
-                        return typeParameterNames?.Contains(text) == true
-                            ? null
-                            : text;
+                        simpleTypeName = typeParameterNames?.Contains(text) == true ? null : text;
+                        return simpleTypeName != null;
 
                     case GenericNameSyntax genericNameNode:
                         var name = genericNameNode.Identifier.Text;
                         var arity = genericNameNode.Arity;
-                        return arity == 0
-                            ? name
-                            : name + GetMetadataAritySuffix(arity);
+                        simpleTypeName = arity == 0 ? name : name + GetMetadataAritySuffix(arity);
+                        return true;
 
                     case PredefinedTypeSyntax predefinedTypeNode:
-                        return GetSpecialTypeName(predefinedTypeNode);
+                        simpleTypeName = GetSpecialTypeName(predefinedTypeNode);
+                        return simpleTypeName != null;
 
                     case AliasQualifiedNameSyntax aliasQualifiedNameNode:
-                        return GetTypeName(aliasQualifiedNameNode.Name, typeParameterNames);
+                        return TryGetSimpleTypeName(aliasQualifiedNameNode.Name, typeParameterNames, out simpleTypeName);
 
                     case QualifiedNameSyntax qualifiedNameNode:
                         // For an identifier to the right of a '.', it can't be a type parameter,
                         // so we don't need to check for it further.
-                        return GetTypeName(qualifiedNameNode.Right, null);
+                        return TryGetSimpleTypeName(qualifiedNameNode.Right, typeParameterNames: null, out simpleTypeName);
 
                     case NullableTypeSyntax nullableNode:
-                        return GetTypeName(nullableNode.ElementType, typeParameterNames);
+                        return TryGetSimpleTypeName(nullableNode.ElementType, typeParameterNames, out simpleTypeName);
                 }
-
-                // This is a complex type, we will not try to filter them with type name.
-                return null;
             }
 
-            static string GetSpecialTypeName(PredefinedTypeSyntax predefinedTypeNode)
+            simpleTypeName = null;
+            return false;
+        }
+
+        private static string GetSpecialTypeName(PredefinedTypeSyntax predefinedTypeNode)
+        {
+            var kind = predefinedTypeNode.Keyword.Kind();
+            return kind switch
             {
-                var kind = predefinedTypeNode.Keyword.Kind();
-                return kind switch
-                {
-                    SyntaxKind.BoolKeyword => "Boolean",
-                    SyntaxKind.ByteKeyword => "Byte",
-                    SyntaxKind.SByteKeyword => "SByte",
-                    SyntaxKind.ShortKeyword => "Int16",
-                    SyntaxKind.UShortKeyword => "UInt16",
-                    SyntaxKind.IntKeyword => "Int32",
-                    SyntaxKind.UIntKeyword => "UInt32",
-                    SyntaxKind.LongKeyword => "Int64",
-                    SyntaxKind.ULongKeyword => "UInt64",
-                    SyntaxKind.DoubleKeyword => "Double",
-                    SyntaxKind.FloatKeyword => "Single",
-                    SyntaxKind.DecimalKeyword => "Decimal",
-                    SyntaxKind.StringKeyword => "String",
-                    SyntaxKind.CharKeyword => "Char",
-                    SyntaxKind.ObjectKeyword => "Object",
-                    _ => null,
-                };
-            }
+                SyntaxKind.BoolKeyword => "Boolean",
+                SyntaxKind.ByteKeyword => "Byte",
+                SyntaxKind.SByteKeyword => "SByte",
+                SyntaxKind.ShortKeyword => "Int16",
+                SyntaxKind.UShortKeyword => "UInt16",
+                SyntaxKind.IntKeyword => "Int32",
+                SyntaxKind.UIntKeyword => "UInt32",
+                SyntaxKind.LongKeyword => "Int64",
+                SyntaxKind.ULongKeyword => "UInt64",
+                SyntaxKind.DoubleKeyword => "Double",
+                SyntaxKind.FloatKeyword => "Single",
+                SyntaxKind.DecimalKeyword => "Decimal",
+                SyntaxKind.StringKeyword => "String",
+                SyntaxKind.CharKeyword => "Char",
+                SyntaxKind.ObjectKeyword => "Object",
+                _ => null,
+            };
         }
     }
 }

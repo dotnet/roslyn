@@ -425,17 +425,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             method.GetParameters().Count > 0 &&
                             method.GetCustomAttributes().Count > 0)
                         {
-                            _containsExtensionsMethod = true;
-
                             // Decode method signature to get the target type name (i.e. type name for the first parameter)
                             var blob = _metadataReader.GetBlobReader(method.Signature);
                             var decoder = new SignatureDecoder<ParameterTypeInfo, object>(ParameterTypeInfoProvider.Instance, _metadataReader, genericContext: null);
                             var signature = decoder.DecodeMethodSignature(ref blob);
-                            var firstParameterTypeInfo = signature.ParameterTypes[0];
 
-                            var definition = new MetadataDefinition(MetadataDefinitionKind.Member, _metadataReader.GetString(method.Name), firstParameterTypeInfo);
-
-                            definitionMap.Add(definition.Name, definition);
+                            if (signature.ParameterTypes.Length > 0)
+                            {
+                                _containsExtensionsMethod = true;
+                                var firstParameterTypeInfo = signature.ParameterTypes[0];
+                                var definition = new MetadataDefinition(MetadataDefinitionKind.Member, _metadataReader.GetString(method.Name), firstParameterTypeInfo);
+                                definitionMap.Add(definition.Name, definition);
+                            }
                         }
                     }
                 }
