@@ -31,15 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract TLocalFunctionState CreateLocalFunctionState();
 
-        private readonly SmallDictionary<LocalFunctionSymbol, TLocalFunctionState> _localFuncVarUsages =
-            new SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>();
+        private SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>? _localFuncVarUsages = null;
 
         protected TLocalFunctionState GetOrCreateLocalFuncUsages(LocalFunctionSymbol localFunc)
         {
-            TLocalFunctionState usages;
-            if (!_localFuncVarUsages.TryGetValue(localFunc, out usages))
+            _localFuncVarUsages ??= new SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>();
+
+            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState usages))
             {
-                usages = _localFuncVarUsages[localFunc] = CreateLocalFunctionState();
+                usages = CreateLocalFunctionState();
+                _localFuncVarUsages[localFunc] = usages;
             }
             return usages;
         }
