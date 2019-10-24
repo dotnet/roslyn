@@ -82,6 +82,16 @@
         <target state="translated">Convertir en méthode</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_switch_expression">
+        <source>Convert to 'switch' expression</source>
+        <target state="new">Convert to 'switch' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch_statement">
+        <source>Convert to 'switch' statement</source>
+        <target state="new">Convert to 'switch' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="translated">Déclarer comme nullable</target>
@@ -780,11 +790,6 @@
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
         <target state="translated">Ajouter des parenthèses</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_switch">
-        <source>Convert to 'switch'</source>
-        <target state="translated">Convertir en 'switch'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private ImmutableArray<HighlightSpan> GetReferences(
             RegexTree tree, int position, bool caretOnLeft)
         {
-            var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
             if (virtualChar == null)
             {
                 return ImmutableArray<HighlightSpan>.Empty;

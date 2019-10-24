@@ -119,17 +119,15 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var factory = document.GetLanguageService<SyntaxGenerator>();
-            return CreateGetHashCodeMethod(
-                factory, compilation, namedType, members, cancellationToken);
+            return CreateGetHashCodeMethod(factory, compilation, namedType, members);
         }
 
         private IMethodSymbol CreateGetHashCodeMethod(
             SyntaxGenerator factory, Compilation compilation,
-            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members,
-            CancellationToken cancellationToken)
+            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             var statements = CreateGetHashCodeStatements(
-                factory, compilation, namedType, members, cancellationToken);
+                factory, compilation, namedType, members);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
@@ -146,25 +144,22 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private ImmutableArray<SyntaxNode> CreateGetHashCodeStatements(
             SyntaxGenerator factory, Compilation compilation,
-            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members,
-            CancellationToken cancellationToken)
+            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             // If we have access to System.HashCode, then just use that.
             var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
 
             var components = factory.GetGetHashCodeComponents(
-                compilation, namedType, members,
-                justMemberReference: true, cancellationToken);
+                compilation, namedType, members, justMemberReference: true);
 
             if (components.Length > 0 && hashCodeType != null)
             {
-                return CreateGetHashCodeStatementsUsingSystemHashCode(
-                    factory, compilation, hashCodeType, components);
+                return factory.CreateGetHashCodeStatementsUsingSystemHashCode(hashCodeType, components);
             }
 
             // Otherwise, try to just spit out a reasonable hash code for these members.
             var statements = factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: false, cancellationToken);
+                compilation, namedType, members, useInt64: false);
 
             // Unfortunately, our 'reasonable' hash code may overflow in checked contexts.
             // C# can handle this by adding 'checked{}' around the code, VB has to jump
@@ -198,41 +193,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             //
             // This does mean all hashcodes will be positive.  But it will avoid the overflow problem.
             return factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: true, cancellationToken);
-        }
-
-        private ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
-            SyntaxGenerator factory, Compilation compilation, INamedTypeSymbol hashCodeType,
-            ImmutableArray<SyntaxNode> memberReferences)
-        {
-            if (memberReferences.Length <= 8)
-            {
-                var statement = factory.ReturnStatement(
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(factory.TypeExpression(hashCodeType), "Combine"),
-                        memberReferences));
-                return ImmutableArray.Create(statement);
-            }
-
-            const string hashName = "hash";
-            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
-            statements.Add(factory.LocalDeclarationStatement(hashName,
-                factory.ObjectCreationExpression(hashCodeType)));
-
-            var localReference = factory.IdentifierName(hashName);
-            foreach (var member in memberReferences)
-            {
-                statements.Add(factory.ExpressionStatement(
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(localReference, "Add"),
-                        member)));
-            }
-
-            statements.Add(factory.ReturnStatement(
-                factory.InvocationExpression(
-                    factory.MemberAccessExpression(localReference, "ToHashCode"))));
-
-            return statements.ToImmutableAndFree();
+                compilation, namedType, members, useInt64: true);
         }
     }
 }

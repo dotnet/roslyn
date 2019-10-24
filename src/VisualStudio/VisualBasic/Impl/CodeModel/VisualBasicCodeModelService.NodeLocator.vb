@@ -974,7 +974,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Return statement _
                     .GetTrailingTrivia() _
-                    .FirstOrNullable(Function(t) t.Kind = SyntaxKind.ColonTrivia)
+                    .FirstOrNull(Function(t) t.Kind = SyntaxKind.ColonTrivia)
             End Function
 
             Private Function GetNamespaceBlockStartPoint(text As SourceText, options As OptionSet, namespaceBlock As NamespaceBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
