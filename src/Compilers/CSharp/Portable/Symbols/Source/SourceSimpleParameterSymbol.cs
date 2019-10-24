@@ -19,12 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             bool isDiscard,
             ImmutableArray<Location> locations)
-            : base(owner, parameterType, ordinal, refKind, name, locations)
+            : base(owner, parameterType, ordinal, refKind, name, isDiscard, locations)
         {
-            IsDiscard = isDiscard;
         }
-
-        public override bool IsDiscard { get; }
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {

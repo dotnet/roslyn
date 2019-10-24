@@ -38,12 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             RefKind refKind,
             string name,
+            bool isDiscard,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
             ConstantValue defaultSyntaxValue,
             bool isParams,
             bool isExtensionMethodThis)
-            : base(owner, parameterType, ordinal, refKind, name, locations)
+            : base(owner, parameterType, ordinal, refKind, name, isDiscard, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
 
@@ -76,8 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
         internal SyntaxTree SyntaxTree => _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
-
-        public sealed override bool IsDiscard => false;
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {
@@ -1149,12 +1148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             ImmutableArray<CustomModifier> refCustomModifiers,
             string name,
+            bool isDiscard,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
             ConstantValue defaultSyntaxValue,
             bool isParams,
             bool isExtensionMethodThis)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
+            : base(owner, ordinal, parameterType, refKind, name, isDiscard, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
 

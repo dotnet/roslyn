@@ -289,7 +289,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool HasNameInMetadata => _packedFlags.HasNameInMetadata;
 
-        public sealed override bool IsDiscard => false;
+        private const string underscore = "_";
+
+        public sealed override bool IsDiscard
+        {
+            get
+            {
+                if (Name != underscore)
+                {
+                    return false;
+                }
+
+                var parameters = _containingSymbol switch
+                {
+                    PEMethodSymbol method => method.Parameters,
+                    PEPropertySymbol property => property.Parameters,
+                    _ => throw ExceptionUtilities.UnexpectedValue(_containingSymbol.Kind)
+                };
+
+                int underscoresCount = 0;
+                foreach (var p in parameters)
+                {
+                    if (p.Name == underscore)
+                    {
+                        underscoresCount++;
+
+                        if (underscoresCount >= 2)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
 
         private static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,

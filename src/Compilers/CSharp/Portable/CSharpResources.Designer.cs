@@ -11456,15 +11456,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to lambda discard parameters.
-        /// </summary>
-        internal static string IDS_FeatureLambdaDiscardParameters {
-            get {
-                return ResourceManager.GetString("IDS_FeatureLambdaDiscardParameters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to leading digit separator.
         /// </summary>
         internal static string IDS_FeatureLeadingDigitSeparator {

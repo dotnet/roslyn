@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
-                RecordDefinitions(parameters);
+                recordDefinitions(parameters);
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
                     if (!parameter.IsDiscard)
@@ -34,16 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
 
-        private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
-        {
-            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
-            foreach (var s in definitions)
+            void recordDefinitions(ImmutableArray<ParameterSymbol> definitions)
             {
-                if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
+                var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
+                foreach (var s in definitions)
                 {
-                    declarationMap.Add(s.Name, s);
+                    if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
+                    {
+                        declarationMap.Add(s.Name, s);
+                    }
                 }
             }
         }
@@ -95,7 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                if (!parameterSymbol.IsDiscard)
+                {
+                    result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                }
             }
         }
 

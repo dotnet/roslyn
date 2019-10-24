@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (ParameterSymbol parameter in _parameters)
             {
-                if (parameter.Name == name)
+                if (parameter.Name == name && !parameter.IsDiscard)
                 {
                     result.MergeEqual(originalBinder.CheckViability(parameter, arity, options, null, diagnose, ref useSiteDiagnostics));
                 }

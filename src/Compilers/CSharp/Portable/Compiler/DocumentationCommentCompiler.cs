@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (ParameterSymbol parameter in GetParameters(symbol))
                     {
-                        if (!documentedParameters.Contains(parameter))
+                        if (!parameter.IsDiscard && !documentedParameters.Contains(parameter))
                         {
                             Location location = parameter.Locations[0];
                             Debug.Assert(location.SourceTree.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.

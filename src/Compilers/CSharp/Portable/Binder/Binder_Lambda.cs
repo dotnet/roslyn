@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (seenDiscard)
                         {
                             // We only report the diagnostic on the second and subsequent underscores
-                            MessageID.IDS_FeatureLambdaDiscardParameters.CheckFeatureAvailability(
+                            MessageID.IDS_FeatureDiscardParameters.CheckFeatureAvailability(
                                 diagnostics,
                                 binder.Compilation,
                                 lambda.ParameterLocation(i));

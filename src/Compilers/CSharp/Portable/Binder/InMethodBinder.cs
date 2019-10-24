@@ -229,7 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
                 foreach (var parameter in parameters)
                 {
-                    parameterMap.Add(parameter.Name, parameter);
+                    if (!parameter.IsDiscard)
+                    {
+                        parameterMap.Add(parameter.Name, parameter);
+                    }
                 }
 
                 _lazyParameterMap = parameterMap;

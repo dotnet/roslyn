@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SymbolCompletionState state;
         protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
+        private readonly bool _isDiscard;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
 
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             bool addRefReadOnlyModifier,
+            bool isDiscard,
             DiagnosticBag declarationDiagnostics)
         {
             var name = identifier.ValueText;
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refKind,
                     ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
                     name,
+                    isDiscard,
                     locations,
                     syntax.GetReference(),
                     ConstantValue.Unset,
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (syntax.AttributeLists.Count == 0) &&
                 !owner.IsPartialMethod())
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard: false, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard, locations);
             }
 
             return new SourceComplexParameterSymbol(
@@ -80,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterType,
                 refKind,
                 name,
+                isDiscard,
                 locations,
                 syntax.GetReference(),
                 ConstantValue.Unset,
@@ -93,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name,
+            bool isDiscard,
             ImmutableArray<Location> locations)
             : base(owner, ordinal)
         {
@@ -106,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.parameterType = parameterType;
             _refKind = refKind;
             _name = name;
+            _isDiscard = isDiscard;
             _locations = locations;
         }
 
@@ -128,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newTypeWithModifiers,
                     _refKind,
                     _name,
+                    _isDiscard,
                     _locations,
                     this.SyntaxReference,
                     this.ExplicitDefaultConstantValue,
@@ -145,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _refKind,
                 newRefCustomModifiers,
                 _name,
+                _isDiscard,
                 _locations,
                 this.SyntaxReference,
                 this.ExplicitDefaultConstantValue,
@@ -202,6 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract SyntaxReference SyntaxReference { get; }
 
         internal abstract bool IsExtensionMethodThis { get; }
+
+        public sealed override bool IsDiscard => _isDiscard;
 
         public sealed override RefKind RefKind
         {

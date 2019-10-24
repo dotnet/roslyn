@@ -29,6 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var mustBeLastParameter = (ParameterSyntax)null;
 
+            int discardsCount = 0;
+            foreach (var parameterSyntax in syntax.Parameters)
+            {
+                if (parameterSyntax.Identifier.IsUnderscoreToken())
+                {
+                    discardsCount++;
+                }
+            }
+
             foreach (var parameterSyntax in syntax.Parameters)
             {
                 if (mustBeLastParameter == null)
@@ -79,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
+                bool isDiscard = discardsCount >= 2 && parameterSyntax.Identifier.IsUnderscoreToken();
                 var parameter = SourceParameterSymbol.Create(
                     binder,
                     owner,
@@ -90,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
                     addRefReadOnlyModifier,
+                    isDiscard,
                     diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
