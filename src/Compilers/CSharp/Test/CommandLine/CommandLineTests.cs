@@ -11306,6 +11306,203 @@ class C { }";
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
+        [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
+        [Fact]
+        public void TestCategoryBasedBulkAnalyzerDiagnosticConfiguration()
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true);
+            Assert.Equal(DiagnosticSeverity.Warning, analyzer.Descriptor.DefaultSeverity);
+
+            var diagnosticId = analyzer.Descriptor.Id;
+            var category = analyzer.Descriptor.Category;
+
+            // Verify category based configuration without any diagnostic ID configuration is respected.
+            var analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+
+            // Verify category based configuration does not get applied for suppressed diagnostic.
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
+
+            // Verify category based configuration does not get applied for diagnostic configured in ruleset.
+            var rulesetText = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.CodeAnalysis"" RuleNamespace=""Microsoft.CodeAnalysis"">
+    <Rule Id=""{diagnosticId}"" Action=""Warning"" />
+  </Rules>
+</RuleSet>";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
+
+            // Verify category based configuration before diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = error
+dotnet_diagnostic.{diagnosticId}.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+            // Verify category based configuration after diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = warning
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+            // Verify disabled by default analyzer is not enabled by category based configuration.
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false);
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+        }
+
+        [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
+        [Fact]
+        public void TestBulkAnalyzerDiagnosticConfiguration()
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true);
+            Assert.Equal(DiagnosticSeverity.Warning, analyzer.Descriptor.DefaultSeverity);
+
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            // Verify bulk configuration without any diagnostic ID configuration is respected.
+            var analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+
+            // Verify bulk configuration does not get applied for suppressed diagnostic.
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
+
+            // Verify bulk configuration does not get applied for diagnostic configured in ruleset.
+            var rulesetText = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.CodeAnalysis"" RuleNamespace=""Microsoft.CodeAnalysis"">
+    <Rule Id=""{diagnosticId}"" Action=""Warning"" />
+  </Rules>
+</RuleSet>";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
+
+            // Verify bulk configuration before diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = error
+dotnet_diagnostic.{diagnosticId}.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+            // Verify bulk configuration after diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = warning
+dotnet_analyzer_diagnostic.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+            // Verify disabled by default analyzer is not enabled by bulk configuration.
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false);
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+        }
+
+        [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
+        [Fact]
+        public void TestMixedCategoryBasedAndBulkAnalyzerDiagnosticConfiguration()
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true);
+            Assert.Equal(DiagnosticSeverity.Warning, analyzer.Descriptor.DefaultSeverity);
+
+            var diagnosticId = analyzer.Descriptor.Id;
+            var category = analyzer.Descriptor.Category;
+
+            // Verify category based configuration before bulk analyzer diagnostic configuration is respected.
+            var analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = error
+dotnet_analyzer_diagnostic.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+
+            // Verify category based configuration after bulk analyzer diagnostic configuration is respected.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = warning
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+
+            // Verify neither category based nor bulk diagnostic configuration is respected when specific diagnostic ID is configured in analyzer config.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = warning
+dotnet_analyzer_diagnostic.category-{category}.severity = none
+dotnet_analyzer_diagnostic.severity = suggestion";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+            // Verify neither category based nor bulk diagnostic configuration is respected when specific diagnostic ID is configured in ruleset.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = none
+dotnet_analyzer_diagnostic.severity = suggestion";
+            var rulesetText = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.CodeAnalysis"" RuleNamespace=""Microsoft.CodeAnalysis"">
+    <Rule Id=""{diagnosticId}"" Action=""Warning"" />
+  </Rules>
+</RuleSet>";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText);
+        }
+
+        private void TestBulkAnalyzerConfigurationCore(
+            NamedTypeAnalyzerWithConfigurableEnabledByDefault analyzer,
+            string analyzerConfigText,
+            ReportDiagnostic expectedDiagnosticSeverity,
+            string rulesetText = null,
+            bool noWarn = false)
+        {
+            var diagnosticId = analyzer.Descriptor.Id;
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(analyzerConfigText);
+
+            var arguments = new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path };
+            if (noWarn)
+            {
+                arguments = arguments.Append($"/nowarn:{diagnosticId}");
+            }
+
+            if (rulesetText != null)
+            {
+                var rulesetFile = CreateRuleSetFile(rulesetText);
+                arguments = arguments.Append($"/ruleset:{rulesetFile.Path}");
+            }
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, arguments,
+                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+
+            var expectedErrorCode = expectedDiagnosticSeverity == ReportDiagnostic.Error ? 1 : 0;
+            Assert.Equal(expectedErrorCode, exitCode);
+
+            if (expectedDiagnosticSeverity == ReportDiagnostic.Suppress)
+            {
+                Assert.DoesNotContain(diagnosticId, outWriter.ToString());
+            }
+            else
+            {
+                Assert.True(expectedDiagnosticSeverity == ReportDiagnostic.Error || expectedDiagnosticSeverity == ReportDiagnostic.Warn);
+                var prefix = expectedDiagnosticSeverity == ReportDiagnostic.Error ? "error" : "warning";
+                Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", outWriter.ToString());
+            }
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]

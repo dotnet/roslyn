@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return statement _
                     .GetTrailingTrivia() _
-                    .FirstOrNullable(Function(t) t.Kind = SyntaxKind.ColonTrivia)
+                    .FirstOrNull(Function(t) t.Kind = SyntaxKind.ColonTrivia)
         End Function
 
         Private Function PartOfSingleLineLambda(node As SyntaxNode) As Boolean

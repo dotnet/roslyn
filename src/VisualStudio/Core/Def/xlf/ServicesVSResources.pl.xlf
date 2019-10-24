@@ -357,6 +357,11 @@
         <target state="translated">Wstrzymano (zadania w kolejce: {0})</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="new">Prefer 'System.HashCode' in 'GetHashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Preferuj przypisania złożone</target>
@@ -405,6 +410,11 @@
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Raportuj nieprawidłowe wyrażenia regularne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Requires_System_HashCode_be_present_in_project">
+        <source>Requires 'System.HashCode' be present in project</source>
+        <target state="new">Requires 'System.HashCode' be present in project</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">

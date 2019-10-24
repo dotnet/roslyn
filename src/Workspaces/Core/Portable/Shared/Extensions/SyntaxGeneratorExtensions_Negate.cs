@@ -197,19 +197,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             switch (operationKind)
             {
-                case BinaryOperatorKind.LessThanOrEqual when IsNumericLiteral(rightOperand):
+                case BinaryOperatorKind.LessThanOrEqual when rightOperand.IsNumericLiteral():
                     return CanSimplifyToLengthEqualsZeroExpression(
                         leftOperand, (ILiteralOperation)rightOperand);
-                case BinaryOperatorKind.GreaterThanOrEqual when IsNumericLiteral(leftOperand):
+                case BinaryOperatorKind.GreaterThanOrEqual when leftOperand.IsNumericLiteral():
                     return CanSimplifyToLengthEqualsZeroExpression(
                         rightOperand, (ILiteralOperation)leftOperand);
             }
 
             return false;
         }
-
-        private static bool IsNumericLiteral(IOperation operation)
-            => operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();
 
         private static IOperation RemoveImplicitConversion(IOperation operation)
         {
