@@ -5450,6 +5450,314 @@ class P : System.IDisposable
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void UsingDeclaration_Flow_17()
+        {
+            string source = @"
+#pragma  warning disable CS0815, CS0219, CS0164
+class P : System.IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    void M(bool b)
+    /*<bind>*/{
+        if (b)
+            goto label1;
+        int x = 0;
+        label1:
+        using var a = this;
+    }/*</bind>*/
+
+}
+";
+            string expectedGraph = @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1}
+    .locals {R1}
+    {
+        Locals: [System.Int32 x] [P a]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Jump if False (Regular) to Block[B2]
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+            Next (Regular) Block[B3]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 0')
+                  Left: 
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 0')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B1] [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: P, IsImplicit) (Syntax: 'a = this')
+                  Left: 
+                    ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                  Right: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+            Next (Regular) Block[B4]
+                Entering: {R2} {R3}
+        .try {R2, R3}
+        {
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (0)
+                Next (Regular) Block[B8]
+                    Finalizing: {R4}
+                    Leaving: {R3} {R2} {R1}
+        }
+        .finally {R4}
+        {
+            Block[B5] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B7]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a = this')
+                      Operand: 
+                        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                Next (Regular) Block[B6]
+            Block[B6] - Block
+                Predecessors: [B5]
+                Statements (1)
+                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a = this')
+                      Instance Receiver: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'a = this')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand: 
+                            ILocalReferenceOperation: a (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                      Arguments(0)
+                Next (Regular) Block[B7]
+            Block[B7] - Block
+                Predecessors: [B5] [B6]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+    }
+    Block[B8] - Exit
+        Predecessors: [B4]
+        Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void UsingDeclaration_Flow_18()
+        {
+            string source = @"
+#pragma  warning disable CS0815, CS0219, CS0164
+class P : System.IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    void M(bool b)
+    /*<bind>*/{
+        label1:
+        using var a = this;
+        if (b)
+            goto label1;
+    }/*</bind>*/
+
+}
+";
+            string expectedGraph = @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1}
+    .locals {R1}
+    {
+        Locals: [P a]
+        Block[B1] - Block
+            Predecessors: [B0] [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: P, IsImplicit) (Syntax: 'a = this')
+                  Left: 
+                    ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                  Right: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+            Next (Regular) Block[B2]
+                Entering: {R2} {R3}
+        .try {R2, R3}
+        {
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (0)
+                Jump if False (Regular) to Block[B6]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                    Finalizing: {R4}
+                    Leaving: {R3} {R2} {R1}
+                Next (Regular) Block[B1]
+                    Finalizing: {R4}
+                    Leaving: {R3} {R2}
+        }
+        .finally {R4}
+        {
+            Block[B3] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B5]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a = this')
+                      Operand: 
+                        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (1)
+                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a = this')
+                      Instance Receiver: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'a = this')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand: 
+                            ILocalReferenceOperation: a (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                      Arguments(0)
+                Next (Regular) Block[B5]
+            Block[B5] - Block
+                Predecessors: [B3] [B4]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+    }
+    Block[B6] - Exit
+        Predecessors: [B2]
+        Statements (0)
+";
+            var expectedDiagnostics = new[]{
+                // file.cs(14,13): error CS8649: A goto cannot jump to a location before a using declaration within the same block.
+                //             goto label1;
+                Diagnostic(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, "goto label1;").WithLocation(14, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void UsingDeclaration_Flow_19()
+        {
+            string source = @"
+#pragma  warning disable CS0815, CS0219, CS0164
+class P : System.IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    void M(bool b)
+    /*<bind>*/{
+        if (b)
+            goto label1;
+        int x = 0;
+        label1:
+        using var a = this;
+        if (b)
+            goto label1;
+    }/*</bind>*/
+
+}
+";
+            string expectedGraph = @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1}
+    .locals {R1}
+    {
+        Locals: [System.Int32 x] [P a]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Jump if False (Regular) to Block[B2]
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+            Next (Regular) Block[B3]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 0')
+                  Left: 
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 0')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B1] [B2] [B4]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: P, IsImplicit) (Syntax: 'a = this')
+                  Left: 
+                    ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                  Right: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+            Next (Regular) Block[B4]
+                Entering: {R2} {R3}
+        .try {R2, R3}
+        {
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (0)
+                Jump if False (Regular) to Block[B8]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                    Finalizing: {R4}
+                    Leaving: {R3} {R2} {R1}
+                Next (Regular) Block[B3]
+                    Finalizing: {R4}
+                    Leaving: {R3} {R2}
+        }
+        .finally {R4}
+        {
+            Block[B5] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B7]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a = this')
+                      Operand: 
+                        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                Next (Regular) Block[B6]
+            Block[B6] - Block
+                Predecessors: [B5]
+                Statements (1)
+                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a = this')
+                      Instance Receiver: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'a = this')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand: 
+                            ILocalReferenceOperation: a (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'a = this')
+                      Arguments(0)
+                Next (Regular) Block[B7]
+            Block[B7] - Block
+                Predecessors: [B5] [B6]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+    }
+    Block[B8] - Exit
+        Predecessors: [B4]
+        Statements (0)
+";
+            var expectedDiagnostics = new[]{
+                // file.cs(17,13): error CS8649: A goto cannot jump to a location before a using declaration within the same block.
+                //             goto label1;
+                Diagnostic(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, "goto label1;").WithLocation(17, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_SingleDeclaration()
