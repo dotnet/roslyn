@@ -84,15 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (containingNamespace.IsGlobalNamespace)
                     {
-                        Debug.Assert(format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included ||
-                                          format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Omitted ||
-                                          format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining);
-
-                        if (format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included)
-                        {
-                            AddGlobalNamespace(containingNamespace);
-                            AddPunctuation(SyntaxKind.ColonColonToken);
-                        }
+                        AddGlobalNamespace(containingNamespace);
+                        AddPunctuation(SyntaxKind.ColonColonToken);
                     }
                     else
                     {
