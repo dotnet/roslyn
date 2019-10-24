@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     conflictTypeRootNode.Add(fullyQualifiedContainerName, (qualifiedNamespaceName, methodNames));
                 }
             }
+
             var ticks = Environment.TickCount;
 
             GetItemsFromConflictingTypes(rootNamespaceSymbol, conflictTypeRootNode, builder, receiverTypeSymbol, semanticModel, position, counter);

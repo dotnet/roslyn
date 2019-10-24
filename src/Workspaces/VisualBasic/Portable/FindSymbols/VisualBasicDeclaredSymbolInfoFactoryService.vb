@@ -16,6 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
     Friend Class VisualBasicDeclaredSymbolInfoFactoryService
         Inherits AbstractDeclaredSymbolInfoFactoryService
 
+        Private Const ExtensionName As String = "Extension"
+        Private Const ExtensionAttributeName As String = "ExtensionAttribute"
+
         <ImportingConstructor>
         Public Sub New()
         End Sub
@@ -307,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     End If
 
                     Dim name = attribute.Name.GetRightmostName()?.ToString()
-                    If String.Equals(name, "Extension", StringComparison.OrdinalIgnoreCase) Or String.Equals(name, "ExtensionAttribute", StringComparison.OrdinalIgnoreCase) Then
+                    If String.Equals(name, ExtensionName, StringComparison.OrdinalIgnoreCase) Or String.Equals(name, ExtensionAttributeName, StringComparison.OrdinalIgnoreCase) Then
                         Return True
                     End If
                 Next

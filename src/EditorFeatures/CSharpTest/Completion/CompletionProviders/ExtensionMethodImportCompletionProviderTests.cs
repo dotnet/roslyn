@@ -167,31 +167,31 @@ namespace Baz
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingAliasInDeclaration(ReferenceType refType)
         {
-            var file1 = $@"
+            var file1 = @"
 using System;
 using MyInt = System.Int32;
 
 namespace Foo
-{{
+{
     public static class ExtensionClass
-    {{
+    {
         public static bool ExtentionMethod(this MyInt x)
             => true;
-    }}
-}}";
-            var file2 = $@"
+    }
+}";
+            var file2 = @"
 using System;
 
 namespace Baz
-{{
+{
     public class Bat
-    {{
+    {
         public void M(int x)
-        {{
+        {
             x.$$
-        }}
-    }}
-}}";
+        }
+    }
+}";
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyTypeImportItemExistsAsync(
