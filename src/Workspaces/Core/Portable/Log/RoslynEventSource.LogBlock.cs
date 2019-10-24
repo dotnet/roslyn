@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// if the specified <paramref name="functionId"/> was explicitly enabled.
         /// Instead it checks if the <see cref="RoslynEventSource"/> was enabled at <see cref="EventLevel.Informational"/> level.
         /// </summary>
-        public static IDisposable LogInformationalBlock(FunctionId functionId, object entity, CancellationToken cancellationToken)
+        public static LogBlock LogInformationalBlock(FunctionId functionId, object entity, CancellationToken cancellationToken)
             => LogBlock.Create(functionId, entity, EventLevel.Informational, cancellationToken);
 
         /// <summary>
@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// if the specified <paramref name="functionId"/> was explicitly enabled.
         /// Instead it checks if the <see cref="RoslynEventSource"/> was enabled at <see cref="EventLevel.Informational"/> level.
         /// </summary>
-        public static IDisposable LogInformationalBlock(FunctionId functionId, string message, CancellationToken cancellationToken)
+        public static LogBlock LogInformationalBlock(FunctionId functionId, string message, CancellationToken cancellationToken)
             => LogBlock.Create(functionId, message, EventLevel.Informational, cancellationToken);
 
         /// <summary>
         /// This tracks the logged message. On instantiation, it logs 'Started block' with other event data.
         /// On dispose, it logs 'Ended block' with the same event data so we can track which block started and ended when looking at logs.
         /// </summary>
-        private struct LogBlock : IDisposable
+        internal struct LogBlock : IDisposable
         {
             private readonly FunctionId _functionId;
             private readonly object? _entityForMessage;
@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                     return;
                 }
 
+                Debug.Assert(_message != null);
+
                 if (!_startLogged)
                 {
                     // User enabled logging after the block start.
@@ -142,8 +144,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                     Instance.BlockStart(_message, _functionId, _blockId);
                     _startLogged = true;
                 }
-
-                Debug.Assert(_message != null);
 
                 // This delta is valid for durations of < 25 days
                 var delta = Environment.TickCount - _tick;
