@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var discardedDiagnostics = DiagnosticBag.GetInstance();
             var result =
                 (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
-                type is null ? BindToNaturalType(expression, discardedDiagnostics) :
+                type is null ? BindToNaturalType(expression, discardedDiagnostics, reportDefaultMissingType: false) :
                 GenerateConversionForAssignment(type, expression, discardedDiagnostics);
             discardedDiagnostics.Free();
             return result;
