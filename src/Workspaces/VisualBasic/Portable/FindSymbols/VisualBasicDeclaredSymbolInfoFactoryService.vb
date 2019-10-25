@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     End If
 
                     Dim name = attribute.Name.GetRightmostName()?.ToString()
-                    If String.Equals(name, ExtensionName, StringComparison.OrdinalIgnoreCase) Or String.Equals(name, ExtensionAttributeName, StringComparison.OrdinalIgnoreCase) Then
+                    If String.Equals(name, ExtensionName, StringComparison.OrdinalIgnoreCase) OrElse String.Equals(name, ExtensionAttributeName, StringComparison.OrdinalIgnoreCase) Then
                         Return True
                     End If
                 Next
@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         Public Overrides Function TryGetTargetTypeName(node As SyntaxNode, ByRef targetTypeName As String) As Boolean
             Dim funcDecl = TryCast(node, MethodBlockSyntax)
             'TODO: don't call `IsExtensionMethod` again
-            If funcDecl IsNot Nothing And IsExtensionMethod(funcDecl) Then
+            If funcDecl IsNot Nothing AndAlso IsExtensionMethod(funcDecl) Then
 
                 Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
                 TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName)
@@ -487,8 +487,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         Dim aliasName, name As String
 
 #Disable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
-                        If simpleImportsClause.Alias IsNot Nothing And
-                            TryGetSimpleTypeNameWorker(simpleImportsClause.Alias, Nothing, aliasName) And
+                        If simpleImportsClause.Alias IsNot Nothing AndAlso
+                            TryGetSimpleTypeNameWorker(simpleImportsClause.Alias, Nothing, aliasName) AndAlso
                             TryGetSimpleTypeNameWorker(simpleImportsClause, Nothing, name) Then
 #Enable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
 

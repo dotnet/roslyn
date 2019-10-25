@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
 
-            var rootNamespace = infoFactory.GetRootNamespace(project.CompilationOptions);
             var usingAliases = PooledDictionary<string, string>.GetInstance();
 
             try
@@ -95,6 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (syntaxFacts != null)
                 {
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var rootNamespace = infoFactory.GetRootNamespace(project.CompilationOptions);
 
                     foreach (var current in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
                     {
