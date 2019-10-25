@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public string ContainingMemberName { get; private set; }
 
-        SymbolSearchResult IResultWithReferenceDefinitionRelationship.Definition { get; private set; }
+        SymbolSearchResult IResultWithReferenceDefinitionRelationship.Definition { get; }
 
         public bool IsDefinition { get; private set; }
 
