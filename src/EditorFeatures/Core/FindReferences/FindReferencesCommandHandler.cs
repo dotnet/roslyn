@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -18,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
-    //[Export(typeof(ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FindReferences)]
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
@@ -59,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
+                    if (!AreSymbolSearchCommandHandlersEnabled(document.Project.Solution.Workspace))
+                    {
+                        return false;
+                    }
+
                     // Do a find-refs at the *start* of the selection.  That way if the
                     // user has selected a symbol that has another symbol touching it
                     // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
@@ -127,6 +133,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
+        }
+
+        private static bool AreSymbolSearchCommandHandlersEnabled(Workspace workspace)
+        {
+            if (workspace == null)
+            {
+                return false;
+            }
+            var experimentationService = workspace.Services.GetService<IExperimentationService>();
+            return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.EditorHandlesSymbolSearch);
         }
     }
 }

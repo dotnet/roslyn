@@ -16,9 +16,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
-#if !NewSymbolApi
     [Export(typeof(ICommandHandler))]
-#endif
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
     internal class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>

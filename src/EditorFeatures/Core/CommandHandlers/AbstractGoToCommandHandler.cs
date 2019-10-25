@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var findUsagesService = document?.GetLanguageService<TLanguageService>();
-            return findUsagesService != null && AreGoToCommandsEnabled(document?.Project.Solution.Workspace)
-                ? CommandState.Available
-                : CommandState.Unavailable;
+            return findUsagesService != null ? CommandState.Available : CommandState.Unavailable;
         }
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
@@ -58,6 +56,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             {
                 var subjectBuffer = args.SubjectBuffer;
                 if (!subjectBuffer.TryGetWorkspace(out var workspace))
+                {
+                    return false;
+                }
+                if (!AreSymbolSearchCommandHandlersEnabled(workspace))
                 {
                     return false;
                 }
@@ -143,22 +145,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 document.Project.Solution.Workspace, context.SearchTitle, definitionItems).Wait(cancellationToken);
         }
 
-        private bool AreGoToCommandsEnabled(Workspace workspace)
+        private static bool AreSymbolSearchCommandHandlersEnabled(Workspace workspace)
         {
-            if (!_areGoToCommandsEnabled.HasValue)
+            if (workspace == null)
             {
-                if (workspace == null)
-                {
-                    _areGoToCommandsEnabled = false;
-                }
-                else
-                {
-                    var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                    _areGoToCommandsEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.EditorHandlesSymbolSearch);
-                }
+                return false;
             }
-
-            return _areGoToCommandsEnabled == true;
+            var experimentationService = workspace.Services.GetService<IExperimentationService>();
+            return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.EditorHandlesSymbolSearch);
         }
     }
 }

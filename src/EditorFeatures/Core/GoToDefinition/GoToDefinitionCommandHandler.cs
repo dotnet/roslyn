@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -13,9 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-#if !NewSymbolApi
     [Export(typeof(ICommandHandler))]
-#endif
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToDefinition)]
     internal class GoToDefinitionCommandHandler :
@@ -46,6 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+
+            if (!AreSymbolSearchCommandHandlersEnabled(document.Project.Solution.Workspace))
+            {
+                return false;
+            }
+
             if (service != null)
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
@@ -92,6 +96,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             return true;
+        }
+
+        private static bool AreSymbolSearchCommandHandlersEnabled(Workspace workspace)
+        {
+            if (workspace == null)
+            {
+                return false;
+            }
+            var experimentationService = workspace.Services.GetService<IExperimentationService>();
+            return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.EditorHandlesSymbolSearch);
         }
     }
 }
