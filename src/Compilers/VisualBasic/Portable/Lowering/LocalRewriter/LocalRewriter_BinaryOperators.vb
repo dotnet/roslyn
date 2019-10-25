@@ -148,13 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optimizeForConditionalBranch = False
             End If
 
-            Dim child As BoundExpression = binary.Left
-
-            While child.Kind = BoundKind.Parenthesized
-                child = DirectCast(child, BoundParenthesized).Expression
-            End While
-
-            Return child
+            Return binary.Left.GetMostEnclosedParenthesizedExpression()
         End Function
 
         Private Shared Function GetRightOperand(binary As BoundBinaryOperator, adjustIfOptimizableForConditionalBranch As Boolean) As BoundExpression
@@ -996,7 +990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim leftTemp As SynthesizedLocal = Nothing
                         Dim leftInit As BoundExpression = Nothing
 
-                        ' Right may be a method that takes Left byref - " local And TakesArgByref(local) "
+                        ' Right may be a method that takes Left byref - " local AndAlso TakesArgByref(local) "
                         ' So in general we must capture Left even if it is a local.
                         Dim capturedLeft = CaptureNullableIfNeeded(left, leftTemp, leftInit, RightCantChangeLeftLocal(left, right))
 

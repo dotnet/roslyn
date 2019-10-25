@@ -168,8 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Case BoundKind.Conversion
                     Dim conversion = DirectCast(expr, BoundConversion)
-                    If (conversion.ConversionKind And (ConversionKind.Widening Or ConversionKind.Nullable Or ConversionKind.UserDefined)) = (ConversionKind.Widening Or ConversionKind.Nullable) AndAlso
-                       expr.Type.GetNullableUnderlyingType().Equals(conversion.Operand.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
+                    If IsConversionFromUnderlyingToNullable(conversion) Then
                         Return conversion.Operand
                     End If
             End Select
@@ -189,6 +188,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+        End Function
+
+        Private Shared Function IsConversionFromUnderlyingToNullable(conversion As BoundConversion) As Boolean
+            Return (conversion.ConversionKind And (ConversionKind.Widening Or ConversionKind.Nullable Or ConversionKind.UserDefined)) = (ConversionKind.Widening Or ConversionKind.Nullable) AndAlso
+                   conversion.Type.GetNullableUnderlyingType().Equals(conversion.Operand.Type, TypeCompareKind.AllIgnoreOptionsForVB)
         End Function
 
         Private Function NullableValue(expr As BoundExpression) As BoundExpression
@@ -335,9 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Nullable<T> has only one ctor with parameters and only that one sets hasValue = true
                     Return objCreation.Arguments.Length <> 0
                 Case BoundKind.Conversion
-                    Dim conversion = DirectCast(expr, BoundConversion)
-                    If (conversion.ConversionKind And (ConversionKind.Widening Or ConversionKind.Nullable Or ConversionKind.UserDefined)) = (ConversionKind.Widening Or ConversionKind.Nullable) AndAlso
-                        expr.Type.GetNullableUnderlyingType().Equals(conversion.Operand.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
+                    If IsConversionFromUnderlyingToNullable(DirectCast(expr, BoundConversion)) Then
                         Return True
                     End If
             End Select

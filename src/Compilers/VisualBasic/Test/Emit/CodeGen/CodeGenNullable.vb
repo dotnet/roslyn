@@ -6574,7 +6574,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(Skip:="Only manual execution due to time.")>
+        <Fact>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_30()
             Dim source =
@@ -6664,7 +6664,7 @@ End Module
 
             Assert.Equal("Test()", invocation.ToString())
 
-            Dim enumerator = BooleanExpression_30_Helpers.BuildConditions(1, 4).GetEnumerator()
+            Dim enumerator = BooleanExpression_30_Helpers.BuildConditions(2, 2).GetEnumerator()
 
             Const batchSize As Integer = 250
             Dim newBlocks = ArrayBuilder(Of MethodBlockSyntax).GetInstance(batchSize)
@@ -6705,10 +6705,10 @@ End Module
 
             Public Shared Iterator Function BuildConditions(fromOperators As Integer, toOperators As Integer) As IEnumerable(Of ExpressionSyntax)
                 For operatorCount = fromOperators To toOperators
-                    For Each shape In BooleanExpression_30_Helpers.Shapes(operatorCount)
-                        For Each operators In BooleanExpression_30_Helpers.OperatorSets(operatorCount)
-                            For Each operands In BooleanExpression_30_Helpers.OperandSets(operatorCount + 1)
-                                Yield BooleanExpression_30_Helpers.BuildCondition(shape, operators, operands)
+                    For Each shape In Shapes(operatorCount)
+                        For Each operators In OperatorSets(operatorCount)
+                            For Each operands In OperandSets(operatorCount + 1)
+                                Yield BuildCondition(shape, operators, operands)
                             Next
                         Next
                     Next
