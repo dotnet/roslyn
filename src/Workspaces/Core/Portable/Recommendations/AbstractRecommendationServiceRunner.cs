@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var ordinalInInvocation = arguments.IndexOf(lambdaSyntax.Parent);
             var expressionOfInvocationExpression = syntaxFactsService.GetExpressionOfInvocationExpression(invocationExpression);
 
+            // Get all members potentially matching the invocation expression.
+            // We filter them out based on ordinality later.
             var candidateSymbols = _context.SemanticModel.GetMemberGroup(expressionOfInvocationExpression, _cancellationToken);
 
             // parameter.Ordinal is the ordinal within (a,b,c) => b.
