@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +8,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch.Capabilities;
 using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -60,30 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private static async Task MakeContent(RoslynSymbolResult result, DocumentSpan documentSpan, CancellationToken token)
         {
-            if (result.Reference != null)
-            {
-                if (result.Reference.SymbolUsageInfo.IsWrittenTo())
-                {
-                    result.Kind = "Write";
-                    result.IsWrittenTo = true;
-                }
-                else if (result.Reference.SymbolUsageInfo.IsReadFrom())
-                {
-                    result.Kind = "Write";
-                    result.IsReadFrom = true;
-                }
-            }
-            else
-            {
-                result.DefinitionIcon = result.Definition.Tags.GetFirstGlyph().GetImageId();
-                result.IsDefinition = true;
-            }
-
             var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, token)
                 .ConfigureAwait(false);
+            // GUIDs allow scoping to current project and document
             result.ProjectId = projectGuid.ToString();
-            result.ProjectName = projectName;
             result.DocumentId = documentGuid.ToString();
+            result.ProjectName = projectName;
 
             var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, token).ConfigureAwait(false);
 
@@ -91,7 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
             result.ClassifiedContext = classifiedText;
             result.PlainText = excerptResult.Content.ToString();
-
 
             /*result.ClassifiedContext = new ClassifiedTextElement(
                 excerptResult.ClassifiedSpans.Select(n => new ClassifiedTextRun(n.ClassificationType, n.
@@ -118,7 +98,25 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 {
                     result.ContainingMemberName = containingMemberInfo;
                 }
+
+                if (result.Reference.SymbolUsageInfo.IsWrittenTo())
+                {
+                    result.Kind = "Write";
+                    result.IsWrittenTo = true;
+                }
+                else if (result.Reference.SymbolUsageInfo.IsReadFrom())
+                {
+                    result.Kind = "Write";
+                    result.IsReadFrom = true;
+                }
             }
+            else if (result.Definition != null)
+            {
+                var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(result.Reference.SourceSpan, token).ConfigureAwait(false);
+                result.DefinitionIcon = result.Definition.Tags.GetFirstGlyph().GetImageId();
+                result.IsDefinition = true;
+            }
+
             /*
             var referenceLocation = await ProtocolConversions.DocumentSpanToLocationAsync(reference.SourceSpan, cancellationToken).ConfigureAwait(false);
             var classifiedText = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
