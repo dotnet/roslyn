@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IThreadingContext _threadingContext;
+        private bool? _areGoToCommandsEnabled;
 
         public abstract string DisplayName { get; }
 
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var findUsagesService = document?.GetLanguageService<TLanguageService>();
-            return findUsagesService != null
+            return findUsagesService != null && AreGoToCommandsEnabled(document?.Project.Solution.Workspace)
                 ? CommandState.Available
                 : CommandState.Unavailable;
         }
@@ -139,6 +141,24 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 document.Project.Solution.Workspace, context.SearchTitle, definitionItems).Wait(cancellationToken);
+        }
+
+        private bool AreGoToCommandsEnabled(Workspace workspace)
+        {
+            if (!_areGoToCommandsEnabled.HasValue)
+            {
+                if (workspace == null)
+                {
+                    _areGoToCommandsEnabled = false;
+                }
+                else
+                {
+                    var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                    _areGoToCommandsEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.EditorHandlesSymbolSearch);
+                }
+            }
+
+            return _areGoToCommandsEnabled == true;
         }
     }
 }

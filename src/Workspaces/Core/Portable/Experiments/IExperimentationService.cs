@@ -36,5 +36,8 @@ namespace Microsoft.CodeAnalysis.Experiments
         // Syntactic LSP experiment treatments.
         public const string SyntacticExp_LiveShareTagger_Remote = "Roslyn.LspTagger";
         public const string SyntacticExp_LiveShareTagger_TextMate = "Roslyn.TextMateTagger";
+
+        // Editor handles GoTo/FindAll commands
+        public const string EditorHandlesSymbolSearch = "Editor.HandleSymbolSearch";
     }
 }
