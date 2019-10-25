@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -142,6 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     {
                         return false;
                     }
+                }
+
+                if (!IsSwitchExpressionAndCanUseVar(variableDeclaration, semanticModel))
+                {
+                    return false;
                 }
 
                 if (AssignmentSupportsStylePreference(
@@ -314,6 +320,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
+        }
+
+        private bool IsSwitchExpressionAndCanUseVar(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel)
+        {
+            var switchExpression = variableDeclaration.DescendantNodes().Where(node => node.IsKind(SyntaxKind.SwitchExpression));
+            if (switchExpression.Any())
+            {
+                if (variableDeclaration.Type.IsKind(SyntaxKind.NullableType))
+                {
+                    return false;
+                }
+
+                var type = semanticModel.GetSymbolInfo(variableDeclaration.Type).Symbol.GetSymbolType();
+                if (type != null)
+                {
+                    foreach (var arm in ((SwitchExpressionSyntax)switchExpression.First()).Arms)
+                    {
+                        var rightSideOfArm = arm.Expression;
+                        if (!rightSideOfArm.IsKind(SyntaxKind.ThrowExpression) && !rightSideOfArm.IsKind(SyntaxKind.ReturnStatement))
+                        {
+                            var identifierName = rightSideOfArm.ChildNodes().Where(node => node.IsKind(SyntaxKind.IdentifierName)).FirstOrDefault();
+                            if (identifierName == default)
+                            {
+                                var tryGetQualifiedName = (QualifiedNameSyntax)rightSideOfArm.ChildNodes().Where(node => node.IsKind(SyntaxKind.QualifiedName)).FirstOrDefault();
+                                if (tryGetQualifiedName != default)
+                                {
+                                    identifierName = tryGetQualifiedName.Right;
+                                }
+                            }
+
+                            if (identifierName != default)
+                            {
+                                var identifierType = semanticModel.GetSymbolInfo(identifierName).Symbol.GetSymbolType();
+                                if (identifierType != null && !identifierType.Equals(type))
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
         }
     }
 }

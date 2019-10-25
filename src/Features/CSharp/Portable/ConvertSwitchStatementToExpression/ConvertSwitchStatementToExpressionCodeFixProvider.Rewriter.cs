@@ -27,23 +27,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
                 ITypeSymbol variableSymbolTypeOpt,
-                SemanticModel semanticModel,
                 SyntaxKind nodeToGenerate, bool shouldMoveNextStatementToSwitchExpression, bool generateDeclaration)
             {
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.
-                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement, variableSymbolTypeOpt, semanticModel,
+                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement,
                     allowMoveNextStatementToSwitchExpression: shouldMoveNextStatementToSwitchExpression);
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
                 return rewriter.GetFinalStatement(switchExpression,
-                    switchStatement.SwitchKeyword.LeadingTrivia, nodeToGenerate, generateDeclaration);
+                    switchStatement.SwitchKeyword.LeadingTrivia, variableSymbolTypeOpt, nodeToGenerate, generateDeclaration);
             }
 
             private StatementSyntax GetFinalStatement(
                 ExpressionSyntax switchExpression,
                 SyntaxTriviaList leadingTrivia,
+                ITypeSymbol variableSymbolTypeOpt,
                 SyntaxKind nodeToGenerate,
                 bool generateDeclaration)
             {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 Debug.Assert(_assignmentTargetOpt != null);
 
                 return generateDeclaration
-                    ? GenerateVariableDeclaration(switchExpression, leadingTrivia)
+                    ? GenerateVariableDeclaration(switchExpression, leadingTrivia, variableSymbolTypeOpt)
                     : GenerateAssignment(switchExpression, nodeToGenerate, leadingTrivia);
             }
 
@@ -80,26 +80,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     .WithLeadingTrivia(leadingTrivia);
             }
 
-            private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia)
+            private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia, ITypeSymbol variableSymbolTypeOpt)
             {
                 Debug.Assert(_assignmentTargetOpt is IdentifierNameSyntax);
 
-                return LocalDeclarationStatement(
+                if (variableSymbolTypeOpt != null && (variableSymbolTypeOpt.IsReferenceType || variableSymbolTypeOpt.IsNullable()))
+                {
+                    var type = variableSymbolTypeOpt.GenerateTypeSyntax();
+                    return GenerateLocalDeclaration(type);
+                }
+
+                return GenerateLocalDeclaration(IdentifierName("var"));
+
+                LocalDeclarationStatementSyntax GenerateLocalDeclaration(TypeSyntax type)
+                {
+                    return LocalDeclarationStatement(
                         VariableDeclaration(
-                            type: IdentifierName(Identifier(leadingTrivia, "var", trailing: default)),
+                            type,
                             variables: SingletonSeparatedList(
                                         VariableDeclarator(
                                             identifier: ((IdentifierNameSyntax)_assignmentTargetOpt).Identifier,
                                             argumentList: null,
                                             initializer: EqualsValueClause(switchExpression)))));
+                }
             }
 
-            private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node, ITypeSymbol variableSymbolTypeOpt, SemanticModel semanticModel)
+            private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)
             {
                 return SwitchExpressionArm(
                     pattern: GetPattern(SingleOrDefaultSwitchLabel(node.Labels), out var whenClauseOpt),
                     whenClause: whenClauseOpt,
-                    expression: RewriteStatements(node.Statements, variableSymbolTypeOpt, semanticModel));
+                    expression: RewriteStatements(node.Statements));
             }
 
             private static PatternSyntax GetPattern(SwitchLabelSyntax switchLabel, out WhenClauseSyntax whenClauseOpt)
@@ -130,39 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return node.Right;
             }
 
-            private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements, ITypeSymbol variableSymbolTypeOpt, SemanticModel semanticModel)
+            private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)
             {
                 Debug.Assert(statements.Count == 1 || statements.Count == 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
                 var rewrittenExpression = Visit(statements[0]);
-
-                if (statements[0].Kind() == SyntaxKind.ExpressionStatement)
-                {
-                    var expressionStatement = (ExpressionStatementSyntax)statements[0];
-                    SyntaxNode type = null;
-
-                    // In cases of simple assignment (e.g. x = y), we see if the right-hand side can be cast to the type of the left-hand side.
-                    if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
-                    {
-                        // Case: x = new Y();
-                        var objCreationNode = expressionStatement.Expression.ChildNodes().Where(s => s.Kind() == SyntaxKind.ObjectCreationExpression).FirstOrDefault();
-                        if (objCreationNode != default(SyntaxNode))
-                        {
-                            type = objCreationNode.ChildNodes().Where(s => s.Kind() == SyntaxKind.IdentifierName).FirstOrDefault();
-                        }
-                        // Case: x = y;
-                        else
-                        {
-                            type = expressionStatement.Expression.ChildNodes().Where(s => s.Kind() == SyntaxKind.IdentifierName).FirstOrDefault();
-                        }
-                    }
-
-                    if (type != null && variableSymbolTypeOpt != null)
-                    {
-                        rewrittenExpression = ExpressionSyntaxExtensions.CastIfPossible(rewrittenExpression, variableSymbolTypeOpt, type.GetLocation().SourceSpan.Start, semanticModel);
-                    }
-                }
-
                 return rewrittenExpression;
             }
 
@@ -178,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     : labels.First(x => x.IsKind(SyntaxKind.DefaultSwitchLabel));
             }
 
-            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, ITypeSymbol variableSymbolTypeOpt = null, SemanticModel semanticModel = null, bool allowMoveNextStatementToSwitchExpression = true)
+            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, bool allowMoveNextStatementToSwitchExpression = true)
             {
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
@@ -186,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     .Select(s =>
                         (tokensForLeadingTrivia: new[] { s.Labels[0].GetFirstToken(), s.Labels[0].GetLastToken() },
                          tokensForTrailingTrivia: new[] { s.Statements[0].GetFirstToken(), s.Statements[0].GetLastToken() },
-                         armExpression: GetSwitchExpressionArm(s, variableSymbolTypeOpt, semanticModel)))
+                         armExpression: GetSwitchExpressionArm(s)))
                     .ToList();
 
                 if (allowMoveNextStatementToSwitchExpression)

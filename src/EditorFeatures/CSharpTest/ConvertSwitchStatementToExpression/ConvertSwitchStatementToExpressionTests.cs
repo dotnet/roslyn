@@ -966,11 +966,11 @@ class Program
 {
     public static void Test(string name)
     {
-        var result = name switch
+        bool? result = name switch
         {
             ""a"" => true,
             ""b"" => false,
-            _ => (bool?)null,
+            _ => null,
         };
     }
 }");
@@ -1023,10 +1023,10 @@ class Program
 
     public static void Test(string name)
     {
-        var fruit = name switch
+        IFruit2 fruit = name switch
         {
             ""apple"" => new Apple(),
-            ""banana"" => (IFruit2)new Banana(),
+            ""banana"" => new Banana(),
             _ => throw new InvalidOperationException(""Unknown fruit.""),
         };
     }
