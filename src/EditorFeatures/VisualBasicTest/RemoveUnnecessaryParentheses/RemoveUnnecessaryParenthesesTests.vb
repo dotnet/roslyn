@@ -23,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
             Return TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation:=New LinePosition(line, column))
         End Function
 
+        Friend Function GetRemoveUnnecessaryParenthesesDiagnostic(text As String, line As Integer, column As Integer, severity As DiagnosticSeverity) As DiagnosticDescription
+            Return TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation:=New LinePosition(line, column)).WithEffectiveSeverity(severity)
+        End Function
+
         Friend Overrides Function ShouldSkipMessageDescriptionVerification(descriptor As DiagnosticDescriptor) As Boolean
             Return descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary) And descriptor.DefaultSeverity = DiagnosticSeverity.Hidden
         End Function
@@ -624,6 +628,52 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expect
             5 + 6)|]
     end sub
 end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expectedDiagnostics)
+        End Function
+
+        <WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticOnlyOneDiagnosticError() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
+        <Document FilePath="z:\\file.vb">class C
+    sub M()
+        dim x = [|(1 + 2)|]
+    end sub
+end class
+        </Document>
+        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+dotnet_diagnostic.IDE0047.severity = error
+        </AnalyzerConfigDocument>
+    </Project>
+</Workspace>
+
+            Dim openParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 2, 16, DiagnosticSeverity.Hidden)
+            Dim parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 2, 16, DiagnosticSeverity.Error)
+            Dim closeParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 2, 22, DiagnosticSeverity.Hidden)
+            Await TestDiagnosticsAsync(input.ToString(), New TestParameters(options:=RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic, openParenthesesDiagnostic, closeParenthesesDiagnostic)
+        End Function
+
+        <WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticNoFadeWhenHidden() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
+        <Document FilePath="z:\\file.vb">class C
+    sub M()
+        dim x = [|(1 + 2)|]
+    end sub
+end class
+        </Document>
+        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.vb]
+dotnet_diagnostic.IDE0047.severity = silent
+        </AnalyzerConfigDocument>
+    </Project>
+</Workspace>
+
+            Dim parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 2, 16, DiagnosticSeverity.Hidden)
+            Await TestDiagnosticsAsync(input.ToString(), New TestParameters(options:=RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic)
         End Function
     End Class
 End Namespace

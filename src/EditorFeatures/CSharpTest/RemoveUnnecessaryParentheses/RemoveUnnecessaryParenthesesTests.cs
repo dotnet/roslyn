@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
-        {
-            var diagnosticId = IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId;
-            return TestHelpers.Diagnostic(diagnosticId, text, startLocation: new LinePosition(line, column));
-        }
+            => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
+
+        private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column, DiagnosticSeverity severity)
+            => GetRemoveUnnecessaryParenthesesDiagnostic(text, line, column).WithEffectiveSeverity(severity);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestVariableInitializer_TestWithAllOptionsSetToIgnore()
@@ -2373,6 +2373,58 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
             5 + 6)|];
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses), expectedDiagnostics);
+        }
+
+        [WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesisDiagnosticOnlyOneDiagnosticError()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">class C
+{
+    void M()
+    {
+        int x = [|(1 + 2)|];
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_diagnostic.IDE0047.severity = error
+        </AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var openParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, DiagnosticSeverity.Hidden);
+            var parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 4, 16, DiagnosticSeverity.Error);
+            var closeParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 4, 22, DiagnosticSeverity.Hidden);
+            await TestDiagnosticsAsync(input, new TestParameters(options: RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic, openParenthesesDiagnostic, closeParenthesesDiagnostic);
+        }
+
+        [WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesisDiagnosticNoFadeWhenHidden()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">class C
+{
+    void M()
+    {
+        int x = [|(1 + 2)|];
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_diagnostic.IDE0047.severity = silent
+        </AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 4, 16, DiagnosticSeverity.Hidden);
+            await TestDiagnosticsAsync(input, new TestParameters(options: RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic);
         }
     }
 }

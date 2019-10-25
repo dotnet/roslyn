@@ -17,6 +17,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
+        /// Get the effective severity of a diagnostic based on the editor config
+        /// or ruleset configuration of the diagnostic id.  If none configured, return default.
+        /// </summary>
+        public static ReportDiagnostic GetEffectiveSeverity(this SyntaxTree syntaxTree, string diagnosticId, Compilation compilation)
+        {
+            if (syntaxTree.DiagnosticOptions.TryGetValue(diagnosticId, out var syntaxTreeSeverity))
+            {
+                return syntaxTreeSeverity;
+            }
+
+            if (compilation.Options.SpecificDiagnosticOptions.TryGetValue(diagnosticId, out var compilationSeverity))
+            {
+                return compilationSeverity;
+            }
+
+            return ReportDiagnostic.Default;
+        }
+
+        /// <summary>
         /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
         /// position, or a token of Kind = None if the caret is not touching either.
         /// </summary>

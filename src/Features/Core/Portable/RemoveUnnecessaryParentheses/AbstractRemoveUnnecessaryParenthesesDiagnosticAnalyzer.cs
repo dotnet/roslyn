@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
@@ -21,12 +22,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
         /// <summary>
         /// A diagnostic descriptor that will fade the span (but not put a message or squiggle).
+        /// Not configurable so that the severity cannot be raised and end up in the error list.
         /// </summary>
         private static readonly DiagnosticDescriptor s_diagnosticWithFade = CreateDescriptorWithId(
                 IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                 new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 string.Empty,
-                isUnneccessary: true);
+                isUnneccessary: true,
+                customTags: WellKnownDiagnosticTags.NotConfigurable);
 
         /// <summary>
         /// A diagnostic descriptor used to squiggle and message the span, but will not fade.
@@ -126,8 +129,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
 
-            // Fades the open parentheses character and reports the suggestion.
-            context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetFirstToken().GetLocation(), additionalLocations));
+            // Since this diagnostic descriptor is not user configurable, do not report it if this diagnostic id is hidden / suppressed.
+            var effectiveSeverity = syntaxTree.GetEffectiveSeverity(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, context.SemanticModel.Compilation);
+            if (effectiveSeverity != ReportDiagnostic.Suppress && effectiveSeverity != ReportDiagnostic.Hidden)
+            {
+                // Fades the open parentheses character and reports the suggestion.
+                context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetFirstToken().GetLocation(), additionalLocations));
+
+                // Fades the close parentheses character.
+                context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
+            }
 
             // Generates diagnostic used to squiggle the parenthetical expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -136,9 +147,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 severity,
                 additionalLocations,
                 properties: null));
-
-            // Fades the close parentheses character.
-            context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
         }
 
         /// <summary>
