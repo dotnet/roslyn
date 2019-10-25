@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, /*IResultWithDecoratedDefinition,*/ IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids, IResultWithKind, IResultInNamedCode
+    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, /*IResultWithDecoratedDefinition,*/ IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids, IResultWithKind, IResultInNamedCode, IResultWithReferenceDefinitionRelationship
     {
         private DefinitionItem Definition { get; set; }
         private SourceReferenceItem Reference { get; set; }
@@ -62,15 +62,21 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             if (result.Reference != null)
             {
-                result.Kind = result.Reference.SymbolUsageInfo.IsWrittenTo()
-                    ? "Write"
-                    : result.Reference.SymbolUsageInfo.IsReadFrom()
-                        ? "Read"
-                        : string.Empty;
+                if (result.Reference.SymbolUsageInfo.IsWrittenTo())
+                {
+                    result.Kind = "Write";
+                    result.IsWrittenTo = true;
+                }
+                else if (result.Reference.SymbolUsageInfo.IsReadFrom())
+                {
+                    result.Kind = "Write";
+                    result.IsReadFrom = true;
+                }
             }
             else
             {
                 result.DefinitionIcon = result.Definition.Tags.GetFirstGlyph().GetImageId();
+                result.IsDefinition = true;
             }
 
             var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, token)
@@ -154,6 +160,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public string ContainingTypeName { get; private set; }
 
         public string ContainingMemberName { get; private set; }
+
+        SymbolSearchResult IResultWithReferenceDefinitionRelationship.Definition { get; private set; }
+
+        public bool IsDefinition { get; private set; }
+
+        public bool IsReadFrom { get; private set; }
+
+        public bool IsWrittenTo { get; private set; }
 
         public Task NavigateToAsync(CancellationToken token)
         {
