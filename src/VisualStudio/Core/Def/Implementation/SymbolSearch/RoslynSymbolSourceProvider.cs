@@ -11,8 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     [Export(typeof(ISymbolSourceProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name("Roslyn symbol source")]
-    class SymbolSourceProvider : ISymbolSourceProvider
+    [Name(nameof(RoslynSymbolSourceProvider))]
+    internal class RoslynSymbolSourceProvider : ISymbolSourceProvider
     {
         [Import]
         internal IPersistentSpanFactory PersistentSpanFactory { get; private set; }
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         [Import]
         internal ISymbolSearchBroker SymbolSearchBroker { get; private set; }
 
-        ImmutableArray<ISymbolSource> ExportedSources;
+        private ImmutableArray<ISymbolSource> ExportedSources;
 
         public ImmutableArray<ISymbolSource> GetOrCreate(ITextBuffer buffer)
         {
@@ -28,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 ExportedSources = ImmutableArray.Create<ISymbolSource>(new RoslynSymbolSource(this));
             }
+
             return ExportedSources;
         }
     }

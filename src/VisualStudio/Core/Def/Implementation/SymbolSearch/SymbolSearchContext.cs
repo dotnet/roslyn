@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    class SymbolSearchContext : FindUsagesContext
+    internal class SymbolSearchContext : FindUsagesContext
     {
         internal RoslynSymbolSource SymbolSource { get; }
         internal LocalCodeSymbolOrigin RootSymbolOrigin { get; }
@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
                 this.SymbolSink.AddRange(builder.ToImmutable());
             }
+
             return;
         }
 

@@ -16,9 +16,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     internal class RoslynSymbolSource : ISymbolSourceFromLocation
     {
-        internal SymbolSourceProvider ServiceProvider { get; private set; }
+        internal RoslynSymbolSourceProvider ServiceProvider { get; private set; }
 
-        public RoslynSymbolSource(SymbolSourceProvider symbolSourceProvider)
+        public RoslynSymbolSource(RoslynSymbolSourceProvider symbolSourceProvider)
         {
             ServiceProvider = symbolSourceProvider;
         }

@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
-    // AW: Ported to Editor
     /// <summary>   
     /// Custom column to display the containing type for the Find All References window.
     /// </summary>

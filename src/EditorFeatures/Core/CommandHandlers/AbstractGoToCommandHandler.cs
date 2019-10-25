@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IThreadingContext _threadingContext;
-        private bool? _areGoToCommandsEnabled;
 
         public abstract string DisplayName { get; }
 
