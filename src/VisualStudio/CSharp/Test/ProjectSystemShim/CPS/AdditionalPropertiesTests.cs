@@ -40,6 +40,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]
+        [InlineData(null)]
         public void SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion? maxSupportedLangVersion)
         {
             var catalog = TestEnvironment.s_exportCatalog.Value
@@ -56,10 +57,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
                 var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
-                if (maxSupportedLangVersion.HasValue)
-                {
-                    cpsProject.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion.Value.ToDisplayString());
-                }
+                cpsProject.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion?.ToDisplayString());
 
                 var canApply = environment.Workspace.CanApplyParseOptionChange(
                     oldParseOptions,
@@ -74,6 +72,32 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 {
                     Assert.True(canApply);
                 }
+            }
+        }
+
+        [WpfFact]
+        public void SetProperty_MaxSupportedLangVersion_CPS_NotSet()
+        {
+            var catalog = TestEnvironment.s_exportCatalog.Value
+                .WithParts(
+                    typeof(CSharpParseOptionsChangingService));
+
+            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
+
+            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
+
+            using (var environment = new TestEnvironment(exportProviderFactory: factory))
+            using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
+            {
+                var project = environment.Workspace.CurrentSolution.Projects.Single();
+                var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+                var canApply = environment.Workspace.CanApplyParseOptionChange(
+                    oldParseOptions,
+                    oldParseOptions.WithLanguageVersion(attemptedVersion),
+                    project);
+
+                Assert.True(canApply);
             }
         }
     }

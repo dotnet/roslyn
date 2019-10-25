@@ -180,8 +180,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [InlineData(null)]
         public void SetProperty_MaxSupportedLangVersion(LanguageVersion? maxSupportedLangVersion)
         {
-            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
-
             var catalog = TestEnvironment.s_exportCatalog.Value
                 .WithParts(
                     typeof(CSharpParseOptionsChangingService));
@@ -190,25 +188,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             using var environment = new TestEnvironment(exportProviderFactory: factory);
 
             var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
+            var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);
 
-            if (!(hierarchy is IVsBuildPropertyStorage storage))
-            {
-                Assert.True(false);
-                return;
-            }
-
-            if (maxSupportedLangVersion.HasValue)
-            {
-                Assert.True(ErrorHandler.Succeeded(
-                    storage.SetPropertyValue(
-                        "MaxSupportedLangVersion", null, (uint)_PersistStorageType.PST_PROJECT_FILE, maxSupportedLangVersion.Value.ToDisplayString())));
-            }
+            Assert.True(ErrorHandler.Succeeded(
+                storage.SetPropertyValue(
+                    "MaxSupportedLangVersion", null, (uint)_PersistStorageType.PST_PROJECT_FILE, maxSupportedLangVersion?.ToDisplayString())));
 
             _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
 
             var project = environment.Workspace.CurrentSolution.Projects.Single();
 
             var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
             var canApply = environment.Workspace.CanApplyParseOptionChange(
                 oldParseOptions,
@@ -223,6 +215,35 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 Assert.True(canApply);
             }
+        }
+
+        [WpfFact]
+        public void SetProperty_MaxSupportedLangVersion_NotSet()
+        {
+            var catalog = TestEnvironment.s_exportCatalog.Value
+                .WithParts(
+                    typeof(CSharpParseOptionsChangingService));
+
+            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
+            using var environment = new TestEnvironment(exportProviderFactory: factory);
+
+            var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
+            var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);
+
+            _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
+
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
+
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
+
+            Assert.True(canApply);
         }
     }
 }
