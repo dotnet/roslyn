@@ -1312,6 +1312,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
         End Function
 
+        Public Function GetLeftSideOfDot(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.GetLeftSideOfDot
+            Return If(TryCast(node, QualifiedNameSyntax)?.Left,
+                      TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget))
+        End Function
+
         Public Function IsLeftSideOfExplicitInterfaceSpecifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfExplicitInterfaceSpecifier
             Return IsLeftSideOfDot(node) AndAlso TryCast(node.Parent.Parent, ImplementsClauseSyntax) IsNot Nothing
         End Function

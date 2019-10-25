@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsLeftSideOfDot(SyntaxNode node);
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
+        SyntaxNode GetLeftSideOfDot(SyntaxNode node, bool allowImplicitTarget = false);
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);

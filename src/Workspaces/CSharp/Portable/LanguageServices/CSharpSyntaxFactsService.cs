@@ -1267,6 +1267,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
+        public SyntaxNode GetLeftSideOfDot(SyntaxNode node, bool allowImplicitTarget)
+        {
+            return (node as QualifiedNameSyntax)?.Left ??
+                (node as MemberAccessExpressionSyntax)?.Expression;
+        }
+
         public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)
             => (node as NameSyntax).IsLeftSideOfExplicitInterfaceSpecifier();
 
