@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        public override string MetadataName
+        {
+            get { return IsDiscard ? DiscardMetadataName(Ordinal) : base.MetadataName; }
+        }
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get { return null; }

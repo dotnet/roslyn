@@ -316,18 +316,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The metadata parameter name should be the name used in the partial definition.
 
                 var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-                if ((object)sourceMethod == null)
+                if (sourceMethod is null)
                 {
-                    return base.MetadataName;
+                    return baseMetadataNameOrDiscard();
                 }
 
                 var definition = sourceMethod.SourcePartialDefinition;
-                if ((object)definition == null)
+                if (definition is null)
                 {
-                    return base.MetadataName;
+                    return baseMetadataNameOrDiscard();
                 }
 
                 return definition.Parameters[this.Ordinal].MetadataName;
+
+                string baseMetadataNameOrDiscard()
+                {
+                    if (IsDiscard)
+                    {
+                        return DiscardMetadataName(Ordinal);
+                    }
+                    return base.MetadataName;
+                }
             }
         }
 

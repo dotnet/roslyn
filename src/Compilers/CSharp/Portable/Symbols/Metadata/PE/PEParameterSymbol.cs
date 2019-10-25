@@ -287,41 +287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
         }
 
-        private bool HasNameInMetadata => _packedFlags.HasNameInMetadata;
-
-        private const string underscore = "_";
-
-        public sealed override bool IsDiscard
+        private bool HasNameInMetadata
         {
             get
             {
-                if (Name != underscore)
-                {
-                    return false;
-                }
-
-                var parameters = _containingSymbol switch
-                {
-                    PEMethodSymbol method => method.Parameters,
-                    PEPropertySymbol property => property.Parameters,
-                    _ => throw ExceptionUtilities.UnexpectedValue(_containingSymbol.Kind)
-                };
-
-                int underscoresCount = 0;
-                foreach (var p in parameters)
-                {
-                    if (p.Name == underscore)
-                    {
-                        underscoresCount++;
-
-                        if (underscoresCount >= 2)
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
+                return _packedFlags.HasNameInMetadata;
             }
         }
 
@@ -436,6 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return _ordinal;
+            }
+        }
+
+        public override bool IsDiscard
+        {
+            get
+            {
+                return false;
             }
         }
 

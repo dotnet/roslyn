@@ -213,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsDiscard => _isDiscard;
 
+        protected static string DiscardMetadataName(int ordinal) => $"<>_{ordinal + 1}";
+
         public sealed override RefKind RefKind
         {
             get

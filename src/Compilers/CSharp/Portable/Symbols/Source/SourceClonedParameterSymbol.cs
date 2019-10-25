@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard => _originalParam.IsDiscard;
 
+        public override string MetadataName => _originalParam.MetadataName;
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
