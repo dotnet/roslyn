@@ -683,7 +683,7 @@ class c
                 ' or did not insert text at all).
                 state.SendTypeChars(keyword.Substring(0, keyword.Length - 1))
                 state.SendInvokeCompletionList()
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
 
                 ' /// <see langword="keyword"/>$$
