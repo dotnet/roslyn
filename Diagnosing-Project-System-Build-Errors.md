@@ -30,7 +30,7 @@ There are a few ways to tell:
 9. Click the stop button in the Build Logging window.
 10. Select all the logs by clicking on one and then pressing Ctrl+A to Select All.
 11. Right click, choose Save Logs. Save them, and attach them to your feedback item.
-12. Go under the Tools menu, and choose Log Roslyn Workspace Structure. This will prompt to save an XML file, and the process may take some time. Attach this item to your feedback item. If the file is large, you may wish to zip it into a .zip file.
+12. Go under the Tools menu, and choose Log Roslyn Workspace Structure. This will prompt to save an XML file, and the process may take some time. Attach this item to your feedback item. If the file is large, you may wish to zip it into a .zip file if the extension didn't make a .zip file for you.
 
 ## How do I get log files to diagnose what is happening in Visual Studio 2015?
 
