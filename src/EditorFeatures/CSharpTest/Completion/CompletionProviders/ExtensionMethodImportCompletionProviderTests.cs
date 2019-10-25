@@ -1096,9 +1096,9 @@ namespace Baz
         }
 
         [InlineData("int", "Int32Method", "Foo")]
-        [InlineData("string", "StringMethod", "Bar", Skip = "Currently can't handle aliases with idencical name")]
+        [InlineData("string", "StringMethod", "Bar")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestIdenticalAlias_UseOuterOne(string type, string expectedMethodname, string expectedNamespace)
+        public async Task TestIdenticalAliases(string type, string expectedMethodname, string expectedNamespace)
         {
             var file1 = @"
 using X = System.String;

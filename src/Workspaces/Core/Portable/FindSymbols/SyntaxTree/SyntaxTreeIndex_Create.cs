@@ -120,12 +120,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             {
                                 foreach (var (aliasName, name) in aliases)
                                 {
-                                    // TODO:
-                                    // we currently don't handle using aliases with same name declared 
-                                    // in different containers in the document (only allowed in C#)
-                                    // e.g. see test CSharpReferenceHighlightingTests.TestAlias4
-                                    // Debug.Assert(!usingAliases.ContainsKey(aliasName));
-                                    usingAliases[aliasName] = name;
+                                    // In C#, it's valid to declare two alias with identical name,
+                                    // as long as they are in different containers.
+                                    //
+                                    // e.g.
+                                    //      using X = System.String;
+                                    //      namespace N
+                                    //      {
+                                    //          using X = System.Int32;
+                                    //      }
+                                    //
+                                    // If we detect this, we will simply treat extension methods whose
+                                    // target type is this alais as complex method.
+                                    if (usingAliases.ContainsKey(aliasName))
+                                    {
+                                        usingAliases[aliasName] = null;
+                                    }
+                                    else
+                                    {
+                                        usingAliases[aliasName] = name;
+                                    }
                                 }
                             }
 
@@ -288,19 +302,29 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 return;
             }
 
-            // complex type
+            // complex method
             if (targetTypeName == null)
             {
                 complexInfoBuilder.Add(declaredSymbolInfoIndex);
                 return;
             }
 
+            // Target type is an alias
             if (aliases.TryGetValue(targetTypeName, out var originalName))
             {
+                // it is an alias of multiple with identical name,
+                // simply treat it as a complex method.
+                if (originalName == null)
+                {
+                    complexInfoBuilder.Add(declaredSymbolInfoIndex);
+                    return;
+                }
+
+                // replace the alias with its original name.
                 targetTypeName = originalName;
             }
 
-            // simple type
+            // So we've got a simple method.
             if (!simpleInfoBuilder.TryGetValue(targetTypeName, out var arrayBuilder))
             {
                 arrayBuilder = ArrayBuilder<int>.GetInstance();
