@@ -120,7 +120,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             {
                                 foreach (var (aliasName, name) in aliases)
                                 {
-                                    Debug.Assert(!usingAliases.ContainsKey(aliasName));
+                                    // TODO:
+                                    // we currently don't handle using aliases with same name declared 
+                                    // in different containers in the document (only allowed in C#)
+                                    // e.g. see test CSharpReferenceHighlightingTests.TestAlias4
+                                    // Debug.Assert(!usingAliases.ContainsKey(aliasName));
                                     usingAliases[aliasName] = name;
                                 }
                             }

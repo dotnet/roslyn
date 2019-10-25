@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Test() As Task
+        Public Async Function TestExtensionAttribute() As Task
 
             ' attribute suffix isn't capitalized
             Dim file1 = <Text><![CDATA[
@@ -92,7 +92,7 @@ End Class]]></Text>.Value
             Await VerifyItemExistsAsync(markup, "ExtensionMethod3", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
             Await VerifyItemExistsAsync(markup, "ExtensionMethod4", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
             Await VerifyItemExistsAsync(markup, "ExtensionMethod5", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod6", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod6", inlineDescription:="Foo")
         End Function
     End Class
 End Namespace
