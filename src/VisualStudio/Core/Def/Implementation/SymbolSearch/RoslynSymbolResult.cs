@@ -61,26 +61,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, token)
                 .ConfigureAwait(false);
+
             // GUIDs allow scoping to current project and document
             result.ProjectId = projectGuid.ToString();
             result.DocumentId = documentGuid.ToString();
             result.ProjectName = projectName;
 
             var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, token).ConfigureAwait(false);
-
-            var classifiedText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
-                new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
-            result.ClassifiedContext = classifiedText;
             result.PlainText = excerptResult.Content.ToString();
 
-            /*result.ClassifiedContext = new ClassifiedTextElement(
-                excerptResult.ClassifiedSpans.Select(n => new ClassifiedTextRun(n.ClassificationType, n.
-                );
-            excerptResult.ClassifiedSpans*/
-            // decorate the parent definition:
-            //result.ClassifiedDefinition = await ProtocolConversions.DocumentSpanToLocationWithTextAsync(definition.SourceSpans.First(), sourceText, token).ConfigureAwait(false);
-
-            // do this for each reference:
             if (result.Reference != null)
             {
                 var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(result.Reference.SourceSpan, token).ConfigureAwait(false);
@@ -112,17 +101,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
             else if (result.Definition != null)
             {
-                var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(result.Reference.SourceSpan, token).ConfigureAwait(false);
-                result.DefinitionIcon = result.Definition.Tags.GetFirstGlyph().GetImageId();
                 result.IsDefinition = true;
+                result.DefinitionIcon = result.Definition.Tags.GetFirstGlyph().GetImageId();
+
+                // TODO: Use DocumentSpanEntry
+                result.ClassifiedContext = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
+                    new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
             }
 
-            /*
-            var referenceLocation = await ProtocolConversions.DocumentSpanToLocationAsync(reference.SourceSpan, cancellationToken).ConfigureAwait(false);
-            var classifiedText = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
-            var locationWithText = new LSP.LocationWithText { Range = referenceLocation.Range, Uri = referenceLocation.Uri, Text = classifiedText };
-            result.ClassifiedContext = 
-            */
+            // Set location so that Editor can navigate to the result
             var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, token).ConfigureAwait(false);
             if (mappedDocumentSpan.HasValue)
             {

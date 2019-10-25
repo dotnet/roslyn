@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
 
-            if (!AreSymbolSearchCommandHandlersEnabled(document.Project.Solution.Workspace))
+            if (EditorHandlesSymbolSearch(document.Project.Solution.Workspace))
             {
                 return false;
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return true;
         }
 
-        private static bool AreSymbolSearchCommandHandlersEnabled(Workspace workspace)
+        private static bool EditorHandlesSymbolSearch(Workspace workspace)
         {
             if (workspace == null)
             {

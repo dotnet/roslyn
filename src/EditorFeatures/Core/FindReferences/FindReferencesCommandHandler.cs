@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    if (!AreSymbolSearchCommandHandlersEnabled(document.Project.Solution.Workspace))
+                    if (EditorHandlesSymbolSearch(document.Project.Solution.Workspace))
                     {
                         return false;
                     }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
         }
 
-        private static bool AreSymbolSearchCommandHandlersEnabled(Workspace workspace)
+        private static bool EditorHandlesSymbolSearch(Workspace workspace)
         {
             if (workspace == null)
             {

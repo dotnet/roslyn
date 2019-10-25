@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 {
                     return false;
                 }
-                if (!AreSymbolSearchCommandHandlersEnabled(workspace))
+                if (EditorHandlesSymbolSearch(workspace))
                 {
                     return false;
                 }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 document.Project.Solution.Workspace, context.SearchTitle, definitionItems).Wait(cancellationToken);
         }
 
-        private static bool AreSymbolSearchCommandHandlersEnabled(Workspace workspace)
+        private static bool EditorHandlesSymbolSearch(Workspace workspace)
         {
             if (workspace == null)
             {
