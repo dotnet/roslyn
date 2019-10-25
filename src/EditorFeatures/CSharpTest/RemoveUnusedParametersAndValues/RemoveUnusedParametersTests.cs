@@ -590,6 +590,44 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedLocalFunctionParameter_DiscardTwo()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    void M(int y)
+    {
+        void local([|_|], _)
+        {
+        }
+
+        local(y, y);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedMethodParameter_DiscardTwo()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    void M([|_|], _)
+    {
+    }
+
+    void M2(int y)
+    {
+        M(y, y);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UsedLocalFunctionParameter()
         {
             await TestDiagnosticMissingAsync(

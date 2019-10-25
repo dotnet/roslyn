@@ -115,6 +115,44 @@ class MyClass
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function ReorderParameters_MethodWithTwoDiscardParameters_MoveFirstParameterDown() As Tasks.Task
+            Dim markup = <Text><![CDATA[
+class MyClass
+{
+    public void $$M(int _, string _)
+    {
+    }
+}"]]></Text>
+
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+            VerifyOpeningState(viewModel, "public void M(int _, string _)")
+
+            Dim monitor = New PropertyChangedTestMonitor(viewModel)
+            monitor.AddExpectation(Function() viewModel.IsOkButtonEnabled)
+            monitor.AddExpectation(Function() viewModel.SignatureDisplay)
+            monitor.AddExpectation(Function() viewModel.SignaturePreviewAutomationText)
+            monitor.AddExpectation(Function() viewModel.AllParameters)
+            monitor.AddExpectation(Function() viewModel.CanMoveUp)
+            monitor.AddExpectation(Function() viewModel.MoveUpAutomationText)
+            monitor.AddExpectation(Function() viewModel.CanMoveDown)
+            monitor.AddExpectation(Function() viewModel.MoveDownAutomationText)
+
+            viewModel.MoveDown()
+
+            VerifyAlteredState(
+                viewModelTestState,
+                monitor,
+                isOkButtonEnabled:=True,
+                canMoveUp:=True,
+                canMoveDown:=False,
+                permutation:={1, 0},
+                signatureDisplay:="public void M(string _, int _)")
+
+            monitor.Detach()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_RemoveFirstParameter() As Tasks.Task
             Dim markup = <Text><![CDATA[
 class MyClass

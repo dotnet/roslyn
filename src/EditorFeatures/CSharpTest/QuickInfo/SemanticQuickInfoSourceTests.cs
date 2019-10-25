@@ -2691,6 +2691,33 @@ class C
                 MainDescription($"({FeaturesResources.discard}) int _"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMethodDiscardParameter_FirstDiscard()
+        {
+            await TestAsync(
+@"class C
+{
+    int M(string $$_, int _) => 1;
+}",
+                MainDescription($"({FeaturesResources.discard}) string _"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestLocalFunctionDiscardParameter_SecondDiscard()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        local(null, 0);
+
+        int local(string _, int $$_) => 1;
+    }
+}",
+                MainDescription($"({FeaturesResources.discard}) int _"));
+        }
+
         [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLiterals()
