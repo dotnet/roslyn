@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 
