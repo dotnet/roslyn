@@ -58,16 +58,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
             // Don't split strings if there is any actual selection.
-            // We need to check that all spans are empty to account for multi-carets.
+            // We must check all spans to account for multi-carets.
             if (!spans.IsEmpty() && spans.All(s => s.IsEmpty))
             {
                 var caret = textView.GetCaretPoint(subjectBuffer);
                 if (caret != null)
                 {
-                    // We go through all the spans to check whether they are strings that can be split.
+                    // First, we need to verify that we are only working with string literals.
+                    // Otherwise, let the editor handle all carets.
                     for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
                     {
                         var spanStart = spans[spanIndex].Start;
+                        var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(spanStart);
+                        if (!LineContainsQuote(line, spanStart))
+                        {
+                            return false;
+                        }
+                    }
+
+                    // We now go through the verified string literals and split each of them.
+                    for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
+                    {
+                        var spanStart = spans[spanIndex].Start;
+
+                        // Multi-caret case
                         if (spanIndex > 0)
                         {
                             caret = textView.GetCaretPoint(subjectBuffer);
@@ -75,26 +89,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                             {
                                 return false;
                             }
-                            var addedSpace = caret.Value.Subtract(spans[spanIndex - 1].Start);
-                            if (addedSpace > 0 && addedSpace.Position + spanStart.Position < subjectBuffer.CurrentSnapshot.Length)
-                            {
-                                spanStart += addedSpace;
-                            }
-                            else
-                            {
-                                return true;
-                            }
+
+                            // We change the span's starting point based on how much space was added from the last split.
+                            var addedSpan = caret.Value.Subtract(spans[spanIndex - 1].Start);
+                            spanStart = new SnapshotPoint(caret.Value.Snapshot, addedSpan.Position + spanStart.Position);
                         }
 
-                        // Quick check.  If the line doesn't contain a quote in it before the caret,
-                        // then no point in doing any more expensive synchronous work.
-                        var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(spanStart);
-                        if (LineContainsQuote(line, spanStart))
+                        if (!SplitString(textView, subjectBuffer, spanStart))
                         {
-                            if (!SplitString(textView, subjectBuffer, spanStart))
-                            {
-                                return false;
-                            }
+                            return false;
                         }
                     }
                     return true;
