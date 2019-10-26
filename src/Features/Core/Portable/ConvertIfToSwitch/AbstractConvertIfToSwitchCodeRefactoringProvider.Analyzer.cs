@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //
         //    <if-statement>
         //        : if (<section-expr>) { _ } else <if-statement>
+        //        | if (<section-expr>) { _ } else { <if-statement-sequence> }
         //        | if (<section-expr>) { _ } else { _ }
         //        | if (<section-expr>) { _ }
-        //        | { <if-statement-sequence> }
         //
         //    <section-expr>
         //        : <section-expr> || <pattern-expr>
@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             //
             //    <if-statement>
             //        : if (<section-expr>) { _ } else <if-statement>
+            //        | if (<section-expr>) { _ } else { <if-statement-sequence> }
             //        | if (<section-expr>) { _ } else { _ }
             //        | if (<section-expr>) { _ }
-            //        | { <if-statement-sequence> }
             //
             private bool ParseIfStatement(IOperation operation, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
