@@ -139,9 +139,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 switch (operation)
                 {
-                    case IBlockOperation { Parent: IConditionalOperation _ } op: // Only if this is an if-else block
-                        return ParseIfStatementSequence(op.Operations.AsSpan(), sections, out defaultBodyOpt);
-
                     case IConditionalOperation op when CanConvert(op):
                         var section = ParseSwitchSection(op);
                         if (section is null)
@@ -155,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         {
                             defaultBodyOpt = null;
                         }
-                        else if (!ParseIfStatement(op.WhenFalse, sections, out defaultBodyOpt))
+                        else if (!ParseIfStatementOrBlock(op.WhenFalse, sections, out defaultBodyOpt))
                         {
                             defaultBodyOpt = op.WhenFalse;
                         }
@@ -165,6 +162,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 defaultBodyOpt = null;
                 return false;
+            }
+
+            private bool ParseIfStatementOrBlock(IOperation op, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
+            {
+                return op is IBlockOperation block
+                    ? ParseIfStatementSequence(block.Operations.AsSpan(), sections, out defaultBodyOpt)
+                    : ParseIfStatement(op, sections, out defaultBodyOpt);
             }
 
             private AnalyzedSwitchSection? ParseSwitchSection(IConditionalOperation operation)
