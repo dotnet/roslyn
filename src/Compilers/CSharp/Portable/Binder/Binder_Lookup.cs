@@ -1388,7 +1388,7 @@ symIsHidden:;
             Debug.Assert(options.AreValid());
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (symbol is ParameterSymbol { IsDiscard: true})
+            if (symbol is ParameterSymbol { IsDiscard: true })
             {
                 return false;
             }
