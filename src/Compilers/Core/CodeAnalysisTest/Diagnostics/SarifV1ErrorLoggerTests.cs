@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -42,7 +43,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           ""locations"": [
             {
               ""resultFile"": {
-                ""uri"": ""file:///Z:/Main%20Location.cs"",
+                ""uri"": """ + (PathUtilities.IsUnixLikePlatform
+                                    ? "Z:/Main%20Location.cs"
+                                    : "file:///Z:/Main%20Location.cs") + @""",
                 ""region"": {
                   ""startLine"": 1,
                   ""startColumn"": 1,
@@ -56,17 +59,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
               ""physicalLocation"": {
                 ""uri"": ""Relative%20Additional/Location.cs"",
-                ""region"": {
-                  ""startLine"": 1,
-                  ""startColumn"": 1,
-                  ""endLine"": 1,
-                  ""endColumn"": 1
-                }
-              }
-            },
-            {
-              ""physicalLocation"": {
-                ""uri"": ""a%3Acannot%2Finterpret%2Fas%5Curi"",
                 ""region"": {
                   ""startLine"": 1,
                   ""startColumn"": 1,
@@ -378,6 +370,58 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void DescriptorIdCollision()
         {
             DescriptorIdCollisionImpl();
+        }
+
+        [Fact]
+        public void PathToUri()
+        {
+            PathToUriImpl(@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-1.0.0"",
+  ""version"": ""1.0.0"",
+  ""runs"": [
+    {{
+      ""tool"": {{
+        ""name"": """",
+        ""version"": ""1.0.0"",
+        ""fileVersion"": """",
+        ""semanticVersion"": ""1.0.0"",
+        ""language"": """"
+      }},
+      ""results"": [
+        {{
+          ""ruleId"": ""uriDiagnostic"",
+          ""level"": ""warning"",
+          ""message"": ""blank diagnostic"",
+          ""locations"": [
+            {{
+              ""resultFile"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 1,
+                  ""startColumn"": 1,
+                  ""endLine"": 1,
+                  ""endColumn"": 1
+                }}
+              }}
+            }}
+          ],
+          ""properties"": {{
+            ""warningLevel"": 3
+          }}
+        }}
+      ],
+      ""rules"": {{
+        ""uriDiagnostic"": {{
+          ""id"": ""uriDiagnostic"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {{
+            ""isEnabledByDefault"": true
+          }}
+        }}
+      }}
+    }}
+  ]
+}}");
         }
     }
 }
