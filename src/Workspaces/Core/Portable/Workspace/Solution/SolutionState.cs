@@ -855,6 +855,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        public SolutionState WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Debug.Assert(this.ContainsProject(projectId));
+
+            var oldProject = this.GetProjectState(projectId)!;
+            var newProject = oldProject.UpdateRunAnalyzers(runAnalyzers);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            // fork without any change on compilation.
+            return this.ForkProject(newProject);
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>

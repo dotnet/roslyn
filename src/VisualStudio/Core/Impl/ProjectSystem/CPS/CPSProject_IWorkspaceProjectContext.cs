@@ -167,6 +167,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 _visualStudioProject.MaxLangVersion = value;
             }
+            else if (name == AdditionalPropertyNames.RunAnalyzers)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzers = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+            }
         }
 
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)

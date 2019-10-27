@@ -426,6 +426,9 @@ namespace Microsoft.CodeAnalysis
         public bool HasAllInformation => this.ProjectInfo.HasAllInformation;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public bool RunAnalyzers => this.ProjectInfo.RunAnalyzers;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool HasDocuments => _documentIds.Count > 0;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -608,6 +611,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.With(projectInfo: this.ProjectInfo.WithHasAllInformation(hasAllInformation).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateRunAnalyzers(bool runAnalyzers)
+        {
+            if (runAnalyzers == this.RunAnalyzers)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithRunAnalyzers(runAnalyzers).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)

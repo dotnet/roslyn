@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -101,6 +102,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // In the future, we might consider officially exposing "default namespace" for VB project 
             // (e.g. through a <defaultnamespace> msbuild property)
             VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
+
+            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzers, out var runAnayzers))
+            {
+                VisualStudioProject.RunAnalyzers = runAnayzers;
+            }
+
+            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, out var runAnayzersDuringLiveAnalysis))
+            {
+                VisualStudioProject.RunAnalyzersDuringLiveAnalysis = runAnayzersDuringLiveAnalysis;
+            }
 
             Hierarchy = hierarchy;
             ConnectHierarchyEvents();
@@ -391,6 +402,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             return null;
+        }
+
+        private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, out string propertyValue)
+        {
+            if (!(hierarchy is IVsBuildPropertyStorage storage))
+            {
+                propertyValue = null;
+                return false;
+            }
+
+            return ErrorHandler.Succeeded(storage.GetPropertyValue(propertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, out propertyValue));
+        }
+
+        private static bool TryGetBoolPropertyValue(IVsHierarchy hierarchy, string propertyName, out bool? propertyValue)
+        {
+            if (!TryGetPropertyValue(hierarchy, propertyName, out var stringPropertyValue))
+            {
+                propertyValue = null;
+                return false;
+            }
+
+            propertyValue = bool.TryParse(stringPropertyValue, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+            return true;
         }
     }
 }
