@@ -2111,6 +2111,22 @@ class A : Attribute
 }");
         }
 
+        [WorkItem(39042, "https://github.com/dotnet/roslyn/issues/39042")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveNecessaryCastForImplicitNumericCastsThatLoseInformation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    public A(long x)
+    {
+        long y = (long)[|(double)x|];
+    }
+}");
+        }
+
         #region Interface Casts
 
         [WorkItem(545889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545889")]
