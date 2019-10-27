@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Diagnostics;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
             => Hash.Combine(_containingSymbol.GetHashCode(), _name.GetHashCode());
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
             => obj is SynthesizedNamespaceSymbol other && Equals(other, compareKind);
 
         public bool Equals(SynthesizedNamespaceSymbol other, TypeCompareKind compareKind)
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol ContainingSymbol
             => _containingSymbol;
 
-        public override AssemblySymbol ContainingAssembly
+        public override AssemblySymbol? ContainingAssembly
             => _containingSymbol.ContainingAssembly;
 
         public override ImmutableArray<Location> Locations
