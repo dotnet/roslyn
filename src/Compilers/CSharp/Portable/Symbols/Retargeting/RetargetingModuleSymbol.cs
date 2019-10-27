@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Globalization;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -70,8 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </param>
         public RetargetingModuleSymbol(RetargetingAssemblySymbol retargetingAssembly, SourceModuleSymbol underlyingModule)
         {
-            Debug.Assert((object)retargetingAssembly != null);
-            Debug.Assert((object)underlyingModule != null);
+            RoslynDebug.Assert((object)retargetingAssembly != null);
+            RoslynDebug.Assert((object)underlyingModule != null);
 
             _retargetingAssembly = retargetingAssembly;
             _underlyingModule = underlyingModule;
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _underlyingModule.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
@@ -176,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// A helper method for ReferenceManager to set AssemblySymbols for assemblies 
         /// referenced by this module.
         /// </summary>
-        internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly)
+        internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol? originatingSourceAssemblyDebugOnly)
         {
             base.SetReferences(moduleReferences, originatingSourceAssemblyDebugOnly);
 
@@ -279,11 +282,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }
 
-        public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
+        public override ModuleMetadata? GetMetadata() => _underlyingModule.GetMetadata();
     }
 }

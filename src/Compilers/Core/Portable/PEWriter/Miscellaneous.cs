@@ -110,12 +110,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// <see cref="ITypeReference"/> or a string (usually a fully-qualified type name of a type implementing the custom marshaller, but Dev11 allows any string).
         /// </summary>
-        object GetCustomMarshaller(EmitContext context);
+        object? GetCustomMarshaller(EmitContext context);
 
         /// <summary>
         /// An argument string (cookie) passed to the custom marshaller at run time.
         /// </summary>
-        string CustomMarshallerRuntimeArgument
+        string? CustomMarshallerRuntimeArgument
         {
             get;
         }
@@ -177,7 +177,7 @@ namespace Microsoft.Cci
         /// (The element type of a safe array is VARIANT. The tag fields will all be either VT_DISPATCH or VT_UNKNOWN or VT_RECORD.
         /// The "user defined sub type" specifies the type of value the ppdispVal/ppunkVal/pvRecord fields of the element values may point to.)
         /// </summary>
-        ITypeReference GetSafeArrayElementUserDefinedSubtype(EmitContext context);
+        ITypeReference? GetSafeArrayElementUserDefinedSubtype(EmitContext context);
     }
 
     /// <summary>
