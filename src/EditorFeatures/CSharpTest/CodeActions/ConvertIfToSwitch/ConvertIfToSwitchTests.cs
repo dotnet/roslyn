@@ -86,6 +86,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestElseBlock_01()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3) return 0;
+        else { if (i == 6) return 1; }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 3:
+                return 0;
+            case 6:
+                return 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestElseBlock_02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3)
+        {
+            return 0;
+        }
+        else
+        {
+            if (i == 6) return 1;
+            if (i == 7) return 1;
+            return 0;
+        }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 3:
+                return 0;
+            case 6:
+                return 1;
+            case 7:
+                return 1;
+            default:
+                return 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestMultipleCases_01()
         {
             await TestInRegularAndScriptAsync(
