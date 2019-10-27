@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,30 +21,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            MethodSymbol getMethod = this.GetMethod;
+            MethodSymbol? getMethod = this.GetMethod;
             if (getMethod != null && getMethod.ShouldInclude(context))
             {
                 yield return getMethod;
             }
 
-            MethodSymbol setMethod = this.SetMethod;
+            MethodSymbol? setMethod = this.SetMethod;
             if (setMethod != null && setMethod.ShouldInclude(context))
             {
                 yield return setMethod;
             }
 
-            SourcePropertySymbol sourceProperty = this as SourcePropertySymbol;
-            if ((object)sourceProperty != null && sourceProperty.ShouldInclude(context))
+            SourcePropertySymbol? sourceProperty = this as SourcePropertySymbol;
+            if ((object?)sourceProperty != null && sourceProperty.ShouldInclude(context))
             {
-                SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
-                if ((object)synthesizedAccessor != null)
+                SynthesizedSealedPropertyAccessor? synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
+                if ((object?)synthesizedAccessor != null)
                 {
                     yield return synthesizedAccessor;
                 }
             }
         }
 
-        MetadataConstant IPropertyDefinition.DefaultValue
+        MetadataConstant? IPropertyDefinition.DefaultValue
         {
             get
             {
@@ -51,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IMethodReference IPropertyDefinition.Getter
+        IMethodReference? IPropertyDefinition.Getter
         {
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol getMethod = this.GetMethod;
-                if ((object)getMethod != null || !this.IsSealed)
+                MethodSymbol? getMethod = this.GetMethod;
+                if ((object?)getMethod != null || !this.IsSealed)
                 {
                     return getMethod;
                 }
@@ -111,13 +113,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IMethodReference IPropertyDefinition.Setter
+        IMethodReference? IPropertyDefinition.Setter
         {
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol setMethod = this.SetMethod;
-                if ((object)setMethod != null || !this.IsSealed)
+                MethodSymbol? setMethod = this.SetMethod;
+                if ((object?)setMethod != null || !this.IsSealed)
                 {
                     return setMethod;
                 }
@@ -262,13 +264,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        private IMethodReference GetSynthesizedSealedAccessor(MethodKind targetMethodKind)
+        private IMethodReference? GetSynthesizedSealedAccessor(MethodKind targetMethodKind)
         {
-            SourcePropertySymbol sourceProperty = this as SourcePropertySymbol;
-            if ((object)sourceProperty != null)
+            SourcePropertySymbol? sourceProperty = this as SourcePropertySymbol;
+            if ((object?)sourceProperty != null)
             {
-                SynthesizedSealedPropertyAccessor synthesized = sourceProperty.SynthesizedSealedAccessorOpt;
-                return (object)synthesized != null && synthesized.MethodKind == targetMethodKind ? synthesized : null;
+                SynthesizedSealedPropertyAccessor? synthesized = sourceProperty.SynthesizedSealedAccessorOpt;
+                return (object?)synthesized != null && synthesized.MethodKind == targetMethodKind ? synthesized : null;
             }
 
             return null;

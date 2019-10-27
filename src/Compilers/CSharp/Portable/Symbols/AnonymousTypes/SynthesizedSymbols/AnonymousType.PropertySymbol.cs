@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly int _index;
             private readonly ImmutableArray<Location> _locations;
             private readonly AnonymousTypePropertyGetAccessorSymbol _getMethod;
-            private readonly FieldSymbol _backingField;
+            private readonly FieldSymbol? _backingField;
 
             internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeWithAnnotations fieldTypeWithAnnotations, int index) :
                 this(container, field, fieldTypeWithAnnotations, index, ImmutableArray<Location>.Empty, includeBackingField: true)
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<Location> locations,
                 bool includeBackingField)
             {
-                Debug.Assert((object)container != null);
+                RoslynDebug.Assert((object)container != null);
                 Debug.Assert((object)field != null);
                 Debug.Assert(fieldTypeWithAnnotations.HasType);
                 Debug.Assert(index >= 0);
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+            internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
             {
                 get { return null; }
             }
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<ParameterSymbol>.Empty; }
             }
 
-            public override MethodSymbol SetMethod
+            public override MethodSymbol? SetMethod
             {
                 get { return null; }
             }
@@ -188,12 +190,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _getMethod; }
             }
 
-            public FieldSymbol BackingField
+            public FieldSymbol? BackingField
             {
                 get { return _backingField; }
             }
 
-            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+            public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
             {
                 if (obj == null)
                 {
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var other = obj as AnonymousTypePropertySymbol;
-                if ((object)other == null)
+                if ((object?)other == null)
                 {
                     return false;
                 }

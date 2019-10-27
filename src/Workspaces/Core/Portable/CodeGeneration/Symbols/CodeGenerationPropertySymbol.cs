@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -62,8 +65,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override void Accept(SymbolVisitor visitor)
             => visitor.VisitProperty(this);
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-            => visitor.VisitProperty(this);
+        {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
+            return visitor.VisitProperty(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
+        }
 
         public bool IsReadOnly => this.GetMethod != null && this.SetMethod == null;
 
@@ -77,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool ReturnsByRefReadonly => this._refKind == RefKind.RefReadOnly;
 
-        public IPropertySymbol OverriddenProperty => null;
+        public IPropertySymbol? OverriddenProperty => null;
 
         public bool IsWithEvents => false;
 
