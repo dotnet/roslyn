@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -130,7 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _name,
                     _locations,
                     this.SyntaxReference,
+#nullable disable // Can 'ExplicitDefaultConstantValue' be null? https://github.com/dotnet/roslyn/issues/39166
                     this.ExplicitDefaultConstantValue,
+#nullable enable
                     newIsParams,
                     this.IsExtensionMethodThis);
             }
@@ -147,7 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name,
                 _locations,
                 this.SyntaxReference,
+#nullable disable // Can 'ExplicitDefaultConstantValue' be null? https://github.com/dotnet/roslyn/issues/39166
                 this.ExplicitDefaultConstantValue,
+#nullable enable
                 newIsParams,
                 this.IsExtensionMethodThis);
         }
@@ -162,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             state.DefaultForceComplete(this, cancellationToken);
         }
@@ -199,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
             => ContainingSymbol.AddDeclarationDiagnostics(diagnostics);
 
-        internal abstract SyntaxReference SyntaxReference { get; }
+        internal abstract SyntaxReference? SyntaxReference { get; }
 
         internal abstract bool IsExtensionMethodThis { get; }
 
@@ -251,8 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Parameters of accessors are always synthesized. (e.g., parameter of indexer accessors).
                 // The non-synthesized accessors are on the property/event itself.
-                MethodSymbol owningMethod = ContainingSymbol as MethodSymbol;
-                return (object)owningMethod != null && owningMethod.IsAccessor();
+                MethodSymbol? owningMethod = ContainingSymbol as MethodSymbol;
+                return (object?)owningMethod != null && owningMethod.IsAccessor();
             }
         }
 

@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceClonedParameterSymbol(SourceParameterSymbol originalParam, Symbol newOwner, int newOrdinal, bool suppressOptional)
             : base(newOwner, newOrdinal)
         {
-            Debug.Assert((object)originalParam != null);
+            RoslynDebug.Assert((object)originalParam != null);
 
             _suppressOptional = suppressOptional;
             _originalParam = originalParam;
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -118,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.RefCustomModifiers; }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return _originalParam.MarshallingInformation; }
         }
