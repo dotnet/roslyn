@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
-                            !currentToken.IsCloseParenInTuple() &&
+                            !currentToken.IsCloseParenInTupleExpression() &&
                             !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
                             !currentToken.IsColonInCasePatternSwitchLabel() && // no newline required before colon in pattern-switch-label (ex: `case {<pattern>}:`)
                             !currentToken.IsColonInSwitchExpressionArm())  // no newline required before colon in switch-expression-arm (ex: `{<pattern>}: expression`)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
             }
 
-            // embedded statement 
+            // embedded statement
             if (previousToken.Kind() == SyntaxKind.CloseParenToken && previousToken.Parent.IsEmbeddedStatementOwnerWithCloseParen())
             {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // generic name
             if (previousToken.Parent.Kind() == SyntaxKind.TypeArgumentList || previousToken.Parent.Kind() == SyntaxKind.TypeParameterList)
             {
-                // generic name < * 
+                // generic name < *
                 if (previousToken.Kind() == SyntaxKind.LessThanToken)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // For spacing between the identifier and the conditional operator 
+            // For spacing between the identifier and the conditional operator
             if (currentToken.IsKind(SyntaxKind.QuestionToken) && currentToken.Parent.Kind() == SyntaxKind.ConditionalAccessExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // +- or -+ 
+            // +- or -+
             if (previousToken.IsPlusOrMinusExpression() && currentToken.IsPlusOrMinusExpression() &&
                 previousToken.Kind() != currentToken.Kind())
             {
