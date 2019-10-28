@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             Debug.Assert(s_unusedExpressionAssignmentPreferenceMap.ContainsValue(option.Value));
             var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(defaultPreference);
-            return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
+            return $"{value}:{option.Notification.ToEditorConfigString()}";
         }
     }
 }
