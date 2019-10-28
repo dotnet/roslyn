@@ -80,7 +80,7 @@
     <Compile Include="..\..\..\Tools\Source\RunTests\ProcDumpUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" Partner="UnitTesting" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
 </Project>

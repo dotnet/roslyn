@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -34,15 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
             primaryWorkspace.Register(this);
 
-            foreach (var providerFactory in exportProvider.GetExports<IDocumentOptionsProviderFactory>())
-            {
-                var optionsProvider = providerFactory.Value.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
+            RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
 
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 

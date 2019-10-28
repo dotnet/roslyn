@@ -89,14 +89,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            // Did not find any existing .editorconfig, so create one at root of the project.
-            if (!PathUtilities.IsAbsolute(project.FilePath))
+            // Did not find any existing .editorconfig, so create one at root of the solution, if one exists.
+            // If project is not part of a solution, then use project path.
+            var solutionOrProjectFilePath = project.Solution?.FilePath ?? project.FilePath;
+            if (!PathUtilities.IsAbsolute(solutionOrProjectFilePath))
             {
                 return null;
             }
 
-            var projectFilePath = PathUtilities.GetDirectoryName(project.FilePath);
-            return PathUtilities.CombineAbsoluteAndRelativePaths(projectFilePath, ".editorconfig");
+            var solutionOrProjectDirectoryPath = PathUtilities.GetDirectoryName(solutionOrProjectFilePath);
+            return PathUtilities.CombineAbsoluteAndRelativePaths(solutionOrProjectDirectoryPath, ".editorconfig");
         }
 
         public static AnalyzerConfigDocument? TryGetExistingAnalyzerConfigDocumentAtPath(this Project project, string analyzerConfigPath)

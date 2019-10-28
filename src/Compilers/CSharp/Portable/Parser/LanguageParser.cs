@@ -893,7 +893,8 @@ tryAgain:
                             argNodes.Add(this.ParseAttributeArgument());
 
                             // comma + argument or end?
-                            while (true)
+                            int lastTokenPosition = -1;
+                            while (IsMakingProgress(ref lastTokenPosition))
                             {
                                 if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                                 {
@@ -6469,17 +6470,17 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     if (isPossibleAwaitForEach())
                     {
-                        return this.ParseForEachStatement(parseAwaitKeywordForAsyncStreams());
+                        return this.ParseForEachStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
                     }
                     else if (isPossibleAwaitUsing())
                     {
                         if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                         {
-                            return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                            return this.ParseUsingStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
                         }
                         else
                         {
-                            return this.ParseLocalDeclarationStatement(parseAwaitKeywordForAsyncStreams());
+                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword());
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
@@ -6522,11 +6523,11 @@ done:;
                     this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
             }
 
-            SyntaxToken parseAwaitKeywordForAsyncStreams()
+            SyntaxToken parseAwaitKeyword(MessageID? feature = null)
             {
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
                 SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
+                return feature.HasValue ? CheckFeatureAvailability(awaitToken, feature.GetValueOrDefault()) : awaitToken;
             }
         }
 
@@ -7545,7 +7546,8 @@ tryAgain:
                     list.Add(this.ParseExpressionCore());
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         {
@@ -9223,6 +9225,10 @@ tryAgain:
                 case SyntaxKind.DelegateKeyword:
                     expr = this.ParseAnonymousMethodExpression();
                     break;
+                case SyntaxKind.RefKeyword:
+                    // ref is not expected to appear in this position.
+                    expr = this.AddError(ParsePossibleRefExpression(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                    break;
                 default:
                     // check for intrinsic type followed by '.'
                     if (IsPredefinedType(tk))
@@ -10258,7 +10264,8 @@ tryAgain:
                     list.Add(this.ParseAnonymousTypeMemberInitializer());
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                         {
@@ -10417,7 +10424,8 @@ tryAgain:
                     list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                         {
@@ -10548,7 +10556,8 @@ tryAgain:
                     list.Add(this.ParseExpressionCore());
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                         {
@@ -10644,7 +10653,8 @@ tryAgain:
                     {
                         list.Add(this.ParseVariableInitializer());
 
-                        while (true)
+                        int lastTokenPosition = -1;
+                        while (IsMakingProgress(ref lastTokenPosition))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                             {

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.IO;
@@ -14,6 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
+    [ExportMetadata("Name", PredefinedDocumentOptionsProviderNames.EditorConfig)]
     class LegacyEditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly ICodingConventionsManager _codingConventionsManager;
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
         }
 
-        public IDocumentOptionsProvider TryCreate(Workspace workspace)
+        public IDocumentOptionsProvider? TryCreate(Workspace workspace)
         {
             if (EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(workspace))
             {
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 return ConventionFileChanged?.Invoke(this, arg) ?? Task.CompletedTask;
             }
 
-            public event ConventionsFileChangedAsyncEventHandler ConventionFileChanged;
+            public event ConventionsFileChangedAsyncEventHandler? ConventionFileChanged;
 
             public event ContextFileMovedAsyncEventHandler ContextFileMoved
             {

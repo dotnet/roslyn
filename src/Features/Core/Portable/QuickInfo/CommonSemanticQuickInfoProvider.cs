@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             // Take the first result with no errors.
             // If every file binds with errors, take the first candidate, which is from the current file.
-            var bestBinding = candidateResults.FirstOrNullable(c => HasNoErrors(c.symbols))
+            var bestBinding = candidateResults.FirstOrNull(c => HasNoErrors(c.symbols))
                 ?? candidateResults.First();
 
             if (bestBinding.symbols.IsDefaultOrEmpty)

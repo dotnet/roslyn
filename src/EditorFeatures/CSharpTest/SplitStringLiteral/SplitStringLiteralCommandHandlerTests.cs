@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 if (verifyUndo)
                 {
                     // Ensure that after undo we go back to where we were to begin with.
-                    var history = undoHistoryRegistry.GetHistory(document.TextBuffer);
+                    var history = undoHistoryRegistry.GetHistory(document.GetTextBuffer());
                     history.Undo(count: originalSelections.Count);
 
-                    var currentSnapshot = document.TextBuffer.CurrentSnapshot;
+                    var currentSnapshot = document.GetTextBuffer().CurrentSnapshot;
                     Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
                     Assert.Equal(originalSelections.Last().Start, view.Caret.Position.BufferPosition.Position);
                 }

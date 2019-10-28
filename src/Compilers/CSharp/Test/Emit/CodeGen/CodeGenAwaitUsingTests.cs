@@ -11,16 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAwaitUsingTests : CSharpTestBase
     {
-        private static readonly string s_interfaces = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
-";
-
         [Fact]
         public void TestWithCSharp7_3()
         {
@@ -39,11 +29,11 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'asynchronous using' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9)
                 );
         }
 
@@ -66,7 +56,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         await using (var x = new C())
@@ -93,7 +83,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
                 //         await using (var x = new C())
@@ -123,7 +113,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (8,13): error CS4034: The 'await' operator can only be used within an async lambda expression. Consider marking this lambda expression with the 'async' modifier.
                 //             await using (var y = new C())
@@ -145,7 +135,7 @@ class C : System.IAsyncDisposable
     public async Task DisposeAsync() { }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (3,11): error CS0738: 'C' does not implement interface member 'IAsyncDisposable.DisposeAsync()'. 'C.DisposeAsync()' cannot implement 'IAsyncDisposable.DisposeAsync()' because it does not have the matching return type of 'ValueTask'.
                 // class C : System.IAsyncDisposable
@@ -187,7 +177,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C body DisposeAsync1 DisposeAsync2 end");
         }
@@ -214,7 +204,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (8,13): error CS4004: Cannot await in an unsafe context
                 //             await using (var x = new C())
@@ -244,7 +234,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (8,13): error CS1996: Cannot await in the body of a lock statement
                 //             await using (var x = new C())
@@ -271,7 +261,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             // https://github.com/dotnet/roslyn/issues/30257 Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
         }
@@ -294,7 +284,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics();
         }
 
@@ -328,7 +318,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "try using dispose_start dispose_end end");
         }
@@ -359,7 +349,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (4,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async System.Threading.Tasks.Task Main()
@@ -402,7 +392,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (17,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         async System.Threading.Tasks.Task local()
@@ -443,7 +433,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -479,7 +469,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using caught message");
         }
@@ -506,7 +496,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "before after");
         }
@@ -751,7 +741,7 @@ public class C : Base
     }
 }
 ";
-            var libComp = CreateCompilationWithTasksExtensions(lib_cs + s_interfaces);
+            var libComp = CreateCompilationWithTasksExtensions(lib_cs + IAsyncDisposableDefinition);
             var comp = CreateCompilationWithTasksExtensions(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
             comp.VerifyDiagnostics(
@@ -786,7 +776,7 @@ class C : System.IAsyncDisposable, System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
@@ -808,7 +798,7 @@ class C : System.IAsyncDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
                 //         using (var x = new C())
@@ -833,7 +823,7 @@ class C : System.IAsyncDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using'?
                 //         using (new C())
@@ -866,7 +856,7 @@ class C : System.IAsyncDisposable, System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body Dispose");
         }
@@ -888,7 +878,7 @@ class C : System.IDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
                 //         await using (var x = new C())
@@ -913,7 +903,7 @@ class C : System.IDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
                 //         await using (new C())
@@ -943,7 +933,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { CSharpRef });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
@@ -970,7 +960,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { CSharpRef });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
@@ -996,7 +986,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -1165,7 +1155,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body");
         }
@@ -1184,7 +1174,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,22): error CS8410: 'method group': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         await using (Main)
@@ -1214,7 +1204,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe, references: new[] { CSharpRef });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
@@ -1240,7 +1230,7 @@ struct S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
             verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -1419,7 +1409,7 @@ struct S : IAsyncDisposable
         return new ValueTask(Task.CompletedTask);
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -1446,7 +1436,7 @@ struct S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
@@ -1473,7 +1463,7 @@ struct S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body");
         }
@@ -1503,7 +1493,7 @@ class C
             // local function exists with a pending branch from the async using, in which `y` was not assigned
         }
     }
-}" + s_interfaces);
+}" + IAsyncDisposableDefinition);
             comp.VerifyDiagnostics(
                 // (10,9): error CS0165: Use of unassigned local variable 'y'
                 //         y++;
@@ -1542,7 +1532,7 @@ class S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
         }
@@ -1581,7 +1571,7 @@ class S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
         }
@@ -1626,7 +1616,7 @@ class S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 dispose1 caught");
         }
@@ -1725,7 +1715,7 @@ public static class Extensions
 }
 ";
             // extension methods do not contribute to pattern-based disposal
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
@@ -1756,7 +1746,7 @@ public class C
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "dispose");
         }
@@ -1784,7 +1774,7 @@ public static class Extensions
 }
 ";
             // extension methods do not contribute to pattern-based disposal
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new C())
@@ -1817,7 +1807,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -1847,7 +1837,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -1879,7 +1869,7 @@ public class C : System.IAsyncDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -1909,7 +1899,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -1939,7 +1929,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end(0) return");
         }
@@ -1964,7 +1954,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,22): error CS4008: Cannot await 'void'
                 //         await using (var x = new C())
@@ -1991,7 +1981,7 @@ public class C
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,22): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         await using (var x = new C())
@@ -2021,7 +2011,7 @@ public class C
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,22): error CS0122: 'C.DisposeAsync()' is inaccessible due to its protection level
                 //         await using (var x = new C())
@@ -2056,7 +2046,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
 
@@ -2265,7 +2255,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
     public void OnCompleted(System.Action continuation) { }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -2294,7 +2284,7 @@ public struct C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -2325,7 +2315,7 @@ public struct C
 }
 ";
             // it's okay to await `Task<int>` even if we don't care about the result
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
@@ -2342,7 +2332,7 @@ class C
         await using (var y = new object()) { }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8410: 'object': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using var x = new object();
@@ -2394,7 +2384,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
     }

@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             protected override IList<Inline> CreateLineTextInlines()
-                => DefinitionBucket.DefinitionItem.DisplayParts.ToInlines(_presenter.ClassificationFormatMap, _presenter.TypeMap);
+                => DefinitionBucket.DefinitionItem.DisplayParts.ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
         }
     }
 }
