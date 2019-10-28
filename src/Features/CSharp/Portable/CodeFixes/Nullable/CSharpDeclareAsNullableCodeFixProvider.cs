@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DeclareAsNullable), Shared]
     internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private const string IsConditionalOperatorEquivalenceKey = nameof(IsConditionalOperatorEquivalenceKey);
+        private const string IsOtherEquivalenceKey = nameof(IsOtherEquivalenceKey);
+
         [ImportingConstructor]
         public CSharpDeclareAsNullableCodeFixProvider()
         {
@@ -45,8 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, diagnostic, c)),
+                c => FixAsync(context.Document, diagnostic, c),
+                GetEquivalenceKey(node)),
                 context.Diagnostics);
+        }
+
+        private string GetEquivalenceKey(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.ConditionalAccessExpression) ? IsConditionalOperatorEquivalenceKey : IsOtherEquivalenceKey;
         }
 
         protected override Task FixAllAsync(
@@ -64,6 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             alreadyHandled.Free();
             return Task.CompletedTask;
+        }
+
+        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
+            var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            return state.CodeActionEquivalenceKey == GetEquivalenceKey(node);
         }
 
         private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
@@ -192,10 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(CSharpFeaturesResources.Declare_as_nullable,
                        createChangedDocument,
-                       CSharpFeaturesResources.Declare_as_nullable)
+                       equivalenceKey)
             {
             }
         }
