@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return _underlying.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.GetITypeSymbol());
+                return _underlying.ConstraintTypesNoUseSiteDiagnostics.GetPublicSymbols();
             }
         }
 
         ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations =>
-            _underlying.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.ToPublicAnnotation());
+            _underlying.ConstraintTypesNoUseSiteDiagnostics.ToPublicAnnotations();
 
         ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition
         {

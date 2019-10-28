@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         bool Equals(ISymbolInternal? other, TypeCompareKind compareKind);
 
         /// <summary>
-        /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
+        /// Gets the <see cref="ISymbolInternal"/> for the immediately containing symbol.
         /// </summary>
         ISymbolInternal ContainingSymbol { get; }
 
@@ -125,6 +125,9 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         bool IsAbstract { get; }
 
+        /// <summary>
+        /// Returns an <see cref="ISymbol"/> instance associated with this symbol.
+        /// </summary>
         ISymbol GetISymbol();
     }
 }

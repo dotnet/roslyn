@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly TypeCompareKind _comparison;
 
-        public SymbolEqualityComparer(TypeCompareKind comparison)
+        private SymbolEqualityComparer(TypeCompareKind comparison)
         {
             _comparison = comparison;
         }

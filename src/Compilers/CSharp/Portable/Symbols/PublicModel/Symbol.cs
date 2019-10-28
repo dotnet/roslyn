@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
     {
         internal abstract CSharp.Symbol UnderlyingSymbol { get; }
 
-
         protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ITypeSymbol[] typeArguments)
         {
             var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);

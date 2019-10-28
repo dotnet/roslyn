@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             {
                 if (_lazyElementType is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyElementType, _underlying.ElementTypeWithAnnotations.GetITypeSymbol(), null);
+                    Interlocked.CompareExchange(ref _lazyElementType, _underlying.ElementTypeWithAnnotations.GetPublicSymbol(), null);
                 }
 
                 return _lazyElementType;

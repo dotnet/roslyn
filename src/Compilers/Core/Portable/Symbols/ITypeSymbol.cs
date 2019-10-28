@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayFormat? format = null);
 
         /// <summary>
-        /// Nullable annotation associated with the type, or <see cref="NullableAnnotation.None"/> array if there are none.
+        /// Nullable annotation associated with the type, or <see cref="NullableAnnotation.None"/> if there are none.
         /// </summary>
         NullableAnnotation NullableAnnotation { get; }
 

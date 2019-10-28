@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             {
                 if (_lazyReturnType is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyReturnType, _underlying.ReturnTypeWithAnnotations.GetITypeSymbol(), null);
+                    Interlocked.CompareExchange(ref _lazyReturnType, _underlying.ReturnTypeWithAnnotations.GetPublicSymbol(), null);
                 }
 
                 return _lazyReturnType;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 if (_lazyTypeArguments.IsDefault)
                 {
 
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeArguments, _underlying.TypeArgumentsWithAnnotations.SelectAsArray(t => t.GetITypeSymbol()), default);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeArguments, _underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(), default);
                 }
 
                 return _lazyTypeArguments;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         }
 
         ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentNullableAnnotations =>
-            _underlying.TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.ToPublicAnnotation());
+            _underlying.TypeArgumentsWithAnnotations.ToPublicAnnotations();
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {

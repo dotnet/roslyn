@@ -405,13 +405,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return model == null ? ImmutableArray<Symbol>.Empty : model.GetMemberGroupWorker(node, options, cancellationToken);
         }
 
-        internal override ImmutableArray<PropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        internal override ImmutableArray<IPropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             // in case this is right side of a qualified name or member access (or part of a cref)
             node = SyntaxFactory.GetStandaloneNode(node);
 
             var model = this.GetMemberModel(node);
-            return model == null ? ImmutableArray<PropertySymbol>.Empty : model.GetIndexerGroupWorker(node, options, cancellationToken);
+            return model == null ? ImmutableArray<IPropertySymbol>.Empty : model.GetIndexerGroupWorker(node, options, cancellationToken);
         }
 
         internal override Optional<object> GetConstantValueWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)

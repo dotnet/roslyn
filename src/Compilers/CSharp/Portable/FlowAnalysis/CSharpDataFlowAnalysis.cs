@@ -368,9 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<ISymbol> Normalize(IEnumerable<Symbol> data)
         {
-            var builder = ArrayBuilder<ISymbol>.GetInstance();
-            builder.AddRange(data.Where(s => s.CanBeReferencedByName).OrderBy(s => s, LexicalOrderSymbolComparer.Instance).GetPublicSymbols());
-            return builder.ToImmutableAndFree();
+            return ImmutableArray.CreateRange(data.Where(s => s.CanBeReferencedByName).OrderBy(s => s, LexicalOrderSymbolComparer.Instance).GetPublicSymbols());
         }
     }
 }

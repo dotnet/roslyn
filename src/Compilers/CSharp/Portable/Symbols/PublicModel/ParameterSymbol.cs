@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             {
                 if (_lazyType is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetITypeSymbol(), null);
+                    Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetPublicSymbol(), null);
                 }
 
                 return _lazyType;

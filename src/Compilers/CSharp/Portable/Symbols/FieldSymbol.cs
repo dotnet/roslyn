@@ -437,7 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         /// <summary>
         /// Returns true if a given field is a tuple element
         /// </summary>
@@ -445,7 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return this.CorrespondingTupleField is object;
         }
-
 
         /// <summary>
         /// If this is a field representing a tuple element,

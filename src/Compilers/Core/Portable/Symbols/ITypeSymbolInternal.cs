@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         bool IsValueType { get; }
 
+        /// <summary>
+        /// Returns an <see cref="ITypeSymbol"/> instance associated with this symbol.
+        /// This API and <see cref="ISymbolInternal.GetISymbol"/> should return the same object.
+        /// </summary>
         ITypeSymbol GetITypeSymbol();
     }
 }

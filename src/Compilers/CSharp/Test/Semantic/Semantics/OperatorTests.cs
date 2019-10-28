@@ -7245,7 +7245,6 @@ public class RubyTime
 class Module1
 {
     void Test(int x)
-
     {
         var z1 = -x;
         var z2 = --x;

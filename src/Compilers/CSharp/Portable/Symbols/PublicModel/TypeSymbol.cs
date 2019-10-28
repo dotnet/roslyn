@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
             else if (nullableAnnotation == UnderlyingTypeSymbol.DefaultNullableAnnotation)
             {
-                return (TypeSymbol)UnderlyingSymbol.ISymbol;
+                return (ITypeSymbol)UnderlyingSymbol.ISymbol;
             }
 
             return WithNullableAnnotation(nullableAnnotation);
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
             if (NullableAnnotation != otherType.NullableAnnotation && (compareKind & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0 &&
                 ((compareKind & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0 ||
-                 (NullableAnnotation != CodeAnalysis.NullableAnnotation.None && otherType.NullableAnnotation != CodeAnalysis.NullableAnnotation.None)) &&
-                 !(UnderlyingTypeSymbol.IsValueType && !UnderlyingTypeSymbol.IsNullableType()))
+                    (NullableAnnotation != CodeAnalysis.NullableAnnotation.None && otherType.NullableAnnotation != CodeAnalysis.NullableAnnotation.None)) &&
+                !(UnderlyingTypeSymbol.IsValueType && !UnderlyingTypeSymbol.IsNullableType()))
             {
                 return false;
             }

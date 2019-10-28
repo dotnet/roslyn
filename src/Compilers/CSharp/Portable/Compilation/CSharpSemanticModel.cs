@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to get semantic information for.</param>
         /// <param name="options"></param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        internal abstract ImmutableArray<PropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken));
+        internal abstract ImmutableArray<IPropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Gets the constant value for a syntax node. This is overridden by various specializations of SemanticModel.
@@ -1041,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(expression);
 
             return CanGetSemanticInfo(expression)
-                ? this.GetIndexerGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken).GetPublicSymbols()
+                ? this.GetIndexerGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken)
                 : ImmutableArray<IPropertySymbol>.Empty;
         }
 
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Non-reduced extension methods are considered regardless of the value of <paramref name="includeReducedExtensionMethods"/>.
         /// </remarks>
-        public ImmutableArray<Symbol> LookupSymbols(
+        public ImmutableArray<ISymbol> LookupSymbols(
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null,
@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, useBaseReferenceAccessibility: true).GetPublicSymbols();
+            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, useBaseReferenceAccessibility: true);
         }
 
         /// <summary>
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// specified, the "position" location is significant for determining which members of "containing" are
         /// accessible. 
         /// </remarks>
-        public ImmutableArray<Symbol> LookupStaticMembers(
+        public ImmutableArray<ISymbol> LookupStaticMembers(
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null)
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Does not return NamespaceOrTypeSymbol, because there could be aliases.
         /// </remarks>
-        public ImmutableArray<Symbol> LookupNamespacesAndTypes(
+        public ImmutableArray<ISymbol> LookupNamespacesAndTypes(
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null)
@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.LabelsOnly, useBaseReferenceAccessibility: false).GetPublicSymbols();
+            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.LabelsOnly, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// members of "containing" are accessible. 
         /// </remarks>
         /// <exception cref="ArgumentException">Throws an argument exception if the passed lookup options are invalid.</exception>
-        private ImmutableArray<Symbol> LookupSymbolsInternal(
+        private ImmutableArray<ISymbol> LookupSymbolsInternal(
             int position,
             NamespaceOrTypeSymbol container,
             string name,
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = GetEnclosingBinder(position);
             if (binder == null)
             {
-                return ImmutableArray<Symbol>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             if (useBaseReferenceAccessibility)
@@ -1496,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For a script class or a submission class base should have no members.
                 if ((object)containingType != null && containingType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)containingType).IsScriptClass)
                 {
-                    return ImmutableArray<Symbol>.Empty;
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 if ((object)containingType == null || (object)(baseType = containingType.BaseTypeNoUseSiteDiagnostics) == null)
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.AddMemberLookupSymbolsInfo(info, container, options, binder);
             }
 
-            var results = ArrayBuilder<Symbol>.GetInstance(info.Count);
+            var results = ArrayBuilder<ISymbol>.GetInstance(info.Count);
 
             if (name == null)
             {
@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
                         if ((object)reduced != null)
                         {
-                            results.Add(reduced);
+                            results.Add(reduced.GetPublicSymbol());
                         }
                     }
                 }
@@ -1580,13 +1580,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Free();
             }
 
-            ImmutableArray<Symbol> sealedResults = results.ToImmutableAndFree();
+            ImmutableArray<ISymbol> sealedResults = results.ToImmutableAndFree();
             return name == null
                 ? FilterNotReferencable(sealedResults)
                 : sealedResults;
         }
 
-        private void AppendSymbolsWithName(ArrayBuilder<Symbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
+        private void AppendSymbolsWithName(ArrayBuilder<ISymbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
         {
             LookupSymbolsInfo.IArityEnumerable arities;
             Symbol uniqueSymbol;
@@ -1597,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This name mapped to something unique.  We don't need to proceed
                     // with a costly lookup.  Just add it straight to the results.
-                    results.Add(RemapSymbolIfNecessary(uniqueSymbol));
+                    results.Add(RemapSymbolIfNecessary(uniqueSymbol).GetPublicSymbol());
                 }
                 else
                 {
@@ -1620,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void AppendSymbolsWithNameAndArity(
-            ArrayBuilder<Symbol> results,
+            ArrayBuilder<ISymbol> results,
             string name,
             int arity,
             Binder binder,
@@ -1657,13 +1657,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!wasError)
                     {
-                        results.Add(RemapSymbolIfNecessary(singleSymbol));
+                        results.Add(RemapSymbolIfNecessary(singleSymbol).GetPublicSymbol());
                     }
                     else
                     {
                         foreach (var symbol in lookupResult.Symbols)
                         {
-                            results.Add(RemapSymbolIfNecessary(symbol));
+                            results.Add(RemapSymbolIfNecessary(symbol).GetPublicSymbol());
                         }
                     }
                 }
@@ -1671,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var symbol in lookupResult.Symbols)
                     {
-                        results.Add(RemapSymbolIfNecessary(symbol));
+                        results.Add(RemapSymbolIfNecessary(symbol).GetPublicSymbol());
                     }
                 }
             }
@@ -1701,9 +1701,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
 
-        private static ImmutableArray<Symbol> FilterNotReferencable(ImmutableArray<Symbol> sealedResults)
+        private static ImmutableArray<ISymbol> FilterNotReferencable(ImmutableArray<ISymbol> sealedResults)
         {
-            ArrayBuilder<Symbol> builder = null;
+            ArrayBuilder<ISymbol> builder = null;
             int pos = 0;
             foreach (var result in sealedResults)
             {
@@ -1713,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (builder == null)
                 {
-                    builder = ArrayBuilder<Symbol>.GetInstance();
+                    builder = ArrayBuilder<ISymbol>.GetInstance();
                     builder.AddRange(sealedResults, pos);
                 }
                 pos++;
@@ -2141,7 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // lowestBoundNode: The lowest node in the bound tree associated with node
         // highestBoundNode: The highest node in the bound tree associated with node
         // boundNodeForSyntacticParent: The lowest node in the bound tree associated with node.Parent.
-        internal ImmutableArray<PropertySymbol> GetIndexerGroupForNode(
+        internal ImmutableArray<IPropertySymbol> GetIndexerGroupForNode(
             BoundNode lowestBoundNode,
             Binder binderOpt)
         {
@@ -2151,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetIndexerGroupSemanticSymbols(boundExpr, binderOpt);
             }
 
-            return ImmutableArray<PropertySymbol>.Empty;
+            return ImmutableArray<IPropertySymbol>.Empty;
         }
 
         // Gets symbol info for a type or namespace or alias reference. It is assumed that any error cases will come in
@@ -3830,7 +3830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the given expression is an indexer access, then this method will return the list of indexers
         /// that could be invoked on the result, not the list of indexers that were considered.
         /// </remarks>
-        private ImmutableArray<PropertySymbol> GetIndexerGroupSemanticSymbols(BoundExpression boundNode, Binder binderOpt)
+        private ImmutableArray<IPropertySymbol> GetIndexerGroupSemanticSymbols(BoundExpression boundNode, Binder binderOpt)
         {
             Debug.Assert(binderOpt != null || IsInTree(boundNode.Syntax));
 
@@ -3838,27 +3838,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ReferenceEquals(type, null) || type.IsStatic)
             {
-                return ImmutableArray<PropertySymbol>.Empty;
+                return ImmutableArray<IPropertySymbol>.Empty;
             }
 
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
-            ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
+            var symbols = ArrayBuilder<ISymbol>.GetInstance();
             AppendSymbolsWithNameAndArity(symbols, WellKnownMemberNames.Indexer, 0, binder, type, LookupOptions.MustBeInstance);
 
             if (symbols.Count == 0)
             {
                 symbols.Free();
-                return ImmutableArray<PropertySymbol>.Empty;
+                return ImmutableArray<IPropertySymbol>.Empty;
             }
 
             return FilterOverriddenOrHiddenIndexers(symbols.ToImmutableAndFree());
         }
 
-        private static ImmutableArray<PropertySymbol> FilterOverriddenOrHiddenIndexers(ImmutableArray<Symbol> symbols)
+        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(ImmutableArray<ISymbol> symbols)
         {
             PooledHashSet<Symbol> hiddenSymbols = null;
-            foreach (Symbol symbol in symbols)
+            foreach (ISymbol iSymbol in symbols)
             {
+                Symbol symbol = iSymbol.GetSymbol();
                 Debug.Assert(symbol.IsIndexer(), "Only indexers can have name " + WellKnownMemberNames.Indexer);
 
                 PropertySymbol indexer = (PropertySymbol)symbol;
@@ -3886,11 +3887,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ArrayBuilder<PropertySymbol> builder = ArrayBuilder<PropertySymbol>.GetInstance();
+            var builder = ArrayBuilder<IPropertySymbol>.GetInstance();
 
-            foreach (PropertySymbol indexer in symbols)
+            foreach (IPropertySymbol indexer in symbols)
             {
-                if (hiddenSymbols == null || !hiddenSymbols.Contains(indexer))
+                if (hiddenSymbols == null || !hiddenSymbols.Contains(indexer.GetSymbol()))
                 {
                     builder.Add(indexer);
                 }
@@ -4254,7 +4255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
+                var symbols = ArrayBuilder<ISymbol>.GetInstance();
 
                 foreach (ISymbol invocationSym in containingInvocationInfo.CandidateSymbols)
                 {
@@ -4269,7 +4270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParameterSymbol param = FindNamedParameter(invocationSym.GetSymbol().GetParameters(), argumentName);
                     if ((object)param != null)
                     {
-                        symbols.Add(param);
+                        symbols.Add(param.GetPublicSymbol());
                     }
                 }
 
@@ -4280,9 +4281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    ImmutableArray<ISymbol> candidateSymbols = symbols.SelectAsArray(s => s.GetPublicSymbol());
-                    symbols.Free();
-                    return new SymbolInfo(null, candidateSymbols, containingInvocationInfo.CandidateReason);
+                    return new SymbolInfo(null, symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
                 }
             }
         }
@@ -4944,7 +4943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override ImmutableArray<ISymbol> LookupSymbolsCore(int position, INamespaceOrTypeSymbol container, string name, bool includeReducedExtensionMethods)
         {
-            return LookupSymbols(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name, includeReducedExtensionMethods).GetPublicSymbols();
+            return LookupSymbols(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name, includeReducedExtensionMethods);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupBaseMembersCore(int position, string name)
@@ -4954,12 +4953,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override ImmutableArray<ISymbol> LookupStaticMembersCore(int position, INamespaceOrTypeSymbol container, string name)
         {
-            return LookupStaticMembers(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name).GetPublicSymbols();
+            return LookupStaticMembers(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupNamespacesAndTypesCore(int position, INamespaceOrTypeSymbol container, string name)
         {
-            return LookupNamespacesAndTypes(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name).GetPublicSymbols();
+            return LookupNamespacesAndTypes(position, container.EnsureCSharpSymbolOrNull(nameof(container)), name);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupLabelsCore(int position, string name)

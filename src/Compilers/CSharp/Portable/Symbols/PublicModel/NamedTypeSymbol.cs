@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 if (_lazyTypeArguments.IsDefault)
                 {
 
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeArguments, UnderlyingNamedTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(t => t.GetITypeSymbol()), default);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeArguments, UnderlyingNamedTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.GetPublicSymbols(), default);
                 }
 
                 return _lazyTypeArguments;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return UnderlyingNamedTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.ToPublicAnnotation());
+                return UnderlyingNamedTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.ToPublicAnnotations();
             }
         }
 

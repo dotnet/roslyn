@@ -817,4 +817,14 @@ internal static class Extensions
 
         return null;
     }
+
+    public static IEnumerable<Microsoft.CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations(this INamedTypeSymbol type)
+    {
+        return type.TypeArguments.Select(t => t.NullableAnnotation);
+    }
+
+    public static IEnumerable<Microsoft.CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations(this IMethodSymbol method)
+    {
+        return method.TypeArguments.Select(t => t.NullableAnnotation);
+    }
 }

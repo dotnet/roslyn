@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             {
                 if (_lazyPointedAtType is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyPointedAtType, _underlying.PointedAtTypeWithAnnotations.GetITypeSymbol(), null);
+                    Interlocked.CompareExchange(ref _lazyPointedAtType, _underlying.PointedAtTypeWithAnnotations.GetPublicSymbol(), null);
                 }
 
                 return _lazyPointedAtType;
