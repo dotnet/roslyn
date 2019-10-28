@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
         }
 
-        public static bool IsCloseParenInTuple(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CloseParenToken && token.Parent is TupleExpressionSyntax;
+        public static bool IsCloseParenInTupleExpression(this SyntaxToken token)
+            => token.IsKind(SyntaxKind.CloseParenToken) && token.Parent.IsKind(SyntaxKind.TupleExpression);
 
         public static bool IsOpenParenInArgumentListOrPositionalPattern(this SyntaxToken token)
         {
