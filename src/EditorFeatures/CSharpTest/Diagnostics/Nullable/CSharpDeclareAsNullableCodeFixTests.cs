@@ -497,6 +497,49 @@ class Program
         }
 
         [Fact]
+        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        public async Task FixAllReturnType_ConditionalOperator_Function()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test(bool? value)
+    {
+        return {|FixAllInDocument:value?.ToString()|};
+    }
+
+    string Test1(bool? value)
+    {
+        return value?.ToString();
+    }
+
+    string Test2(bool? value)
+    {
+        return null;
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test(bool? value)
+    {
+        return value?.ToString();
+    }
+
+    string? Test1(bool? value)
+    {
+        return value?.ToString();
+    }
+
+    string Test2(bool? value)
+    {
+        return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         [WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
         public async Task FixReturnType_TernaryExpression_Function()
         {
