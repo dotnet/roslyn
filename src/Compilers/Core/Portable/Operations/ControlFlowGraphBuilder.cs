@@ -1368,20 +1368,53 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             for (int i = 0; i < statements.Length; i++)
             {
-                if (statements[i] is VariableDeclarationGroupOperation declarationGroup
-                    && declarationGroup.DeclarationKind != VariableDeclarationKind.Default)
+                if (VisitStatementsOneOrAll(statements[i], statements, i))
                 {
-                    // visit the using decl with the following statements
-                    var followingStatements = ImmutableArray.Create(statements, i + 1, statements.Length - i - 1);
-                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
                     break;
                 }
-                else
-                {
-                    VisitStatement(statements[i]);
-                }
+            }
+        }
+
+        /// <summary>
+        /// Either visits a single operation, or a using <see cref="IVariableDeclarationGroupOperation"/> and all subsequent statements
+        /// </summary>
+        /// <param name="operation">The statement to visit</param>
+        /// <param name="statements">All statements in the block containing this node</param>
+        /// <param name="startIndex">The current statement being visited in <paramref name="statements"/></param>
+        /// <returns>True if this visited all of the statements</returns>
+        /// <remarks>
+        /// The operation being visited is not necessarily equal to statements[startIndex]. 
+        /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
+        /// as we haven't actually moved down the original statement list
+        /// </remarks>
+        private bool VisitStatementsOneOrAll(IOperation operation, ImmutableArray<IOperation> statements, int startIndex)
+        {
+            switch (operation)
+            {
+                case IVariableDeclarationGroupOperation declarationGroup when declarationGroup.DeclarationKind == VariableDeclarationKind.Using || declarationGroup.DeclarationKind == VariableDeclarationKind.AsynchronousUsing:
+                    var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
+                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
+                    return true;
+                case ILabeledOperation { Operation: { } } labelOperation:
+                    return visitPossibleUsingDeclarationInLabel(labelOperation);
+                default:
+                    VisitStatement(operation);
+                    return false;
             }
 
+            bool visitPossibleUsingDeclarationInLabel(ILabeledOperation labelOperation)
+            {
+                var savedCurrentStatement = _currentStatement;
+                _currentStatement = labelOperation;
+
+                StartVisitingStatement(labelOperation);
+                VisitLabel(labelOperation.Label);
+                bool visitedAll = VisitStatementsOneOrAll(labelOperation.Operation, statements, startIndex);
+                FinishVisitingStatement(labelOperation);
+
+                _currentStatement = savedCurrentStatement;
+                return visitedAll;
+            }
         }
 
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
@@ -3548,8 +3581,14 @@ oneMoreTime:
         public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
+            VisitLabel(operation.Label);
+            VisitStatement(operation.Operation);
+            return FinishVisitingStatement(operation);
+        }
 
-            BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation.Label);
+        public void VisitLabel(ILabelSymbol operation)
+        {
+            BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation);
 
             if (labeled.Ordinal != -1)
             {
@@ -3558,8 +3597,6 @@ oneMoreTime:
             }
 
             AppendNewBlock(labeled);
-            VisitStatement(operation.Operation);
-            return FinishVisitingStatement(operation);
         }
 
         private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol labelOpt)
@@ -5333,6 +5370,8 @@ oneMoreTime:
 
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
+            Debug.Assert(operation.DeclarationKind == VariableDeclarationKind.Default);
+
             // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
             // this should only be encountered by the visitor for declaration statements.
             StartVisitingStatement(operation);
@@ -6833,7 +6872,7 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-        private void VisitUsingVariableDeclarationOperation(VariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
+        private void VisitUsingVariableDeclarationOperation(IVariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
@@ -6846,7 +6885,7 @@ oneMoreTime:
             BlockOperation logicalBlock = new BlockOperation(
                 operations: statements,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
-                operation.OwningSemanticModel,
+                ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.Type,
                 operation.ConstantValue,
