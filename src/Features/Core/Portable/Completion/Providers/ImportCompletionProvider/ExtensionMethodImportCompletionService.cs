@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             counter.TotalTicks = Environment.TickCount - ticks;
             counter.TotalExtensionMethodsProvided = serializableItems.Length;
+            counter.Report();
 
             // TODO: remove this
             Internal.Log.Logger.Log(Internal.Log.FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, Internal.Log.KeyValueLogMessage.Create(m =>
@@ -133,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             counter.NoFilter = matchedMethods == null;
 
             // Don't show unimported extension methods if the index isn't ready.
-            // TODO: hide expander button
             if (matchedMethods == null)
             {
                 // We use a very simple approach to build the cache in the background:

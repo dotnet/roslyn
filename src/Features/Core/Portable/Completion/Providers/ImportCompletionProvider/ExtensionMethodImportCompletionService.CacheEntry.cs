@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly struct CacheEntry
         {
             public Checksum Checksum { get; }
+            public string Language { get; }
 
             public readonly MultiDictionary<string, DeclaredSymbolInfo> SimpleExtensionMethodInfo { get; }
 
@@ -28,10 +31,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             private CacheEntry(
                 Checksum checksum,
+                string language,
                 MultiDictionary<string, DeclaredSymbolInfo> simpleExtensionMethodInfo,
                 ImmutableArray<DeclaredSymbolInfo> complexExtensionMethodInfo)
             {
                 Checksum = checksum;
+                Language = language;
                 SimpleExtensionMethodInfo = simpleExtensionMethodInfo;
                 ComplexExtensionMethodInfo = complexExtensionMethodInfo;
             }
@@ -39,15 +44,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public class Builder : IDisposable
             {
                 private readonly Checksum _checksum;
+                private readonly string _language;
 
                 private readonly MultiDictionary<string, DeclaredSymbolInfo> _simpleItemBuilder;
                 private readonly ArrayBuilder<DeclaredSymbolInfo> _complexItemBuilder;
 
-                public Builder(Checksum checksum)
+                public Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
                 {
                     _checksum = checksum;
+                    _language = langauge;
 
-                    _simpleItemBuilder = new MultiDictionary<string, DeclaredSymbolInfo>();
+                    _simpleItemBuilder = new MultiDictionary<string, DeclaredSymbolInfo>(comparer);
                     _complexItemBuilder = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
                 }
 
@@ -55,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     return new CacheEntry(
                         _checksum,
+                        _language,
                         _simpleItemBuilder,
                         _complexItemBuilder.ToImmutable());
                 }
@@ -107,9 +115,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Cache miss, create all requested items.
             if (!cacheService.ProjectItemsCache.TryGetValue(project.Id, out var cacheEntry) ||
-                cacheEntry.Checksum != checksum)
+                cacheEntry.Checksum != checksum ||
+                cacheEntry.Language != project.Language)
             {
-                using var builder = new CacheEntry.Builder(checksum);
+                var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                using var builder = new CacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
+
                 foreach (var document in project.Documents)
                 {
                     // Don't look for extension methods in generated code.

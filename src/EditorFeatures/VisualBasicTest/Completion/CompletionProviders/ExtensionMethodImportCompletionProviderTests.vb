@@ -18,6 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
+        Private Property IsExpandedCompletion As Boolean = True
+
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
         ' -1 would disable timebox, whereas 0 means always timeout.
@@ -26,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
             workspace.Options = workspace.Options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds) _
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Sub
 
         Protected Overrides Function GetExportProvider() As ExportProvider
@@ -37,15 +40,42 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New ExtensionMethodImportCompletionProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestExtensionAttribute() As Task
+        Public Enum ReferenceType
+            None
+            Project
+            Metadata
+        End Enum
+
+        Public Shared Function ReferenceTypeData() As IEnumerable(Of Object())
+            Return (New ReferenceType() {ReferenceType.None, ReferenceType.Project, ReferenceType.Metadata}).Select(Function(refType)
+                                                                                                                        Return New Object() {refType}
+                                                                                                                    End Function)
+        End Function
+
+        Private Shared Function GetMarkup(current As String, referenced As String, refType As ReferenceType, Optional currentLanguage As String = LanguageNames.VisualBasic, Optional referencedLanguage As String = LanguageNames.VisualBasic) As String
+            If refType = ReferenceType.None Then
+                Return CreateMarkupForSingleProject(current, referenced, currentLanguage)
+            ElseIf refType = ReferenceType.Project Then
+                Return GetMarkupWithReference(current, referenced, currentLanguage, referencedLanguage, True)
+            ElseIf refType = ReferenceType.Metadata Then
+                Return GetMarkupWithReference(current, referenced, currentLanguage, referencedLanguage, False)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        <InlineData(ReferenceType.None)>
+        <InlineData(ReferenceType.Project)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExtensionAttribute(refType As ReferenceType) As Task
 
             ' attribute suffix isn't capitalized
             Dim file1 = <Text><![CDATA[
+Imports System
 Imports System.Runtime.CompilerServices
 
 Namespace Foo
-    Module ExtensionModule
+    Public Module ExtensionModule
 
         <System.Runtime.CompilerServices.Extension()>
         Public Sub ExtensionMethod1(aString As String)
@@ -72,7 +102,12 @@ Namespace Foo
             Console.WriteLine(aString)
         End Sub
 
+        <extension()>
         Public Sub ExtensionMethod6(aString As String)
+            Console.WriteLine(aString)
+        End Sub
+
+        Public Sub ExtensionMethod7(aString As String)
             Console.WriteLine(aString)
         End Sub
     End Module
@@ -86,13 +121,91 @@ Public Class Bar
     End Sub
 End Class]]></Text>.Value
 
-            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Dim markup = GetMarkup(file2, file1, refType)
             Await VerifyItemExistsAsync(markup, "ExtensionMethod1", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
             Await VerifyItemExistsAsync(markup, "ExtensionMethod2", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
             Await VerifyItemExistsAsync(markup, "ExtensionMethod3", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
             Await VerifyItemExistsAsync(markup, "ExtensionMethod4", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
             Await VerifyItemExistsAsync(markup, "ExtensionMethod5", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod6", inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod6", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod7", inlineDescription:="Foo")
+        End Function
+
+        <InlineData(ReferenceType.None)>
+        <InlineData(ReferenceType.Project)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCaseMismatchInTargetType(refType As ReferenceType) As Task
+
+            ' attribute suffix isn't capitalized
+            Dim file1 = <Text><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace Foo
+    Public Module ExtensionModule
+
+        <Extension>
+        Public Sub ExtensionMethod1(exp As exception)
+        End Sub
+
+        <Extension>
+        Public Sub ExtensionMethod2(exp As Exception)
+            Console.WriteLine(aString)
+        End Sub
+    End Module
+End Namespace]]></Text>.Value
+
+            Dim file2 = <Text><![CDATA[
+Imports System
+
+Public Class Bar
+    Sub M(x as exception)
+        x.$$
+    End Sub
+End Class]]></Text>.Value
+
+            Dim markup = GetMarkup(file2, file1, refType)
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod1", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod2", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
+        End Function
+
+        <InlineData(ReferenceType.None)>
+        <InlineData(ReferenceType.Project)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCaseMismatchInNamespaceImport(refType As ReferenceType) As Task
+
+            ' attribute suffix isn't capitalized
+            Dim file1 = <Text><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace foo
+    Public Module ExtensionModule
+
+        <Extension>
+        Public Sub ExtensionMethod1(exp As exception)
+        End Sub
+
+        <Extension>
+        Public Sub ExtensionMethod2(exp As Exception)
+            Console.WriteLine(aString)
+        End Sub
+    End Module
+End Namespace]]></Text>.Value
+
+            Dim file2 = <Text><![CDATA[
+Imports System
+Imports Foo
+
+Public Class Bar
+    Sub M(x as exception)
+        x.$$
+    End Sub
+End Class]]></Text>.Value
+
+            Dim markup = GetMarkup(file2, file1, refType)
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod1", inlineDescription:="Foo")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod2", inlineDescription:="Foo")
         End Function
     End Class
 End Namespace
