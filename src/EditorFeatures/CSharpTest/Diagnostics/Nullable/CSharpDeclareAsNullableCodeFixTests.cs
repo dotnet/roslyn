@@ -474,6 +474,29 @@ class Program
         }
 
         [Fact]
+        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        public async Task FixReturnType_ConditionalOperator_Function()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test(bool? value)
+    {
+        return [|value?.ToString()|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test(bool? value)
+    {
+        return value?.ToString();
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         [WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
         public async Task FixReturnType_TernaryExpression_Function()
         {
