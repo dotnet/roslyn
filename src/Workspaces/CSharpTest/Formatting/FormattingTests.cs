@@ -9532,7 +9532,7 @@ class A
         {
             var changingOptions = new Dictionary<OptionKey, object>
             {
-                { NewLinesForBracesInControlBlocks, false },
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
             };
             await AssertFormatAsync(
                 @"

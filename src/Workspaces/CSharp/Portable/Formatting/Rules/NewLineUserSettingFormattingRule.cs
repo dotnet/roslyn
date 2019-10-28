@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // * { - in the switch expression context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKindEx.SwitchExpression))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
+                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // * { - in the switch expression context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKindEx.SwitchExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
+                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
