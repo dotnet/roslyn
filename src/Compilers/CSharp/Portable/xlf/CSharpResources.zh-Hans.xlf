@@ -814,11 +814,6 @@
         <target state="translated">委托泛型类型约束</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureDiscardParameters">
-        <source>discard parameters</source>
-        <target state="new">discard parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
         <source>enum generic type constraints</source>
         <target state="translated">枚举泛型类型约束</target>
@@ -842,6 +837,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">正在编制可移动固定缓冲区的索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">

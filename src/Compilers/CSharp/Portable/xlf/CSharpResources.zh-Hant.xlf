@@ -814,11 +814,6 @@
         <target state="translated">委派泛型類型條件約束</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureDiscardParameters">
-        <source>discard parameters</source>
-        <target state="new">discard parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
         <source>enum generic type constraints</source>
         <target state="translated">列舉泛型類型條件約束</target>
@@ -842,6 +837,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">對可移動的固定緩衝區編製索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">

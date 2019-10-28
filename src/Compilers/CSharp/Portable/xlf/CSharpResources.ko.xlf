@@ -814,11 +814,6 @@
         <target state="translated">대리자 제네릭 형식 제약 조건</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureDiscardParameters">
-        <source>discard parameters</source>
-        <target state="new">discard parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
         <source>enum generic type constraints</source>
         <target state="translated">열거형 제네릭 형식 제약 조건</target>
@@ -842,6 +837,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">이동 가능한 고정 버퍼 인덱싱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">

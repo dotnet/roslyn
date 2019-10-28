@@ -1388,11 +1388,6 @@ symIsHidden:;
             Debug.Assert(options.AreValid());
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (symbol is ParameterSymbol { IsDiscard: true })
-            {
-                return false;
-            }
-
             var name = aliasSymbol != null ? aliasSymbol.Name : symbol.Name;
             if (!info.CanBeAdded(name))
             {

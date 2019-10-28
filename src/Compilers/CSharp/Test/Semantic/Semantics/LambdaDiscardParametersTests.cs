@@ -53,24 +53,24 @@ public class C
 }", parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
-                // (6,51): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,51): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Func<short, string, long> f1 = (_, _) => 3L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(6, 51),
-                // (10,13): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(6, 51),
+                // (10,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             _) => 4L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(10, 13),
-                // (13,13): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(10, 13),
+                // (13,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             _) => 5L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(13, 13),
-                // (16,13): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(13, 13),
+                // (16,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             _,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(16, 13),
-                // (17,13): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(16, 13),
+                // (17,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             _) => 6L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(17, 13),
-                // (20,13): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(17, 13),
+                // (20,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             _,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(20, 13)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -81,7 +81,7 @@ public class C
         }
 
         [Fact]
-        public void DiscardParameters_CSharp8_LocalFunctions()
+        public void DiscardParameters_LocalFunctions()
         {
             var comp = CreateCompilation(@"
 public class C
@@ -91,41 +91,29 @@ public class C
         long f1(short _, string _) => 3L;
         System.Console.WriteLine(f1(1, null));
     }
-}", parseOptions: TestOptions.Regular8);
+}", parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
-                // (6,33): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,33): error CS0100: The parameter name '_' is a duplicate
                 //         long f1(short _, string _) => 3L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "_").WithArguments("_").WithLocation(6, 33)
                 );
-
-            var tree = comp.SyntaxTrees.Single();
-            var underscores = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Where(p => p.Identifier.ToString() == "_").ToArray();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            VerifyDiscardParameterSymbol(underscores[0], "System.Int16", CodeAnalysis.NullableAnnotation.NotAnnotated, model);
-            VerifyDiscardParameterSymbol(underscores[1], "System.String", CodeAnalysis.NullableAnnotation.None, model);
         }
 
         [Fact]
-        public void DiscardParameters_CSharp8_Methods()
+        public void DiscardParameters_Methods()
         {
             var comp = CreateCompilation(@"
 public class C
 {
     public long M(short _, string _) => 3L;
-}", parseOptions: TestOptions.Regular8);
+}", parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
-                // (4,35): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,35): error CS0100: The parameter name '_' is a duplicate
                 //     public long M(short _, string _) => 3L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(4, 35)
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "_").WithArguments("_").WithLocation(4, 35)
                 );
-
-            var tree = comp.SyntaxTrees.Single();
-            var underscores = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Where(p => p.Identifier.ToString() == "_").ToArray();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            VerifyDiscardParameterSymbol(underscores[0], "System.Int16", CodeAnalysis.NullableAnnotation.NotAnnotated, model);
-            VerifyDiscardParameterSymbol(underscores[1], "System.String", CodeAnalysis.NullableAnnotation.None, model);
         }
 
         private static void VerifyDiscardParameterSymbol(ParameterSyntax underscore, string expectedType, CodeAnalysis.NullableAnnotation expectedAnnotation, SemanticModel model)
@@ -199,526 +187,10 @@ class C
     }
 }");
 
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DiscardParameters_OnLocalFunction_NotInScope()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    static void M()
-    {
-        int _ = 0;
-        local(1, 2);
-        void local(int _, int _) { _++; }
-    }
-}");
-
-            comp.VerifyDiagnostics();
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var underscore = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(p => p.ToString() == "_").Single();
-
-            var localSymbol = model.GetSymbolInfo(underscore).Symbol;
-            Assert.Equal("System.Int32 _", localSymbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Local, localSymbol.Kind);
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod()
-        {
-            var comp = CreateCompilation(@"
-public class C
-{
-    public static void M(int _, int _)
-    {
-        M(1, 2);
-        _ = """";
-    }
-}");
-
-            comp.VerifyDiagnostics();
-
-            var comp2 = CreateCompilation(@"
-class D
-{
-    public static void M2()
-    {
-        C.M(1, 2);
-    }
-}
-", references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyDiagnostics();
-            var method = comp2.GlobalNamespace.GetMember("C.M");
-            Assert.Equal("void C.M(System.Int32 <>_1, System.Int32 <>_2)", method.ToTestDisplayString());
-
-            var comp3 = CreateCompilation(@"
-class D
-{
-    public static void M2()
-    {
-        C.M(1, _: 2);
-        C.M(_: 1, 2);
-    }
-}
-", references: new[] { comp.EmitToImageReference() });
-            comp3.VerifyDiagnostics(
-                // (6,16): error CS1739: The best overload for 'M' does not have a parameter named '_'
-                //         C.M(1, _: 2);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M", "_").WithLocation(6, 16),
-                // (7,13): error CS1739: The best overload for 'M' does not have a parameter named '_'
-                //         C.M(_: 1, 2);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M", "_").WithLocation(7, 13)
-                );
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_Partial()
-        {
-            var comp = CreateCompilation(@"
-public class C
-{
-    public static void M(int _, int _)
-    {
-        M(1, 2);
-        _ = """";
-    }
-}");
-
-            comp.VerifyDiagnostics();
-
-            var comp2 = CreateCompilation(@"
-class D
-{
-    public static void M2()
-    {
-        C.M(1, 2);
-    }
-}
-", references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyDiagnostics();
-
-            var comp3 = CreateCompilation(@"
-class D
-{
-    public static void M2()
-    {
-        C.M(1, _: 2);
-        C.M(_: 1, 2);
-    }
-}
-", references: new[] { comp.EmitToImageReference() });
-            comp3.VerifyDiagnostics(
-                // (6,16): error CS1739: The best overload for 'M' does not have a parameter named '_'
-                //         C.M(1, _: 2);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M", "_").WithLocation(6, 16),
-                // (7,13): error CS1739: The best overload for 'M' does not have a parameter named '_'
-                //         C.M(_: 1, 2);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M", "_").WithLocation(7, 13)
-                );
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_NamedArgument()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    static void M(int _, string _)
-    {
-        M(1, _: null);
-        M(_: 1, null);
-    }
-}");
-
             comp.VerifyDiagnostics(
-                // (6,14): error CS1739: The best overload for 'M' does not have a parameter named '_'
-                //         M(1, _: null);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M", "_").WithLocation(6, 14),
-                // (7,11): error CS1739: The best overload for 'M' does not have a parameter named '_'
-                //         M(_: 1, null);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M", "_").WithLocation(7, 11)
-                );
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var calls = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Null(model.GetSymbolInfo(calls[0]).Symbol);
-            Assert.Null(model.GetSymbolInfo(calls[1]).Symbol);
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_NamedArgument_Underscore()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    static void M(int a, string _)
-    {
-        M(1, _: null);
-    }
-}");
-
-            comp.VerifyDiagnostics();
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            Assert.Equal("void C.M(System.Int32 a, System.String _)", model.GetSymbolInfo(call).Symbol.ToTestDisplayString());
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_NamedArgument_Underscore2()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    void M(int a, string _) { }
-    void M(long _, string _)
-    {
-        M(1, _: null);
-    }
-}");
-
-            comp.VerifyDiagnostics();
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            Assert.Equal("void C.M(System.Int32 a, System.String _)", model.GetSymbolInfo(call).Symbol.ToTestDisplayString());
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_NamedArgumentDoesNotMatchDiscard()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    static void M(int _, string _)
-    {
-        M(1, b: null);
-    }
-}");
-
-            comp.VerifyDiagnostics(
-                // (6,14): error CS1739: The best overload for 'M' does not have a parameter named 'b'
-                //         M(1, b: null);
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "b").WithArguments("M", "b").WithLocation(6, 14)
-                );
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            Assert.Null(model.GetSymbolInfo(call).Symbol);
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_WithXmlDoc()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    /// <summary></summary>
-    /// <param name=""_"">1</param>
-    /// <param name=""_"">2</param>
-    void M(int _, int _)
-    {
-    }
-}", parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-
-            comp.VerifyDiagnostics(
-                // (5,22): warning CS1572: XML comment has a param tag for '_', but there is no parameter by that name
-                //     /// <param name="_">1</param>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "_").WithArguments("_").WithLocation(5, 22),
-                // (6,22): warning CS1572: XML comment has a param tag for '_', but there is no parameter by that name
-                //     /// <param name="_">2</param>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "_").WithArguments("_").WithLocation(6, 22)
-                );
-        }
-
-        // TODO2 test as range variables?
-
-        [Fact]
-        public void DiscardParameters_OnMethod_Overridding()
-        {
-            var comp = CreateCompilation(@"
-public class Base
-{
-    public virtual void M(int _, int _)
-    {
-    }
-}
-public class C : Base
-{
-    public override void M(int _, int _)
-    {
-    }
-}");
-
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_Overridding_SettingNames()
-        {
-            var comp = CreateCompilation(@"
-public class Base
-{
-    public virtual void M(int _, int _)
-    {
-    }
-}
-public class C : Base
-{
-    public override void M(int a, int b)
-    {
-    }
-}");
-
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DiscardParameters_OnMethod_Overridding_RemovingNames()
-        {
-            var comp = CreateCompilation(@"
-public class Base
-{
-    public virtual void M(int a, int b)
-    {
-    }
-}
-public class C : Base
-{
-    public override void M(int _, int _)
-    {
-    }
-}");
-
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DiscardParameters_OnConstructor()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    C(int _, string _)
-    {
-        new C(1, null);
-        new C(1, _: null); // 1
-        new C(_: 1, null); // 2
-        _.ToString(); // 3
-    }
-}");
-
-            comp.VerifyDiagnostics(
-                // (7,18): error CS1739: The best overload for 'C' does not have a parameter named '_'
-                //         new C(1, _: null); // 1
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("C", "_").WithLocation(7, 18),
-                // (8,15): error CS1739: The best overload for 'C' does not have a parameter named '_'
-                //         new C(_: 1, null); // 2
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("C", "_").WithLocation(8, 15),
-                // (9,9): error CS0103: The name '_' does not exist in the current context
-                //         _.ToString(); // 3
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 9)
-                );
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var calls = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().ToArray();
-            Assert.Equal("C..ctor(System.Int32 _, System.String _)", model.GetSymbolInfo(calls[0]).Symbol.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(calls[1]).Symbol);
-            Assert.Null(model.GetSymbolInfo(calls[2]).Symbol);
-        }
-
-        [Fact]
-        public void DiscardParameters_OnDelegate()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    delegate void Signature(int _, int _);
-
-    static void M(Signature s)
-    {
-        s(1, _: 2);
-    }
-}");
-
-            comp.VerifyDiagnostics(
-                // (8,14): error CS1746: The delegate 'C.Signature' does not have a parameter named '_'
-                //         s(1, _: 2);
-                Diagnostic(ErrorCode.ERR_BadNamedArgumentForDelegateInvoke, "_").WithArguments("C.Signature", "_").WithLocation(8, 14)
-                );
-        }
-
-        [Fact]
-        public void DiscardParameters_VerifyMetadata()
-        {
-            var comp = CreateCompilation(@"
-public class C
-{
-    public delegate int Delegate(string _, string _);
-    public int this[string _, string _] => throw null;
-    public int M1(string _, string _) => throw null;
-    public int M2(int a, string _, string _) => throw null;
-    public int M3(string _, int b, string _) => throw null;
-    public int M4(string _, string _, int c) => throw null;
-    public int M5(int a, string _, string _ = null) => throw null;
-}
-
-public interface I
-{
-    int M(int _, string b, int _);
-}
-");
-            comp.VerifyDiagnostics();
-
-            var comp2 = CreateCompilation("", new[] { comp.EmitToImageReference() });
-            var cMembers = comp2.GetTypeByMetadataName("C").GetMembers();
-            AssertEx.Equal(new[] {
-                "System.Int32 C.this[System.String <>_1, System.String <>_2].get",
-                "System.Int32 C.M1(System.String <>_1, System.String <>_2)",
-                "System.Int32 C.M2(System.Int32 a, System.String <>_2, System.String <>_3)",
-                "System.Int32 C.M3(System.String <>_1, System.Int32 b, System.String <>_3)",
-                "System.Int32 C.M4(System.String <>_1, System.String <>_2, System.Int32 c)",
-                "System.Int32 C.M5(System.Int32 a, System.String <>_2, [System.String <>_3 = null])",
-                "C..ctor()",
-                "System.Int32 C.this[System.String <>_1, System.String <>_2] { get; }",
-                "C.Delegate" },
-                cMembers.Select(m => m.ToTestDisplayString()));
-
-            var iMembers = comp2.GetTypeByMetadataName("I").GetMembers();
-            AssertEx.Equal(new[] {
-                "System.Int32 I.M(System.Int32 <>_1, System.String b, System.Int32 <>_3)" },
-                iMembers.Select(m => m.ToTestDisplayString()));
-
-            var delegateMembers = cMembers.OfType<INamedTypeSymbol>().Single().GetMembers();
-            AssertEx.Equal(new[] {
-                "C.Delegate..ctor(System.Object @object, System.IntPtr method)",
-                "System.Int32 C.Delegate.Invoke(System.String <>_1, System.String <>_2)",
-                "System.IAsyncResult C.Delegate.BeginInvoke(System.String <>_1, System.String <>_2, System.AsyncCallback callback, System.Object @object)",
-                "System.Int32 C.Delegate.EndInvoke(System.IAsyncResult result)" },
-                delegateMembers.Select(m => m.ToTestDisplayString()));
-        }
-
-        [Fact]
-        public void DiscardParameters_VerifyMetadata_OnPartialMethod()
-        {
-            var comp = CreateCompilation(@"
-public partial class C
-{
-    partial void M1(string _, string _);
-    partial void M2(string a, string b);
-    partial void M3(string _, string _);
-    partial void M4(string _, string _ = null);
-}
-public partial class C
-{
-    partial void M1(string _, string _) => throw null;
-    partial void M2(string _, string _) => throw null;
-    partial void M3(string a, string b) => throw null;
-    partial void M4(string _, string _) => throw null;
-
-    void M()
-    {
-        M1(null, null);
-
-        M2(null, null);
-        M2(a: null, null);
-        M2(null, b: null);
-        M2(_: null, null); // 1
-        M2(null, _: null); // 2
-
-        M3(null, null);
-        M3(a: null, null); // 3
-        M3(null, b: null); // 4
-        M3(_: null, null); // 5
-        M3(null, _: null); // 6
-    }
-}
-");
-            comp.VerifyDiagnostics(
-                // (23,12): error CS1739: The best overload for 'M2' does not have a parameter named '_'
-                //         M2(_: null, null); // 1
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M2", "_").WithLocation(23, 12),
-                // (24,18): error CS1739: The best overload for 'M2' does not have a parameter named '_'
-                //         M2(null, _: null); // 2
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M2", "_").WithLocation(24, 18),
-                // (27,12): error CS1739: The best overload for 'M3' does not have a parameter named 'a'
-                //         M3(a: null, null); // 3
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "a").WithArguments("M3", "a").WithLocation(27, 12),
-                // (28,18): error CS1739: The best overload for 'M3' does not have a parameter named 'b'
-                //         M3(null, b: null); // 4
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "b").WithArguments("M3", "b").WithLocation(28, 18),
-                // (29,12): error CS1739: The best overload for 'M3' does not have a parameter named '_'
-                //         M3(_: null, null); // 5
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M3", "_").WithLocation(29, 12),
-                // (30,18): error CS1739: The best overload for 'M3' does not have a parameter named '_'
-                //         M3(null, _: null); // 6
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("M3", "_").WithLocation(30, 18)
-                );
-        }
-
-        [Fact]
-        public void DiscardParameters_OnIndexer()
-        {
-            var comp = CreateCompilation(@"
-class C1
-{
-    int this[int _, int _] => _++; // 1
-}");
-
-            comp.VerifyDiagnostics(
-                // (4,31): error CS0103: The name '_' does not exist in the current context
-                //     int this[int _, int _] => _++; // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(4, 31)
-                );
-
-            comp = CreateCompilation(@"
-public class C
-{
-    public int this[int _, int _] => 1;
-}");
-
-            comp.VerifyDiagnostics();
-
-            var comp2 = CreateCompilation(@"
-class D
-{
-    public static void M2(C c)
-    {
-        _ = c[1, 2];
-    }
-}
-", references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyDiagnostics();
-
-            var getter = comp2.GetTypeByMetadataName("C").GetMembers().OfType<IMethodSymbol>().Where(m => m.Name == "get_Item").Single();
-            Assert.Equal("System.Int32 C.this[System.Int32 <>_1, System.Int32 <>_2].get", getter.ToTestDisplayString());
-
-            var comp3 = CreateCompilation(@"
-class D
-{
-    public static void M2(C c)
-    {
-        _ = c[1, _: 2];
-        _ = c[_: 1, 2];
-    }
-}
-", references: new[] { comp.EmitToImageReference() });
-            comp3.VerifyDiagnostics(
-                // (6,18): error CS1739: The best overload for 'this' does not have a parameter named '_'
-                //         _ = c[1, _: 2];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("this", "_").WithLocation(6, 18),
-                // (7,15): error CS1739: The best overload for 'this' does not have a parameter named '_'
-                //         _ = c[_: 1, 2];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "_").WithArguments("this", "_").WithLocation(7, 15)
+                // (7,31): error CS0100: The parameter name '_' is a duplicate
+                //         void local(int _, int _) { }
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "_").WithArguments("_").WithLocation(7, 31)
                 );
         }
 

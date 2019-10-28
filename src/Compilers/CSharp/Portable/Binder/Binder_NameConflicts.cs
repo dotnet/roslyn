@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!parameters.IsDefaultOrEmpty)
             {
                 pNames = PooledHashSet<string>.GetInstance();
-                bool seenDiscard = false;
-
                 foreach (var p in parameters)
                 {
                     var name = p.Name;
@@ -72,21 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
                         diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, GetLocation(p), name);
-                    }
-
-                    if (p.IsDiscard)
-                    {
-                        if (seenDiscard)
-                        {
-                            // We only report the diagnostic on the second and subsequent underscores
-                            MessageID.IDS_FeatureDiscardParameters.CheckFeatureAvailability(
-                                diagnostics,
-                                this.Compilation,
-                                p.Locations[0]);
-                        }
-
-                        seenDiscard = true;
-                        continue;
                     }
 
                     if (!pNames.Add(name))

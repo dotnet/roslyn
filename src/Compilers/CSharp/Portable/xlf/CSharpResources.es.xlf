@@ -815,11 +815,6 @@
         <target state="translated">restricciones de tipo genérico delegate</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureDiscardParameters">
-        <source>discard parameters</source>
-        <target state="new">discard parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
         <source>enum generic type constraints</source>
         <target state="translated">restricciones de tipo genérico enum</target>
@@ -843,6 +838,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">indexando búferes fijos movibles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">

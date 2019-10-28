@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // p is initialized to zero; it is ok for a named argument to "correspond" to
                     // _any_ parameter (not just the parameters past the point of positional arguments)
-                    if (memberParameters[p].Name == name.Identifier.ValueText && !memberParameters[p].IsDiscard)
+                    if (memberParameters[p].Name == name.Identifier.ValueText)
                     {
                         if (isValidParams && p == memberParameters.Length - 1)
                         {

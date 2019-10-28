@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNestedStackalloc = MessageBase + 12762,
         IDS_FeatureSwitchExpression = MessageBase + 12763,
         IDS_FeatureAsyncUsing = MessageBase + 12764,
-        IDS_FeatureDiscardParameters = MessageBase + 12765,
+        IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // Preview features.
-                case MessageID.IDS_FeatureDiscardParameters:
+                case MessageID.IDS_FeatureLambdaDiscardParameters:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
