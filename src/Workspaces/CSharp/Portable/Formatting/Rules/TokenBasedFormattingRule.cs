@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
                             !currentToken.IsCommaInTupleExpression() &&
+                            !currentToken.IsCloseParenInTupleExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
-                            !currentToken.IsCloseParenInTupleExpression() &&
                             !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
                             !currentToken.IsColonInCasePatternSwitchLabel() && // no newline required before colon in pattern-switch-label (ex: `case {<pattern>}:`)
                             !currentToken.IsColonInSwitchExpressionArm())  // no newline required before colon in switch-expression-arm (ex: `{<pattern>}: expression`)
