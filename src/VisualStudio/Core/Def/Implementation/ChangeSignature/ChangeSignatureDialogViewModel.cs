@@ -86,6 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             get
             {
+                if (!AllParameters.Any())
+                {
+                    return false;
+                }
+
                 if (!SelectedIndex.HasValue)
                 {
                     return false;
@@ -108,6 +113,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             get
             {
+                if (!AllParameters.Any())
+                {
+                    return false;
+                }
+
                 if (!SelectedIndex.HasValue)
                 {
                     return false;
@@ -189,9 +199,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             return new ParameterConfiguration(
                 _originalParameterConfiguration.ThisParameter,
-                _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.MakeCoolParameter()).ToList(),
-                _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.MakeCoolParameter()).ToList(),
-                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).MakeCoolParameter(),
+                _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
+                _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
+                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).CreateParameter(),
                 selectedIndex: -1);
         }
 
@@ -513,7 +523,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 this.changeSignatureDialogViewModel = changeSignatureDialogViewModel;
             }
 
-            internal abstract CoolParameter MakeCoolParameter();
+            internal abstract ParameterBase CreateParameter();
 
             public abstract string InitialIndex { get; }
         }
@@ -538,10 +548,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public override bool IsDisabled => false;
             public override string Callsite => _addParameterViewModel.CallsiteValue;
 
-            internal override CoolParameter MakeCoolParameter()
-            {
-                return new AddedParameter(Type, Parameter, Callsite);
-            }
+            internal override ParameterBase CreateParameter()
+                => new AddedParameter(Type, Parameter, Callsite);
 
             public override string InitialIndex => "NEW";
         }
@@ -550,14 +558,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             public IParameterSymbol ParameterSymbol { get; }
 
-            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, CoolParameter parameter, int initialIndex)
+            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, ParameterBase parameter, int initialIndex)
                 : base(changeSignatureDialogViewModel)
             {
                 ParameterSymbol = (parameter as ExistingParameter).Symbol;
                 InitialIndex = initialIndex.ToString();
             }
 
-            internal override CoolParameter MakeCoolParameter()
+            internal override ParameterBase CreateParameter()
             {
                 return new ExistingParameter(ParameterSymbol);
             }
