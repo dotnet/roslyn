@@ -2,14 +2,14 @@
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal abstract class CoolParameter
+    internal abstract class ParameterBase
     {
         public abstract bool HasExplicitDefaultValue { get; }
         public abstract string Name { get; }
         public abstract IParameterSymbol Symbol { get; }
     }
 
-    internal class ExistingParameter : CoolParameter
+    internal class ExistingParameter : ParameterBase
     {
         public override IParameterSymbol Symbol { get; }
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override string Name => Symbol.Name;
     }
 
-    internal class AddedParameter : CoolParameter
+    internal class AddedParameter : ParameterBase
     {
         public AddedParameter(string type, string parameter, string callsite)
         {
