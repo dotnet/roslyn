@@ -472,5 +472,51 @@ class Program
     }
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        public async Task FixReturnType_Default()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test()
+    {
+        return [|default|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test()
+    {
+        return default;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        public async Task FixReturnType_DefaultWithNullableType()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test()
+    {
+        return [|default(string)|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test()
+    {
+        return default(string);
+    }
+}", parameters: s_nullableFeature);
+        }
     }
 }
