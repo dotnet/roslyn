@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         [Obsolete("This is a compatibility shim for F#; please do not use it.")]
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
-            : this(projectId, errorCodePrefix, "F#", (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
+            : this(projectId, errorCodePrefix, LanguageNames.FSharp, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             _workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
