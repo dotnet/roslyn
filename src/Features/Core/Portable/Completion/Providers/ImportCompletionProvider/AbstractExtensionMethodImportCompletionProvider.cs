@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -27,18 +28,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool isExpandedCompletion,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, out var receiverTypeSymbol))
+            using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var items = await ExtensionMethodImportCompletionHelper.GetUnimportExtensionMethodsAsync(
-                    completionContext.Document,
-                    completionContext.Position,
-                    receiverTypeSymbol,
-                    namespaceInScope,
-                    isExpandedCompletion,
-                    cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, out var receiverTypeSymbol))
+                {
+                    var items = await ExtensionMethodImportCompletionHelper.GetUnimportExtensionMethodsAsync(
+                        completionContext.Document,
+                        completionContext.Position,
+                        receiverTypeSymbol,
+                        namespaceInScope,
+                        isExpandedCompletion,
+                        cancellationToken).ConfigureAwait(false);
 
-                completionContext.AddItems(items.Select(Convert));
+                    completionContext.AddItems(items.Select(Convert));
+                }
             }
         }
 

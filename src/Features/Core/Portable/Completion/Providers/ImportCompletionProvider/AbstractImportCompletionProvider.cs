@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
@@ -73,13 +72,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
-            {
-                // Find all namespaces in scope at current cursor location, 
-                // which will be used to filter so the provider only returns out-of-scope types.
-                var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
-                await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
-            }
+            // Find all namespaces in scope at current cursor location, 
+            // which will be used to filter so the provider only returns out-of-scope types.
+            var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
+            await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
         }
 
         private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)

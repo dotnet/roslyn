@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -23,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
         {
-            using var telemetryCounter = new TelemetryCounter();
+            using var _ = Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken);
+            var telemetryCounter = new TelemetryCounter();
 
             var document = completionContext.Document;
             var project = document.Project;
@@ -77,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             telemetryCounter.ReferenceCount = referencedAssemblySymbols.Length;
+            telemetryCounter.Report();
 
             return;
 
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private class TelemetryCounter : IDisposable
+        private class TelemetryCounter
         {
             protected int Tick { get; }
             public int ItemsCount { get; set; }
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Tick = Environment.TickCount;
             }
 
-            public void Dispose()
+            public void Report()
             {
                 var delta = Environment.TickCount - Tick;
                 CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);

@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             counter.TotalExtensionMethodsProvided = serializableItems.Length;
             counter.Report();
 
-            // TODO: remove this
-            Internal.Log.Logger.Log(Internal.Log.FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, Internal.Log.KeyValueLogMessage.Create(m =>
-            {
-                m["ExtMethodData"] = counter.ToString();
-            }));
-
             return serializableItems;
         }
 
@@ -468,24 +462,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public int GetSymbolExtraTicks;
         public int TotalTypesChecked;
         public int TotalExtensionMethodsChecked;
-
-        // TODO: remove
-        public override string ToString()
-        {
-            return
-$@"
-NoFilter : {NoFilter}
-
-TotalTicks: {TotalTicks}
-GetFilterTicks : {GetFilterTicks}
-GetSymbolTicks : {GetSymbolTicks}
-GetSymbolExtraTicks : {GetSymbolExtraTicks}
-
-TotalTypesChecked : {TotalTypesChecked}
-TotalExtensionMethodsChecked : {TotalExtensionMethodsChecked}
-TotalExtensionMethodsProvided : {TotalExtensionMethodsProvided}
-";
-        }
 
         public void Report()
         {
