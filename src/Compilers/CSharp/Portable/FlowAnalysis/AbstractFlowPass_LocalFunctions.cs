@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 #nullable enable
@@ -12,6 +13,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract class AbstractLocalFunctionState
         {
             /// <summary>
+            /// This is the state from the local function which makes the
+            /// current state less specific. For example, in nullable analysis
+            /// this would be captured variables that may be nullable after
+            /// calling the local function. When a local function is called,
+            /// this state is <see cref="Join(ref TLocalState, ref TLocalState)"/>
+            /// with the current state.
+            /// </summary>
+            public TLocalState StateFromBottom;
+
+            /// <summary>
             /// This is the part of the local function transfer function which
             /// transfers knowledge additively. For example, in definite
             /// assignment this would be captured state which is assigned by
@@ -19,11 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// state is <see cref="Meet(ref TLocalState, ref TLocalState)"/>
             /// with the current state.
             /// </summary>
-            public TLocalState State;
+            public TLocalState StateFromTop;
 
             public AbstractLocalFunctionState(TLocalState unreachableState)
             {
-                State = unreachableState;
+                StateFromBottom = unreachableState.Clone();
+                StateFromTop = unreachableState.Clone();
             }
 
             public bool Visited = false;
@@ -58,6 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var savedState = this.State;
             this.State = this.TopState();
+
+            Optional<TLocalState> savedNonMonotonicState = NonMonotonicState;
+            if (_nonMonotonicTransfer)
+            {
+                NonMonotonicState = ReachableBottomState();
+            }
 
             if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
 
@@ -123,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             this.State = savedState;
+            NonMonotonicState = savedNonMonotonicState;
             this.CurrentSymbol = oldSymbol;
 
             return null;
@@ -133,7 +152,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             TLocalFunctionState currentState,
             ref TLocalState stateAtReturn)
         {
-            bool anyChanged = Join(ref currentState.State, ref stateAtReturn);
+            bool anyChanged = Join(ref currentState.StateFromTop, ref stateAtReturn);
+
+            if (NonMonotonicState.HasValue)
+            {
+                var value = NonMonotonicState.Value;
+                // Since only state moving up gets stored in the non-monotonic state,
+                // Meet with the stateAtReturn, which records all state changes. If
+                // a state moved up, then down, the final state should be down.
+                Meet(ref value, ref stateAtReturn);
+                anyChanged |= Join(ref currentState.StateFromBottom, ref value);
+            }
+
             // N.B. Do NOT shortcut this operation. LocalFunctionEnd may have important
             // side effects to the local function state
             anyChanged |= LocalFunctionEnd(savedState, currentState, ref stateAtReturn);
