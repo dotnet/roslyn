@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             if (string.IsNullOrWhiteSpace(diagnosticId))
             {
-                return default;
+                return null;
             }
 
             if (TryGetWellFormedHttpUri(rawHelpLink, out var link))
