@@ -57,51 +57,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             // Don't split strings if there is any actual selection.
             // We must check all spans to account for multi-carets.
-            if (!spans.IsEmpty() && spans.All(s => s.IsEmpty))
+            if (spans.IsEmpty() || !spans.All(s => s.IsEmpty))
             {
-                var caret = textView.GetCaretPoint(subjectBuffer);
-                if (caret != null)
-                {
-                    // First, we need to verify that we are only working with string literals.
-                    // Otherwise, let the editor handle all carets.
-                    for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
-                    {
-                        var spanStart = spans[spanIndex].Start;
-                        var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(spanStart);
-                        if (!LineContainsQuote(line, spanStart))
-                        {
-                            return false;
-                        }
-                    }
-
-                    // We now go through the verified string literals and split each of them.
-                    for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
-                    {
-                        var spanStart = spans[spanIndex].Start;
-
-                        // Multi-caret case
-                        if (spanIndex > 0)
-                        {
-                            caret = textView.GetCaretPoint(subjectBuffer);
-                            if (caret == null)
-                            {
-                                return false;
-                            }
-
-                            // We change the span's starting point based on how much space was added from the last split.
-                            var addedSpan = caret.Value.Subtract(spans[spanIndex - 1].Start);
-                            spanStart = new SnapshotPoint(caret.Value.Snapshot, addedSpan.Position + spanStart.Position);
-                        }
-
-                        if (!SplitString(textView, subjectBuffer, spanStart))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
+                return false;
             }
 
+            var caret = textView.GetCaretPoint(subjectBuffer);
+            if (caret != null)
+            {
+                // First, we need to verify that we are only working with string literals.
+                // Otherwise, let the editor handle all carets.
+                for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
+                {
+                    var spanStart = spans[spanIndex].Start;
+                    var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(spanStart);
+                    if (!LineContainsQuote(line, spanStart))
+                    {
+                        return false;
+                    }
+                }
+
+                // We now go through the verified string literals and split each of them.
+                for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
+                {
+                    var spanStart = spans[spanIndex].Start;
+
+                    // Multi-caret case
+                    if (spanIndex > 0)
+                    {
+                        caret = textView.GetCaretPoint(subjectBuffer);
+                        if (caret == null)
+                        {
+                            return false;
+                        }
+
+                        // We change the span's starting point based on how much space was added from the last split.
+                        var addedSpan = caret.Value.Subtract(spans[spanIndex - 1].Start);
+                        spanStart = new SnapshotPoint(caret.Value.Snapshot, addedSpan.Position + spanStart.Position);
+                    }
+
+                    if (!SplitString(textView, subjectBuffer, spanStart))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
             return false;
         }
 
