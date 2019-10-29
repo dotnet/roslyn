@@ -2,7 +2,6 @@
 
 #nullable enable
 
-
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal sealed class SerializableImportCompletionItem

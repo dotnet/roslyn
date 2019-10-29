@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {
-                throw new InvalidOperationException(string.Format(WorkspacesResources.Project_0_does_not_support_compilation, project.Name));
+                throw new InvalidOperationException(string.Format(WorkspacesResources.Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0, project.Name));
             }
 
             return compilation;

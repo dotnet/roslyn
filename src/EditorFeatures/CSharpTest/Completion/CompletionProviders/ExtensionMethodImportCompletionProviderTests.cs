@@ -1145,6 +1145,48 @@ namespace Baz
                  inlineDescription: expectedNamespace);
         }
 
+        [InlineData("int")]
+        [InlineData("Exception")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestIdenticalMethodName(string type)
+        {
+            var file1 = @"
+using System;
+
+namespace Foo
+{
+    public static class ExtensionClass
+    {
+        public static bool ExtMethod(this int x)
+            => true;
+
+        public static bool ExtMethod(this Exception x)
+            => true;
+    }
+}
+";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M({type} x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = GetMarkup(file2, file1, ReferenceType.None);
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
         {
             return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);

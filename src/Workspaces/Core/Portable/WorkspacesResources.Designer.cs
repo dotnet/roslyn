@@ -575,6 +575,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation is required to accomplish the task but is not supported by project {0}..
+        /// </summary>
+        internal static string Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0 {
+            get {
+                return ResourceManager.GetString("Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
         internal static string Core_EditorConfig_Options {
@@ -1363,15 +1372,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Private_or_Internal_Static_Field {
             get {
                 return ResourceManager.GetString("Private_or_Internal_Static_Field", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project {0} does not support compilation..
-        /// </summary>
-        internal static string Project_0_does_not_support_compilation {
-            get {
-                return ResourceManager.GetString("Project_0_does_not_support_compilation", resourceCulture);
             }
         }
         

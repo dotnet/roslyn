@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private const string SymbolKeyData = nameof(SymbolKeyData);
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
-        {
-            return Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, symbolKeyData: null);
-        }
+            => Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, symbolKeyData: null);
 
         public static CompletionItem Create(string name, int arity, string containingNamespace, Glyph glyph, string genericTypeSuffix, CompletionItemFlags flags, string? symbolKeyData)
         {
@@ -39,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
-                    // We don't need arity to recover symbol if we have SymbolKeyData.
+                    // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
+                    // (but it still needed below to decide whether to show generic suffix)
                     builder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
                 }
 
@@ -89,9 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, string genericTypeSuffix)
-        {
-            return item.WithDisplayTextSuffix(genericTypeSuffix);
-        }
+            => item.WithDisplayTextSuffix(genericTypeSuffix);
 
         public static string GetContainingNamespace(CompletionItem item)
             => item.InlineDescription;
