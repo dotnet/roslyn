@@ -523,7 +523,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 this.changeSignatureDialogViewModel = changeSignatureDialogViewModel;
             }
 
-            internal abstract ParameterBase CreateParameter();
+            internal abstract Parameter CreateParameter();
 
             public abstract string InitialIndex { get; }
         }
@@ -548,7 +548,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public override bool IsDisabled => false;
             public override string Callsite => _addParameterViewModel.CallsiteValue;
 
-            internal override ParameterBase CreateParameter()
+            internal override Parameter CreateParameter()
                 => new AddedParameter(Type, Parameter, Callsite);
 
             public override string InitialIndex => "NEW";
@@ -558,14 +558,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             public IParameterSymbol ParameterSymbol { get; }
 
-            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, ParameterBase parameter, int initialIndex)
+            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, Parameter parameter, int initialIndex)
                 : base(changeSignatureDialogViewModel)
             {
                 ParameterSymbol = (parameter as ExistingParameter).Symbol;
                 InitialIndex = initialIndex.ToString();
             }
 
-            internal override ParameterBase CreateParameter()
+            internal override Parameter CreateParameter()
             {
                 return new ExistingParameter(ParameterSymbol);
             }

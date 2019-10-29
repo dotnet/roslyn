@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,13 +7,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal sealed class ParameterConfiguration
     {
-        public readonly ParameterBase ThisParameter;
-        public readonly List<ParameterBase> ParametersWithoutDefaultValues;
-        public readonly List<ParameterBase> RemainingEditableParameters;
-        public readonly ParameterBase ParamsParameter;
+        public readonly Parameter ThisParameter;
+        public readonly List<Parameter> ParametersWithoutDefaultValues;
+        public readonly List<Parameter> RemainingEditableParameters;
+        public readonly Parameter ParamsParameter;
         public readonly int SelectedIndex;
 
-        public ParameterConfiguration(ParameterBase thisParameter, List<ParameterBase> parametersWithoutDefaultValues, List<ParameterBase> remainingEditableParameters, ParameterBase paramsParameter, int selectedIndex)
+        public ParameterConfiguration(Parameter thisParameter, List<Parameter> parametersWithoutDefaultValues, List<Parameter> remainingEditableParameters, Parameter paramsParameter, int selectedIndex)
         {
             ThisParameter = thisParameter;
             ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
@@ -23,12 +22,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SelectedIndex = selectedIndex;
         }
 
-        public static ParameterConfiguration Create(List<ParameterBase> parameters, bool isExtensionMethod, int selectedIndex)
+        public static ParameterConfiguration Create(List<Parameter> parameters, bool isExtensionMethod, int selectedIndex)
         {
-            ParameterBase thisParameter = null;
-            var parametersWithoutDefaultValues = new List<ParameterBase>();
-            var remainingReorderableParameters = new List<ParameterBase>();
-            ParameterBase paramsParameter = null;
+            Parameter thisParameter = null;
+            var parametersWithoutDefaultValues = new List<Parameter>();
+            var remainingReorderableParameters = new List<Parameter>();
+            Parameter paramsParameter = null;
 
             if (parameters.Count > 0 && isExtensionMethod)
             {
@@ -58,12 +57,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ParameterConfiguration WithoutAddedParameters()
         {
-            return Create(ToListOfParameters().OfType<ExistingParameter>().ToList<ParameterBase>(), ThisParameter != null, selectedIndex: 0);
+            return Create(ToListOfParameters().OfType<ExistingParameter>().ToList<Parameter>(), ThisParameter != null, selectedIndex: 0);
         }
 
-        public List<ParameterBase> ToListOfParameters()
+        public List<Parameter> ToListOfParameters()
         {
-            var list = new List<ParameterBase>();
+            var list = new List<Parameter>();
 
             if (ThisParameter != null)
             {
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return list;
         }
 
-        // TODO probably remove thiis check. It was created when we didn't support Add Parameters to parameterless methods.
+        // TODO probably remove this check. It was created when we didn't support Add Parameters to parameterless methods.
         public bool IsChangeable()
         {
             return true;
