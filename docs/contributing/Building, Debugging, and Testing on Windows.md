@@ -19,7 +19,7 @@ The minimal required version of .NET Framework is 4.7.2.
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "16.3" or greater
     - Ensure "Use Previews" is checked in Tools -> Options -> Projects and Solutions -> .NET Core
-1. [.NET Core SDK 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-3.0.100-windows-x64-installer )
+1. [.NET Core SDK 3.1 Preview 2](https://dotnet.microsoft.com/download/dotnet-core/3.1) [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/3.1.100-preview2-014568/dotnet-sdk-3.1.100-preview2-014568-win-x64.exe )
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
