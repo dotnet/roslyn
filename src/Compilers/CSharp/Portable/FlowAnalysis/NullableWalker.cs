@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Nullability flow analysis.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal sealed partial class NullableWalker : LocalDataFlowPass<NullableWalker.LocalState>
+    internal sealed partial class NullableWalker
+        : LocalDataFlowPass<NullableWalker.LocalState, NullableWalker.LocalFunctionState>
     {
         /// <summary>
         /// Used to copy variable slots and types from the NullableWalker for the containing method
@@ -7979,6 +7980,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return pooledBuilder.ToStringAndFree();
             }
         }
+
+        internal sealed class LocalFunctionState : AbstractLocalFunctionState
+        {
+            public LocalFunctionState(LocalState unreachableState)
+                : base(unreachableState)
+            {
+            }
+        }
+
+        protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
 
 #nullable enable
         private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol type)>
