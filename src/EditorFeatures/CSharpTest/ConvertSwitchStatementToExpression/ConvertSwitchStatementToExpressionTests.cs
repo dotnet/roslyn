@@ -976,9 +976,9 @@ class Program
 }");
         }
 
-        [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/38771")]
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestShouldProperlyHandleInterfaces()
+        public async Task TestShouldProperlyHandleInterfaces_CannotConvertToVar()
         {
             await TestInCSharp8(
 @"using System;

@@ -2586,5 +2586,75 @@ class C
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [WorkItem(39171, "https://github.com/dotnet/roslyn/issues/39171")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task NoSuggestionForSwitchExpressionDifferentTypes()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    interface IFruit { }
+
+    class Apple : IFruit { }
+
+    class Banana : IFruit { }
+
+    public static void Test(string name)
+    {
+        [|IFruit|] fruit = name switch
+        {
+            ""apple"" => new Apple(),
+            ""banana"" => new Banana(),
+            _ => null,
+        };
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WorkItem(39171, "https://github.com/dotnet/roslyn/issues/39171")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task SuggestSwitchExpressionSameOrInheritedTypes()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Test { }
+
+class Test2 : Test { }
+
+class C
+{
+    void M()
+    {
+        var str = ""one"";
+        [|Test|] t = str switch
+        {
+            ""one"" => new Test(),
+            ""two"" => new Test2(),
+            _ => throw new InvalidOperationException(""Unknown test.""),
+        };
+    }     
+}",
+@"using System;
+
+class Test { }
+
+class Test2 : Test { }
+
+class C
+{
+    void M()
+    {
+        var str = ""one"";
+        var t = str switch
+        {
+            ""one"" => new Test(),
+            ""two"" => new Test2(),
+            _ => throw new InvalidOperationException(""Unknown test.""),
+        };
+    }     
+}", options: ImplicitTypeEverywhere());
+        }
     }
 }

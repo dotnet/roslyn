@@ -144,11 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
 
-                if (!IsSwitchExpressionAndCanUseVar(variableDeclaration, semanticModel))
-                {
-                    return false;
-                }
-
                 if (AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, initializer,
                         semanticModel, optionSet, cancellationToken))
@@ -264,6 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
+            if (!IsSwitchExpressionAndCanUseVar(typeName, initializer, semanticModel))
+            {
+                return false;
+            }
+
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
                 .Where(n => n is IdentifierNameSyntax id && id.Identifier.ValueText.Equals(identifier.ValueText))
@@ -321,41 +321,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
 
-        private bool IsSwitchExpressionAndCanUseVar(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel)
+        private bool IsSwitchExpressionAndCanUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
         {
-            var switchExpression = variableDeclaration.DescendantNodes().Where(node => node.IsKind(SyntaxKind.SwitchExpression));
-            if (switchExpression.Any())
+            if (initializer.IsKind(SyntaxKind.SwitchExpression))
             {
-                if (variableDeclaration.Type.IsKind(SyntaxKind.NullableType))
+                // We compare the variable declaration type to each arm's type to see if there is an exact match, or if the
+                // arm type inherits from the variable declaration type. If not, we must use the explicit type instead of var.
+                var declarationType = semanticModel.GetTypeInfo(typeName).Type;
+                if (declarationType != null)
                 {
-                    return false;
-                }
-
-                var type = semanticModel.GetSymbolInfo(variableDeclaration.Type).Symbol.GetSymbolType();
-                if (type != null)
-                {
-                    foreach (var arm in ((SwitchExpressionSyntax)switchExpression.First()).Arms)
+                    foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
                     {
-                        var rightSideOfArm = arm.Expression;
-                        if (!rightSideOfArm.IsKind(SyntaxKind.ThrowExpression) && !rightSideOfArm.IsKind(SyntaxKind.ReturnStatement))
+                        var expression = arm.Expression;
+                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression))
                         {
-                            var identifierName = rightSideOfArm.ChildNodes().Where(node => node.IsKind(SyntaxKind.IdentifierName)).FirstOrDefault();
-                            if (identifierName == default)
-                            {
-                                var tryGetQualifiedName = (QualifiedNameSyntax)rightSideOfArm.ChildNodes().Where(node => node.IsKind(SyntaxKind.QualifiedName)).FirstOrDefault();
-                                if (tryGetQualifiedName != default)
-                                {
-                                    identifierName = tryGetQualifiedName.Right;
-                                }
-                            }
+                            expression = ((ParenthesizedExpressionSyntax)expression).WalkDownParentheses();
+                        }
 
-                            if (identifierName != default)
+                        if (!expression.IsKind(SyntaxKind.ThrowExpression) && !expression.IsKind(SyntaxKind.NullLiteralExpression))
+                        {
+                            var expressionType = semanticModel.GetTypeInfo(expression).Type;
+                            if (expressionType != null && !expressionType.InheritsFromOrEquals(declarationType))
                             {
-                                var identifierType = semanticModel.GetSymbolInfo(identifierName).Symbol.GetSymbolType();
-                                if (identifierType != null && !identifierType.Equals(type))
-                                {
-                                    return false;
-                                }
+                                return false;
                             }
                         }
                     }
