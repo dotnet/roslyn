@@ -97,11 +97,6 @@
         <target state="translated">요소가 잘못되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">nullable 참조 분석 IDE 기능 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">평가 중(큐의 {0}개 작업)</target>
