@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().Select(p => new ExistingParameter(p)).ToList<ParameterBase>(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
+            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().Select(p => new ExistingParameter(p)).ToList<Parameter>(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
             if (!parameterConfiguration.IsChangeable())
             {
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);

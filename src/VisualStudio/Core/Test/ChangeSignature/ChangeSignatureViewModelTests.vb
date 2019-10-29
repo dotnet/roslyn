@@ -436,7 +436,7 @@ class MyClass
 
                 Dim viewModel = New ChangeSignatureDialogViewModel(
                     New TestNotificationService(),
-                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), ParameterBase)).ToList(), symbol.IsExtensionMethod(), selectedIndex:=0),
+                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToList(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
                     workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
