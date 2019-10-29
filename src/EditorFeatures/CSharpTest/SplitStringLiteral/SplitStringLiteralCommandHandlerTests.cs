@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                     out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
                 Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
-                Assert.Equal(expectedSpans.Last().Start, view.Caret.Position.BufferPosition.Position);
+                Assert.Equal(expectedSpans.First().Start, view.Caret.Position.BufferPosition.Position);
 
                 if (verifyUndo)
                 {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                     var currentSnapshot = document.GetTextBuffer().CurrentSnapshot;
                     Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
-                    Assert.Equal(originalSelections.Last().Start, view.Caret.Position.BufferPosition.Position);
+                    Assert.Equal(originalSelections.First().Start, view.Caret.Position.BufferPosition.Position);
                 }
             }
         }
