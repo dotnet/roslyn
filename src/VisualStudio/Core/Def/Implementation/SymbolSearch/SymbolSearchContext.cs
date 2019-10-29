@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         internal RoslynSymbolSource SymbolSource { get; }
         internal LocalCodeSymbolOrigin RootSymbolOrigin { get; }
+        internal Dictionary<DefinitionItem, RoslynSymbolResult> DefinitionResults { get; }
 
         private readonly IStreamingSymbolSearchSink SymbolSink;
         public new readonly CancellationToken CancellationToken;
@@ -22,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             this.SymbolSink = sink;
             this.CancellationToken = sink.CancellationToken;
             this.RootSymbolOrigin = new LocalCodeSymbolOrigin(rootNodeName);
+            this.DefinitionResults = new Dictionary<DefinitionItem, RoslynSymbolResult>();
         }
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
@@ -31,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var result = await RoslynSymbolResult.MakeAsync(this, definition, definition.SourceSpans[0], CancellationToken)
                     .ConfigureAwait(false);
                 this.SymbolSink.Add(result);
+                this.DefinitionResults.Add(definition, result);
             }
             else if (definition.SourceSpans.Length == 0)
             {
