@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     //      }
                                     //
                                     // If we detect this, we will simply treat extension methods whose
-                                    // target type is this alais as complex method.
+                                    // target type is this alias as complex method.
                                     if (usingAliases.ContainsKey(aliasName))
                                     {
                                         usingAliases[aliasName] = null;

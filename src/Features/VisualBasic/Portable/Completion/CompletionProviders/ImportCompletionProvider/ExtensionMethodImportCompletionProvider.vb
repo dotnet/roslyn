@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides ReadOnly Property GenericSuffix As String
             Get
-                Return "(Of )"
+                Return "(Of ...)"
             End Get
         End Property
 

@@ -430,6 +430,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             var decoder = new SignatureDecoder<ParameterTypeInfo, object>(ParameterTypeInfoProvider.Instance, _metadataReader, genericContext: null);
                             var signature = decoder.DecodeMethodSignature(ref blob);
 
+                            // It'd be good if we don't need to go through all parameters and make unnecessary allocations.
+                            // However, this is not possible with meatadata reader API right now (although it's possible by copying code from meatadata reader implementaion)
                             if (signature.ParameterTypes.Length > 0)
                             {
                                 _containsExtensionsMethod = true;

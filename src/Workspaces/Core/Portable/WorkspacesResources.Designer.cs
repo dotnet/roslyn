@@ -1367,6 +1367,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project {0} does not support compilation..
+        /// </summary>
+        internal static string Project_0_does_not_support_compilation {
+            get {
+                return ResourceManager.GetString("Project_0_does_not_support_compilation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project file not found: &apos;{0}&apos;.
         /// </summary>
         internal static string Project_file_not_found_colon_0 {

@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TLanguageService? GetLanguageService<TLanguageService>(this Document? document) where TLanguageService : class, ILanguageService
             => document?.Project?.LanguageServices?.GetService<TLanguageService>();
 
+        public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
+            => document.Project.LanguageServices.GetRequiredService<TLanguageService>();
+
         public static bool IsOpen(this Document document)
         {
             var workspace = document.Project.Solution.Workspace as Workspace;

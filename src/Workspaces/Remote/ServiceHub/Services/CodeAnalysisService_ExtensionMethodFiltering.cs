@@ -2,18 +2,18 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteExtensionMethodImportCompletionService
     {
-
         public Task<(IList<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsAsync(
             DocumentId documentId,
             int position,
@@ -28,20 +28,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId)!;
-                    var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                    var compilation = (await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false));
                     var symbol = SymbolKey.ResolveString(receiverTypeSymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 
                     if (symbol is ITypeSymbol receiverTypeSymbol)
                     {
-                        var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                         var namespaceInScopeSet = new HashSet<string>(namespaceInScope, syntaxFacts.StringComparer);
 
-                        var (items, counter) = await ExtensionMethodImportCompletionService.GetUnimportExtensionMethodsInCurrentProcessAsync(
+                        var (items, counter) = await ExtensionMethodImportCompletionHelper.GetUnimportExtensionMethodsInCurrentProcessAsync(
                             document, position, receiverTypeSymbol, namespaceInScopeSet, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
                         return ((IList<SerializableImportCompletionItem>)items, counter);
                     }
 
-                    return (new SerializableImportCompletionItem[0], new StatisticCounter());
+                    return (Array.Empty<SerializableImportCompletionItem>(), new StatisticCounter());
                 }
             }, cancellationToken);
         }

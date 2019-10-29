@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
+                    // We don't need arity to recover symbol if we have SymbolKeyData.
                     builder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
                 }
 
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+            var compilation = (await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false));
             var symbol = GetSymbol(item, compilation);
 
             if (symbol != null)
@@ -125,11 +126,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ISymbol? GetSymbol(CompletionItem item, Compilation compilation)
         {
+            // If we have SymbolKey data (i.e. this is an extension method item), use it to recover symbol
             if (item.Properties.TryGetValue(SymbolKeyData, out var symbolId))
             {
                 return SymbolKey.ResolveString(symbolId, compilation).GetAnySymbol();
             }
 
+            // Otherwise, this is a type item, so we should have all the data to constrcut its metadata name
             var containingNamespace = GetContainingNamespace(item);
             var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
             var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);

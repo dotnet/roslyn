@@ -19,29 +19,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal sealed class SerializableImportCompletionItem
-    {
-        public readonly string SymbolKeyData;
-        public readonly int Arity;
-        public readonly string Name;
-        public readonly Glyph Glyph;
-        public readonly string ContainingNamespace;
-
-        public SerializableImportCompletionItem(string symbolKeyData, string name, int arity, Glyph glyph, string containingNamespace)
-        {
-            SymbolKeyData = symbolKeyData;
-            Arity = arity;
-            Name = name;
-            Glyph = glyph;
-            ContainingNamespace = containingNamespace;
-        }
-    }
-
     /// <summary>
     /// Provides completion items for extension methods from unimported namespace.
     /// </summary>
     /// <remarks>It runs out-of-proc if it's enabled</remarks>
-    internal static partial class ExtensionMethodImportCompletionService
+    internal static partial class ExtensionMethodImportCompletionHelper
     {
         private static readonly char[] s_dotSeparator = new char[] { '.' };
 

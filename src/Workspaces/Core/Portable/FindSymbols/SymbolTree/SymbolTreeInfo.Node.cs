@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly struct ParameterTypeInfo
         {
             /// <summary>
-            /// This is the type name of the parameter when <see cref="IsComplexType"/> is true.
+            /// This is the type name of the parameter when <see cref="IsComplexType"/> is false.
             /// </summary>
             public readonly string Name;
 

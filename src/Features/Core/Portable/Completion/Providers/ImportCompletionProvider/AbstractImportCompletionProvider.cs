@@ -113,51 +113,49 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return CompletionChange.Create(change);
             }
-            else
-            {
-                // Find context node so we can use it to decide where to insert using/imports.
-                var tree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
-                var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
-                // Add required using/imports directive.                              
-                var addImportService = document.GetLanguageService<IAddImportsService>()!;
-                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-                var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
-                var importNode = CreateImport(document, containingNamespace);
+            // Find context node so we can use it to decide where to insert using/imports.
+            var tree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
-                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst, cancellationToken);
-                var documentWithImport = document.WithSyntaxRoot(rootWithImport);
-                // This only formats the annotated import we just added, not the entire document.
-                var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            // Add required using/imports directive.                              
+            var addImportService = document.GetLanguageService<IAddImportsService>()!;
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+            var importNode = CreateImport(document, containingNamespace);
 
-                var builder = ArrayBuilder<TextChange>.GetInstance();
+            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst, cancellationToken);
+            var documentWithImport = document.WithSyntaxRoot(rootWithImport);
+            // This only formats the annotated import we just added, not the entire document.
+            var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // Get text change for add import
-                var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                builder.AddRange(importChanges);
+            var builder = ArrayBuilder<TextChange>.GetInstance();
 
-                // Create text change for complete type name.
-                //
-                // Note: Don't try to obtain TextChange for completed type name by replacing the text directly, 
-                //       then use Document.GetTextChangesAsync on document created from the changed text. This is
-                //       because it will do a diff and return TextChanges with minimum span instead of actual 
-                //       replacement span.
-                //
-                //       For example: If I'm typing "asd", the completion provider could be triggered after "a"
-                //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described 
-                //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
-                //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
-                //       with "AsnEncodedDatasd" in the code.
-                builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
+            // Get text change for add import
+            var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            builder.AddRange(importChanges);
 
-                // Then get the combined change
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = text.WithChanges(builder);
+            // Create text change for complete type name.
+            //
+            // Note: Don't try to obtain TextChange for completed type name by replacing the text directly, 
+            //       then use Document.GetTextChangesAsync on document created from the changed text. This is
+            //       because it will do a diff and return TextChanges with minimum span instead of actual 
+            //       replacement span.
+            //
+            //       For example: If I'm typing "asd", the completion provider could be triggered after "a"
+            //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described 
+            //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
+            //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
+            //       with "AsnEncodedDatasd" in the code.
+            builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
 
-                return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
-            }
+            // Then get the combined change
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = text.WithChanges(builder);
+
+            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {

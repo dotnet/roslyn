@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -26,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool isExpandedCompletion,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = completionContext.Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, out var receiverTypeSymbol))
             {
-                var items = await ExtensionMethodImportCompletionService.GetUnimportExtensionMethodsAsync(
+                var items = await ExtensionMethodImportCompletionHelper.GetUnimportExtensionMethodsAsync(
                     completionContext.Document,
                     completionContext.Position,
                     receiverTypeSymbol,
@@ -63,27 +64,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static ITypeSymbol? GetSymbolType(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case ILocalSymbol localSymbol:
-                    return localSymbol.Type;
-                case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type;
-                case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type;
-                case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.Type;
-                case IAliasSymbol aliasSymbol:
-                    return aliasSymbol.Target as ITypeSymbol;
-            }
+                ILocalSymbol localSymbol => localSymbol.Type,
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
+                IParameterSymbol parameterSymbol => parameterSymbol.Type,
+                IAliasSymbol aliasSymbol => aliasSymbol.Target as ITypeSymbol,
+                _ => symbol as ITypeSymbol,
+            };
 
-            return symbol as ITypeSymbol;
-        }
-
-        private CompletionItem Convert(SerializableImportCompletionItem serializableItem)
-        {
-            return ImportCompletionItem.Create(
+        private CompletionItem Convert(SerializableImportCompletionItem serializableItem) 
+            => ImportCompletionItem.Create(
                 serializableItem.Name,
                 serializableItem.Arity,
                 serializableItem.ContainingNamespace,
@@ -91,6 +83,5 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
                 serializableItem.SymbolKeyData);
-        }
     }
 }

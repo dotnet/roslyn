@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //
             // Complex methods include:
             // - Method declared in the document which includes using alias directive
-            // - Generic method where the target type is generic
+            // - Generic method where the target type is a type-paramter (e.g. List<T> would be considered simple, not complex)
             // - If the target type name is one of the following (i.e. name of the type for the first parameter) 
             //      1. Array type
             //      2. ValueTuple type

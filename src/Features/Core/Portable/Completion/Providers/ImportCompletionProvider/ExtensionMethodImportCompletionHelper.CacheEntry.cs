@@ -18,13 +18,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal static partial class ExtensionMethodImportCompletionService
+    internal static partial class ExtensionMethodImportCompletionHelper
     {
         private readonly struct CacheEntry
         {
             public Checksum Checksum { get; }
             public string Language { get; }
 
+            /// <summary>
+            /// Mapping from the name of target type to extension method symbol infos.
+            /// </summary>
             public readonly MultiDictionary<string, DeclaredSymbolInfo> SimpleExtensionMethodInfo { get; }
 
             public readonly ImmutableArray<DeclaredSymbolInfo> ComplexExtensionMethodInfo { get; }

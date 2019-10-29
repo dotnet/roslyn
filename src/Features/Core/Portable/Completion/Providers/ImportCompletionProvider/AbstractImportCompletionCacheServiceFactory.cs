@@ -10,13 +10,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
-    internal abstract class AbstractImportCompletionCacheServiceFactory<TProject, TPortableExecutable> : IWorkspaceServiceFactory
+    internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCacheEntry, TMetadataCacheEntry> : IWorkspaceServiceFactory
     {
-        private readonly ConcurrentDictionary<string, TPortableExecutable> _peItemsCache
-            = new ConcurrentDictionary<string, TPortableExecutable>();
+        private readonly ConcurrentDictionary<string, TMetadataCacheEntry> _peItemsCache
+            = new ConcurrentDictionary<string, TMetadataCacheEntry>();
 
-        private readonly ConcurrentDictionary<ProjectId, TProject> _projectItemsCache
-            = new ConcurrentDictionary<ProjectId, TProject>();
+        private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache
+            = new ConcurrentDictionary<ProjectId, TProjectCacheEntry>();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -39,15 +39,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             _projectItemsCache.Clear();
         }
 
-        private class ImportCompletionCacheService : IImportCompletionCacheService<TProject, TPortableExecutable>
+        private class ImportCompletionCacheService : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>
         {
-            public IDictionary<string, TPortableExecutable> PEItemsCache { get; }
+            public IDictionary<string, TMetadataCacheEntry> PEItemsCache { get; }
 
-            public IDictionary<ProjectId, TProject> ProjectItemsCache { get; }
+            public IDictionary<ProjectId, TProjectCacheEntry> ProjectItemsCache { get; }
 
             public ImportCompletionCacheService(
-                ConcurrentDictionary<string, TPortableExecutable> peCache,
-                ConcurrentDictionary<ProjectId, TProject> projectCache)
+                ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
+                ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache)
             {
                 PEItemsCache = peCache;
                 ProjectItemsCache = projectCache;
