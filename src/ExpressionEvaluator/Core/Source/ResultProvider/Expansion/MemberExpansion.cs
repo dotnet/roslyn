@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             foreach (var member in allMembers)
             {
-                if (member.IsFavorite)
+                if (member.IsFavorite && !value.IsNull) // Favorites are never static
                 {
                     favoritesMembersByName.Add(member.Name, member);
                 }

@@ -82,6 +82,51 @@ class C
         }
 
         [Fact]
+        public void ExpansionOfNullValue()
+        {
+            var source =
+@"class A
+{
+    string s1 = ""S1"";
+    string s2 = ""S2"";
+}
+class B
+{
+    A a1 = new A();
+    A a2 = null;
+}";
+
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("B");
+            var rootExpr = "new B()";
+
+            var favoritesByTypeName = new Dictionary<string, DkmClrObjectFavoritesInfo>()
+            {
+                { "A", new DkmClrObjectFavoritesInfo(new[] { "s2" }) }
+            };
+
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(assembly), favoritesByTypeName);
+
+            var value = CreateDkmClrValue(
+                value: Activator.CreateInstance(type),
+                type: runtime.GetType((TypeImpl)type));
+
+            var evalResult = FormatResult(rootExpr, value);
+            Verify(evalResult,
+                EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("a1", "{A}", "A", "(new B()).a1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite | DkmEvaluationResultFlags.HasFavorites),
+                EvalResult("a2", "null", "A", "(new B()).a2", DkmEvaluationResultFlags.CanFavorite));
+
+            // A a1 = new A();
+            var more = GetChildren(children[0]);
+            Verify(more,
+                EvalResult("s2", @"""S2""", "string", "(new B()).a1.s2", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.CanFavorite | DkmEvaluationResultFlags.IsFavorite, editableValue: @"""S2"""),
+                EvalResult("s1", @"""S1""", "string", "(new B()).a1.s1", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.CanFavorite, editableValue: @"""S1"""));
+        }
+
+        [Fact]
         public void FilteredExpansion()
         {
             var source =
