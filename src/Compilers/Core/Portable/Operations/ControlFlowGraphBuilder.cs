@@ -1368,12 +1368,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             for (int i = 0; i < statements.Length; i++)
             {
-                if (statements[i] is VariableDeclarationGroupOperation declarationGroup
-                    && declarationGroup.DeclarationKind != VariableDeclarationKind.Default)
+                if (statements[i] is IUsingDeclarationOperation usingDeclarationOperation)
                 {
                     // visit the using decl with the following statements
                     var followingStatements = ImmutableArray.Create(statements, i + 1, statements.Length - i - 1);
-                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
+                    VisitUsingVariableDeclarationOperation(usingDeclarationOperation, followingStatements);
                     break;
                 }
                 else
@@ -6833,32 +6832,29 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-        private void VisitUsingVariableDeclarationOperation(VariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
+        private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;
-            _currentStatement = operation;
-            StartVisitingStatement(operation);
-
-            var declarationKind = operation.DeclarationKind;
-            Debug.Assert(declarationKind == VariableDeclarationKind.Using || declarationKind == VariableDeclarationKind.AsynchronousUsing);
+            _currentStatement = operation.DeclarationGroup;
+            StartVisitingStatement(operation.DeclarationGroup);
 
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = new BlockOperation(
                 operations: statements,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
-                operation.OwningSemanticModel,
+                ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.Type,
                 operation.ConstantValue,
                 isImplicit: true);
 
             HandleUsingOperationParts(
-                resources: operation,
+                resources: operation.DeclarationGroup,
                 body: logicalBlock,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
-                isAsynchronous: declarationKind == VariableDeclarationKind.AsynchronousUsing);
+                isAsynchronous: operation.IsAsynchronous);
 
-            FinishVisitingStatement(operation);
+            FinishVisitingStatement(operation.DeclarationGroup);
             _currentStatement = saveCurrentStatement;
         }
 
