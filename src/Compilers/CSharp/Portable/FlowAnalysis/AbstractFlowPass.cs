@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// href="https://en.wikipedia.org/wiki/Data-flow_analysis"/>) that moves upward through the <see cref="Join(ref
     /// TLocalState, ref TLocalState)"/> operation.
     /// </remarks>
-    internal abstract partial class AbstractFlowPass<TLocalState> : BoundTreeVisitor
-        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
+    internal abstract partial class AbstractFlowPass<TLocalState, TLocalFunctionState> : BoundTreeVisitor
+        where TLocalState : AbstractFlowPass<TLocalState, TLocalFunctionState>.ILocalState
+        where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
         protected int _recursionDepth;
 
@@ -46,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// instead.
         /// </summary>
         protected readonly Symbol _symbol;
+
+        /// <summary>
+        /// Reflects the enclosing member or lambda at the current location (in the bound tree).
+        /// </summary>
+        protected Symbol CurrentSymbol;
 
         /// <summary>
         /// The bound node of the method or initializer being analyzed.
@@ -279,6 +285,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return regionPlace == RegionPlace.Inside;
             }
         }
+
+        protected virtual void EnterParameters(ImmutableArray<ParameterSymbol> parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                EnterParameter(parameter);
+            }
+        }
+
+        protected virtual void EnterParameter(ParameterSymbol parameter)
+        { }
+
+        protected virtual void LeaveParameters(
+            ImmutableArray<ParameterSymbol> parameters,
+            SyntaxNode syntax,
+            Location location)
+        {
+            foreach (ParameterSymbol parameter in parameters)
+            {
+                LeaveParameter(parameter, syntax, location);
+            }
+        }
+
+        protected virtual void LeaveParameter(ParameterSymbol parameter, SyntaxNode syntax, Location location)
+        { }
+
 
         public override BoundNode Visit(BoundNode node)
         {
@@ -1062,8 +1094,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node) => null;
 
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node) => null;
-
         public override BoundNode VisitLocal(BoundLocal node) => null;
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
@@ -1131,9 +1161,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.State = savedState;
             }
+            else if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            {
+                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
+            }
 
             return null;
         }
+
+        private void VisitLocalFunctionUse(LocalFunctionSymbol symbol, SyntaxNode syntax, bool isCall)
+        {
+            var localFuncState = GetOrCreateLocalFuncUsages(symbol);
+            VisitLocalFunctionUse(symbol, localFuncState, syntax);
+
+            if (isCall)
+            {
+                Meet(ref this.State, ref localFuncState.State);
+            }
+            localFuncState.Visited = true;
+        }
+
+        protected virtual void VisitLocalFunctionUse(LocalFunctionSymbol symbol, TLocalFunctionState localFunctionState, SyntaxNode syntax)
+        { }
 
         private void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)
         {
@@ -1337,6 +1386,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitRvalue(methodGroup.ReceiverOpt);
                     }
                 }
+                else if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
+                {
+                    VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
+                }
             }
             else
             {
@@ -1419,6 +1472,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitRvalue(receiver);
                     }
+                }
+                else if (node.SymbolOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
+                {
+                    VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
             }
             else
@@ -2993,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// The possible places that we are processing when there is a region.
     /// </summary>
     /// <remarks>
-    /// This should be nested inside <see cref="AbstractFlowPass{TLocalState}"/> but is not due to https://github.com/dotnet/roslyn/issues/36992 .
+    /// This should be nested inside <see cref="AbstractFlowPass{TLocalState, TLocalFunctionState}"/> but is not due to https://github.com/dotnet/roslyn/issues/36992 .
     /// </remarks>
     internal enum RegionPlace { Before, Inside, After };
 }
