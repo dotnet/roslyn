@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>
-        /// Returns a type with the given nullable annotation.
+        /// Returns the same type as this type but with the given nullable annotation.
         /// </summary>
         /// <param name="nullableAnnotation">The nullable annotation to use</param>
         ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation);

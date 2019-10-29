@@ -6,6 +6,11 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
+    /// <summary>
+    /// Interface implemented by the compiler's internal representation of a symbol.
+    /// An object implementing this interface might also implement <see cref="ISymbol"/> (as is done in VB),
+    /// or the compiler's symbols might be wrapped to implement ISymbol (as is done in C#).
+    /// </summary>
     internal interface ISymbolInternal
     {
         /// <summary>
