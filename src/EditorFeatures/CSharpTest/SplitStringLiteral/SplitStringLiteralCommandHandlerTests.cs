@@ -753,7 +753,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestMultiCaretSingleLine()
         {
@@ -776,7 +776,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestMultiCaretMultiLines()
         {
