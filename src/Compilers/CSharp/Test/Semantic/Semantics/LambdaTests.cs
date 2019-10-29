@@ -3339,9 +3339,9 @@ class Program
             void verifyDiagnostics()
             {
                 comp.VerifyDiagnostics(
-                // (8,37): error CS8652: The feature 'discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int, int, int> f = (_, _) => 0;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("discard parameters").WithLocation(8, 37));
+                    // (8,37): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         Func<int, int, int> f = (_, _) => 0;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(8, 37));
             }
         }
 
