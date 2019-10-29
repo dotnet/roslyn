@@ -229,8 +229,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // The set of type definitions we've read out of the current metadata reader.
             private readonly List<MetadataDefinition> _allTypeDefinitions;
 
-            // Map from node represents extension method to list of possible parameter type info 
-            // (which can be more than one because we might have multiple overloads).
+            // Map from node represents extension method to list of possible parameter type info.
+            // We can have more than one if there's multiple methods with same name but different target type.
+            // e.g.
+            //
+            //      public static bool AnotherExtensionMethod1(this int x);
+            //      public static bool AnotherExtensionMethod1(this bool x);
+            //
             private MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
             private bool _containsExtensionsMethod;
 
@@ -368,6 +373,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (definition.Kind == MetadataDefinitionKind.Member)
                         {
+                            // We need to support having multiple methods with same name but different target type.
                             _extensionMethodToParameterTypeInfo.Add(childNode, definition.TargetTypeInfo);
                         }
 

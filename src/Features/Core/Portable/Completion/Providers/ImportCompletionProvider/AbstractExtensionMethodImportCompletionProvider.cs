@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _ => symbol as ITypeSymbol,
             };
 
-        private CompletionItem Convert(SerializableImportCompletionItem serializableItem) 
+        private CompletionItem Convert(SerializableImportCompletionItem serializableItem)
             => ImportCompletionItem.Create(
                 serializableItem.Name,
                 serializableItem.Arity,
