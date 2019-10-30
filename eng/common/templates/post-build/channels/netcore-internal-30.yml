@@ -78,12 +78,14 @@ stages:
         inputs:
           buildType: current
           artifactName: PackageArtifacts
+        continueOnError: true
 
       - task: DownloadBuildArtifacts@0
         displayName: Download Blob Artifacts
         inputs:
           buildType: current
           artifactName: BlobArtifacts
+        continueOnError: true
 
       - task: DownloadBuildArtifacts@0
         displayName: Download Asset Manifests
@@ -134,6 +136,7 @@ stages:
             /p:AzureDevOpsStaticTransportFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
             /p:AzureDevOpsStaticSymbolsFeed='https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3-internal-symbols/nuget/v3/index.json'
             /p:AzureDevOpsStaticSymbolsFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
+            /p:PublishToMSDL=false
             ${{ parameters.artifactsPublishingAdditionalParameters }}
 
       - template: ../../steps/promote-build.yml

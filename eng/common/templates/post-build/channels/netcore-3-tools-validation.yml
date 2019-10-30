@@ -32,12 +32,14 @@ stages:
         inputs:
           buildType: current
           artifactName: PackageArtifacts
+        continueOnError: true
 
       - task: DownloadBuildArtifacts@0
         displayName: Download Blob Artifacts
         inputs:
           buildType: current
           artifactName: BlobArtifacts
+        continueOnError: true
 
       - task: DownloadBuildArtifacts@0
         displayName: Download Asset Manifests
