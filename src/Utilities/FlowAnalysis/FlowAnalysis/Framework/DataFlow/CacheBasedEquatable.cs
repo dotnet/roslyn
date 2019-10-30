@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public abstract class CacheBasedEquatable<T> : IEquatable<T>
         where T : class
     {
-        private readonly object _gate = new object();
         private ImmutableArray<int> _lazyHashCodeParts;
         private int _lazyHashCode;
 
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (_lazyHashCodeParts.IsDefault)
                 {
-                    lock (_gate)
+                    lock (this)
                     {
                         _lazyHashCode = hashCode;
                         _lazyHashCodeParts = hashCodeParts;
