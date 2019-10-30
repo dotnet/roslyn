@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
@@ -246,9 +247,62 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Completion Operations"
 
-        Public Overloads Sub SendCommitUniqueCompletionListItem()
+        Public Async Function SendCommitUniqueCompletionListItemAsync() As Task
+            Await WaitForAsynchronousOperationsAsync()
+
+            ' When we send the commit completion list item, it processes asynchronously; we can find out when it's complete
+            ' by seeing that either the items are updated or the list is dismissed. We'll use a TaskCompletionSource to track
+            ' when it's done which will release an async token.
+            Dim sessionComplete = New TaskCompletionSource(Of Object)()
+            Dim asynchronousOperationListenerProvider = Workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
+            Dim asyncToken = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CompletionSet) _
+                .BeginAsyncOperation("SendCommitUniqueCompletionListItemAsync")
+
+#Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
+            sessionComplete.Task.CompletesAsyncOperation(asyncToken)
+#Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
+
+            Dim itemsUpdatedHandler = Sub(sender As Object, e As Data.ComputedCompletionItemsEventArgs)
+                                          ' If there is more than one item left, then it means this was the filter operation that resulted and we're done. Otherwise we know a
+                                          ' Dismiss operation is coming so we should wait for it.
+                                          If e.Items.Items.Select(Function(i) i.FilterText).Skip(1).Any() Then
+                                              Task.Run(Sub()
+                                                           Thread.Sleep(5000)
+                                                           sessionComplete.TrySetResult(Nothing)
+                                                       End Sub)
+                                          End If
+                                      End Sub
+            Dim sessionDismissedHandler = Sub(sender As Object, e As EventArgs) sessionComplete.TrySetResult(Nothing)
+
+            Dim session As IAsyncCompletionSession
+
+            Dim addHandlers = Sub(sender As Object, e As Data.CompletionTriggeredEventArgs)
+                                  AddHandler e.CompletionSession.ItemsUpdated, itemsUpdatedHandler
+                                  AddHandler e.CompletionSession.Dismissed, sessionDismissedHandler
+                                  session = e.CompletionSession
+                              End Sub
+
+            Dim asyncCompletionBroker As IAsyncCompletionBroker = GetExportedValue(Of IAsyncCompletionBroker)()
+            session = asyncCompletionBroker.GetSession(TextView)
+            If session Is Nothing Then
+                AddHandler asyncCompletionBroker.CompletionTriggered, addHandlers
+            Else
+                ' A session was already active so we'll fake the event
+                addHandlers(asyncCompletionBroker, New Data.CompletionTriggeredEventArgs(session, TextView))
+            End If
+
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
+
+            Await WaitForAsynchronousOperationsAsync()
+
+            RemoveHandler session.ItemsUpdated, itemsUpdatedHandler
+            RemoveHandler session.Dismissed, sessionDismissedHandler
+            RemoveHandler asyncCompletionBroker.CompletionTriggered, addHandlers
+
+            ' It's possible for the wait to bail and give up if it was clear nothing was completing; ensure we clean up our
+            ' async token so as not to interfere with later tests.
+            sessionComplete.TrySetResult(Nothing)
+        End Function
 
         Public Async Function AssertNoCompletionSession() As Task
             Await WaitForAsynchronousOperationsAsync()
@@ -262,6 +316,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             Dim completionItems = session.GetComputedItems(CancellationToken.None)
+
             ' During the computation we can explicitly dismiss the session or we can return no items.
             ' Each of these conditions mean that there is no active completion.
             Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
@@ -395,6 +450,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Function
 
+        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            If Not isAvailable Then
+                Assert.False(isSelected)
+                Assert.Null(expander)
+            Else
+                Assert.NotNull(expander)
+                Assert.Equal(expander.IsSelected, isSelected)
+            End If
+        End Sub
+
+        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            Assert.NotNull(expander)
+            presenter.SetExpander(isSelected)
+        End Sub
+
         Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
@@ -444,25 +518,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim computedItems = session.GetComputedItems(CancellationToken.None)
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
-
-        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            If Not isAvailable Then
-                Assert.False(isSelected)
-                Assert.Null(expander)
-            Else
-                Assert.NotNull(expander)
-                Assert.Equal(expander.IsSelected, isSelected)
-            End If
-        End Sub
-
-        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            Assert.NotNull(expander)
-            presenter.SetExpander(isSelected)
-        End Sub
 
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

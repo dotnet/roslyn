@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
     internal sealed class EvalResult
     {
+        // The flags we were constructed with before adding our additional flags
+        private readonly DkmEvaluationResultFlags m_rawFlags;
+
         public readonly ExpansionKind Kind;
         public readonly string Name;
         public readonly TypeAndCustomInfo TypeDeclaringMemberAndInfo;
@@ -98,6 +101,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly DkmEvaluationResultFlags Flags;
         public readonly string EditableValue;
         public readonly DkmInspectionContext InspectionContext;
+        public readonly bool CanFavorite;
+        public readonly bool IsFavorite;
 
         public string FullName
         {
@@ -154,11 +159,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string editableValue,
             DkmInspectionContext inspectionContext,
             string displayName = null,
-            string displayType = null)
+            string displayType = null,
+            bool canFavorite = false,
+            bool isFavorite = false)
         {
             Debug.Assert(name != null);
             Debug.Assert(formatSpecifiers != null);
             Debug.Assert((flags & DkmEvaluationResultFlags.Expandable) == 0);
+
+            m_rawFlags = flags;
 
             this.Kind = kind;
             this.Name = name;
@@ -173,11 +182,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.FormatSpecifiers = formatSpecifiers;
             this.Category = category;
             this.EditableValue = editableValue;
-            this.Flags = flags | GetFlags(value, inspectionContext) | ((expansion == null) ? DkmEvaluationResultFlags.None : DkmEvaluationResultFlags.Expandable);
+            this.Flags = flags | GetFlags(value, inspectionContext, expansion, canFavorite, isFavorite);
             this.Expansion = expansion;
             this.InspectionContext = inspectionContext;
             this.DisplayName = displayName;
             this.DisplayType = displayType;
+            this.CanFavorite = canFavorite;
+            this.IsFavorite = isFavorite;
         }
 
         internal EvalResultDataItem ToDataItem()
@@ -193,7 +204,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 FormatSpecifiers);
         }
 
-        private static DkmEvaluationResultFlags GetFlags(DkmClrValue value, DkmInspectionContext inspectionContext)
+        internal EvalResult WithDisableCanAddFavorite()
+        {
+            return new EvalResult(
+                kind: Kind,
+                name: Name,
+                typeDeclaringMemberAndInfo: TypeDeclaringMemberAndInfo,
+                declaredTypeAndInfo: DeclaredTypeAndInfo,
+                useDebuggerDisplay: UseDebuggerDisplay,
+                value: Value,
+                displayValue: DisplayValue,
+                expansion: Expansion,
+                childShouldParenthesize: ChildShouldParenthesize,
+                fullName: FullName,
+                childFullNamePrefixOpt: ChildFullNamePrefix,
+                formatSpecifiers: FormatSpecifiers,
+                category: Category,
+                flags: m_rawFlags,
+                editableValue: EditableValue,
+                inspectionContext: InspectionContext,
+                displayName: DisplayName,
+                displayType: DisplayType,
+                canFavorite: false,
+                isFavorite: IsFavorite);
+
+        }
+
+        private static DkmEvaluationResultFlags GetFlags(DkmClrValue value, DkmInspectionContext inspectionContext, Expansion expansion, bool canFavorite, bool isFavorite)
         {
             if (value == null)
             {
@@ -221,6 +258,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (type.IsDynamicProperty())
             {
                 resultFlags |= DkmEvaluationResultFlags.ReadOnly;
+            }
+
+            if (expansion != null)
+            {
+                resultFlags |= DkmEvaluationResultFlags.Expandable;
+
+                if (expansion.ContainsFavorites)
+                {
+                    resultFlags |= DkmEvaluationResultFlags.HasFavorites;
+                }
+            }
+
+            if (canFavorite)
+            {
+                resultFlags |= DkmEvaluationResultFlags.CanFavorite;
+            }
+
+            if (isFavorite)
+            {
+                resultFlags |= DkmEvaluationResultFlags.IsFavorite;
             }
 
             return resultFlags;

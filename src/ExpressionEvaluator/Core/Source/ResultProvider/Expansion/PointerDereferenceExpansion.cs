@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var expansion = wasExceptionThrown ?
                 null :
-                resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None);
+                resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None, supportsFavorites: false);
             var parentFullName = parent.ChildFullNamePrefix;
             var fullName = parentFullName == null ? null : $"*{parentFullName}";
             var editableValue = resultProvider.Formatter2.GetEditableValueString(value, inspectionContext, elementTypeAndInfo.Info);
