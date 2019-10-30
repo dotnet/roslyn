@@ -492,9 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 int count = loweredInput.Arguments.Length;
                 var tupleElementEvaluated = new bool[count];
-                var rewrittenDag = decisionDag.Rewrite(makeReplacement);
 
-                // If any remaining input elements remain unevaluated, evaluate them now
+                // first evaluate the inputs (in order) into temps
                 var originalInput = BoundDagTemp.ForOriginalInput(loweredInput.Syntax, loweredInput.Type);
                 var newArguments = ArrayBuilder<BoundExpression>.GetInstance(loweredInput.Arguments.Length);
                 for (int i = 0; i < count; i++)
@@ -504,14 +503,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var expr = loweredInput.Arguments[i];
                     var fieldFetchEvaluation = new BoundDagFieldEvaluation(expr.Syntax, field, originalInput);
                     var temp = new BoundDagTemp(expr.Syntax, expr.Type, fieldFetchEvaluation);
-                    if (!tupleElementEvaluated[i])
-                    {
-                        storeToTemp(temp, expr);
-                    }
-
+                    Debug.Assert(!tupleElementEvaluated[i]);
+                    storeToTemp(temp, expr);
+                    tupleElementEvaluated[i] = true;
                     newArguments.Add(_tempAllocator.GetTemp(temp));
                 }
 
+                var rewrittenDag = decisionDag.Rewrite(makeReplacement);
                 savedInputExpression = loweredInput.Update(
                     loweredInput.Constructor, arguments: newArguments.ToImmutableAndFree(), loweredInput.ArgumentNamesOpt, loweredInput.ArgumentRefKindsOpt,
                     loweredInput.Expanded, loweredInput.ArgsToParamsOpt, loweredInput.ConstantValueOpt,
@@ -543,15 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 field.CorrespondingTupleField != null &&
                                 field.TupleElementIndex is int i)
                             {
-                                if (!tupleElementEvaluated[i])
-                                {
-                                    // Store the value in the right temp
-                                    var temp = new BoundDagTemp(eval.Syntax, field.Type, eval);
-                                    BoundExpression expr = loweredInput.Arguments[i];
-                                    storeToTemp(temp, expr);
-                                    tupleElementEvaluated[i] = true;
-                                }
-
+                                Debug.Assert(tupleElementEvaluated[i]);
                                 return replacement(evalNode.Next);
                             }
 
