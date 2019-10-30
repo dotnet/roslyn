@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             INamedTypeSymbol operationBlockStartAnalysisContext,
             INamedTypeSymbol symbolKind)
         {
-            INamedTypeSymbol csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindName);
-            INamedTypeSymbol basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindName);
+            INamedTypeSymbol csharpSyntaxKind = compilation.GetOrCreateTypeByMetadataName(CSharpSyntaxKindName);
+            INamedTypeSymbol basicSyntaxKind = compilation.GetOrCreateTypeByMetadataName(BasicSyntaxKindName);
             return new CSharpRegisterActionCodeBlockAnalyzer(csharpSyntaxKind, basicSyntaxKind, analysisContext, compilationStartAnalysisContext,
                 codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind);
         }
