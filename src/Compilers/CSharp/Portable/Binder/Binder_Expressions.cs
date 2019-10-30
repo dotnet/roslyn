@@ -1803,14 +1803,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We skip intervening lambdas and local functions to find the actual member.
             var containingMember = this.ContainingMemberOrLambda;
-            do
+            while (containingMember.Kind != SymbolKind.NamedType && (object)containingMember.ContainingSymbol != null && containingMember.ContainingSymbol.Kind != SymbolKind.NamedType)
             {
-                if (containingMember.Kind == SymbolKind.NamedType)
-                {
-                    break;
-                }
                 containingMember = containingMember.ContainingSymbol;
-            } while ((object)containingMember != null);
+            }
             return containingMember;
         }
 
