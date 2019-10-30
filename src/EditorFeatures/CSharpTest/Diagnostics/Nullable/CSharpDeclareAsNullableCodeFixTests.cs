@@ -472,5 +472,28 @@ class Program
     }
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        [WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
+        public async Task FixReturnType_TernaryExpression_Function()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test(bool value)
+    {
+        return [|value ? ""text"" : null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test(bool value)
+    {
+        return value ? ""text"" : null;
+    }
+}", parameters: s_nullableFeature);
+        }
     }
 }

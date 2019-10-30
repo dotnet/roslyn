@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         private static TypeSyntax TryGetDeclarationTypeToFix(SyntaxNode node)
         {
-            if (!node.IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.AsExpression))
+            if (!node.IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.AsExpression, SyntaxKind.ConditionalExpression))
             {
                 return null;
             }
