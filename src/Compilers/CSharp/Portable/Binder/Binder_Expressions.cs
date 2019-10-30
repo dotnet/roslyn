@@ -1803,23 +1803,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We skip intervening lambdas and local functions to find the actual member.
             var containingMember = this.ContainingMemberOrLambda;
-            while (containingMember.Kind != SymbolKind.NamedType && (object)containingMember.ContainingSymbol != null && containingMember.ContainingSymbol.Kind != SymbolKind.NamedType)
+            do
             {
+                if (containingMember.Kind == SymbolKind.NamedType)
+                {
+                    break;
+                }
                 containingMember = containingMember.ContainingSymbol;
-            }
+            } while ((object)containingMember != null);
             return containingMember;
         }
 
         private bool IsInstanceContext()
         {
             var containingMember = this.ContainingMemberOrLambda;
-            while (containingMember.Kind != SymbolKind.NamedType && (object)containingMember.ContainingSymbol != null && containingMember.ContainingSymbol.Kind != SymbolKind.NamedType)
+            do
             {
                 if (containingMember.IsStatic)
+                {
                     return false;
+                }
+                if (containingMember.Kind == SymbolKind.NamedType)
+                {
+                    break;
+                }
                 containingMember = containingMember.ContainingSymbol;
-            }
-            return !containingMember.IsStatic;
+            } while ((object)containingMember != null);
+            return true;
         }
 
         private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)

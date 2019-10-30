@@ -1786,14 +1786,14 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
 
         [Fact]
         [WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
-        public async Task Regression39565()
+        public async Task MethodCallWithImplicitReceiverAndOutVar()
         {
             var code = @"
-            if(TryGetValue(out var result)){
-                _ = result;
-            }
-            return true;
-            ";
+if(TryGetValue(out var result)){
+    _ = result;
+}
+return true;
+";
 
             var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(E), globals: new E());
             Assert.True(result);
@@ -1808,12 +1808,12 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
         public void StaticMethodCannotAccessGlobalInstance()
         {
             var code = @"
-			static bool M()
-			{
-				return Value;
-			}
-			return M();
-            ";
+static bool M()
+{
+	return Value;
+}
+return M();
+";
 
             var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
             ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
@@ -1827,16 +1827,16 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
         public void StaticLocalFunctionCannotAccessGlobalInstance()
         {
             var code = @"
-			bool M()
-			{
-				return Inner();
-				static bool Inner()
-				{
-					return Value;
-				}
-			}
-			return M();
-            ";
+bool M()
+{
+	return Inner();
+	static bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
 
             var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
             ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
@@ -1849,16 +1849,16 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
         public async Task LocalFunctionCanAccessGlobalInstance()
         {
             var code = @"
-			bool M()
-			{
-				return Inner();
-				bool Inner()
-				{
-					return Value;
-				}
-			}
-			return M();
-            ";
+bool M()
+{
+	return Inner();
+	bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
 
             var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(F), globals: new F());
             Assert.True(result);
