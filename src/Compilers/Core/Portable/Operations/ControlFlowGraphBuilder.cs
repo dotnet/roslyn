@@ -6834,6 +6834,7 @@ oneMoreTime:
 
         private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
         {
+            // When we get to VisitVariableDeclarationGroupOperation, it expects the declaration group to be the current statement
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation.DeclarationGroup;
             StartVisitingStatement(operation.DeclarationGroup);
@@ -6882,6 +6883,11 @@ oneMoreTime:
         }
 
         public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, int? argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
