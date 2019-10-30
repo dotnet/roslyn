@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -430,7 +431,7 @@ namespace Analyzer.Utilities
         {
             return generator.ThrowStatement(generator.ObjectCreationExpression(
                 generator.TypeExpression(
-                    compilation.GetTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
+                    compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
         }
     }
 }

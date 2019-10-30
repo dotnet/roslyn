@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Analyzer.Utilities.Extensions
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -15,12 +16,12 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
         Private Const SourceModuleTypeFullName As String = "Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceModuleSymbol"
 
         Protected Overrides Function GetCompilationAnalyzer(compilation As Compilation, symbolType As INamedTypeSymbol) As CompilationAnalyzer
-            Dim compilationType = compilation.GetTypeByMetadataName(GetType(VisualBasicCompilation).FullName)
+            Dim compilationType = compilation.GetOrCreateTypeByMetadataName(GetType(VisualBasicCompilation).FullName)
             If compilationType Is Nothing Then
                 Return Nothing
             End If
 
-            Dim sourceModuleType = compilation.GetTypeByMetadataName(SourceModuleTypeFullName)
+            Dim sourceModuleType = compilation.GetOrCreateTypeByMetadataName(SourceModuleTypeFullName)
             If sourceModuleType Is Nothing Then
                 Return Nothing
             End If
