@@ -2,14 +2,14 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
 {
-    internal readonly struct VSTypeScriptDebugDataTipInfo
+    internal readonly struct FSharpDebugDataTipInfo
     {
         public readonly TextSpan Span;
         public readonly string Text;
 
-        public VSTypeScriptDebugDataTipInfo(TextSpan span, string text)
+        public FSharpDebugDataTipInfo(TextSpan span, string text)
         {
             Span = span;
             Text = text;

@@ -2,20 +2,23 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
 {
-    internal readonly struct VSTypeScriptDebugLocationInfo
+    internal readonly struct FSharpDebugLocationInfo
     {
         public readonly string Name;
         public readonly int LineOffset;
 
-        public VSTypeScriptDebugLocationInfo(string name, int lineOffset)
+        public FSharpDebugLocationInfo(string name, int lineOffset)
         {
             Debug.Assert(name != null);
             Name = name;
             LineOffset = lineOffset;
         }
 
-        internal bool IsDefault => Name == null;
+        public bool IsDefault
+        {
+            get { return Name == null; }
+        }
     }
 }

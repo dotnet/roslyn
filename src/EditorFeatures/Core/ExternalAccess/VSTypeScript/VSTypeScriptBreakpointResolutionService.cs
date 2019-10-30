@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
@@ -27,8 +28,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         }
 
         public async Task<BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
+            => ToBreakpointResolutionResult(await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false));
+
+        public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
+            => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(ToBreakpointResolutionResult);
+
+        private static BreakpointResolutionResult ToBreakpointResolutionResult(VSTypeScriptBreakpointResolutionResult result)
         {
-            var result = await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
                 return null;
@@ -38,8 +44,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 BreakpointResolutionResult.CreateLineResult(result.Document, result.LocationNameOpt) :
                 BreakpointResolutionResult.CreateSpanResult(result.Document, result.TextSpan, result.LocationNameOpt);
         }
-
-        public Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
-            => Task.FromResult(SpecializedCollections.EmptyEnumerable<BreakpointResolutionResult>());
     }
 }
