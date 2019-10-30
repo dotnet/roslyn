@@ -6834,10 +6834,9 @@ oneMoreTime:
 
         private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
         {
-            // When we get to VisitVariableDeclarationGroupOperation, it expects the declaration group to be the current statement
             IOperation saveCurrentStatement = _currentStatement;
-            _currentStatement = operation.DeclarationGroup;
-            StartVisitingStatement(operation.DeclarationGroup);
+            _currentStatement = operation;
+            StartVisitingStatement(operation);
 
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = new BlockOperation(
@@ -6855,7 +6854,7 @@ oneMoreTime:
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 isAsynchronous: operation.IsAsynchronous);
 
-            FinishVisitingStatement(operation.DeclarationGroup);
+            FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;
         }
 
