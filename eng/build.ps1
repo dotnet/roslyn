@@ -331,10 +331,13 @@ function SetVisualStudioBootstrapperBuildArgs() {
 # Core function for running our unit / integration tests tests
 function TestUsingOptimizedRunner() {
 
-  # Tests need to locate .NET Core SDK
-  $dotnet = InitializeDotNetCli
+  if (!$testVsi) {
+    # Unit tests need to locate .NET Core SDK from build environment
+    $dotnet = InitializeDotNetCli
 
-  if ($testVsi) {
+  } else {
+    # Integrations tests use the .NET Core SDK provided by VS
+
     Deploy-VsixViaTool
 
     if ($ci) {
