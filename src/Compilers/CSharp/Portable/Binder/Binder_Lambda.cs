@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
             var data = (PlainUnboundLambdaState)lambda.Data;
-            if (data.HasTypes)
+            if (data.HasExplicitlyTypedParameterList)
             {
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {

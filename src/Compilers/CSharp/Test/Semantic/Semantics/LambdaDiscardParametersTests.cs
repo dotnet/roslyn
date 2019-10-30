@@ -166,7 +166,6 @@ class C
     }
 }");
 
-            // Note: this is somewhat problematic because there is nothing the user can do to fix this. We could have an error for out discards
             comp.VerifyDiagnostics(
                 // (9,17): error CS0177: The out parameter '_' must be assigned to before control leaves the current method
                 //                 return 2;
@@ -397,14 +396,17 @@ class C
     static void M()
     {
         System.Func<string, string, long> f = (_, _) => { long _ = 0; return _++; };
-        System.Func<string, string, long> f2 = (_, a) => { long _ = 0; return _++; };
+        System.Func<string, string, long> f2 = (_, a) => {
+            long _ = 0; // 1
+            return _++;
+        };
     }
 }");
             // Note that naming one of the parameters seems irrelevant but results in a binding change
             comp.VerifyDiagnostics(
-                // (7,65): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         System.Func<string, string, long> f2 = (_, a) => { long _ = 0; return _++; };
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(7, 65)
+                // (8,18): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             long _ = 0; // 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(8, 18)
                 );
 
             var tree = comp.SyntaxTrees.Single();

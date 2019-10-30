@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override string ParameterName(int index)
         {
             Debug.Assert(!_parameterNames.IsDefault && 0 <= index && index < _parameterNames.Length);
-            return _parameterNames.IsDefault ? null : _parameterNames[index];
+            return _parameterNames[index];
         }
 
         public override bool ParameterIsDiscard(int index)
@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(this.HasExplicitlyTypedParameterList);
             Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterTypesWithAnnotations.IsDefault ? default : _parameterTypesWithAnnotations[index];
+            return _parameterTypesWithAnnotations[index];
         }
 
         protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)

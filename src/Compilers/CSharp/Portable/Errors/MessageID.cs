@@ -281,7 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
-
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             Debug.Assert(RequiredFeature(feature) == null);
@@ -291,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // Preview features.
-                case MessageID.IDS_FeatureLambdaDiscardParameters:
+                case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

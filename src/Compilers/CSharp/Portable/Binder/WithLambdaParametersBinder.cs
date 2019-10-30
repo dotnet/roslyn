@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void recordDefinitions(ImmutableArray<ParameterSymbol> definitions)
             {
-                var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
+                var declarationMap = _definitionMap ??= new SmallDictionary<string, ParameterSymbol>();
                 foreach (var s in definitions)
                 {
                     if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
@@ -95,10 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                if (!parameterSymbol.IsDiscard)
-                {
-                    result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
-                }
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
         }
 

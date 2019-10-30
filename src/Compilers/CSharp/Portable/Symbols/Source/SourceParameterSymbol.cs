@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier,
             DiagnosticBag declarationDiagnostics)
         {
+            Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
+
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
 
