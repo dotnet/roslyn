@@ -58,8 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string binOutputPath)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
 
