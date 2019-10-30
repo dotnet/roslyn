@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             }
 
             // We now go through the verified string literals and split each of them.
+            // The list of spans is traversed in reverse order so we do not have to
+            // deal with updating later caret positions to account for the added space
+            // from splitting earlier caret positions.
             foreach (var span in spans.Reverse())
             {
                 if (!SplitString(textView, subjectBuffer, span.Start))

@@ -803,5 +803,34 @@ $""[||]"";
     }
 }");
         }
+
+        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMultiCaretInterpolatedString()
+        {
+            TestHandled(
+@"class C
+{
+    string s = ""hello w[||]orld"";
+
+    void M()
+    {
+        var location = ""world"";
+        var s = $""H[||]ello {location}!"";
+    }
+}",
+@"class C
+{
+    string s = ""hello w"" +
+        ""[||]orld"";
+
+    void M()
+    {
+        var location = ""world"";
+        var s = $""H"" +
+            $""[||]ello {location}!"";
+    }
+}");
+        }
     }
 }
