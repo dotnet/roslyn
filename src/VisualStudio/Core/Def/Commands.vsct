@@ -371,6 +371,16 @@
           <LocCanonicalName>ResetVisualBasicInteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+
+      <Button guid="guidVSStd2K" id="ECMD_RUNFXCOPSEL" priority="0x0000" type="Button">
+        <CommandFlag>TextChanges</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Run Code &amp;Analysis on Selection</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -482,6 +492,7 @@
 
   <UsedCommands>
     <UsedCommand guid="guidVSStd2K" id="ECMD_INSERTCOMMENT" />
+    <UsedCommand guid="guidVSStd2K" id="ECMD_RUNFXCOPSEL"/>
   </UsedCommands>
 
   <Symbols>

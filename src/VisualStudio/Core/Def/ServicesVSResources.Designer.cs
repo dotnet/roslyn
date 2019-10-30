@@ -588,6 +588,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for &apos;{0}&apos;. Please wait for the error list to refresh..
+        /// </summary>
+        internal static string Code_analysis_completed_for_0_Please_wait_for_the_error_list_to_refresh {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_0_Please_wait_for_the_error_list_to_refresh", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code block preferences:.
         /// </summary>
         internal static string Code_block_preferences_colon {
@@ -2796,6 +2805,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Review_Changes {
             get {
                 return ResourceManager.GetString("Review_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run Code Analysis on {0}.
+        /// </summary>
+        internal static string Run_Code_Analysis_on_0 {
+            get {
+                return ResourceManager.GetString("Run_Code_Analysis_on_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for &apos;{0}&apos;....
+        /// </summary>
+        internal static string Running_code_analysis_for_0 {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_0", resourceCulture);
             }
         }
         

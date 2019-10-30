@@ -515,6 +515,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Function IsCompilationEndAnalyzer(analyzer As DiagnosticAnalyzer, project As Project, compilation As Compilation) As Boolean Implements IDiagnosticAnalyzerService.IsCompilationEndAnalyzer
                 Throw New NotImplementedException()
             End Function
+
+            Public Function ForceAnalyzeAsync(solution As Solution, Optional projectId As ProjectId = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task Implements IDiagnosticAnalyzerService.ForceAnalyzeAsync
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace
