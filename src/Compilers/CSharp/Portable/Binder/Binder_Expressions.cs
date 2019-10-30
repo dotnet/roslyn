@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(syntax, ContainingMember(), currentType, declaringType);
+                return TryBindInteractiveReceiver(syntax, currentType, declaringType);
             }
         }
 
@@ -1795,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(node, ContainingMember(), currentType, declaringType);
+                return TryBindInteractiveReceiver(node, currentType, declaringType);
             }
         }
 
@@ -1810,9 +1810,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingMember;
         }
 
-        private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, Symbol currentMember, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
+        private bool IsInstanceContext()
         {
-            if (currentType.TypeKind == TypeKind.Submission && currentMember.RequiresInstanceReceiver())
+            var containingMember = this.ContainingMemberOrLambda;
+            while (containingMember.Kind != SymbolKind.NamedType && (object)containingMember.ContainingSymbol != null && containingMember.ContainingSymbol.Kind != SymbolKind.NamedType)
+            {
+                if (containingMember.IsStatic)
+                    return false;
+                containingMember = containingMember.ContainingSymbol;
+            }
+            return !containingMember.IsStatic;
+        }
+
+        private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
+        {
+            if (currentType.TypeKind == TypeKind.Submission
+                // check the current member has access to `this`
+                && IsInstanceContext())
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
