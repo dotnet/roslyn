@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, object argument)
         {
-            return new UsingDeclarationOperation(operation.DeclarationGroup, operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new UsingDeclarationOperation(Visit(operation.DeclarationGroup), operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }
