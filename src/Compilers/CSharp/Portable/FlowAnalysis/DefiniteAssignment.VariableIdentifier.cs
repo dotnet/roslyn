@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class LocalDataFlowPass<TLocalState>
+    internal partial class LocalDataFlowPass<TLocalState, TLocalFunctionState>
     {
         internal readonly struct VariableIdentifier : IEquatable<VariableIdentifier>
         {

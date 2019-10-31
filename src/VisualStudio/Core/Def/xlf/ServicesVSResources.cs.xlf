@@ -97,11 +97,6 @@
         <target state="translated">Element není platný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">Povolit funkce rozhraní IDE pro analýzu odkazů, které můžou mít hodnotu null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Vyhodnocování (počet úloh ve frontě: {0})</target>
