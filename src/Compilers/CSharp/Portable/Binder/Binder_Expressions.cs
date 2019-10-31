@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(syntax, currentType, declaringType);
+                return TryBindInteractiveReceiver(syntax, declaringType);
             }
         }
 
@@ -1795,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(node, currentType, declaringType);
+                return TryBindInteractiveReceiver(node, declaringType);
             }
         }
 
@@ -1810,29 +1810,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingMember;
         }
 
-        private bool IsInstanceContext()
+        private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, NamedTypeSymbol memberDeclaringType)
         {
-            var containingMember = this.ContainingMemberOrLambda;
-            do
-            {
-                if (containingMember.IsStatic)
-                {
-                    return false;
-                }
-                if (containingMember.Kind == SymbolKind.NamedType)
-                {
-                    break;
-                }
-                containingMember = containingMember.ContainingSymbol;
-            } while ((object)containingMember != null);
-            return true;
-        }
-
-        private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
-        {
-            if (currentType.TypeKind == TypeKind.Submission
-                // check the current member has access to `this`
-                && IsInstanceContext())
+            if (this.ContainingType.TypeKind == TypeKind.Submission
+                // check we have access to `this`
+                && isInstanceContext())
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
@@ -1850,6 +1832,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            bool isInstanceContext()
+            {
+                var containingMember = this.ContainingMemberOrLambda;
+                do
+                {
+                    if (containingMember.IsStatic)
+                    {
+                        return false;
+                    }
+                    if (containingMember.Kind == SymbolKind.NamedType)
+                    {
+                        break;
+                    }
+                    containingMember = containingMember.ContainingSymbol;
+                } while ((object)containingMember != null);
+                return true;
+            }
         }
 
         public BoundExpression BindNamespaceOrTypeOrExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
