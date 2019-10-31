@@ -1817,9 +1817,9 @@ return M();
 
             var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
             ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
-                    // (4,12): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // (4,9): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
                     // 				return Value;
-                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 12));
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 9));
         }
 
         [Fact]
@@ -1840,9 +1840,9 @@ return M();
 
             var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
             ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
-                    // (7,13): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // (7,10): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
                     // 					return Value;
-                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(7, 13));
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(7, 10));
         }
 
         [Fact]
