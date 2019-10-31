@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             foreach (var member in allMembers)
             {
-                if (member.IsFavorite)
+                // Favorites are currently never static
+                if (member.IsFavorite && !value.IsNull)
                 {
                     favoritesMembersByName.Add(member.Name, member);
                 }
