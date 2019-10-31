@@ -71,34 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return null;
         }
 
-        private static Uri GetHelpLink(DiagnosticData diagnostic, string language, string projectType, out string helpLinkToolTipText)
+        object IPreviewPaneService.GetPreviewPane(DiagnosticData data, IReadOnlyList<object> previewContent)
         {
-            var isBing = false;
-            helpLinkToolTipText = string.Empty;
-            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out var helpLink))
-            {
-                // We use the ENU version of the message for bing search.
-                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.ENUMessageForBingSearch, language, projectType);
-                isBing = true;
-            }
-
-            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
-            if (helpLink != null)
-            {
-                var prefix = isBing
-                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, diagnostic.Id)
-                    : string.Format(ServicesVSResources.Get_help_for_0, diagnostic.Id);
-
-                helpLinkToolTipText = $"{prefix}\r\n{helpLink}";
-            }
-
-            return helpLink;
-        }
-
-        object IPreviewPaneService.GetPreviewPane(
-            DiagnosticData diagnostic, string language, string projectType, IReadOnlyList<object> previewContent)
-        {
-            var title = diagnostic?.Message;
+            var title = data?.Message;
 
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -114,24 +89,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                     previewContent: previewContent, logIdVerbatimInTelemetry: false, uiShell: _uiShell);
             }
 
-            var helpLinkToolTipText = string.Empty;
-            var helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
+            var helpLinkUri = BrowserHelper.GetHelpLink(data);
+            var helpLinkToolTip = BrowserHelper.GetHelpLinkToolTip(data.Id, helpLinkUri);
 
             Guid optionPageGuid = default;
-            if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))
+            if (data.Properties.TryGetValue("OptionName", out var optionName))
             {
-                diagnostic.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
+                data.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
                 optionPageGuid = GetOptionPageGuidForOptionName(optionName, optionLanguage);
             }
 
             return new PreviewPane(
-                severityIcon: GetSeverityIconForDiagnostic(diagnostic),
-                id: diagnostic.Id, title: title,
-                description: diagnostic.Description.ToString(CultureInfo.CurrentUICulture),
-                helpLink: helpLink,
-                helpLinkToolTipText: helpLinkToolTipText,
+                severityIcon: GetSeverityIconForDiagnostic(data),
+                id: data.Id, title: title,
+                description: data.Description.ToString(CultureInfo.CurrentUICulture),
+                helpLink: helpLinkUri,
+                helpLinkToolTipText: helpLinkToolTip,
                 previewContent: previewContent,
-                logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
+                logIdVerbatimInTelemetry: data.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
                 uiShell: _uiShell,
                 optionPageGuid: optionPageGuid);
         }
