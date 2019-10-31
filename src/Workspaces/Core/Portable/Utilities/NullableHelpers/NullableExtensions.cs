@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static ITypeSymbol GetConvertedTypeWithFlowNullability(this TypeInfo typeInfo)
-            => typeInfo.ConvertedType?.WithNullability(typeInfo.ConvertedNullability.FlowState);
+            => typeInfo.ConvertedType?.WithNullability(typeInfo.Nullability.FlowState);
 
         public static ITypeSymbol GetConvertedTypeWithAnnotatedNullability(this TypeInfo typeInfo)
-            => typeInfo.ConvertedType?.WithNullability(typeInfo.ConvertedNullability.Annotation);
+            => typeInfo.ConvertedType?.WithNullability(typeInfo.Nullability.Annotation);
 
         public static ITypeSymbol GetTypeWithFlowNullability(this TypeInfo typeInfo)
             => typeInfo.Type?.WithNullability(typeInfo.Nullability.FlowState);
