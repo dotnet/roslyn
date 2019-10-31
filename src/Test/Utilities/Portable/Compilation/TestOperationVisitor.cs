@@ -1472,10 +1472,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.NotNull(operation.DeclarationGroup);
             AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.DeclarationGroup), operation.Children);
-            Assert.True(operation.IsImplicit);
+            Assert.True(operation.DeclarationGroup.IsImplicit);
             Assert.Null(operation.Type);
             Assert.False(operation.ConstantValue.HasValue);
             _ = operation.IsAsynchronous;
+            _ = operation.IsImplicit;
         }
     }
 }

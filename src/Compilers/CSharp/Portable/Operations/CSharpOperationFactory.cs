@@ -1753,8 +1753,9 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
-            // syntax itself is a VariableDeclaration
-            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
+            // syntax itself is a VariableDeclaration. We do this for using declarations as well, but since that doesn't have a separate parent bound
+            // node, we need to check the current node for that explicitly.
+            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated || boundMultipleLocalDeclarations is BoundUsingLocalDeclarations;
             var variableDeclaration = new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
 
             if (boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl)
@@ -1766,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     declarationGroupSyntax,
                     type: null,
                     constantValue: default,
-                    isImplicit: true);
+                    isImplicit: boundMultipleLocalDeclarations.WasCompilerGenerated);
             }
 
             return variableDeclaration;
