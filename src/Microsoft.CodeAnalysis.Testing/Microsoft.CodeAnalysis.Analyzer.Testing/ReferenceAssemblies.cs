@@ -24,10 +24,11 @@ using NuGet.Packaging.Signing;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    public sealed class ReferenceAssemblies
+    public sealed partial class ReferenceAssemblies
     {
         private const string ReferenceAssembliesPackageVersion = "1.0.0-preview.2";
-        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1);
+
+        private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
         private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
             = new Dictionary<string, ImmutableArray<MetadataReference>>();
@@ -155,8 +156,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            await Semaphore.WaitAsync(cancellationToken);
-            try
+            using (var releaser = await Semaphore.WaitAsync(cancellationToken))
             {
                 lock (_references)
                 {
@@ -173,10 +173,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 return computedReferences;
-            }
-            finally
-            {
-                Semaphore.Release();
             }
         }
 
