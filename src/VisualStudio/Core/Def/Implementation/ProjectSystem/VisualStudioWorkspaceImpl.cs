@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            _foregroundObject.AssertIsForeground();
 
             if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
             {
@@ -368,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
-            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
+            if (!_foregroundObject.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
             }
@@ -419,7 +419,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal bool IsCPSProject(CodeAnalysis.Project project)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            _foregroundObject.AssertIsForeground();
 
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
@@ -1038,7 +1038,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
+            if (!_foregroundObject.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
@@ -1391,7 +1391,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            _foregroundObject.AssertIsForeground();
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {

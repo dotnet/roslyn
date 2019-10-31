@@ -319,7 +319,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operatorResultType As TypeSymbol = operandType
 
             Dim forceToBooleanType As TypeSymbol = Nothing
-            Dim applyIsTrue As Boolean = False
 
             Select Case preliminaryOperatorKind
 
@@ -352,13 +351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  ErrorFactory.ErrorInfo(
                                                      If(preliminaryOperatorKind = BinaryOperatorKind.Equals,
                                                         ERRID.WRN_EqualToLiteralNothing, ERRID.WRN_NotEqualToLiteralNothing)))
-                            End If
-
-                            If isOperandOfConditionalBranch Then
-                                ' TODO: I believe the IsTrue is just an optimization to prevent Nullable from unnecessary bubbling up the tree.
-                                ' Perhaps we can do this optimization as a rewrite.
-                                applyIsTrue = True
-                                forceToBooleanType = booleanType
                             End If
                         Else
                             If Not operatorResultType.IsObjectType() Then
@@ -524,16 +516,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim result As BoundExpression = New BoundBinaryOperator(node, operatorKind, left, right, CheckOverflow, value, operatorResultType, hasError)
-
-            Debug.Assert(Not applyIsTrue OrElse forceToBooleanType IsNot Nothing)
+            Dim result As BoundExpression = New BoundBinaryOperator(node, operatorKind Or If(isOperandOfConditionalBranch, BinaryOperatorKind.IsOperandOfConditionalBranch, Nothing),
+                                                                    left, right, CheckOverflow, value, operatorResultType, hasError)
 
             If forceToBooleanType IsNot Nothing Then
                 Debug.Assert(forceToBooleanType.IsBooleanType())
-
-                If applyIsTrue Then
-                    Return ApplyNullableIsTrueOperator(result, forceToBooleanType)
-                End If
 
                 result = ApplyConversion(node, forceToBooleanType, result, isExplicit:=True, diagnostics:=diagnostics)
             End If

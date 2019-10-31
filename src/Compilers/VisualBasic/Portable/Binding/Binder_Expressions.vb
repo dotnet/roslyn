@@ -91,7 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' parent expression.
 
                     ' Dev10 allows parenthesized type expressions, let's bind as a general expression first.
-                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression, False, False, eventContext, diagnostics)
+                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression,
+                                                                    isInvocationOrAddressOf:=False,
+                                                                    isOperandOfConditionalBranch:=isOperandOfConditionalBranch,
+                                                                    eventContext, diagnostics)
 
                     If operand.Kind = BoundKind.TypeExpression Then
                         Dim asType = DirectCast(operand, BoundTypeExpression)

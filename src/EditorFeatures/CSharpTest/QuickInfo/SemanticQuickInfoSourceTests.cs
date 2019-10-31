@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -6569,31 +6568,9 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task NullableNotShownWithoutFeatureFlag()
+        public async Task NullableNotShownInNullableDisable()
         {
-            var options = TestOptions.Regular8.WithFeature(CompilerFeatureFlags.RunNullableAnalysis, "false");
-            await TestWithOptionsAsync(options,
-@"#nullable enable
-
-using System.Collections.Generic;
-
-class X
-{
-    void N()
-    {
-        string s = """";
-        string s2 = $$s;
-    }
-}",
-                MainDescription($"({FeaturesResources.local_variable}) string s"),
-                NullabilityAnalysis(""));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task NullableNotShownInNullableDisableContextEvenIfAnalysisIsRunning()
-        {
-            var options = TestOptions.Regular8.WithFeature(CompilerFeatureFlags.RunNullableAnalysis, "true");
-            await TestWithOptionsAsync(options,
+            await TestWithOptionsAsync(TestOptions.Regular8,
 @"#nullable disable
 
 using System.Collections.Generic;

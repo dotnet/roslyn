@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <remarks>
     /// https://github.com/dotnet/roslyn/issues/30067 Should
     /// UnassignedFieldsWalker inherit from <see
-    /// cref="LocalDataFlowPass{TLocalState}"/> directly since it has simpler
+    /// cref="LocalDataFlowPass{TLocalState, TLocalFunctionState}"/> directly since it has simpler
     /// requirements than <see cref="DefiniteAssignmentPass"/>?
     /// </remarks>
     internal sealed class UnassignedFieldsWalker : DefiniteAssignmentPass

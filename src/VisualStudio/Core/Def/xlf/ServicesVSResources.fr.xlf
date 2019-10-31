@@ -97,11 +97,6 @@
         <target state="translated">L'élément n'est pas valide.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">Activer les fonctionnalités de l'IDE pour l'analyse des références Nullable</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Évaluation ({0} tâches en file d'attente)</target>
