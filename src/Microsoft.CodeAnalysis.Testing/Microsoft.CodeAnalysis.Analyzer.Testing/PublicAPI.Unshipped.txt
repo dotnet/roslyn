@@ -120,9 +120,9 @@ Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net48
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Packages.get -> System.Collections.Immutable.ImmutableArray<NuGet.Packaging.Core.PackageIdentity>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ReferenceAssemblies(string targetFramework) -> void
-Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ReferenceAssemblies(string targetFramework, NuGet.Packaging.Core.PackageIdentity referenceAssemblyPackage, System.Collections.Immutable.ImmutableArray<string> relativePaths) -> void
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ReferenceAssemblies(string targetFramework, NuGet.Packaging.Core.PackageIdentity referenceAssemblyPackage, string referenceAssemblyPath) -> void
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ReferenceAssemblyPackage.get -> NuGet.Packaging.Core.PackageIdentity
-Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.RelativePaths.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ReferenceAssemblyPath.get -> string
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ResolveAsync(string language, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.TargetFramework.get -> string
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithAssemblies(System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
