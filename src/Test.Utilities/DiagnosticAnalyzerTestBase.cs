@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -84,7 +85,7 @@ namespace Test.Utilities
 
         protected static DiagnosticResult GetGlobalResult(DiagnosticDescriptor rule, params string[] messageArguments)
         {
-            return new DiagnosticResult(rule).WithMessage(string.Format(rule.MessageFormat.ToString(), messageArguments));
+            return new DiagnosticResult(rule).WithMessage(string.Format(CultureInfo.CurrentCulture, rule.MessageFormat.ToString(CultureInfo.CurrentCulture), messageArguments));
         }
 
         protected static DiagnosticResult GetBasicResultAt(int line, int column, string id, string message)

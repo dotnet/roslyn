@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
@@ -309,11 +310,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         ? PublicApiAnalyzerResources.PublicImplicitGetAccessor
                         : PublicApiAnalyzerResources.PublicImplicitSetAccessor;
 
-                    return string.Format(formatString, property.Name);
+                    return string.Format(CultureInfo.CurrentCulture, formatString, property.Name);
                 }
 
                 return isImplicitlyDeclaredConstructor ?
-                    string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, symbol.ContainingSymbol.ToDisplayString(ShortSymbolNameFormat)) :
+                    string.Format(CultureInfo.CurrentCulture, PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, symbol.ContainingSymbol.ToDisplayString(ShortSymbolNameFormat)) :
                     symbol.ToDisplayString(ShortSymbolNameFormat);
             }
 
