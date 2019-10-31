@@ -1147,6 +1147,14 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(3, state.ReturnValue);
         }
 
+        [Fact, WorkItem(39548, "https://github.com/dotnet/roslyn/issues/39548")]
+        public async Task PatternVariableDeclaration()
+        {
+            var state = await CSharpScript.RunAsync("var x = (false, 4);");
+            state = await state.ContinueWithAsync("x is (false, var y)");
+            Assert.Equal(true, state.ReturnValue);
+        }
+
         #endregion
 
         #region References
