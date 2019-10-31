@@ -238,6 +238,28 @@ public class C
         }
 
         [Fact]
+        public void DiscardParameters_SingleUnderscoreParameter()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public static void Main()
+    {
+        System.Func<short, short, long> f1 = (_, a) =>
+        {
+            int _ = 0; // 1
+            return _;
+        };
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,17): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int _ = 0; // 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
         public void DiscardParameters_WithTypes()
         {
             var comp = CreateCompilation(@"
@@ -334,22 +356,26 @@ public class C
         public void DiscardParameters_NotInScope_BindToOutsideLocal()
         {
             var comp = CreateCompilation(@"
-class C
+public class C
 {
-    static void M()
+    public static void Main()
     {
-        int _ = 0;
-        System.Func<string, string, int> f = (_, _) => _++;
-        System.Func<long, string, long> f2 = (_, a) => _++;
+        int _ = 42;
+        System.Func<string, string, int> f = (_, _) => ++_;
+        System.Func<long, string, long> f2 = (_, a) => ++_;
+        System.Console.Write(f(null, null) + "" "");
+        System.Console.Write(f2(1, null) + "" "");
+        System.Console.Write(_);
     }
-}");
+}", options: TestOptions.DebugExe);
             // Note that naming one of the parameters seems irrelevant but results in a binding change
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "43 2 43");
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var underscores = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(p => p.ToString() == "_").ToArray();
-            Assert.Equal(2, underscores.Length);
+            Assert.Equal(3, underscores.Length);
 
             var localSymbol = model.GetSymbolInfo(underscores[0]).Symbol;
             Assert.Equal("System.Int32 _", localSymbol.ToTestDisplayString());
@@ -364,19 +390,21 @@ class C
         public void DiscardParameters_NotInScope_BindToOutsideLocal_Nested()
         {
             var comp = CreateCompilation(@"
-class C
+public class C
 {
-    static void M()
+    public static void Main()
     {
-        int _ = 0;
+        int _ = 42;
         System.Func<string, string, int> f = (_, _) =>
         {
-            System.Func<string, string, int> f2 = (_, _) => _++;
+            System.Func<string, string, int> f2 = (_, _) => ++_;
             return f2(null, null);
         };
+        System.Console.Write(f(null, null));
     }
-}");
+}", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "43");
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);

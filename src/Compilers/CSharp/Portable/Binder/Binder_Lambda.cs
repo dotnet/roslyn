@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax.IsAnonymousFunction());
 
             var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
-            var data = (PlainUnboundLambdaState)lambda.Data;
+            var data = lambda.Data;
             if (data.HasExplicitlyTypedParameterList)
             {
                 for (int i = 0; i < lambda.ParameterCount; i++)

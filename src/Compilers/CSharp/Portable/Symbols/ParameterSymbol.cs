@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract RefKind RefKind { get; }
 
+        bool IParameterSymbol.IsDiscard => IsDiscard;
+
         /// <summary>
         /// Returns true if the parameter is a discard parameter.
         /// </summary>
