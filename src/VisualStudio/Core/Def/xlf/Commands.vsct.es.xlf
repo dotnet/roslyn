@@ -212,6 +212,21 @@
         <target state="translated">OpenActiveRuleSet</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
+        <source>Run C&amp;ode Analysis</source>
+        <target state="new">Run C&amp;ode Analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|CommandName">
+        <source>RunCodeAnalysisForProject</source>
+        <target state="new">RunCodeAnalysisForProject</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|LocCanonicalName">
+        <source>RunCodeAnalysisForProject</source>
+        <target state="new">RunCodeAnalysisForProject</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidSetSeverityDefault|ButtonText">
         <source>&amp;Default</source>
         <target state="translated">Pre&amp;determinado</target>

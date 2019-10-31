@@ -44,10 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             public const int GoToImplementation = 0x0200;
 
-            // Run Code Analysis commands.
-            // The IDs are actually defined in stdidcmd.h, we're just referencing it here.
-            public const int ECMD_RUNFXCOPSEL = 1647;
-            public const int ECMD_RUNFXCOPPROJCTX = 1648;
+            public const int RunCodeAnalysisForProject = 0x0201;
         }
     }
 }

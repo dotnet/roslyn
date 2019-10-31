@@ -26,6 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Export(typeof(IVisualStudioDiagnosticAnalyzerService))]
     internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiagnosticAnalyzerService
     {
+        // "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
+        // The below ID is actually defined as "ECMD_RUNFXCOPSEL" in stdidcmd.h, we're just referencing it here.
+        private const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
+
         private readonly VisualStudioWorkspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IThreadingContext _threadingContext;
@@ -54,7 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
             if (menuCommandService != null)
             {
-                AddCommand(menuCommandService, ID.RoslynCommands.ECMD_RUNFXCOPSEL, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
+                AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
+                AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
             }
 
             return;
@@ -63,10 +68,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             static OleMenuCommand AddCommand(
                 IMenuCommandService menuCommandService,
                 int commandId,
+                Guid commandGroup,
                 EventHandler invokeHandler,
                 EventHandler beforeQueryStatus)
             {
-                var commandIdWithGroupId = new CommandID(VSConstants.VSStd2K, commandId);
+                var commandIdWithGroupId = new CommandID(commandGroup, commandId);
                 var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, commandIdWithGroupId);
                 menuCommandService.AddCommand(command);
                 return command;
@@ -136,7 +142,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             if (visible)
             {
-                if (hierarchy.TryGetProject(out var project))
+                if (command.CommandID.ID == RunCodeAnalysisForSelectedProjectCommandId &&
+                    hierarchy.TryGetProject(out var project))
                 {
                     // Change to show the name of the project as part of the menu item display text.
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);

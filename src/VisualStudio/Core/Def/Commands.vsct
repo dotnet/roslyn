@@ -372,6 +372,10 @@
         </Strings>
       </Button>
 
+      <!-- Run code analysis commands -->
+      
+      <!-- "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
+           "ECMD_RUNFXCOPSEL" is actually defined in stdidcmd.h, we're just referencing it here -->      
       <Button guid="guidVSStd2K" id="ECMD_RUNFXCOPSEL" priority="0x0000" type="Button">
         <CommandFlag>TextChanges</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -379,6 +383,19 @@
         <CommandFlag>DefaultDisabled</CommandFlag>
         <Strings>
           <ButtonText>Run Code &amp;Analysis on Selection</ButtonText>
+        </Strings>
+      </Button>
+      
+      <!-- "Run Code Analysis" command for Solution Explorer "Analyze and Code Cleanup" context menu for project node -->      
+      <Button guid="guidRoslynGrpId" id="cmdidRunCodeAnalysisForProject" priority="0x0000" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ANALYZE_GENERAL"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Run C&amp;ode Analysis</ButtonText>
+          <CanonicalName>RunCodeAnalysisForProject</CanonicalName>
+          <LocCanonicalName>RunCodeAnalysisForProject</LocCanonicalName>
+          <CommandName>RunCodeAnalysisForProject</CommandName>
         </Strings>
       </Button>
     </Buttons>
@@ -559,6 +576,8 @@
       <IDSymbol name="grpErrorListDiagnosticSeverityItems"     value="0x012a" />
 
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
+
+      <IDSymbol name="cmdidRunCodeAnalysisForProject"  value="0x0201" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
