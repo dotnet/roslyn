@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 : null;
 
             var installerService = GetPackageInstallerService(document);
-            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService != null
+            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
                 ? installerService.GetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
