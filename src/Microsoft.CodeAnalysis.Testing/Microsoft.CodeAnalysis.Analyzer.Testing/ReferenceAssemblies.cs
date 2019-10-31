@@ -180,9 +180,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private async Task<ImmutableArray<MetadataReference>> ResolveCoreAsync(string language, CancellationToken cancellationToken)
         {
             var settings = Settings.LoadDefaultSettings(root: null);
-#pragma warning disable CS0618 // Type or member is obsolete
-            var sourceRepositoryProvider = new SourceRepositoryProvider(settings, Repository.Provider.GetCoreV3());
-#pragma warning restore CS0618 // Type or member is obsolete
+            var sourceRepositoryProvider = new SourceRepositoryProvider(new PackageSourceProvider(settings), Repository.Provider.GetCoreV3());
             var targetFramework = NuGetFramework.ParseFolder(TargetFramework);
             var logger = NullLogger.Instance;
 
