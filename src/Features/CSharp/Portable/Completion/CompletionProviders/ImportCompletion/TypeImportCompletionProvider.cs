@@ -25,8 +25,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
             => ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken);
-
-        protected override Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.IsInImportsDirectiveAsync(document, position, cancellationToken);
     }
 }

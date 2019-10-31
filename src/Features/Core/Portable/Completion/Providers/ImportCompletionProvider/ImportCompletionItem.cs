@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return SymbolKey.ResolveString(symbolId, compilation).GetAnySymbol();
             }
 
-            // Otherwise, this is a type item, so we should have all the data to constrcut its metadata name
+            // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all
+            // the data to construct its full metadata name
             var containingNamespace = GetContainingNamespace(item);
             var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
             var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);

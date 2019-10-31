@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_gate = new object();
         private static Task s_indexingTask = Task.CompletedTask;
 
-        public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportExtensionMethodsAsync(
+        public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
             Document document,
             int position,
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
-            bool isExpandedCompletion,
+            bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
             var ticks = Environment.TickCount;
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : null;
 
             var (serializableItems, counter) = client == null
-                ? await GetUnimportExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false)
-                : await GetUnimportExtensionMethodsInRemoteProcessAsync(client, document, position, receiverTypeSymbol, namespaceInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+                ? await GetUnimportedExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false)
+                : await GetUnimportedExtensionMethodsInRemoteProcessAsync(client, document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
             counter.TotalTicks = Environment.TickCount - ticks;
             counter.TotalExtensionMethodsProvided = serializableItems.Length;
@@ -57,31 +57,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return serializableItems;
         }
 
-        public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportExtensionMethodsInRemoteProcessAsync(
+        public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInRemoteProcessAsync(
             RemoteHostClient client,
             Document document,
             int position,
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
-            bool isExpandedCompletion,
+            bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
             var project = document.Project;
             var (serializableItems, counter) = await client.TryRunCodeAnalysisRemoteAsync<(IList<SerializableImportCompletionItem>, StatisticCounter)>(
                 project.Solution,
                 nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
-                new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), isExpandedCompletion },
+                new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
                 cancellationToken).ConfigureAwait(false);
 
             return (serializableItems.ToImmutableArray(), counter);
         }
 
-        public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportExtensionMethodsInCurrentProcessAsync(
+        public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInCurrentProcessAsync(
             Document document,
             int position,
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
-            bool isExpandedCompletion,
+            bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
             var counter = new StatisticCounter();
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var allTypeNames = allTypeNamesBuilder.ToImmutableArray();
             var matchedMethods = await GetPossibleExtensionMethodMatchesAsync(
-                project, allTypeNames, isExpandedCompletion, isPrecalculation: false, cancellationToken).ConfigureAwait(false);
+                project, allTypeNames, forceIndexCreation, isPrecalculation: false, cancellationToken).ConfigureAwait(false);
 
             counter.GetFilterTicks = Environment.TickCount - ticks;
             counter.NoFilter = matchedMethods == null;
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     if (s_indexingTask.IsCompleted)
                     {
-                        s_indexingTask = Task.Run(() => GetPossibleExtensionMethodMatchesAsync(project, allTypeNames, isExpandedCompletion: false, isPrecalculation: true, CancellationToken.None));
+                        s_indexingTask = Task.Run(() => GetPossibleExtensionMethodMatchesAsync(project, allTypeNames, forceIndexCreation: false, isPrecalculation: true, CancellationToken.None));
                     }
                 }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static async Task<MultiDictionary<string, string>?> GetPossibleExtensionMethodMatchesAsync(
             Project currentProject,
             ImmutableArray<string> targetTypeNames,
-            bool isExpandedCompletion,
+            bool forceIndexCreation,
             bool isPrecalculation,
             CancellationToken cancellationToken)
         {
@@ -155,9 +155,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var peReferences = PooledHashSet<PortableExecutableReference>.GetInstance();
 
             // We will only create missing indices in the following cases, neither would block completion.
-            // 1. User explicitly asked for them using expander. 
+            // 1. We are asked explicitly to create missing indices (e.g. via expander) 
             // 2. We are trying to populate the data in background.
-            var shouldCreateIndex = isExpandedCompletion || isPrecalculation;
+            var shouldCreateIndex = forceIndexCreation || isPrecalculation;
 
             try
             {

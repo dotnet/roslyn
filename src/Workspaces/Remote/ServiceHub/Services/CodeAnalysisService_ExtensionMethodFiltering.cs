@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
             int position,
             string receiverTypeSymbolKeyData,
             string[] namespaceInScope,
-            bool isExpandedCompletion,
+            bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Remote
                         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                         var namespaceInScopeSet = new HashSet<string>(namespaceInScope, syntaxFacts.StringComparer);
 
-                        var (items, counter) = await ExtensionMethodImportCompletionHelper.GetUnimportExtensionMethodsInCurrentProcessAsync(
-                            document, position, receiverTypeSymbol, namespaceInScopeSet, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+                        var (items, counter) = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                            document, position, receiverTypeSymbol, namespaceInScopeSet, forceIndexCreation, cancellationToken).ConfigureAwait(false);
                         return ((IList<SerializableImportCompletionItem>)items, counter);
                     }
 

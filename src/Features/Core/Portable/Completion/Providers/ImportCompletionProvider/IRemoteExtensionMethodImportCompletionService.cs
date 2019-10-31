@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             string receiverTypeSymbolKeyData,
             string[] namespaceInScope,
-            bool isExpandedCompletion,
+            bool forceIndexCreation,
             CancellationToken cancellationToken);
     }
 }

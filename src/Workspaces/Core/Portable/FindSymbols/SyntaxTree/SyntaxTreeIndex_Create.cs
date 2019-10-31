@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
     {
+        // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
+        // otherwise we would not be able to get correct data from syntax.
         bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
 
         bool TryGetTargetTypeName(SyntaxNode node, out string instanceTypeName);

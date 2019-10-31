@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
 
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var importedNamespaces = GetImportedNamespaces(syntaxContext.LeftToken.Parent, semanticModel, cancellationToken);
 
             // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>()!;
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var namespacesInScope = new HashSet<string>(importedNamespaces, syntaxFacts.StringComparer);
 
             // Get containing namespaces.
@@ -111,15 +110,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
-            var tree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
             // Add required using/imports directive.                              
-            var addImportService = document.GetLanguageService<IAddImportsService>()!;
+            var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-            var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var importNode = CreateImport(document, containingNamespace);
 
             var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst, cancellationToken);
@@ -183,6 +182,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
                 return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private static async Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
+            return leftToken.GetAncestor(syntaxFacts.IsUsingOrImport) != null;
         }
 
         protected static bool IsAddingImportsSupported(Document document)

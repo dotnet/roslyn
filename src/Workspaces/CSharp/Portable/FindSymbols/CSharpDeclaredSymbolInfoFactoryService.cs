@@ -558,6 +558,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         return TryGetSimpleTypeName(qualifiedNameNode.Right, typeParameterNames: null, out simpleTypeName);
 
                     case NullableTypeSyntax nullableNode:
+                        // Ignore nullability, becase nullable reference type might not be enabled universally.
+                        // In the worst case we just include more methods to check in out filter.
                         return TryGetSimpleTypeName(nullableNode.ElementType, typeParameterNames, out simpleTypeName);
                 }
             }

@@ -3385,6 +3385,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Syntax tree is required to accomplish the task but is not supported by document {0}..
+        /// </summary>
+        internal static string SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0 {
+            get {
+                return ResourceManager.GetString("SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Temporary storage cannot be written more than once..
         /// </summary>
         internal static string Temporary_storage_cannot_be_written_more_than_once {

@@ -28,9 +28,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
             Return ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel, cancellationToken)
         End Function
-
-        Protected Overrides Function IsInImportsDirectiveAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return ImportCompletionProviderHelper.IsInImportsDirectiveAsync(document, position, cancellationToken)
-        End Function
     End Class
 End Namespace

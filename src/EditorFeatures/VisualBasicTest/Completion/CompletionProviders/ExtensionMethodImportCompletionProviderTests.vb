@@ -1,10 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Composition
 
@@ -206,6 +204,76 @@ End Class]]></Text>.Value
             Dim markup = GetMarkup(file2, file1, refType)
             Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod1", inlineDescription:="Foo")
             Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod2", inlineDescription:="Foo")
+        End Function
+
+        <InlineData(ReferenceType.None)>
+        <InlineData(ReferenceType.Project)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestImplicitTarget1(refType As ReferenceType) As Task
+
+            Dim file1 = <Text><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace NS
+    Public Module Foo
+        <Extension>
+        Public Function ExtentionMethod(x As Bar) As Boolean
+            Return True
+        End Function
+    End Module
+
+    Public Class Bar
+        Public X As Boolean
+    End Class
+End Namespace]]></Text>.Value
+
+            Dim file2 = <Text><![CDATA[
+Imports System
+
+Public Class Baz
+    Sub M()
+        Dim x = New Bar() {.$$}
+    End Sub
+End Class]]></Text>.Value
+
+            Dim markup = GetMarkup(file2, file1, refType)
+            Await VerifyItemIsAbsentAsync(markup, "ExtentionMethod", inlineDescription:="NS")
+        End Function
+
+        <InlineData(ReferenceType.None)>
+        <InlineData(ReferenceType.Project)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestImplicitTarget2(refType As ReferenceType) As Task
+
+            Dim file1 = <Text><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace NS
+    Public Module Foo
+        <Extension>
+        Public Function ExtentionMethod(x As Bar) As Boolean
+            Return True
+        End Function
+    End Module
+
+    Public Class Bar
+        Public X As Boolean
+    End Class
+End Namespace]]></Text>.Value
+
+            Dim file2 = <Text><![CDATA[
+Imports System
+
+Public Class Baz
+    Sub M()
+        Dim x = New Bar() {.X = .$$}
+    End Sub
+End Class]]></Text>.Value
+
+            Dim markup = GetMarkup(file2, file1, refType)
+            Await VerifyItemIsAbsentAsync(markup, "ExtentionMethod", inlineDescription:="NS")
         End Function
     End Class
 End Namespace

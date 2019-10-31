@@ -1402,6 +1402,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsUsingOrExternOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingOrExternOrImport
+            Return IsUsingOrImport(node)
+        End Function
+
+        Public Function IsUsingOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingOrImport
             Return node.IsKind(SyntaxKind.ImportsStatement)
         End Function
 

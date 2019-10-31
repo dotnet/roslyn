@@ -30,12 +30,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
-
-        public static async Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
-            return leftToken.GetAncestor<UsingDirectiveSyntax>() != null;
-        }
     }
 }

@@ -33,15 +33,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, out var receiverTypeSymbol))
                 {
-                    var items = await ExtensionMethodImportCompletionHelper.GetUnimportExtensionMethodsAsync(
+                    var items = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
                         namespaceInScope,
-                        isExpandedCompletion,
+                        forceIndexCreation: isExpandedCompletion,
                         cancellationToken).ConfigureAwait(false);
 
-                    completionContext.AddItems(items.Select(Convert));
+                    completionContext.AddItems(items.Select(i => Convert(i)));
                 }
             }
         }
@@ -49,7 +49,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static bool TryGetReceiverTypeSymbol(SyntaxContext syntaxContext, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
         {
             var parentNode = syntaxContext.TargetToken.Parent;
-            var expressionNode = syntaxFacts.GetLeftSideOfDot(parentNode, allowImplicitTarget: true);
+
+            // Even though implicit access to extension method is allowed, we decide not support it for simplicity 
+            // e.g. we will not provide completion for unimport extension method in this case
+            // New Bar() {.X = .$$ }
+            var expressionNode = syntaxFacts.GetLeftSideOfDot(parentNode, allowImplicitTarget: false);
 
             if (expressionNode == null)
             {

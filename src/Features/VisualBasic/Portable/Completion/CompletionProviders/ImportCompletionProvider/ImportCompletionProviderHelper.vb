@@ -35,11 +35,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
-
-        Public Shared Async Function IsInImportsDirectiveAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
-            Return leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing
-        End Function
     End Class
 End Namespace

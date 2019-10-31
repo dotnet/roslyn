@@ -1371,6 +1371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                    node.IsKind(SyntaxKind.ExternAliasDirective);
         }
 
+        public bool IsUsingOrImport(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.UsingDirective);
+        }
+
         public bool IsGlobalAttribute(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.Attribute) && node.Parent.IsKind(SyntaxKind.AttributeList) &&
