@@ -492,11 +492,6 @@
         <target state="translated">顯示自動完成清單</target>
         <note />
       </trans-unit>
-      <trans-unit id="Solution">
-        <source>Solution</source>
-        <target state="new">Solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">目標命名空間:</target>

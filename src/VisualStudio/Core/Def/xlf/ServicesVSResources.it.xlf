@@ -492,11 +492,6 @@
         <target state="translated">Mostra l'elenco di completamento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Solution">
-        <source>Solution</source>
-        <target state="new">Solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Spazio dei nomi di destinazione:</target>

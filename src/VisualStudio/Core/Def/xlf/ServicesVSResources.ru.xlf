@@ -492,11 +492,6 @@
         <target state="translated">Показать список завершения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Solution">
-        <source>Solution</source>
-        <target state="new">Solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Целевое пространство имен:</target>

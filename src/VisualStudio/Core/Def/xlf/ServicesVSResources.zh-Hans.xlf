@@ -492,11 +492,6 @@
         <target state="translated">显示完成列表</target>
         <note />
       </trans-unit>
-      <trans-unit id="Solution">
-        <source>Solution</source>
-        <target state="new">Solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">目标命名空间:</target>
