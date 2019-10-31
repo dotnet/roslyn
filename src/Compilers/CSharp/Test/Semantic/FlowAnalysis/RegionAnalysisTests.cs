@@ -6233,7 +6233,7 @@ class Program
         void Local()
         {
 /*<bind>*/
-            if ("""".Length == 0)
+            if (false)
             {
                 x = 1;
             }
@@ -6247,6 +6247,8 @@ class Program
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            // This is a conservative approximation, ignoring whether the branch containing
+            // the assignment is reachable
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
@@ -6459,7 +6461,7 @@ class Program
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-            // N.B. This is not technically correct. The branch assigning y is unreachable, so
+            // N.B. This is not as precise as possible. The branch assigning y is unreachable, so
             // the result does not technically flow out. This is a conservative approximation.
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
