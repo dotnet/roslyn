@@ -887,15 +887,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable nullable reference analysis IDE features.
-        /// </summary>
-        internal static string Enable_nullable_reference_analysis_IDE_features {
-            get {
-                return ResourceManager.GetString("Enable_nullable_reference_analysis_IDE_features", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
         /// </summary>
         internal static string End_of_inner_exception_stack {
