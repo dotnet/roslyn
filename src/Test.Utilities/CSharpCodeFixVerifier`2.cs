@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Test.Utilities
 {
@@ -23,14 +24,29 @@ namespace Test.Utilities
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
 
-        public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        public static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+            => VerifyAnalyzerAsync(source, expectedDiagnostics: expected);
+
+        public static Task VerifyAnalyzerAsync(string source, CompilerDiagnostics compilerDiagnostics, params DiagnosticResult[] expected)
+            => VerifyAnalyzerAsync(source, expected, compilerDiagnostics);
+
+        public static Task VerifyAnalyzerWithEditorConfigAsync(string source, string editorConfigSource, params DiagnosticResult[] expected)
+            => VerifyAnalyzerAsync(source, expected, additionalFiles: new SourceFileCollection { (".editorconfig", SourceText.From(editorConfigSource)) });
+
+        public static async Task VerifyAnalyzerAsync(string source, DiagnosticResult[] expectedDiagnostics,
+            CompilerDiagnostics compilerDiagnostics = CompilerDiagnostics.Errors, SourceFileCollection additionalFiles = null)
         {
             var test = new Test
             {
                 TestCode = source,
+                CompilerDiagnostics = compilerDiagnostics
             };
 
-            test.ExpectedDiagnostics.AddRange(expected);
+            if (additionalFiles?.Count > 0)
+            {
+                test.TestState.AdditionalFiles.AddRange(additionalFiles);
+            }
+            test.ExpectedDiagnostics.AddRange(expectedDiagnostics);
             await test.RunAsync();
         }
 
