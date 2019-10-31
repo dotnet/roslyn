@@ -230,7 +230,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var globalPathResolver = new PackagePathResolver(SettingsUtility.GetGlobalPackagesFolder(settings));
-                var localPathResolver = new PackagePathResolver(Path.GetFullPath("packages"));
+                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
+                Directory.CreateDirectory(temporaryPackagesFolder);
+                var localPathResolver = new PackagePathResolver(temporaryPackagesFolder);
 #if NET452
                 var packageExtractionContext = new PackageExtractionContext(logger);
 #elif NET46 || NET472 || NETSTANDARD2_0
