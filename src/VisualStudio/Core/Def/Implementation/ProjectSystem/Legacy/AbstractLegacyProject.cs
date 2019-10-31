@@ -56,9 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string externalErrorReportingPrefix,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt)
-            : base(threadingContext)
+            : base(threadingContext, assertIsForeground: true)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(hierarchy);
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));

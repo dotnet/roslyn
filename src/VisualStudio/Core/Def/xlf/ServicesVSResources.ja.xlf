@@ -97,11 +97,6 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">NULL 許容参照分析の IDE 機能を有効にします</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">評価中 ({0} 個のタスクがキューにあります)</target>
