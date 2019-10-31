@@ -948,6 +948,14 @@ i", options);
             );
         }
 
+        [Fact, WorkItem(39548, "https://github.com/dotnet/roslyn/issues/39548")]
+        public async Task PatternVariableDeclaration()
+        {
+            var state = await CSharpScript.RunAsync("var x = (false, 4);");
+            state = await state.ContinueWithAsync("x is (false, var y)");
+            Assert.Equal(true, state.ReturnValue);
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);

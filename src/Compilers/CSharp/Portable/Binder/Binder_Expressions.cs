@@ -1812,7 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, Symbol currentMember, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
         {
-            if (currentType.TypeKind == TypeKind.Submission && currentMember.RequiresInstanceReceiver())
+            if (currentType.TypeKind == TypeKind.Submission && currentMember.Kind != SymbolKind.NamedType && currentMember.RequiresInstanceReceiver())
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
