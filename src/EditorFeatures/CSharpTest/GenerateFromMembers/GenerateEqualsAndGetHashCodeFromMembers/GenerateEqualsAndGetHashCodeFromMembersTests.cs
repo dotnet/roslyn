@@ -1538,6 +1538,118 @@ parameters: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateLiftedOperators()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    [|public bool? BooleanValue { get; }
+    public decimal? DecimalValue { get; }
+    public Bar? EnumValue { get; }
+    public DateTime? DateTimeValue { get; }|]
+}
+
+enum Bar
+{
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    public bool? BooleanValue { get; }
+    public decimal? DecimalValue { get; }
+    public Bar? EnumValue { get; }
+    public DateTime? DateTimeValue { get; }
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               BooleanValue == foo.BooleanValue &&
+               DecimalValue == foo.DecimalValue &&
+               EnumValue == foo.EnumValue &&
+               DateTimeValue == foo.DateTimeValue;
+    }
+}
+
+enum Bar
+{
+}",
+index: 0,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task LiftedOperatorIsNotUsedWhenDirectOperatorWouldNotBeUsed()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    [|public Bar Value { get; }
+    public Bar? NullableValue { get; }|]
+}
+
+struct Bar : IEquatable<Bar>
+{
+    private readonly int value;
+
+    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+
+    public bool Equals(Bar other) => value == other.value;
+
+    public override int GetHashCode() => -1584136870 + value.GetHashCode();
+
+    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
+
+    public static bool operator !=(Bar left, Bar right) => !(left == right);
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    public Bar Value { get; }
+    public Bar? NullableValue { get; }
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               Value.Equals(foo.Value) &&
+               EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
+    }
+}
+
+struct Bar : IEquatable<Bar>
+{
+    private readonly int value;
+
+    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+
+    public bool Equals(Bar other) => value == other.value;
+
+    public override int GetHashCode() => -1584136870 + value.GetHashCode();
+
+    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
+
+    public static bool operator !=(Bar left, Bar right) => !(left == right);
+}",
+index: 0,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestImplementIEquatableOnStruct()
         {
             await TestWithPickMembersDialogAsync(

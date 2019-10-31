@@ -991,7 +991,7 @@ class Test
     }
 }";
             var compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
-            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1474,7 +1474,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8.0").WithLocation(9, 17)
             };
             CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
-            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]

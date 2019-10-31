@@ -293,8 +293,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto. Si intendeva 'using' invece di 'await using'?</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto. Si intendeva 'using' invece di 'await using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -807,6 +807,11 @@
       <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
         <source>alternative interpolated verbatim strings</source>
         <target state="translated">stringhe verbatim interpolate alternative</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAsyncUsing">
+        <source>asynchronous using</source>
+        <target state="new">asynchronous using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -9741,8 +9746,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto.</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

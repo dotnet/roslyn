@@ -2270,6 +2270,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
                         return;
                     }
+                case BoundKind.UnconvertedSwitchExpression when operand.Type is null:
+                    {
+                        GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
+                        return;
+                    }
             }
 
             Debug.Assert((object)operand.Type != null);

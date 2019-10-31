@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Remote
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
-        private string _host;
+        private string? _host;
         private int _primaryInstance;
-        private PerformanceReporter _performanceReporter;
+        private PerformanceReporter? _performanceReporter;
 
         static RemoteHostService()
         {
@@ -172,13 +174,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private void SetSessionInfo(Dictionary<string, object> m)
+        private void SetSessionInfo(Dictionary<string, object?> m)
         {
             m["Host"] = _host;
             m["InstanceId"] = _primaryInstance;
         }
 
-        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
+        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string? serializedSession)
         {
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
         }
 
-        private static TelemetrySession GetTelemetrySession(string serializedSession)
+        private static TelemetrySession? GetTelemetrySession(string? serializedSession)
         {
             var session = serializedSession != null ? new TelemetrySession(serializedSession) : null;
 
@@ -244,10 +246,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private RemotePersistentStorageLocationService GetPersistentStorageService()
         {
-            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
+            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
         }
 
-        private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
+        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
         {
             var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
             return notificationService;
@@ -349,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     AssetStorage.TryAddAsset(newChecksum, newText);
                 }
 
-                async Task<SourceText> TryGetSourceTextAsync()
+                async Task<SourceText?> TryGetSourceTextAsync()
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
@@ -396,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public override char this[int position] => _text[position];
-            public override Encoding Encoding => _text.Encoding;
+            public override Encoding? Encoding => _text.Encoding;
             public override int Length => _text.Length;
             public override SourceText GetSubText(TextSpan span) => _text.GetSubText(span);
             public override SourceText WithChanges(IEnumerable<TextChange> changes) => _text.WithChanges(changes);

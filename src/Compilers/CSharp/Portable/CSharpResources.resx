@@ -2984,10 +2984,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</value>
   </data>
   <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
+    <value>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
   </data>
   <data name="ERR_NoConvToIAsyncDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
+    <value>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
   </data>
   <data name="ERR_BadParamRef" xml:space="preserve">
     <value>Parameter {0} must be declared with the '{1}' keyword</value>
@@ -5959,5 +5959,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_StaticAnonymousFunctionCannotCaptureVariable" xml:space="preserve">
     <value>A static anonymous function cannot contain a reference to '{0}'.</value>
+  </data>
+  <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
+    <value>asynchronous using</value>
   </data>
 </root>

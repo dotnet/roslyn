@@ -44,14 +44,25 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly object _outputGuard;
         private readonly object _errorOutputGuard;
 
+        /// <remarks>
+        /// Test only setting.
+        /// True to join output writing threads when the host is being disposed.
+        /// We have to join the threads before each test is finished, otherwise xunit won't be able to unload the AppDomain.
+        /// WARNING: Joining the threads might deadlock if <see cref="Dispose()"/> is executing on the UI thread, 
+        /// since the threads are dispatching to UI thread to write the output to the editor buffer.
+        /// </remarks>
+        private readonly bool _joinOutputWritingThreadsOnDisposal;
+
         internal event Action<bool> ProcessStarting;
 
         public InteractiveHost(
             Type replServiceProviderType,
             string workingDirectory,
-            int millisecondsTimeout = 5000)
+            int millisecondsTimeout = 5000,
+            bool joinOutputWritingThreadsOnDisposal = false)
         {
             _millisecondsTimeout = millisecondsTimeout;
+            _joinOutputWritingThreadsOnDisposal = joinOutputWritingThreadsOnDisposal;
             _output = TextWriter.Null;
             _errorOutput = TextWriter.Null;
             _replServiceProviderType = replServiceProviderType;
@@ -79,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal Service TryGetService()
         {
-            var initializedService = TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).Result;
+            var initializedService = TryGetOrCreateRemoteServiceAsync().Result;
             return initializedService.ServiceOpt?.Service;
         }
 
@@ -229,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         ~InteractiveHost()
         {
-            DisposeRemoteService(disposing: false);
+            DisposeRemoteService();
         }
 
         // Dispose may be called anytime.
@@ -238,15 +249,15 @@ namespace Microsoft.CodeAnalysis.Interactive
             DisposeChannel();
 
             // Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
-            Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
+            _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
 
-            DisposeRemoteService(disposing: true);
+            DisposeRemoteService();
             GC.SuppressFinalize(this);
         }
 
-        private void DisposeRemoteService(bool disposing)
+        private void DisposeRemoteService()
         {
-            Interlocked.Exchange(ref _lazyRemoteService, null)?.Dispose(disposing);
+            Interlocked.Exchange(ref _lazyRemoteService, null)?.Dispose();
         }
 
         private void DisposeChannel()
@@ -326,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private Task OnProcessExited(Process process)
         {
             ReportProcessExited(process);
-            return TryGetOrCreateRemoteServiceAsync(processPendingOutput: true);
+            return TryGetOrCreateRemoteServiceAsync();
         }
 
         private void ReportProcessExited(Process process)
@@ -347,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        private async Task<InitializedRemoteService> TryGetOrCreateRemoteServiceAsync(bool processPendingOutput)
+        private async Task<InitializedRemoteService> TryGetOrCreateRemoteServiceAsync()
         {
             try
             {
@@ -374,13 +385,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                     if (previousService == currentRemoteService)
                     {
                         // we replaced the service whose process we know is dead:
-                        currentRemoteService.Dispose(processPendingOutput);
+                        currentRemoteService.Dispose();
                         currentRemoteService = newService;
                     }
                     else
                     {
                         // the process was reset in between our checks, try to use the new service:
-                        newService.Dispose(joinThreads: false);
+                        newService.Dispose();
                         currentRemoteService = previousService;
                     }
                 }
@@ -397,17 +408,17 @@ namespace Microsoft.CodeAnalysis.Interactive
                 throw ExceptionUtilities.Unreachable;
             }
 
-            return default(InitializedRemoteService);
+            return default;
         }
 
         private async Task<TResult> Async<TResult>(Action<Service, RemoteAsyncOperation<TResult>> action)
         {
             try
             {
-                var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
+                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
-                    return default(TResult);
+                    return default;
                 }
 
                 return await new RemoteAsyncOperation<TResult>(initializedService.ServiceOpt).AsyncExecute(action).ConfigureAwait(false);
@@ -451,10 +462,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
                 if (oldService != null)
                 {
-                    oldService.Dispose(joinThreads: false);
+                    oldService.Dispose();
                 }
 
-                var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
+                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
                     return default;

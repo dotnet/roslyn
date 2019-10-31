@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
@@ -147,12 +149,12 @@ namespace Microsoft.CodeAnalysis
         /// If this method overrides another method (because it both had the override modifier
         /// and there correctly was a method to override), returns the overridden method.
         /// </summary>
-        IMethodSymbol OverriddenMethod { get; }
+        IMethodSymbol? OverriddenMethod { get; }
 
         /// <summary>
         /// If this method can be applied to an object, returns the type of object it is applied to.
         /// </summary>
-        ITypeSymbol ReceiverType { get; }
+        ITypeSymbol? ReceiverType { get; }
 
         /// <summary>
         /// If this method can be applied to an object, returns the top-level nullability of the object it is applied to.
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis
         /// If this method is a reduced extension method, returns the definition of extension
         /// method from which this was reduced. Otherwise, returns null.
         /// </summary>
-        IMethodSymbol ReducedFrom { get; }
+        IMethodSymbol? ReducedFrom { get; }
 
         /// <summary>
         /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter. 
@@ -173,13 +175,13 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="System.InvalidOperationException">If this is not a reduced extension method.</exception>
         /// <exception cref="System.ArgumentNullException">If <paramref name="reducedFromTypeParameter"/> is null.</exception>
         /// <exception cref="System.ArgumentException">If <paramref name="reducedFromTypeParameter"/> doesn't belong to the corresponding <see cref="ReducedFrom"/> method.</exception>
-        ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter);
+        ITypeSymbol? GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter);
 
         /// <summary>
         /// If this is an extension method that can be applied to a receiver of the given type,
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
         /// </summary>
-        IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType);
+        IMethodSymbol? ReduceExtensionMethod(ITypeSymbol receiverType);
 
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
         /// </remarks>
-        ISymbol AssociatedSymbol { get; }
+        ISymbol? AssociatedSymbol { get; }
 
         /// <summary>
         /// Returns a constructed method given its type arguments.
@@ -234,19 +236,19 @@ namespace Microsoft.CodeAnalysis
         /// If this is a partial method implementation part, returns the corresponding
         /// definition part.  Otherwise null.
         /// </summary>
-        IMethodSymbol PartialDefinitionPart { get; }
+        IMethodSymbol? PartialDefinitionPart { get; }
 
         /// <summary>
         /// If this is a partial method declaration without a body, and the method is
         /// implemented with a body, returns that implementing definition.  Otherwise
         /// null.
         /// </summary>
-        IMethodSymbol PartialImplementationPart { get; }
+        IMethodSymbol? PartialImplementationPart { get; }
 
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.
         /// </summary>
-        DllImportData GetDllImportData();
+        DllImportData? GetDllImportData();
 
         /// <summary>
         /// If this method is a Lambda method (MethodKind = MethodKind.LambdaMethod) and 
@@ -255,7 +257,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns null if the symbol is not a lambda or if it does not have an
         /// anonymous delegate associated with it.
         /// </summary>
-        INamedTypeSymbol AssociatedAnonymousDelegate { get; }
+        INamedTypeSymbol? AssociatedAnonymousDelegate { get; }
 
         /// <summary>
         /// Returns a flag indicating whether this symbol has at least one applied/inherited conditional attribute.
