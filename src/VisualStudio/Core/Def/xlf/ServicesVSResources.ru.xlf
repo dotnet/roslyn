@@ -97,11 +97,6 @@
         <target state="translated">Элемент недопустим.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">Включить функции IDE для анализа ссылок, допускающих значение NULL</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Оценка (задач в очереди: {0})</target>

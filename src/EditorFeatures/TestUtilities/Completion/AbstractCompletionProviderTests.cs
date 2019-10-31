@@ -181,6 +181,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {
             var matchingFilters = FilterSet.GetFilters(item);
+
+            // Check that the list has no duplicates.
+            Assert.Equal(matchingFilters.Count, matchingFilters.Distinct().Count());
             return expectedMatchingFilters.SetEquals(matchingFilters);
         }
 

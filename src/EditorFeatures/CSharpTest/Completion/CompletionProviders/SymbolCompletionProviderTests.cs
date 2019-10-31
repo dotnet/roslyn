@@ -10131,6 +10131,52 @@ namespace ThenIncludeIntellisenseBug
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaWithOverloads()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace ClassLibrary1
+{
+    class SomeItem
+    {
+        public string A;
+        public int B;
+    }
+    class SomeCollection<T> : List<T>
+    {
+        public virtual SomeCollection<T> Include(string path) => null;
+    }
+
+    static class Extensions
+    {
+        public static IList<T> Include<T, TProperty>(this IList<T> source, Expression<Func<T, TProperty>> path)
+            => null;
+
+        public static IList Include(this IList source, string path) => null;
+
+        public static IList<T> Include<T>(this IList<T> source, string path) => null;
+    }
+
+    class Program 
+    {
+        void M(SomeCollection<SomeItem> c)
+        {
+            var a = from m in c.Include(t => t.$$);
+        }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Substring");
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionInsideMethodsWithNonFunctionsAsArguments()
         {
             var markup = @"

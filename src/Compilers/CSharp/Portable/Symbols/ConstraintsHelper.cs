@@ -888,7 +888,7 @@ hasRelatedInterfaces:
                     // extension method to be applicable, but then when you try to use it the IDE tells you to upgrade your language version.
                     if (!(currentCompilation is null))
                     {
-                        var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfoOpt(currentCompilation);
+                        var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(currentCompilation);
                         if (csDiagnosticInfo != null)
                         {
                             var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo);

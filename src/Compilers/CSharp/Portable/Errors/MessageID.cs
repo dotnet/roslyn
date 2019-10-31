@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Location? location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
+            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
             if (diag is object)
             {
                 diagnostics.Add(diag, location ?? syntax.GetLocation());
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Compilation compilation,
             Location location)
         {
-            if (GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpCompilation)compilation) is { } diagInfo)
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpCompilation)compilation) is { } diagInfo)
             {
                 diagnostics.Add(diagInfo, location);
                 return false;
@@ -263,10 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpParseOptions options)
+        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpParseOptions options)
             => options.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, options.LanguageVersion);
 
-        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpCompilation compilation)
+        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpCompilation compilation)
             => compilation.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, compilation.LanguageVersion);
 
         private static CSDiagnosticInfo GetDisabledFeatureDiagnosticInfo(MessageID feature, LanguageVersion availableVersion)

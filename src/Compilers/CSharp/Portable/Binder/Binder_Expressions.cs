@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var discardedDiagnostics = DiagnosticBag.GetInstance();
             var result =
                 (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
-                type is null ? BindToNaturalType(expression, discardedDiagnostics) :
+                type is null ? BindToNaturalType(expression, discardedDiagnostics, reportDefaultMissingType: false) :
                 GenerateConversionForAssignment(type, expression, discardedDiagnostics);
             discardedDiagnostics.Free();
             return result;
@@ -1235,6 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
+#nullable enable
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, DiagnosticBag diagnostics)
         {
@@ -1243,13 +1244,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ManagedKind.Managed:
                     diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);
                     return true;
-                case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfoOpt(compilation) is CSDiagnosticInfo diagnosticInfo:
+                case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(compilation) is CSDiagnosticInfo diagnosticInfo:
                     diagnostics.Add(diagnosticInfo, location);
                     return true;
                 default:
                     return false;
             }
         }
+#nullable restore
 
         internal static ConstantValue GetConstantSizeOf(TypeSymbol type)
         {
