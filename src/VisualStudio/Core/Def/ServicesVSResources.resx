@@ -1166,9 +1166,6 @@ I agree to all of the foregoing:</value>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
   </data>
-  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
-    <value>Enable nullable reference analysis IDE features</value>
-  </data>
   <data name="Move_to_namespace" xml:space="preserve">
     <value>Move to Namespace</value>
   </data>

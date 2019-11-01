@@ -20,6 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Private _projectName As String
         Private _projectBinPath As String
+        Private _maxSupportedLangVer As String
         Private _runAnalyzers As String
         Private _runAnalyzersDuringLiveAnalysis As String
         Private ReadOnly _projectRefPath As String
@@ -333,6 +334,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf pszPropName = "TargetRefPath" Then
                 pbstrPropValue = _projectRefPath
                 Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.MaxSupportedLangVersion Then
+                pbstrPropValue = _maxSupportedLangVer
+                Return VSConstants.S_OK
             ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzers Then
                 pbstrPropValue = _runAnalyzers
                 Return VSConstants.S_OK
@@ -350,6 +354,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Return VSConstants.S_OK
             ElseIf pszPropName = "TargetFileName" Then
                 _projectName = PathUtilities.GetFileName(pszPropValue, includeExtension:=False)
+                Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.MaxSupportedLangVersion Then
+                _maxSupportedLangVer = pszPropValue
                 Return VSConstants.S_OK
             ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzers Then
                 _runAnalyzers = pszPropValue

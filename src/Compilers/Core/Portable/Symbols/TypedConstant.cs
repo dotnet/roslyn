@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,18 +21,19 @@ namespace Microsoft.CodeAnalysis
     public struct TypedConstant : IEquatable<TypedConstant>
     {
         private readonly TypedConstantKind _kind;
-        private readonly ITypeSymbol _type;
+        private readonly ITypeSymbolInternal _type;
         private readonly object? _value;
 
-        internal TypedConstant(ITypeSymbol type, TypedConstantKind kind, object? value)
+        internal TypedConstant(ITypeSymbolInternal type, TypedConstantKind kind, object? value)
         {
             Debug.Assert(kind == TypedConstantKind.Array || !(value is ImmutableArray<TypedConstant>));
+            Debug.Assert(!(value is ISymbol) || value is ISymbolInternal);
             _kind = kind;
             _type = type;
             _value = value;
         }
 
-        internal TypedConstant(ITypeSymbol type, ImmutableArray<TypedConstant> array)
+        internal TypedConstant(ITypeSymbolInternal type, ImmutableArray<TypedConstant> array)
             : this(type, TypedConstantKind.Array, array.IsDefault ? null : (object)array)
         {
         }
@@ -49,6 +51,11 @@ namespace Microsoft.CodeAnalysis
         /// or null if the type can't be determined (error).
         /// </summary>
         public ITypeSymbol Type
+        {
+            get { return _type.GetITypeSymbol(); }
+        }
+
+        internal ITypeSymbolInternal TypeInternal
         {
             get { return _type; }
         }
@@ -68,6 +75,24 @@ namespace Microsoft.CodeAnalysis
         /// The value for a non-array constant.
         /// </summary>
         public object? Value
+        {
+            get
+            {
+                object? result = ValueInternal;
+
+                if (result is ISymbolInternal symbol)
+                {
+                    return symbol.GetISymbol();
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Unlike <see cref="Value"/> returns <see cref="ISymbolInternal"/> when the value is a symbol.
+        /// </summary>
+        internal object? ValueInternal
         {
             get
             {
@@ -133,7 +158,7 @@ namespace Microsoft.CodeAnalysis
         /// TypedConstant isn't computing its own kind from the type symbol because it doesn't
         /// have a way to recognize the well-known type System.Type.
         /// </remarks>
-        internal static TypedConstantKind GetTypedConstantKind(ITypeSymbol type, Compilation compilation)
+        internal static TypedConstantKind GetTypedConstantKind(ITypeSymbolInternal type, Compilation compilation)
         {
             RoslynDebug.Assert(type != null);
 

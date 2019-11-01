@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// An ArrayTypeSymbol represents an array type, such as int[] or object[,].
     /// </summary>
-    internal abstract partial class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
+    internal abstract partial class ArrayTypeSymbol : TypeSymbol
     {
         private readonly TypeWithAnnotations _elementTypeWithAnnotations;
         private readonly NamedTypeSymbol _baseType;
@@ -468,43 +468,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        #region IArrayTypeSymbol Members
-
-        ITypeSymbol IArrayTypeSymbol.ElementType
+        protected sealed override ISymbol CreateISymbol()
         {
-            get { return this.ElementType; }
+            return new PublicModel.ArrayTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get => ElementTypeWithAnnotations.ToPublicAnnotation();
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.ArrayTypeSymbol(this, nullableAnnotation);
         }
-
-        ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
-        {
-            get { return this.ElementTypeWithAnnotations.CustomModifiers; }
-        }
-
-        bool IArrayTypeSymbol.Equals(IArrayTypeSymbol symbol)
-        {
-            return this.Equals(symbol as ArrayTypeSymbol, SymbolEqualityComparer.Default.CompareKind);
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitArrayType(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitArrayType(this);
-        }
-
-        #endregion
 
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 

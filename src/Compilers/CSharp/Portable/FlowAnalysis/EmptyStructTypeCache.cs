@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _cache ?? (_cache = new SmallDictionary<NamedTypeSymbol, bool>(SymbolEqualityComparer.ConsiderEverything));
+                return _cache ?? (_cache = new SmallDictionary<NamedTypeSymbol, bool>(Symbols.SymbolEqualityComparer.ConsiderEverything));
             }
         }
 
-        public static EmptyStructTypeCache CreateForDev12Compatibility(Compilation compilation)
+        public static EmptyStructTypeCache CreateForDev12Compatibility(CSharpCompilation compilation)
             => new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: true);
 
         public static EmptyStructTypeCache CreatePrecise()
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///  ignores inaccessible fields of reference type for structs loaded from metadata.</param>
         /// <param name="compilation">if <see cref="_dev12CompilerCompatibility"/> is true, set to the compilation from
         /// which to check accessibility.</param>
-        private EmptyStructTypeCache(Compilation compilation, bool dev12CompilerCompatibility)
+        private EmptyStructTypeCache(CSharpCompilation compilation, bool dev12CompilerCompatibility)
         {
             Debug.Assert(compilation != null || !dev12CompilerCompatibility);
             _dev12CompilerCompatibility = dev12CompilerCompatibility;
-            _sourceAssembly = (SourceAssemblySymbol)compilation?.Assembly;
+            _sourceAssembly = compilation?.SourceAssembly;
         }
 
         /// <summary>

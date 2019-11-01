@@ -1242,8 +1242,8 @@ End Class
 
             ' Always report diagnostics in generated code, unless explicitly suppressed or we are not even analyzing generated code.
             Dim reportInGeneratedCode = generatedCodeAnalysisFlagsOpt Is Nothing OrElse
-                ((generatedCodeAnalysisFlagsOpt And GeneratedCodeAnalysisFlags.ReportDiagnostics) <> 0 AndAlso
-                 (generatedCodeAnalysisFlagsOpt And GeneratedCodeAnalysisFlags.Analyze) <> 0)
+                ((generatedCodeAnalysisFlagsOpt.GetValueOrDefault() And GeneratedCodeAnalysisFlags.ReportDiagnostics) <> 0 AndAlso
+                 (generatedCodeAnalysisFlagsOpt.GetValueOrDefault() And GeneratedCodeAnalysisFlags.Analyze) <> 0)
 
             If Not isGeneratedCode OrElse reportInGeneratedCode Then
                 Dim diag = Diagnostic(GeneratedCodeAnalyzer.Warning.Id, squiggledText).WithArguments(arguments).WithLocation(line, column)

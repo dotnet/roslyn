@@ -979,7 +979,7 @@ P[5]
 Q[6] = 5
 ");
 
-            var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
+            var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
             // Property with parameters from type with [ComImport].
             var property = @namespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>("P");
             Assert.False(property.MustCallMethodsDirectly);
@@ -1080,7 +1080,7 @@ Q[6] = 5
 }";
             var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, verify: Verification.Passes);
 
-            var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
+            var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
             // Indexed property with valid name.
             var type = @namespace.GetMember<NamedTypeSymbol>("I");
             var property = type.GetMember<PropertySymbol>("P");

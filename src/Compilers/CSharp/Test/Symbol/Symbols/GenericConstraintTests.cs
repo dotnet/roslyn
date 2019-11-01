@@ -3369,7 +3369,7 @@ class C<T> : IT<T>
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
             var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
-            Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constraintType).IsSerializable);
         }
 
         /// <summary>

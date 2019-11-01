@@ -349,7 +349,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     customTags:=ImmutableArray(Of String).Empty,
                     properties:=ImmutableDictionary(Of String, String).Empty,
                     project.Id,
-                    location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4))
+                    location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4),
+                    language:=project.Language)
 
                 AddHandler service.DiagnosticsUpdated, Sub(o, args)
                                                            Assert.Single(args.Diagnostics)
@@ -417,7 +418,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 warningLevel:=0,
                 projectId:=projectId,
                 customTags:=ImmutableArray(Of String).Empty,
-                properties:=properties)
+                properties:=properties,
+                language:=LanguageNames.VisualBasic)
         End Function
 
         Private Class TestDiagnosticAnalyzerService

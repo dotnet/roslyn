@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     {
         // Check that the given symbol has the expected number of declaring syntax nodes.
         // and that each declared node goes back to the given symbol.
-        private ImmutableArray<SyntaxReference> CheckDeclaringSyntaxNodes(CSharpCompilation compilation,
-                                               Symbol symbol,
+        private ImmutableArray<SyntaxReference> CheckDeclaringSyntaxNodes(Compilation compilation,
+                                               ISymbol symbol,
                                                int expectedNumber)
         {
             var declaringReferences = symbol.DeclaringSyntaxReferences;
@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 
             if (expectedNumber == 0)
             {
-                Assert.True(!symbol.IsFromCompilation(compilation) || symbol.IsImplicitlyDeclared, "non-implicitly declares source symbol should have declaring location");
+                Assert.True(!symbol.GetSymbol().IsFromCompilation((CSharpCompilation)compilation) || symbol.IsImplicitlyDeclared, "non-implicitly declares source symbol should have declaring location");
             }
             else
             {
-                Assert.True(symbol.IsFromCompilation(compilation) || symbol is MergedNamespaceSymbol, "symbol with declaration should be in source, except for merged namespaces");
+                Assert.True(symbol.GetSymbol().IsFromCompilation((CSharpCompilation)compilation) || symbol.GetSymbol() is MergedNamespaceSymbol, "symbol with declaration should be in source, except for merged namespaces");
                 Assert.False(symbol.IsImplicitlyDeclared);
 
                 foreach (var node in declaringReferences.Select(d => d.GetSyntax()))
@@ -45,23 +45,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             return declaringReferences;
         }
 
-        private ImmutableArray<SyntaxReference> CheckDeclaringSyntaxNodesIncludingParameters(CSharpCompilation compilation,
-                                               Symbol symbol,
+        private ImmutableArray<SyntaxReference> CheckDeclaringSyntaxNodesIncludingParameters(Compilation compilation,
+                                               ISymbol symbol,
                                                int expectedNumber)
         {
             var nodes = CheckDeclaringSyntaxNodes(compilation, symbol, expectedNumber);
 
-            MethodSymbol meth = symbol as MethodSymbol;
+            var meth = symbol as IMethodSymbol;
             if (meth != null)
             {
-                foreach (ParameterSymbol p in meth.Parameters)
-                    CheckDeclaringSyntaxNodes(compilation, p, meth.IsAccessor() ? 0 : expectedNumber);
+                foreach (IParameterSymbol p in meth.Parameters)
+                    CheckDeclaringSyntaxNodes(compilation, p, meth.GetSymbol().IsAccessor() ? 0 : expectedNumber);
             }
 
-            PropertySymbol prop = symbol as PropertySymbol;
+            var prop = symbol as IPropertySymbol;
             if (prop != null)
             {
-                foreach (ParameterSymbol p in prop.Parameters)
+                foreach (IParameterSymbol p in prop.Parameters)
                     CheckDeclaringSyntaxNodes(compilation, p, expectedNumber);
             }
 
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 
         // Check that the given symbol has the expected number of declaring syntax nodes.
         // and that the syntax has the expected kind. Does NOT test GetDeclaringSymbol
-        private ImmutableArray<SyntaxReference> CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(CSharpCompilation compilation,
-                                               Symbol symbol,
+        private ImmutableArray<SyntaxReference> CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(Compilation compilation,
+                                               ISymbol symbol,
                                                int expectedNumber,
                                                SyntaxKind expectedSyntaxKind)
         {
@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 
             if (expectedNumber == 0)
             {
-                Assert.True(!symbol.IsFromCompilation(compilation) || symbol.IsImplicitlyDeclared, "non-implicitly declares source symbol should have declaring location");
+                Assert.True(!symbol.GetSymbol().IsFromCompilation((CSharpCompilation)compilation) || symbol.IsImplicitlyDeclared, "non-implicitly declares source symbol should have declaring location");
             }
             else
             {
-                Assert.True(symbol.IsFromCompilation(compilation) || symbol is MergedNamespaceSymbol, "symbol with declaration should be in source, except for merged namespaces");
+                Assert.True(symbol.GetSymbol().IsFromCompilation((CSharpCompilation)compilation) || symbol.GetSymbol() is MergedNamespaceSymbol, "symbol with declaration should be in source, except for merged namespaces");
 
-                if (symbol.Kind == SymbolKind.Namespace && ((NamespaceSymbol)symbol).IsGlobalNamespace)
+                if (symbol.Kind == SymbolKind.Namespace && ((INamespaceSymbol)symbol).IsGlobalNamespace)
                 {
                     Assert.True(symbol.IsImplicitlyDeclared);
                 }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             string code = tree.GetText().ToString();
             int position = code.IndexOf(name, StringComparison.Ordinal);
             var node = tree.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
-            var sym = (Symbol)model.GetDeclaredSymbol(node);
+            var sym = model.GetDeclaredSymbol(node);
 
             Assert.Equal(kind, sym.Kind);
             Assert.Equal(name, sym.Name);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             string code = tree.GetText().ToString();
             int position = code.IndexOf(textToSearchFor, StringComparison.Ordinal);
             var node = tree.GetCompilationUnitRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
-            MethodSymbol sym = model.GetSymbolInfo(node).Symbol as MethodSymbol;
+            var sym = model.GetSymbolInfo(node).Symbol as IMethodSymbol;
 
             Assert.NotNull(sym);
             Assert.Equal(MethodKind.AnonymousFunction, sym.MethodKind);
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             var nodes = CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, sym, 1, node.Kind());
             Assert.Equal(nodes[0].GetSyntax(), node);
 
-            foreach (ParameterSymbol p in sym.Parameters)
+            foreach (IParameterSymbol p in sym.Parameters)
             {
                 CheckDeclaringSyntaxNodes(comp, p, 1);
             }
@@ -181,27 +181,27 @@ namespace N1 {
     delegate void D1(int i);
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
-            var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
+            var n1 = global.GetMembers("N1").Single() as INamespaceSymbol;
 
             Assert.False(n1.IsImplicitlyDeclared);
             Assert.True(comp.SourceModule.GlobalNamespace.IsImplicitlyDeclared);
 
             var types = n1.GetTypeMembers();
-            foreach (Symbol s in types)
+            foreach (ISymbol s in types)
             {
                 CheckDeclaringSyntaxNodes(comp, s, 1);
             }
 
-            var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
-            var s1 = n1.GetTypeMembers("S1").Single() as NamedTypeSymbol;
-            var f = s1.GetMembers("f").Single() as FieldSymbol;
+            var c1 = n1.GetTypeMembers("C1").Single() as INamedTypeSymbol;
+            var s1 = n1.GetTypeMembers("S1").Single() as INamedTypeSymbol;
+            var f = s1.GetMembers("f").Single() as IFieldSymbol;
 
             CheckDeclaringSyntaxNodes(comp, f.Type, 1);  // constructed type C1<int>.
 
             // Nested types.
-            foreach (Symbol s in c1.GetTypeMembers())
+            foreach (ISymbol s in c1.GetTypeMembers())
             {
                 CheckDeclaringSyntaxNodes(comp, s, 1);
             }
@@ -225,13 +225,13 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
-            var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
-            var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
+            var n1 = global.GetMembers("N1").Single() as INamespaceSymbol;
+            var c1 = n1.GetTypeMembers("C1").Single() as INamedTypeSymbol;
 
             // Check types of each field in C1; should not have declaring syntax node.
-            foreach (FieldSymbol f in c1.GetMembers().OfType<FieldSymbol>())
+            foreach (IFieldSymbol f in c1.GetMembers().OfType<IFieldSymbol>())
             {
                 CheckDeclaringSyntaxNodes(comp, f.Type, 0);
             }
@@ -257,7 +257,7 @@ class C1 {
             int posA1 = text.IndexOf("a1", StringComparison.Ordinal);
 
             var declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
-            var localA1 = (LocalSymbol)model.GetDeclaredSymbol(declaratorA1);
+            var localA1 = (ILocalSymbol)model.GetDeclaredSymbol(declaratorA1);
             var localA1Type = localA1.Type;
             Assert.True(localA1Type.IsAnonymousType);
 
@@ -265,11 +265,11 @@ class C1 {
             CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, localA1Type, 1, SyntaxKind.AnonymousObjectCreationExpression);
 
             // Check members of the anonymous type.
-            foreach (Symbol memb in localA1Type.GetMembers())
+            foreach (ISymbol memb in localA1Type.GetMembers())
             {
                 int expectedDeclaringNodes = 0;
 
-                if (memb is PropertySymbol)
+                if (memb is IPropertySymbol)
                 {
                     expectedDeclaringNodes = 1;  // declared property 
                 }
@@ -302,25 +302,25 @@ class C1 {
             int posQ = text.IndexOf('q');
             var declaratorQ = tree.GetCompilationUnitRoot().FindToken(posQ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
-                (LocalSymbol)model.GetDeclaredSymbol(declaratorQ),
+                (ILocalSymbol)model.GetDeclaredSymbol(declaratorQ),
                 (AnonymousObjectCreationExpressionSyntax)declaratorQ.Initializer.Value);
 
             // check 'x'
             int posX = text.IndexOf('x');
             var declaratorX = tree.GetCompilationUnitRoot().FindToken(posX).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
-                (LocalSymbol)model.GetDeclaredSymbol(declaratorX),
+                (ILocalSymbol)model.GetDeclaredSymbol(declaratorX),
                 (AnonymousObjectCreationExpressionSyntax)declaratorX.Initializer.Value);
 
             // check 'z' --> 'x'
             int posZ = text.IndexOf('z');
             var declaratorZ = tree.GetCompilationUnitRoot().FindToken(posZ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
-                (LocalSymbol)model.GetDeclaredSymbol(declaratorZ),
+                (ILocalSymbol)model.GetDeclaredSymbol(declaratorZ),
                 (AnonymousObjectCreationExpressionSyntax)declaratorX.Initializer.Value);
         }
 
-        private void CheckAnonymousType(SemanticModel model, LocalSymbol local, AnonymousObjectCreationExpressionSyntax anonObjectCreation)
+        private void CheckAnonymousType(SemanticModel model, ILocalSymbol local, AnonymousObjectCreationExpressionSyntax anonObjectCreation)
         {
             var localType = local.Type;
             Assert.True(localType.IsAnonymousType);
@@ -331,7 +331,7 @@ class C1 {
 
             // DeclaringSyntaxNodes: Return the AnonymousObjectCreationExpression from the particular 
             //                       anonymous type definition that flowed to this usage.
-            AssertDeclaringSyntaxNodes(localType, (CSharpCompilation)model.Compilation, anonObjectCreation);
+            AssertDeclaringSyntaxNodes(((CSharp.Symbols.PublicModel.Symbol)localType).UnderlyingSymbol, (CSharpCompilation)model.Compilation, anonObjectCreation);
 
             // SemanticModel.GetDeclaredSymbol: Return this symbol when applied to the 
             //                                  AnonymousObjectCreationExpression in the new { } declaration.
@@ -400,12 +400,12 @@ namespace N1.N2 {
 
 namespace System {}
 ";
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
-            var system = global.GetMembers("System").Single() as NamespaceSymbol;
-            var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
-            var n2 = n1.GetMembers("N2").Single() as NamespaceSymbol;
-            var n3 = n2.GetMembers("N3").Single() as NamespaceSymbol;
+            var system = global.GetMembers("System").Single() as INamespaceSymbol;
+            var n1 = global.GetMembers("N1").Single() as INamespaceSymbol;
+            var n2 = n1.GetMembers("N2").Single() as INamespaceSymbol;
+            var n3 = n2.GetMembers("N3").Single() as INamespaceSymbol;
 
             CheckDeclaringSyntaxNodes(comp, n2, 2);
             CheckDeclaringSyntaxNodes(comp, n3, 2);
@@ -440,37 +440,37 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
-            var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
-            var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
-            var c2 = c1.GetTypeMembers("C2").Single() as NamedTypeSymbol;
-            var c3 = c1.GetTypeMembers("C3").Single() as NamedTypeSymbol;
+            var n1 = global.GetMembers("N1").Single() as INamespaceSymbol;
+            var c1 = n1.GetTypeMembers("C1").Single() as INamedTypeSymbol;
+            var c2 = c1.GetTypeMembers("C2").Single() as INamedTypeSymbol;
+            var c3 = c1.GetTypeMembers("C3").Single() as INamedTypeSymbol;
 
-            foreach (Symbol s in c1.TypeParameters)
+            foreach (ISymbol s in c1.TypeParameters)
             {
                 CheckDeclaringSyntaxNodes(comp, s, 1);
             }
 
-            foreach (FieldSymbol f in c2.GetMembers().OfType<FieldSymbol>())
+            foreach (IFieldSymbol f in c2.GetMembers().OfType<IFieldSymbol>())
             {
-                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type).TypeParameters)
+                foreach (ITypeParameterSymbol tp in ((INamedTypeSymbol)f.Type).TypeParameters)
                 {
                     CheckDeclaringSyntaxNodes(comp, tp, 1);
                 }
             }
 
-            foreach (MethodSymbol m in c2.GetMembers().OfType<MethodSymbol>())
+            foreach (IMethodSymbol m in c2.GetMembers().OfType<IMethodSymbol>())
             {
-                foreach (TypeParameterSymbol tp in m.TypeParameters)
+                foreach (ITypeParameterSymbol tp in m.TypeParameters)
                 {
                     CheckDeclaringSyntaxNodes(comp, tp, 1);
                 }
             }
 
-            foreach (FieldSymbol f in c3.GetMembers().OfType<FieldSymbol>())
+            foreach (IFieldSymbol f in c3.GetMembers().OfType<IFieldSymbol>())
             {
-                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type).TypeParameters)
+                foreach (ITypeParameterSymbol tp in ((INamedTypeSymbol)f.Type).TypeParameters)
                 {
                     CheckDeclaringSyntaxNodes(comp, tp, 0);
                 }
@@ -507,37 +507,37 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
-            var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
-            var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
-            var c2 = n1.GetTypeMembers("C2").Single() as NamedTypeSymbol;
-            var e1 = n1.GetTypeMembers("E1").Single() as NamedTypeSymbol;
+            var n1 = global.GetMembers("N1").Single() as INamespaceSymbol;
+            var c1 = n1.GetTypeMembers("C1").Single() as INamedTypeSymbol;
+            var c2 = n1.GetTypeMembers("C2").Single() as INamedTypeSymbol;
+            var e1 = n1.GetTypeMembers("E1").Single() as INamedTypeSymbol;
 
-            foreach (Symbol memb in e1.GetMembers())
+            foreach (ISymbol memb in e1.GetMembers())
             {
-                if (memb.Kind == SymbolKind.Method && ((MethodSymbol)memb).MethodKind == MethodKind.Constructor)
+                if (memb.Kind == SymbolKind.Method && ((IMethodSymbol)memb).MethodKind == MethodKind.Constructor)
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 0);  // implicit constructor
                 else
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 1);
             }
 
-            var ev1 = c1.GetMembers("ev1").Single() as EventSymbol;
-            var prop3 = c1.GetMembers("Prop3").Single() as PropertySymbol;
+            var ev1 = c1.GetMembers("ev1").Single() as IEventSymbol;
+            var prop3 = c1.GetMembers("Prop3").Single() as IPropertySymbol;
 
-            foreach (Symbol memb in c1.GetMembers())
+            foreach (ISymbol memb in c1.GetMembers())
             {
                 int expectedDeclaringNodes = 1;
 
-                if (memb is MethodSymbol)
+                if (memb is IMethodSymbol)
                 {
-                    MethodSymbol meth = (MethodSymbol)memb;
+                    var meth = (IMethodSymbol)memb;
                     if (meth.AssociatedSymbol != null && meth.AssociatedSymbol.OriginalDefinition.Equals(ev1))
                         expectedDeclaringNodes = 0;  // implicit accessor.
                 }
-                if (memb is FieldSymbol)
+                if (memb is IFieldSymbol)
                 {
-                    FieldSymbol fld = (FieldSymbol)memb;
+                    var fld = (IFieldSymbol)memb;
                     if (fld.AssociatedSymbol != null && fld.AssociatedSymbol.OriginalDefinition.Equals(prop3))
                         expectedDeclaringNodes = 0;  // auto-prop backing field.
                 }
@@ -545,22 +545,22 @@ namespace N1 {
                 CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, expectedDeclaringNodes);
             }
 
-            var fieldT = c1.GetMembers("t").Single() as FieldSymbol;
+            var fieldT = c1.GetMembers("t").Single() as IFieldSymbol;
             var constructedC1 = fieldT.Type;
 
-            foreach (Symbol memb in constructedC1.GetMembers())
+            foreach (ISymbol memb in constructedC1.GetMembers())
             {
                 int expectedDeclaringNodes = 1;
 
-                if (memb is MethodSymbol)
+                if (memb is IMethodSymbol)
                 {
-                    MethodSymbol meth = (MethodSymbol)memb;
+                    var meth = (IMethodSymbol)memb;
                     if (meth.AssociatedSymbol != null && meth.AssociatedSymbol.OriginalDefinition.Equals(ev1))
                         expectedDeclaringNodes = 0;  // implicit accessor.
                 }
-                if (memb is FieldSymbol)
+                if (memb is IFieldSymbol)
                 {
-                    FieldSymbol fld = (FieldSymbol)memb;
+                    var fld = (IFieldSymbol)memb;
                     if (fld.AssociatedSymbol != null && fld.AssociatedSymbol.OriginalDefinition.Equals(prop3))
                         expectedDeclaringNodes = 0;  // auto-prop backing field.
                 }
@@ -568,7 +568,7 @@ namespace N1 {
                 CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, expectedDeclaringNodes);
             }
 
-            foreach (Symbol memb in c2.GetMembers())
+            foreach (ISymbol memb in c2.GetMembers())
             {
                 if (memb.Kind == SymbolKind.Method)
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 0);

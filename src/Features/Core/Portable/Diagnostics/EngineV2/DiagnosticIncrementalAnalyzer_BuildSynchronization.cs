@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,
                 diagnostic.AdditionalLocations,
+                diagnostic.Language,
                 descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 descriptor.HelpLinkUri,

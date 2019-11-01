@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// of an error. For example, if a field is declared "Goo x;", and the type "Goo" cannot be
     /// found, an ErrorSymbol is returned when asking the field "x" what it's type is.
     /// </summary>
-    internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol, IErrorTypeSymbol
+    internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol
     {
         internal static readonly ErrorTypeSymbol UnknownResultType = new UnsupportedMetadataTypeSymbol();
 
@@ -515,17 +515,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        #region IErrorTypeSymbol Members
-
-        ImmutableArray<ISymbol> IErrorTypeSymbol.CandidateSymbols
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return StaticCast<ISymbol>.From(CandidateSymbols);
-            }
+            return new PublicModel.ErrorTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        #endregion IErrorTypeSymbol Members
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
+        {
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.ErrorTypeSymbol(this, nullableAnnotation);
+        }
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
