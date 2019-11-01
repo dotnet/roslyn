@@ -1,38 +1,44 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Export(typeof(IDebugStateChangeListener))]
     internal sealed class VisualStudioDebugStateChangeListener : IDebugStateChangeListener
     {
+        private readonly Workspace _workspace;
         private readonly IDebuggingWorkspaceService _debuggingService;
-        private readonly IEditAndContinueWorkspaceService _encService;
-        private readonly VisualStudioDebuggeeModuleMetadataProvider _moduleMetadataProvider;
+
+        // EnC service or null if EnC is disabled for the debug session.
+        private IEditAndContinueWorkspaceService? _encService;
 
         /// <summary>
         /// Concord component. Singleton created on demand during debugging session and discarded as soon as the session ends.
         /// </summary>
         private sealed class DebuggerService : IDkmCustomMessageForwardReceiver, IDkmModuleInstanceLoadNotification, IDkmModuleInstanceUnloadNotification
         {
-            private VisualStudioDebugStateChangeListener _listener;
+            private IEditAndContinueWorkspaceService? _encService;
 
             /// <summary>
             /// Message source id as specified in ManagedEditAndContinueService.vsdconfigxml.
             /// </summary>
             public static readonly Guid MessageSourceId = new Guid("730432E7-1B68-4B3A-BD6A-BD4C13E0566B");
 
-            DkmCustomMessage IDkmCustomMessageForwardReceiver.SendLower(DkmCustomMessage customMessage)
+            DkmCustomMessage? IDkmCustomMessageForwardReceiver.SendLower(DkmCustomMessage customMessage)
             {
-                _listener = (VisualStudioDebugStateChangeListener)customMessage.Parameter1;
+                _encService = (IEditAndContinueWorkspaceService)customMessage.Parameter1;
                 return null;
             }
 
@@ -48,7 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 if (moduleInstance is DkmClrModuleInstance clrModuleInstance)
                 {
-                    _listener.OnManagedModuleInstanceLoaded(clrModuleInstance);
+                    Contract.ThrowIfNull(_encService);
+                    _encService.OnManagedModuleInstanceLoaded(clrModuleInstance.Mvid);
                 }
             }
 
@@ -58,67 +65,70 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             /// will be suspended and can be examined. ModuleInstanceUnload is sent when the monitor
             /// detects that a module has unloaded from within the target process.
             /// </summary>
-            public void OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
+            void IDkmModuleInstanceUnloadNotification.OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
             {
                 if (moduleInstance is DkmClrModuleInstance clrModuleInstance)
                 {
-                    _listener.OnManagedModuleInstanceUnloaded(clrModuleInstance);
+                    Contract.ThrowIfNull(_encService);
+                    _encService.OnManagedModuleInstanceUnloaded(clrModuleInstance.Mvid);
                 }
             }
         }
 
         [ImportingConstructor]
-        public VisualStudioDebugStateChangeListener(VisualStudioWorkspace workspace, VisualStudioDebuggeeModuleMetadataProvider moduleMetadataProvider)
+        public VisualStudioDebugStateChangeListener(VisualStudioWorkspace workspace)
         {
-            _moduleMetadataProvider = moduleMetadataProvider;
+            _workspace = workspace;
             _debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
         }
 
-        public void StartDebugging()
+        /// <summary>
+        /// Called by the debugger when a debugging session starts and managed debugging is being used.
+        /// </summary>
+        public void StartDebugging(DebugSessionOptions options)
         {
-            // hook up a callbacks (the call blocks until the message is processed):
-            using (DebuggerComponent.ManagedEditAndContinueService())
-            {
-                DkmCustomMessage.Create(
-                    Connection: null,
-                    Process: null,
-                    SourceId: DebuggerService.MessageSourceId,
-                    MessageCode: 0,
-                    Parameter1: this,
-                    Parameter2: null).SendLower();
-            }
-
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
 
-            _encService.StartDebuggingSession();
+            if ((options & DebugSessionOptions.EditAndContinueDisabled) == 0)
+            {
+                _encService = _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+
+                // hook up a callbacks (the call blocks until the message is processed):
+                using (DebuggerComponent.ManagedEditAndContinueService())
+                {
+                    DkmCustomMessage.Create(
+                        Connection: null,
+                        Process: null,
+                        SourceId: DebuggerService.MessageSourceId,
+                        MessageCode: 0,
+                        Parameter1: _encService,
+                        Parameter2: null).SendLower();
+                }
+
+                _encService.StartDebuggingSession();
+            }
+            else
+            {
+                _encService = null;
+            }
         }
 
-        public void EnterBreakState(BreakStateKind kind)
+        public void EnterBreakState()
         {
-            // When stopped at exception - start an edit session as usual and report a rude edit for all changes we see.
-            bool stoppedAtException = kind == BreakStateKind.StoppedAtException;
-
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
-            _encService.StartEditSession();
+            _encService?.StartEditSession();
         }
 
         public void ExitBreakState()
         {
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
-            _encService.EndEditSession();
+            _encService?.EndEditSession();
         }
 
         public void StopDebugging()
         {
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
-            _encService.EndDebuggingSession();
+            _encService?.EndDebuggingSession();
         }
-
-        internal void OnManagedModuleInstanceLoaded(DkmClrModuleInstance moduleInstance)
-            => _encService.OnManagedModuleInstanceLoaded(moduleInstance.Mvid);
-
-        internal void OnManagedModuleInstanceUnloaded(DkmClrModuleInstance moduleInstance)
-            => _encService.OnManagedModuleInstanceUnloaded(moduleInstance.Mvid);
     }
 }
