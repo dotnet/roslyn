@@ -23,10 +23,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         // The NotConfigurable custom tag ensures that user can't turn this diagnostic into a warning / error via
         // ruleset editor or solution explorer. Setting messageFormat to empty string ensures that we won't display
         // this diagnostic in the preview pane header.
-        // Setting category to "Compiler" ensures we always run this analyzer even when user has turned off analyzer execution for the project.
         private static readonly DiagnosticDescriptor s_fixableIdDescriptor =
             new DiagnosticDescriptor(DiagnosticFixableId,
-                                     title: "", messageFormat: "", category: DiagnosticCategory.Compiler,
+                                     title: "", messageFormat: "", category: "",
                                      defaultSeverity: DiagnosticSeverity.Hidden,
                                      isEnabledByDefault: true,
                                      customTags: WellKnownDiagnosticTags.NotConfigurable);
