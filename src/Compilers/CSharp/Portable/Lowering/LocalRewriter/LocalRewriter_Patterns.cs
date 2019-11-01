@@ -491,7 +491,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression savedInputExpression)
             {
                 int count = loweredInput.Arguments.Length;
-                var tupleElementEvaluated = new bool[count];
 
                 // first evaluate the inputs (in order) into temps
                 var originalInput = BoundDagTemp.ForOriginalInput(loweredInput.Syntax, loweredInput.Type);
@@ -503,9 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var expr = loweredInput.Arguments[i];
                     var fieldFetchEvaluation = new BoundDagFieldEvaluation(expr.Syntax, field, originalInput);
                     var temp = new BoundDagTemp(expr.Syntax, expr.Type, fieldFetchEvaluation);
-                    Debug.Assert(!tupleElementEvaluated[i]);
                     storeToTemp(temp, expr);
-                    tupleElementEvaluated[i] = true;
                     newArguments.Add(_tempAllocator.GetTemp(temp));
                 }
 
@@ -541,10 +538,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 field.CorrespondingTupleField != null &&
                                 field.TupleElementIndex is int i)
                             {
-                                Debug.Assert(tupleElementEvaluated[i]);
+                                // The elements of an input tuple were evaluated beforehand, so don't need to be evaluated now.
                                 return replacement(evalNode.Next);
                             }
 
+                            // Since we are performing an optimization whose precondition is that the original
+                            // input is not used except to get its elements, we can assert here that the original
+                            // input is not used for anything else.
                             Debug.Assert(!evalNode.Evaluation.Input.IsOriginalInput);
                             break;
 

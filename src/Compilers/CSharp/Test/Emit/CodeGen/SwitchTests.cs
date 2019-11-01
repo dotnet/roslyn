@@ -9429,8 +9429,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source,
-                    options: TestOptions.DebugExe.WithOutputKind(OutputKind.ConsoleApplication))
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe)
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "Yep, all good!");
             compVerifier.VerifyIL("Program.Main",
@@ -9516,8 +9515,7 @@ class Program
       IL_008d:  ret
     }
 ");
-            compilation = CreateCompilation(source,
-                    options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication))
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe)
                 .VerifyDiagnostics();
             compVerifier = CompileAndVerify(compilation, expectedOutput: "Yep, all good!");
             compVerifier.VerifyIL("Program.Main",
