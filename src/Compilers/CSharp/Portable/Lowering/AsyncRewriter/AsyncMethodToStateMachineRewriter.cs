@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
 
             _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();

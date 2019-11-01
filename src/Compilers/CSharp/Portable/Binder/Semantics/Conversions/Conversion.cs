@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Method;
+                return this.Method.GetPublicSymbol();
             }
         }
 

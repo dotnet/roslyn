@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundNode Rewrite(ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> updatedNullabilities, SnapshotManager? snapshotManager, BoundNode node, ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
-            var remappedSymbolsBuilder = ImmutableDictionary.CreateBuilder<Symbol, Symbol>(SymbolEqualityComparer.ConsiderEverything, SymbolEqualityComparer.ConsiderEverything);
+            var remappedSymbolsBuilder = ImmutableDictionary.CreateBuilder<Symbol, Symbol>(Symbols.SymbolEqualityComparer.ConsiderEverything, Symbols.SymbolEqualityComparer.ConsiderEverything);
             if (remappedSymbols is object)
             {
                 // When we're rewriting for the speculative model, there will be a set of originally-mapped symbols, and we need to
@@ -7999,7 +7999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool Equals((NullabilityInfo info, TypeSymbol type) x, (NullabilityInfo info, TypeSymbol type) y)
             {
                 return x.info.Equals(y.info) &&
-                       SymbolEqualityComparer.ConsiderEverything.Equals(x.type, y.type);
+                       Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(x.type, y.type);
             }
 
             public int GetHashCode((NullabilityInfo info, TypeSymbol type) obj)

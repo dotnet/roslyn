@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsAttributeType(ITypeSymbol type)
         {
-            return IsAttributeType((TypeSymbol)type);
+            return IsAttributeType(type.EnsureCSharpSymbolOrNull(nameof(type)));
         }
 
         internal bool IsExceptionType(TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -221,17 +222,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
-        internal override bool IsSystemTypeReference(ITypeSymbol type)
+        internal override bool IsSystemTypeReference(ITypeSymbolInternal type)
         {
             return TypeSymbol.Equals((TypeSymbol)type, GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything2);
         }
 
-        internal override ISymbol CommonGetWellKnownTypeMember(WellKnownMember member)
+        internal override ISymbolInternal CommonGetWellKnownTypeMember(WellKnownMember member)
         {
             return GetWellKnownTypeMember(member);
         }
 
-        internal override ITypeSymbol CommonGetWellKnownType(WellKnownType wellknownType)
+        internal override ITypeSymbolInternal CommonGetWellKnownType(WellKnownType wellknownType)
         {
             return GetWellKnownType(wellknownType);
         }

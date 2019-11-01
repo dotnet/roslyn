@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         });
                     }
 
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 

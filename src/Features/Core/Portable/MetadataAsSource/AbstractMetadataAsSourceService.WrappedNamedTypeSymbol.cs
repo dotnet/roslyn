@@ -176,6 +176,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsUnmanagedType => throw new NotImplementedException();
 
             public bool IsReadOnly => _symbol.IsReadOnly;
+
+            NullableAnnotation ITypeSymbol.NullableAnnotation => throw new System.NotImplementedException();
+
+            ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 }
