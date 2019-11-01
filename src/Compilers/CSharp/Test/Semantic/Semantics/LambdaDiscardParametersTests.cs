@@ -260,6 +260,41 @@ public class C
         }
 
         [Fact]
+        public void DiscardParameters_SingleUnderscoreParameter_InScopeWithUnderscoreLocal()
+        {
+            var src = @"
+public class C
+{
+    public static int M()
+    {
+        int _ = 0;
+        System.Func<short, short, long> f1 = (_, a) => 0;
+        System.Func<short, short, long> f2 = (_, _) => 0;
+        return _;
+    }
+}";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (7,47): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         System.Func<short, short, long> f1 = (_, a) => 0;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(7, 47),
+                // (8,50): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Func<short, short, long> f2 = (_, _) => 0;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(8, 50)
+                );
+
+            var comp2 = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics(
+                // (8,50): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Func<short, short, long> f2 = (_, _) => 0;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(8, 50)
+                );
+
+            var comp3 = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DiscardParameters_WithTypes()
         {
             var comp = CreateCompilation(@"
