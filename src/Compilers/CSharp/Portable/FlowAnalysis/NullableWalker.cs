@@ -2749,9 +2749,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in expressionType.GetMembers())
             {
                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                NamedTypeSymbol containingType = this._symbol?.ContainingType;
                 if ((member.Kind == SymbolKind.Property && !((PropertySymbol)member).IsIndexedProperty || member.Kind == SymbolKind.Field) &&
                     member.RequiresInstanceReceiver() &&
-                    AccessCheck.IsSymbolAccessible(member, this._symbol.ContainingType, ref discardedUseSiteDiagnostics))
+                    (containingType is null || AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteDiagnostics)))
                 {
                     int childSlot = GetOrCreateSlot(member, slot, true);
                     if (childSlot > 0)
