@@ -1934,5 +1934,56 @@ public interface IOut<out T> { }
                 //         _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(46, 29));
         }
+
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_01()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    string? field = string.Empty;
+
+    void M1(C c)
+    {
+        if (c.field == null) return;
+        
+        c.field.ToString();
+    }
+    
+    void M2(C c)
+    {
+        if (c is { field: null }) return;
+        
+        c.field.ToString();
+    }
+
+    void M3(C c)
+    {
+        switch (c)
+        {
+            case { field: null }:
+                break;
+            default:
+                c.field.ToString();
+                break;
+        }
+    }
+
+    void M4(C c)
+    {
+        _ = c switch
+        {
+            { field: null } => string.Empty,
+            _ => c.field.ToString(),
+        };
+    }
+}
+");
+            c.VerifyDiagnostics(
+                );
+        }
+
     }
 }
