@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch.Capabilities;
 using Microsoft.VisualStudio.LanguageServices.FindUsages;
@@ -20,7 +17,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids, IResultWithKind, IResultInNamedCode, IResultWithReferenceDefinitionRelationship
+    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids, IResultWithKind, IResultInNamedCode, IResultWithReferenceDefinitionRelationship, IResultWithIcon
     {
         private DefinitionItem DefinitionItem { get; set; }
         private SourceReferenceItem ReferenceItem { get; set; }
@@ -90,16 +87,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                 if (result.ReferenceItem.SymbolUsageInfo.IsWrittenTo())
                 {
-                    result.Kind = "Write";
                     result.IsWrittenTo = true;
                 }
                 else if (result.ReferenceItem.SymbolUsageInfo.IsReadFrom())
                 {
-                    result.Kind = "Read";
                     result.IsReadFrom = true;
                 }
 
-                if (result.Context.DefinitionResults.TryGetValue(result.ReferenceItem.Definition, out var definitionResult))
+                var definitionResult = result.Context.GetDefinitionResult(result.ReferenceItem.Definition);
+                if (definitionResult != null)
                 {
                     result.Definition = definitionResult;
                 }
@@ -124,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
                 result.Kind = "Definition";
 
-                result.DefinitionIcon = result.DefinitionItem.Tags.GetFirstGlyph().GetImageId();
+                result.Icon = new ImageElement(result.DefinitionItem.Tags.GetFirstGlyph().GetImageId());
 
                 // TODO: Use DocumentSpanEntry
                 result.ClassifiedContext = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
@@ -160,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public ClassifiedTextElement ClassifiedContext { get; private set; }
 
-        public ImageId DefinitionIcon { get; private set; }
+        public ImageElement Icon { get; private set; }
 
         public string ProjectName { get; private set; }
 

@@ -1323,4 +1323,16 @@ I agree to all of the foregoing:</value>
   <data name="Updating_severity" xml:space="preserve">
     <value>Updating severity</value>
   </data>
+  <data name="Symbol_search_current_solution" xml:space="preserve">
+    <value>Current Solution</value>
+  </data>
+  <data name="Symbol_search_known_solution" xml:space="preserve">
+    <value>'{0}' Solution</value>
+  </data>
+  <data name="Symbol_search_source_description" xml:space="preserve">
+    <value>Symbols found by the local language service</value>
+  </data>
+  <data name="Symbol_search_source_name" xml:space="preserve">
+    <value>Local language service</value>
+  </data>
 </root>

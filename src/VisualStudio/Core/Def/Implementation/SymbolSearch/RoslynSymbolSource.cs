@@ -11,37 +11,37 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     internal class RoslynSymbolSource : ISymbolSourceFromLocation
     {
-        internal RoslynSymbolSourceProvider ServiceProvider { get; private set; }
+        internal RoslynSymbolSourceProvider ServiceProvider { get; }
 
         public RoslynSymbolSource(RoslynSymbolSourceProvider symbolSourceProvider)
         {
             ServiceProvider = symbolSourceProvider;
         }
 
-        public string UniqueId => "Roslyn symbol source";
+        ImageId IDecorated.DisplayIcon => throw new NotImplementedException();
 
-        public ImageId DisplayIcon => throw new NotImplementedException();
+        string IDecorated.DescriptionText => ServicesVSResources.Symbol_search_source_description;
 
-        public string DescriptionText => "Symbols provided by the local language service";
+        string INamed.DisplayName => ServicesVSResources.Symbol_search_source_name;
 
-        public string DisplayName => "Local symbol source";
-
-        internal LocalCodeSymbolOrigin LocalOrigin = new LocalCodeSymbolOrigin("Current Solution"); // TODO: Get name of the solution
+        string ISymbolSource.UniqueId => nameof(RoslynSymbolSource);
 
         public async Task<SymbolSearchStatus> FindSymbolsAsync(string navigationKind, VisualStudio.Language.Intellisense.SymbolSearch.Location sourceLocation, IStreamingSymbolSearchSink sink, CancellationToken token)
         {
+            // This method is called off the UI thread
             var snapshot = sourceLocation.PersistentSpan.Document.TextBuffer.CurrentSnapshot;
             var roslynDocument = snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
             var solutionPath = roslynDocument.Project.Solution.FilePath;
             var rootNodeName = !string.IsNullOrWhiteSpace(solutionPath)
-                ? $"'{Path.GetFileNameWithoutExtension(solutionPath)}' Solution"
-                : $"Current Solution";
+                ? string.Format(ServicesVSResources.Symbol_search_known_solution, Path.GetFileNameWithoutExtension(solutionPath))
+                : ServicesVSResources.Symbol_search_current_solution;
 
             var symbolSearchContext = new SymbolSearchContext(this, sink, rootNodeName);
 

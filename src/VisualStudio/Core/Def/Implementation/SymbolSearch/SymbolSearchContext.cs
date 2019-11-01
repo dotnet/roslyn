@@ -13,10 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         internal RoslynSymbolSource SymbolSource { get; }
         internal LocalCodeSymbolOrigin RootSymbolOrigin { get; }
-        internal Dictionary<DefinitionItem, RoslynSymbolResult> DefinitionResults { get; }
 
         private readonly IStreamingSymbolSearchSink SymbolSink;
         public new readonly CancellationToken CancellationToken;
+        private readonly Dictionary<DefinitionItem, RoslynSymbolResult> DefinitionResults = new Dictionary<DefinitionItem, RoslynSymbolResult>();
+        private object Gate = new object();
 
         public SymbolSearchContext(RoslynSymbolSource symbolSource, IStreamingSymbolSearchSink sink, string rootNodeName)
         {
@@ -24,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             this.SymbolSink = sink;
             this.CancellationToken = sink.CancellationToken;
             this.RootSymbolOrigin = new LocalCodeSymbolOrigin(rootNodeName);
-            this.DefinitionResults = new Dictionary<DefinitionItem, RoslynSymbolResult>();
         }
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
@@ -34,15 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var result = await RoslynSymbolResult.MakeAsync(this, definition, definition.SourceSpans[0], CancellationToken)
                     .ConfigureAwait(false);
                 this.SymbolSink.Add(result);
-                this.DefinitionResults.Add(definition, result);
+                lock (Gate)
+                {
+                    this.DefinitionResults.Add(definition, result);
+                }
             }
-            else if (definition.SourceSpans.Length == 0)
+            else if (definition.SourceSpans.Length > 1)
             {
-                // TODO: that's interesting. investigate this!
-                System.Diagnostics.Debugger.Break();
-            }
-            else
-            {
+                // Create a definition for each of the parts
                 var builder = ImmutableArray.CreateBuilder<SymbolSearchResult>(definition.SourceSpans.Length);
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
@@ -62,6 +61,21 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 .ConfigureAwait(false);
             this.SymbolSink.Add(result);
             return;
+        }
+
+        internal RoslynSymbolResult GetDefinitionResult(DefinitionItem definition)
+        {
+            lock (Gate)
+            {
+                if (DefinitionResults.TryGetValue(definitionItem, out var definitionResult))
+                {
+                    return definitionResult;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
     }
 }

@@ -3015,6 +3015,42 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current Solution.
+        /// </summary>
+        internal static string Symbol_search_current_solution {
+            get {
+                return ResourceManager.GetString("Symbol_search_current_solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; Solution.
+        /// </summary>
+        internal static string Symbol_search_known_solution {
+            get {
+                return ResourceManager.GetString("Symbol_search_known_solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbols found by the local language service.
+        /// </summary>
+        internal static string Symbol_search_source_description {
+            get {
+                return ResourceManager.GetString("Symbol_search_source_description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local language service.
+        /// </summary>
+        internal static string Symbol_search_source_name {
+            get {
+                return ResourceManager.GetString("Symbol_search_source_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Symbol Specification.
         /// </summary>
         internal static string Symbol_Specification {

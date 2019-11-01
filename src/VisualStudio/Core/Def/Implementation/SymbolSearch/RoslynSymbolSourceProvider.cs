@@ -20,16 +20,27 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         [Import]
         internal ISymbolSearchBroker SymbolSearchBroker { get; private set; }
 
-        private ImmutableArray<ISymbolSource> ExportedSources;
+        /// <summary>
+        /// <see cref="GetOrCreate(ITextBuffer)"/> is capable of returning multiple <see cref="ISymbolSource"/>s,
+        /// and each source can return <see cref="SymbolSearchResult"/>s with varying <see cref="ISymbolOrigin"/>s.
+        /// Currently, we are using only <see cref="RoslynSymbolSource"/> 
+        /// and will cache the return value of <see cref="GetOrCreate(ITextBuffer)"/> in this variable.
+        /// </summary>
+        private ImmutableArray<ISymbolSource> _cachedSources;
+
+        private object _cacheLock = new object();
 
         public ImmutableArray<ISymbolSource> GetOrCreate(ITextBuffer buffer)
         {
-            if (ExportedSources == default)
+            lock (_cacheLock)
             {
-                ExportedSources = ImmutableArray.Create<ISymbolSource>(new RoslynSymbolSource(this));
+                if (_cachedSources == default)
+                {
+                    _cachedSources = ImmutableArray.Create<ISymbolSource>(new RoslynSymbolSource(this));
+                }
             }
 
-            return ExportedSources;
+            return _cachedSources;
         }
     }
 }
