@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="translated">Préférences de retour à la ligne</target>
+        <target state="translated">Préférences d'enveloppement</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

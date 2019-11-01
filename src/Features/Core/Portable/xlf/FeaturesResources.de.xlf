@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">NULL-Überprüfungen für alle Parameter hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Vermeiden Sie nicht verwendete Parameter in Ihrem Code. Wenn der Parameter nicht entfernt werden kann, ändern Sie dessen Namen so, dass er mit einem Unterstrich beginnt, dem optional eine Zahl angefügt wird. Beispiel: "_", "_1", "_2" usw. Diese werden als spezielle Symbolnamen für Ausschussparameter behandelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">Der aktuelle Inhalt der Quelldatei "{0}" stimmt nicht mit der erstellten Quelle überein. Die Debugsitzung kann erst fortgesetzt werden, wenn der Inhalt der Quelldatei wiederhergestellt wurde.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="translated">Überflüssige Zuordnung entfernen</target>
+        <target state="translated">Überflüssige Zuweisung entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -499,42 +499,42 @@
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
-        <target state="translated">Alle Argumente entpacken</target>
+        <target state="translated">Umbruch für alle Argumente aufheben</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
-        <target state="translated">Alle Parameter entpacken</target>
+        <target state="translated">Umbruch für alle Parameter aufheben</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
-        <target state="translated">Alle Argumente entpacken und einrücken</target>
+        <target state="translated">Umbruch für alle Argumente aufheben und einrücken</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
-        <target state="translated">Alle Parameter entpacken und einrücken</target>
+        <target state="translated">Umbruch für alle Parameter aufheben und einrücken</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_argument_list">
         <source>Unwrap argument list</source>
-        <target state="translated">Argumentliste entpacken</target>
+        <target state="translated">Umbruch für Argumentliste aufheben</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="translated">Zeilenumbruch für Aufrufkette aufheben</target>
+        <target state="translated">Umbruch für alle Aufrufkette aufheben</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
-        <target state="translated">Ausdruck umschließen</target>
+        <target state="translated">Umbruch für Ausdruck aufheben</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
-        <target state="translated">Parameterliste entpacken</target>
+        <target state="translated">Umbruch für Parameterliste aufheben</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -544,17 +544,17 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">Verwenden Sie das empfohlene Dispose-Muster, um sicherzustellen, dass löschbare Objekte für den lokalen Bereich in allen Pfaden gelöscht werden. Schließen Sie die Erstellung nach Möglichkeit in einer using-Anweisung oder einer using-Deklaration ein. Verwenden Sie andernfalls ein try-finally-Muster mit einer vor dem try-Bereich deklarierten dedizierten lokalen Variablen und einem Dispose-Aufruf ohne Bedingung für den Nicht-NULL-Wert im finally-Bereich, beispielsweise "x?.Dispose()". Wenn das Objekt explizit innerhalb des try-Bereichs gelöscht oder der Dispose-Besitz auf ein anderes Objekt oder eine andere Methode übertragen wird, weisen Sie der lokalen Variablen gleich nach einem solchen Vorgang NULL zu, um einen doppelten Löschvorgang in "finally" zu vermeiden.</target>
+        <target state="translated">Verwenden Sie das empfohlene Dispose-Muster, um sicherzustellen, dass löschbare Objekte für den lokalen Bereich in allen Pfaden gelöscht werden. Schließen Sie die Erstellung nach Möglichkeit in einer using-Anweisung oder einer using-Deklaration ein. Verwenden Sie andernfalls ein try-finally-Muster mit einer vor dem try-Bereich deklarierten dedizierten lokalen Variablen und einem Dispose-Aufruf ohne Bedingung für den Nicht-NULL-Wert im finally-Bereich, beispielsweise "x?.Dispose()". Wenn das Objekt explizit innerhalb des try-Bereichs gelöscht oder der Dispose-Besitz auf ein anderes Objekt oder eine andere Methode übertragen wird, weisen Sie der lokalen Variablen gleich nach einem solchen Vorgang NULL zu, um einen doppelten Löschvorgang in "finally" zu vermeiden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="translated">Blockkörper für Lambdaausdrücke verwenden</target>
+        <target state="translated">Blocktextkörper für Lambdaausdrücke verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
         <source>Use block body for local functions</source>
-        <target state="translated">Blocktext für lokale Funktionen verwenden</target>
+        <target state="translated">Blocktextkörper für lokale Funktionen verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
@@ -644,22 +644,22 @@
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
-        <target state="translated">Jedes Argument umschließen</target>
+        <target state="translated">Jedes Argument umbrechen</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
-        <target state="translated">Alle Parameter umschließen</target>
+        <target state="translated">Alle Parameter umbrechen</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_expression">
         <source>Wrap expression</source>
-        <target state="translated">Ausdruck umschließen</target>
+        <target state="translated">Ausdruck umbrechen</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
-        <target state="translated">Lange Argumentliste umschließen</target>
+        <target state="translated">Lange Argumentliste umbrechen</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
-        <target state="translated">Lange Parameterliste umschließen</target>
+        <target state="translated">Lange Parameterliste umbrechen</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping">
@@ -2092,32 +2092,32 @@ Diese Version wird verwendet in: {2}</target>
       </trans-unit>
       <trans-unit id="Use_block_body_for_methods">
         <source>Use block body for methods</source>
-        <target state="translated">Blocktext für Methoden verwenden</target>
+        <target state="translated">Blocktextkörper für Methoden verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
-        <target state="translated">Blocktext für Accessoren verwenden</target>
+        <target state="translated">Blocktextkörper für Accessoren verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_constructors">
         <source>Use block body for constructors</source>
-        <target state="translated">Blocktext für Konstruktoren verwenden</target>
+        <target state="translated">Blocktextkörper für Konstruktoren verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
-        <target state="translated">Blocktext für Indexer verwenden</target>
+        <target state="translated">Blocktextkörper für Indexer verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_operators">
         <source>Use block body for operators</source>
-        <target state="translated">Blocktext für Operatoren verwenden</target>
+        <target state="translated">Blocktextkörper für Operatoren verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_properties">
         <source>Use block body for properties</source>
-        <target state="translated">Blocktext für Eigenschaften verwenden</target>
+        <target state="translated">Blocktextkörper für Eigenschaften verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_accessors">
@@ -2197,7 +2197,7 @@ Diese Version wird verwendet in: {2}</target>
       </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
-        <target state="translated">NULL-Verteilung verwenden</target>
+        <target state="translated">NULL-Weitergabe verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
@@ -2507,7 +2507,7 @@ Diese Version wird verwendet in: {2}</target>
       </trans-unit>
       <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
         <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
-        <target state="translated">Durch den Wechsel zwischen einem Lambda und einer lokalen Funktion wird das Fortsetzen der Debugsitzung verhindert.</target>
+        <target state="translated">Durch den Wechsel zwischen einer Lambdafunktion und einer lokalen Funktion wird das Fortsetzen der Debugsitzung verhindert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">

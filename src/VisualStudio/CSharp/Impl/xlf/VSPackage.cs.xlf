@@ -316,7 +316,7 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Obalování</target>
+        <target state="translated">Zalamování</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
@@ -361,7 +361,7 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">Styl pojmenování;Styly názvů;Pravidlo pro pojmenování;Konvence pojmenování</target>
+        <target state="translated">Styl pojmenování;Styly názvů;Pravidlo pojmenování;Konvence pojmenování</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">

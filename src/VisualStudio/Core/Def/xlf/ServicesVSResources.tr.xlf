@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">Çözümünüzün kökünde yeni bir .editorconfig dosyası algılandı. Bunu bir çözüm öğesi yapmak istiyor musunuz?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">Kapsayan Üye</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">Kapsayan Tür</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -329,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Adlandırma kuralları</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -489,7 +489,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">Önem derecesi güncelleştiriliyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1565,7 +1565,7 @@ Ek bilgiler: {1}</target>
       </trans-unit>
       <trans-unit id="Prefer_inlined_variable_declaration">
         <source>Prefer inlined variable declaration</source>
-        <target state="translated">Satır içi değişken bildirimini tercih et</target>
+        <target state="translated">Satır içine alınmış değişken bildirimini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_methods">

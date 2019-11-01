@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">Le document ne prend pas en charge les arborescences de syntaxe</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="Regex_any_character_group_long">
         <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
-        <target state="translated">Le point (.) correspond à n'importe quel caractère sauf \n (le caractère de nouvelle ligne, \u000A). Si un modèle d'expression régulière est modifié par l'option RegexOptions.Singleline, ou si la partie du modèle qui contient la classe de caractères . est modifiée par l'option 's', le . correspond à n'importe quel caractère.</target>
+        <target state="translated">Le point (.) correspond à n'importe quel caractère sauf \n (le caractère nouvelle ligne, \u000A). Si un modèle d'expression régulière est modifié par l'option RegexOptions.Singleline, ou si la partie du modèle qui contient la classe de caractères . est modifiée par l'option 's', le . correspond à n'importe quel caractère.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_short">
@@ -242,7 +242,7 @@ La définition du groupe d'équilibrage utilise 'nom2' en tant que pile. Le cara
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_long">
         <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
-        <target state="translated">Correspond au caractère de retour chariot, \u000D. Notez que \r n'est pas équivalent au caractère de nouvelle ligne, \n.</target>
+        <target state="translated">Correspond au caractère de retour chariot, \u000D. Notez que \r n'est pas équivalent au caractère nouvelle ligne, \n.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_short">
@@ -376,7 +376,7 @@ L'ancre \Z correspond à \n mais ne correspond pas à \r\n (combinaison de carac
 The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
         <target state="translated">L'ancre $ spécifie que le modèle précédent doit exister à la fin de la chaîne d'entrée ou avant \n à la fin de la chaîne d'entrée. Si vous utilisez $ avec l'option RegexOptions.Multiline, la correspondance peut également exister à la fin d'une ligne.
 
-L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caractères de retour chariot et de nouvelle ligne, c'est-à-dire CR/LF). Pour rechercher une correspondance avec la combinaison de caractères CR/LF, ajoutez \r?$ au modèle d'expression régulière.</target>
+L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caractères de retour chariot et nouvelle ligne, c'est-à-dire CR/LF). Pour rechercher une correspondance avec la combinaison de caractères CR/LF, ajoutez \r?$ au modèle d'expression régulière.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_short">
@@ -451,7 +451,7 @@ L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caract
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">échappement hexadécimal</target>
+        <target state="translated">échappement hexadécimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -843,14 +843,14 @@ Si vous spécifiez un comportement conforme à ECMAScript, \W équivaut à [^a-z
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="translated">Cette construction désactive la rétroaction. Le moteur d'expressions régulières recherche une correspondance avec autant de caractères que possible dans la chaîne d'entrée. Quand aucune correspondance supplémentaire n'est possible, il n'effectue pas de rétroaction pour tenter de trouver d'autres correspondances de modèles. (En d'autres termes, la sous-expression correspond uniquement aux chaînes qui correspondent à la sous-expression seule ; aucune mise en correspondance n'est tentée pour trouver une chaîne basée sur la sous-expression et les sous-expressions qui la suivent.)
+        <target state="translated">Cette construction désactive le retour sur trace. Le moteur d'expressions régulières recherche une correspondance avec autant de caractères que possible dans la chaîne d'entrée. Quand aucune correspondance supplémentaire n'est possible, il n'effectue pas de rétroaction pour tenter de trouver d'autres correspondances de modèles. (En d'autres termes, la sous-expression correspond uniquement aux chaînes qui correspondent à la sous-expression seule ; aucune mise en correspondance n'est tentée pour trouver une chaîne basée sur la sous-expression et les sous-expressions qui la suivent.)
 
-Cette option est recommandée si vous savez que la rétroaction va être un échec. Empêcher le moteur d'expressions régulières d'effectuer des recherches inutiles améliore les performances.</target>
+Cette option est recommandée si vous savez que le retour sur trace va être un échec. Empêcher le moteur d'expressions régulières d'effectuer des recherches inutiles améliore les performances.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
         <source>nonbacktracking subexpression</source>
-        <target state="translated">sous-expression sans rétroaction</target>
+        <target state="translated">sous-expression sans retour sur trace</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
@@ -1100,7 +1100,7 @@ If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]
         <target state="translated">\s correspond à un caractère représentant un espace blanc. Il équivaut aux séquences d'échappement et aux catégories Unicode suivantes :
 
     \f	Caractère de saut de page, \u000C
-    \n	Caractère de nouvelle ligne, \u000A
+    \n	Caractère nouvelle ligne, \u000A
     \r	Caractère de retour chariot, \u000D
     \t	Caractère de tabulation, \u0009
     \v	Caractère de tabulation verticale, \u000B
@@ -1170,56 +1170,56 @@ Si vous spécifiez un comportement conforme à ECMAScript, \w équivaut à [a-zA
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="translated">Assertion de préanalyse négative de largeur nulle, où, pour que la correspondance soit réussie, la chaîne d'entrée ne doit pas correspondre au modèle d'expression régulière de la sous-expression. La chaîne correspondante n'est pas incluse dans le résultat de la correspondance.
+        <target state="translated">Assertion avant négative de largeur nulle, où, pour que la correspondance soit réussie, la chaîne d'entrée ne doit pas correspondre au modèle d'expression régulière de la sous-expression. La chaîne correspondante n'est pas incluse dans le résultat de la correspondance.
 
-Une assertion de préanalyse négative de largeur nulle est généralement utilisée au début ou à la fin d'une expression régulière. Au début d'une expression régulière, elle peut définir un modèle spécifique à ne pas mettre en correspondance quand le début de l'expression régulière définit un modèle similaire, mais plus général, à mettre en correspondance. Dans ce cas, elle est souvent utilisée pour limiter la rétroaction. À la fin d'une expression régulière, elle peut définir une sous-expression qui ne peut pas se produire à la fin d'une correspondance.</target>
+Une assertion avant négative de largeur nulle est généralement utilisée au début ou à la fin d'une expression régulière. Au début d'une expression régulière, elle peut définir un modèle spécifique à ne pas mettre en correspondance quand le début de l'expression régulière définit un modèle similaire, mais plus général, à mettre en correspondance. Dans ce cas, elle est souvent utilisée pour limiter le retour sur trace. À la fin d'une expression régulière, elle peut définir une sous-expression qui ne peut pas se produire à la fin d'une correspondance.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="translated">assertion de préanalyse négative de largeur nulle</target>
+        <target state="translated">assertion avant négative de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="translated">Assertion de postanalyse négative de largeur nulle, où, pour qu'une correspondance soit réussie, la 'sous-expression' ne doit pas apparaître dans la chaîne d'entrée à gauche de la position actuelle. Les sous-chaînes qui ne correspondent pas à la 'sous-expression' ne sont pas incluses dans le résultat de la correspondance.
+        <target state="translated">Assertion arrière négative de largeur nulle, où, pour qu'une correspondance soit réussie, la 'sous-expression' ne doit pas apparaître dans la chaîne d'entrée à gauche de la position actuelle. Les sous-chaînes qui ne correspondent pas à la 'sous-expression' ne sont pas incluses dans le résultat de la correspondance.
 
-Les assertions de postanalyse négatives de largeur nulle sont généralement utilisées au début des expressions régulières. Le modèle qu'elles définissent empêche toute correspondance dans la chaîne qui suit. Elles sont également utilisées pour limiter la rétroaction quand le ou les derniers caractères d'un groupe capturé ne doivent pas représenter un ou plusieurs des caractères qui correspondent au modèle d'expression régulière de ce groupe.</target>
+Les assertions arrière négatives de largeur nulle sont généralement utilisées au début des expressions régulières. Le modèle qu'elles définissent empêche toute correspondance dans la chaîne qui suit. Elles sont également utilisées pour limiter le retour sur trace quand le ou les derniers caractères d'un groupe capturé ne doivent pas représenter un ou plusieurs des caractères qui correspondent au modèle d'expression régulière de ce groupe.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="translated">assertion de postanalyse négative de largeur nulle</target>
+        <target state="translated">assertion arrière négative de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="translated">Assertion de préanalyse positive de largeur nulle, où, pour qu'une correspondance soit réussie, la chaîne d'entrée doit correspondre au modèle d'expression régulière de la 'sous-expression'. La sous-chaîne correspondante n'est pas incluse dans le résultat de la correspondance. Une assertion de préanalyse positive de largeur nulle n'effectue pas de rétroaction.
+        <target state="translated">Assertion avant positive de largeur nulle, où, pour qu'une correspondance soit réussie, la chaîne d'entrée doit correspondre au modèle d'expression régulière de la 'sous-expression'. La sous-chaîne correspondante n'est pas incluse dans le résultat de la correspondance. Une assertion avant positive de largeur nulle n'effectue pas de rétroaction.
 
-En règle générale, une assertion de préanalyse positive de largeur nulle se trouve à la fin d'un modèle d'expression régulière. Elle définit une sous-chaîne qui doit se trouver à la fin d'une chaîne pour qu'une correspondance se produise mais qui ne doit pas être incluse dans la correspondance. Elle permet également d'empêcher une rétroaction excessive. Vous pouvez utiliser une assertion de préanalyse positive de largeur nulle pour vérifier qu'un groupe capturé particulier commence par un texte correspondant à un sous-ensemble du modèle défini pour ce groupe capturé.</target>
+En règle générale, une assertion avant positive de largeur nulle se trouve à la fin d'un modèle d'expression régulière. Elle définit une sous-chaîne qui doit se trouver à la fin d'une chaîne pour qu'une correspondance se produise mais qui ne doit pas être incluse dans la correspondance. Elle permet également d'empêcher un retour sur trace excessif. Vous pouvez utiliser une assertion avant positive de largeur nulle pour vérifier qu'un groupe capturé particulier commence par un texte correspondant à un sous-ensemble du modèle défini pour ce groupe capturé.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="translated">assertion de préanalyse positive de largeur nulle</target>
+        <target state="translated">assertion avant positive de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="translated">Assertion de postanalyse positive de largeur nulle, où, pour qu'une correspondance soit réussie, la 'sous-expression' doit apparaître dans la chaîne d'entrée à gauche de la position actuelle. La 'sous-expression' n'est pas incluse dans le résultat de la correspondance. Une assertion de postanalyse positive de largeur nulle n'effectue pas de rétroaction.
+        <target state="translated">Assertion arrière positive de largeur nulle, où, pour qu'une correspondance soit réussie, la 'sous-expression' doit apparaître dans la chaîne d'entrée à gauche de la position actuelle. La 'sous-expression' n'est pas incluse dans le résultat de la correspondance. Une assertion arrière positive de largeur nulle n'effectue pas de rétroaction.
 
-Les assertions de postanalyse positives de largeur nulle sont généralement utilisées au début des expressions régulières. Le modèle qu'elles définissent est une condition préalable à une correspondance, bien qu'il ne fasse pas partie du résultat de la correspondance.</target>
+Les assertions arrière positives de largeur nulle sont généralement utilisées au début des expressions régulières. Le modèle qu'elles définissent est une condition préalable à une correspondance, bien qu'il ne fasse pas partie du résultat de la correspondance.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="translated">assertion de postanalyse positive de largeur nulle</target>
+        <target state="translated">assertion arrière positive de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1319,7 +1319,7 @@ Les assertions de postanalyse positives de largeur nulle sont généralement uti
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">L'ajout d'importations place une méthode d'extension dans l'étendue avec le même nom que « {0} »</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

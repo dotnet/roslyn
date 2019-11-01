@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CodeAnalysisResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CodeAnalysisResources.resx">
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
@@ -91,7 +91,7 @@
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
         <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
-        <target state="needs-review-translation">具有禁止显示 ID“{2}”和理由“{3}”的 DiagnosticSuppressor 已以编程方式禁止显示诊断“{0}: {1}”</target>
+        <target state="translated">具有禁止显示 ID {2} 和理由“{3}”的 DiagnosticSuppressor 已以编程方式禁止显示诊断“{0}: {1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">

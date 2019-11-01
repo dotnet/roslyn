@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Komut satırı söz dizimi hatası: '{0}', '{1}' seçeneği için geçerli bir değer değil. Değer '{2}' biçiminde olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">Varsayılan değişmez değer için hedef tür yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">C# derleyicisinde iç hata oluştu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': Zaman uyumsuz bir using deyiminde kullanılan tür örtük olarak 'System.IAsyncDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'DisposeAsync' yöntemi uygulamalıdır. 'await using' yerine 'using' mi kullanmak istediniz?</target>
+        <target state="translated">'{0}': Asenkron bir using deyiminde kullanılan tür örtük olarak 'System.IAsyncDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'DisposeAsync' metodunu uygulamalıdır. 'await using' yerine 'using' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">'{0}' türünün temel arabirimden yeniden soyutlanmış bir üyesi olduğundan bu tür eklenemiyor. 'Embed Interop Types' özelliğini false olarak ayarlamayı deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -634,128 +634,131 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                              Visual C# Derleyici Seçenekleri
+        <target state="translated">
+                             Visual C# Derleyici Seçenekleri
 
                        - ÇIKIŞ DOSYALARI -
--out:&lt;dosya&gt;                   Çıkış dosyası adını belirtin (varsayılan: ana sınıfı
+-out:&lt;dosya&gt;                   Çıkış dosyası adını belirt (varsayılan: ana sınıfı
                               içeren dosyanın veya ilk dosyanın temel adı)
--target:exe                   Konsol yürütülebilir dosyası oluşturun (varsayılan) (Kısa
+-target:exe                   Konsol yürütülebilir dosyası oluştur (varsayılan) (Kısa
                               biçim: -t:exe)
--target:winexe                Windows yürütülebilir dosyası oluşturun (Kısa biçim:
+-target:winexe                Windows yürütülebilir dosyası oluştur (Kısa biçim:
                               -t:winexe)
--target:library               Kitaplık derleyin (Kısa biçim: -t:library)
--target:module                Başka bir derlemeye eklenebilecek bir
-                              modül oluşturun (Kısa biçim: -t:module)
--target:appcontainerexe       Appcontainer yürütülebilir dosyası oluşturun (Kısa biçim:
+-target:library               Kitaplık derle (Kısa biçim: -t:library)
+-target:module                Başka bir bütünleştirilmiş koda eklenebilecek bir
+                              modül oluştur (Kısa biçim: -t:module)
+-target:appcontainerexe       Appcontainer yürütülebilir dosyası oluştur (Kısa biçim:
                               -t:appcontainerexe)
 -target:winmdobj              WinMDExp tarafından kullanılan bir Windows Çalışma Zamanı
-                              ara dosyası oluşturun (Kısa biçim: -t:winmdobj)
--doc:&lt;dosya&gt;                   Oluşturulacak XML Belgesi dosyası
--refout:&lt;dosya&gt;                Oluşturulacak başvuru derlemesi çıkışı
--platform:&lt;dize&gt;            Bu kodun çalıştırılabileceği platformları sınırlandırın: x86,
+                              ara dosyası oluştur (Kısa biçim: -t:winmdobj)
+-doc:&lt;dosya&gt;                   Oluşturulacak XML Belge dosyası
+-refout:&lt;dosya&gt;                Oluşturulacak başvuru bütünleştirilmiş kodu çıkışı
+-platform:&lt;dize&gt;            Bu kodun çalıştırılabileceği platformları sınırlandır: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred veya
                               anycpu. Varsayılan: anycpu.
 
                        - GİRİŞ DOSYALARI -
--recurse:&lt;joker karakter&gt;           Joker karakter belirtimlerine göre, geçerli
-                              dizindeki ve alt dizinlerdeki tüm dosyaları
-                              dahil edin
--reference:&lt;diğer ad&gt;=&lt;dosya&gt;     Verilen diğer adı kullanan belirtilen derleme dosyasındaki
-                               meta verilere başvurun (Kısa biçim: -r)
--reference:&lt;dosya listesi&gt;        Belirtilen derleme dosyalarındaki meta verilere
-                              başvurun (Kısa biçim: -r)
--addmodule:&lt;dosya listesi&gt;        Belirtilen modülleri bu derlemeye bağlayın
--link:&lt;dosya listesi&gt;             Belirtilen birlikte çalışma derleme dosyalarındaki
-                              meta verileri ekleyin (Kısa biçim: -l)
--analyzer:&lt;dosya listesi&gt;         Çözümleyicileri bu derlemeden çalıştırın
+-recurse:&lt;joker karakter&gt;           Geçerli dizindeki ve alt dizinlerdeki
+                              tüm dosyaları Joker karakter belirtimlerine göre
+                              ekle
+-reference:&lt;diğer ad&gt;=&lt;dosya&gt;     Verilen diğer adı kullanan belirtilen bütünleştirilmiş kod dosyasındaki
+                               meta verilere başvur (Kısa biçim: -r)
+-reference:&lt;dosya listesi&gt;        Belirtilen bütünleştirilmiş kod dosyalarındaki meta verilere
+                              başvur (Kısa biçim: -r)
+-addmodule:&lt;dosya listesi&gt;        Belirtilen modülleri bu bütünleştirilmiş koda bağla
+-link:&lt;dosya listesi&gt;             Belirtilen birlikte çalışma bütünleştirilmiş kod dosyalarındaki
+                              meta verileri ekle (Kısa biçim: -l)
+-analyzer:&lt;dosya listesi&gt;         Çözümleyicileri bu bütünleştirilmiş koddan çalıştır
                               (Kısa biçim: -a)
 -additionalfile:&lt;dosya listesi&gt;   Kod oluşturmayı doğrudan etkilemeyen ancak hata
                               ve uyarılar oluşturmak için çözümleyicilerin
                               kullanabileceği ek dosyalar.
--embed                        Tüm kaynak dosyalarını PDB'ye ekleyin.
--embed:&lt;dosya listesi&gt;            Belirli dosyaları PDB'ye ekleyin.
+-embed                        Tüm kaynak dosyalarını PDB'ye ekle.
+-embed:&lt;dosya listesi&gt;            Belirli dosyaları PDB'ye ekle.
 
                         - KAYNAKLAR -
--win32res:&lt;dosya&gt;              Bir Win32 kaynak dosyası (.res) belirtin
--win32icon:&lt;dosya&gt;             Çıkış için bu simgeyi kullanın
--win32manifest:&lt;dosya&gt;         Bir Win32 bildirim dosyası (.xml) belirtin
--nowin32manifest              Varsayılan Win32 bildirimini dahil etmeyin
--resource:&lt;kaynak bilgileri&gt;           Belirtilen kaynağı ekleyin (Kısa biçim: -res)
--linkresource:&lt;kaynak bilgileri&gt;       Belirtilen kaynağı bu derlemeye bağlayın
-                              (Kısa biçim: -linkres) Kaynak bilgisi biçimi 
-                              &lt;dosya&gt;[,&lt;dize adı&gt;[,public|private]] olduğunda
+-win32res:&lt;dosya&gt;              Bir Win32 kaynak dosyası (.res) belirt
+-win32icon:&lt;dosya&gt;             Çıkış için bu simgeyi kullan
+-win32manifest:&lt;dosya&gt;         Bir Win32 bildirim dosyası (.xml) belirt
+-nowin32manifest              Varsayılan Win32 bildirimini dahil etme
+-resource:&lt;kaynak bilgileri&gt;           Belirtilen kaynağı ekle (Kısa biçim: -res)
+-linkresource:&lt;kaynak bilgileri&gt;       Belirtilen kaynağı bu bütünleştirilmiş koda bağla
+                              (Kısa biçim: -linkres) Burada kaynak bilgileri
+                              &lt;dosya&gt;[,&lt;dize adı&gt;[,public|private]] biçimindedir
 
                         - KOD OLUŞTURMA -
--debug[+|-]                   Hata ayıklama bilgilerini yayımlayın
+-debug[+|-]                   Hata ayıklama bilgilerini göster
 -debug:{full|pdbonly|portable|embedded}
-                              Hata ayıklama türünü belirtin ('full' varsayılan,
+                              Hata ayıklama türünü belirt ('full' varsayılan,
                               'portable' platformlar arası biçim,
                               'embedded' ise hedef .dll veya .exe dosyasına
                               eklenmiş platformlar arası bir biçimdir)
--optimize[+|-]                İyileştirmeleri etkinleştirin (Kısa biçim: -o)
--deterministic                Belirlenimci bir derleme oluşturun
+-optimize[+|-]                İyileştirmeleri etkinleştir (Kısa biçim: -o)
+-deterministic                Belirlenimci bir bütünleştirilmiş kod oluştur
                               (modül sürümü GUID'si ve zaman damgası dahil)
--refonly                      Ana çıkış yerine bir başvuru derlemesi oluşturun
+-refonly                      Ana çıkış yerine bir başvuru bütünleştirilmiş kodu oluştur
 -instrument:TestCoverage      Kapsam bilgilerini toplamak üzere
-                              izleme eklenmiş bir derleme oluşturun
+                              izleme eklenmiş bir bütünleştirilmiş kod oluştur
 -sourcelink:&lt;dosya&gt;            PDB'ye eklenecek kaynak bağlantı bilgileri.
 
                         - HATALAR VE UYARILAR -
--warnaserror[+|-]             Tüm uyarıları hata olarak bildirin
--warnaserror[+|-]:&lt;uyarı listesi&gt; Belirli uyarıları hata olarak bildirin
--warn:&lt;n&gt;                     Uyarı düzeyini ayarlayın (0-4) (Kısa biçim: -w)
--nowarn:&lt;uyarı listesi&gt;           Belirli uyarı iletilerini devre dışı bırakın
+-warnaserror[+|-]             Tüm uyarıları hata olarak bildir
+-warnaserror[+|-]:&lt;uyarı listesi&gt; Belirli uyarıları hata olarak bildir
+-warn:&lt;n&gt;                     Uyarı düzeyini ayarla (0-4) (Kısa biçim: -w)
+-nowarn:&lt;uyarı listesi&gt;           Belirli uyarı iletilerini devre dışı bırak
 -ruleset:&lt;dosya&gt;               Belirli tanılamaları devre dışı bırakan bir
-                              kural kümesi dosyası belirtin.
--errorlog:&lt;dosya&gt;              Tüm derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
-                              bir dosya belirtin.
+                              kural kümesi dosyası belirt.
+-errorlog:&lt;dosya&gt;[,version=&lt;sarif_sürümü&gt;]
+                              Tüm derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
+                              bir dosya belirt.
+                              sarif_sürümü:{1|2|2.1} Varsayılan: 1 sürümüdür. 2 ve 2.1
+                              sürümlerinin her ikisi de SARIF 2.1.0 sürümü anlamına gelir.
 -reportanalyzer               Yürütme zamanı gibi ek çözümleyici
-                              bilgilerini bildirin.
+                              bilgilerini bildir.
 
                         - DİL -
--checked[+|-]                 Taşma denetimleri oluşturun
--unsafe[+|-]                  'Güvensiz' koda izin verin
--define:&lt;sembol listesi&gt;         Koşullu derleme sembolleri tanımlayın (Kısa
+-checked[+|-]                 Taşma denetimleri oluştur
+-unsafe[+|-]                  'Güvenli olmayan' koda izin ver
+-define:&lt;sembol listesi&gt;         Koşullu derleme sembolleri tanımla (Kısa
                               biçim: -d)
--langversion:?                Dil sürümü için izin verilen değerleri görüntüleyin
--langversion:&lt;dize&gt;         `latest` (alt sürümlerin dahil olduğu en son sürüm),
+-langversion:?                Dil sürümü için izin verilen değerleri görüntüle
+-langversion:&lt;dize&gt;         Dil sürümünü belirt. Örneğin: `latest` (ikincil sürümleri de içeren en son sürüm),
                               `default` (`latest` ile aynı)
-                              `latestmajor` (alt sürümler hariç en son sürüm),
-                              `preview` (desteklenmeyen önizleme sürümündeki özellikleri içeren en son sürüm)
-                              ya da `6` veya `7.1`
-                              gibi belirli sürümleri belirtin
--nullable[+|-]                Null değer atanabilir bağlam seçeneğini enable|disable olarak belirtin.
+                              `latestmajor` (ikincil sürümler hariç en son sürüm),
+                              `preview` (desteklenmeyen önizleme sürümündeki
+                              özellikleri içeren en son sürüm)
+                              ya da `6` veya `7.1` gibi belirli sürümler
+-nullable[+|-]                Null değer atanabilir bağlam seçeneğini enable|disable olarak belirt.
 -nullable:{enable|disable|warnings|annotations}
-                              Null değer atanabilir bağlam seçeneğini enable|disable|warnings|annotations olarak belirtin.
+                              Null değer atanabilir bağlam seçeneğini enable|disable|warnings|annotations olarak belirt.
 
                        - GÜVENLİK -
--delaysign[+|-]               Derlemeyi, tanımlayıcı ad anahtarının yalnızca genel 
-                              kısmını kullanarak gecikmeli imzalayın
--publicsign[+|-]              Derlemeyi, tanımlayıcı ad anahtarının yalnızca genel
-                              kısmını kullanarak genel olarak imzalayın
--keyfile:&lt;dosya&gt;               Bir tanımlayıcı ad anahtarı dosyası belirtin
--keycontainer:&lt;dize&gt;        Bir tanımlayıcı ad anahtarı kapsayıcısı belirtin
--highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştirin
+-delaysign[+|-]               Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca genel 
+                              kısmıyla geç imzala
+-publicsign[+|-]              Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca genel
+                              kısmıyla genel olarak imzala
+-keyfile:&lt;dosya&gt;               Bir tanımlayıcı ad anahtarı dosyası belirt
+-keycontainer:&lt;dize&gt;        Bir tanımlayıcı ad anahtarı kapsayıcısı belirt
+-highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştir
 
                         - ÇEŞİTLİ -
-@&lt;dosya&gt;                       Daha fazla seçenek için yanıt dosyasının okunmasını sağlayın
--help                         Bu kullanım iletisini gösterin (Kısa biçim: -?)
--nologo                       Derleyici telif hakkı iletisini gösterilmemesini sağlayın
--noconfig                     CSC.RSP dosyasını otomatik olarak dahil etmeyin
+@&lt;dosya&gt;                       Daha fazla seçenek için yanıt dosyasını oku
+-help                         Bu kullanım iletisini görüntüle (Kısa biçim: -?)
+-nologo                       Derleyici telif hakkı iletisini görüntüleme
+-noconfig                     CSC.RSP dosyasını otomatik olarak dahil etme
 -parallel[+|-]                Eşzamanlı derleme.
--version                      Derleyici sürüm numarasını görüntüleyin ve çıkın.
+-version                      Derleyici sürüm numarasını görüntüle ve çıkış yap.
 
                         - GELİŞMİŞ -
 -baseaddress:&lt;adres&gt;        Oluşturulacak kitaplığın taban adresi
 -checksumalgorithm:&lt;alg&gt;      PDB'de depolanan kaynak dosyanın sağlama toplamını
-                              hesaplama algoritmasını belirtin. Desteklenen değerler:
+                              hesaplama algoritmasını belirt. Desteklenen değerler:
                               SHA1 veya SHA256 (varsayılan).
 -codepage:&lt;n&gt;                 Kaynak dosyalarını açarken kullanılacak kod
-                              sayfasını belirtin
--utf8output                   Derleyici iletilerini UTF-8 kodlamasında görüntüleyin
--main:&lt;tür&gt;                  Giriş noktasını içeren türü belirtin
-                              (diğer tüm olası giriş noktalarını yoksayar) (Kısa
+                              sayfasını belirt
+-utf8output                   Derleyici iletilerini UTF-8 kodlamasında görüntüle
+-main:&lt;tür&gt;                  Giriş noktasını içeren türü belirt
+                              (diğer tüm olası giriş noktalarını yoksay) (Kısa
                               biçim: -m)
 -fullpaths                    Derleyici, tam yollar oluşturur
 -filealign:&lt;n&gt;                Çıkış dosyasının bölümleri için kullanılan
@@ -763,24 +766,24 @@
 -pathmap:&lt;A1&gt;=&lt;D1&gt;,&lt;A2&gt;=&lt;D2&gt;,...
                               Derleyici tarafından gösterilen kaynak yolu adları için bir eşleme
                               belirtin.
--pdb:&lt;dosya&gt;                   Hata ayıklama bilgileri dosyasının adını belirtin (varsayılan:
-                              .pdb uzantılı çıkış dosyasının adı)
+-pdb:&lt;dosya&gt;                   Hata ayıklama bilgileri dosyasının adını belirt (varsayılan:
+                              çıkış dosyasının adı ve .pdb uzantısı)
 -errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
-                              gösterin
--preferreduilang              Tercih edilen çıkış dilinin adını belirtin.
--nosdkpath                    Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakın.
--nostdlib[+|-]                Standart kitaplığa (mscorlib.dll) başvuru yapmayın
--subsystemversion:&lt;dize&gt;    Bu derlemenin alt sistem sürümünü belirtin
+                              göster
+-preferreduilang              Tercih edilen çıkış dilinin adını belirt.
+-nosdkpath                    Standart kitaplık bütünleştirilmiş kodlarında varsayılan SDK yolunu aramayı devre dışı bırak.
+-nostdlib[+|-]                Standart kitaplığa (mscorlib.dll) başvuru yapma
+-subsystemversion:&lt;dize&gt;    Bu bütünleştirilmiş kodu alt sistem sürümünü belirt
 -lib:&lt;dosya listesi&gt;              İçinde başvuruların aranacağı ek dizinleri
-                              belirtin
--errorreport:&lt;dize&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
-                              sor, gönder, kuyruğa al veya hiçbiri. Varsayılan olarak
-                              kuyruğa alınır.
--appconfig:&lt;dosya&gt;             Derleme bağlama ayarlarını içeren
-                              bir uygulama yapılandırma dosyası belirtin
--moduleassemblyname:&lt;dize&gt;  Bu modülün parçası olacağı derlemenin
+                              belirt
+-errorreport:&lt;dize&gt;         İç derleyici hatalarının nasıl işleneceğini belirt:
+                              prompt, send, queue veya none. Varsayılan:
+                              queue.
+-appconfig:&lt;dosya&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren
+                              bir uygulama yapılandırma dosyası belirt
+-moduleassemblyname:&lt;dize&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
                               adı
--modulename:&lt;dize&gt;          Kaynak modülün adını belirtin
+-modulename:&lt;dize&gt;          Kaynak modülün adını belirt
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -801,7 +804,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">asenkron using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -1381,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe geçirilemez</target>
+        <target state="translated">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe atanamayabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe geçirilemez</target>
+        <target state="translated">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe atanamayabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1401,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT">
         <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">[MaybeNull] değeri döndüren bir üye, '{0}' boş değer atanamayan bir başvuru türü olmasına rağmen değerin null olmasına neden olur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
         <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
+        <target state="translated">[MaybeNull] değeri döndüren bir üye, tür parametresinin değerinin null olmasına neden olur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1456,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Null atanabilir başvuru türleri için ek açıklama yalnızca bir '#nullable' ek açıklama bağlamı içinde kodda kullanılmalıdır. Otomatik oluşturulan kod kaynakta açık bir '#nullable' yönergesi gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Null atanabilir başvuru türleri için ek açıklama yalnızca bir '#nullable' ek açıklama bağlamı içinde kodda kullanılmalıdır. Otomatik oluşturulan kod kaynakta açık bir '#nullable' yönergesi gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1511,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">Nesne veya koleksiyon başlatıcısı, null olma olasılığına sahip '{0}' üyesine örtük olarak başvuruyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">Nesne veya koleksiyon başlatıcısı, null olma olasılığına sahip üyeye örtük olarak başvuruyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1781,7 +1784,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
+        <target state="translated">Switch ifadesi giriş türünün tüm olası değerlerini işlemiyor. (İfade tam kapsamlı değil.)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1796,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
+        <target state="translated">Switch ifadesi giriş türünün tüm olası değerlerini işlemiyor. (İfade tam kapsamlı değil.)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -4265,7 +4268,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_CStyleArray">
         <source>Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.</source>
-        <target state="translated">Hatalı dizi bildiricisi: Sıra belirleyicisi, yönetilen bir diziyi bildirmek için değişkenin tanımlayıcısından önce gelir. Sabit boyutlu arabellek alanı bildirmek için, alan türünden önce fixed anahtar sözcüğünü kullanın.</target>
+        <target state="translated">Hatalı dizi bildirimcisi: Sıra belirleyicisi, yönetilen bir diziyi bildirmek için değişkenin tanımlayıcısından önce gelir. Sabit boyutlu arabellek alanı bildirmek için, alan türünden önce fixed anahtar sözcüğünü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VacuousIntegralComp">
@@ -5924,7 +5927,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_MultipleIEnumOfT">
         <source>foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">foreach deyimi, '{1}' öğesinin birden çok örneklemesini uyguladığından '{0}' türündeki değişkenlerde çalışamaz; belirli bir arabirim örneklemesine atamayı deneyin</target>
+        <target state="translated">foreach deyimi, '{1}' öğesinin birden çok örnek oluşturma işlemini uyguladığından '{0}' türündeki değişkenlerde çalışamaz; belirli bir arabirim örnek oluşturma işlemine atamayı deneyin</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedDimsRequired">
@@ -7834,7 +7837,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsOptionalArgument">
         <source>An expression tree may not contain a call or invocation that uses optional arguments</source>
-        <target state="translated">Bir ifade ağacı isteğe bağlı parametreler kullanan bir çağrı içeremez</target>
+        <target state="translated">Bir ifade ağacı isteğe bağlı bağımsız değişkenler kullanan bir çağrı içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsIndexedProperty">
@@ -8472,7 +8475,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="InvalidGetDeclarationNameMultipleDeclarators">
         <source>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</source>
-        <target state="translated">Birden çok değişken bildiricisi içerebilecek bir bildirim düğümü için GetDeclarationName çağrıldı.</target>
+        <target state="translated">Birden çok değişken bildirimcisi içerebilecek bir bildirim düğümü için GetDeclarationName çağrıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNotPartOfCompilation">
@@ -8952,7 +8955,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">Dize Uzunluğu sabiti geçerli hafıza sınırını aşıyor. Dizeyi birden fazla sabit içine bölmeyi deneyin.</target>
+        <target state="translated">Birleştirmeden kaynaklanan Dize sabitinin uzunluğu System.Int32.MaxValue değerini aşıyor. Dizeyi birden çok sabit olacak şekilde bölmeyi deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9732,7 +9735,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': Bir async using deyiminde kullanılan tür örtük olarak 'System.IAsyncDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'DisposeAsync' yöntemi uygulamalıdır.</target>
+        <target state="translated">'{0}': Asenkron bir using deyiminde kullanılan tür örtük olarak 'System.IAsyncDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'DisposeAsync' metodunu uygulamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
@@ -9742,7 +9745,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">Zaman uyumsuz foreach deyimi, '{0}' türündeki değişkenler '{1}' arabiriminin birden çok örneklemesini uyguladığından bu türdeki değişkenlerle çalışmaz. Türü, belirli bir arabirim örneklemesine atamayı deneyin</target>
+        <target state="translated">Zaman uyumsuz foreach deyimi, '{0}' türündeki değişkenler '{1}' arabiriminin birden çok örnek oluşturma işlemini uyguladığından bu türdeki değişkenlerle çalışmaz. Türü, belirli bir arabirim örnek oluşturma işlemine atamayı deneyin</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">

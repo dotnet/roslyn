@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">El documento no admite árboles de sintaxis</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -451,7 +451,7 @@ El limitador $ coincide con \n pero no coincide con \r\n (la combinación de ret
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">escape hexadecimal</target>
+        <target state="translated">escape hexadecimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -1319,7 +1319,7 @@ Las aserciones posteriores positivas de ancho cero se usan normalmente al princi
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">Al agregar importaciones, se incorporará un método de extensión en el ámbito con el mismo nombre que "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

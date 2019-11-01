@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CSharpResources.resx">
     <body>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -112,14 +112,14 @@
         <target state="translated">无法嵌入类型“{0}”，因为它有非抽象成员。请考虑将“嵌入互操作类型”属性设置为 false。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultPattern">
-        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
-        <target state="needs-review-translation">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">默认文本没有目标类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
+        <target state="translated">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -209,12 +209,12 @@
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
-        <target state="translated">在同一块中使用声明之前，goto 无法跳转到某个位置。</target>
+        <target state="translated">goto 无法跳转到同一块中 using 声明之前的某个位置。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
-        <target state="translated">使用声明后，goto 无法跳转到某个位置。</target>
+        <target state="translated">goto 无法跳转到 using 声明后的某个位置。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">C# 编译器中出现内部错误。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 "System.IAsyncDisposable" 或实现适用的 "DisposeAsync" 方法。是否希望使用 "using" 而非 "await using"?</target>
+        <target state="translated">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 "System.IAsyncDisposable" 或实现适用的 "DisposeAsync" 方法。是否希望使用 "using" 而非 "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
         <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">可为 null 的类型参数必须已知为值类型或非 null 引用类型。请考虑添加一个 “class”、“struct” 或类型约束。</target>
+        <target state="translated">可为 null 的类型参数必须已知为值类型或不可为 null 引用类型。请考虑添加一个 “class”、“struct” 或类型约束。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">无法嵌入类型“{0}”，因为它有基本接口成员的重新抽象。请考虑将“嵌入互操作类型”属性设置为 false。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">类型“{2}”必须是不可以为 null 值的类型，且包括任何嵌套级别的所有字段，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
+        <target state="translated">类型“{2}”必须是不可为 null 值的类型，且包括任何嵌套级别的所有字段，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -634,7 +634,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# 编译器选项
 
                        - 输出文件 -
@@ -708,9 +708,12 @@
 -nowarn:&lt;warn list&gt;           禁用特定警告消息
 -ruleset:&lt;file&gt;               指定禁用特定诊断的
                               规则集文件。
--errorlog:&lt;file&gt;              指定用于记录所有编译器
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              指定用于记录所有编译器
                        和分析器诊断的
                               文件。
+                              sarif_version:{1|2|2.1} 默认为 1. 2 和 2.1
+                              两者均表示 SARIF 版本 2.1.0。
 -reportanalyzer               报告其他分析器信息，如
                               执行时间。
 
@@ -801,7 +804,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">异步 using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -1316,7 +1319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
-        <target state="translated">类型方差</target>
+        <target state="translated">类型变型</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
@@ -1331,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">当 "{0}" 是不可以为 null 的引用类型时，"as" 运算符可能会生成 null 值。</target>
+        <target state="translated">当 "{0}" 是不可为 null 的引用类型时，"as" 运算符可能会生成 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
@@ -1351,7 +1354,7 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">当 "{0}" 是不可以为 null 的引用类型时，条件访问可能会生成 null 值。</target>
+        <target state="translated">当 "{0}" 是不可为 null 的引用类型时，条件访问可能会生成 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
@@ -1361,17 +1364,17 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">将 null 文本或可能的 null 值转换为非 null 类型。</target>
+        <target state="translated">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">将 null 文本或可能的 null 值转换为非 null 类型。</target>
+        <target state="translated">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">当 "{0}" 是不可以为 null 的引用类型时，默认表达式就会引入 null 值。</target>
+        <target state="translated">当 "{0}" 是不可为 null 的引用类型时，默认表达式就会引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
@@ -1381,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
+        <target state="translated">可能的 null 值可能不会分配给用 [DisallowNull] 属性标记的目标</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
+        <target state="translated">可能的 null 值可能不会分配给用 [DisallowNull] 属性标记的目标</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1401,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT">
         <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">当“{0}”是不可为 null 的引用类型时，返回 [MaybeNull] 值的成员将引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
         <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
+        <target state="translated">返回 [MaybeNull] 值的成员会为类型参数引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1456,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">对可为 null 的引用类型的批注只应在 "#nullable" 批注上下文中的代码中使用。自动生成的代码要求在源中使用显式 "#nullable" 指令。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">对可为 null 的引用类型的批注只应在 "#nullable" 批注上下文中的代码中使用。自动生成的代码要求在源中使用显式 "#nullable" 指令。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1481,7 +1484,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">当 "{0}" 是不可以为 null 的引用类型时， null 文本就会引入 null 值。</target>
+        <target state="translated">当 "{0}" 是不可为 null 的引用类型时， null 文本就会引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
@@ -1511,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">对象或集合初始值设定项会隐式取消引用可能为 null 的成员“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">对象或集合初始值设定项会隐式取消引用可能为 null 的成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1781,7 +1784,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
+        <target state="translated">switch 表达式不会处理属于其输入类型的所有可能值(它并非详尽无遗)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1796,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
+        <target state="translated">switch 表达式不会处理属于其输入类型的所有可能值(它并非详尽无遗)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1861,7 +1864,7 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">不可为 null 的 {0} "{1}" 未初始化。请考虑将 {0} 声明为可以为 null。</target>
+        <target state="translated">不可为 null 的 {0} "{1}" 未初始化。请考虑将 {0} 声明为可为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
@@ -2091,7 +2094,7 @@
       </trans-unit>
       <trans-unit id="ERR_ValueCantBeNull">
         <source>Cannot convert null to '{0}' because it is a non-nullable value type</source>
-        <target state="translated">无法将 null 转换为“{0}”，因为后者是不可以为 null 的值类型</target>
+        <target state="translated">无法将 null 转换为“{0}”，因为后者是不可为 null 的值类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoExplicitBuiltinConv">
@@ -2226,7 +2229,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsMustHaveReferenceType">
         <source>The as operator must be used with a reference type or nullable type ('{0}' is a non-nullable value type)</source>
-        <target state="translated">as 运算符必须与引用类型或可以为 null 的类型一起使用(“{0}”是不可以为 null 值的类型)</target>
+        <target state="translated">as 运算符必须与引用类型或可以为 null 的类型一起使用(“{0}”是不可为 null 值的类型)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowercaseEllSuffix">
@@ -3261,7 +3264,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeVarCantBeNull">
         <source>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</source>
-        <target state="translated">无法将 null 转换为类型参数“{0}”，因为它可能是不可以为 null 的值类型。请考虑改用“default({0})”。</target>
+        <target state="translated">无法将 null 转换为类型参数“{0}”，因为它可能是不可为 null 的值类型。请考虑改用“default({0})”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
@@ -3521,7 +3524,7 @@
       </trans-unit>
       <trans-unit id="ERR_ValConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">类型“{2}”必须是不可以为 null 值的类型，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
+        <target state="translated">类型“{2}”必须是不可为 null 值的类型，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularConstraint">
@@ -7464,7 +7467,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_IllegalVarianceSyntax">
         <source>Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.</source>
-        <target state="translated">方差修饰符无效。只有接口和委托类型的参数可以指定为变量。</target>
+        <target state="translated">变型修饰符无效。只有接口和委托类型的参数可以指定为变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedAliasedName">
@@ -7484,7 +7487,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_GlobalStatement">
         <source>Expressions and statements can only occur in a method body</source>
-        <target state="translated">表达式和语句只能在方法体中出现</target>
+        <target state="translated">表达式和语句只能在方法主体中出现</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgumentForArray">
@@ -7529,12 +7532,12 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParamsVariance">
         <source>Partial declarations of '{0}' must have the same type parameter names and variance modifiers in the same order</source>
-        <target state="translated">“{0}”的分部声明必须具有相同类型的参数名和差异修饰符，同时顺序也必须相同</target>
+        <target state="translated">“{0}”的分部声明必须具有相同类型的参数名和变型修饰符，同时顺序也必须相同</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVariance">
         <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}'. '{1}' is {2}.</source>
-        <target state="translated">差异无效: 类型参数“{1}”必须是在“{0}”上有效的 {3}。“{1}”为 {2}。</target>
+        <target state="translated">变型无效: 类型参数“{1}”必须是在“{0}”上有效的 {3}。“{1}”为 {2}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeriveFromDynamic">
@@ -8822,7 +8825,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_SingleLineCommentInExpressionHole">
         <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">单行无法用于插补的字符串。</target>
+        <target state="translated">单行无法用于内插字符串。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">
@@ -8867,7 +8870,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="IDS_FeatureInterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="translated">插补的字符串</target>
+        <target state="translated">内插字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AwaitInCatchAndFinally">
@@ -8892,12 +8895,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnescapedCurly">
         <source>A '{0}' character must be escaped (by doubling) in an interpolated string.</source>
-        <target state="translated">在插补的字符串中，必需对“{0}”字符进行转义(通过加倍)。</target>
+        <target state="translated">在内插字符串中，必需对“{0}”字符进行转义(通过加倍)。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapedCurly">
         <source>A '{0}' character may only be escaped by doubling '{0}{0}' in an interpolated string.</source>
-        <target state="translated">在插补的字符串中，仅可通过加倍“{0}{0}”对“{0}”字符进行转义。</target>
+        <target state="translated">在内插字符串中，仅可通过加倍“{0}{0}”对“{0}”字符进行转义。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TrailingWhitespaceInFormatSpecifier">
@@ -8952,7 +8955,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">字符串常量的长度超出了当前内存限制。请尝试将字符串拆分成多个常量。</target>
+        <target state="translated">由串联所得的字符串常量长度超过了 System.Int32.MaxValue。请尝试将字符串拆分为多个常量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9002,17 +9005,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyCannotBeRefReturning">
         <source>Auto-implemented properties cannot return by reference</source>
-        <target state="translated">自动实现的属性无法按引用返回</target>
+        <target state="translated">自动实现的属性无法通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefPropertyMustHaveGetAccessor">
         <source>Properties which return by reference must have a get accessor</source>
-        <target state="translated">按引用返回的属性必须有 get 访问器</target>
+        <target state="translated">通过引用返回的属性必须有 get 访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefPropertyCannotHaveSetAccessor">
         <source>Properties which return by reference cannot have set accessors</source>
-        <target state="translated">按引用返回的属性不能有 set 访问器</target>
+        <target state="translated">通过引用返回的属性不能有 set 访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeRefReturnOnOverride">
@@ -9022,7 +9025,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_MustNotHaveRefReturn">
         <source>By-reference returns may only be used in methods that return by reference</source>
-        <target state="translated">按引用返回只能在按引用返回的方法中使用</target>
+        <target state="translated">通过引用返回只能在通过引用返回的方法中使用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustHaveRefReturn">
@@ -9032,7 +9035,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnMustHaveIdentityConversion">
         <source>The return expression must be of type '{0}' because this method returns by reference</source>
-        <target state="translated">返回表达式必须为“{0}”类型，因为此方法按引用返回</target>
+        <target state="translated">返回表达式必须为“{0}”类型，因为此方法通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn">
@@ -9042,52 +9045,52 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturnRef">
         <source>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</source>
-        <target state="translated">“{0}”的主体不能是迭代器块，因为“{0}”按引用返回</target>
+        <target state="translated">“{0}”的主体不能是迭代器块，因为“{0}”通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefReturnExpressionTree">
         <source>Lambda expressions that return by reference cannot be converted to expression trees</source>
-        <target state="translated">按引用返回的 Lambda 表达式不能转换为表达式树</target>
+        <target state="translated">通过引用返回的 Lambda 表达式不能转换为表达式树</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallInExpressionTree">
         <source>An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference</source>
-        <target state="translated">表达式树 lambda 不能包含对按引用返回的方法、属性或索引器的调用</target>
+        <target state="translated">表达式树 lambda 不能包含对通过引用返回的方法、属性或索引器的调用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnLvalueExpected">
         <source>An expression cannot be used in this context because it may not be passed or returned by reference</source>
-        <target state="translated">不能在此上下文中使用表达式，因为表达式无法按引用传递或返回</target>
+        <target state="translated">不能在此上下文中使用表达式，因为表达式无法通过引用传递或返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnNonreturnableLocal">
         <source>Cannot return '{0}' by reference because it was initialized to a value that cannot be returned by reference</source>
-        <target state="translated">“{0}”已初始化为不能按引用返回的值，因此无法按引用返回</target>
+        <target state="translated">“{0}”已初始化为不能通过引用返回的值，因此无法通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnNonreturnableLocal2">
         <source>Cannot return by reference a member of '{0}' because it was initialized to a value that cannot be returned by reference</source>
-        <target state="translated">“{0}”已初始化为不能按引用返回的值，因此无法按引用返回其成员</target>
+        <target state="translated">“{0}”已初始化为不能通过引用返回的值，因此无法通过引用返回其成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocal">
         <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">“{0}”是只读的，无法按引用返回</target>
+        <target state="translated">“{0}”是只读的，无法通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
-        <target state="translated">无法按引用返回范围变量“{0}”</target>
+        <target state="translated">无法通过引用返回范围变量“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">“{0}”是一个“{1}”，无法按引用返回</target>
+        <target state="translated">“{0}”是一个“{1}”，无法通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
         <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">“{0}”是一个“{1}”，无法按引用返回其字段</target>
+        <target state="translated">“{0}”是一个“{1}”，无法通过引用返回其字段</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
@@ -9112,27 +9115,27 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
         <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">无法按引用“{0}”返回参数，因为它不是 ref 或 out 参数</target>
+        <target state="translated">无法通过引用“{0}”返回参数，因为它不是 ref 或 out 参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
         <source>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">参数“{0}”不是 ref 或 out 参数，无法按引用返回其成员</target>
+        <target state="translated">参数“{0}”不是 ref 或 out 参数，无法通过引用返回其成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnLocal">
         <source>Cannot return local '{0}' by reference because it is not a ref local</source>
-        <target state="translated">局部变量“{0}”不是 ref 局部变量，无法按引用返回</target>
+        <target state="translated">局部变量“{0}”不是 ref 局部变量，无法通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnLocal2">
         <source>Cannot return a member of local '{0}' by reference because it is not a ref local</source>
-        <target state="translated">局部变量“{0}”不是 ref 局部变量，无法按引用返回其成员</target>
+        <target state="translated">局部变量“{0}”不是 ref 局部变量，无法通过引用返回其成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnStructThis">
         <source>Struct members cannot return 'this' or other instance members by reference</source>
-        <target state="translated">结构成员无法按引用返回 "this" 或其他实例成员</target>
+        <target state="translated">结构成员无法通过引用返回 "this" 或其他实例成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeOther">
@@ -9182,7 +9185,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefAssignmentMustHaveIdentityConversion">
         <source>The expression must be of type '{0}' because it is being assigned by reference</source>
-        <target state="translated">表达式必须为“{0}”类型，因为它按引用赋值</target>
+        <target state="translated">表达式必须为“{0}”类型，因为它通过引用赋值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByReferenceVariableMustBeInitialized">
@@ -9207,7 +9210,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
         <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'不能在包含对“{0}”的调用的表达式中使用 "await"，因为它按引用返回</target>
+        <target state="translated">'不能在包含对“{0}”的调用的表达式中使用 "await"，因为它通过引用返回</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
@@ -9337,7 +9340,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable">
         <source>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</source>
-        <target state="translated">无法推断隐式类型的解构变量“{0}”的类型。</target>
+        <target state="translated">无法推断隐式类型的析构变量“{0}”的类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardTypeInferenceFailed">
@@ -9732,7 +9735,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 "System.IAsyncDisposable" 或实现适用的 "DisposeAsync" 方法。</target>
+        <target state="translated">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 "System.IAsyncDisposable" 或实现适用的 "DisposeAsync" 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

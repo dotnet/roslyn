@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">Документ не поддерживает синтаксические деревья.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -213,11 +213,11 @@
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Определение группы балансировки удаляет определение ранее определенной группы и сохраняет (в текущей группе) интервал между ранее определенной группой и текущей группой.
+        <target state="translated">Сбалансированное определение группы удаляет определение ранее определенной группы и сохраняет (в текущей группе) интервал между ранее определенной группой и текущей группой.
     
-Значение "имя1" является текущей группой (необязательная), "имя2" является ранее определенной группой, а "часть выражения" является любым допустимым шаблоном регулярного выражения. Определение группы балансировки удаляет определение "имя2" и сохраняет интервал между "имя2" и "имя1" в "имя1". Если группа "имя2" не определена, соответствие определяется по обратному отслеживанию. Так как удаление последнего определения name2 приводит к раскрытию предыдущего определения "имя2", эта конструкция позволяет использовать стек записей для группы "имя2" в качестве счетчика для отслеживания вложенных конструкций, таких как круглые скобки или открывающие и закрывающие скобки.
+Значение "имя1" является текущей группой (необязательная), "имя2" является ранее определенной группой, а "часть выражения" является любым допустимым шаблоном регулярного выражения. Сбалансированное определение группы удаляет определение "имя2" и сохраняет интервал между "имя2" и "имя1" в "имя1". Если группа "имя2" не определена, соответствие определяется по обратному отслеживанию. Так как удаление последнего определения name2 приводит к раскрытию предыдущего определения "имя2", эта конструкция позволяет использовать стек записей для группы "имя2" в качестве счетчика для отслеживания вложенных конструкций, таких как круглые скобки или открывающие и закрывающие скобки.
 
-Определение группы балансировки использует "имя2" в качестве стека. Начальный символ каждой вложенной конструкции помещается в группу и ее коллекцию Group.Captures. При появлении совпадения для закрывающего символа соответствующий ему открывающий символ удаляется из группы, а коллекция Captures уменьшается на единицу. После обнаружения совпадений для всех открывающих и закрывающих символов всех вложенных конструкций "имя1" остается пустой.</target>
+Сбалансированное определение группы использует "имя2" в качестве стека. Начальный символ каждой вложенной конструкции помещается в группу и ее коллекцию Group.Captures. При появлении совпадения для закрывающего символа соответствующий ему открывающий символ удаляется из группы, а коллекция Captures уменьшается на единицу. После обнаружения совпадений для всех открывающих и закрывающих символов всех вложенных конструкций "имя1" остается пустой.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -426,7 +426,7 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="translated">Эта конструкция группирования включает или отключает указанные параметры в части выражения. Включаемые параметры указаны после вопросительного знака, а отключаемые параметры — после знака минус. Допустимые параметры:
+        <target state="translated">Эта конструкция группировки включает или отключает указанные параметры в части выражения. Включаемые параметры указаны после вопросительного знака, а отключаемые параметры — после знака минус. Допустимые параметры:
 
     i	Использовать сопоставление без учета регистра.
     m	Использовать многострочный режим, где ^ и $ соответствуют началу и концу каждой строки
@@ -451,7 +451,7 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">шестнадцатеричный escape-символ</target>
+        <target state="translated">шестнадцатеричный escape-символ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -656,7 +656,7 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="translated">Эта конструкция группирования записывает соответствующую "часть выражения", где "часть выражения" — это любой допустимый шаблон регулярного выражения. Записи, использующие круглые скобки, нумеруются автоматически слева направо в порядке открывающих скобок в регулярном выражении, начиная с первой. Запись с нулевым номером — это текст, совпадающий со всем шаблоном регулярного выражения.</target>
+        <target state="translated">Эта конструкция группировки записывает соответствующую "часть выражения", где "часть выражения" — это любой допустимый шаблон регулярного выражения. Записи, использующие круглые скобки, нумеруются автоматически слева направо в порядке открывающих скобок в регулярном выражении, начиная с первой. Запись с нулевым номером — это текст, совпадающий со всем шаблоном регулярного выражения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
@@ -863,7 +863,7 @@ If a regular expression includes nested grouping constructs, an outer noncapturi
 
 Конструкция группы без записи обычно используется, когда квантификатор применяется к группе, но подстроки, записанные группой, не представляют интереса.
 
-Если регулярное выражение содержит вложенные конструкции группы, внешняя конструкция группы без записи не применяется к внутренним вложенным конструкциям группы.</target>
+Если регулярное выражение содержит вложенные конструкциb группировки, внешняя конструкция группы без записи не применяется к внутренним вложенным конструкциям группы.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
@@ -1170,56 +1170,56 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="translated">Отрицательное упреждающее утверждение нулевой ширины, в котором для успешного сопоставления входная строка не должна соответствовать шаблону регулярного выражения в части выражения. Соответствующая строка не включается в результат сравнения.
+        <target state="translated">Отрицательное утверждение просмотра вперед нулевой ширины, в котором для успешного сопоставления входная строка не должна соответствовать шаблону регулярного выражения в части выражения. Соответствующая строка не включается в результат сравнения.
 
 Отрицательное упреждающее утверждение нулевой ширины обычно используется либо в начале, либо в конце регулярного выражения. В начале выражения оно может определять определенный шаблон, который не должен совпадать, когда начало регулярного выражения определяет схожий, но более общий сравниваемый шаблон. В этом случае такое утверждение часто используется для ограничения обратного отслеживания. В конце регулярного выражения такое утверждение может определять часть выражения, которое не может находиться в конце сравнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="translated">отрицательное упреждающее утверждение нулевой ширины</target>
+        <target state="translated">отрицательное утверждение просмотра вперед нулевой ширины</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="translated">Отрицательное отстающее утверждение нулевой ширины, где для успешного сопоставления "часть выражения" не должна находиться во входной строке слева от текущей позиции. Любая подстрока, не соответствующая "части выражения", не включается в результат сравнения.
+        <target state="translated">Отрицательное утверждение просмотра назад нулевой ширины, где для успешного сопоставления "часть выражения" не должна находиться во входной строке слева от текущей позиции. Любая подстрока, не соответствующая "части выражения", не включается в результат сравнения.
 
-Отрицательные отстающие утверждения нулевой ширины обычно используются в начале регулярных выражений. Шаблон, который они определяют, предотвращает совпадение в следующей строке. Они также используются для ограничения обратного отслеживания, когда один или несколько последних символов в группе записи не должны соответствовать символам шаблона регулярного выражения этой группы.</target>
+Отрицательные отстающие утверждения просмотра назад обычно используются в начале регулярных выражений. Шаблон, который они определяют, предотвращает совпадение в следующей строке. Они также используются для ограничения обратного отслеживания, когда один или несколько последних символов в группе записи не должны соответствовать символам шаблона регулярного выражения этой группы.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="translated">отрицательное отстающее утверждение нулевой ширины</target>
+        <target state="translated">отрицательное утверждение просмотра назад нулевой ширины</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="translated">Положительное упреждающее утверждение нулевой ширины, в котором для успешного сопоставления входная строка должна соответствовать шаблону регулярного выражения в части выражения. Соответствующая подстрока не включается в результат сравнения. Положительное упреждающее утверждение нулевой ширины не выполняет обратное отслеживание.
+        <target state="translated">Положительное утверждение просмотра вперед нулевой ширины, в котором для успешного сопоставления входная строка должна соответствовать шаблону регулярного выражения в части выражения. Соответствующая подстрока не включается в результат сравнения. Положительное упреждающее утверждение нулевой ширины не выполняет обратное отслеживание.
 
 Обычно такое утверждение находится в конце шаблона регулярного выражения. Оно определяет подстроку, которая должна быть найдена в конце строки для выполнения сравнения, но не может быть включена в него. Кроме того, это утверждение удобно использовать для предотвращения избыточного обратного отслеживания. Вы можете использовать положительное упреждающее утверждение нулевой ширины, чтобы убедиться, что определенная записанная группа начинается с текста, который соответствует подмножеству шаблона, определенного для этой записанной группы.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="translated">положительное упреждающее утверждение нулевой ширины</target>
+        <target state="translated">положительное утверждение просмотра вперед нулевой ширины</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="translated">Положительное отстающее утверждение нулевой ширины, где для успешного сопоставления "часть выражения" должна находиться во входной строке, слева от текущей позиции. "Часть выражения" не включается в результат сравнения. Такое утверждение не выполняет обратное отслеживание.
+        <target state="translated">Положительное утверждение просмотра назад нулевой ширины, где для успешного сопоставления "часть выражения" должна находиться во входной строке, слева от текущей позиции. "Часть выражения" не включается в результат сравнения. Такое утверждение не выполняет обратное отслеживание.
 
-Положительные отстающие утверждения нулевой ширины обычно используются в начале регулярных выражений. Шаблон, который они определяют, является необходимым условием для совпадения, хотя и не входит в его результат.</target>
+Положительные отстающие утверждения просмотра назад обычно используются в начале регулярных выражений. Шаблон, который они определяют, является необходимым условием для совпадения, хотя и не входит в его результат.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="translated">положительное отстающее утверждение нулевой ширины</target>
+        <target state="translated">положительное утверждение просмотра назад нулевой ширины</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1319,7 +1319,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">При добавлении импортируемых компонентов в область будет добавлен метод расширения с тем же именем, что и "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -2174,7 +2174,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unrecognized_grouping_construct">
         <source>Unrecognized grouping construct</source>
-        <target state="translated">Не удалось распознать инструкцию группировки</target>
+        <target state="translated">Не удалось распознать конструкцию группировки</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;</note>
       </trans-unit>
       <trans-unit id="Unterminated_character_class_set">

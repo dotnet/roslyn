@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">Belge, söz dizimi ağaçlarını desteklemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -451,7 +451,7 @@ $ yer işareti \n ile eşleşir, ancak \r\n (satır başı ve yeni satır karakt
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">onaltılık kaçış</target>
+        <target state="translated">onaltılık kaçış</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -1319,7 +1319,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">İçeri aktarmalar eklemek, bir genişletme yöntemini '{0}' ile aynı ada sahip kapsam içine alacaktır</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

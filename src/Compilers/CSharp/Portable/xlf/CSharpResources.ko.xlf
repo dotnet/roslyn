@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="translated">보간된 verbatim 문자열에 '$@' 대신 '@$'를 사용하려면 언어 버전 '{0}' 이상을 사용하세요.</target>
+        <target state="translated">보간된 축자 문자열에 '$@' 대신 '@$'를 사용하려면 언어 버전 '{0}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">기본 리터럴의 대상 형식이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">C# 컴파일러의 내부 오류입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using' 대신 'using'을 사용하시겠습니까?</target>
+        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using' 대신 'using'을 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
         <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">값 형식 또는 nullable이 아닌 참조 형식이 되려면 nullable 형식 매개 변수를 알려야 합니다. 'class', 'struct' 또는 형식 제약 조건 추가를 고려하세요.</target>
+        <target state="translated">값 형식 또는 null을 허용하지 않는 참조 형식이 되려면 nullable 형식 매개 변수를 알려야 합니다. 'class', 'struct' 또는 형식 제약 조건 추가를 고려하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -339,7 +339,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
-        <target state="translated">'{0}' 메서드는 형식 매개 변수 '{1}'의 'struct' 제약 조건을 지정하지만 재정의되었거나 명시적으로 구현된 '{3}' 메서드의 해당 형식 매개 변수 '{2}'이(가) nullable이 아닌 값 형식이 아닙니다.</target>
+        <target state="translated">'{0}' 메서드는 형식 매개 변수 '{1}'의 'struct' 제약 조건을 지정하지만 재정의되었거나 명시적으로 구현된 '{3}' 메서드의 해당 형식 매개 변수 '{2}'이(가) null을 허용하지 않는 값 형식이 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">'{0}' 형식에는 기본 인터페이스 멤버의 재추상화가 있으므로 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -634,96 +634,99 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# 컴파일러 옵션
 
                        - 출력 파일 -
--out:&lt;file&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
-                              있는 파일 또는 첫째 파일의 기본 이름).
--target:exe                   콘솔 실행 파일을 빌드합니다(기본값). 
-                              (약식: -t:exe)
--target:winexe                Windows 실행 파일을 빌드합니다.
-                              (약식: -t:winexe)
--target:library               라이브러리를 빌드합니다. (약식: -t:library)
--target:module                다른 어셈블리에 추가될 수 있는 모듈을
-                              빌드합니다. (약식: -t:module)
--target:appcontainerexe       Appcontainer 실행 파일을 빌드합니다.
-                              (약식: -t:appcontainerexe)
--target:winmdobj              WinMDExp에서 사용되는 Windows 런타임 중간
-                              파일을 빌드합니다. (약식: -t:winmdobj)
--doc:&lt;file&gt;                   생성할 XML 문서 파일입니다.
--refout:&lt;file&gt;                생성할 참조 어셈블리 출력입니다.
--platform:&lt;string&gt;            이 코드를 실행할 수 있는 플랫폼을 x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred 또는
-                              anycpu로 제한합니다. 기본값은 anycpu입니다.
+-out:&lt;파일&gt;                   출력 파일 이름을 지정합니다(기본값: 주 클래스가
+                             있는 파일 또는 첫 번째 파일의 기본 이름).
+-target:exe                  콘솔 실행 파일을 빌드합니다(기본값). 
+                             (약식: -t:exe)
+-target:winexe               Windows 실행 파일을 빌드합니다.
+                             (약식: -t:winexe)
+-target:library              라이브러리를 빌드합니다. (약식: -t:library)
+-target:module               다른 어셈블리에 추가할 수 있는 모듈을
+                             빌드합니다. (약식: -t:module)
+-target:appcontainerexe      Appcontainer 실행 파일을 빌드합니다.
+                             (약식: -t:appcontainerexe)
+-target:winmdobj             WinMDExp에서 사용되는 Windows 런타임 중간
+                             파일을 빌드합니다. (약식: -t:winmdobj)
+-doc:&lt;파일&gt;                   생성할 XML 문서 파일입니다.
+-refout:&lt;파일&gt;                생성할 참조 어셈블리 출력입니다.
+-platform:&lt;문자열&gt;             이 코드를 실행할 수 있는 플랫폼을 x86,
+                             Itanium, x64, arm, arm64, anycpu32bitpreferred 또는
+                             anycpu로 제한합니다. 기본값은 anycpu입니다.
 
                        - 입력 파일 -
--recurse:&lt;wildcard&gt;           와일드카드 지정에 따라 현재 디렉터리와
-                              하위 디렉터리에 있는 모든 파일을
-                              포함합니다.
--reference:&lt;alias&gt;=&lt;file&gt;     지정한 어셈블리 파일에서 해당 별칭을 사용하여
-                              메타데이터를 참조합니다. (약식: -r)
--reference:&lt;file list&gt;        지정한 어셈블리 파일에서 메타데이터를
-                              참조합니다. (약식: -r)
--addmodule:&lt;file list&gt;        지정한 모듈을 이 어셈블리에 링크합니다.
--link:&lt;file list&gt;             지정된 interop 어셈블리 파일의 메타데이터를
-                              포함합니다. (약식: -l)
--analyzer:&lt;file list&gt;         이 어셈블리에서 분석기를 실행합니다.
-                              (약식: -a)
--additionalfile:&lt;file list&gt;   코드 생성에 직접 영향을 주지 않지만 오류 또는
-                              경고 생성을 위해 분석기에서 사용될 수 있는
-                              추가 파일입니다.
--embed                        PDB에 모든 소스 파일을 포함합니다.
--embed:&lt;file list&gt;            PDB에 특정 파일을 포함합니다.
+-recurse:&lt;와일드카드&gt;           와일드카드 지정에 따라 현재 디렉터리와
+                             하위 디렉터리에 있는 모든 파일을
+                             포함합니다.
+-reference:&lt;별칭&gt;=&lt;파일&gt;       지정한 어셈블리 파일의 메타데이터를 지정된 별칭으로
+                             참조합니다. (약식: -r)
+-reference:&lt;파일 목록&gt;         지정한 어셈블리 파일의 메타데이터를
+                             참조합니다. (약식: -r)
+-addmodule:&lt;파일 목록&gt;         지정한 모듈을 이 어셈블리에 연결합니다.
+-link:&lt;파일 목록&gt;              지정된 interop 어셈블리 파일의 메타데이터를
+                             포함합니다. (약식: -l)
+-analyzer:&lt;파일 목록&gt;          이 어셈블리에서 분석기를 실행합니다.
+                             (약식: -a)
+-additionalfile:&lt;파일 목록&gt;    코드 생성에 직접 영향을 주지 않지만 오류 또는
+                             경고 생성을 위해 분석기에서 사용될 수 있는
+                             추가 파일입니다.
+-embed                       PDB에 모든 소스 파일을 포함합니다.
+-embed:&lt;파일 목록&gt;             PDB에 특정 파일을 포함합니다.
 
                        - 리소스 -
--win32res:&lt;file&gt;              Win32 리소스 파일(.res)을 지정합니다.
--win32icon:&lt;file&gt;             이 아이콘을 출력에 사용합니다.
--win32manifest:&lt;file&gt;         Win32 매니페스트 파일(.xml)을 지정합니다.
--nowin32manifest              기본 Win32 매니페스트는 포함하지 않습니다.
--resource:&lt;resinfo&gt;           지정된 리소스를 포함합니다. (약식: -res)
--linkresource:&lt;resinfo&gt;       지정된 리소스를 이 어셈블리에 링크합니다.
-                              (약식: -linkres) 여기서, resinfo 형식은
-                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]입니다.
+-win32res:&lt;파일&gt;              Win32 리소스 파일(.res)을 지정합니다.
+-win32icon:&lt;파일&gt;             이 아이콘을 출력에 사용합니다.
+-win32manifest:&lt;파일&gt;         Win32 매니페스트 파일(.xml)을 지정합니다.
+-nowin32manifest             기본 Win32 매니페스트를 포함하지 않습니다.
+-resource:&lt;resinfo&gt;          지정한 리소스를 포함합니다. (약식: -res)
+-linkresource:&lt;resinfo&gt;      지정한 리소스를 이 어셈블리에 연결합니다.
+                             (약식: -linkres) 여기서, resinfo 형식은
+                             &lt;파일&gt;[,&lt;문자열 이름&gt;[,public|private]]입니다.
 
                        - 코드 생성 -
 -debug[+|-]                   디버깅 정보를 내보냅니다.
 -debug:{full|pdbonly|portable|embedded}
-                              디버깅 형식을 지정합니다. (기본값은 'full'이고,
+                              디버깅 형식을 지정합니다. 기본값은 'full'이고,
                               'portable'은 플랫폼 간 형식이며,
                               'embedded'는 대상 .dll 또는 .exe에 포함된
-                              플랫폼 간 형식입니다.)
--optimize[+|-]                최적화를 사용합니다. (약식: -o)
+                              플랫폼 간 형식입니다.
+-optimize[+|-]                최적화를 사용하도록 설정합니다. (약식: -o)
 -deterministic                결정적 어셈블리를 생성합니다(모듈
                               버전 GUID 및 타임스탬프 포함).
 -refonly                      주 출력 대신 참조 어셈블리를 생성합니다.
 -instrument:TestCoverage      검사 정보를 수집하기 위해 계측한
                               어셈블리를 생성합니다.
--sourcelink:&lt;file&gt;            PDB에 포함할 소스 링크 정보입니다.
+-sourcelink:&lt;파일&gt;             PDB에 포함할 소스 링크 정보입니다.
 
                        - 오류 및 경고 -
 -warnaserror[+|-]             모든 경고를 오류로 보고합니다.
--warnaserror[+|-]:&lt;warn list&gt; 특정 경고를 오류로 보고합니다.
--warn:&lt;n&gt;                     경고 수준(0-4)을 설정합니다. (약식: -w)
--nowarn:&lt;warn list&gt;           특정 경고 메시지를 사용하지 않습니다.
--ruleset:&lt;file&gt;               특정 진단을 사용하지 않도록 하는 규칙 세트
+-warnaserror[+|-]:&lt;경고 목록&gt;   특정 경고를 오류로 보고합니다.
+-warn:&lt;n&gt;                     경고 수준(0~4)을 설정합니다. (약식: -w)
+-nowarn:&lt;경고 목록&gt;             특정 경고 메시지를 사용하지 않도록 설정합니다.
+-ruleset:&lt;파일&gt;                특정 진단을 사용하지 않도록 하는 규칙 집합
                               파일을 지정합니다.
--errorlog:&lt;file&gt;              모든 컴파일러 및 분석기 진단을 기록할 파일을
+-errorlog:&lt;파일&gt;[,version=&lt;sarif_version&gt;]
+                              모든 컴파일러 및 분석기 진단을 기록할 파일을
                               지정합니다.
+                              sarif_version:{1|2|2.1} 기본값 1. 2와 2.1은 모두
+                              SARIF 버전 2.1.0을 의미합니다.
 -reportanalyzer               추가 분석기 정보(예: 실행 시간)를
                               보고합니다.
 
                        - 언어 -
 -checked[+|-]                 오버플로 검사를 생성합니다.
--unsafe[+|-]                  'unsafe' 코드를 사용할 수 있습니다.
--define:&lt;symbol list&gt;         조건부 컴파일 기호를 정의합니다. 
+-unsafe[+|-]                  'unsafe' 코드를 허용합니다.
+-define:&lt;기호 목록&gt;             조건부 컴파일 기호를 정의합니다. 
                               (약식: -d)
 -langversion:?                언어 버전에 허용되는 값을 표시합니다.
--langversion:&lt;string&gt;         언어 버전을
-                              'latest'(최신 버전, 부 버전 포함)
-			      'default'(최신 주 버전),
-                              'latestmajor'(최신 버전, 부 버전 제외)
-			      'preview'(최신 버전, 지원되지 않는 미리 보기의 기능 포함)
+-langversion:&lt;문자열&gt;           언어 버전을
+                              'latest'(최신 버전, 부 버전 포함),
+                              'default'('latest'와 같음),
+                              'latestmajor'(최신 버전, 부 버전 제외),
+                              'preview'(최신 버전, 지원되지 않는 미리 보기의 기능 포함)
                               또는 특정 버전(예: '6' 또는 '7.1')으로 지정합니다.
 -nullable[+|-]                nullable 컨텍스트 옵션 enable|disable을 지정합니다.
 -nullable:{enable|disable|warnings|annotations}
@@ -734,12 +737,12 @@
                               어셈블리 서명을 연기합니다.
 -publicsign[+|-]              강력한 이름 키의 공개 부분만 사용하여
                               어셈블리를 공개 서명합니다.
--keyfile:&lt;file&gt;               강력한 이름 키 파일을 지정합니다.
--keycontainer:&lt;string&gt;        강력한 이름 키 컨테이너를 지정합니다.
--highentropyva[+|-]           높은 엔트로피 ASLR을 사용합니다.
+-keyfile:&lt;파일&gt;                강력한 이름 키 파일을 지정합니다.
+-keycontainer:&lt;문자열&gt;          강력한 이름 키 컨테이너를 지정합니다.
+-highentropyva[+|-]           높은 엔트로피 ASLR을 사용하도록 설정합니다.
 
                        - 기타 -
-@&lt;file&gt;                       추가 옵션에 대한 지시 파일을 읽습니다.
+@&lt;파일&gt;                        추가 옵션에 대한 지시 파일을 읽습니다.
 -help                         사용법 메시지를 표시합니다. (약식: -?)
 -nologo                       컴파일러 저작권 메시지를 표시하지 않습니다.
 -noconfig                     CSC.RSP 파일을 자동으로 포함하지 않습니다.
@@ -747,40 +750,40 @@
 -version                      컴파일러 버전 번호를 표시하고 종료합니다.
 
                        - 고급 -
--baseaddress:&lt;address&gt;        빌드할 라이브러리의 기준 주소입니다.
+-baseaddress:&lt;주소&gt;            빌드할 라이브러리의 기준 주소입니다.
 -checksumalgorithm:&lt;alg&gt;      PDB에 저장된 소스 파일 체크섬을
                               계산하기 위한 알고리즘을 지정합니다. 지원되는 값은
                               SHA1 또는 SHA256(기본값)입니다.
 -codepage:&lt;n&gt;                 소스 파일을 열 때 사용할 코드 페이지를
                               지정합니다.
 -utf8output                   컴파일러 메시지를 UTF-8 인코딩으로 출력합니다.
--main:&lt;type&gt;                  진입점이 포함되어 있는 형식을 지정합니다(다른
+-main:&lt;형식&gt;                   진입점이 포함된 형식을 지정합니다(다른
                               모든 가능한 진입점 무시). 
                               (약식: -m)
 -fullpaths                    컴파일러가 정규화된 경로를 생성합니다.
 -filealign:&lt;n&gt;                출력 파일 섹션에 사용되는 맞춤을
                               지정합니다.
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              컴파일러별 소스 경로 이름 출력에 사용할 매핑을
+                              컴파일러에서 출력된 소스 경로 이름에 대한 매핑을
                               지정합니다.
--pdb:&lt;file&gt;                   디버그 정보 파일 이름을 지정합니다(기본값:
-                              확장명이 .pdb인 출력 파일 이름)
+-pdb:&lt;파일&gt;                    디버그 정보 파일 이름을 지정합니다(기본값:
+                              확장명이 .pdb인 출력 파일 이름).
 -errorendlocation             각 오류의 끝 위치에 해당하는 줄과
                               열을 출력합니다.
 -preferreduilang              기본 출력 언어 이름을 지정합니다.
--nosdkpath                    표준 라이브러리 어셈블리의 기본 SDK 경로를 찾지 않도록 설정합니다.
+-nosdkpath                    기본 SDK 경로에서 표준 라이브러리 어셈블리를 검색하지 않도록 설정합니다.
 -nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않습니다.
--subsystemversion:&lt;string&gt;    이 어셈블리의 하위 시스템 버전을 지정합니다.
--lib:&lt;file list&gt;              참조를 위해 검색할 추가 디렉터리를
+-subsystemversion:&lt;문자열&gt;      이 어셈블리의 하위 시스템 버전을 지정합니다.
+-lib:&lt;파일 목록&gt;                참조를 위해 검색할 추가 디렉터리를
                               지정합니다.
--errorreport:&lt;string&gt;         내부 컴파일러 오류를 처리하는 방법을 지정합니다.
-                              prompt, send, queue 또는 none입니다. 기본값은
+-errorreport:&lt;문자열&gt;           내부 컴파일러 오류를 처리하는 방법을
+                              prompt, send, queue 또는 none으로 지정합니다. 기본값은
                               queue입니다.
--appconfig:&lt;file&gt;             어셈블리 바인딩 설정을 포함하는
+-appconfig:&lt;파일&gt;              어셈블리 바인딩 설정을 포함하는
                               애플리케이션 구성 파일을 지정합니다.
--moduleassemblyname:&lt;string&gt;  이 모듈이 속할 어셈블리의
+-moduleassemblyname:&lt;문자열&gt;    이 모듈이 속할 어셈블리의
                               이름입니다.
--modulename:&lt;string&gt;          소스 모듈의 이름을 지정합니다.
+-modulename:&lt;문자열&gt;            소스 모듈의 이름을 지정합니다.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -801,7 +804,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">비동기 using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -1331,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 'as' 연산자가 null 값을 생성할 수 있습니다.</target>
+        <target state="translated">'{0}'이(가) null을 허용하지 않는 참조 형식이면 'as' 연산자가 null 값을 생성할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
@@ -1351,7 +1354,7 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 조건부 액세스가 null 값을 생성할 수 있습니다.</target>
+        <target state="translated">'{0}'이(가) null을 허용하지 않는 참조 형식이면 조건부 액세스가 null 값을 생성할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
@@ -1361,17 +1364,17 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">null 리터럴 또는 가능한 null 값을 nullable이 아닌 형식으로 변환하는 중입니다.</target>
+        <target state="translated">null 리터럴 또는 가능한 null 값을 null을 허용하지 않는 형식으로 변환하는 중입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">null 리터럴 또는 가능한 null 값을 nullable이 아닌 형식으로 변환하는 중입니다.</target>
+        <target state="translated">null 리터럴 또는 가능한 null 값을 null을 허용하지 않는 형식으로 변환하는 중입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 기본 식이 null 값을 지정합니다.</target>
+        <target state="translated">'{0}'이(가) null을 허용하지 않는 참조 형식이면 기본 식이 null 값을 지정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
@@ -1381,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 전달할 수 없음</target>
+        <target state="translated">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 할당할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 전달할 수 없음</target>
+        <target state="translated">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 할당할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1401,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT">
         <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">[MaybeNull] 값을 반환하는 멤버 때문에 '{0}'이(가) null을 허용하지 않는 참조 형식일 때 null 값이 도입됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
         <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
+        <target state="translated">[MaybeNull] 값을 반환하는 멤버 때문에 형식 매개 변수에 대해 null 값이 도입됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1456,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Nullable 참조 형식에 대한 주석은 '#nullable' 주석 컨텍스트 내의 코드에서만 사용해야 합니다. 자동 생성된 코드에는 소스에 명시적 '#nullable' 지시문이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Nullable 참조 형식에 대한 주석은 '#nullable' 주석 컨텍스트 내의 코드에서만 사용해야 합니다. 자동 생성된 코드에는 소스에 명시적 '#nullable' 지시문이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1471,17 +1474,17 @@
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Null 리터럴을 nullable이 아닌 참조 형식으로 변환할 수 없습니다.</target>
+        <target state="translated">Null 리터럴을 null을 허용하지 않는 참조 형식으로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Null 리터럴을 nullable이 아닌 참조 형식으로 변환할 수 없습니다.</target>
+        <target state="translated">Null 리터럴을 null을 허용하지 않는 참조 형식으로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 null 리터럴이 null 값을 지정합니다.</target>
+        <target state="translated">'{0}'이(가) null을 허용하지 않는 참조 형식이면 null 리터럴이 null 값을 지정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
@@ -1511,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">개체 또는 컬렉션 이니셜라이저가 가능한 null 멤버 '{0}'을(를) 암시적으로 역참조합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">개체 또는 컬렉션 이니셜라이저가 가능한 null 멤버를 암시적으로 역참조합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1781,7 +1784,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
+        <target state="translated">switch 식에서 입력 형식의 가능한 값을 모두 처리하지는 않습니다(전체 아님).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1796,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
+        <target state="translated">switch 식에서 입력 형식의 가능한 값을 모두 처리하지는 않습니다(전체 아님).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1861,12 +1864,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">nullable이 아닌 {0} '{1}'이(가) 초기화되지 않았습니다. {0}을(를) nullable로 선언하는 것이 좋습니다.</target>
+        <target state="translated">null을 허용하지 않는 {0} '{1}'이(가) 초기화되지 않았습니다. {0}을(를) nullable로 선언하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">nullable이 아닌 필드가 초기화되지 않았습니다. nullable로 선언하는 것이 좋습니다.</target>
+        <target state="translated">null을 허용하지 않는 필드가 초기화되지 않았습니다. nullable로 선언하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2791,7 +2794,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="translated">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
+        <target state="translated">대입, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -3296,7 +3299,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantInferMethTypeArgs">
         <source>The type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">{0}' 메서드의 형식 인수를 유추할 수 없습니다. 형식 인수를 명시적으로 지정하세요.</target>
+        <target state="translated">사용 현황에서 '{0}' 메서드의 형식 인수를 유추할 수 없습니다. 형식 인수를 명시적으로 지정하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsTypeParam">
@@ -4890,7 +4893,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAssignment">
         <source>An expression tree may not contain an assignment operator</source>
-        <target state="translated">식 트리에는 할당 연산자를 사용할 수 없습니다.</target>
+        <target state="translated">식 트리에는 대입 연산자를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeDuplicatePropertyName">
@@ -5075,7 +5078,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_EndOfPPLineExpected">
         <source>Single-line comment or end-of-line expected</source>
-        <target state="translated">한 줄로 된 주석이나 줄 끝(EOL)이 필요합니다.</target>
+        <target state="translated">한 줄로 된 주석이나 줄의 끝이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseParenExpected">
@@ -5599,7 +5602,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_MissingPPFile">
         <source>Quoted file name, single-line comment or end-of-line expected</source>
-        <target state="translated">따옴표 붙은 파일 이름, 한 줄로 된 주석 또는 줄 끝(EOL)이 필요합니다.</target>
+        <target state="translated">따옴표 붙은 파일 이름, 한 줄로 된 주석 또는 줄의 끝이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedPPFile">
@@ -5924,7 +5927,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_MultipleIEnumOfT">
         <source>foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">foreach 문은 '{1}'의 여러 인스턴스를 구현하므로 '{0}' 형식의 변수에는 foreach 문을 수행할 수 없습니다. 특정 인터페이스 인스턴스로 캐스팅하세요.</target>
+        <target state="translated">foreach 문은 '{1}'의 여러 인스턴스화를 구현하므로 '{0}' 형식의 변수에는 foreach 문을 수행할 수 없습니다. 특정 인터페이스 인스턴스화로 캐스팅하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedDimsRequired">
@@ -6284,12 +6287,12 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="WRN_EndOfPPLineExpected">
         <source>Single-line comment or end-of-line expected</source>
-        <target state="translated">한 줄로 된 주석이나 줄 끝(EOL)이 필요합니다.</target>
+        <target state="translated">한 줄로 된 주석이나 줄의 끝이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EndOfPPLineExpected_Title">
         <source>Single-line comment or end-of-line expected after #pragma directive</source>
-        <target state="translated">#pragma 지시문 뒤에는 한 줄로 된 주석 또는 줄 끝(EOL)이 필요합니다.</target>
+        <target state="translated">#pragma 지시문 뒤에는 한 줄로 된 주석 또는 줄의 끝이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConflictingChecksum">
@@ -7704,7 +7707,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="WRN_DefaultValueForUnconsumedLocation">
         <source>The default value specified for parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</source>
-        <target state="translated">{0}' 매개 변수에 지정된 기본값은 선택적 매개 변수를 허용하지 않는 컨텍스트에서 사용되는 멤버에 적용되므로 효과가 없습니다.</target>
+        <target state="translated">'{0}' 매개 변수에 지정된 기본값은 선택적 인수를 허용하지 않는 컨텍스트에서 사용되는 멤버에 적용되므로 효과가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultValueForUnconsumedLocation_Title">
@@ -8079,7 +8082,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_GenericsUsedInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="translated">{0}' 형식은 중첩 형식이기 때문에 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정하세요.</target>
+        <target state="translated">'{0}' 형식에 제네릭 인수가 있으므로 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InteropStructContainsMethods">
@@ -8472,7 +8475,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="InvalidGetDeclarationNameMultipleDeclarators">
         <source>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</source>
-        <target state="translated">여러 변수 선언을 포함할 수 있는 선언 노드에 대해 호출된 GetDeclarationName입니다.</target>
+        <target state="translated">여러 변수 선언자를 포함할 수 있는 선언 노드에 대해 호출된 GetDeclarationName입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNotPartOfCompilation">
@@ -8952,7 +8955,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">문자열 상수의 길이가 현재 메모리 제한을 초과합니다. 문자열을 여러 상수로 분할해 보세요.</target>
+        <target state="translated">연결에서 생성된 문자열 상수의 길이가 System.Int32.MaxValue를 초과합니다.  문자열을 여러 상수로 분할해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9057,7 +9060,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnLvalueExpected">
         <source>An expression cannot be used in this context because it may not be passed or returned by reference</source>
-        <target state="translated">식은 참조에 의해 전달되거나 반환될 수 없으므로 이 컨텍스트에서 사용할 수 없습니다.</target>
+        <target state="translated">식은 참조로 전달되거나 반환될 수 없으므로 이 컨텍스트에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnNonreturnableLocal">
@@ -9732,7 +9735,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 System.IAsyncDisposable'로 변환할 수 있거나 적합한 DisposeAsync' 메서드를 구현해야 합니다.</target>
+        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
@@ -9742,7 +9745,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">비동기 foreach 문은 '{1}'의 여러 인스턴스를 구현하므로 '{0}' 형식의 변수에는 foreach 문을 수행할 수 없습니다. 특정 인터페이스 인스턴스로 캐스트하세요.</target>
+        <target state="translated">비동기 foreach 문은 '{1}'의 여러 인스턴스화를 구현하므로 '{0}' 형식의 변수에는 foreach 문을 수행할 수 없습니다. 특정 인터페이스 인스턴스화로 캐스트하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">Ajouter des vérifications de valeur null pour tous les paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -64,22 +64,22 @@
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
         <source>Align wrapped arguments</source>
-        <target state="translated">Aligner les arguments inclus dans un wrapper</target>
+        <target state="translated">Aligner les arguments enveloppés</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_parameters">
         <source>Align wrapped parameters</source>
-        <target state="translated">Aligner les paramètres inclus dans un wrapper</target>
+        <target state="translated">Aligner les paramètres enveloppés</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Évitez les affectations de valeurs inutiles dans votre code, car elles représentent probablement des calculs de valeurs redondants. Si un calcul de valeur n'est pas redondant et si vous souhaitez conserver l'affectation, remplacez la cible de l'affectation par une variable locale dont le nom commence par un trait de soulignement éventuellement suivi d'un entier, par exemple '_', '_1', '_2', etc. Ces types d'élément sont traités en tant que noms de symboles discard spéciaux.</target>
+        <target state="translated">Évitez les assignations de valeurs inutiles dans votre code, car elles représentent probablement des calculs de valeurs redondants. Si un calcul de valeur n'est pas redondant et si vous souhaitez conserver l'assignation, remplacez la cible de l'assignation par une variable locale dont le nom commence par un trait de soulignement éventuellement suivi d'un entier, par exemple '_', '_1', '_2', etc. Ces types d'élément sont traités en tant que noms de symboles discard spéciaux.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Évitez les paramètres inutilisés dans votre code. Évitez les paramètres inutilisés dans votre code. Si vous ne pouvez pas supprimer un paramètre, changez son nom en le faisant commencer par un trait de soulignement éventuellement suivi d'un entier, par exemple '_', '_1', '_2', etc. Ces types d'élément sont traités en tant que noms de symboles discard spéciaux.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">Le contenu actuel du fichier source « {0} » ne correspond pas à la source générée. La session de débogage ne peut pas continuer tant que le contenu du fichier source n'est pas restauré.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -259,12 +259,12 @@
       </trans-unit>
       <trans-unit id="Indent_wrapped_arguments">
         <source>Indent wrapped arguments</source>
-        <target state="translated">Mettre en retrait les arguments inclus dans un wrapper</target>
+        <target state="translated">Mettre en retrait les arguments enveloppés</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
-        <target state="translated">Mettre en retrait les paramètres inclus dans un wrapper</target>
+        <target state="translated">Mettre en retrait les paramètres enveloppés</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -489,52 +489,52 @@
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="translated">Affectation inutile d'une valeur</target>
+        <target state="translated">Assignation inutile d'une valeur</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="translated">Affectation inutile d'une valeur à '{0}'</target>
+        <target state="translated">Assignation inutile d'une valeur à '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
-        <target state="translated">Exclure du wrapper tous les arguments</target>
+        <target state="translated">Désenvelopper tous les arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
-        <target state="translated">Exclure du wrapper tous les paramètres</target>
+        <target state="translated">Désenvelopper tous les paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
-        <target state="translated">Exclure du wrapper tous les arguments et les mettre en retrait</target>
+        <target state="translated">Désenvelopper et mettre en retrait tous les arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
-        <target state="translated">Exclure du wrapper tous les paramètres et les mettre en retrait</target>
+        <target state="translated">Désenvelopper et mettre en retrait tous les paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_argument_list">
         <source>Unwrap argument list</source>
-        <target state="translated">Exclure du wrapper la liste d'arguments</target>
+        <target state="translated">Désenvelopper la liste d'arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="translated">Ne pas effectuer le retour à la ligne d'une chaîne d'appels</target>
+        <target state="translated">Désenvelopper la chaîne d'appels</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
-        <target state="translated">Exclure l'expression du wrapper</target>
+        <target state="translated">Désenvelopper l'expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
-        <target state="translated">Exclure du wrapper la liste de paramètres</target>
+        <target state="translated">Désenvelopper la liste de paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">Utilisez le modèle de suppression recommandé pour vérifier que les objets supprimables de l'étendue locale sont bien supprimés sur tous les chemins. Si possible, incluez la création dans un wrapper au sein d'une instruction 'using' ou d'une déclaration 'using'. Sinon, utilisez un modèle try-finally avec une variable locale dédiée déclarée avant la région try et un appel inconditionnel de Dispose sur une valeur non null dans la région 'finally', par exemple 'x?.Dispose()'. Si l'objet est explicitement supprimé dans la région try ou si la propriété de suppression est transférée vers un autre objet ou une autre méthode, affectez la valeur 'null' à la variable locale juste après cette opération pour éviter une double suppression dans 'finally'</target>
+        <target state="translated">Utilisez le modèle Dispose recommandé pour vérifier que les objets supprimables de l'étendue locale sont bien supprimés sur tous les chemins. Si possible, enveloppez la création dans une instruction 'using' ou une déclaration 'using'. Sinon, utilisez un modèle try-finally avec une variable locale dédiée déclarée avant la région try et un appel inconditionnel de Dispose sur une valeur non null dans la région 'finally', par exemple 'x?.Dispose()'. Si l'objet est explicitement supprimé dans la région try ou si la propriété de suppression est transférée vers un autre objet ou une autre méthode, affectez la valeur 'null' à la variable locale juste après cette opération pour éviter une double suppression dans 'finally'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -559,7 +559,7 @@
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
-        <target state="translated">Utiliser une attribution composée</target>
+        <target state="translated">Utiliser une assignation composée</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
@@ -589,7 +589,7 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="translated">Utiliser une chaîne textuelle interpolée</target>
+        <target state="translated">Utiliser une chaîne verbatim interpolée</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
@@ -599,12 +599,12 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="translated">Utilisez le modèle de suppression recommandé</target>
+        <target state="translated">Utilisez le modèle Dispose recommandé</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">Employez le modèle de suppression recommandé pour vérifier que l'objet créé par '{0}' est supprimé sur tous les chemins : instruction/déclaration using ou try/finally</target>
+        <target state="translated">Utilisez le modèle Dispose recommandé pour vérifier que l'objet créé par '{0}' est supprimé sur tous les chemins : instruction/déclaration using ou try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -624,57 +624,57 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_call_chain">
         <source>Wrap and align call chain</source>
-        <target state="translated">Effectuer le retour à la ligne et l'alignement d'une chaîne d'appels</target>
+        <target state="translated">Envelopper et aligner la chaîne d'appels</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="translated">Effectuer un retour automatique à la ligne et aligner l'expression</target>
+        <target state="translated">Envelopper et aligner l'expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="translated">Effectuer le retour à la ligne et l'alignement d'une longue chaîne d'appels</target>
+        <target state="translated">Envelopper et aligner la longue chaîne d'appels</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="translated">Effectuer le retour à la ligne d'une chaîne d'appels</target>
+        <target state="translated">Envelopper la chaîne d'appels</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
-        <target state="translated">Inclure dans un wrapper chaque argument</target>
+        <target state="translated">Envelopper chaque argument</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
-        <target state="translated">Wrapper chaque paramètre</target>
+        <target state="translated">Envelopper chaque paramètre</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_expression">
         <source>Wrap expression</source>
-        <target state="translated">Inclure l'expression dans un wrapper</target>
+        <target state="translated">Envelopper l'expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
-        <target state="translated">Inclure dans un wrapper la liste d'arguments longue</target>
+        <target state="translated">Envelopper la longue liste d'arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="translated">Effectuer le retour à la ligne d'une longue chaîne d'appels</target>
+        <target state="translated">Envelopper la longue chaîne d'appels</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
-        <target state="translated">Wrapper la longue liste de paramètres</target>
+        <target state="translated">Envelopper la longue liste de paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
-        <target state="translated">Retour à la ligne</target>
+        <target state="translated">Enveloppement</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
@@ -1825,7 +1825,7 @@ Voulez-vous continuer ?</target>
       </trans-unit>
       <trans-unit id="Naming_rule_violation_0">
         <source>Naming rule violation: {0}</source>
-        <target state="translated">Violation des règles d'affectation de noms : {0}</target>
+        <target state="translated">Violation des règles de nommage : {0}</target>
         <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
@@ -2197,12 +2197,12 @@ Version utilisée dans : {2}</target>
       </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
-        <target state="translated">Utiliser la propagation de valeurs null</target>
+        <target state="translated">Utiliser la propagation nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
-        <target state="translated">La déclaration de variable peut être inline</target>
+        <target state="translated">La déclaration de variable peut être inlined</target>
         <note />
       </trans-unit>
       <trans-unit id="Null_check_can_be_simplified">

@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="new">Assign 'out' parameters</target>
+        <target state="translated">'out' パラメーターの割り当て</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="new">Assign 'out' parameters (at start)</target>
+        <target state="translated">'out' パラメーターの割り当て (開始時)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">キャプチャされた変数を引数として渡す</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -159,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
-        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <target state="translated">警告: 一時メソッド呼び出しを条件付きメソッド呼び出しにインライン展開しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">警告: ローカル関数の宣言にパラメーターを追加すると、無効なコードが生成される可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">返されないコードのパスがあります</target>
+        <target state="translated">返されないコード パスがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_node">

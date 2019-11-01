@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../EditorFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../EditorFeaturesResources.resx">
     <body>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
-        <target state="new">Go To Base</target>
+        <target state="translated">转到基础映像</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
-        <target state="new">Locating bases...</target>
+        <target state="translated">正在查找基...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
-        <target state="translated">引擎必须附加到“交互式窗口”。</target>
+        <target state="translated">引擎必须附加到“交互窗口”。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changes_the_current_prompt_settings">

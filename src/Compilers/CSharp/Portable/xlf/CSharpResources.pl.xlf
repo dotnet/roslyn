@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Błąd składni wiersza polecenia: „{0}” nie jest prawidłową wartością dla opcji „{1}”. Wartość musi mieć postać „{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">Brak typu docelowego dla literału domyślnego.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
-        <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach wysyłanych dynamicznie.</target>
+        <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach przydzielanych dynamicznie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">Błąd wewnętrzny w kompilatorze języka C#.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”. Czy chodziło Ci o użycie instrukcji „using”, a nie „await using”?</target>
+        <target state="translated">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”. Czy chodziło Ci o użycie instrukcji „using”, a nie „await using”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
         <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">Parametr typu dopuszczający wartość null musi być typem wartości lub typem referencyjnym niedopuszczającym wartości null. Rozważ dodanie elementu „class”, „struct” lub ograniczenia typu.</target>
+        <target state="translated">Nullowalny parametr typumusi być typem wartości lub nienullowalnym typem referencyjnym. Rozważ dodanie elementu „class”, „struct” lub ograniczenia typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -339,7 +339,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
-        <target state="translated">Metoda „{0}” określa ograniczenie „struct” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” nie jest typem wartości niedopuszczającym wartości null.</target>
+        <target state="translated">Metoda „{0}” określa ograniczenie „struct” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” nie jest nienullowalnym typem wartości.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Nie można osadzić typu „{0}”, ponieważ zawiera ponowną abstrakcję składowej z interfejsu podstawowego. Rozważ ustawienie właściwości „Osadź typy międzyoperacyjne” na wartość false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -394,7 +394,7 @@
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">Wzorzec dekonstrukcji z jednym elementem wymaga innej składni w celu ujednoznacznienia. Zaleca się dodanie oznacznika odrzucania „_” po nawiasie zamykającym „)”.</target>
+        <target state="translated">Wzorzec dekonstrukcji z jednym elementem wymaga innej składni w celu ujednoznacznienia. Zaleca się dodanie desygnatora odrzucania „_” po nawiasie zamykającym „)”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">Typ „{2}” musi być typem wartości niedopuszczającym wartości null (podobnie jak wszystkie pola na wszystkich poziomach zagnieżdżenia), aby można było używać go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”</target>
+        <target state="translated">Typ „{2}” musi być nienullowalnym typem wartości (podobnie jak wszystkie pola na wszystkich poziomach zagnieżdżenia), aby można było używać go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -634,7 +634,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opcje kompilatora Visual C#
 
                         - PLIKI WYJŚCIOWE -
@@ -663,14 +663,14 @@
                                symboli wieloznacznych
 -reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
                               zestawu przy użyciu podanego aliasu (krótka wersja: -r)
--reference:&lt;lista plików&gt;     Odwołuj się do metadanych z określonych 
+-reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych 
                               plików zestawów (krótka wersja: -r)
 -addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
--link:&lt;lista plików&gt;          Osadź metadane z określonych plików 
+-link:&lt;lista_plików&gt;          Osadź metadane z określonych plików 
                               zestawów międzyoperacyjnych (krótka wersja: -l)
--analyzer:&lt;lista plików&gt;      Uruchom analizatory z tego zestawu
+-analyzer:&lt;lista_plików&gt;      Uruchom analizatory z tego zestawu
                               (krótka wersja: -a)
--additionalfile:&lt;lista plików&gt; Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
+-additionalfile:&lt;lista_plików&gt; Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
                                kodu, ale mogą być używane przez analizatory w celu tworzenia
                                komunikatów o błędach lub ostrzeżeń.
 -embed                        Osadź wszystkie pliki źródłowe w pliku PDB.
@@ -681,8 +681,8 @@
 -win32icon:&lt;plik&gt;             Użyj tej ikony dla pliku wyjściowego
 -win32manifest:&lt;plik&gt;         Określ plik manifestu środowiska Win32 (xml)
 -nowin32manifest              Nie dołączaj domyślnego manifestu środowiska Win32
--resource:&lt;informacje o zasobie&gt; Osadź określony zasób (krótka wersja: -res)
--linkresource:&lt;informacje o zasobie&gt; Połącz określony zasób z tym zestawem 
+-resource:&lt;informacje_o_zasobie&gt; Osadź określony zasób (krótka wersja: -res)
+-linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem 
                                (krótka wersja: -linkres), gdzie format informacji o zasobie 
                                to &lt;plik&gt;[,&lt;nazwa ciągu&gt;[,public|private]]
 
@@ -703,13 +703,16 @@
 
                         - BŁĘDY I OSTRZEŻENIA -
 -warnaserror[+|-]             Zgłaszaj wszystkie ostrzeżenia jako błędy
--warnaserror[+|-]:&lt;lista ostrzeżeń&gt; Zgłaszaj określone ostrzeżenia jako błędy
+-warnaserror[+|-]:&lt;lista_ostrzeżeń&gt; Zgłaszaj określone ostrzeżenia jako błędy
 -warn:&lt;n&gt;                     Ustaw poziom ostrzeżeń (0–4) (krótka wersja: -w)
--nowarn:&lt;lista ostrzeżeń&gt;     Wyłącz określone komunikaty ostrzeżeń
+-nowarn:&lt;lista_ostrzeżeń&gt;     Wyłącz określone komunikaty ostrzeżeń
 -ruleset:&lt;plik&gt;               Określ plik zestawu reguł wyłączający określone
                               funkcje diagnostyczne.
--errorlog:&lt;plik&gt;              Określ plik w celu rejestrowania wszystkich
+-errorlog:&lt;plik&gt;[,version=&lt;wersja_sarif&gt;]
+                              Określ plik w celu rejestrowania wszystkich
                               danych diagnostycznych kompilatora i analizatora.
+                              sarif_version:{1|2|2.1} Domyślne wartości 1. 2 i 2.1
+                              oznaczają format SARIF w wersji 2.1.0.
 -reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
                               czas wykonywania.
  
@@ -801,7 +804,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">asynchroniczna instrukcja using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -901,7 +904,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
-        <target state="translated">ponowny przydział odwołania</target>
+        <target state="translated">ponowne przypisanie odwołania</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -1331,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Operator „as” może wygenerować wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <target state="translated">Operator „as” może wygenerować wartość null, jeśli element „{0}” jest nienullowalnym typem referencyjnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
@@ -1351,7 +1354,7 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Dostęp warunkowy może wygenerować wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <target state="translated">Dostęp warunkowy może wygenerować wartość null, jeśli element „{0}” jest nienullowalnym typem referencyjnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
@@ -1361,17 +1364,17 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na typ niedopuszczający wartości null.</target>
+        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na nienullowalny typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na typ niedopuszczający wartości null.</target>
+        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na nienullowalny typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Wyrażenie domyślne wprowadza wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <target state="translated">Wyrażenie domyślne wprowadza wartość null, jeśli element „{0}” jest nienullowalnym typem referencyjnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
@@ -1381,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Możliwa wartość null nie może być przekazywana do elementu docelowego oznaczonego atrybutem [DisallowNull]</target>
+        <target state="translated">Możliwa wartość null nie może być przypisywana do elementu docelowego oznaczonego atrybutem [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Możliwa wartość null nie może być przekazywana do elementu docelowego oznaczonego atrybutem [DisallowNull]</target>
+        <target state="translated">Możliwa wartość null nie może być przypisywana do elementu docelowego oznaczonego atrybutem [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1401,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT">
         <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">Składowa zwracająca wartość [MaybeNull] wprowadza wartość null, gdy element „{0}” jest nienullowalnym typem referencyjnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
         <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
+        <target state="translated">Składowa zwracająca wartość [MaybeNull] wprowadza wartość null dla parametru typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1456,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana w kodzie tylko w ramach kontekstu adnotacji „#nullable”. Wygenerowany automatycznie kod wymaga jawnej dyrektywy „#nullable” w źródle.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana w kodzie tylko w ramach kontekstu adnotacji „#nullable”. Wygenerowany automatycznie kod wymaga jawnej dyrektywy „#nullable” w źródle.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1471,17 +1474,17 @@
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Nie można przekonwertować literału o wartości null na typ referencyjny niedopuszczający wartości null.</target>
+        <target state="translated">Nie można przekonwertować literału o wartości null na nienullowalny typ referencyjny.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Nie można przekonwertować literału o wartości null na typ referencyjny niedopuszczający wartości null.</target>
+        <target state="translated">Nie można przekonwertować literału o wartości null na nienullowalny typ referencyjny.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Literał o wartości null wprowadza wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <target state="translated">Literał o wartości null wprowadza wartość null, podczas gdy element „{0}” jest nienullowalnym typem referencyjnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
@@ -1511,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">Inicjator obiektu lub kolekcji niejawnie wyłuskuje składową o możliwej wartości null „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">Inicjator obiektu lub kolekcji niejawnie wyłuskuje składową o możliwej wartości null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1781,7 +1784,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Wyrażenie switch nie obsługuje wszystkich możliwych danych wejściowych (nie jest kompletne).</target>
+        <target state="translated">Wyrażenie switch nie obsługuje wszystkich możliwych wartości jego typu danych wejściowych (nie jest kompletne).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1796,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Wyrażenie switch nie obsługuje wszystkich możliwych danych wejściowych (nie jest kompletne).</target>
+        <target state="translated">Wyrażenie switch nie obsługuje wszystkich możliwych wartości jego typu danych wejściowych (nie jest kompletne).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1861,12 +1864,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Element {0} „{1}” niedopuszczający wartości null jest niezainicjowany. Rozważ zadeklarowanie elementu {0} jako dopuszczającego wartości null.</target>
+        <target state="translated">Nienullowalny element {0} „{1}” jest niezainicjowany. Rozważ zadeklarowanie elementu {0} jako nullowalnego.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Pole niedopuszczające wartości null jest niezainicjowane. Rozważ zadeklarowanie go jako dopuszczającego wartości null.</target>
+        <target state="translated">Nienullowalne pole jest niezainicjowane. Rozważ zadeklarowanie go jako nullowalnego.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2091,12 +2094,12 @@
       </trans-unit>
       <trans-unit id="ERR_ValueCantBeNull">
         <source>Cannot convert null to '{0}' because it is a non-nullable value type</source>
-        <target state="translated">Nie można przekonwertować wartości null na „{0}”, ponieważ nie jest to możliwa wartość null typu.</target>
+        <target state="translated">Nie można przekonwertować wartości null na „{0}”, ponieważ jest to nienullowalny typ wartości</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoExplicitBuiltinConv">
         <source>Cannot convert type '{0}' to '{1}' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion</source>
-        <target state="translated">Nie można przekonwertować typu „{0}” na „{1}” za pomocą konwersji odwołania, konwersji pakującej, konwersji rozpakowującej, konwersji tworzenia otoki ani konwersji na typ zerowy</target>
+        <target state="translated">Nie można przekonwertować typu „{0}” na „{1}” za pomocą konwersji odwołania, konwersji pakującej, konwersji rozpakowującej, konwersji opakowującej ani konwersji na typ zerowy</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_DebugEmitFailure">
@@ -2226,7 +2229,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsMustHaveReferenceType">
         <source>The as operator must be used with a reference type or nullable type ('{0}' is a non-nullable value type)</source>
-        <target state="translated">Operatora „as” należy używać z typem referencyjnym lub typem dopuszczającym wartość null („{0}” jest typem niedopuszczającym wartości null)</target>
+        <target state="translated">Operatora „as” należy używać z typem referencyjnym lub typem nullowalnym („{0}” jest typem nienullowalnym)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowercaseEllSuffix">
@@ -2576,7 +2579,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReturnExpected">
         <source>'{0}': not all code paths return a value</source>
-        <target state="translated">'„{0}”: nie wszystkie ścieżki kodu zwracają wartość</target>
+        <target state="translated">'„{0}”: nie wszystkie ścieżki w kodzie zwracają wartość</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableCode">
@@ -3261,7 +3264,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeVarCantBeNull">
         <source>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</source>
-        <target state="translated">Nie można przekonwertować zera na parametr typu „{0}”, ponieważ może on być niezerowalnym typem wartości. Zamiast tego rozważ użycie elementu „default({0}!)”.</target>
+        <target state="translated">Nie można przekonwertować wartości null na parametr typu „{0}”, ponieważ może on być nienullowalnym typem wartości. Zamiast tego rozważ użycie elementu „default({0}!)”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
@@ -3521,7 +3524,7 @@
       </trans-unit>
       <trans-unit id="ERR_ValConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">Typ „{2}” musi być niezerowalnym typem wartości, aby można było użyć go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”.</target>
+        <target state="translated">Typ „{2}” musi być nienullowalnym typem wartości, aby można było użyć go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularConstraint">
@@ -3556,7 +3559,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturnThis">
         <source>Cannot return 'this' by reference.</source>
-        <target state="translated">Nie można zwrócić elementu „this” przez odwołanie.</target>
+        <target state="translated">Nie można zwrócić elementu „this” przez referencję.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
@@ -5289,7 +5292,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseCtor">
         <source>The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.</source>
-        <target state="translated">Wywołanie konstruktora musi być wysyłane dynamicznie, ale jest to niemożliwe, ponieważ jest częścią inicjatora konstruktora. Rozważ możliwość rzutowania argumentów dynamicznych.</target>
+        <target state="translated">Wywołanie konstruktora musi być przydzielane dynamicznie, ale jest to niemożliwe, ponieważ jest częścią inicjatora konstruktora. Rozważ możliwość rzutowania argumentów dynamicznych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueTypeExtDelegate">
@@ -5939,7 +5942,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_AnonymousReturnExpected">
         <source>Not all code paths return a value in {0} of type '{1}'</source>
-        <target state="translated">Nie dla wszystkich ścieżek kodu jest zwracana wartość w {0} typu „{1}”</target>
+        <target state="translated">Nie dla wszystkich ścieżek w kodzie jest zwracana wartość w {0} typu „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NonECMAFeature">
@@ -6234,7 +6237,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Description">
         <source>This warning occurs when you try to call a method, property, or indexer on a member of a class that derives from MarshalByRefObject, and the member is a value type. Objects that inherit from MarshalByRefObject are typically intended to be marshaled by reference across an application domain. If any code ever attempts to directly access the value-type member of such an object across an application domain, a runtime exception will occur. To resolve the warning, first copy the member into a local variable and call the method on that variable.</source>
-        <target state="translated">To ostrzeżenie występuje, gdy w przypadku próby wywołania metody, właściwości lub indeksatora w składowej klasy pochodnej elementu MarshalByRefObject składowa jest typem wartości. Obiekty dziedziczące po elemencie MarshalByRefObject zwykle powinny być kierowane przez odwołanie w domenie aplikacji. Jeśli kod spróbuje bezpośrednio uzyskać dostęp do składowej typu wartości takiego obiektu w domenie aplikacji, wystąpi wyjątek czasu wykonywania. Aby rozwiązać problem podany w ostrzeżeniu, skopiuj składową do zmiennej lokalnej i wywołaj metodę w tej zmiennej.</target>
+        <target state="translated">To ostrzeżenie występuje, gdy w przypadku próby wywołania metody, właściwości lub indeksatora w składowej klasy pochodnej elementu MarshalByRefObject składowa jest typem wartości. Obiekty dziedziczące po elemencie MarshalByRefObject zwykle powinny być kierowane przez referencję w domenie aplikacji. Jeśli kod spróbuje bezpośrednio uzyskać dostęp do składowej typu wartości takiego obiektu w domenie aplikacji, wystąpi wyjątek czasu wykonywania. Aby rozwiązać problem podany w ostrzeżeniu, skopiuj składową do zmiennej lokalnej i wywołaj metodę w tej zmiennej.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
@@ -7954,22 +7957,22 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArg">
         <source>Cannot use an expression of type '{0}' as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Nie można użyć wyrażenia typu „{0}” jako argumentu do operacji wiązanej dynamicznie.</target>
+        <target state="translated">Nie można użyć wyrażenia typu „{0}” jako argumentu do operacji przydzielanej dynamicznie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgLambda">
         <source>Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.</source>
-        <target state="translated">Nie można użyć wyrażenia lambda jako argumentu do operacji wiązanej dynamicznie bez uprzedniego rzutowania go na delegata lub typ drzewa wyrażenia.</target>
+        <target state="translated">Nie można użyć wyrażenia lambda jako argumentu do operacji przydzielanej dynamicznie bez uprzedniego rzutowania go na delegata lub typ drzewa wyrażenia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgMemgrp">
         <source>Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?</source>
-        <target state="translated">Nie można użyć grupy metod jako argumentu do operacji wiązanej dynamicznie. Czy zamierzane było wywołanie metody?</target>
+        <target state="translated">Nie można użyć grupy metod jako argumentu do operacji przydzielanej dynamicznie. Czy zamierzane było wywołanie metody?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBase">
         <source>The call to method '{0}' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">Wywołanie metody „{0}” musi być wysłane dynamicznie, lecz to nie jest możliwe, ponieważ jest ona częścią wyrażenia dostępu bazowego. Rozważ rzutowanie argumentów dynamicznych lub wyeliminowanie dostępu bazowego.</target>
+        <target state="translated">Wywołanie metody „{0}” musi być przydzielane dynamicznie, lecz to nie jest możliwe, ponieważ jest ona częścią wyrażenia dostępu bazowego. Rozważ rzutowanie argumentów dynamicznych lub wyeliminowanie dostępu bazowego.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicQuery">
@@ -7979,22 +7982,22 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseIndexer">
         <source>The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">Dostęp indeksatora musi być wysyłany dynamicznie, ale jest to niemożliwe, ponieważ jest częścią wyrażenia dostępu bazowego. Rozważ możliwość rzutowania argumentów dynamicznych lub wykluczenia dostępu bazowego.</target>
+        <target state="translated">Dostęp indeksatora musi być przydzielany dynamicznie, ale jest to niemożliwe, ponieważ jest częścią wyrażenia dostępu bazowego. Rozważ możliwość rzutowania argumentów dynamicznych lub wykluczenia dostępu bazowego.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod">
         <source>The dynamically dispatched call to method '{0}' may fail at runtime because one or more applicable overloads are conditional methods.</source>
-        <target state="translated">Dynamicznie wysłane wywołanie metody „{0}” może nie powieść się w czasie wykonywania, ponieważ co najmniej jedno z przeciążeń, które można zastosować, to metoda warunkowa.</target>
+        <target state="translated">Dynamicznie przydzielane wywołanie metody „{0}” może nie powieść się w czasie wykonywania, ponieważ co najmniej jedno z przeciążeń, które można zastosować, to metoda warunkowa.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod_Title">
         <source>Dynamically dispatched call may fail at runtime because one or more applicable overloads are conditional methods</source>
-        <target state="translated">Dynamicznie wysłane wywołanie może nie powieść się w czasie wykonywania, ponieważ co najmniej jedno z przeciążeń, które można zastosować, to metoda warunkowa</target>
+        <target state="translated">Dynamicznie przydzielane wywołanie może nie powieść się w czasie wykonywania, ponieważ co najmniej jedno z przeciążeń, które można zastosować, to metoda warunkowa</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgTypeDynamicExtension">
         <source>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</source>
-        <target state="translated">'„{0}” nie ma odpowiedniej metody o nazwie „{1}”, ale wygląda na to, że ma metodę rozszerzenia o tej nazwie. Metody rozszerzenia nie mogą być wiązane dynamicznie. Rozważ rzutowanie dynamicznych argumentów lub wywołanie metody rozszerzenia bez składni metody rozszerzenia.</target>
+        <target state="translated">„{0}” nie ma odpowiedniej metody o nazwie „{1}”, ale wygląda na to, że ma metodę rozszerzenia o tej nazwie. Metody rozszerzenia nie mogą być przydzielane dynamicznie. Rozważ rzutowanie dynamicznych argumentów lub wywołanie metody rozszerzenia bez składni metody rozszerzenia.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerMemberName">
@@ -8952,7 +8955,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
+        <target state="translated">Długość stałej typu String w wyniku łączenia przekracza wartość System.Int32.MaxValue. Spróbuj podzielić ciąg na wiele stałych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9002,27 +9005,27 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyCannotBeRefReturning">
         <source>Auto-implemented properties cannot return by reference</source>
-        <target state="translated">Właściwości zaimplementowane automatycznie nie mogą zwracać wartości przez odwołanie</target>
+        <target state="translated">Właściwości zaimplementowane automatycznie nie mogą zwracać wartości przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefPropertyMustHaveGetAccessor">
         <source>Properties which return by reference must have a get accessor</source>
-        <target state="translated">Właściwości zwracające wartość dostępną przez odwołanie muszą mieć metodę dostępu get</target>
+        <target state="translated">Właściwości zwracające wartość przez referencję muszą mieć metodę dostępu get</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefPropertyCannotHaveSetAccessor">
         <source>Properties which return by reference cannot have set accessors</source>
-        <target state="translated">Właściwości zwracające wartość dostępną przez odwołanie nie mogą mieć metod dostępu set</target>
+        <target state="translated">Właściwości zwracające wartość przez referencję nie mogą mieć metod dostępu set</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeRefReturnOnOverride">
         <source>'{0}' must match by reference return of overridden member '{1}'</source>
-        <target state="translated">'Element „{0}” musi odpowiadać zwracanej przez odwołanie przesłoniętej składowej „{1}”</target>
+        <target state="translated">Element „{0}” musi odpowiadać zwracanej przez referencję przesłoniętej składowej „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustNotHaveRefReturn">
         <source>By-reference returns may only be used in methods that return by reference</source>
-        <target state="translated">Wartości zwracane przez odwołanie mogą być używane tylko w metodach zwracających wartość przez odwołanie</target>
+        <target state="translated">Wartości zwracane przez referencję mogą być używane tylko w metodach zwracających wartość przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustHaveRefReturn">
@@ -9032,62 +9035,62 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_RefReturnMustHaveIdentityConversion">
         <source>The return expression must be of type '{0}' because this method returns by reference</source>
-        <target state="translated">Zwracane wyrażenie musi być typu „{0}”, ponieważ ta metoda zwraca wartość przez odwołanie</target>
+        <target state="translated">Zwracane wyrażenie musi być typu „{0}”, ponieważ ta metoda zwraca wartość przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.</source>
-        <target state="translated">'Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”, ponieważ nie ma pasującej wartości zwracanej przez odwołanie.</target>
+        <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”, ponieważ nie ma pasującej wartości zwracanej przez referencję.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturnRef">
         <source>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</source>
-        <target state="translated">Treść elementu „{0}” nie może być blokiem iteratora, ponieważ element „{0}” zwraca wartość przez odwołanie</target>
+        <target state="translated">Treść elementu „{0}” nie może być blokiem iteratora, ponieważ element „{0}” zwraca wartość przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefReturnExpressionTree">
         <source>Lambda expressions that return by reference cannot be converted to expression trees</source>
-        <target state="translated">Wyrażeń lambda, które zwracają wartość przez odwołanie, nie można przekonwertować na drzewa wyrażeń</target>
+        <target state="translated">Wyrażeń lambda, które zwracają wartość przez referencję, nie można przekonwertować na drzewa wyrażeń</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallInExpressionTree">
         <source>An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference</source>
-        <target state="translated">Drzewo wyrażenia lambda nie może zawierać wywołania metody, właściwości ani indeksatora, który zwraca wartość przez odwołanie</target>
+        <target state="translated">Drzewo wyrażenia lambda nie może zawierać wywołania metody, właściwości ani indeksatora, który zwraca wartość przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnLvalueExpected">
         <source>An expression cannot be used in this context because it may not be passed or returned by reference</source>
-        <target state="translated">Nie można użyć wyrażenia w tym kontekście, ponieważ może ono nie zostać przekazane lub zwrócone przez odwołanie</target>
+        <target state="translated">Nie można użyć wyrażenia w tym kontekście, ponieważ może ono nie zostać przekazane lub zwrócone przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnNonreturnableLocal">
         <source>Cannot return '{0}' by reference because it was initialized to a value that cannot be returned by reference</source>
-        <target state="translated">Nie można zwrócić elementu „{0}” przez odwołanie, ponieważ został on zainicjowany przy użyciu wartości, której nie można zwrócić przez odwołanie</target>
+        <target state="translated">Nie można zwrócić elementu „{0}” przez referencję, ponieważ został on zainicjowany przy użyciu wartości, której nie można zwrócić przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnNonreturnableLocal2">
         <source>Cannot return by reference a member of '{0}' because it was initialized to a value that cannot be returned by reference</source>
-        <target state="translated">Nie można zwrócić przez odwołanie składowej elementu „{0}”, ponieważ została ona zainicjowana przy użyciu wartości, której nie można zwrócić przez odwołanie</target>
+        <target state="translated">Nie można zwrócić przez referencję składowej elementu „{0}”, ponieważ została ona zainicjowana przy użyciu wartości, której nie można zwrócić przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocal">
         <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">Elementu „{0}” nie można zwrócić przez odwołanie, ponieważ jest tylko do odczytu</target>
+        <target state="translated">Elementu „{0}” nie można zwrócić przez referencję, ponieważ jest tylko do odczytu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
-        <target state="translated">Nie można zwrócić zmiennej zakresu „{0}” przez odwołanie</target>
+        <target state="translated">Nie można zwrócić zmiennej zakresu „{0}” przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Nie można zwrócić elementu „{0}” przez odwołanie, ponieważ to jest element „{1}”</target>
+        <target state="translated">Nie można zwrócić elementu „{0}” przez referencję, ponieważ to jest element „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
         <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Nie można zwrócić pól elementu „{0}” przez odwołanie, ponieważ to jest element „{1}”</target>
+        <target state="translated">Nie można zwrócić pól elementu „{0}” przez referencję, ponieważ to jest element „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
@@ -9112,27 +9115,27 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
         <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Nie można zwrócić parametru „{0}” przez odwołanie, ponieważ to nie jest parametr ref ani out</target>
+        <target state="translated">Nie można zwrócić parametru „{0}” przez referencję, ponieważ to nie jest parametr ref ani out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
         <source>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Nie można zwrócić składowej parametru „{0}” przez odwołanie, ponieważ to nie jest parametr ref ani out</target>
+        <target state="translated">Nie można zwrócić składowej parametru „{0}” przez referencję, ponieważ to nie jest parametr ref ani out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnLocal">
         <source>Cannot return local '{0}' by reference because it is not a ref local</source>
-        <target state="translated">Nie można zwrócić zmiennej lokalnej „{0}” przez odwołanie, ponieważ to nie jest zmienna lokalna ref</target>
+        <target state="translated">Nie można zwrócić zmiennej lokalnej „{0}” przez referencję, ponieważ to nie jest zmienna lokalna ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnLocal2">
         <source>Cannot return a member of local '{0}' by reference because it is not a ref local</source>
-        <target state="translated">Nie można zwrócić składowej zmiennej lokalnej „{0}” przez odwołanie, ponieważ to nie jest zmienna lokalna ref</target>
+        <target state="translated">Nie można zwrócić składowej zmiennej lokalnej „{0}” przez referencję, ponieważ to nie jest zmienna lokalna ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnStructThis">
         <source>Struct members cannot return 'this' or other instance members by reference</source>
-        <target state="translated">Składowe struktury nie mogą zwracać obiektu „this” ani innych składowych wystąpienia przez odwołanie</target>
+        <target state="translated">Składowe struktury nie mogą zwracać obiektu „this” ani innych składowych wystąpienia przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeOther">
@@ -9182,7 +9185,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_RefAssignmentMustHaveIdentityConversion">
         <source>The expression must be of type '{0}' because it is being assigned by reference</source>
-        <target state="translated">Wyrażenie musi być typu „{0}”, ponieważ jest przypisywane przez odwołanie</target>
+        <target state="translated">Wyrażenie musi być typu „{0}”, ponieważ jest przypisywane przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByReferenceVariableMustBeInitialized">
@@ -9207,7 +9210,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
         <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez odwołanie</target>
+        <target state="translated">'Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez referencję</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
@@ -9287,7 +9290,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
         <source>Deconstruct assignment requires an expression with a type on the right-hand-side.</source>
-        <target state="translated">Przydział dekonstrukcji wymaga wyrażenia o typie podanym po prawej stronie.</target>
+        <target state="translated">Przypisanie dekonstrukcji wymaga wyrażenia o typie podanym po prawej stronie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionValueExpected">
@@ -9732,7 +9735,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”.</target>
+        <target state="translated">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

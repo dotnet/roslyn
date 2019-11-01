@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CSharpFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add await and ConfigureAwait(false)</source>
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="new">Assign 'out' parameters</target>
+        <target state="translated">分配 "out" 参数</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="new">Assign 'out' parameters (at start)</target>
+        <target state="translated">分配 "out" (在开始处)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">以参数形式传入捕获的变量</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -159,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
-        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <target state="translated">警告: 即将在条件方法调用中内联临时内容。</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">警告: 将参数添加到本地函数声明可能产生无效的代码。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">

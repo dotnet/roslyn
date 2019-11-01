@@ -234,7 +234,7 @@ Insert space before and after binary operators;</source>
 メソッド名と始めかっこの間にスペースを挿入する;
 パラメーター リストのかっこ内にスペースを挿入する;
 空のパラメーター リストのかっこ内にスペースを挿入する;
-メソッドの呼び出しのスペースを設定する;
+メソッド呼び出しのスペースを設定する;
 引数リストのかっこ内にスペースを挿入する;
 空の引数リストのかっこ内にスペースを挿入する;
 その他のスペース オプションを設定する;
@@ -361,7 +361,7 @@ Enter キーで常に新しい行を追加する;
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">名前付けのスタイル;名前のスタイル;名前付け規則;名前付けの規則</target>
+        <target state="translated">名前付けのスタイル;名前のスタイル;名前付けルール;名前付けの規則</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">

@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
-        <target state="translated">Aplicar as preferências de expressão/corpo de bloco</target>
+        <target state="translated">Aplicar as preferências de expressão/corpo do bloco</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="new">Assign 'out' parameters</target>
+        <target state="translated">Atribuir parâmetros 'out'</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="new">Assign 'out' parameters (at start)</target>
+        <target state="translated">Atribuir parâmetros 'out' (no início)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">Passar variáveis capturadas como argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -159,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
-        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <target state="translated">Aviso: embutindo a chamada de método temporária na condicional.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">Aviso: a adição de parâmetros à declaração de função local pode produzir um código inválido.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
