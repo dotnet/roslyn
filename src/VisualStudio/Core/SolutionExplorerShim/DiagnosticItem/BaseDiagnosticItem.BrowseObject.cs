@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.GetHelpLink()?.ToString();
+                    return _diagnosticItem.GetHelpLink()?.AbsoluteUri;
                 }
             }
 

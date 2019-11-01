@@ -466,5 +466,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Liveshare_SyntacticTagger,
 
         CommandHandler_GoToBase,
+
+        DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync,
+        CodeFixes_GetCodeFixesAsync,
     }
 }
