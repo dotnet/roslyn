@@ -23,8 +23,8 @@ namespace Test.Utilities
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
             => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
 
-        public static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
-            => VerifyAnalyzerAsync(source, CompilerDiagnostics.Errors, expected);
+        public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+            => await VerifyAnalyzerAsync(source, CompilerDiagnostics.Errors, expected);
 
         public static async Task VerifyAnalyzerAsync(string source, CompilerDiagnostics compilerDiagnostics, params DiagnosticResult[] expected)
         {
@@ -38,11 +38,11 @@ namespace Test.Utilities
             await test.RunAsync();
         }
 
-        public static Task VerifyCodeFixAsync(string source, string fixedSource)
-            => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
+        public static async Task VerifyCodeFixAsync(string source, string fixedSource)
+            => await VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
-        public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
-            => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
+        public static async Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
+            => await VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
 
         public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
         {
