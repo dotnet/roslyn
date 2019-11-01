@@ -1690,7 +1690,7 @@ class C
             Assert.Equal("42.M", nodeWithWarning.ToFullString());
 
             var warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single();
-            var expectedWarningMessage = WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access.Replace("{0}", "M");
+            var expectedWarningMessage = string.Format(WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access, "M");
 
             Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning));
         }

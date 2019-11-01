@@ -1444,7 +1444,7 @@ End Class", safe:=True, useSymbolAnnotations)
             Assert.Equal("42.M" & vbCrLf, nodeWithWarning.ToFullString())
 
             Dim warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single()
-            Dim expectedWarningMessage = WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access.Replace("{0}", "M")
+            Dim expectedWarningMessage = String.Format(WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access, "M")
 
             Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning))
         End Function
