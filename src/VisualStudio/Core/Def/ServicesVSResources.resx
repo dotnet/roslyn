@@ -1338,7 +1338,13 @@ I agree to all of the foregoing:</value>
   <data name="Running_code_analysis_for_0" xml:space="preserve">
     <value>Running code analysis for '{0}'...</value>
   </data>
-  <data name="Code_analysis_completed_for_0_Please_wait_for_the_error_list_to_refresh" xml:space="preserve">
-    <value>Code analysis completed for '{0}'. Please wait for the error list to refresh.</value>
+  <data name="Running_code_analysis_for_Solution" xml:space="preserve">
+    <value>Running code analysis for Solution...</value>
+  </data>
+  <data name="Code_analysis_completed_for_0" xml:space="preserve">
+    <value>Code analysis completed for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
+    <value>Code analysis completed for Solution.</value>
   </data>
 </root>

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
+        private readonly IAsynchronousOperationListener _listener;
 
         private IServiceProvider? _serviceProvider;
 
@@ -42,12 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IThreadingContext threadingContext,
-            IVsHierarchyItemManager vsHierarchyItemManager)
+            IVsHierarchyItemManager vsHierarchyItemManager,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _threadingContext = threadingContext;
             _vsHierarchyItemManager = vsHierarchyItemManager;
+            _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         }
 
         public void Initialize(IServiceProvider serviceProvider)
@@ -79,8 +83,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
         }
 
-        // *DO NOT DELETE*
-        // This is used by Ruleset Editor from ManagedSourceCodeAnalysis.dll.
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
             if (hierarchy == null)
@@ -173,23 +175,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public void RunAnalyzers(IVsHierarchy? hierarchy)
         {
             var project = GetProject(hierarchy);
-            var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(_workspace.CurrentSolution.FilePath) ?? "Solution";
+            string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(_workspace.CurrentSolution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
-            var waitDialogMessage = string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName);
+            var statusMessage = projectOrSolutionName != null
+                ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
+                : ServicesVSResources.Running_code_analysis_for_Solution;
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
-            statusBar?.SetText(waitDialogMessage);
+            statusBar?.SetText(statusMessage);
 
             // Force complete analyzer execution in background.
+            var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
             Task.Run(async () =>
             {
                 await _diagnosticService.ForceAnalyzeAsync(_workspace.CurrentSolution, project?.Id, CancellationToken.None).ConfigureAwait(false);
 
                 // Add a message to VS status bar that we completed executing code analysis.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var notificationMesage = string.Format(ServicesVSResources.Code_analysis_completed_for_0_Please_wait_for_the_error_list_to_refresh, projectOrSolutionName);
+                var notificationMesage = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_completed_for_Solution;
                 statusBar?.SetText(notificationMesage);
-            });
+            }).CompletesAsyncOperation(asyncToken);
         }
 
         private Project? GetProject(IVsHierarchy? hierarchy)

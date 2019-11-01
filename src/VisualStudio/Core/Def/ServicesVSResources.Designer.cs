@@ -588,11 +588,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code analysis completed for &apos;{0}&apos;. Please wait for the error list to refresh..
+        ///   Looks up a localized string similar to Code analysis completed for &apos;{0}&apos;..
         /// </summary>
-        internal static string Code_analysis_completed_for_0_Please_wait_for_the_error_list_to_refresh {
+        internal static string Code_analysis_completed_for_0 {
             get {
-                return ResourceManager.GetString("Code_analysis_completed_for_0_Please_wait_for_the_error_list_to_refresh", resourceCulture);
+                return ResourceManager.GetString("Code_analysis_completed_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for Solution..
+        /// </summary>
+        internal static string Code_analysis_completed_for_Solution {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_Solution", resourceCulture);
             }
         }
         
@@ -2823,6 +2832,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Running_code_analysis_for_0 {
             get {
                 return ResourceManager.GetString("Running_code_analysis_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for Solution....
+        /// </summary>
+        internal static string Running_code_analysis_for_Solution {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_Solution", resourceCulture);
             }
         }
         
