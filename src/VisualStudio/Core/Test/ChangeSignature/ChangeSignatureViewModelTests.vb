@@ -360,7 +360,7 @@ class MyClass
 
             Dim workspaceXml =
             <Workspace>
-                <Project Language=<%= languageName %> CommonReferences="true" Features="refLocalsAndReturns">
+                <Project Language=<%= languageName %> CommonReferences="true">
                     <Document><%= markup.NormalizedValue.Replace(vbCrLf, vbLf) %></Document>
                 </Project>
             </Workspace>
