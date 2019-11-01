@@ -18,7 +18,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     <[UseExportProvider]>
-    Public Class ReorderParametersViewModelTests
+    Public Class ChangeSignatureViewModelTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_UpDownArrowsNotOfferedWhenNoSelection() As Tasks.Task
