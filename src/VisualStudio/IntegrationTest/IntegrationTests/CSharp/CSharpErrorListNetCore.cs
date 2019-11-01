@@ -11,8 +11,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpErrorListNetCore : CSharpErrorListCommon
     {
+        private const string _targetFrameworkMoniker = "netcoreapp3.0";
+
         public CSharpErrorListNetCore(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreClassLibrary, _targetFrameworkMoniker)
         {
         }
 

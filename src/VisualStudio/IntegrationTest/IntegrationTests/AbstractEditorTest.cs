@@ -13,6 +13,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         private readonly string _solutionName;
         private readonly string _projectTemplate;
+        private readonly string _targetFrameworkMoniker;
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
             : base(instanceFactory, testOutputHelper)
@@ -28,11 +29,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudioInstanceFactory instanceFactory,
             ITestOutputHelper testOutputHelper,
             string solutionName,
-            string projectTemplate)
+            string projectTemplate,
+            string targetFrameworkMoniker = null)
            : base(instanceFactory, testOutputHelper)
         {
             _solutionName = solutionName;
             _projectTemplate = projectTemplate;
+            _targetFrameworkMoniker = targetFrameworkMoniker;
         }
 
         protected abstract string LanguageName { get; }
@@ -44,8 +47,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
             if (_solutionName != null)
             {
                 VisualStudio.SolutionExplorer.CreateSolution(_solutionName);
-                VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), _projectTemplate, LanguageName);
-                VisualStudio.SolutionExplorer.RestoreNuGetPackages(new ProjectUtils.Project(ProjectName));
+                var project = new ProjectUtils.Project(ProjectName);
+                VisualStudio.SolutionExplorer.AddProject(project, _projectTemplate, LanguageName);
+
+                if (!string.IsNullOrEmpty(_targetFrameworkMoniker))
+                {
+                    UpdateProjectTargetFramework(project, _targetFrameworkMoniker);
+                }
+
+                VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
 
                 // Winforms and XAML do not open text files on creation
                 // so these editor tasks will not work if that is the project template being used.
@@ -57,6 +67,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     ClearEditor();
                 }
             }
+        }
+
+        protected void UpdateProjectTargetFramework(ProjectUtils.Project project, string targetFrameworkMoniker)
+        {
+            VisualStudio.SolutionExplorer.EditProjectFile(project);
+            VisualStudio.Editor.SetText($@"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>{targetFrameworkMoniker}</TargetFramework>
+  </PropertyGroup>
+</Project>");
         }
 
         protected void ClearEditor()

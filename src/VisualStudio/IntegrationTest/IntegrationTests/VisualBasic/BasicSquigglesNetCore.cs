@@ -11,8 +11,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicSquigglesNetCore : BasicSquigglesCommon
     {
+        private const string _targetFrameworkMoniker = "netcoreapp3.0";
+
         public BasicSquigglesNetCore(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
+            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary, _targetFrameworkMoniker)
         {
         }
 

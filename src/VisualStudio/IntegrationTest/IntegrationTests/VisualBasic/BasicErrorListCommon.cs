@@ -11,8 +11,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     public class BasicErrorListCommon : AbstractEditorTest
     {
-        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactor, ITestOutputHelper testOutputHelper, string templateName)
-            : base(instanceFactor, testOutputHelper, nameof(BasicErrorListCommon), templateName)
+        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactor, ITestOutputHelper testOutputHelper, string templateName, string targetFrameworkMoniker = null)
+            : base(instanceFactor, testOutputHelper, nameof(BasicErrorListCommon), templateName, targetFrameworkMoniker)
         {
         }
 

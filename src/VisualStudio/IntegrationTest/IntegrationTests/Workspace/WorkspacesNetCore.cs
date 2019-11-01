@@ -13,8 +13,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class WorkspacesNetCore : WorkspaceBase
     {
+        private const string _targetFramework = "netcoreapp3.0";
+
         public WorkspacesNetCore(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreClassLibrary, _targetFramework)
         {
         }
 

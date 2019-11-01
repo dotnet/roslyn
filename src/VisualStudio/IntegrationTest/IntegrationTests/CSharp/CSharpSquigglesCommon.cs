@@ -8,8 +8,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public abstract class CSharpSquigglesCommon : AbstractEditorTest
     {
-        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpSquigglesCommon), projectTemplate)
+        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate, string targetFrameworkMoniker = null)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpSquigglesCommon), projectTemplate, targetFrameworkMoniker)
         {
         }
 

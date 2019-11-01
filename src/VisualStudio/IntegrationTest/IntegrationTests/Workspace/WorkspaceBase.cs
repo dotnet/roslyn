@@ -14,15 +14,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest
     {
-        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
-            : base(instanceFactory, testOutputHelper, nameof(WorkspaceBase), projectTemplate)
+        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate, string targetFrameworkMoniker = null)
+            : base(instanceFactory, testOutputHelper, nameof(WorkspaceBase), projectTemplate, targetFrameworkMoniker)
         {
             DefaultProjectTemplate = projectTemplate;
+            TargetFrameworkMoniker = targetFrameworkMoniker;
         }
 
         protected override string LanguageName => LanguageNames.CSharp;
 
         protected string DefaultProjectTemplate { get; }
+        protected string TargetFrameworkMoniker { get; }
 
         public override async Task InitializeAsync()
         {
@@ -65,6 +67,12 @@ End Class");
             var project = new ProjectUtils.Project(ProjectName);
             var csProj2 = new ProjectUtils.Project("CSProj2");
             VisualStudio.SolutionExplorer.AddProject(csProj2, projectTemplate: DefaultProjectTemplate, languageName: LanguageName);
+
+            if (!string.IsNullOrEmpty(TargetFrameworkMoniker))
+            {
+                UpdateProjectTargetFramework(csProj2, TargetFrameworkMoniker);
+            }
+
             var projectName = new ProjectUtils.ProjectReference(ProjectName);
             VisualStudio.SolutionExplorer.AddProjectReference(fromProjectName: csProj2, toProjectName: projectName);
             VisualStudio.SolutionExplorer.RestoreNuGetPackages(csProj2);

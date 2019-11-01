@@ -11,8 +11,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public class CSharpErrorListCommon : AbstractEditorTest
     {
-        public CSharpErrorListCommon(VisualStudioInstanceFactory instanceFactor, ITestOutputHelper testOutputHelper, string templateName)
-            : base(instanceFactor, testOutputHelper, nameof(CSharpErrorListCommon), templateName)
+        public CSharpErrorListCommon(VisualStudioInstanceFactory instanceFactor, ITestOutputHelper testOutputHelper, string templateName, string targetFrameworkMoniker = null)
+            : base(instanceFactor, testOutputHelper, nameof(CSharpErrorListCommon), templateName, targetFrameworkMoniker)
         {
         }
 
