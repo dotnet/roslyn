@@ -1310,11 +1310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetStateAndTrackForFinally(ref LocalState state, int slot, NullableFlowState newState)
         {
             state[slot] = newState;
-            if (newState == NullableFlowState.MaybeNull && _tryState.HasValue)
+            if (newState == NullableFlowState.MaybeNull && NonMonotonicState.HasValue)
             {
-                var tryState = _tryState.Value;
+                var tryState = NonMonotonicState.Value;
                 tryState[slot] = NullableFlowState.MaybeNull;
-                _tryState = tryState;
+                NonMonotonicState = tryState;
             }
         }
 
@@ -7872,15 +7872,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void Meet(ref LocalState self, ref LocalState other)
+        protected override bool Meet(ref LocalState self, ref LocalState other)
         {
             if (!self.Reachable)
-                return;
+                return false;
 
             if (!other.Reachable)
             {
                 self = other.Clone();
-                return;
+                return true;
             }
 
             if (self.Capacity != other.Capacity)
@@ -7889,7 +7889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Normalize(ref other);
             }
 
-            self.Meet(in other);
+            return self.Meet(in other);
         }
 
         protected override bool Join(ref LocalState self, ref LocalState other)
