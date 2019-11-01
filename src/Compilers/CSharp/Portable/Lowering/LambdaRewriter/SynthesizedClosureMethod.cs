@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class SynthesizedClosureMethod : SynthesizedMethodBaseSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly MethodSymbol _topLevelMethod;
-        private readonly MethodSymbol _originalMethod;
         private readonly ImmutableArray<NamedTypeSymbol> _structEnvironments;
 
         internal readonly DebugId LambdaId;
@@ -40,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    MakeDeclarationModifiers(closureKind, originalMethod))
         {
             _topLevelMethod = topLevelMethod;
-            _originalMethod = originalMethod;
             ClosureKind = closureKind;
             LambdaId = lambdaId;
 
@@ -165,9 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool IsExpressionBodied => false;
         internal MethodSymbol TopLevelMethod => _topLevelMethod;
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes() => _originalMethod.GetAttributes();
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+            => BaseMethod.SynthesizedMethodsInheritAttributes ? BaseMethod.GetAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
 
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes() => _originalMethod.GetReturnTypeAttributes();
+        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+            => BaseMethod.SynthesizedMethodsInheritAttributes ? BaseMethod.GetReturnTypeAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

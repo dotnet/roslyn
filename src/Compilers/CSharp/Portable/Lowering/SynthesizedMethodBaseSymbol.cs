@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal = 0;
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var parameters = this.BaseMethodParameters;
+            var inheritAttributes = this.BaseMethod.SynthesizedMethodsInheritAttributes;
             foreach (var p in parameters)
             {
                 builder.Add(SynthesizedParameterSymbol.Create(
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal++,
                     p.RefKind,
                     p.Name,
-                    attributes: p.GetAttributes()));
+                    attributes: inheritAttributes ? p.GetAttributes() : default));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)

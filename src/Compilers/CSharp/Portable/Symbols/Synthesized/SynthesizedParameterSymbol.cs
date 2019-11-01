@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
             }
 
-            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers, attributes.NullToEmpty());
+            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers.NullToEmpty(), attributes.NullToEmpty());
         }
 
         /// <summary>
