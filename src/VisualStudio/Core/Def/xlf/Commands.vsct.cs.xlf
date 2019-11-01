@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../Commands.vsct">
     <body>
+      <trans-unit id="ECMD_RUNFXCOPSEL|ButtonText">
+        <source>Run Code &amp;Analysis on Selection</source>
+        <target state="new">Run Code &amp;Analysis on Selection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
         <target state="translated">Seřadit direktivy &amp;using</target>
@@ -205,6 +210,21 @@
       <trans-unit id="cmdidOpenRuleSet|CommandName">
         <source>OpenActiveRuleSet</source>
         <target state="translated">OpenActiveRuleSet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
+        <source>Run C&amp;ode Analysis</source>
+        <target state="new">Run C&amp;ode Analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|CommandName">
+        <source>RunCodeAnalysisForProject</source>
+        <target state="new">RunCodeAnalysisForProject</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|LocCanonicalName">
+        <source>RunCodeAnalysisForProject</source>
+        <target state="new">RunCodeAnalysisForProject</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityDefault|ButtonText">
