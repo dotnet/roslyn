@@ -74,6 +74,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
+#If DEBUG Then
+        Friend Sub DebugAssert_CalledOnCorrectToken(kind As SyntaxKind, <Runtime.CompilerServices.CallerMemberName> Optional caller As String = Nothing)
+            Debug.Assert(CurrentToken.Kind = kind, $"{caller} was called on unexepected token kind. ({CurrentToken.Kind.ToString()}, Expecting: {kind.ToString()})")
+        End Sub
+
+         Friend Sub DebugAssert_CalledOnCorrectToken( kinds As SyntaxKind(),
+          <Runtime.CompilerServices.CallerMemberName> Optional caller As String = Nothing)
+            Debug.Assert( kinds.Contains(CurrentToken.Kind), $"{caller} was called on unexepected token kind. ({CurrentToken.Kind.ToString()}, Expecting: {String.Join(" Or ", kinds)})")
+        End Sub
+#End If
+
         Private Function ParseSimpleName(
                                      allowGenericArguments As Boolean,
                                      allowGenericsWithoutOf As Boolean,
@@ -357,20 +368,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
             Dim builder = PooledStringBuilder.GetInstance()
-            Using writer As New IO.StringWriter(builder)
+            Dim writer As New IO.StringWriter(builder)
 
-                firstToken.WriteTo(writer)
-                secondToken.WriteTo(writer)
+            firstToken.WriteTo(writer)
+            secondToken.WriteTo(writer)
 
-                Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
-                Dim trailingWidth = secondToken.GetTrailingTriviaWidth()
-                Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth
+            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
+            Dim trailingWidth = secondToken.GetTrailingTriviaWidth()
+            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth
 
-                Debug.Assert(builder.Length = fullWidth)
-                Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
+            Debug.Assert(builder.Length = fullWidth)
+            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
 
-                Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
-            End Using
+            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
+
         End Function
 
         Private Shared Function MergeTokenText(firstToken As SyntaxToken, secondToken As SyntaxToken, thirdToken As SyntaxToken) As String
@@ -378,21 +389,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' grab the part that doesn't contain the preceding and trailing trivia.
 
             Dim builder = PooledStringBuilder.GetInstance()
-            Using writer As New IO.StringWriter(builder)
+            Dim writer As New IO.StringWriter(builder)
 
-                firstToken.WriteTo(writer)
-                secondToken.WriteTo(writer)
-                thirdToken.WriteTo(writer)
+            firstToken.WriteTo(writer)
+            secondToken.WriteTo(writer)
+            thirdToken.WriteTo(writer)
 
-                Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
-                Dim trailingWidth = thirdToken.GetTrailingTriviaWidth()
-                Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth + thirdToken.FullWidth
+            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
+            Dim trailingWidth = thirdToken.GetTrailingTriviaWidth()
+            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth + thirdToken.FullWidth
 
-                Debug.Assert(builder.Length = fullWidth)
-                Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
+            Debug.Assert(builder.Length = fullWidth)
+            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
 
-                Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
-            End Using
+            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
+
         End Function
 
         Private Function GetCurrentSyntaxNodeIfApplicable(<Out()> ByRef curSyntaxNode As VisualBasicSyntaxNode) As BlockContext
@@ -1454,7 +1465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                   Optional attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax) = Nothing,
                   Optional modifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax) = Nothing
         ) As EnumStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EnumKeyword, "ParseEnumStatement called on the wrong token.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.EnumKeyword)
 
             Dim enumKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim optionalUnderlyingType As AsClauseSyntax = Nothing
@@ -1678,7 +1689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseNamespaceStatement(attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)) As NamespaceStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.NamespaceKeyword, "ParseNamespaceStatement called on the wrong token.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.NamespaceKeyword)
 
             Dim namespaceKeyword As KeywordSyntax = ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
 
@@ -1716,7 +1727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseEndStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword, "ParseEndStatement called on wrong token.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.EndKeyword)
 
             ' Dev10#708061
             ' "End" is a keyword which takes an optional next argument. Things get confusing with "End Select"...
@@ -1753,7 +1764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 5054 - 5054
         ' .Parser::ParseGroupEndStatement( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseGroupEndStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword, "ParseGroupEndStatement called on wrong token.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.EndKeyword)
 
             Dim endKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim nextToken = PeekToken(1)
@@ -2472,7 +2483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns>ObjectMemberInitializer</returns>
         Private Function ParseObjectInitializerList(Optional anonymousTypeInitializer As Boolean = False, Optional anonymousTypesAllowedHere As Boolean = True) As ObjectMemberInitializerSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.WithKeyword, "ParseObjectInitializerList called with wrong token")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.WithKeyword)
 
             ' Handle the "With" clause in the following syntax:
             '  Dim x as new Customer With {.Id = 1, .Name = "A"}
@@ -3213,7 +3224,7 @@ checkNullable:
 
         Private Function ParseArrayRankSpecifiers(Optional errorForExplicitArraySizes As ERRID = ERRID.ERR_NoExplicitArraySizes) As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be a (.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OpenParenToken)
 
             Dim arrayModifiers As SyntaxListBuilder(Of ArrayRankSpecifierSyntax) = Nothing
 
@@ -3270,7 +3281,7 @@ checkNullable:
          ) As ModifiedIdentifierSyntax
             Debug.Assert(elementType IsNot Nothing)
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be a (.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OpenParenToken)
 
             Dim optionalArrayBounds As ArgumentListSyntax = Nothing
             Dim arrayModifiers As SyntaxListBuilder(Of ArrayRankSpecifierSyntax) = Nothing
@@ -3434,8 +3445,8 @@ checkNullable:
 
         ' This used to be ParsePropertyOrEventProcedureDefinition
         Private Function ParsePropertyOrEventAccessor(accessorKind As SyntaxKind, attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)) As AccessorStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.GetKeyword OrElse CurrentToken.Kind = SyntaxKind.SetKeyword OrElse
-                     CurrentToken.Kind = SyntaxKind.AddHandlerKeyword OrElse CurrentToken.Kind = SyntaxKind.RemoveHandlerKeyword OrElse CurrentToken.Kind = SyntaxKind.RaiseEventKeyword)
+            DebugAssert_CalledOnCorrectToken({SyntaxKind.GetKeyword, SyntaxKind.SetKeyword, SyntaxKind.AddHandlerKeyword,
+                                              SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword})
 
             Dim methodKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             If Not IsFirstStatementOnLine(CurrentToken) Then
@@ -3492,7 +3503,7 @@ checkNullable:
 
         Private Function ParseImplementsList() As ImplementsClauseSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ImplementsKeyword, "Implements list parsing lost.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.ImplementsKeyword)
 
             Dim implementsKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim ImplementsClauses As SeparatedSyntaxListBuilder(Of QualifiedNameSyntax) =
@@ -3543,7 +3554,7 @@ checkNullable:
         ' NameList* .Parser::ParseHandlesList( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseHandlesList() As HandlesClauseSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.HandlesKeyword, "Handles list parsing lost.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.HandlesKeyword)
 
             Dim handlesKeyword = DirectCast(CurrentToken, KeywordSyntax)
             Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
@@ -3645,7 +3656,7 @@ checkNullable:
 
             Dim subKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
-            Debug.Assert(subKeyword.Kind = SyntaxKind.SubKeyword, "must be at a Sub.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.SubKeyword)
 
             GetNextToken()
 
@@ -3810,7 +3821,7 @@ checkNullable:
 
             Dim functionKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
-            Debug.Assert(functionKeyword.Kind = SyntaxKind.FunctionKeyword, "Function parsing lost.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.FunctionKeyword)
 
             GetNextToken()
 
@@ -3959,7 +3970,7 @@ checkNullable:
             'TODO - davidsch 
             ' Can ParseFunctionDeclaration and ParseSubDeclaration share more code? They are nearly the same.
             Dim operatorKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
-            Debug.Assert(operatorKeyword.Kind = SyntaxKind.OperatorKeyword, "Operator parsing lost.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OperatorKeyword)
 
             ' Dev10_504604 we are parsing a method declaration and will need to let the scanner know that we
             ' are so the scanner can correctly identify attributes vs. xml while scanning the declaration.
@@ -4137,7 +4148,7 @@ checkNullable:
             modifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As PropertyStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.PropertyKeyword, "ParsePropertyDefinition called on the wrong token.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.PropertyKeyword)
 
             Dim propertyKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken() ' get off PROPERTY
@@ -4251,7 +4262,7 @@ checkNullable:
             modifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As DelegateStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.DelegateKeyword, "ParseDelegateStatement called on the wrong token.")
+            DebugAssert_CalledOnCorrectToken( SyntaxKind.DelegateKeyword)
 
             Dim delegateKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
@@ -4324,7 +4335,7 @@ checkNullable:
         ' GenericParameterList* .Parser::ParseGenericParameters( [ _Out_ Token*& Of ] [ _Out_ Token*& openParen ] [ _Out_ Token*& closeParen ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseGenericParameters() As TypeParameterListSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OpenParenToken)
 
             Dim openParen As PunctuationSyntax = Nothing
             Dim ofKeyword As KeywordSyntax = Nothing
@@ -4523,7 +4534,7 @@ checkNullable:
         ' ParameterList* .Parser::ParseParameters( [ _Inout_ bool& ErrorInConstruct ] [ _Out_ Token*& openParen ] [ _Out_ Token*& closeParen ] )
 
         Private Function ParseParameters(ByRef openParen As PunctuationSyntax, ByRef closeParen As PunctuationSyntax) As CoreInternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "Parameter list parsing confused.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OpenParenToken)
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
             Dim parameters = _pool.AllocateSeparated(Of ParameterSyntax)()
@@ -4746,7 +4757,7 @@ checkNullable:
         ' ImportsStatement* .Parser::ParseImportsStatement( [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseImportsStatement(Attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)) As ImportsStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ImportsKeyword, "called on wrong token")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.ImportsKeyword)
 
             Dim importsKeyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
             Dim importsClauses = Me._pool.AllocateSeparated(Of ImportsClauseSyntax)()
@@ -4902,8 +4913,7 @@ checkNullable:
 
         Private Function ParseInheritsImplementsStatement(Attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)) As InheritsOrImplementsStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.InheritsKeyword OrElse CurrentToken.Kind = SyntaxKind.ImplementsKeyword,
-                "ParseInheritsImplementsStatement called on the wrong token.")
+            DebugAssert_CalledOnCorrectToken({SyntaxKind.InheritsKeyword, SyntaxKind.ImplementsKeyword})
 
             Dim keyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
             Dim typeNames = Me._pool.AllocateSeparated(Of TypeSyntax)()
@@ -4964,7 +4974,7 @@ checkNullable:
             Dim optionType As KeywordSyntax = Nothing
             Dim optionValue As KeywordSyntax = Nothing
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OptionKeyword, "must be at Option.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OptionKeyword)
 
             Dim optionKeyword = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
             GetNextToken()
@@ -5069,7 +5079,7 @@ checkNullable:
         ' ForeignMethodDeclarationStatement* .Parser::ParseProcDeclareStatement( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* Start ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseProcDeclareStatement(attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)) As DeclareStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.DeclareKeyword, "ParseProcDeclareStatement called on wrong token. Must be at a Declare.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.DeclareKeyword)
 
             ' Dev10_667800 we are parsing a method declaration and will need to let the scanner know that we
             ' are so the scanner can correctly identify attributes vs. xml while scanning the declaration.
@@ -5381,7 +5391,7 @@ checkNullable:
                 modifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)
             ) As EventStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EventKeyword, "ParseEventDefinition called on the wrong token.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.EventKeyword)
 
             Dim eventKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
@@ -5451,7 +5461,7 @@ checkNullable:
         End Function
 
         Private Function ParseEmptyAttributeLists() As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax)
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanGreaterThanToken)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.LessThanGreaterThanToken)
 
             Dim token = CurrentToken
             Dim tokenText = token.Text
@@ -5502,7 +5512,7 @@ checkNullable:
 
         ' TODO: this function is so complex (n^2 loop?) it times out in CC verifier.
         Private Function ParseAttributeLists(allowFileLevelAttributes As Boolean) As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax)
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanToken, "ParseAttributeSpecifier called on the wrong token.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.LessThanToken)
 
             Dim attributeBlocks = _pool.Allocate(Of AttributeListSyntax)()
             Dim attributes = _pool.AllocateSeparated(Of AttributeSyntax)()

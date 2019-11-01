@@ -544,7 +544,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseIfExpression() As ExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.IfKeyword)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.IfKeyword)
             Dim IfStart = DirectCast(CurrentToken, KeywordSyntax)
 
             GetNextToken()  ' get off If
@@ -634,7 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function ParseGetType() As GetTypeExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.GetTypeKeyword, "should be at GetType.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.GetTypeKeyword)
 
             Dim [getType] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -665,7 +665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function ParseNameOf() As NameOfExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.NameOfKeyword, "should be at NameOf.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.NameOfKeyword)
 
             Dim [nameOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             [nameOf] = CheckFeatureAvailability(Feature.NameOfExpressions, [nameOf])
@@ -726,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Expression* .Parser::ParseGetXmlNamespace( [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseGetXmlNamespace() As ExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.GetXmlNamespaceKeyword, "should be at GetXmlNamespace.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.GetXmlNamespaceKeyword)
 
             Dim getXmlNamespaceKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken(ScannerState.VB)
@@ -786,7 +786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Expression* .Parser::ParseNewExpression( [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseNewExpression() As ExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.NewKeyword, "must be at a New expression.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.NewKeyword)
 
             Dim NewKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken() ' get off 'new'
@@ -919,7 +919,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function ParseTypeOf() As TypeOfExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.TypeOfKeyword, "must be at TypeOf.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.TypeOfKeyword)
             Dim [typeOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
             ' Consume 'TypeOf'.
@@ -993,9 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseQualifiedExpr(
             Term As ExpressionSyntax
         ) As ExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.DotToken OrElse
-                  CurrentToken.Kind = SyntaxKind.ExclamationToken,
-                  "Must be on either a '.' or '!' when entering parseQualifiedExpr()")
+            DebugAssert_CalledOnCorrectToken({SyntaxKind.DotToken, SyntaxKind.ExclamationToken})
 
             Dim DotOrBangToken As PunctuationSyntax = DirectCast(CurrentToken, PunctuationSyntax)
 
@@ -1218,7 +1216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseParenthesizedExpressionOrTupleLiteral() As ExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OpenParenToken)
 
             ' "(" expr ")"              'parenthesized
             ' "(" Name:= ....           'parse a tuple
@@ -1306,7 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16304 - 16304
         ' ParenthesizedArgumentList .Parser::ParseParenthesizedArguments( [ _Inout_ bool& ErrorInConstruct ] )
         Friend Function ParseParenthesizedArguments(Optional RedimOrNewParent As Boolean = False, Optional attributeListParent As Boolean = False) As ArgumentListSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be at tkLParen.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.OpenParenToken)
 
             Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = Nothing
             Dim openParen As PunctuationSyntax = Nothing
@@ -1580,13 +1578,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' This function only does not parse CastTarget ( ... ), it is parsed in ParseTerm
         ''' </remarks>
         Private Function ParseCast() As CastExpressionSyntax
+            DebugAssert_CalledOnCorrectToken({SyntaxKind.CTypeKeyword, SyntaxKind.DirectCastKeyword, SyntaxKind.TryCastKeyword})
+
             Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim keywordKind As SyntaxKind = keyword.Kind
-
-            Debug.Assert(keywordKind = SyntaxKind.CTypeKeyword OrElse
-                    keywordKind = SyntaxKind.DirectCastKeyword OrElse
-                    keywordKind = SyntaxKind.TryCastKeyword,
-                    "Expected CTYPE or DIRECTCAST or TRYCAST token.")
 
             GetNextToken()
 
@@ -1654,9 +1649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _isInIteratorMethodDeclarationHeader = False
             End If
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.FunctionKeyword OrElse
-                         CurrentToken.Kind = SyntaxKind.SubKeyword,
-                         "ParseFunctionLambda called on wrong token.")
+            DebugAssert_CalledOnCorrectToken({SyntaxKind.FunctionKeyword, SyntaxKind.SubKeyword})
             ' The current token is on the function or delegate's name
 
             Dim methodKeyword = DirectCast(CurrentToken, KeywordSyntax)

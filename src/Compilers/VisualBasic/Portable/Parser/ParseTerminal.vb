@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseIntLiteral() As LiteralExpressionSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.IntegerLiteralToken, "Expected Integer literal.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.IntegerLiteralToken)
 
             Dim Literal As LiteralExpressionSyntax = SyntaxFactory.NumericLiteralExpression(CurrentToken)
             GetNextToken()
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseCharLiteral() As LiteralExpressionSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.CharacterLiteralToken, "Expected Char literal.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.CharacterLiteralToken)
 
             Dim Literal As LiteralExpressionSyntax = SyntaxFactory.CharacterLiteralExpression(CurrentToken)
             GetNextToken()
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseDecLiteral() As LiteralExpressionSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.DecimalLiteralToken, "must be at a decimal literal.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.DecimalLiteralToken)
 
             Dim Literal As LiteralExpressionSyntax = SyntaxFactory.NumericLiteralExpression(CurrentToken)
 
@@ -199,9 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseFltLiteral() As LiteralExpressionSyntax
 
-            Debug.Assert(
-            CurrentToken.Kind = SyntaxKind.FloatingLiteralToken,
-            "must be at a float literal.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.FloatingLiteralToken)
 
             Dim Literal As LiteralExpressionSyntax = SyntaxFactory.NumericLiteralExpression(CurrentToken)
             GetNextToken()
@@ -211,9 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseDateLiteral() As LiteralExpressionSyntax
 
-            Debug.Assert(
-            CurrentToken.Kind = SyntaxKind.DateLiteralToken,
-            "must be at a date literal.")
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.DateLiteralToken)
 
             Dim Literal As LiteralExpressionSyntax = SyntaxFactory.DateLiteralExpression(CurrentToken)
 

@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseElseDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ElseKeyword)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.ElseKeyword)
 
             Dim elseKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -128,14 +128,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseElseIfDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ElseIfKeyword)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.ElseIfKeyword)
 
             Return ParseIfDirective(hashToken, Nothing)
 
         End Function
 
         Private Function ParseIfDirective(hashToken As PunctuationSyntax, elseKeyword As KeywordSyntax) As IfDirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.IfKeyword OrElse CurrentToken.Kind = SyntaxKind.ElseIfKeyword)
+            DebugAssert_CalledOnCorrectToken({SyntaxKind.IfKeyword, SyntaxKind.ElseIfKeyword})
 
             Dim ifKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseEndDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.EndKeyword)
 
             Dim endKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseAnachronisticEndIfDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndIfKeyword)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.EndIfKeyword)
 
             Dim endIfKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseConstDirective(hashToken As PunctuationSyntax) As ConstDirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.ConstKeyword)
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.ConstKeyword)
 
             Dim constKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -380,8 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseWarningDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken,
-                         NameOf(ParseWarningDirective) & " called with token that is not an " & NameOf(SyntaxKind.IdentifierToken))
+            DebugAssert_CalledOnCorrectToken(SyntaxKind.IdentifierToken)
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
 
             Debug.Assert((identifier.PossibleKeywordKind = SyntaxKind.EnableKeyword) OrElse
