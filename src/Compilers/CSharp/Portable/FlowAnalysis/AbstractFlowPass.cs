@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// May be a top-level member or a lambda or local function. It is used for
         /// references to method parameters. Thus, '_symbol' should not be used directly, but
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
-        /// instead.
+        /// instead. _symbol is null during speculative binding.
         /// </summary>
         protected readonly Symbol _symbol;
 
