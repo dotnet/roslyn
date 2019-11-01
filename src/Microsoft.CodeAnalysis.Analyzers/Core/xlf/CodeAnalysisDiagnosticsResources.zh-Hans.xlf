@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CodeAnalysisDiagnosticsResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
         <source>Compare symbols correctly</source>
@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity.</source>
-        <target state="needs-review-translation">符号应比较相等性，而不是标识。</target>
+        <target state="translated">符号应比较相等性，而不是标识。</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="translated">“{0}”注册了一个或多个代码修补程序，但是未重写方法 "CodeFixProvider.GetFixAllProvider"。请重写该方法并向 FixAll 支持提供非 null 型 FixAllProvider (可能为 "WellKnownFixAllProviders.BatchFixer")或提供 "null" 以显式启用 FixAll 支持。</target>
+        <target state="translated">“{0}”注册了一个或多个代码修复程序，但是未重写方法 "CodeFixProvider.GetFixAllProvider"。请重写该方法并向 FixAll 支持提供非 null 型 FixAllProvider (可能为 "WellKnownFixAllProviders.BatchFixer")或提供 "null" 以显式启用 FixAll 支持。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
