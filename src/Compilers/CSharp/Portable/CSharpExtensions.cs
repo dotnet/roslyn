@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
-                return csmodel.ClassifyConversion(expression, (TypeSymbol)destination, isExplicitInSource);
+                return csmodel.ClassifyConversion(expression, destination, isExplicitInSource);
             }
             else
             {
@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
-                return csmodel.ClassifyConversion(position, expression, (TypeSymbol)destination, isExplicitInSource);
+                return csmodel.ClassifyConversion(position, expression, destination, isExplicitInSource);
             }
             else
             {

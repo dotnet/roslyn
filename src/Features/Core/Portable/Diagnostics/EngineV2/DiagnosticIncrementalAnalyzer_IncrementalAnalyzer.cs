@@ -75,6 +75,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
+            // Perf optimization. check whether we want to analyze this project or not.
+            if (!Executor.FullAnalysisEnabled(project, forceAnalyzerRun: false))
+            {
+                return;
+            }
+
+            await AnalyzeProjectAsync(project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false);
+        }
+
+        public Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+            => AnalyzeProjectAsync(project, forceAnalyzerRun: true, cancellationToken);
+
+        private async Task AnalyzeProjectAsync(Project project, bool forceAnalyzerRun, CancellationToken cancellationToken)
+        {
             try
             {
                 var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
@@ -91,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var includeSuppressedDiagnostics = true;
                 var analyzerDriverOpt = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var forceAnalyzerRun = false;
                 var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)
                 {

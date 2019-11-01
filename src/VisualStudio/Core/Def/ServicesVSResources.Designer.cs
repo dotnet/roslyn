@@ -588,6 +588,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for &apos;{0}&apos;..
+        /// </summary>
+        internal static string Code_analysis_completed_for_0 {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for Solution..
+        /// </summary>
+        internal static string Code_analysis_completed_for_Solution {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_Solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code block preferences:.
         /// </summary>
         internal static string Code_block_preferences_colon {
@@ -883,15 +901,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enable_navigation_to_decompiled_sources {
             get {
                 return ResourceManager.GetString("Enable_navigation_to_decompiled_sources", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enable nullable reference analysis IDE features.
-        /// </summary>
-        internal static string Enable_nullable_reference_analysis_IDE_features {
-            get {
-                return ResourceManager.GetString("Enable_nullable_reference_analysis_IDE_features", resourceCulture);
             }
         }
         
@@ -2796,6 +2805,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Review_Changes {
             get {
                 return ResourceManager.GetString("Review_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run Code Analysis on {0}.
+        /// </summary>
+        internal static string Run_Code_Analysis_on_0 {
+            get {
+                return ResourceManager.GetString("Run_Code_Analysis_on_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for &apos;{0}&apos;....
+        /// </summary>
+        internal static string Running_code_analysis_for_0 {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for Solution....
+        /// </summary>
+        internal static string Running_code_analysis_for_Solution {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_Solution", resourceCulture);
             }
         }
         

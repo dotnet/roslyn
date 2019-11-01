@@ -1036,8 +1036,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                        patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
                        sz1 == sz2 && r1 == r2)
                 {
-                    e1 = e1.EnumUnderlyingType();
-                    e2 = e2.EnumUnderlyingType();
+                    e1 = e1.EnumUnderlyingTypeOrSelf();
+                    e2 = e2.EnumUnderlyingTypeOrSelf();
                     switch (e1.SpecialType, e2.SpecialType)
                     {
                         // The following support CLR behavior that is required by

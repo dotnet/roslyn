@@ -23,10 +23,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace)
         {
-            var option = GetCustomTypeInBingSearchOption(workspace);
-
             // We use the ENU version of the message for bing search.
-            return option ? diagnostic.GetMessage(s_USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
+            return AllowPotentiallySensitiveInformationInBingHelpQuery(workspace) ?
+                diagnostic.GetMessage(s_USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
         }
 
         public static string GetBingHelpMessage(this DiagnosticDescriptor descriptor)
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return descriptor.MessageFormat.ToString(s_USCultureInfo);
         }
 
-        private static bool GetCustomTypeInBingSearchOption(Workspace workspace)
+        private static bool AllowPotentiallySensitiveInformationInBingHelpQuery(Workspace workspace)
         {
             if (workspace == null)
             {

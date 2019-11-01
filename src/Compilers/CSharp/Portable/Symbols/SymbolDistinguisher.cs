@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal sealed class SymbolDistinguisher
     {
-        private readonly Compilation _compilation;
+        private readonly CSharpCompilation _compilation;
         private readonly Symbol _symbol0;
         private readonly Symbol _symbol1;
 
         private ImmutableArray<string> _lazyDescriptions;
 
-        public SymbolDistinguisher(Compilation compilation, Symbol symbol0, Symbol symbol1)
+        public SymbolDistinguisher(CSharpCompilation compilation, Symbol symbol0, Symbol symbol1)
         {
             Debug.Assert(symbol0 != symbol1);
             CheckSymbolKind(symbol0);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string GetLocationString(Compilation compilation, Symbol unwrappedSymbol)
+        private static string GetLocationString(CSharpCompilation compilation, Symbol unwrappedSymbol)
         {
             Debug.Assert((object)unwrappedSymbol == UnwrapSymbol(unwrappedSymbol));
 

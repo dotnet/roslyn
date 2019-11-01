@@ -141,7 +141,7 @@
       <!-- Include a few dependencies of Roslyn. These right now are consumed out of the ExternalAPIs NuGet package to do assembly consistency checking in the main VS
            repo. We should remove these and insert the packages directly, but for now we'll include these to limit the work needed to consume this package. -->
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\Humanizer.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\Microsoft.CodeAnalysis.AnalyzerUtilities.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\ICSharpCode.Decompiler.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\System.Composition.Hosting.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\System.Composition.TypedParts.dll" TargetDir="" />

@@ -3,16 +3,17 @@
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol>
         where TCompilation : Compilation
-        where TMethodSymbol : class, IMethodSymbol
-        where TModuleSymbol : class, IModuleSymbol
-        where TTypeSymbol : class, ITypeSymbol
-        where TTypeParameterSymbol : class, ITypeParameterSymbol
+        where TMethodSymbol : class, IMethodSymbolInternal
+        where TModuleSymbol : class, IModuleSymbolInternal
+        where TTypeSymbol : class, ITypeSymbolInternal
+        where TTypeParameterSymbol : class, ITypeParameterSymbolInternal
     {
         internal static readonly SymbolDisplayFormat DisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             AppendFullName(builder, method);
 
             // parameter list...
-            var parameters = method.Parameters;
+            var parameters = ((IMethodSymbol)method.GetISymbol()).Parameters;
             var includeArgumentValues = (argumentValues != null) && (parameters.Length == argumentValues.Count);
             if (includeParameterTypes || includeParameterNames || includeArgumentValues)
             {
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string GetReturnTypeName(TMethodSymbol method)
         {
-            return method.ReturnType.ToDisplayString(DisplayFormat);
+            return ((IMethodSymbol)method.GetISymbol()).ReturnType.ToDisplayString(DisplayFormat);
         }
 
         internal abstract TypeNameDecoder<TModuleSymbol, TTypeSymbol> GetTypeNameDecoder(TCompilation compilation, TMethodSymbol method);

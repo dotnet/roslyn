@@ -987,7 +987,7 @@ namespace BoundTreeGenerator
                 var format = TypeIsTypeSymbol(field)
                                 ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
                                 : TypeIsSymbol(field)
-                                    ? "!SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
+                                    ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
                                     : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);

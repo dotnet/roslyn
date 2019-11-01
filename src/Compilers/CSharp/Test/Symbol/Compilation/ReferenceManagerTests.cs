@@ -2198,8 +2198,8 @@ public class Source
 
             var a0 = c1.GetAssemblyOrModuleSymbol(refVectors40);
             var a1 = c1.GetAssemblyOrModuleSymbol(refVectors41);
-            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
-            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a1).Identity.GetDisplayName());
 
             var c2 = CreateEmptyCompilation("",
                 TargetFrameworkUtil.StandardReferences.AddRange(new[] { refVectors41, refVectors40 }),
@@ -2208,8 +2208,8 @@ public class Source
 
             a0 = c2.GetAssemblyOrModuleSymbol(refVectors40);
             a1 = c2.GetAssemblyOrModuleSymbol(refVectors41);
-            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
-            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a1).Identity.GetDisplayName());
         }
 
         [Fact]

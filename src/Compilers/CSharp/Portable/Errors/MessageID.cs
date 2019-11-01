@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToString(null, null);
         }
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider? formatProvider)
         {
             return ErrorFacts.GetMessage(_id, formatProvider as System.Globalization.CultureInfo);
         }
@@ -222,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   If this method returns non-null, use that.
         // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
         //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
-        internal static string RequiredFeature(this MessageID feature)
+        internal static string? RequiredFeature(this MessageID feature)
         {
             // Check for current experimental features, if any, in the current branch.
             switch (feature)
@@ -236,9 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this MessageID feature,
             DiagnosticBag diagnostics,
             SyntaxNode syntax,
-            Location location = null)
+            Location? location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
+            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
             if (diag is object)
             {
                 diagnostics.Add(diag, location ?? syntax.GetLocation());
@@ -253,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Compilation compilation,
             Location location)
         {
-            if (GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpCompilation)compilation) is { } diagInfo)
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpCompilation)compilation) is { } diagInfo)
             {
                 diagnostics.Add(diagInfo, location);
                 return false;
@@ -261,15 +263,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpParseOptions options)
+        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpParseOptions options)
             => options.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, options.LanguageVersion);
 
-        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpCompilation compilation)
+        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpCompilation compilation)
             => compilation.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, compilation.LanguageVersion);
 
         private static CSDiagnosticInfo GetDisabledFeatureDiagnosticInfo(MessageID feature, LanguageVersion availableVersion)
         {
-            string requiredFeature = feature.RequiredFeature();
+            string? requiredFeature = feature.RequiredFeature();
             if (requiredFeature != null)
             {
                 return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);

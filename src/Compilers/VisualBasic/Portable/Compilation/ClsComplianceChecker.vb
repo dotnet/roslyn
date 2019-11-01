@@ -802,7 +802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(args.Length = 1, "We already checked the signature and HasErrors.")
 
                         ' Duplicates are reported elsewhere - we only care about the first (error-free) occurrence.
-                        Return DirectCast(args(0).Value, Boolean)
+                        Return DirectCast(args(0).ValueInternal, Boolean)
                     End If
                 End If
             Next

@@ -3289,7 +3289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ReportAsOperatorConversionDiagnostics(
             CSharpSyntaxNode node,
             DiagnosticBag diagnostics,
-            Compilation compilation,
+            CSharpCompilation compilation,
             TypeSymbol operandType,
             TypeSymbol targetType,
             ConversionKind conversionKind,

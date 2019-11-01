@@ -6028,7 +6028,7 @@ namespace NS2
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsByPatternMatchIfExperimentEnabled() As Task
+        Public Async Function SortItemsByPatternMatch() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace NS
@@ -6057,9 +6057,6 @@ namespace NS
 
                 state.Workspace.Options = state.Workspace.Options _
                     .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
-
-                Dim experimentService = state.GetService(Of TestExperimentationService)()
-                experimentService.SetExperimentOption(WellKnownExperimentNames.SortCompletionListByMatch, True)
 
                 state.SendTypeChars("task")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -6075,61 +6072,6 @@ namespace NS
                         "BTask2",
                         "BTask3",
                         "ATaAaSaKa"
-                    }
-
-                state.AssertItemsInOrder(expectedOrder)
-            End Using
-        End Function
-
-        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsAlphabeticallyIfExperimentDisabled() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                              <Document>
-namespace NS
-{
-    class C
-    {
-        void M()
-        {
-            $$
-        }
-    }
-
-    class Task { }
-
-    class BTask1 { }
-    class BTask2 { }
-    class BTask3 { }
-
-
-    class Task1 { }
-    class Task2 { }
-    class Task3 { }
-
-    class ATaAaSaKa { }
-} </Document>, extraExportedTypes:={GetType(TestExperimentationService)}.ToList())
-
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
-
-                Dim experimentService = state.GetService(Of TestExperimentationService)()
-                experimentService.SetExperimentOption(WellKnownExperimentNames.SortCompletionListByMatch, False)
-
-                state.SendTypeChars("task")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Task")
-
-                Dim expectedOrder =
-                    {
-                        "ATaAaSaKa",
-                        "BTask1",
-                        "BTask2",
-                        "BTask3",
-                        "Task",
-                        "Task1",
-                        "Task2",
-                        "Task3"
                     }
 
                 state.AssertItemsInOrder(expectedOrder)

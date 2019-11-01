@@ -12507,5 +12507,116 @@ End Class
             Assert.Equal("F:System.ValueTuple`2.Item1", cref)
         End Sub
 
+        <Fact>
+        <WorkItem(39315, "https://github.com/dotnet/roslyn/issues/39315")>
+        Public Sub WriteDocumentationCommentXml_01()
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+''' <summary> a.vb
+''' </summary>
+]]>
+    </file>
+    <file name="b.vb">
+        <![CDATA[
+''' <summary> b.vb
+''' </summary>
+]]>
+    </file>
+</compilation>
+            Using (New EnsureEnglishUICulture())
+
+                Dim comp = CreateCompilationWithMscorlib40(sources, parseOptions:=s_optionsDiagnoseDocComments)
+                Dim diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(0))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(0),
+                    filterSpanWithinTree:=New Text.TextSpan(0, 0))
+
+                Assert.Empty(diags.ToReadOnlyAndFree())
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(1))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=Nothing)
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=Nothing,
+                    filterSpanWithinTree:=New Text.TextSpan(0, 0))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+            End Using
+        End Sub
+
     End Class
 End Namespace
