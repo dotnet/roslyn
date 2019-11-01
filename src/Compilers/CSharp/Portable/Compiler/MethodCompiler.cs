@@ -1448,7 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isAsyncStateMachine)
                 {
-                    codeGen.Generate(out int asyncCatchHandlerOffset, out var asyncYieldPoints, out var asyncResumePoints);
+                    codeGen.Generate(out int asyncCatchHandlerOffset, out var asyncYieldPoints, out var asyncResumePoints, out hasStackalloc);
 
                     // The exception handler IL offset is used by the debugger to treat exceptions caught by the marked catch block as "user unhandled".
                     // This is important for async void because async void exceptions generally result in the process being terminated,
