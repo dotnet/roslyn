@@ -1433,14 +1433,20 @@ Friend Class C
         Return AddressOf 42.M
     End Function
 End Class", safe:=True, useSymbolAnnotations)
+
             Dim doc = Await GetDocument(source, useSymbolAnnotations)
             Dim options As OptionSet = Await doc.GetOptionsAsync()
+
             Dim imported = Await ImportAdder.AddImportsFromSyntaxesAsync(doc, True, options)
             Dim root = Await imported.GetSyntaxRootAsync()
             Dim nodeWithWarning = root.GetAnnotatedNodes(WarningAnnotation.Kind).Single()
+
             Assert.Equal("42.M" & vbCrLf, nodeWithWarning.ToFullString())
+
             Dim warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single()
-            Assert.Equal("Adding imports will bring an extension method into scope with the same name as 'M'", WarningAnnotation.GetDescription(warning))
+            Dim expectedWarningMessage = WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access.Replace("{0}", "M")
+
+            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning))
         End Function
 
 #End Region

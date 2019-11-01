@@ -1681,20 +1681,18 @@ class C
 }", safe: true, useSymbolAnnotations);
 
             var doc = await GetDocument(source, useSymbolAnnotations);
-
             OptionSet options = await doc.GetOptionsAsync();
 
             var imported = await ImportAdder.AddImportsFromSyntaxesAsync(doc, true, options);
-
             var root = await imported.GetSyntaxRootAsync();
-
             var nodeWithWarning = root.GetAnnotatedNodes(WarningAnnotation.Kind).Single();
 
             Assert.Equal("42.M", nodeWithWarning.ToFullString());
 
             var warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single();
+            var expectedWarningMessage = WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access.Replace("{0}", "M");
 
-            Assert.Equal("Adding imports will bring an extension method into scope with the same name as 'M'", WarningAnnotation.GetDescription(warning));
+            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning));
         }
         #endregion
     }
