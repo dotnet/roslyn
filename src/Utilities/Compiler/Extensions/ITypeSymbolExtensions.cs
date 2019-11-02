@@ -287,6 +287,15 @@ namespace Analyzer.Utilities.Extensions
             return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
         }
 
+        /// <summary>
+        /// Checks whether the current type contains one of the following count property:
+        ///     - <see cref="System.Collections.ICollection.Count"/>
+        ///     - <see cref="System.Collections.Generic.ICollection{T}.Count"/>
+        ///     - <see cref="System.Collections.Generic.IReadOnlyCollection{T}.Count"/>
+        /// </summary>
+        /// <param name="invocationTarget">The type to check</param>
+        /// <param name="wellKnownTypeProvider">An instance of the <see cref="WellKnownTypeProvider"/> used to access the three described known types.</param>
+        /// <returns><c>true</c> when the type contains one of the supported collection count property; otherwise <c>false</c>.</returns>
         public static bool HasAnyCollectionCountProperty(this ITypeSymbol invocationTarget, WellKnownTypeProvider wellKnownTypeProvider)
         {
             const string countPropertyName = "Count";
