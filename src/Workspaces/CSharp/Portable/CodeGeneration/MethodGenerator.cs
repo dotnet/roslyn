@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -61,6 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddMembersTo(destination, members);
         }
 
+        internal static MethodDeclarationSyntax AddMethodTo(
+            MethodDeclarationSyntax destination,
+            IMethodSymbol method,
+            Workspace workspace,
+            CodeGenerationOptions options,
+            IList<bool> availableIndices)
+        {
+            var localMethodDeclaration = GenerateLocalMethodDeclaration(
+                method, GetDestination(destination), workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
+
+            return destination.AddBodyStatements(localMethodDeclaration);
+        }
+
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
             IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options,
@@ -111,6 +124,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
         }
 
+        public static LocalFunctionStatementSyntax GenerateLocalMethodDeclaration(
+            IMethodSymbol method, CodeGenerationDestination destination,
+            Workspace workspace, CodeGenerationOptions options,
+            ParseOptions parseOptions)
+        {
+            options ??= CodeGenerationOptions.Default;
+
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<LocalFunctionStatementSyntax>(method, options);
+            if (reusableSyntax != null)
+            {
+                return reusableSyntax;
+            }
+
+            var declaration = GenerateLocalMethodDeclarationWorker(
+                method, destination, workspace, options, parseOptions);
+
+            return AddAnnotationsTo(method,
+                ConditionallyAddDocumentationCommentTo(declaration, method, options));
+        }
+        private static LocalFunctionStatementSyntax GenerateLocalMethodDeclarationWorker(
+            IMethodSymbol method, CodeGenerationDestination destination,
+            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
+        {
+            // Don't rely on destination to decide if method body should be generated.
+            // Users of this service need to express their intention explicitly, either by  
+            // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making 
+            // `method` abstract. This would provide more flexibility.
+            var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
+
+            var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
+
+            var localMethodDeclaration = SyntaxFactory.LocalFunctionStatement(
+                modifiers: GenerateModifiers(method, destination, options),
+                returnType: method.GenerateReturnTypeSyntax(),
+                identifier: method.Name.ToIdentifierToken(),
+                typeParameterList: GenerateTypeParameterList(method, options),
+                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
+                constraintClauses: GenerateConstraintClauses(method),
+                body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+                expressionBody: default,
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+
+            localMethodDeclaration = UseExpressionBodyIfDesired(workspace, localMethodDeclaration, parseOptions);
+
+            return AddFormatterAndCodeGeneratorAnnotationsTo(localMethodDeclaration);
+        }
+
         private static MethodDeclarationSyntax UseExpressionBodyIfDesired(
             Workspace workspace, MethodDeclarationSyntax methodDeclaration, ParseOptions options)
         {
@@ -128,6 +188,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return methodDeclaration;
+        }
+
+        private static LocalFunctionStatementSyntax UseExpressionBodyIfDesired(
+            Workspace workspace, LocalFunctionStatementSyntax localMethodDeclaration, ParseOptions options)
+        {
+            if (localMethodDeclaration.ExpressionBody == null)
+            {
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                if (localMethodDeclaration.Body.TryConvertToArrowExpressionBody(
+                        localMethodDeclaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
+                {
+                    return localMethodDeclaration.WithBody(null)
+                                            .WithExpressionBody(expressionBody)
+                                            .WithSemicolonToken(semicolonToken);
+                }
+            }
+
+            return localMethodDeclaration;
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(

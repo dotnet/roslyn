@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             context.RegisterRefactoring(action.action, textSpan);
         }
 
-        private async Task<(CodeAction action, string methodBlock)> GetCodeActionAsync(
+        internal virtual async Task<(CodeAction action, string methodBlock)> GetCodeActionAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return default;
         }
 
-        private async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
+        internal async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return document.WithSyntaxRoot(finalRoot);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        internal class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)

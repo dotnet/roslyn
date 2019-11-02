@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         where TResult : SelectionResult
     {
         protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, OptionSet options);
-        protected abstract TExtractor CreateMethodExtractor(TResult selectionResult);
+        protected abstract TExtractor CreateMethodExtractor(TResult selectionResult, bool extractLocalMethod);
 
         public async Task<ExtractMethodResult> ExtractMethodAsync(
             Document document,
             TextSpan textSpan,
+            bool extractLocalFunction,
             OptionSet options,
             CancellationToken cancellationToken)
         {
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             // extract method
-            var extractor = CreateMethodExtractor((TResult)selectionResult);
+            var extractor = CreateMethodExtractor((TResult)selectionResult, extractLocalFunction);
 
             return await extractor.ExtractMethodAsync(cancellationToken).ConfigureAwait(false);
         }

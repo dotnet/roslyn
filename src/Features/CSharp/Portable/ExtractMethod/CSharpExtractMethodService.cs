@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return new CSharpSelectionValidator(document, textSpan, options);
         }
 
-        protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult)
+        protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult, bool extractLocalFunction)
         {
-            return new CSharpMethodExtractor(selectionResult);
+            return new CSharpMethodExtractor(selectionResult, extractLocalFunction);
         }
     }
 }

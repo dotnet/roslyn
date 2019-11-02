@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal abstract partial class MethodExtractor
     {
         protected readonly SelectionResult OriginalSelectionResult;
+        protected readonly bool ExtractLocalFunction;
 
-        public MethodExtractor(SelectionResult selectionResult)
+        public MethodExtractor(SelectionResult selectionResult, bool extractLocalFunction = false)
         {
             Contract.ThrowIfNull(selectionResult);
             OriginalSelectionResult = selectionResult;
+            ExtractLocalFunction = extractLocalFunction;
         }
 
         protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken);
+        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, bool extractLocalFunction, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 insertionPoint.With(expandedDocument),
                 OriginalSelectionResult.With(expandedDocument),
                 analyzeResult.With(expandedDocument),
+                ExtractLocalFunction,
                 cancellationToken).ConfigureAwait(false);
 
             var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);

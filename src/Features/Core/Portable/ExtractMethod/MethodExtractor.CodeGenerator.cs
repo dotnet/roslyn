@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult)
+            protected readonly bool ExtractLocalFunction;
+
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool extractLocalFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
+                ExtractLocalFunction = extractLocalFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
                 CallSiteAnnotation = new SyntaxAnnotation();
@@ -80,16 +83,36 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var newCallSiteRoot = callSiteDocument.Root;
                 var previousMemberNode = GetPreviousMember(callSiteDocument);
 
-                // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
-                var destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
+                SyntaxNode destination;
+                if (ExtractLocalFunction)
+                {
+                    destination = InsertionPoint.With(callSiteDocument).GetContext();
+                }
+                else
+                {
+                    // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
+                    destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
+                }
 
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
 
                 var result = GenerateMethodDefinition(cancellationToken);
-                var newContainer = codeGenerationService.AddMethod(
-                    destination, result.Data,
-                    new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
-                    cancellationToken);
+
+                SyntaxNode newContainer;
+                if (ExtractLocalFunction)
+                {
+                    newContainer = codeGenerationService.AddMethod(
+                        destination, result.Data,
+                        new CodeGenerationOptions(generateDefaultAccessibility: false),
+                        cancellationToken);
+                }
+                else
+                {
+                    newContainer = codeGenerationService.AddMethod(
+                        destination, result.Data,
+                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
+                        cancellationToken);
+                }
 
                 var newDocument = callSiteDocument.Document.WithSyntaxRoot(newCallSiteRoot.ReplaceNode(destination, newContainer));
                 newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);

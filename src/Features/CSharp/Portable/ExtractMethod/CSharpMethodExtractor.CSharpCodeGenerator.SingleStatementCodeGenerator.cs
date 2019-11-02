@@ -18,8 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public SingleStatementCodeGenerator(
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult)
-                    : base(insertionPoint, selectionResult, analyzerResult)
+                    AnalyzerResult analyzerResult,
+                    bool extractLocalFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction)
                 {
                 }
 

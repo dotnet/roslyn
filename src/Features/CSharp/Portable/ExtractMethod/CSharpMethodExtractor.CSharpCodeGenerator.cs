@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,30 +33,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
+                bool extractLocalFunction,
                 CancellationToken cancellationToken)
             {
-                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult);
+                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
                 return codeGenerator.GenerateAsync(cancellationToken);
             }
 
             private static CSharpCodeGenerator Create(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
-                AnalyzerResult analyzerResult)
+                AnalyzerResult analyzerResult,
+                bool extractLocalFunction)
             {
                 if (ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult))
                 {
-                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult);
+                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
                 }
 
                 if (SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult))
                 {
-                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult);
+                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
                 }
 
                 if (MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult))
                 {
-                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult);
+                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
                 }
 
                 return Contract.FailWithReturn<CSharpCodeGenerator>("Unknown selection");
@@ -64,8 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected CSharpCodeGenerator(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
-                AnalyzerResult analyzerResult)
-                : base(insertionPoint, selectionResult, analyzerResult)
+                AnalyzerResult analyzerResult,
+                bool extractLocalFunction)
+                : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction)
             {
                 Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
 
@@ -609,18 +613,51 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // here, we explicitly insert newline at the end of "{" of auto generated method decl so that anchor knows how to find out
                     // indentation of inserted statements (from users code) with user code style preserved
                     var root = newDocument.Root;
-                    var methodDefinition = root.GetAnnotatedNodes<MethodDeclarationSyntax>(this.MethodDefinitionAnnotation).First();
-
-                    var newMethodDefinition = TweakNewLinesInMethod(methodDefinition);
-
-                    newDocument = await newDocument.WithSyntaxRootAsync(
-                        root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
+                    var methodDefinition = root.GetAnnotatedNodes<SyntaxNode>(this.MethodDefinitionAnnotation).First();
+                    if (methodDefinition is LocalFunctionStatementSyntax localMethod)
+                    {
+                        var newMethodDefinition = TweakNewLinesInMethod(localMethod);
+                        newDocument = await newDocument.WithSyntaxRootAsync(
+                            root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (methodDefinition is MethodDeclarationSyntax method)
+                    {
+                        var newMethodDefinition = TweakNewLinesInMethod(method);
+                        newDocument = await newDocument.WithSyntaxRootAsync(
+                            root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("methodDefinition expected to be a regular or local method.");
+                    }
                 }
 
                 return await base.CreateGeneratedCodeAsync(status, newDocument, cancellationToken).ConfigureAwait(false);
             }
 
             private static MethodDeclarationSyntax TweakNewLinesInMethod(MethodDeclarationSyntax methodDefinition)
+            {
+                if (methodDefinition.Body != null)
+                {
+                    return methodDefinition.ReplaceToken(
+                            methodDefinition.Body.OpenBraceToken,
+                            methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
+                }
+                else if (methodDefinition.ExpressionBody != null)
+                {
+                    return methodDefinition.ReplaceToken(
+                            methodDefinition.ExpressionBody.ArrowToken,
+                            methodDefinition.ExpressionBody.ArrowToken.WithPrependedLeadingTrivia(
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
+                }
+                else
+                {
+                    return methodDefinition;
+                }
+            }
+
+            private static LocalFunctionStatementSyntax TweakNewLinesInMethod(LocalFunctionStatementSyntax methodDefinition)
             {
                 if (methodDefinition.Body != null)
                 {

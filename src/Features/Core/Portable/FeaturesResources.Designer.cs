@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The file is likely being updated by a background build. The debug session can&apos;t continue until the update is completed..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
@@ -1496,6 +1496,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Extract_Interface {
             get {
                 return ResourceManager.GetString("Extract_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract Local Method.
+        /// </summary>
+        internal static string Extract_Local_Method {
+            get {
+                return ResourceManager.GetString("Extract_Local_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract Local Method + Local.
+        /// </summary>
+        internal static string Extract_Local_Method_plus_Local {
+            get {
+                return ResourceManager.GetString("Extract_Local_Method_plus_Local", resourceCulture);
             }
         }
         
