@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -53,6 +54,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return CreateWithMessage(descriptor, location, effectiveSeverity, additionalLocations, properties, message);
+        }
+
+        /// <summary>
+        /// Create a diagnostic that adds properties specifying a tag for a set of locations.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// If null, <see cref="Diagnostic.AdditionalLocations"/> will return an empty list.
+        /// </param>
+        /// <param name="tagIndexes">a map of location tag to index in additional locations.</param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic CreateWithLocationTags(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
+            IEnumerable<Location> additionalLocations,
+            IDictionary<string, IEnumerable<int>> tagIndexes,
+            params object[] messageArgs)
+        {
+            var properties = tagIndexes.Select(kvp => new KeyValuePair<string, string>(kvp.Key, JsonConvert.SerializeObject(kvp.Value))).ToImmutableDictionary();
+
+            return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
         }
 
         /// <summary>

@@ -2,18 +2,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
@@ -57,5 +61,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected internal override ITagSpan<ClassificationTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data) =>
             new TagSpan<ClassificationTag>(span, _classificationTag);
+
+        protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+        {
+            using var locationsToTagDisposer = ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
+
+            // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
+            if (diagnosticData.AdditionalLocations != null
+                && diagnosticData.AdditionalLocations.Count > 0
+                && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices))
+            {
+                var additionalLocations = diagnosticData.AdditionalLocations.ToImmutableArray();
+                var indices = JsonConvert.DeserializeObject<IEnumerable<int>>(unnecessaryIndices);
+                locationsToTag.AddRange(indices.Select(i => additionalLocations[i]).ToImmutableArray());
+            }
+            else
+            {
+                locationsToTag.Add(diagnosticData.DataLocation);
+            }
+
+            return locationsToTag.ToImmutable();
+        }
     }
 }

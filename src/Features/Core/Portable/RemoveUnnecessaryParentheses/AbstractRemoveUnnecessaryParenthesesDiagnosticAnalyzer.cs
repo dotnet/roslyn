@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -20,25 +22,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
     {
 
         /// <summary>
-        /// A diagnostic descriptor that will fade the span (but not put a message or squiggle).
+        /// A diagnostic descriptor used to squiggle and message the span.
         /// </summary>
-        private static readonly DiagnosticDescriptor s_diagnosticWithFade = CreateDescriptorWithId(
-                IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
-                new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                string.Empty,
-                isUnneccessary: true);
-
-        /// <summary>
-        /// A diagnostic descriptor used to squiggle and message the span, but will not fade.
-        /// </summary>
-        private static readonly DiagnosticDescriptor s_diagnosticWithoutFade = CreateDescriptorWithId(
+        private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                 new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                isUnneccessary: false);
+                isUnneccessary: true);
+
+        /// <summary>
+        /// This analyzer inserts the fade locations into indices 1 and 2 inside additional locations.
+        /// </summary>
+        private static readonly ImmutableDictionary<string, IEnumerable<int>> s_fadeLocations = new Dictionary<string, IEnumerable<int>>
+        {
+            { nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 1, 2 } },
+        }.ToImmutableDictionary();
 
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_diagnosticWithFade, s_diagnosticWithoutFade))
+            : base(ImmutableArray.Create(s_diagnosticDescriptor))
         {
         }
 
@@ -124,21 +125,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             var severity = preference.Notification.Severity;
 
-            var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
+            var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation(),
+                parenthesizedExpression.GetFirstToken().GetLocation(), parenthesizedExpression.GetLastToken().GetLocation());
 
-            // Fades the open parentheses character and reports the suggestion.
-            context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetFirstToken().GetLocation(), additionalLocations));
-
-            // Generates diagnostic used to squiggle the parenthetical expression.
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                s_diagnosticWithoutFade,
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                s_diagnosticDescriptor,
                 GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
-                properties: null));
-
-            // Fades the close parentheses character.
-            context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
+                s_fadeLocations));
         }
 
         /// <summary>

@@ -119,7 +119,7 @@ namespace B
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
-            var actual = data.GetExistingOrCalculatedTextSpan(text);
+            var actual = DiagnosticData.GetExistingOrCalculatedTextSpan(data.DataLocation, text);
 
             Assert.Equal(span, actual);
         }
