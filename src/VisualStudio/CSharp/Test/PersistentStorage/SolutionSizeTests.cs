@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var expected = 12345;
             var solution = CreateSolution(expected);
 
-            var analyzer = new SolutionSizeTracker.IncrementalAnalyzer();
+            var analyzer = new VisualStudioSolutionSizeTracker.IncrementalAnalyzer();
 
             // initialize
             await analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var expected = 12345;
             var solution = CreateSolution(expected);
 
-            var analyzer = new SolutionSizeTracker.IncrementalAnalyzer();
+            var analyzer = new VisualStudioSolutionSizeTracker.IncrementalAnalyzer();
 
             // initialize
             await analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var expected = 12345;
             var solution = CreateSolution(expected);
 
-            var analyzer = new SolutionSizeTracker.IncrementalAnalyzer();
+            var analyzer = new VisualStudioSolutionSizeTracker.IncrementalAnalyzer();
 
             // initialize
             await analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(expected - length, size);
         }
 
-        private static async Task AddSolutionAsync(SolutionSizeTracker.IncrementalAnalyzer analyzer, Solution solution)
+        private static async Task AddSolutionAsync(VisualStudioSolutionSizeTracker.IncrementalAnalyzer analyzer, Solution solution)
         {
             foreach (var document in solution.Projects.SelectMany(p => p.Documents))
             {

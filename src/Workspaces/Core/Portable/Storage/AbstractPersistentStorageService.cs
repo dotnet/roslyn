@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly object _lock = new object();
         private ReferenceCountedDisposable<IChecksummedPersistentStorage> _currentPersistentStorage;
         private SolutionId _currentPersistentStorageSolutionId;
-        private bool _subscribedToLocationServiceChangeEvents;
 
         protected AbstractPersistentStorageService(
             IOptionService optionService,
@@ -80,17 +79,10 @@ namespace Microsoft.CodeAnalysis.Storage
                     return NoOpPersistentStorage.Instance;
                 }
 
-                var workingFolder = _locationService.TryGetStorageLocation(solution.Id);
-
+                var workingFolder = _locationService.TryGetStorageLocation(solution);
                 if (workingFolder == null)
                 {
                     return NoOpPersistentStorage.Instance;
-                }
-
-                if (!_subscribedToLocationServiceChangeEvents)
-                {
-                    _locationService.StorageLocationChanging += LocationServiceStorageLocationChanging;
-                    _subscribedToLocationServiceChangeEvents = true;
                 }
 
                 // If we already had some previous cached service, let's let it start cleaning up
@@ -203,17 +195,12 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private void LocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
+        internal void Shutdown_ForTestingPurposesOnly()
         {
             ReferenceCountedDisposable<IChecksummedPersistentStorage> storage = null;
 
             lock (_lock)
             {
-                if (e.SolutionId != _currentPersistentStorageSolutionId)
-                {
-                    return;
-                }
-
                 // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
                 storage = _currentPersistentStorage;
                 _currentPersistentStorage = null;
@@ -222,17 +209,9 @@ namespace Microsoft.CodeAnalysis.Storage
 
             if (storage != null)
             {
-                if (e.MustUseNewStorageLocationImmediately)
-                {
-                    // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
-                    // using this will still be holding a reference count.
-                    storage.Dispose();
-                }
-                else
-                {
-                    // make it to shutdown asynchronously
-                    Task.Run(() => storage.Dispose());
-                }
+                // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
+                // using this will still be holding a reference count.
+                storage.Dispose();
             }
         }
 

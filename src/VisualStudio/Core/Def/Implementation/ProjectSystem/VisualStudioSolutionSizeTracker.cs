@@ -4,24 +4,27 @@ using System.Collections.Concurrent;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.SolutionSize;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SolutionSize
+namespace Microsoft.VisualStudio.LanguageServices
 {
     /// <summary>
     /// Track approximate solution size.
     /// </summary>
-    [Export(typeof(ISolutionSizeTracker))]
-    [ExportIncrementalAnalyzerProvider(nameof(SolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
-    internal class SolutionSizeTracker : IIncrementalAnalyzerProvider, ISolutionSizeTracker
+    [ExportWorkspaceService(typeof(ISolutionSizeTracker), ServiceLayer.Host)]
+    [ExportIncrementalAnalyzerProvider(nameof(VisualStudioSolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
+    internal class VisualStudioSolutionSizeTracker : IIncrementalAnalyzerProvider, ISolutionSizeTracker
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 
         [ImportingConstructor]
-        public SolutionSizeTracker()
+        public VisualStudioSolutionSizeTracker()
         {
         }
 
@@ -34,18 +37,10 @@ namespace Microsoft.CodeAnalysis.SolutionSize
         /// lazy and very cheap on answering that question.
         /// </summary>
         public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
-        {
-            var service = workspace.Services.GetService<IPersistentStorageLocationService>();
-            return service.IsSupported(workspace)
-                ? _tracker.GetSolutionSize(solutionId)
-                : -1;
-        }
+            => workspace is VisualStudioWorkspace ? _tracker.GetSolutionSize(solutionId) : -1;
 
         IIncrementalAnalyzer IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            var service = workspace.Services.GetService<IPersistentStorageLocationService>();
-            return service.IsSupported(workspace) ? _tracker : null;
-        }
+            => workspace is VisualStudioWorkspace ? _tracker : null;
 
         internal class IncrementalAnalyzer : IIncrementalAnalyzer
         {

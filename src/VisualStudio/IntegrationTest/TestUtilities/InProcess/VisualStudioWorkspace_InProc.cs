@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetWorkingFolder()
         {
             var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
-            return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution.Id);
+            return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution);
         }
     }
 }

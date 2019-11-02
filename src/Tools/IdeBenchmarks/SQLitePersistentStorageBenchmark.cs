@@ -127,10 +127,7 @@ namespace IdeBenchmarks
 
         private class LocationService : IPersistentStorageLocationService
         {
-            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging { add { } remove { } }
-
-            public bool IsSupported(Workspace workspace) => true;
-            public string TryGetStorageLocation(SolutionId solutionId)
+            public string TryGetStorageLocation(Solution _)
             {
                 // Store the db in a different random temp dir.
                 var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

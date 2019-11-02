@@ -6,9 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
@@ -169,7 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected override void OnStarted()
         {
             RegisterGlobalOperationNotifications();
-            RegisterPersistentStorageLocationServiceChanges();
         }
 
         protected override void OnStopped()
@@ -183,7 +179,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
             UnregisterGlobalOperationNotifications();
-            UnregisterPersistentStorageLocationServiceChanges();
+
+            // Wait for any remaining tasks to be cleared, otherwise we might have OOP being torn down while we are still running
+            _currentRemoteWorkspaceNotificationTask.Wait();
 
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
@@ -300,50 +298,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
             }
-        }
-
-        private void RegisterPersistentStorageLocationServiceChanges()
-        {
-            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
-            if (persistentStorageLocationService != null)
-            {
-                persistentStorageLocationService.StorageLocationChanging += OnPersistentStorageLocationServiceStorageLocationChanging;
-
-                EnqueueStorageLocationChange(Workspace.CurrentSolution.Id, persistentStorageLocationService.TryGetStorageLocation(Workspace.CurrentSolution.Id));
-            }
-        }
-
-        private void OnPersistentStorageLocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
-        {
-            EnqueueStorageLocationChange(e.SolutionId, e.NewStorageLocation);
-
-            if (e.MustUseNewStorageLocationImmediately)
-            {
-                _currentRemoteWorkspaceNotificationTask.Wait();
-            }
-        }
-
-        private void EnqueueStorageLocationChange(SolutionId solutionId, string storageLocation)
-        {
-            lock (_currentRemoteWorkspaceNotificationTaskGate)
-            {
-                _currentRemoteWorkspaceNotificationTask = _currentRemoteWorkspaceNotificationTask.SafeContinueWithFromAsync(_ =>
-                {
-                    return RpcInvokeAsync(nameof(IRemoteHostService.UpdateSolutionStorageLocation), new object[] { solutionId, storageLocation });
-                }, _shutdownCancellationTokenSource.Token, TaskScheduler.Default);
-            }
-        }
-
-        private void UnregisterPersistentStorageLocationServiceChanges()
-        {
-            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
-            if (persistentStorageLocationService != null)
-            {
-                persistentStorageLocationService.StorageLocationChanging -= OnPersistentStorageLocationServiceStorageLocationChanging;
-            }
-
-            // Wait for any remaining tasks to be cleared, otherwise we might have OOP being torn down while we are still running
-            _currentRemoteWorkspaceNotificationTask.Wait();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

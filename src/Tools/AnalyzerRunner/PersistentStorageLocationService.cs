@@ -13,15 +13,7 @@ namespace AnalyzerRunner
     [Shared]
     internal class PersistentStorageLocationService : IPersistentStorageLocationService
     {
-        public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging
-        {
-            add { }
-            remove { }
-        }
-
-        public bool IsSupported(Workspace workspace) => true;
-
-        public string TryGetStorageLocation(SolutionId solutionId)
+        public string TryGetStorageLocation(Solution _)
         {
             var location = Path.Combine(Path.GetTempPath(), "RoslynTests", "AnalyzerRunner", "temp-db");
             Directory.CreateDirectory(location);
