@@ -316,6 +316,7 @@ namespace My
                 C = 0
             };
             var o5 = new { A = 0 };
+            object o6 = new();
             var dictionaryInitializer = new Dictionary&lt;int, string&gt; 
             { 
                 {1, ""}, 

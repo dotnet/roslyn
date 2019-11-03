@@ -1811,6 +1811,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        {
+            var discardedDiagnostics = new DiagnosticBag();
+            var expr =  _binder.BindObjectCreationForErrorRecovery(node, discardedDiagnostics);
+            discardedDiagnostics.Free();
+            Visit(expr);
+            SetResultType(node, TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
 #nullable enable
         private void VisitObjectOrDynamicObjectCreation(
             BoundExpression node,
@@ -4278,6 +4288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:
                     case BoundKind.UnboundLambda:
+                    case BoundKind.UnboundObjectCreationExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
                         Debug.Assert(false); // unexpected value
@@ -5154,6 +5165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
+                case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                     // The switch expression conversion is not represented as a separate conversion in the bound tree.
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);

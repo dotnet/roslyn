@@ -453,7 +453,7 @@
   <data name="ERR_BadUnaryOp" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand of type '{1}'</value>
   </data>
-  <data name="ERR_BadOpOnNullOrDefault" xml:space="preserve">
+  <data name="ERR_BadOpOnNullOrDefaultOrNew" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand '{1}'</value>
   </data>
   <data name="ERR_ThisInStaticMeth" xml:space="preserve">
@@ -480,8 +480,8 @@
   <data name="ERR_AmbigBinaryOps" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</value>
   </data>
-  <data name="ERR_AmbigBinaryOpsOnDefault" xml:space="preserve">
-    <value>Operator '{0}' is ambiguous on operands 'default' and 'default'</value>
+  <data name="ERR_AmbigBinaryOpsOnDefaultOrNew" xml:space="preserve">
+    <value>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</value>
   </data>
   <data name="ERR_AmbigUnaryOp" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on an operand of type '{1}'</value>
@@ -5953,5 +5953,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
+  </data>
+  <data name="ERR_TypelessNewIllegalTargetType" xml:space="preserve">
+    <value>The type '{0}' may not be used as the target type of new()</value>
+  </data>
+  <data name="ERR_TypelessNewNotValid" xml:space="preserve">
+    <value>Use of new() is not valid in this context</value>
+  </data>
+  <data name="ERR_TypelessNewNoTargetType" xml:space="preserve">
+    <value>There is no target type for new()</value>
+  </data>
+  <data name="IDS_FeatureTargetTypedObjectCreation" xml:space="preserve">
+    <value>target-typed object creation</value>
   </data>
 </root>

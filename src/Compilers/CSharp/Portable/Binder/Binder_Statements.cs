@@ -368,6 +368,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindThrownExpression(ExpressionSyntax exprSyntax, DiagnosticBag diagnostics, ref bool hasErrors)
         {
             var boundExpr = BindValue(exprSyntax, diagnostics, BindValueKind.RValue);
+            if (boundExpr.IsTypelessNew())
+            {
+                // NOTE This only disallows direct usage. One can simply bypass this by wrapping new() in a switch expression
+                diagnostics.Add(ErrorCode.ERR_TypelessNewNotValid, exprSyntax.Location);
+                hasErrors = true;
+            }
+
             if (Compilation.LanguageVersion < MessageID.IDS_FeatureSwitchExpression.RequiredVersion())
             {
                 // This is the pre-C# 8 algorithm for binding a thrown expression.

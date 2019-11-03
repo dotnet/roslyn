@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.Bad;
             }
 
-            bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
+            bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, convertedExpression, diagnostics);
             if (hasErrors)
             {
                 return ConstantValue.Bad;

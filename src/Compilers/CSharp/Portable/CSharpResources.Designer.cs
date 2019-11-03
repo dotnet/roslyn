@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -331,11 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands &apos;default&apos; and &apos;default&apos;.
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands &apos;{1}&apos; and &apos;{2}&apos;.
         /// </summary>
-        internal static string ERR_AmbigBinaryOpsOnDefault {
+        internal static string ERR_AmbigBinaryOpsOnDefaultOrNew {
             get {
-                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnDefault", resourceCulture);
+                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnDefaultOrNew", resourceCulture);
             }
         }
         
@@ -1899,9 +1899,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
         /// </summary>
-        internal static string ERR_BadOpOnNullOrDefault {
+        internal static string ERR_BadOpOnNullOrDefaultOrNew {
             get {
-                return ResourceManager.GetString("ERR_BadOpOnNullOrDefault", resourceCulture);
+                return ResourceManager.GetString("ERR_BadOpOnNullOrDefaultOrNew", resourceCulture);
             }
         }
         
@@ -10249,6 +10249,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as the target type of new().
+        /// </summary>
+        internal static string ERR_TypelessNewIllegalTargetType {
+            get {
+                return ResourceManager.GetString("ERR_TypelessNewIllegalTargetType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no target type for new().
+        /// </summary>
+        internal static string ERR_TypelessNewNoTargetType {
+            get {
+                return ResourceManager.GetString("ERR_TypelessNewNoTargetType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use of new() is not valid in this context.
+        /// </summary>
+        internal static string ERR_TypelessNewNotValid {
+            get {
+                return ResourceManager.GetString("ERR_TypelessNewNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a tuple literal without a natural type..
         /// </summary>
         internal static string ERR_TypelessTupleInAs {
@@ -11821,6 +11848,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureSwitchOnBool {
             get {
                 return ResourceManager.GetString("IDS_FeatureSwitchOnBool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to target-typed object creation.
+        /// </summary>
+        internal static string IDS_FeatureTargetTypedObjectCreation {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTargetTypedObjectCreation", resourceCulture);
             }
         }
         

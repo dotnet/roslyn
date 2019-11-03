@@ -22,6 +22,11 @@
         <target state="translated">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak amacıyla lütfen '{0}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
+        <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
+        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">Nesne oluşturma içinde boş değer atanabilir bir başvuru türü kullanılamaz.</target>
@@ -75,6 +80,11 @@
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
         <target state="translated">Boş değer atanabilir tür üzerinde typeof işleci kullanılamaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadOpOnNullOrDefaultOrNew">
+        <source>Operator '{0}' cannot be applied to operand '{1}'</source>
+        <target state="new">Operator '{0}' cannot be applied to operand '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -445,6 +455,21 @@
       <trans-unit id="ERR_TupleSizesMismatchForBinOps">
         <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
         <target state="translated">== veya != işlecinin işleneni olarak kullanılan demet türlerinin kardinalitesi eşleşmelidir. Ancak bu işleç, solda {0} ve sağda {1} demet kardinalite türlerine sahip olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewNoTargetType">
+        <source>There is no target type for new()</source>
+        <target state="new">There is no target type for new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="new">Use of new() is not valid in this context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -917,6 +942,11 @@
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
         <target state="translated">&lt;switch expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="new">target-typed object creation</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -2029,11 +2059,6 @@
         <target state="translated">{0}' işleci '{1}' türündeki işlenene uygulanamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadOpOnNullOrDefault">
-        <source>Operator '{0}' cannot be applied to operand '{1}'</source>
-        <target state="translated">{0}' işleci '{1}' türündeki işlenene uygulanamaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ThisInStaticMeth">
         <source>Keyword 'this' is not valid in a static property, static method, or static field initializer</source>
         <target state="translated">this' anahtar sözcüğü statik özellikte, statik yöntemde veya statik alan başlatıcısında geçerli değildir</target>
@@ -2072,11 +2097,6 @@
       <trans-unit id="ERR_AmbigBinaryOps">
         <source>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</source>
         <target state="translated">{0}' işleci, '{1}' ve '{2}' türündeki işlenenler üzerinde belirsizdir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
-        <source>Operator '{0}' is ambiguous on operands 'default' and 'default'</source>
-        <target state="translated">{0}' işleci 'default' ve 'default' işlenenlerinde belirsiz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigUnaryOp">

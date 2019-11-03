@@ -1541,6 +1541,15 @@
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 
+  <Node Name="UnboundObjectCreationExpression" Base="BoundExpression">
+      <!-- Type is not significant for this node type; always null -->
+      <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+      <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+      <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;IdentifierNameSyntax&gt;" Null="allow"/>
+      <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+      <Field Name="InitializerOpt" Type="InitializerExpressionSyntax?" Null="allow"/>
+  </Node>
+
   <!-- 
   Constructor is optional because value types can be created without calling any constructor -
  

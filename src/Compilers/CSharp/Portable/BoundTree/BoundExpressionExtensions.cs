@@ -43,9 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.DefaultLiteral;
         }
 
-        public static bool IsLiteralNullOrDefault(this BoundExpression node)
+        public static bool IsTypelessNew(this BoundExpression node)
         {
-            return node.IsLiteralNull() || node.IsLiteralDefault();
+            return node.Kind == BoundKind.UnboundObjectCreationExpression;
+        }
+
+        public static bool IsLiteralDefaultOrTypelessNew(this BoundExpression node)
+        {
+            return node.IsLiteralDefault() || node.IsTypelessNew();
         }
 
         // returns true when expression has no side-effects and produces

@@ -617,6 +617,7 @@ expression
   | array_creation_expression
   | assignment_expression
   | await_expression
+  | base_object_creation_expression
   | binary_expression
   | cast_expression
   | checked_expression
@@ -638,7 +639,6 @@ expression
   | make_ref_expression
   | member_access_expression
   | member_binding_expression
-  | object_creation_expression
   | omitted_array_size_expression
   | parenthesized_expression
   | postfix_unary_expression
@@ -701,6 +701,19 @@ assignment_expression
 
 await_expression
   : 'await' expression
+  ;
+
+base_object_creation_expression
+  : implicit_object_creation_expression
+  | object_creation_expression
+  ;
+
+implicit_object_creation_expression
+  : 'new' argument_list? initializer_expression?
+  ;
+
+object_creation_expression
+  : 'new' type argument_list? initializer_expression?
   ;
 
 binary_expression
@@ -820,10 +833,6 @@ member_access_expression
 
 member_binding_expression
   : '.' simple_name
-  ;
-
-object_creation_expression
-  : 'new' type argument_list? initializer_expression?
   ;
 
 omitted_array_size_expression

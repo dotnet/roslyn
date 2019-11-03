@@ -184,6 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNestedStackalloc = MessageBase + 12762,
         IDS_FeatureSwitchExpression = MessageBase + 12763,
         IDS_FeatureAsyncUsing = MessageBase + 12764,
+
+        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12765,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -291,6 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                case MessageID.IDS_FeatureTargetTypedObjectCreation:
+                    return LanguageVersion.Preview;
+
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:

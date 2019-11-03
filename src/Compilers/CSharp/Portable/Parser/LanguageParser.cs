@@ -5688,7 +5688,6 @@ tryAgain:
 
         private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
         {
-            Debug.Assert(mode != ParseTypeMode.NewExpression);
             ScanTypeFlags result;
 
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
@@ -10334,47 +10333,87 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
+        private bool IsTargetTypedObjectCreation()
+        {
+            // The caller is expected to have consumed the new keyword.
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                return false;
+            }
+
+            var point = this.GetResetPoint();
+            try
+            {
+                this.EatToken(); // open paren
+                ScanTypeFlags scanTypeFlags = ScanTupleType(out _);
+                if (scanTypeFlags != ScanTypeFlags.NotType)
+                {
+                    switch (this.CurrentToken.Kind)
+                    {
+                        case SyntaxKind.QuestionToken:    // e.g. `new(a, b)?()`
+                        case SyntaxKind.OpenBracketToken: // e.g. `new(a, b)[]`
+                        case SyntaxKind.OpenParenToken:   // e.g. `new(a, b)()` for better error recovery
+                            return false;
+                    }
+                }
+                return true;
+            }
+            finally
+            {
+                this.Reset(ref point);
+                this.Release(ref point);
+            }
+        }
+
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
-            var type = this.ParseType(ParseTypeMode.NewExpression);
 
-            if (type.Kind == SyntaxKind.ArrayType)
+            TypeSyntax type = null;
+            InitializerExpressionSyntax initializer = null;
+
+            if (IsTargetTypedObjectCreation())
             {
-                // Check for an initializer.
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    initializer = this.ParseArrayInitializer();
-                }
-
-                return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
+                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedObjectCreation);
             }
             else
             {
-                ArgumentListSyntax argumentList = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                type = this.ParseType(ParseTypeMode.NewExpression);
+                if (type.Kind == SyntaxKind.ArrayType)
                 {
-                    argumentList = this.ParseParenthesizedArgumentList();
-                }
+                    // Check for an initializer.
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                    {
+                        initializer = this.ParseArrayInitializer();
+                    }
 
-                InitializerExpressionSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    initializer = this.ParseObjectOrCollectionInitializer();
+                    return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
                 }
-
-                // we need one or the other
-                if (argumentList == null && initializer == null)
-                {
-                    argumentList = _syntaxFactory.ArgumentList(
-                        this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
-                        default(SeparatedSyntaxList<ArgumentSyntax>),
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
-                }
-
-                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
             }
+
+            ArgumentListSyntax argumentList = null;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                argumentList = this.ParseParenthesizedArgumentList();
+            }
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                initializer = this.ParseObjectOrCollectionInitializer();
+            }
+
+            // we need one or the other
+            if (argumentList == null && initializer == null)
+            {
+                argumentList = _syntaxFactory.ArgumentList(
+                    this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
+                    default(SeparatedSyntaxList<ArgumentSyntax>),
+                    SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
+            }
+
+            return type is null
+                ? (ExpressionSyntax)_syntaxFactory.ImplicitObjectCreationExpression(@new, argumentList, initializer)
+                : (ExpressionSyntax)_syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()

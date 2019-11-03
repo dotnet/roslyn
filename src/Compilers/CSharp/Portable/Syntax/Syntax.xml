@@ -1429,9 +1429,53 @@
       <summary>Creates an InitializerExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="ObjectCreationExpressionSyntax" Base="ExpressionSyntax">
+  <AbstractNode Name="BaseObjectCreationExpressionSyntax" Base="ExpressionSyntax">
+      <Kind Name="ObjectCreationExpression"/>
+      <Field Name="NewKeyword" Type="SyntaxToken">
+          <Kind Name="NewKeyword"/>
+          <PropertyComment>
+              <summary>SyntaxToken representing the new keyword.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true">
+          <PropertyComment>
+              <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true">
+          <PropertyComment>
+              <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
+          </PropertyComment>
+      </Field>
+  </AbstractNode>
+  <Node Name="ImplicitObjectCreationExpressionSyntax" Base="BaseObjectCreationExpressionSyntax">
+      <Kind Name="ImplicitObjectCreationExpression"/>
+      <Field Name="NewKeyword" Type="SyntaxToken" Override="true">
+          <Kind Name="NewKeyword"/>
+          <PropertyComment>
+              <summary>SyntaxToken representing the new keyword.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true" Override="true">
+          <PropertyComment>
+              <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true" Override="true">
+          <PropertyComment>
+              <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
+          </PropertyComment>
+      </Field>
+      <TypeComment>
+          <summary>Class which represents the syntax node for implicit object creation expression.</summary>
+      </TypeComment>
+      <FactoryComment>
+          <summary>Creates an ImplicitObjectCreationExpressionSyntax node.</summary>
+      </FactoryComment>
+  </Node>
+  <Node Name="ObjectCreationExpressionSyntax" Base="BaseObjectCreationExpressionSyntax">
     <Kind Name="ObjectCreationExpression"/>
-    <Field Name="NewKeyword" Type="SyntaxToken">
+    <Field Name="NewKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="NewKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the new keyword.</summary>
@@ -1442,12 +1486,12 @@
         <summary>TypeSyntax representing the type of the object being created.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true">
+    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true" Override="true">
       <PropertyComment>
         <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true">
+    <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true" Override="true">
       <PropertyComment>
         <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
       </PropertyComment>

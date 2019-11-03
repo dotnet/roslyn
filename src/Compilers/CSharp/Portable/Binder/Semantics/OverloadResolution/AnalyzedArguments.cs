@@ -138,6 +138,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return instance;
         }
 
+        public static AnalyzedArguments GetInstance(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
+        {
+            var instance = GetInstance();
+            instance.Arguments.AddRange(arguments);
+            if (!argumentRefKindsOpt.IsDefault)
+            {
+                instance.RefKinds.AddRange(argumentRefKindsOpt);
+            }
+
+            if (!argumentNamesOpt.IsDefault)
+            {
+                instance.Names.AddRange(argumentNamesOpt);
+            }
+
+            return instance;
+        }
+
         public void Free()
         {
             this.Clear();

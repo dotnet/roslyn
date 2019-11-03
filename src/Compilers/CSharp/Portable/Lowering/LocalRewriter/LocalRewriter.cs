@@ -292,6 +292,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             return PlaceholderReplacement(node);

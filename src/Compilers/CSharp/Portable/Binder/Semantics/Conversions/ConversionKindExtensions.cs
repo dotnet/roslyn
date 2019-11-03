@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Deconstruction:
                 case StackAllocToPointerType:
                 case StackAllocToSpanType:
+                case ObjectCreation:
                     return true;
 
                 case ExplicitNumeric:

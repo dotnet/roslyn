@@ -163,4 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display => Expression.Display;
     }
+
+    internal partial class UnboundObjectCreationExpression
+    {
+        public override object Display => "new()";
+    }
 }

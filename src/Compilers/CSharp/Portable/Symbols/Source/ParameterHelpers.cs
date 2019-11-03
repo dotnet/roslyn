@@ -348,12 +348,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool ReportDefaultParameterErrors(
-            Binder binder,
+        internal static bool ReportDefaultParameterErrors(Binder binder,
             Symbol owner,
             ParameterSyntax parameterSyntax,
             SourceParameterSymbol parameter,
             BoundExpression defaultExpression,
+            BoundExpression convertedExpression,
             DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     hasErrors = true;
                 }
             }
-            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression))
+            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression.IsTypelessNew() ? convertedExpression : defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
                 diagnostics.Add(ErrorCode.ERR_DefaultValueMustBeConstant, parameterSyntax.Default.Value.Location, parameterSyntax.Identifier.ValueText);
