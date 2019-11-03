@@ -40,9 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
-        private readonly object _currentRemoteWorkspaceNotificationTaskGate = new object();
-        private Task _currentRemoteWorkspaceNotificationTask = Task.CompletedTask;
-
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
         {
@@ -179,9 +176,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
             UnregisterGlobalOperationNotifications();
-
-            // Wait for any remaining tasks to be cleared, otherwise we might have OOP being torn down while we are still running
-            _currentRemoteWorkspaceNotificationTask.Wait();
 
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();

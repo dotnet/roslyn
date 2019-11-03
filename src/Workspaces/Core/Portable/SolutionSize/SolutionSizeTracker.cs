@@ -4,29 +4,25 @@ using System.Collections.Concurrent;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SolutionSize;
-using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices
+namespace Microsoft.CodeAnalysis.SolutionSize
 {
-    /// <summary>
-    /// Track approximate solution size.
-    /// </summary>
-    [ExportWorkspaceService(typeof(ISolutionSizeTracker), ServiceLayer.Host)]
-    [ExportIncrementalAnalyzerProvider(nameof(VisualStudioSolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
-    internal class VisualStudioSolutionSizeTracker : IIncrementalAnalyzerProvider, ISolutionSizeTracker
+    [Export(typeof(ISolutionSizeTracker))]
+    [ExportIncrementalAnalyzerProvider(nameof(SolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
+    internal class SolutionSizeTracker : IIncrementalAnalyzerProvider, ISolutionSizeTracker
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 
         [ImportingConstructor]
-        public VisualStudioSolutionSizeTracker()
+        public SolutionSizeTracker()
         {
         }
+
+        private bool IsSupported(Workspace workspace)
+            => workspace.Options.GetOption(SolutionSizeOptions.ComputeSolutionSize);
 
         /// <summary>
         /// Get approximate solution size at the point of call.
@@ -37,10 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// lazy and very cheap on answering that question.
         /// </summary>
         public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
-            => workspace is VisualStudioWorkspace ? _tracker.GetSolutionSize(solutionId) : -1;
+            => IsSupported(workspace) ? _tracker.GetSolutionSize(solutionId) : -1;
 
         IIncrementalAnalyzer IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
-            => workspace is VisualStudioWorkspace ? _tracker : null;
+            => IsSupported(workspace) ? _tracker : null;
 
         internal class IncrementalAnalyzer : IIncrementalAnalyzer
         {

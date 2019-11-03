@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -23,6 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {
+            // Compute the size of a solution in the bg in vs workspaces.  This will ensure that we
+            // create a persistence service in-proc for VS if the solution size warrants it.
+            Options = Options.WithChangedOption(SolutionSizeOptions.ComputeSolutionSize, true);
+
             _backgroundCompiler = new BackgroundCompiler(this);
 
             var cacheService = Services.GetService<IWorkspaceCacheService>();
