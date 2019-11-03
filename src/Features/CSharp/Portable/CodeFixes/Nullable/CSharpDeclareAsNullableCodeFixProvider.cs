@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         private static TypeSyntax TryGetDeclarationTypeToFix(SyntaxNode node)
         {
-            if (!node.IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.AsExpression, SyntaxKind.DefaultExpression, SyntaxKind.DefaultLiteralExpression, SyntaxKind.ConditionalExpression, SyntaxKind.ConditionalExpression, SyntaxKind.ConditionalAccessExpression))
+            if (!IsExpressionSupported(node))
             {
                 return null;
             }
@@ -203,6 +203,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 }
                 return null;
             }
+        }
+
+        private static bool IsExpressionSupported(SyntaxNode node)
+        {
+            return node.IsKind(
+                SyntaxKind.NullLiteralExpression,
+                SyntaxKind.AsExpression,
+                SyntaxKind.DefaultExpression,
+                SyntaxKind.DefaultLiteralExpression,
+                SyntaxKind.ConditionalExpression,
+                SyntaxKind.ConditionalExpression,
+                SyntaxKind.ConditionalAccessExpression);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
