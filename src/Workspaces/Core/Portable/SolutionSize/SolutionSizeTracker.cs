@@ -10,6 +10,9 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.SolutionSize
 {
+    /// <summary>
+    /// Track approximate solution size.
+    /// </summary>
     [Export(typeof(ISolutionSizeTracker))]
     [ExportIncrementalAnalyzerProvider(nameof(SolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
     internal class SolutionSizeTracker : IIncrementalAnalyzerProvider, ISolutionSizeTracker
