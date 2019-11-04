@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal sealed class SerializableImportCompletionItem
+    internal readonly struct SerializableImportCompletionItem
     {
         public readonly string SymbolKeyData;
         public readonly int Arity;

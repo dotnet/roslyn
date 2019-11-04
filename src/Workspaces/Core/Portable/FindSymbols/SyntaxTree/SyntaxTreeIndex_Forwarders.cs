@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ImmutableArray<int> ComplexExtensionMethodInfo
             => _extensionMethodInfo.ComplexExtensionMethodInfo;
 
-        public bool ContainsExtensionMethod => SimpleExtensionMethodInfo.Count > 0 || ComplexExtensionMethodInfo.Length > 0;
+        public bool ContainsExtensionMethod => _extensionMethodInfo.ContainsExtensionMethod;
 
         public bool ProbablyContainsIdentifier(string identifier) => _identifierInfo.ProbablyContainsIdentifier(identifier);
         public bool ProbablyContainsEscapedIdentifier(string identifier) => _identifierInfo.ProbablyContainsEscapedIdentifier(identifier);

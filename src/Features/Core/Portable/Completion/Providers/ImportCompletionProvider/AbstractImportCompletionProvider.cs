@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
-            return leftToken.GetAncestor(syntaxFacts.IsUsingOrImport) != null;
+            return leftToken.GetAncestor(syntaxFacts.IsUsingOrExternOrImport) != null;
         }
 
         protected static bool IsAddingImportsSupported(Document document)

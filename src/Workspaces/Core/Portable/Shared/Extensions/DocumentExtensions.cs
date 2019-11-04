@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
-        // ⚠ Verify IVTs do not use this method before removing it.314104
+        // ⚠ Verify IVTs do not use this method before removing it.
         public static TLanguageService? GetLanguageService<TLanguageService>(this Document? document) where TLanguageService : class, ILanguageService
             => document?.Project?.LanguageServices?.GetService<TLanguageService>();
 

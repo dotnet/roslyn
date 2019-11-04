@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsUsingOrExternOrImport(SyntaxNode node);
-        bool IsUsingOrImport(SyntaxNode node);
         bool IsUsingAliasDirective(SyntaxNode node);
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);

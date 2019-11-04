@@ -87,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var counter = new StatisticCounter();
             var ticks = Environment.TickCount;
 
-            var project = document.Project;
-            var assembly = (await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // Get the metadata name of all the base types and interfaces this type derived from.
             using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
@@ -103,14 +102,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var allTypeNames = allTypeNamesBuilder.ToImmutableArray();
-            var matchedMethods = await GetPossibleExtensionMethodMatchesAsync(
-                project, allTypeNames, forceIndexCreation, isPrecalculation: false, cancellationToken).ConfigureAwait(false);
-
-            counter.GetFilterTicks = Environment.TickCount - ticks;
-            counter.NoFilter = matchedMethods == null;
+            var indicesResult = await TryGetIndicesAsync(
+                document.Project, forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
             // Don't show unimported extension methods if the index isn't ready.
-            if (matchedMethods == null)
+            if (!indicesResult.HasResult)
             {
                 // We use a very simple approach to build the cache in the background:
                 // queue a new task only if the previous task is completed, regardless of what
@@ -119,17 +115,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     if (s_indexingTask.IsCompleted)
                     {
-                        s_indexingTask = Task.Run(() => GetPossibleExtensionMethodMatchesAsync(project, allTypeNames, forceIndexCreation: false, isPrecalculation: true, CancellationToken.None));
+                        s_indexingTask = Task.Run(() => TryGetIndicesAsync(document.Project, forceIndexCreation: true, CancellationToken.None));
                     }
                 }
 
                 return (ImmutableArray<SerializableImportCompletionItem>.Empty, counter);
             }
 
+            var matchedMethods = CreateAggregatedFilter(allTypeNames, indicesResult.SyntaxIndices, indicesResult.SymbolInfos);
+
+            counter.GetFilterTicks = Environment.TickCount - ticks;
+            counter.NoFilter = !indicesResult.HasResult;
+
             ticks = Environment.TickCount;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var items = GetExtensionMethodItems(assembly.GlobalNamespace, receiverTypeSymbol,
+            var items = GetExtensionMethodItems(compilation.GlobalNamespace, receiverTypeSymbol,
                 semanticModel!, position, namespaceInScope, matchedMethods, counter, cancellationToken);
 
             counter.GetSymbolTicks = Environment.TickCount - ticks;
@@ -137,11 +138,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return (items, counter);
         }
 
-        private static async Task<MultiDictionary<string, string>?> GetPossibleExtensionMethodMatchesAsync(
+        private static async Task<GetIndicesResult> TryGetIndicesAsync(
             Project currentProject,
-            ImmutableArray<string> targetTypeNames,
             bool forceIndexCreation,
-            bool isPrecalculation,
             CancellationToken cancellationToken)
         {
             var solution = currentProject.Solution;
@@ -152,105 +151,92 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using var syntaxDisposer = ArrayBuilder<CacheEntry>.GetInstance(out var syntaxBuilder);
             using var symbolDisposer = ArrayBuilder<SymbolTreeInfo>.GetInstance(out var symbolBuilder);
-            var peReferences = PooledHashSet<PortableExecutableReference>.GetInstance();
 
-            // We will only create missing indices in the following cases, neither would block completion.
-            // 1. We are asked explicitly to create missing indices (e.g. via expander) 
-            // 2. We are trying to populate the data in background.
-            var shouldCreateIndex = forceIndexCreation || isPrecalculation;
-
-            try
+            foreach (var projectId in relevantProjectIds)
             {
-                foreach (var projectId in relevantProjectIds)
+                var project = solution.GetProject(projectId);
+                if (project == null || !project.SupportsCompilation)
                 {
-                    var project = solution.GetProject(projectId);
-                    if (project == null || !project.SupportsCompilation)
+                    continue;
+                }
+
+                // By default, don't trigger index creation except for documents in current project.
+                var loadOnly = !forceIndexCreation && projectId != currentProject.Id;
+                var cacheEntry = await GetCacheEntryAsync(project, loadOnly, cacheService, cancellationToken).ConfigureAwait(false);
+
+                if (cacheEntry == null)
+                {
+                    // Don't provide anything if we don't have all the required SyntaxTreeIndex created.
+                    return GetIndicesResult.NoneResult;
+                }
+
+                syntaxBuilder.Add(cacheEntry.Value);
+            }
+
+            // Search through all direct PE references.
+            foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
+            {
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
+
+                if (info == null)
+                {
+                    // Don't provide anything if we don't have all the required SymbolTreeInfo created.
+                    return GetIndicesResult.NoneResult;
+                }
+
+                if (info.ContainsExtensionMethod)
+                {
+                    symbolBuilder.Add(info);
+                }
+            }
+
+            var syntaxIndices = syntaxBuilder.ToImmutable();
+            var symbolInfos = symbolBuilder.ToImmutable();
+
+            return new GetIndicesResult(hasResult: true, syntaxIndices, symbolInfos);
+        }
+
+        private static MultiDictionary<string, string> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, ImmutableArray<CacheEntry> syntaxIndices, ImmutableArray<SymbolTreeInfo> symbolInfos)
+        {
+            var results = new MultiDictionary<string, string>();
+
+            // Find matching extension methods from source.
+            foreach (var index in syntaxIndices)
+            {
+                // Add simple extension methods with matching target type name
+                foreach (var targetTypeName in targetTypeNames)
+                {
+                    var methodInfos = index.SimpleExtensionMethodInfo[targetTypeName];
+                    if (methodInfos.Count == 0)
                     {
                         continue;
                     }
 
-                    // Transitively get all the PE references
-                    peReferences.AddRange(project.MetadataReferences.OfType<PortableExecutableReference>());
-
-                    // By default, don't trigger index creation except for documents in current project.
-                    var loadOnly = !shouldCreateIndex && projectId != currentProject.Id;
-                    var cacheEntry = await GetCacheEntryAsync(project, loadOnly, cacheService, cancellationToken).ConfigureAwait(false);
-
-                    // Don't provide anything if we don't have all the required SyntaxTreeIndex created.
-                    if (cacheEntry == null)
-                    {
-                        return null;
-                    }
-
-                    syntaxBuilder.Add(cacheEntry.Value);
-                }
-
-                foreach (var peReference in peReferences)
-                {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        solution, peReference, loadOnly: !shouldCreateIndex, cancellationToken).ConfigureAwait(false);
-
-                    // Don't provide anything if we don't have all the required SymbolTreeInfo created.
-                    if (info == null)
-                    {
-                        return null;
-                    }
-
-                    if (info.ContainsExtensionMethod)
-                    {
-                        symbolBuilder.Add(info);
-                    }
-                }
-
-                // We are just trying to populate the cache in background, no need to return any results.
-                if (isPrecalculation)
-                {
-                    return null;
-                }
-
-                var results = new MultiDictionary<string, string>();
-
-                // Find matching extension methods from source.
-                foreach (var info in syntaxBuilder)
-                {
-                    // Add simple extension methods with matching target type name
-                    foreach (var targetTypeName in targetTypeNames)
-                    {
-                        var methodInfos = info.SimpleExtensionMethodInfo[targetTypeName];
-                        if (methodInfos.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        foreach (var methodInfo in methodInfos)
-                        {
-                            results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                        }
-                    }
-
-                    // Add all complex extension methods, we will need to completely rely on symbols to match them.
-                    foreach (var methodInfo in info.ComplexExtensionMethodInfo)
-                    {
-                        results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                    }
-                }
-
-                // Find matching extension methods from metadata
-                foreach (var info in symbolBuilder)
-                {
-                    var methodInfos = info.GetMatchingExtensionMethodInfo(targetTypeNames);
                     foreach (var methodInfo in methodInfos)
                     {
                         results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
                     }
                 }
 
-                return results;
+                // Add all complex extension methods, we will need to completely rely on symbols to match them.
+                foreach (var methodInfo in index.ComplexExtensionMethodInfo)
+                {
+                    results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                }
             }
-            finally
+
+            // Find matching extension methods from metadata
+            foreach (var info in symbolInfos)
             {
-                peReferences.Free();
+                var methodInfos = info.GetMatchingExtensionMethodInfo(targetTypeNames);
+                foreach (var methodInfo in methodInfos)
+                {
+                    results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                }
             }
+
+            return results;
         }
 
         private static ImmutableArray<SerializableImportCompletionItem> GetExtensionMethodItems(
@@ -334,7 +320,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     IMethodSymbol? reducedMethodSymbol = null;
 
                     if (methodSymbol.IsExtensionMethod &&
-                        (methodNames.Count == 0 || methodNames.Contains(methodSymbol.Name)) &&
                         IsSymbolAccessible(methodSymbol, position, semanticModel))
                     {
                         reducedMethodSymbol = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
@@ -449,6 +434,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 Children.Free();
             }
+        }
+
+        private readonly struct GetIndicesResult
+        {
+            public bool HasResult { get; }
+            public ImmutableArray<CacheEntry> SyntaxIndices { get; }
+            public ImmutableArray<SymbolTreeInfo> SymbolInfos { get; }
+
+            public GetIndicesResult(bool hasResult, ImmutableArray<CacheEntry> syntaxIndices = default, ImmutableArray<SymbolTreeInfo> symbolInfos = default)
+            {
+                HasResult = hasResult;
+                SyntaxIndices = syntaxIndices;
+                SymbolInfos = symbolInfos;
+            }
+
+            public static GetIndicesResult NoneResult => new GetIndicesResult(hasResult: false);
         }
     }
 

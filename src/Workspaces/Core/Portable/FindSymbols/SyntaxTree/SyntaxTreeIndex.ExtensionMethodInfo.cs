@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             public readonly ImmutableArray<int> ComplexExtensionMethodInfo { get; }
 
+            public bool ContainsExtensionMethod => SimpleExtensionMethodInfo.Count > 0 || ComplexExtensionMethodInfo.Length > 0;
+
             public ExtensionMethodInfo(
                 ImmutableDictionary<string, ImmutableArray<int>> simpleExtensionMethodInfo,
                 ImmutableArray<int> complexExtensionMethodInfo)
