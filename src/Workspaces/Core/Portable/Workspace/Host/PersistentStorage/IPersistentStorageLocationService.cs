@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Host
             // folder to store their data in.
             var checksums = new[] { Checksum.Create(solution.FilePath), Checksum.Create(solution.Workspace.Kind) };
             var hashedName = Checksum.Create(WellKnownSynchronizationKind.Null, checksums).ToString();
-            var workingFolder = Path.Combine(Path.GetTempPath(), hashedName);
+
+            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
+            var workingFolder = Path.Combine(appDataFolder, "Roslyn", hashedName);
 
             return workingFolder;
         }
