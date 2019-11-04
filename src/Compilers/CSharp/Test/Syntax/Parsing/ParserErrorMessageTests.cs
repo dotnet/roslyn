@@ -2729,18 +2729,9 @@ namespace x
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (7,26): error CS8124: Tuple must contain at least two elements.
+                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2795,21 +2786,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
+                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
-                // (7,26): error CS8124: Tuple must contain at least two elements.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2827,18 +2806,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
-                // (7,26): error CS8124: Tuple must contain at least two elements.
+                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")"),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";"),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2"),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]

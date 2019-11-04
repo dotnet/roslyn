@@ -4908,7 +4908,7 @@ var(x,y)=(1,2);
 {
     void bar()
     {
-        (string a, string b)[] ab = new (
+        (string a, string b)[] ab = new(
     }
 }";
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -9,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        private static readonly CSharpParseOptions ImplicitObjectCreationOptions = TestOptions.RegularPreview;
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ImplicitObjectCreationWithArguments()
@@ -141,7 +144,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -341,7 +344,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                 Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, @"{ """" }").WithArguments("F").WithLocation(22, 22)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -399,7 +402,7 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.In
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(5, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -478,7 +481,7 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Co
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -591,7 +594,7 @@ IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreat
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -648,7 +651,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -686,7 +689,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "MissingMember").WithArguments("C", "MissingMember").WithLocation(6, 34)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -734,7 +737,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "MissingField").WithArguments("C", "MissingField").WithLocation(6, 33)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -785,7 +788,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "MissingField").WithArguments("C", "MissingField").WithLocation(7, 33)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -861,7 +864,7 @@ IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Sy
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -913,7 +916,7 @@ IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Sy
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -960,7 +963,7 @@ IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynami
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1000,7 +1003,7 @@ IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation
             ArgumentNames(0)
             ArgumentRefKinds(0)
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1055,7 +1058,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
                 Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "3").WithArguments("C.Add(ref int)").WithLocation(9, 39)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1127,7 +1130,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1204,7 +1207,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1278,7 +1281,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1333,7 +1336,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
         Children(1):
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1395,7 +1398,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1442,7 +1445,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1494,7 +1497,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
