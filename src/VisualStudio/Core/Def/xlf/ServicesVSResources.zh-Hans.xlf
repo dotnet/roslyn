@@ -97,11 +97,6 @@
         <target state="translated">元素无效。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">启用可为 null 的引用分析 IDE 功能</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">正在评估(队列中有 {0} 个任务)</target>

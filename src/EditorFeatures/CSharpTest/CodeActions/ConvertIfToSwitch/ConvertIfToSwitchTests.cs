@@ -71,6 +71,87 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnSubsequentBlock()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3) return 0;
+        { if (i == 6) return 1; }
+        return 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestElseBlock_01()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3) return 0;
+        else { if (i == 6) return 1; }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 3:
+                return 0;
+            case 6:
+                return 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestElseBlock_02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3)
+        {
+            return 0;
+        }
+        else
+        {
+            if (i == 6) return 1;
+            if (i == 7) return 1;
+            return 0;
+        }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 3:
+                return 0;
+            case 6:
+                return 1;
+            case 7:
+                return 1;
+            default:
+                return 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestMultipleCases_01()
         {
             await TestInRegularAndScriptAsync(
@@ -596,6 +677,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSwitchExpression_02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int? i)
+    {
+        [||]if (i == null) { return 5; }
+        if (i == 0) { return 6; }
+        else { return 7; }
+    }
+}",
+@"class C
+{
+    int M(int? i)
+    {
+        return i switch
+        {
+            null => 5,
+            0 => 6,
+            _ => 7
+        };
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_02()
         {
             await TestInRegularAndScriptAsync(
@@ -706,7 +814,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [||]if (i == 10) return 5;
         if (i == 20) return 6;
         if (i == i) return 0;
-        reuturn 7;
+        return 7;
     }
 }",
 @"class C
@@ -721,7 +829,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return 6;
         }
         if (i == i) return 0;
-        reuturn 7;
+        return 7;
     }
 }");
         }
@@ -746,7 +854,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }",
 @"class C
@@ -764,7 +872,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }");
         }
@@ -798,7 +906,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }",
 @"class C
@@ -825,7 +933,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }");
         }
