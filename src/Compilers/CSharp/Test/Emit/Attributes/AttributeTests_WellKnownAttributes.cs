@@ -9122,7 +9122,6 @@ public class C
         System.Console.WriteLine(ptr[0]);
     }
 
-    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
     public unsafe void M3()
     {
        int* p = stackalloc int[10]; // unused
