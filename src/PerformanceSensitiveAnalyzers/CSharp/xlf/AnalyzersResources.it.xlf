@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
         <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
-        <target state="translated">La chiamata del metodo virtuale non sottoposto a override su un tipo valore implica l'aggiunta di un'istruzione di conversione boxing o vincolata</target>
+        <target state="translated">La chiamata a un metodo virtuale non sottoposto a override su un tipo valore implica l'aggiunta di un'istruzione di conversione boxing o vincolata</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
         <source>Non-overridden virtual method call on value type</source>
-        <target state="translated">Chiamata del metodo virtuale non sottoposto a override su tipo valore</target>
+        <target state="translated">Chiamata a un metodo virtuale non sottoposta a override sul tipo valore</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
