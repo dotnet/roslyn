@@ -1411,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var optimizations = compilation.Options.OptimizationLevel;
 
             ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, method.AreLocalsZeroed);
-            bool hasStackalloc = false;
+            bool hasStackalloc;
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();
             try
             {

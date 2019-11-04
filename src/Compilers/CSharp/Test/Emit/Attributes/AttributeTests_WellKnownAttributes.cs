@@ -9121,12 +9121,20 @@ public class C
         int *ptr = stackalloc int[10];
         System.Console.WriteLine(ptr[0]);
     }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M3()
+    {
+       int* p = stackalloc int[10]; // unused
+    }
 }";
             var verifier = CompileAndVerifyWithSkipLocalsInit(src);
             Assert.Null(verifier.HasLocalsInit("C.M1")); // no locals
             Assert.False(verifier.HasLocalsInit("C.M1", realIL: true));
             Assert.Null(verifier.HasLocalsInit("C.M2")); // no locals
             Assert.True(verifier.HasLocalsInit("C.M2", realIL: true));
+            Assert.Null(verifier.HasLocalsInit("C.M3")); // no locals
+            Assert.False(verifier.HasLocalsInit("C.M3", realIL: true));
         }
 
         [Fact]
