@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -745,38 +744,6 @@ namespace Microsoft.CodeAnalysis.Testing
                         NuGetVersion.Parse("2.0.3")),
                     @"build\netstandard2.0\ref")
                 .AddAssemblies(ImmutableArray.Create("netstandard"));
-
-            ////public static ReferenceAssemblies NetStandard21 { get; }
-            ////    = new ReferenceAssemblies("netstandard2.1")
-            ////    .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("2.0.3"))));
         }
-
-#if false
-        public static class Runtime
-        {
-            public static ReferenceAssemblies Current
-            {
-                get
-                {
-                    var metadataReferences =
-                        new[]
-                        {
-                            typeof(object).GetTypeInfo().Assembly,
-                            typeof(System.Diagnostics.Debug).GetTypeInfo().Assembly,
-                            typeof(Enumerable).GetTypeInfo().Assembly,
-                            typeof(Microsoft.VisualBasic.Strings).GetTypeInfo().Assembly,
-                        }
-                        .Select(assembly => assembly.Location)
-                        .Distinct()
-                        .Select(location => MetadataReferences.CreateReferenceFromFile(location))
-                        .ToImmutableArray();
-
-                    return new ReferenceAssemblies(
-                        metadataReferences,
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
-        }
-#endif
     }
 }
