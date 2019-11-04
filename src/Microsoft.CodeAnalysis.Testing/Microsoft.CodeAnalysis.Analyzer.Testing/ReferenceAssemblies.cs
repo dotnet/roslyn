@@ -334,7 +334,6 @@ namespace Microsoft.CodeAnalysis.Testing
                             if (File.Exists(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")))
                             {
                                 resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")));
-                                break;
                             }
                         }
                     }
@@ -347,7 +346,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
-                        break;
                     }
                 }
 
@@ -360,7 +358,6 @@ namespace Microsoft.CodeAnalysis.Testing
                         if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                         {
                             resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
-                            break;
                         }
                     }
                 }
