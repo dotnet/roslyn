@@ -661,6 +661,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 if (methodDefinition.Body != null)
                 {
+                    methodDefinition = methodDefinition.ReplaceToken(methodDefinition.GetFirstToken(),
+                        methodDefinition.GetFirstToken().WithLeadingTrivia(
+                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                     return methodDefinition.ReplaceToken(
                             methodDefinition.Body.OpenBraceToken,
                             methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(

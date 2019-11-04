@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (destination is MethodDeclarationSyntax methodDeclaration)
             {
-                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(methodDeclaration, method, Workspace, options, availableIndices));
+                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(methodDeclaration, method, Workspace, options));
             }
 
             if (method.IsConstructor() ||
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return MethodGenerator.GenerateMethodDeclaration(
+                return MethodGenerator.GenerateMethodDeclaration<SyntaxNode>(
                     method, destination, Workspace, options, options.ParseOptions);
             }
         }

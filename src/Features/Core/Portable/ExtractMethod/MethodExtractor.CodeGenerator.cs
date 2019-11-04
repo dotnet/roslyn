@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
-                        new CodeGenerationOptions(generateDefaultAccessibility: false),
+                        new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true),
                         cancellationToken);
                 }
                 else

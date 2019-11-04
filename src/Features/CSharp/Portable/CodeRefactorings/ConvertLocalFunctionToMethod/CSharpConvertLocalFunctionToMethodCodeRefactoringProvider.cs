@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 parameters: parameters.AddRange(capturesAsParameters));
 
             var defaultOptions = CodeGenerationOptions.Default;
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
+            var method = MethodGenerator.GenerateMethodDeclaration<SyntaxNode>(methodSymbol, CodeGenerationDestination.Unspecified,
                 document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
 
             var generator = s_generator;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             localFunction = root.GetCurrentNode(localFunction);
             container = root.GetCurrentNode(container);
 
-            method = WithBodyFrom(method, localFunction);
+            method = WithBodyFrom((MethodDeclarationSyntax)method, localFunction);
 
             editor = new SyntaxEditor(root, generator);
             editor.InsertAfter(container, method);
