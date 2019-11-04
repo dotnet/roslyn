@@ -3,6 +3,7 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Serialization;
 
@@ -28,13 +29,24 @@ namespace Microsoft.CodeAnalysis.Host
 
             // Ensure that each unique workspace kind for any given solution has a unique
             // folder to store their data in.
-            var checksums = new[] { Checksum.Create(solution.FilePath), Checksum.Create(solution.Workspace.Kind) };
-            var hashedName = Checksum.Create(WellKnownSynchronizationKind.Null, checksums).ToString();
 
+            // Store in the LocalApplicationData/Roslyn/hash folder (%appdatalocal%/... on Windows,
+            // ~/.local/share/... on unix).  This will place the folder in a location we can trust
+            // to be able to get back to consistently as long as we're working with the same
+            // solution and the same workspace kind.
             var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
-            var workingFolder = Path.Combine(appDataFolder, "Roslyn", hashedName);
+            var kind = StripInvalidPathChars(solution.Workspace.Kind ?? "");
+            var hash = StripInvalidPathChars(Checksum.Create(solution.FilePath).ToString());
 
-            return workingFolder;
+            return Path.Combine(appDataFolder, "Roslyn", kind, hash);
+
+            static string StripInvalidPathChars(string val)
+            {
+                var invalidPathChars = Path.GetInvalidPathChars();
+                val = new string(val.Where(c => !invalidPathChars.Contains(c)).ToArray());
+
+                return string.IsNullOrWhiteSpace(val) ? "None" : val;
+            }
         }
     }
 }
