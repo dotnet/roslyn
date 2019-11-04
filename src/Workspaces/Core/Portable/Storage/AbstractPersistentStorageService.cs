@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        internal void Shutdown_ForTestingPurposesOnly()
+        private void Shutdown()
         {
             ReferenceCountedDisposable<IChecksummedPersistentStorage> storage = null;
 
@@ -213,6 +213,20 @@ namespace Microsoft.CodeAnalysis.Storage
                 // using this will still be holding a reference count.
                 storage.Dispose();
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractPersistentStorageService _service;
+
+            public TestAccessor(AbstractPersistentStorageService service)
+                => _service = service;
+
+            public void Shutdown()
+                => _service.Shutdown();
         }
 
         /// <summary>

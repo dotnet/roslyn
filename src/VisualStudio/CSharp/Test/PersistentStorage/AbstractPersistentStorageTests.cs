@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void Dispose()
         {
             // This should cause the service to release the cached connection it maintains for the primary workspace
-            _storageService?.Shutdown_ForTestingPurposesOnly();
+            _storageService?.GetTestAccessor().Shutdown();
 
             if (Directory.Exists(_persistentFolder))
             {
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                                    .Returns(solution.Workspace.Options.GetOption(StorageOptions.SolutionSizeThreshold) + 1);
 
             // If we handed out one for a previous test, we need to shut that down first
-            _storageService?.Shutdown_ForTestingPurposesOnly();
+            _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder);
 
             _storageService = GetStorageService(locationService, solutionSizeTrackerMock.Object, faultInjectorOpt);
