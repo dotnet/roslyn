@@ -10333,38 +10333,6 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private bool IsTargetTypedObjectCreation()
-        {
-            // The caller is expected to have consumed the new keyword.
-            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
-            {
-                return false;
-            }
-
-            var point = this.GetResetPoint();
-            try
-            {
-                this.EatToken(); // open paren
-                ScanTypeFlags scanTypeFlags = ScanTupleType(out _);
-                if (scanTypeFlags != ScanTypeFlags.NotType)
-                {
-                    switch (this.CurrentToken.Kind)
-                    {
-                        case SyntaxKind.QuestionToken:    // e.g. `new(a, b)?()`
-                        case SyntaxKind.OpenBracketToken: // e.g. `new(a, b)[]`
-                        case SyntaxKind.OpenParenToken:   // e.g. `new(a, b)()` for better error recovery
-                            return false;
-                    }
-                }
-                return true;
-            }
-            finally
-            {
-                this.Reset(ref point);
-                this.Release(ref point);
-            }
-        }
-
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
@@ -10414,6 +10382,38 @@ tryAgain:
             return type is null
                 ? (ExpressionSyntax)_syntaxFactory.ImplicitObjectCreationExpression(@new, argumentList, initializer)
                 : (ExpressionSyntax)_syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+        }
+
+        private bool IsTargetTypedObjectCreation()
+        {
+            // The caller is expected to have consumed the new keyword.
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                return false;
+            }
+
+            var point = this.GetResetPoint();
+            try
+            {
+                this.EatToken(); // open paren
+                ScanTypeFlags scanTypeFlags = ScanTupleType(out _);
+                if (scanTypeFlags != ScanTypeFlags.NotType)
+                {
+                    switch (this.CurrentToken.Kind)
+                    {
+                        case SyntaxKind.QuestionToken:    // e.g. `new(a, b)?()`
+                        case SyntaxKind.OpenBracketToken: // e.g. `new(a, b)[]`
+                        case SyntaxKind.OpenParenToken:   // e.g. `new(a, b)()` for better error recovery
+                            return false;
+                    }
+                }
+                return true;
+            }
+            finally
+            {
+                this.Reset(ref point);
+                this.Release(ref point);
+            }
         }
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
