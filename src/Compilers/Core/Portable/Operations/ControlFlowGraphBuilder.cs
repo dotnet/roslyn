@@ -1391,9 +1391,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             switch (operation)
             {
-                case IVariableDeclarationGroupOperation declarationGroup when declarationGroup.DeclarationKind == VariableDeclarationKind.Using || declarationGroup.DeclarationKind == VariableDeclarationKind.AsynchronousUsing:
+                case IUsingDeclarationOperation usingDeclarationOperation:
                     var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
-                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
+                    VisitUsingVariableDeclarationOperation(usingDeclarationOperation, followingStatements);
                     return true;
                 case ILabeledOperation { Operation: { } } labelOperation:
                     return visitPossibleUsingDeclarationInLabel(labelOperation);
@@ -5370,8 +5370,6 @@ oneMoreTime:
 
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(operation.DeclarationKind == VariableDeclarationKind.Default);
-
             // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
             // this should only be encountered by the visitor for declaration statements.
             StartVisitingStatement(operation);
@@ -6872,14 +6870,11 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-        private void VisitUsingVariableDeclarationOperation(IVariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
+        private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
             StartVisitingStatement(operation);
-
-            var declarationKind = operation.DeclarationKind;
-            Debug.Assert(declarationKind == VariableDeclarationKind.Using || declarationKind == VariableDeclarationKind.AsynchronousUsing);
 
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = new BlockOperation(
@@ -6892,10 +6887,10 @@ oneMoreTime:
                 isImplicit: true);
 
             HandleUsingOperationParts(
-                resources: operation,
+                resources: operation.DeclarationGroup,
                 body: logicalBlock,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
-                isAsynchronous: declarationKind == VariableDeclarationKind.AsynchronousUsing);
+                isAsynchronous: operation.IsAsynchronous);
 
             FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;
@@ -6925,6 +6920,11 @@ oneMoreTime:
         }
 
         public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, int? argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
