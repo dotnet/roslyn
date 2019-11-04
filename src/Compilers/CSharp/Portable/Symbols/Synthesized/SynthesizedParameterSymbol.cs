@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
             }
 
-            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers.NullToEmpty(), attributes.NullToEmpty());
+            return new SynthesizedComplexParameterSymbol(container, type, ordinal, refKind, name, refCustomModifiers.NullToEmpty(), attributes.NullToEmpty());
         }
 
         /// <summary>
@@ -229,12 +229,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        private sealed class SynthesizedParameterSymbolWithCustomModifiers : SynthesizedParameterSymbolBase
+        private sealed class SynthesizedComplexParameterSymbol : SynthesizedParameterSymbolBase
         {
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
             private readonly ImmutableArray<CSharpAttributeData> _attributes;
 
-            public SynthesizedParameterSymbolWithCustomModifiers(
+            public SynthesizedComplexParameterSymbol(
                 MethodSymbol container,
                 TypeWithAnnotations type,
                 int ordinal,

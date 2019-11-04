@@ -5195,29 +5195,23 @@ class C
             void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var aAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
                 var attrs1 = localFn1.GetAttributes();
                 Assert.Equal(
-                    expected: new[]
-                    {
-                        module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerServices.CompilerGeneratedAttribute"),
-                        aAttribute
-                    },
-                    actual: attrs1.Select(a => a.AttributeClass));
+                    expected: new[] { "CompilerGeneratedAttribute", "A" },
+                    actual: GetAttributeNames(attrs1));
 
                 var localFn2 = cClass.GetMethod("<M>g__local2|0_1");
                 var attrs2 = localFn2.GetReturnTypeAttributes();
-                Assert.Equal(aAttribute, attrs2.Single().AttributeClass);
+                Assert.Equal("A", attrs2.Single().AttributeClass.Name);
 
                 var localFn3 = cClass.GetMethod("<M>g__local3|0_2");
                 var attrs3 = localFn3.GetParameters().Single().GetAttributes();
-                Assert.Equal(aAttribute, attrs3.Single().AttributeClass);
+                Assert.Equal("A", attrs3.Single().AttributeClass.Name);
 
                 var localFn4 = cClass.GetMethod("<M>g__local4|0_3");
                 var attrs4 = localFn4.TypeParameters.Single().GetAttributes();
-                Assert.Equal(aAttribute, attrs4.Single().AttributeClass);
+                Assert.Equal("A", attrs4.Single().AttributeClass.Name);
             }
         }
 
@@ -5250,21 +5244,11 @@ class C
             void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var attr1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A1");
-                var attr2 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A2");
-                var attr3 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A3");
-
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
                 var attrs = localFn1.GetAttributes();
                 Assert.Equal(
-                    expected: new[]
-                    {
-                        module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerServices.CompilerGeneratedAttribute"),
-                        attr1,
-                        attr2,
-                        attr3
-                    },
-                    actual: attrs.Select(a => a.AttributeClass));
+                    expected: new[] { "CompilerGeneratedAttribute", "A1", "A2", "A3" },
+                    actual: GetAttributeNames(attrs));
 
                 Assert.Empty(attrs[0].ConstructorArguments);
                 Assert.Empty(attrs[1].ConstructorArguments);
@@ -5301,20 +5285,127 @@ class C
             void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var aAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
                 var attrs1 = localFn1.GetAttributes();
                 Assert.Equal(
-                    expected: new[]
-                    {
-                        module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerServices.CompilerGeneratedAttribute"),
-                        aAttribute
-                    },
-                    actual: attrs1.Select(a => a.AttributeClass));
+                    expected: new[] { "CompilerGeneratedAttribute", "A" },
+                    actual: GetAttributeNames(attrs1));
 
                 var arg = attrs1[1].ConstructorArguments.Single();
                 Assert.Equal(42, arg.Value);
+            }
+        }
+
+        [Fact]
+        public void LocalFunctionNullableAttribute()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    public void M()
+    {
+        string? local1(string? s) => s;
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
+
+                Assert.Empty(localFn1.GetReturnTypeAttributes());
+                Assert.Equal(NullableAnnotation.Oblivious, localFn1.ReturnTypeWithAnnotations.NullableAnnotation);
+
+                var param = localFn1.Parameters.Single();
+                Assert.Empty(param.GetAttributes());
+                Assert.Equal(NullableAnnotation.Oblivious, param.TypeWithAnnotations.NullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void LocalFunctionDynamicAttribute()
+        {
+            var source = @"
+class C
+{
+    public void M()
+    {
+        dynamic local1(dynamic d) => d;
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
+
+                // PROTOTYPE: consider preventing the lowered local function from containing DynamicAttribute
+                Assert.Equal("DynamicAttribute", localFn1.GetReturnTypeAttributes().Single().AttributeClass.Name);
+
+                var param = localFn1.Parameters.Single();
+                Assert.Equal("DynamicAttribute", param.GetAttributes().Single().AttributeClass.Name);
+            }
+        }
+
+        [Fact(Skip = "PROTOTYPE")]
+        public void LocalFunctionConditionalAttribute()
+        {
+            var source = @"
+using System.Diagnostics;
+using System;
+
+class C
+{
+    static void Main()
+    {
+        local1();
+
+        [Conditional(""DEBUG"")]
+        void local1()
+        {
+            Console.Write(""hello"");
+        }
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate,
+                expectedOutput: "hello");
+
+            // PROTOTYPE: local functions with conditional attribute should not run in release mode
+            CompileAndVerify(
+                source,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate,
+                expectedOutput: "hello");
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<Main>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute", "ConditionalAttribute" }, GetAttributeNames(attrs1));
             }
         }
 

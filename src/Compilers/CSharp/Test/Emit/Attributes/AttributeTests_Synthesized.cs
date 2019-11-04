@@ -562,6 +562,7 @@ class Attr : System.Attribute { }
 class A
 {
     [Attr]
+    [return: Attr]
     public virtual async Task<int> GetIntAsync([Attr] int x)
     {
         return 42;
@@ -583,6 +584,7 @@ class B : A
             {
                 var baseMethodWrapper = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+                Assert.Empty(baseMethodWrapper.GetReturnTypeAttributes());
 
                 var parameter = baseMethodWrapper.Parameters.Single();
                 Assert.Empty(parameter.GetAttributes());
