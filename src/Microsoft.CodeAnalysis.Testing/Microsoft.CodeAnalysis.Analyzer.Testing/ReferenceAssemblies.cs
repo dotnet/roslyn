@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net20",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v2.0")
+                        Path.Combine("build", ".NETFramework", "v2.0"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Data", "System.Xml"))
                     .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net40",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.0")
+                        Path.Combine("build", ".NETFramework", "v4.0"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net45",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.5")
+                        Path.Combine("build", ".NETFramework", "v4.5"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net451",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.5.1")
+                        Path.Combine("build", ".NETFramework", "v4.5.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net452",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.5.2")
+                        Path.Combine("build", ".NETFramework", "v4.5.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net46",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.6")
+                        Path.Combine("build", ".NETFramework", "v4.6"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net461",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.6.1")
+                        Path.Combine("build", ".NETFramework", "v4.6.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net462",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.6.2")
+                        Path.Combine("build", ".NETFramework", "v4.6.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net47",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.7")
+                        Path.Combine("build", ".NETFramework", "v4.7"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net471",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.7.1")
+                        Path.Combine("build", ".NETFramework", "v4.7.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net472",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.7.2")
+                        Path.Combine("build", ".NETFramework", "v4.7.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net48",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.8")
+                        Path.Combine("build", ".NETFramework", "v4.8"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     new PackageIdentity(
                         "NETStandard.Library",
                         NuGetVersion.Parse("2.0.3")),
-                    @"build\netstandard2.0\ref")
+                    Path.Combine("build", "netstandard2.0", "ref"))
                 .AddAssemblies(ImmutableArray.Create("netstandard"))
                 .AddAssemblies(ImmutableArray.Create(
                     "Microsoft.Win32.Primitives",
