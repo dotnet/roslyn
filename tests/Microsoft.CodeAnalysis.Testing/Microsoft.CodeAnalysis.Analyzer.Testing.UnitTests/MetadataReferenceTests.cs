@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -382,6 +386,95 @@ namespace Microsoft.CodeAnalysis.Testing
             var referenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp21;
             var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
             Assert.NotEmpty(resolved);
+        }
+
+        [Theory]
+        [InlineData("net40")]
+        [InlineData("net45")]
+        [InlineData("net451")]
+        [InlineData("net452")]
+        [InlineData("net46")]
+        [InlineData("net461")]
+        [InlineData("net462")]
+        [InlineData("net47")]
+        [InlineData("net471")]
+        [InlineData("net472")]
+        [InlineData("net48")]
+        [InlineData("netcoreapp1.0")]
+        [InlineData("netcoreapp1.1")]
+        [InlineData("netcoreapp2.0")]
+        [InlineData("netcoreapp2.1")]
+        [InlineData("netstandard1.0")]
+        [InlineData("netstandard1.1")]
+        [InlineData("netstandard1.2")]
+        [InlineData("netstandard1.3")]
+        [InlineData("netstandard1.4")]
+        [InlineData("netstandard1.5")]
+        [InlineData("netstandard1.6")]
+        [InlineData("netstandard2.0")]
+        public async Task ResolveHashSetExceptInNet20(string targetFramework)
+        {
+            var testCode = @"
+using System.Collections.Generic;
+
+class TestClass {
+  HashSet<int> TestMethod() => throw null;
+}
+";
+
+            await new CSharpTest()
+            {
+                TestCode = testCode,
+                ReferenceAssemblies = ReferenceAssembliesForTargetFramework(targetFramework),
+            }.RunAsync();
+        }
+
+        private static ReferenceAssemblies ReferenceAssembliesForTargetFramework(string targetFramework)
+        {
+            return targetFramework switch
+            {
+                "net20" => ReferenceAssemblies.NetFramework.Net20.Default,
+                "net40" => ReferenceAssemblies.NetFramework.Net40.Default,
+                "net45" => ReferenceAssemblies.NetFramework.Net45.Default,
+                "net451" => ReferenceAssemblies.NetFramework.Net451.Default,
+                "net452" => ReferenceAssemblies.NetFramework.Net452.Default,
+                "net46" => ReferenceAssemblies.NetFramework.Net46.Default,
+                "net461" => ReferenceAssemblies.NetFramework.Net461.Default,
+                "net462" => ReferenceAssemblies.NetFramework.Net462.Default,
+                "net47" => ReferenceAssemblies.NetFramework.Net47.Default,
+                "net471" => ReferenceAssemblies.NetFramework.Net471.Default,
+                "net472" => ReferenceAssemblies.NetFramework.Net472.Default,
+                "net48" => ReferenceAssemblies.NetFramework.Net48.Default,
+                "netcoreapp1.0" => ReferenceAssemblies.NetCore.NetCoreApp10,
+                "netcoreapp1.1" => ReferenceAssemblies.NetCore.NetCoreApp11,
+                "netcoreapp2.0" => ReferenceAssemblies.NetCore.NetCoreApp20,
+                "netcoreapp2.1" => ReferenceAssemblies.NetCore.NetCoreApp21,
+                "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
+                "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
+                "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,
+                "netstandard1.3" => ReferenceAssemblies.NetStandard.NetStandard13,
+                "netstandard1.4" => ReferenceAssemblies.NetStandard.NetStandard14,
+                "netstandard1.5" => ReferenceAssemblies.NetStandard.NetStandard15,
+                "netstandard1.6" => ReferenceAssemblies.NetStandard.NetStandard16,
+                "netstandard2.0" => ReferenceAssemblies.NetStandard.NetStandard20,
+                null => throw new ArgumentNullException(nameof(targetFramework)),
+                _ => throw new NotSupportedException($"Target framework '{targetFramework}' is not currently supported."),
+            };
+        }
+
+        private class CSharpTest : AnalyzerTest<DefaultVerifier>
+        {
+            public override string Language => LanguageNames.CSharp;
+
+            protected override string DefaultFileExt => "cs";
+
+            protected override CompilationOptions CreateCompilationOptions()
+                => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+            {
+                yield return new NoActionAnalyzer();
+            }
         }
     }
 }
