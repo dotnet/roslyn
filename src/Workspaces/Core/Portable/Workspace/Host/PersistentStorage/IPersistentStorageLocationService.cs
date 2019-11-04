@@ -1,17 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     interface IPersistentStorageLocationService : IWorkspaceService
     {
-        string TryGetStorageLocation(Solution solution);
+        string? TryGetStorageLocation(Solution solution);
     }
 
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService)), Shared]
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        public string TryGetStorageLocation(Solution solution)
+        public string? TryGetStorageLocation(Solution solution)
         {
             if (string.IsNullOrWhiteSpace(solution.FilePath))
                 return null;
