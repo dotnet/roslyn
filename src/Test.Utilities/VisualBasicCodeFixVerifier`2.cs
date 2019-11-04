@@ -24,14 +24,10 @@ namespace Test.Utilities
             => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
 
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
-            => await VerifyAnalyzerAsync(source, CompilerDiagnostics.Errors, expected);
-
-        public static async Task VerifyAnalyzerAsync(string source, CompilerDiagnostics compilerDiagnostics, params DiagnosticResult[] expected)
         {
             var test = new Test
             {
-                TestCode = source,
-                CompilerDiagnostics = compilerDiagnostics
+                TestCode = source
             };
 
             test.ExpectedDiagnostics.AddRange(expected);
