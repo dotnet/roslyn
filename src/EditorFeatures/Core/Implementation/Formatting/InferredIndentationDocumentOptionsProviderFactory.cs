@@ -5,6 +5,7 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -71,8 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         var currentDocument = _workspace.CurrentSolution.GetDocument(_documentId);
                         if (currentDocument != null && currentDocument.TryGetText(out var text))
                         {
-                            var snapshot = text.FindCorrespondingEditorTextSnapshot();
-                            return TryGetOptionForBuffer(snapshot.TextBuffer, option, out value);
+                            var textBuffer = text.Container.TryGetTextBuffer();
+
+                            if (textBuffer != null)
+                            {
+                                return TryGetOptionForBuffer(textBuffer, option, out value);
+                            }
+                            else
+                            {
+                                FatalError.ReportWithoutCrash(new System.Exception("We had an open document but it wasn't associated with a buffer. That meant we coudln't apply formatting settings."));
+                            }
                         }
                     }
 
