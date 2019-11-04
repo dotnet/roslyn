@@ -208,12 +208,28 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (!Packages.IsEmpty)
                 {
+                    var targetIds = new List<string>(Packages.Select(package => package.Id));
+                    var preferredVersions = new List<PackageIdentity>(Packages);
+                    if (ReferenceAssemblyPackage is object)
+                    {
+                        // Make sure to include the implicit reference assembly package
+                        if (!targetIds.Contains(ReferenceAssemblyPackage.Id))
+                        {
+                            targetIds.Insert(0, ReferenceAssemblyPackage.Id);
+                        }
+
+                        if (!preferredVersions.Any(preferred => preferred.Id == ReferenceAssemblyPackage.Id))
+                        {
+                            preferredVersions.Add(ReferenceAssemblyPackage);
+                        }
+                    }
+
                     var resolverContext = new PackageResolverContext(
                         DependencyBehavior.Lowest,
-                        Packages.Select(package => package.Id),
+                        targetIds,
                         Enumerable.Empty<string>(),
                         Enumerable.Empty<PackageReference>(),
-                        Enumerable.Empty<PackageIdentity>(),
+                        preferredVersions,
                         availablePackages.Values,
                         sourceRepositoryProvider.GetRepositories().Select(repository => repository.PackageSource),
                         logger);
