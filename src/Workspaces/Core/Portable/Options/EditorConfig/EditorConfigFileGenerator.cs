@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             editorconfig.AppendLine($"#### {WorkspacesResources.Naming_styles} ####");
 
-            var namingStylePreferences = optionSet.GetOption(SimplificationOptions.NamingPreferences, language);
+            var namingStylePreferences = optionSet.GetOption(SimplificationOptions.NamingPreferences, "en");
             var serializedNameMap = AssignNamesToNamingStyleElements(namingStylePreferences);
             var ruleNameMap = AssignNamesToNamingStyleRules(namingStylePreferences, serializedNameMap);
             var referencedElements = new HashSet<Guid>();
