@@ -208,12 +208,28 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (!Packages.IsEmpty)
                 {
+                    var targetIds = new List<string>(Packages.Select(package => package.Id));
+                    var preferredVersions = new List<PackageIdentity>(Packages);
+                    if (ReferenceAssemblyPackage is object)
+                    {
+                        // Make sure to include the implicit reference assembly package
+                        if (!targetIds.Contains(ReferenceAssemblyPackage.Id))
+                        {
+                            targetIds.Insert(0, ReferenceAssemblyPackage.Id);
+                        }
+
+                        if (!preferredVersions.Any(preferred => preferred.Id == ReferenceAssemblyPackage.Id))
+                        {
+                            preferredVersions.Add(ReferenceAssemblyPackage);
+                        }
+                    }
+
                     var resolverContext = new PackageResolverContext(
                         DependencyBehavior.Lowest,
-                        Packages.Select(package => package.Id),
+                        targetIds,
                         Enumerable.Empty<string>(),
                         Enumerable.Empty<PackageReference>(),
-                        Enumerable.Empty<PackageIdentity>(),
+                        preferredVersions,
                         availablePackages.Values,
                         sourceRepositoryProvider.GetRepositories().Select(repository => repository.PackageSource),
                         logger);
@@ -443,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net20",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v2.0")
+                        Path.Combine("build", ".NETFramework", "v2.0"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Data", "System.Xml"))
                     .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
@@ -460,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net40",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.0")
+                        Path.Combine("build", ".NETFramework", "v4.0"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -481,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net45",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.5")
+                        Path.Combine("build", ".NETFramework", "v4.5"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -502,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net451",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.5.1")
+                        Path.Combine("build", ".NETFramework", "v4.5.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -523,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net452",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.5.2")
+                        Path.Combine("build", ".NETFramework", "v4.5.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -544,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net46",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.6")
+                        Path.Combine("build", ".NETFramework", "v4.6"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -565,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net461",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.6.1")
+                        Path.Combine("build", ".NETFramework", "v4.6.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -586,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net462",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.6.2")
+                        Path.Combine("build", ".NETFramework", "v4.6.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -607,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net47",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.7")
+                        Path.Combine("build", ".NETFramework", "v4.7"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -628,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net471",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.7.1")
+                        Path.Combine("build", ".NETFramework", "v4.7.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -649,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net472",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.7.2")
+                        Path.Combine("build", ".NETFramework", "v4.7.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -670,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net48",
                             NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
-                        @"build\.NETFramework\v4.8")
+                        Path.Combine("build", ".NETFramework", "v4.8"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
                     .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
@@ -739,8 +755,121 @@ namespace Microsoft.CodeAnalysis.Testing
                     new PackageIdentity(
                         "NETStandard.Library",
                         NuGetVersion.Parse("2.0.3")),
-                    @"build\netstandard2.0\ref")
-                .AddAssemblies(ImmutableArray.Create("netstandard"));
+                    Path.Combine("build", "netstandard2.0", "ref"))
+                .AddAssemblies(ImmutableArray.Create("netstandard"))
+                .AddAssemblies(ImmutableArray.Create(
+                    "Microsoft.Win32.Primitives",
+                    "System.AppContext",
+                    "System.Collections.Concurrent",
+                    "System.Collections",
+                    "System.Collections.NonGeneric",
+                    "System.Collections.Specialized",
+                    "System.ComponentModel",
+                    "System.ComponentModel.EventBasedAsync",
+                    "System.ComponentModel.Primitives",
+                    "System.ComponentModel.TypeConverter",
+                    "System.Console",
+                    "System.Data.Common",
+                    "System.Diagnostics.Contracts",
+                    "System.Diagnostics.Debug",
+                    "System.Diagnostics.FileVersionInfo",
+                    "System.Diagnostics.Process",
+                    "System.Diagnostics.StackTrace",
+                    "System.Diagnostics.TextWriterTraceListener",
+                    "System.Diagnostics.Tools",
+                    "System.Diagnostics.TraceSource",
+                    "System.Diagnostics.Tracing",
+                    "System.Drawing.Primitives",
+                    "System.Dynamic.Runtime",
+                    "System.Globalization.Calendars",
+                    "System.Globalization",
+                    "System.Globalization.Extensions",
+                    "System.IO.Compression",
+                    "System.IO.Compression.ZipFile",
+                    "System.IO",
+                    "System.IO.FileSystem",
+                    "System.IO.FileSystem.DriveInfo",
+                    "System.IO.FileSystem.Primitives",
+                    "System.IO.FileSystem.Watcher",
+                    "System.IO.IsolatedStorage",
+                    "System.IO.MemoryMappedFiles",
+                    "System.IO.Pipes",
+                    "System.IO.UnmanagedMemoryStream",
+                    "System.Linq",
+                    "System.Linq.Expressions",
+                    "System.Linq.Parallel",
+                    "System.Linq.Queryable",
+                    "System.Net.Http",
+                    "System.Net.NameResolution",
+                    "System.Net.NetworkInformation",
+                    "System.Net.Ping",
+                    "System.Net.Primitives",
+                    "System.Net.Requests",
+                    "System.Net.Security",
+                    "System.Net.Sockets",
+                    "System.Net.WebHeaderCollection",
+                    "System.Net.WebSockets.Client",
+                    "System.Net.WebSockets",
+                    "System.ObjectModel",
+                    "System.Reflection",
+                    "System.Reflection.Extensions",
+                    "System.Reflection.Primitives",
+                    "System.Resources.Reader",
+                    "System.Resources.ResourceManager",
+                    "System.Resources.Writer",
+                    "System.Runtime.CompilerServices.VisualC",
+                    "System.Runtime",
+                    "System.Runtime.Extensions",
+                    "System.Runtime.Handles",
+                    "System.Runtime.InteropServices",
+                    "System.Runtime.InteropServices.RuntimeInformation",
+                    "System.Runtime.Numerics",
+                    "System.Runtime.Serialization.Formatters",
+                    "System.Runtime.Serialization.Json",
+                    "System.Runtime.Serialization.Primitives",
+                    "System.Runtime.Serialization.Xml",
+                    "System.Security.Claims",
+                    "System.Security.Cryptography.Algorithms",
+                    "System.Security.Cryptography.Csp",
+                    "System.Security.Cryptography.Encoding",
+                    "System.Security.Cryptography.Primitives",
+                    "System.Security.Cryptography.X509Certificates",
+                    "System.Security.Principal",
+                    "System.Security.SecureString",
+                    "System.Text.Encoding",
+                    "System.Text.Encoding.Extensions",
+                    "System.Text.RegularExpressions",
+                    "System.Threading",
+                    "System.Threading.Overlapped",
+                    "System.Threading.Tasks",
+                    "System.Threading.Tasks.Parallel",
+                    "System.Threading.Thread",
+                    "System.Threading.ThreadPool",
+                    "System.Threading.Timer",
+                    "System.ValueTuple",
+                    "System.Xml.ReaderWriter",
+                    "System.Xml.XDocument",
+                    "System.Xml.XmlDocument",
+                    "System.Xml.XmlSerializer",
+                    "System.Xml.XPath",
+                    "System.Xml.XPath.XDocument",
+                    "mscorlib",
+                    "System.ComponentModel.Composition",
+                    "System.Core",
+                    "System",
+                    "System.Data",
+                    "System.Drawing",
+                    "System.IO.Compression.FileSystem",
+                    "System.Net",
+                    "System.Numerics",
+                    "System.Runtime.Serialization",
+                    "System.ServiceModel.Web",
+                    "System.Transactions",
+                    "System.Web",
+                    "System.Windows",
+                    "System.Xml",
+                    "System.Xml.Linq",
+                    "System.Xml.Serialization"));
         }
     }
 }
