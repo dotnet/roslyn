@@ -430,7 +430,7 @@ namespace Test.Utilities
 
             ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
 
-            var defaultReferences = ReferenceAssemblies.NetFramework.Net472.Default;
+            var defaultReferences = ReferenceAssemblies.NetFramework.Net48.Default;
             var references = Task.Run(() => defaultReferences.ResolveAsync(language, CancellationToken.None)).GetAwaiter().GetResult();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
@@ -438,18 +438,9 @@ namespace Test.Utilities
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 .AddProject(projectId, projectName, projectName, language)
                 .AddMetadataReferences(projectId, references)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.Netstandard)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.CorlibReference)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemCoreReference)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.CodeAnalysisReference)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeFacadeRef)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingFacadeRef)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingTaskFacadeRef)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDiagnosticsDebugReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlLinq)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
@@ -478,8 +469,7 @@ namespace Test.Utilities
 
             if ((referenceFlags & ReferenceFlags.RemoveSystemData) != ReferenceFlags.RemoveSystemData)
             {
-                project = project.AddMetadataReference(AdditionalMetadataReferences.SystemDataReference)
-                    .AddMetadataReference(AdditionalMetadataReferences.SystemXmlDataReference);
+                project = project.AddMetadataReference(AdditionalMetadataReferences.SystemXmlDataReference);
             }
 
             if ((referenceFlags & ReferenceFlags.AddTestReferenceAssembly) == ReferenceFlags.AddTestReferenceAssembly)

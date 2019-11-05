@@ -20,23 +20,6 @@ namespace Test.Utilities
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.Netstandard);
-                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference);
-                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeFacadeRef);
-                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference);
-                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDiagnosticsDebugReference);
-
-                    if (IncludeCodeAnalysisReference)
-                    {
-                        solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.VisualBasicSymbolsReference);
-                    }
-
-                    if (IncludeSystemDataReference)
-                    {
-                        solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDataReference)
-                            .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlDataReference);
-                    }
-
                     var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId).ParseOptions;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
@@ -45,10 +28,6 @@ namespace Test.Utilities
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
-
-            public bool IncludeCodeAnalysisReference { get; set; } = true;
-
-            public bool IncludeSystemDataReference { get; set; } = true;
         }
     }
 }
