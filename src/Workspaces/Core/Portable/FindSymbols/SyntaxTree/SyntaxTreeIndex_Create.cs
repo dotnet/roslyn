@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
+            var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
-
+            var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
             var usingAliases = PooledDictionary<string, string>.GetInstance();
 
             try
@@ -90,8 +90,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
-
-                var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
 
                 if (syntaxFacts != null)
                 {
@@ -266,7 +264,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsAwait,
                             containsTupleExpressionOrTupleType),
                     new DeclarationInfo(
-                            declaredSymbolInfos.ToImmutableAndFree()),
+                            declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
                         simpleExtensionMethodInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray),
                         complexExtensionMethodInfoBuilder.ToImmutable()));
@@ -276,14 +274,21 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 Free(ignoreCase, identifiers, escapedIdentifiers);
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
+
+                foreach (var (_, builder) in simpleExtensionMethodInfoBuilder)
+                {
+                    builder.Free();
+                }
+
                 simpleExtensionMethodInfoBuilder.Free();
                 complexExtensionMethodInfoBuilder.Free();
                 usingAliases.Free();
+                declaredSymbolInfos.Free();
             }
         }
 
         private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, string> s_getKey = kvp => kvp.Key;
-        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, ImmutableArray<int>> s_getValuesAsImmutableArray = kvp => kvp.Value.ToImmutableAndFree();
+        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, ImmutableArray<int>> s_getValuesAsImmutableArray = kvp => kvp.Value.ToImmutable();
 
         private static void AddExtensionMethodInfo(
             IDeclaredSymbolInfoFactoryService infoFactory,

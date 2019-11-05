@@ -1298,6 +1298,29 @@ namespace NS2
             Assert.NotEmpty(completionList.Items);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ShouldNotTriggerInsideTrivia()
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{}} 
+}}";
+
+            var file2 = @"
+namespace Baz
+{
+    /// <summary>
+    /// <see cref=""B$$""/>
+    /// </summary>
+    class Bat
+    {
+    }
+}";
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+        }
         private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
         {
             var hashset = new HashSet<string>(expectedTypesInRelativeOrder);

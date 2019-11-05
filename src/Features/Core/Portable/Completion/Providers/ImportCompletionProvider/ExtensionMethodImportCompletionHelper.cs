@@ -378,8 +378,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => symbol.DeclaredAccessibility == Accessibility.Public || semanticModel.IsAccessible(position, symbol);
 
         /// <summary>
-        /// The purpose of this is to help us keeping track of conflicting types with data required to create corresponding
-        /// items in a tree, which is easy to use while navigating symbol tree recursively.
+        /// The purpose of this is to help us keeping track of conflicting types with data required to create 
+        /// corresponding items in a tree, which is easy to use while navigating symbol tree recursively.
+        /// For example, two internal classes with identical fully qualified name but declared in two different
+        /// projects would be a conflict, even if only one is accessible from project that triggered the completion.
         /// </summary>
         private class ConflictNameNode : IDisposable
         {

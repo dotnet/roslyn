@@ -1187,6 +1187,40 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotTriggerOnType()
+        {
+            var file1 = @"
+using System;
+
+namespace Foo
+{
+    public static class ExtensionClass
+    {
+        public static bool ExtMethod(this string x)
+            => true;
+    }
+}";
+            var file2 = @"
+using System;
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M()
+        {
+            string.$$
+        }
+    }
+}";
+            var markup = GetMarkup(file2, file1, ReferenceType.None);
+            await VerifyTypeImportItemIsAbsentAsync(
+                 markup,
+                 "ExtMethod",
+                 inlineDescription: "Foo");
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
         {
             return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);

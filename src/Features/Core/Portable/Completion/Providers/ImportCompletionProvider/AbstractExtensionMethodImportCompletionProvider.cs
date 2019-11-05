@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, out var receiverTypeSymbol))
+                if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
                     var items = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
@@ -43,10 +43,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     completionContext.AddItems(items.Select(i => Convert(i)));
                 }
+                else
+                {
+                    // If we can't get a valid receiver type, then we don't show expander as available.
+                    // We need to set this explicitly here bacause we didn't do the (more expensive) symbol check inside 
+                    // `ShouldProvideCompletion` method above, which is intended for quick syntax based check.
+                    completionContext.ExpandItemsAvailable = false;
+                }
             }
         }
 
-        private static bool TryGetReceiverTypeSymbol(SyntaxContext syntaxContext, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
+        private static bool TryGetReceiverTypeSymbol(
+            SyntaxContext syntaxContext,
+            ISyntaxFactsService syntaxFacts,
+            CancellationToken cancellationToken,
+            [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
         {
             var parentNode = syntaxContext.TargetToken.Parent;
 
@@ -55,20 +66,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // New Bar() {.X = .$$ }
             var expressionNode = syntaxFacts.GetLeftSideOfDot(parentNode, allowImplicitTarget: false);
 
-            if (expressionNode == null)
+            if (expressionNode != null)
             {
-                receiverTypeSymbol = null;
-                return false;
+                // Check if we are accessing members of a type, no extension methods are exposed off of types.
+                if (!(syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is ITypeSymbol))
+                {
+                    // The expression we're calling off of needs to have an actual instance type.
+                    // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.
+                    receiverTypeSymbol = syntaxContext.SemanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
+                    if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
+                    {
+                        receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(s => GetSymbolType(s)).FirstOrDefault(s => s != null);
+                    }
+
+                    return receiverTypeSymbol != null;
+                }
             }
 
-            receiverTypeSymbol = syntaxContext.SemanticModel.GetTypeInfo(expressionNode).Type;
-
-            if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
-            {
-                receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(s => GetSymbolType(s)).FirstOrDefault(s => s != null);
-            }
-
-            return receiverTypeSymbol != null;
+            receiverTypeSymbol = null;
+            return false;
         }
 
         private static ITypeSymbol? GetSymbolType(ISymbol symbol)
