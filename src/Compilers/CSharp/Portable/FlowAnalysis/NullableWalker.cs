@@ -1060,9 +1060,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (RequiresSafetyWarningWhenNullIntroduced(targetType))
             {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (conversion.Kind == ConversionKind.UnsetConversionKind)
                     conversion = this._conversions.ClassifyImplicitConversionFromType(valueType.Type, targetType.Type, ref useSiteDiagnostics);
 
@@ -6134,7 +6134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (invocation.InvokedAsExtensionMethod)
                 {
                     // Check nullability for `this` parameter
-                    CheckExtensionMethodThisNullability(right, conversion, deconstructMethod.Parameters[0], rightResult);
+                    var argConversion = RemoveConversion(invocation.Arguments[0], includeExplicitConversions: false).conversion;
+                    CheckExtensionMethodThisNullability(right, argConversion, deconstructMethod.Parameters[0], rightResult);
                 }
 
                 for (int i = 0; i < n; i++)
