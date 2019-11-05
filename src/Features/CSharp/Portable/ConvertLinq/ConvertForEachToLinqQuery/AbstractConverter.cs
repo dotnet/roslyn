@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             //   c1.SelectMany(n1 => ...
             //
 
+            // Avoid `.Select(x => x)`
             if (lambdaBody is IdentifierNameSyntax identifier &&
                 identifier.Identifier.ValueText == forEachStatement.Identifier.ValueText &&
                 receiverForInvocation is InvocationExpressionSyntax receiverInvocationExpression)
