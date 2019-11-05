@@ -2933,7 +2933,8 @@ namespace Microsoft.Cci
                 exceptionRegionCount: exceptionRegions.Length,
                 hasSmallExceptionRegions: MayUseSmallExceptionHeaders(exceptionRegions),
                 localVariablesSignature: localSignatureHandleOpt,
-                attributes: (methodBody.AreLocalsZeroed ? MethodBodyAttributes.InitLocals : 0));
+                attributes: (methodBody.AreLocalsZeroed ? MethodBodyAttributes.InitLocals : 0),
+                hasDynamicStackAllocation: methodBody.HasStackalloc);
 
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595

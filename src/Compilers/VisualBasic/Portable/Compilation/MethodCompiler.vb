@@ -1611,6 +1611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       debugDocumentProvider,
                                       builder.RealizedExceptionHandlers,
                                       areLocalsZeroed:=True,
+                                      hasStackalloc:=False,
                                       localScopes,
                                       hasDynamicLocalVariables:=False,
                                       importScopeOpt:=importScopeOpt,

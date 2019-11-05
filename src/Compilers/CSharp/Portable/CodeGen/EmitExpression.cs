@@ -1916,6 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we can ignore that if the actual result is unused
             if (used)
             {
+                _sawStackalloc = true;
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
 

@@ -329,6 +329,11 @@ namespace Microsoft.Cci
         bool AreLocalsZeroed { get; }
 
         /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        bool HasStackalloc { get; }
+
+        /// <summary>
         /// The local variables of the method.
         /// </summary>
         ImmutableArray<ILocalDefinition> LocalVariables { get; }
