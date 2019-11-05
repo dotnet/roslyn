@@ -287,6 +287,66 @@ namespace Analyzer.Utilities.Extensions
             return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
         }
 
+        /// <summary>
+        /// Checks whether the current type contains one of the following count property:
+        ///     - <see cref="System.Collections.ICollection.Count"/>
+        ///     - <see cref="System.Collections.Generic.ICollection{T}.Count"/>
+        ///     - <see cref="System.Collections.Generic.IReadOnlyCollection{T}.Count"/>
+        /// </summary>
+        /// <param name="invocationTarget">The type to check</param>
+        /// <param name="wellKnownTypeProvider">An instance of the <see cref="WellKnownTypeProvider"/> used to access the three described known types.</param>
+        /// <returns><c>true</c> when the type contains one of the supported collection count property; otherwise <c>false</c>.</returns>
+        public static bool HasAnyCollectionCountProperty(this ITypeSymbol invocationTarget, WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            const string countPropertyName = "Count";
+
+            if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection, out var iCollection)
+                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1, out var iCollectionOfT)
+                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1, out var iReadOnlyCollectionOfT))
+            {
+                return false;
+            }
+
+            if (isAnySupportedCollectionType(invocationTarget))
+            {
+                return true;
+            }
+
+            if (invocationTarget.TypeKind == TypeKind.Interface)
+            {
+                if (invocationTarget.GetMembers(countPropertyName).OfType<IPropertySymbol>().Any())
+                {
+                    return false;
+                }
+
+                foreach (var @interface in invocationTarget.AllInterfaces)
+                {
+                    if (isAnySupportedCollectionType(@interface))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var @interface in invocationTarget.AllInterfaces)
+                {
+                    if (isAnySupportedCollectionType(@interface)
+                        && invocationTarget.FindImplementationForInterfaceMember(@interface.GetMembers(countPropertyName)[0]) is IPropertySymbol propertyImplementation
+                        && !propertyImplementation.ExplicitInterfaceImplementations.Any())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+
+            bool isAnySupportedCollectionType(ITypeSymbol type) =>
+                type?.OriginalDefinition is INamedTypeSymbol originalDefinition &&
+                (iCollection.Equals(originalDefinition) || iCollectionOfT.Equals(originalDefinition) || iReadOnlyCollectionOfT.Equals(originalDefinition));
+        }
+
         private class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
         {
             public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();

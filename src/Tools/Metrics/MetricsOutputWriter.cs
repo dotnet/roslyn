@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -70,7 +71,7 @@ namespace Metrics
                         var location = data.Symbol.Locations.First();
                         writer.WriteAttributeString("Name", data.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
                         writer.WriteAttributeString("File", location.SourceTree?.FilePath ?? "UNKNOWN");
-                        writer.WriteAttributeString("Line", (location.GetLineSpan().StartLinePosition.Line + 1).ToString());
+                        writer.WriteAttributeString("Line", (location.GetLineSpan().StartLinePosition.Line + 1).ToString(CultureInfo.InvariantCulture));
                         break;
 
                     default:
@@ -83,21 +84,21 @@ namespace Metrics
             {
                 writer.WriteStartElement("Metrics");
 
-                WriteMetric("MaintainabilityIndex", data.MaintainabilityIndex.ToString(), writer);
-                WriteMetric("CyclomaticComplexity", data.CyclomaticComplexity.ToString(), writer);
-                WriteMetric("ClassCoupling", data.CoupledNamedTypes.Count.ToString(), writer);
+                WriteMetric("MaintainabilityIndex", data.MaintainabilityIndex.ToString(CultureInfo.InvariantCulture), writer);
+                WriteMetric("CyclomaticComplexity", data.CyclomaticComplexity.ToString(CultureInfo.InvariantCulture), writer);
+                WriteMetric("ClassCoupling", data.CoupledNamedTypes.Count.ToString(CultureInfo.InvariantCulture), writer);
                 if (data.DepthOfInheritance.HasValue)
                 {
-                    WriteMetric("DepthOfInheritance", data.DepthOfInheritance.Value.ToString(), writer);
+                    WriteMetric("DepthOfInheritance", data.DepthOfInheritance.Value.ToString(CultureInfo.InvariantCulture), writer);
                 }
 
                 // For legacy mode, output only ExecutableLinesOfCode
                 // For non-legacy mode, output both SourceLinesOfCode and ExecutableLinesOfCode
 #if LEGACY_CODE_METRICS_MODE
-                WriteMetric("LinesOfCode", data.ExecutableLines.ToString(), writer);
+                WriteMetric("LinesOfCode", data.ExecutableLines.ToString(CultureInfo.InvariantCulture), writer);
 #else
-                WriteMetric("SourceLines", data.SourceLines.ToString(), writer);
-                WriteMetric("ExecutableLines", data.ExecutableLines.ToString(), writer);
+                WriteMetric("SourceLines", data.SourceLines.ToString(CultureInfo.InvariantCulture), writer);
+                WriteMetric("ExecutableLines", data.ExecutableLines.ToString(CultureInfo.InvariantCulture), writer);
 #endif
                 writer.WriteEndElement();
             }

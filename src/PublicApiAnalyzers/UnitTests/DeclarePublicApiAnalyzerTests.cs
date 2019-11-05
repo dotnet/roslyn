@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
@@ -412,7 +413,7 @@ public class C
 C";
             var unshippedText = @"";
 
-            var arg = string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
+            var arg = string.Format(CultureInfo.CurrentCulture, PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
                 GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, arg));

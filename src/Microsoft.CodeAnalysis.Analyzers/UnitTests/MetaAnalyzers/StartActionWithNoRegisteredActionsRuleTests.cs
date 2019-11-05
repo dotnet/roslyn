@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -534,7 +535,7 @@ End Class
                     throw new ArgumentException("Unsupported action kind", nameof(kind));
             }
 
-            string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);
+            string message = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);
 
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult(DiagnosticIds.StartActionWithNoRegisteredActionsRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)

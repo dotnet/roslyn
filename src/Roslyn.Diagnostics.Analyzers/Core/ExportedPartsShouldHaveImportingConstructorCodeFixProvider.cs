@@ -6,6 +6,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -94,17 +95,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = exportAttribute;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Class)
+            var declaration = generator.TryGetContainingDeclaration(exportAttribute, DeclarationKind.Class);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var importingConstructor = generator.ConstructorDeclaration(
@@ -144,17 +138,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = importingConstructorAttribute;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Constructor)
+            var declaration = generator.TryGetContainingDeclaration(importingConstructorAttribute, DeclarationKind.Constructor);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var newDeclaration = generator.WithAccessibility(declaration, Accessibility.Public);
@@ -170,17 +157,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = constructor;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Constructor)
+            var declaration = generator.TryGetContainingDeclaration(constructor, DeclarationKind.Constructor);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var exportedType = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)?.ContainingType;

@@ -1,0 +1,23 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.AnalyzerUtilities,
+      Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.AnalyzerUtilities package.
+    -->
+    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+    <ExcludeInternalFlowAnalyses>true</ExcludeInternalFlowAnalyses>
+    <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
+
+    <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
+    <NoWarn>$(NoWarn);RS0026</NoWarn>
+  </PropertyGroup>
+  <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems" Label="Shared" />
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="2.6.3" />
+  </ItemGroup>
+</Project>

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicAFix"), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicApiFix"), Shared]
     public sealed class DeclarePublicApiFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         {
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(titleFormat, "document", fixAllContext.Document.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, titleFormat, "document", fixAllContext.Document.Name);
                             break;
                         }
 
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             Project project = fixAllContext.Project;
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(titleFormat, "project", fixAllContext.Project.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, titleFormat, "project", fixAllContext.Project.Name);
                             break;
                         }
 

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// It tracks <see cref="_lazyPredicateDataMap"/>, which contains the true/false <see cref="PerEntityPredicatedAnalysisData"/> for every predicated <see cref="AnalysisEntity"/>, and
     /// <see cref="IsReachableBlockData"/>, which tracks if the current data is for a reachable code path based on the predicate analysis.
     /// Predicate analysis data is used to improve the preciseness of analysis when we can apply the <see cref="PerEntityPredicatedAnalysisData.TruePredicatedData"/> or <see cref="PerEntityPredicatedAnalysisData.FalsePredicatedData"/>
-    /// on the control flow paths where the corresonding <see cref="AnalysisEntity"/> is known to have <code>true</code> or <code>false</code> value respectively.
+    /// on the control flow paths where the corresonding <see cref="AnalysisEntity"/> is known to have <see langword="true"/> or <see langword="false"/> value respectively.
     /// </summary>
     public abstract partial class PredicatedAnalysisData<TKey, TValue> : AbstractAnalysisData
     {
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             foreach (var kvp in predicatedData2)
             {
-                if (!predicatedData1.TryGetValue(kvp.Key, out var value2))
+                if (!predicatedData1.TryGetValue(kvp.Key, out _))
                 {
                     // Data predicated by the analysis entity present in only one branch.
                     // We should merge with the core non-predicate data in other branch.

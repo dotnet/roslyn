@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
         <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
-        <target state="translated">値の型へのオーバーロードされていない仮想メソッドの呼び出しにより、ボックス化または制限付きの命令が追加されます</target>
+        <target state="translated">値の型へのオーバーロードされていない仮想メソッド呼び出しにより、ボックス化または制限付きの命令が追加されます</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
         <source>Non-overridden virtual method call on value type</source>
-        <target state="translated">値の型へのオーバーライドされていない仮想メソッドの呼び出し</target>
+        <target state="translated">値の型へのオーバーライドされていない仮想メソッド呼び出し</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
