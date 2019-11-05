@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Typically, these are locations of other items referenced in the message.
         /// If null, <see cref="Diagnostic.AdditionalLocations"/> will return an empty list.
         /// </param>
-        /// <param name="tagIndexes">a map of location tag to index in additional locations.</param>
+        /// <param name="tagIndices">a map of location tag to index in additional locations.</param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic CreateWithLocationTags(
@@ -75,12 +77,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Location location,
             ReportDiagnostic effectiveSeverity,
             IEnumerable<Location> additionalLocations,
-            IDictionary<string, IEnumerable<int>> tagIndexes,
+            IDictionary<string, IEnumerable<int>> tagIndices,
             params object[] messageArgs)
         {
-            var properties = tagIndexes.Select(kvp => new KeyValuePair<string, string>(kvp.Key, JsonConvert.SerializeObject(kvp.Value))).ToImmutableDictionary();
+            var properties = tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value))).ToImmutableDictionary();
 
             return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
+
+            static string EncodeIndices(IEnumerable<int> indices)
+            {
+                using var stream = new MemoryStream();
+                var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
+                serializer.WriteObject(stream, indices);
+
+                var jsonBytes = stream.ToArray();
+                stream.Close();
+                return Encoding.UTF8.GetString(jsonBytes, 0, jsonBytes.Length);
+            }
         }
 
         /// <summary>
