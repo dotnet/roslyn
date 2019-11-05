@@ -2,6 +2,8 @@
 
 using System.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -19,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
         }
 
+        public Task AttachToEditorAsync(Document document, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
         public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters, INotificationService notificationService)
         {
             var list = parameters.ToListOfParameters();
@@ -30,6 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     parameters,
                     UpdatedSignature == null ? parameters : ParameterConfiguration.Create(UpdatedSignature.Select(i => list[i]).ToList(), parameters.ThisParameter != null, selectedIndex: 0))
             };
+        }
+
+        public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters, Document document, INotificationService notificationService)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

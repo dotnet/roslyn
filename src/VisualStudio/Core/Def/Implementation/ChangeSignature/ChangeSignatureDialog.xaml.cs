@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -132,6 +134,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             var addParameterViewModel = new AddParameterDialogViewModel();
             var dialog = new AddParameterDialog(addParameterViewModel);
+
+            var changeSignatureOptionsService = _viewModel.Document.Project.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
+
+            // TODO Wait?
+            changeSignatureOptionsService.AttachToEditorAsync(_viewModel.Document, CancellationToken.None).Wait();
+
             var result = dialog.ShowModal();
 
             if (result == true)

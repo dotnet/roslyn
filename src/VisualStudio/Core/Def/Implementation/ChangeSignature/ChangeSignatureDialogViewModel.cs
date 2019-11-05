@@ -34,10 +34,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
-        internal ChangeSignatureDialogViewModel(INotificationService notificationService, ParameterConfiguration parameters, ISymbol symbol, IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap)
+        public readonly Document Document;
+
+        internal ChangeSignatureDialogViewModel(
+            INotificationService notificationService,
+            ParameterConfiguration parameters,
+            ISymbol symbol,
+            Document document,
+            IClassificationFormatMap classificationFormatMap,
+            ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
             _notificationService = notificationService;
+            Document = document;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return new ChangeSignatureAnalyzedContext(
-                document.Project, symbol, parameterConfiguration);
+                document, symbol, parameterConfiguration);
         }
 
         private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
@@ -168,8 +168,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
 
+            // TODO are there any restricitons for extension methods? e.g. remove the first param or reorder it?
             var isExtensionMethod = context.Symbol is IMethodSymbol && (context.Symbol as IMethodSymbol).IsExtensionMethod;
-            return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration, notificationService);
+
+            return changeSignatureOptionsService.GetChangeSignatureOptions(
+                context.Symbol,
+                context.ParameterConfiguration,
+                context.Document,
+                notificationService);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(

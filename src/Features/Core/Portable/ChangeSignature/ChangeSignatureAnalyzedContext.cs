@@ -5,6 +5,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     internal sealed class ChangeSignatureAnalyzedContext
     {
         public readonly bool CanChangeSignature;
+        public readonly Document Document;
         public readonly Project Project;
         public readonly ISymbol Symbol;
         public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
@@ -13,10 +14,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public Solution Solution => Project.Solution;
 
         public ChangeSignatureAnalyzedContext(
-            Project project, ISymbol symbol, ParameterConfiguration parameterConfiguration)
+            Document document, ISymbol symbol, ParameterConfiguration parameterConfiguration)
         {
             CanChangeSignature = true;
-            Project = project;
+            Document = document;
+            Project = document.Project;
             Symbol = symbol;
             ParameterConfiguration = parameterConfiguration;
             CannotChangeSignatureReason = CannotChangeSignatureReason.None;
