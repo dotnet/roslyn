@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Testing;
 
 namespace Test.Utilities
 {
@@ -32,11 +31,6 @@ namespace Test.Utilities
                         solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.VisualBasicSymbolsReference);
                     }
 
-                    if (!IncludeImmutableCollectionsReference)
-                    {
-                        solution = solution.RemoveMetadataReference(projectId, MetadataReferences.SystemCollectionsImmutableReference);
-                    }
-
                     if (IncludeSystemDataReference)
                     {
                         solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDataReference)
@@ -53,8 +47,6 @@ namespace Test.Utilities
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
 
             public bool IncludeCodeAnalysisReference { get; set; } = true;
-
-            public bool IncludeImmutableCollectionsReference { get; set; } = true;
 
             public bool IncludeSystemDataReference { get; set; } = true;
         }

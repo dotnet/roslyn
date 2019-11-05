@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace Test.Utilities
@@ -32,11 +31,6 @@ namespace Test.Utilities
                         solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.CSharpSymbolsReference);
                     }
 
-                    if (!IncludeImmutableCollectionsReference)
-                    {
-                        solution = solution.RemoveMetadataReference(projectId, MetadataReferences.SystemCollectionsImmutableReference);
-                    }
-
                     if (IncludeSystemDataReference)
                     {
                         solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDataReference)
@@ -53,8 +47,6 @@ namespace Test.Utilities
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp7_3;
 
             public bool IncludeCodeAnalysisReference { get; set; } = true;
-
-            public bool IncludeImmutableCollectionsReference { get; set; } = true;
 
             public bool IncludeSystemDataReference { get; set; } = true;
         }
