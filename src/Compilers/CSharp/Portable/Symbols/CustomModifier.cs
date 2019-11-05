@@ -25,6 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                return modifier.GetPublicSymbol();
+            }
+        }
+
+        public NamedTypeSymbol ModifierSymbol
+        {
+            get
+            {
                 return modifier;
             }
         }

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
                     if (attrData.CommonConstructorArguments.Length == 2)
                     {
-                        sourceInterface = attrData.CommonConstructorArguments[0].Value as NamedTypeSymbol;
+                        sourceInterface = attrData.CommonConstructorArguments[0].ValueInternal as NamedTypeSymbol;
 
                         if ((object)sourceInterface != null)
                         {

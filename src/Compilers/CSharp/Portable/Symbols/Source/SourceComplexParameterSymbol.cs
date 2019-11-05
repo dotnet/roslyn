@@ -800,15 +800,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arg = attribute.CommonConstructorArguments[0];
 
             SpecialType specialType = arg.Kind == TypedConstantKind.Enum ?
-                ((INamedTypeSymbol)arg.Type).EnumUnderlyingType.SpecialType :
-                arg.Type.SpecialType;
+                ((NamedTypeSymbol)arg.TypeInternal).EnumUnderlyingType.SpecialType :
+                arg.TypeInternal.SpecialType;
 
             var compilation = this.DeclaringCompilation;
             var constantValueDiscriminator = ConstantValue.GetDiscriminator(specialType);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (constantValueDiscriminator == ConstantValueTypeDiscriminator.Bad)
             {
-                if (arg.Kind != TypedConstantKind.Array && arg.Value == null)
+                if (arg.Kind != TypedConstantKind.Array && arg.ValueInternal == null)
                 {
                     if (this.Type.IsReferenceType)
                     {
@@ -829,12 +829,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // error CS1910: Argument of type '{0}' is not applicable for the DefaultParameterValue attribute
                     if (diagnose)
                     {
-                        diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueBadValueType, node.Name.Location, arg.Type);
+                        diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueBadValueType, node.Name.Location, arg.TypeInternal);
                     }
                     return ConstantValue.Bad;
                 }
             }
-            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
+            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.TypeInternal, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
             {
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnosticsOpt.Add(node.Name.Location, useSiteDiagnostics);
             }
 
-            return ConstantValue.Create(arg.Value, constantValueDiscriminator);
+            return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
         }
 
         private bool IsValidCallerInfoContext(AttributeSyntax node) => !ContainingSymbol.IsExplicitInterfaceImplementation()

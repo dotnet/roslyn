@@ -565,10 +565,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
         }
 
-        private static bool HaveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2, EqualityComparer<TypeSymbol> comparer)
+        private static bool HaveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2, IEqualityComparer<TypeSymbol> comparer)
         {
             // Check that constraintTypes1 is a subset of constraintTypes2 and
             // also that constraintTypes2 is a subset of constraintTypes1
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeSymbol.EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.AllIgnoreOptionsPlusNullableWithUnknownMatchesAny);
         }
 
         /// <summary>

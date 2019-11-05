@@ -2100,10 +2100,10 @@ class C
 
             var loopInfo = model.GetForEachStatementInfo(loopSyntax);
             Assert.False(loopInfo.IsAsynchronous);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo.GetEnumeratorMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo.CurrentProperty);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo.MoveNextMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo.DisposeMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator).GetPublicSymbol(), loopInfo.GetEnumeratorMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current).GetPublicSymbol(), loopInfo.CurrentProperty);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext).GetPublicSymbol(), loopInfo.MoveNextMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose).GetPublicSymbol(), loopInfo.DisposeMethod);
 
             // The spec says that the element type is object.
             // Therefore, we should infer object for "var".
@@ -2152,10 +2152,10 @@ class C
             Assert.Equal(2, loopSyntaxes.Length);
 
             var loopInfo0 = model.GetForEachStatementInfo(loopSyntaxes[0]);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo0.GetEnumeratorMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo0.CurrentProperty);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo0.MoveNextMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo0.DisposeMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator).GetPublicSymbol(), loopInfo0.GetEnumeratorMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current).GetPublicSymbol(), loopInfo0.CurrentProperty);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext).GetPublicSymbol(), loopInfo0.MoveNextMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose).GetPublicSymbol(), loopInfo0.DisposeMethod);
             Assert.Equal(SpecialType.System_String, loopInfo0.ElementType.SpecialType);
             Assert.Equal(udc, loopInfo0.ElementConversion.Method);
             Assert.Equal(ConversionKind.ExplicitReference, loopInfo0.CurrentConversion.Kind);
@@ -3157,15 +3157,15 @@ ref struct DisposableEnumerator
             }
             else
             {
-                Assert.Equal(enumeratorInfo.GetEnumeratorMethod, statementInfo.GetEnumeratorMethod);
-                Assert.Equal(enumeratorInfo.CurrentPropertyGetter, statementInfo.CurrentProperty.GetMethod);
-                Assert.Equal(enumeratorInfo.MoveNextMethod, statementInfo.MoveNextMethod);
+                Assert.Equal(enumeratorInfo.GetEnumeratorMethod.GetPublicSymbol(), statementInfo.GetEnumeratorMethod);
+                Assert.Equal(enumeratorInfo.CurrentPropertyGetter.GetPublicSymbol(), statementInfo.CurrentProperty.GetMethod);
+                Assert.Equal(enumeratorInfo.MoveNextMethod.GetPublicSymbol(), statementInfo.MoveNextMethod);
 
                 if (enumeratorInfo.NeedsDisposal)
                 {
                     if (enumeratorInfo.DisposeMethod is object)
                     {
-                        Assert.Equal(enumeratorInfo.DisposeMethod, statementInfo.DisposeMethod);
+                        Assert.Equal(enumeratorInfo.DisposeMethod.GetPublicSymbol(), statementInfo.DisposeMethod);
                     }
                     else if (enumeratorInfo.IsAsync)
                     {
@@ -3182,7 +3182,7 @@ ref struct DisposableEnumerator
                     Assert.Null(statementInfo.DisposeMethod);
                 }
 
-                Assert.Equal(enumeratorInfo.ElementType, statementInfo.ElementType);
+                Assert.Equal(enumeratorInfo.ElementType.GetPublicSymbol(), statementInfo.ElementType);
                 Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
                 Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
             }

@@ -77,6 +77,16 @@
         <target state="translated">Classificações</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_0">
+        <source>Code analysis completed for '{0}'.</source>
+        <target state="new">Code analysis completed for '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_Solution">
+        <source>Code analysis completed for Solution.</source>
+        <target state="new">Code analysis completed for Solution.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Colorir expressões regulares</target>
@@ -420,6 +430,21 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">Revisar alterações</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Code_Analysis_on_0">
+        <source>Run Code Analysis on {0}</source>
+        <target state="new">Run Code Analysis on {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_0">
+        <source>Running code analysis for '{0}'...</source>
+        <target state="new">Running code analysis for '{0}'...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_Solution">
+        <source>Running code analysis for Solution...</source>
+        <target state="new">Running code analysis for Solution...</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_low_priority_background_processes">

@@ -1343,7 +1343,7 @@ class C
 
     {
         B.C1 result = (B.C1)c1 ?? new B.C1() ?? B.C1.P ?? new B.C1[0] { }[0] ?? new List<B.C1>()[0] ?? (B.C1?)null;
-        (B.C1 a, int b) = (default, default);
+        (global::B.C1 a, int b) = (default, default);
         return result;
     }
 }", safe: true, useSymbolAnnotations);
