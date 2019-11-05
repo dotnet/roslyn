@@ -404,6 +404,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var identity = new AssemblyIdentity(noThrow: true, name: "");
             var name = identity.GetDisplayName();
             Assert.Equal(", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", name);
+            Assert.False(AssemblyIdentity.TryParseDisplayName(name, out _));
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
