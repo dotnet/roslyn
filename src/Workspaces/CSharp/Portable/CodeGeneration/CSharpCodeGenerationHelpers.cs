@@ -168,11 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
         }
 
-        public static StatementSyntax LastStatement(SyntaxList<StatementSyntax> statements)
-        {
-            return statements.LastOrDefault(s => s is StatementSyntax);
-        }
-
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
