@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
             var kind = StripInvalidPathChars(solution.Workspace.Kind ?? "");
             var hash = StripInvalidPathChars(Checksum.Create(solution.FilePath).ToString());
 
-            return Path.Combine(appDataFolder, "Roslyn", kind, hash);
+            return Path.Combine(appDataFolder, "Roslyn", "Cache", kind, hash);
 
             static string StripInvalidPathChars(string val)
             {
