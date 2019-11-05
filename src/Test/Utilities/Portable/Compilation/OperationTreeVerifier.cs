@@ -451,11 +451,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
             var variablesCountStr = $"{operation.Declarations.Length} declarations";
-            var declarationKind = operation.DeclarationKind != VariableDeclarationKind.Default ? $", DeclarationKind: {operation.DeclarationKind}" : string.Empty;
-            LogString($"{nameof(IVariableDeclarationGroupOperation)} ({variablesCountStr}{declarationKind})");
+            LogString($"{nameof(IVariableDeclarationGroupOperation)} ({variablesCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitVariableDeclarationGroup(operation);
+        }
+
+        public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
+        {
+            LogString($"{nameof(IUsingDeclarationOperation)}");
+            LogString($"(IsAsynchronous: {operation.IsAsynchronous})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.DeclarationGroup, "DeclarationGroup");
         }
 
         public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)

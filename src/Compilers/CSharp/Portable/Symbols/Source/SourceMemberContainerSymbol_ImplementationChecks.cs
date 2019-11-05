@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result = HasBaseTypeDeclaringInterfaceResult.ExactMatch;
                     return true;
                 }
-                else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, TypeSymbol.EqualsIgnoringNullableComparer))
+                else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, Symbols.SymbolEqualityComparer.IgnoringNullable))
                 {
                     result = HasBaseTypeDeclaringInterfaceResult.IgnoringNullableMatch;
                 }

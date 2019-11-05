@@ -240,5 +240,7 @@ namespace Microsoft.CodeAnalysis
         SwitchExpressionArm = 0x6a,
         /// <summary>Indicates an <see cref="IPropertySubpatternOperation"/>.</summary>
         PropertySubpattern = 0x6b,
+        /// <summary>Indicates an <see cref="IUsingDeclarationOperation"/>.</summary>
+        UsingDeclaration = 0x6c,
     }
 }

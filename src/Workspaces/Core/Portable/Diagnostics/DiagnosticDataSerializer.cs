@@ -285,8 +285,20 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 var properties = GetProperties(reader, propertiesCount);
 
                 list.Add(new DiagnosticData(
-                    id, category, message, messageFormat, severity, defaultSeverity, isEnabledByDefault, warningLevel, customTags, properties,
-                    project.Id, location, additionalLocations,
+                    id: id,
+                    category: category,
+                    message: message,
+                    enuMessageForBingSearch: messageFormat,
+                    severity: severity,
+                    defaultSeverity: defaultSeverity,
+                    isEnabledByDefault: isEnabledByDefault,
+                    warningLevel: warningLevel,
+                    customTags: customTags,
+                    properties: properties,
+                    projectId: project.Id,
+                    location: location,
+                    additionalLocations: additionalLocations,
+                    language: project.Language,
                     title: title,
                     description: description,
                     helpLink: helpLink,

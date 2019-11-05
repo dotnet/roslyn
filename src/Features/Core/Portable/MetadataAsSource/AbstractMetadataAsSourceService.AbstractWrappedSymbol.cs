@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
             {
-                return equalityComparer.Equals(this, other);
+                return Equals(other);
             }
         }
     }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -14,11 +15,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// </summary>
     internal abstract class LanguageInstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> : IDkmLanguageInstructionDecoder
         where TCompilation : Compilation
-        where TMethodSymbol : class, IMethodSymbol
-        where TModuleSymbol : class, IModuleSymbol
-        where TTypeSymbol : class, ITypeSymbol
-        where TTypeParameterSymbol : class, ITypeParameterSymbol
-        where TParameterSymbol : class, IParameterSymbol
+        where TMethodSymbol : class, IMethodSymbolInternal
+        where TModuleSymbol : class, IModuleSymbolInternal
+        where TTypeSymbol : class, ITypeSymbolInternal
+        where TTypeParameterSymbol : class, ITypeParameterSymbolInternal
+        where TParameterSymbol : class, IParameterSymbolInternal
     {
         private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> _instructionDecoder;
 

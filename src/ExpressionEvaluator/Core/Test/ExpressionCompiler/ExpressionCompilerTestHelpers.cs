@@ -20,6 +20,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.Metadata.Tools;
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             bool expectedGeneric,
             string expectedValueSourcePath,
             int expectedValueSourceLine)
-            where TMethodSymbol : IMethodSymbol
+            where TMethodSymbol : IMethodSymbolInternal
         {
             Assert.Equal(expectedLocalName, localAndMethod.LocalName);
             Assert.Equal(expectedLocalDisplayName, localAndMethod.LocalDisplayName);

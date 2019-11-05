@@ -115,5 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
             return symbol.ToDisplayString(format);
         }
+
+        public static string ToTestDisplayString(this Symbol symbol, bool includeNonNullable)
+        {
+            SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
+            return symbol.ToDisplayString(format);
+        }
     }
 }

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (boundSymbols.Length == 1)
                 {
-                    var boundAlias = boundSymbols[0] as AliasSymbol;
+                    var boundAlias = boundSymbols[0] as IAliasSymbol;
                     if ((object)boundAlias != null && alias.Target.Equals(symbol))
                     {
                         builder.Add(CreatePart(SymbolDisplayPartKind.AliasName, alias, aliasName));

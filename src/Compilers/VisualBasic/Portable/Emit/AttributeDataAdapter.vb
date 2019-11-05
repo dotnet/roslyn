@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -61,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function CreateMetadataExpression(argument As TypedConstant, context As EmitContext) As Cci.IMetadataExpression
             If argument.IsNull Then
-                Return CreateMetadataConstant(argument.Type, Nothing, context)
+                Return CreateMetadataConstant(argument.TypeInternal, Nothing, context)
             End If
 
             Select Case argument.Kind
@@ -70,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case TypedConstantKind.Type
                     Return CreateType(argument, context)
                 Case Else
-                    Return CreateMetadataConstant(argument.Type, argument.Value, context)
+                    Return CreateMetadataConstant(argument.TypeInternal, argument.ValueInternal, context)
             End Select
         End Function
 
@@ -80,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim values = argument.Values
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
-            Dim arrayType = moduleBeingBuilt.Translate(DirectCast(argument.Type, ArrayTypeSymbol))
+            Dim arrayType = moduleBeingBuilt.Translate(DirectCast(argument.TypeInternal, ArrayTypeSymbol))
 
             If values.Length = 0 Then
                 Return New MetadataCreateArray(arrayType,
@@ -99,16 +100,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function CreateType(argument As TypedConstant, context As EmitContext) As MetadataTypeOf
-            Debug.Assert(argument.Value IsNot Nothing)
+            Debug.Assert(argument.ValueInternal IsNot Nothing)
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
             Dim syntaxNodeOpt = DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode)
             Dim diagnostics = context.Diagnostics
-            Return New MetadataTypeOf(moduleBeingBuilt.Translate(DirectCast(argument.Value, TypeSymbol), syntaxNodeOpt, diagnostics),
-                                      moduleBeingBuilt.Translate(DirectCast(argument.Type, TypeSymbol), syntaxNodeOpt, diagnostics))
+            Return New MetadataTypeOf(moduleBeingBuilt.Translate(DirectCast(argument.ValueInternal, TypeSymbol), syntaxNodeOpt, diagnostics),
+                                      moduleBeingBuilt.Translate(DirectCast(argument.TypeInternal, TypeSymbol), syntaxNodeOpt, diagnostics))
         End Function
 
-        Private Function CreateMetadataConstant(type As ITypeSymbol, value As Object, context As EmitContext) As MetadataConstant
+        Private Function CreateMetadataConstant(type As ITypeSymbolInternal, value As Object, context As EmitContext) As MetadataConstant
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.CreateConstant(DirectCast(type, TypeSymbol), value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
