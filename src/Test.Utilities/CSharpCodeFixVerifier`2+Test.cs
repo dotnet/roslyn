@@ -16,13 +16,13 @@ namespace Test.Utilities
         {
             public Test()
             {
+                ReferenceAssemblies = AdditionalMetadataReferences.Default;
+
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.Netstandard);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeFacadeRef);
-                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingFacadeRef);
-                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingTaskFacadeRef);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDiagnosticsDebugReference);
 

@@ -1,24 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
+using NuGet.Packaging.Core;
+using NuGet.Versioning;
 using TestResources.NetFX;
 
 namespace Test.Utilities
 {
     public static class AdditionalMetadataReferences
     {
+        public static ReferenceAssemblies Default { get; } = ReferenceAssemblies.Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", NuGetVersion.Parse("3.0.0"))));
+
         private static readonly Lazy<Assembly> s_netstandardAssembly = new Lazy<Assembly>(() => Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"));
         private static readonly Lazy<MetadataReference> s_netstandardReference = new Lazy<MetadataReference>(() => MetadataReference.CreateFromFile(s_netstandardAssembly.Value.Location));
 
+        public static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        public static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromFile(typeof(HashSet<>).Assembly.Location);
+        public static readonly MetadataReference SystemCollectionsImmutableReference = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static readonly MetadataReference SystemComponentModelCompositionReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
         public static readonly MetadataReference SystemCompositionReference = MetadataReference.CreateFromFile(typeof(System.Composition.ExportAttribute).Assembly.Location);
         internal static readonly MetadataReference SystemXmlReference = MetadataReference.CreateFromFile(typeof(System.Xml.XmlDocument).Assembly.Location);
         internal static readonly MetadataReference SystemXmlDataReference = MetadataReference.CreateFromFile(typeof(System.Data.Rule).Assembly.Location);
+        internal static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
         internal static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location);
         internal static readonly MetadataReference VisualBasicSymbolsReference = MetadataReference.CreateFromFile(typeof(VisualBasicCompilation).Assembly.Location);
         internal static readonly MetadataReference WorkspacesReference = MetadataReference.CreateFromFile(typeof(Workspace).Assembly.Location);
