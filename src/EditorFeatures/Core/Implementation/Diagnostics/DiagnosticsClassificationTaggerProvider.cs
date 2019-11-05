@@ -4,7 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices))
             {
                 var additionalLocations = diagnosticData.AdditionalLocations.ToImmutableArray();
-                var indices = JsonConvert.DeserializeObject<IEnumerable<int>>(unnecessaryIndices);
+                var indices = GetLocationIndices(unnecessaryIndices);
                 locationsToTag.AddRange(indices.Select(i => additionalLocations[i]).ToImmutableArray());
             }
             else
@@ -81,6 +84,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             return locationsToTag.ToImmutable();
+
+            static IEnumerable<int> GetLocationIndices(string indicesProperty)
+            {
+                var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
+                var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
+
+                var result = serializer.ReadObject(stream) as IEnumerable<int>;
+                stream.Close();
+                return result;
+            }
         }
     }
 }
