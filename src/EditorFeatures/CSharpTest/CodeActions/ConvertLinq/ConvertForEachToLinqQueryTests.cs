@@ -465,7 +465,7 @@ class C
     IEnumerable<int> M()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        return nums.Where(x => x > 2).Select(x => x);
+        return nums.Where(x => x > 2);
     }
 }";
 
@@ -1661,7 +1661,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -1707,7 +1707,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -3864,7 +3864,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        int c = (nums.AsQueryable().Select(n1 => n1)).Count();
+        int c = (nums.AsQueryable()).Count();
     }
 }";
 
@@ -4244,10 +4244,6 @@ class C
         /* 10 *//* 11 *//* 8*/// 9
         n1 =>
 /* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
-        ).Select(
-        /* 1 *//* 2 *//* 17 */// 18
-        /* 3 */n1 /* 4 */=> n1/* 4 *//* 21 */// 22
-        /*23*//*24*//* 5 */// 7
         ))
         {
             /*19*/

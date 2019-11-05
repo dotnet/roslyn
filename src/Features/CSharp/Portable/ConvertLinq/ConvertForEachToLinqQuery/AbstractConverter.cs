@@ -183,6 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             //      OR
             //   c1.SelectMany(n1 => ...
             //
+
+            if (lambdaBody is IdentifierNameSyntax identifier &&
+                identifier.Identifier.ValueText == forEachStatement.Identifier.ValueText &&
+                receiverForInvocation is InvocationExpressionSyntax receiverInvocationExpression)
+            {
+                return receiverInvocationExpression;
+            }
+
             var invokedMethodName = !hasForEachChild ? nameof(Enumerable.Select) : nameof(Enumerable.SelectMany);
             return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
