@@ -1240,7 +1240,8 @@ class C
 }", safe: true, useSymbolAnnotations);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/39641"), InlineData(true), InlineData(false)]
+        [WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
         public async Task TestSafeWithMatchingSimpleNameInAllLocations(bool useSymbolAnnotations)
         {
             await TestAsync(
@@ -1343,7 +1344,7 @@ class C
 
     {
         B.C1 result = (B.C1)c1 ?? new B.C1() ?? B.C1.P ?? new B.C1[0] { }[0] ?? new List<B.C1>()[0] ?? (B.C1?)null;
-        (global::B.C1 a, int b) = (default, default);
+        (B.C1 a, int b) = (default, default);
         return result;
     }
 }", safe: true, useSymbolAnnotations);
