@@ -71,11 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
 
-        protected override void Meet(ref LocalState self, ref LocalState other)
+        protected override bool Meet(ref LocalState self, ref LocalState other)
         {
+            var old = self;
             self.Alive &= other.Alive;
             self.Reported &= other.Reported;
             Debug.Assert(!self.Alive || !self.Reported);
+            return self.Alive != old.Alive;
         }
 
         protected override bool Join(ref LocalState self, ref LocalState other)

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.True(f0Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", f0Mod.Modifier.ToTestDisplayString());
-            Assert.Same(mscorlibAssembly, f0Mod.Modifier.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, f0Mod.Modifier.ContainingAssembly.GetSymbol());
 
             MethodSymbol m1 = modifiers.GetMembers("F1").OfType<MethodSymbol>().Single();
             ParameterSymbol p1 = m1.Parameters[0];
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.True(p1Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p1Mod.Modifier.ToTestDisplayString());
-            Assert.Same(mscorlibAssembly, p1Mod.Modifier.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, p1Mod.Modifier.ContainingAssembly.GetSymbol());
 
             Assert.Equal(2, p2.TypeWithAnnotations.CustomModifiers.Length);
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             {
                 Assert.True(p2Mod.IsOptional);
                 Assert.Equal("System.Runtime.CompilerServices.IsConst", p2Mod.Modifier.ToTestDisplayString());
-                Assert.Same(mscorlibAssembly, p2Mod.Modifier.ContainingAssembly);
+                Assert.Same(mscorlibAssembly, p2Mod.Modifier.ContainingAssembly.GetSymbol());
             }
 
             Assert.True(m5.ReturnsVoid);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             var m5Mod = m5.ReturnTypeWithAnnotations.CustomModifiers[0];
             Assert.True(m5Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", m5Mod.Modifier.ToTestDisplayString());
-            Assert.Same(mscorlibAssembly, m5Mod.Modifier.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, m5Mod.Modifier.ContainingAssembly.GetSymbol());
 
             Assert.Equal(0, p5.TypeWithAnnotations.CustomModifiers.Length);
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.True(p5TypeMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p5TypeMod.Modifier.ToTestDisplayString());
-            Assert.Same(mscorlibAssembly, p5TypeMod.Modifier.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, p5TypeMod.Modifier.ContainingAssembly.GetSymbol());
 
             Assert.Equal(0, p6.TypeWithAnnotations.CustomModifiers.Length);
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.True(p6TypeMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p6TypeMod.Modifier.ToTestDisplayString());
-            Assert.Same(mscorlibAssembly, p6TypeMod.Modifier.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, p6TypeMod.Modifier.ContainingAssembly.GetSymbol());
 
             Assert.False(m7.ReturnsVoid);
             Assert.Equal(1, m7.ReturnTypeWithAnnotations.CustomModifiers.Length);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             var m7Mod = m7.ReturnTypeWithAnnotations.CustomModifiers[0];
             Assert.True(m7Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", m7Mod.Modifier.ToTestDisplayString());
-            Assert.Same(mscorlibAssembly, m7Mod.Modifier.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, m7Mod.Modifier.ContainingAssembly.GetSymbol());
         }
 
         [Fact]
@@ -164,7 +164,7 @@ public class Modifiers
             Assert.False(volatileFldMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsVolatile", volatileFldMod.Modifier.ToTestDisplayString());
             Assert.Equal(SpecialType.System_Int32, volatileFld.Type.SpecialType);
-            Assert.Same(mscorlibAssembly, volatileFldMod.Modifier.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, ((CSharpCustomModifier)volatileFldMod).ModifierSymbol.ContainingAssembly);
 
             Assert.Equal("volatileFld", volatileFld.Name);
             Assert.True(volatileFld.IsVolatile);

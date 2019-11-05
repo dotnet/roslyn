@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Consumers of the result depend on the sorting performed by AllInterfacesWithDefinitionUseSiteDiagnostics.
             // Let's use similar sort algorithm.
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsConsiderEverything);
+            var visited = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything);
 
             for (int i = interfaces.Length - 1; i >= 0; i--)
             {

@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundNode Rewrite(ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> updatedNullabilities, SnapshotManager? snapshotManager, BoundNode node, ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
-            var remappedSymbolsBuilder = ImmutableDictionary.CreateBuilder<Symbol, Symbol>(SymbolEqualityComparer.ConsiderEverything, SymbolEqualityComparer.ConsiderEverything);
+            var remappedSymbolsBuilder = ImmutableDictionary.CreateBuilder<Symbol, Symbol>(Symbols.SymbolEqualityComparer.ConsiderEverything, Symbols.SymbolEqualityComparer.ConsiderEverything);
             if (remappedSymbols is object)
             {
                 // When we're rewriting for the speculative model, there will be a set of originally-mapped symbols, and we need to
@@ -1310,11 +1310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetStateAndTrackForFinally(ref LocalState state, int slot, NullableFlowState newState)
         {
             state[slot] = newState;
-            if (newState == NullableFlowState.MaybeNull && _tryState.HasValue)
+            if (newState == NullableFlowState.MaybeNull && NonMonotonicState.HasValue)
             {
-                var tryState = _tryState.Value;
+                var tryState = NonMonotonicState.Value;
                 tryState[slot] = NullableFlowState.MaybeNull;
-                _tryState = tryState;
+                NonMonotonicState = tryState;
             }
         }
 
@@ -7872,15 +7872,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void Meet(ref LocalState self, ref LocalState other)
+        protected override bool Meet(ref LocalState self, ref LocalState other)
         {
             if (!self.Reachable)
-                return;
+                return false;
 
             if (!other.Reachable)
             {
                 self = other.Clone();
-                return;
+                return true;
             }
 
             if (self.Capacity != other.Capacity)
@@ -7889,7 +7889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Normalize(ref other);
             }
 
-            self.Meet(in other);
+            return self.Meet(in other);
         }
 
         protected override bool Join(ref LocalState self, ref LocalState other)
@@ -7999,7 +7999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool Equals((NullabilityInfo info, TypeSymbol type) x, (NullabilityInfo info, TypeSymbol type) y)
             {
                 return x.info.Equals(y.info) &&
-                       SymbolEqualityComparer.ConsiderEverything.Equals(x.type, y.type);
+                       Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(x.type, y.type);
             }
 
             public int GetHashCode((NullabilityInfo info, TypeSymbol type) obj)

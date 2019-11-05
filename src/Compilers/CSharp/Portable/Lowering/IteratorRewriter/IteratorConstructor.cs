@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return Accessibility.Public; }
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
         {
             get { return ((ISynthesizedMethodBodyImplementationSymbol)this.ContainingSymbol).Method; }
         }

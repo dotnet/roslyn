@@ -377,7 +377,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilation(tree);
+            var comp = (Compilation)CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var a = tree.GetRoot().DescendantNodes()
                 .OfType<IdentifierNameSyntax>().ElementAt(2);
@@ -1050,7 +1050,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.ValueText == "x").Single();
-            var localSymbol = (LocalFunctionSymbol)model.GetDeclaredSymbol(x).ContainingSymbol;
+            var localSymbol = model.GetDeclaredSymbol(x).ContainingSymbol.GetSymbol<LocalFunctionSymbol>();
             var typeParam = localSymbol.TypeParameters.Single();
             var attrs = typeParam.GetAttributes();
 
@@ -1068,7 +1068,7 @@ class C
         [Fact]
         public void TypeParameterAttributesInSemanticModel()
         {
-            var comp = CreateCompilation(@"
+            var comp = (Compilation)CreateCompilation(@"
 using System;
 class C
 {
@@ -1091,7 +1091,7 @@ class C
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var root = tree.GetRoot();
 
             var model = comp.GetSemanticModel(tree);
@@ -1119,7 +1119,7 @@ class C
                 .Where(id => id.Identifier.ValueText == "CLSCompliant")
                 .Single();
             var clsCompliantSymbol = comp.GlobalNamespace
-                .GetMember<NamespaceSymbol>("System")
+                .GetMember<INamespaceSymbol>("System")
                 .GetTypeMember("CLSCompliantAttribute");
 
             Assert.Null(model.GetDeclaredSymbol(clsCompliant));
@@ -1127,7 +1127,7 @@ class C
             // This should be null because there is no CLSCompliant ctor with no args
             var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
             Assert.Null(clsCompliantSymbolInfo.Symbol);
-            Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
+            Assert.Equal(clsCompliantSymbol.GetMember<IMethodSymbol>(".ctor"),
                 clsCompliantSymbolInfo.CandidateSymbols.Single());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, clsCompliantSymbolInfo.CandidateReason);
 
@@ -1137,13 +1137,13 @@ class C
 
             Assert.Equal(clsCompliantSymbol,
                 model.LookupNamespacesAndTypes(clsCompliant.SpanStart, name: "CLSCompliantAttribute").Single());
-            comp.DeclarationDiagnostics.Verify();
+            ((CSharpCompilation)comp).DeclarationDiagnostics.Verify();
         }
 
         [Fact]
         public void ParameterAttributesInSemanticModel()
         {
-            var comp = CreateCompilation(@"
+            var comp = (Compilation)CreateCompilation(@"
 using System;
 class C
 {
@@ -1166,7 +1166,7 @@ class C
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var root = tree.GetRoot();
 
             var model = comp.GetSemanticModel(tree);
@@ -1194,7 +1194,7 @@ class C
                 .Where(id => id.Identifier.ValueText == "CLSCompliant")
                 .Single();
             var clsCompliantSymbol = comp.GlobalNamespace
-                .GetMember<NamespaceSymbol>("System")
+                .GetMember<INamespaceSymbol>("System")
                 .GetTypeMember("CLSCompliantAttribute");
 
             Assert.Null(model.GetDeclaredSymbol(clsCompliant));
@@ -1202,7 +1202,7 @@ class C
             // This should be null because there is no CLSCompliant ctor with no args
             var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
             Assert.Null(clsCompliantSymbolInfo.Symbol);
-            Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
+            Assert.Equal(clsCompliantSymbol.GetMember<IMethodSymbol>(".ctor"),
                 clsCompliantSymbolInfo.CandidateSymbols.Single());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, clsCompliantSymbolInfo.CandidateReason);
 
@@ -1212,7 +1212,7 @@ class C
 
             Assert.Equal(clsCompliantSymbol,
                 model.LookupNamespacesAndTypes(clsCompliant.SpanStart, name: "CLSCompliantAttribute").Single());
-            comp.DeclarationDiagnostics.Verify();
+            ((CSharpCompilation)comp).DeclarationDiagnostics.Verify();
         }
 
         [Fact]
@@ -1256,7 +1256,7 @@ class C
 
             var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
             var model = comp.GetSemanticModel(tree);
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()).GetSymbol());
             var typeParam = localSymbol.TypeParameters.Single();
             var attrs = typeParam.GetAttributes();
 
@@ -1306,7 +1306,7 @@ class C
 
             var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
             var model = comp.GetSemanticModel(tree);
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()).GetSymbol());
             var param = localSymbol.Parameters[0];
             var attrs = param.GetAttributes();
 
