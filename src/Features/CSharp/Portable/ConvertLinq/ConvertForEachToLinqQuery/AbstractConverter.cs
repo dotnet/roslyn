@@ -184,15 +184,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             //   c1.SelectMany(n1 => ...
             //
 
+            var invokedMethodName = !hasForEachChild ? nameof(Enumerable.Select) : nameof(Enumerable.SelectMany);
+
             // Avoid `.Select(x => x)`
-            if (lambdaBody is IdentifierNameSyntax identifier &&
+            if (invokedMethodName == nameof(Enumerable.Select) &&
+                lambdaBody is IdentifierNameSyntax identifier &&
                 identifier.Identifier.ValueText == forEachStatement.Identifier.ValueText &&
                 receiverForInvocation is InvocationExpressionSyntax receiverInvocationExpression)
             {
                 return receiverInvocationExpression;
             }
 
-            var invokedMethodName = !hasForEachChild ? nameof(Enumerable.Select) : nameof(Enumerable.SelectMany);
             return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
