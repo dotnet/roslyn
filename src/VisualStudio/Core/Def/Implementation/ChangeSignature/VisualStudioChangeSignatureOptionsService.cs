@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.Composition;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
@@ -82,12 +80,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
         }
 
-        public async System.Threading.Tasks.Task AttachToEditorAsync(Document document, CancellationToken cancellationToken)
+        public AddedParameterResult GetAddedParameter(Document document)
         {
-            var vsTextView = (await GetTextViewAsync(document, cancellationToken).ConfigureAwait(false)).Item1;
+            // TODO async?
+            var vsTextView = GetTextViewAsync(document, CancellationToken.None).Result.Item1;
             var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
-            var target = new AddParameterDialogOleCommandTarget(wpfTextView, _editorAdaptersFactoryService, _originalServiceProvider);
-            target.AttachToVsTextView();
+            var parameterTypeEditorControl = new ParameterTypeEditorControl(
+                wpfTextView,
+                _editorAdaptersFactoryService,
+                _originalServiceProvider);
+
+            parameterTypeEditorControl.AttachToVsTextView();
+
+            var viewModel = new AddParameterDialogViewModel(parameterTypeEditorControl);
+            var dialog = new AddParameterDialog(viewModel);
+            var result = dialog.ShowModal();
+
+            if (result.HasValue && result.Value)
+            {
+                return new AddedParameterResult
+                {
+                    IsCancelled = false,
+                    AddedParameter = new AddedParameter(
+                        viewModel.TypeNameEditorControl.GetText(),
+                        viewModel.ParameterName,
+                        viewModel.CallsiteValue)
+                };
+            }
+            else
+            {
+                return new AddedParameterResult { IsCancelled = true };
+            }
         }
 
         private async Task<string> GetDocumentTextAsync(Document document, CancellationToken cancellationToken)
@@ -98,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return sourceText.ToString();
         }
 
-        private async Task<(IVsTextView, IWpfTextViewHost)> GetTextViewAsync(Document document, CancellationToken cancellationToken)
+        public async Task<(IVsTextView, IWpfTextViewHost)> GetTextViewAsync(Document document, CancellationToken cancellationToken)
         {
             var documentText = await GetDocumentTextAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -111,8 +134,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var bufferAdapter = _vsEditorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, _contentType);
             bufferAdapter.InitializeContent(documentText, documentText.Length);
 
-       //     var textBuffer = _vsEditorAdaptersFactoryService.GetDataBuffer(bufferAdapter);
-       //     document.Project.Solution.Workspace.OnDocumentOpened(document.Id, textBuffer.AsTextContainer());
+            //     var textBuffer = _vsEditorAdaptersFactoryService.GetDataBuffer(bufferAdapter);
+            //     document.Project.Solution.Workspace.OnDocumentOpened(document.Id, textBuffer.AsTextContainer());
 
             var initView = new[] {
                 new INITVIEW()

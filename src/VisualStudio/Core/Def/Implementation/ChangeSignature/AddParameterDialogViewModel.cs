@@ -6,9 +6,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     internal class AddParameterDialogViewModel : AbstractNotifyPropertyChanged
     {
-        public string TypeName { get; set; }
+        public AddParameterDialogViewModel(ParameterTypeEditorControl parameterTypeEditorControl)
+        {
+            TypeNameEditorControl = parameterTypeEditorControl;
+        }
+
         public string ParameterName { get; set; }
         public string CallsiteValue { get; set; }
+
+        public ParameterTypeEditorControl TypeNameEditorControl { get; }
 
         internal bool TrySubmit()
         {
