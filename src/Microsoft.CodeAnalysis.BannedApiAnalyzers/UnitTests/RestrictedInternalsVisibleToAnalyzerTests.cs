@@ -262,7 +262,7 @@ Class C2
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                new DiagnosticResult("BC30389", DiagnosticSeverity.Error)
+                DiagnosticResult.CompilerError("BC30389")
                     .WithLocation("Test0.vb", new LinePosition(2, 23), DiagnosticLocationOptions.IgnoreAdditionalLocations)
                     .WithMessage("'N1.C1' is not accessible in this context because it is 'Friend'."));
         }

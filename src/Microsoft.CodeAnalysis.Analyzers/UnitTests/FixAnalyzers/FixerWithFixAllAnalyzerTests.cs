@@ -217,9 +217,9 @@ class C1 : CodeFixProvider
                 GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1"),
                 false,
                 // Test0.cs(21,40): error CS1501: No overload for method 'Create' takes 1 arguments
-                new DiagnosticResult("CS1501", DiagnosticSeverity.Error).WithLocation(21, 40),
+                DiagnosticResult.CompilerError("CS1501").WithLocation(21, 40),
                 // Test0.cs(22,40): error CS7036: There is no argument given that corresponds to the required formal parameter 'title' of 'CodeAction.Create(string, Func<CancellationToken, Task<Document>>, string)'
-                new DiagnosticResult("CS7036", DiagnosticSeverity.Error).WithLocation(22, 40));
+                DiagnosticResult.CompilerError("CS7036").WithLocation(22, 40));
         }
 
         [Fact]
@@ -570,9 +570,9 @@ Class C1
                 GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1"),
                 false,
                 // Test0.vb(18) : error BC30516: Overload resolution failed because no accessible 'Create' accepts this number of arguments.
-                new DiagnosticResult("BC30516", DiagnosticSeverity.Error).WithLocation(18, 34),
+                DiagnosticResult.CompilerError("BC30516").WithLocation(18, 34),
                 // Test0.vb(19) : error BC30518: Overload resolution failed because no accessible 'Create' can be called with these arguments:
-                new DiagnosticResult("BC30518", DiagnosticSeverity.Error).WithLocation(19, 34));
+                DiagnosticResult.CompilerError("BC30518").WithLocation(19, 34));
         }
 
         [Fact]
