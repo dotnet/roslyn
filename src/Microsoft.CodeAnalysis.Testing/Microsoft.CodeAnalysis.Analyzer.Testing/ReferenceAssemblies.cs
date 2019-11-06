@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Packages = ImmutableArray<PackageIdentity>.Empty;
         }
 
-        public ReferenceAssemblies(string targetFramework, PackageIdentity referenceAssemblyPackage, string referenceAssemblyPath)
+        public ReferenceAssemblies(string targetFramework, PackageIdentity? referenceAssemblyPackage, string referenceAssemblyPath)
         {
             TargetFramework = targetFramework ?? throw new ArgumentNullException(nameof(targetFramework));
             AssemblyIdentityComparer = AssemblyIdentityComparer.Default;
@@ -186,30 +186,30 @@ namespace Microsoft.CodeAnalysis.Testing
             using (var cacheContext = new SourceCacheContext())
             {
                 var repositories = sourceRepositoryProvider.GetRepositories().ToImmutableArray();
-                var dependencies = ImmutableDictionary.CreateBuilder<PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
+                var dependencies = ImmutableDictionary.CreateBuilder<NuGet.Packaging.Core.PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 
                 if (ReferenceAssemblyPackage is object)
                 {
-                    await GetPackageDependenciesAsync(ReferenceAssemblyPackage, targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                    await GetPackageDependenciesAsync(ReferenceAssemblyPackage.ToNuGetIdentity(), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
                 }
 
                 foreach (var packageIdentity in Packages)
                 {
-                    await GetPackageDependenciesAsync(packageIdentity, targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                    await GetPackageDependenciesAsync(packageIdentity.ToNuGetIdentity(), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
                 }
 
                 var availablePackages = dependencies.ToImmutable();
 
-                var packagesToInstall = new List<PackageIdentity>();
+                var packagesToInstall = new List<NuGet.Packaging.Core.PackageIdentity>();
                 if (ReferenceAssemblyPackage is object)
                 {
-                    packagesToInstall.Add(ReferenceAssemblyPackage);
+                    packagesToInstall.Add(ReferenceAssemblyPackage.ToNuGetIdentity()!);
                 }
 
                 if (!Packages.IsEmpty)
                 {
                     var targetIds = new List<string>(Packages.Select(package => package.Id));
-                    var preferredVersions = new List<PackageIdentity>(Packages);
+                    var preferredVersions = new List<NuGet.Packaging.Core.PackageIdentity>(Packages.Select(package => package.ToNuGetIdentity()));
                     if (ReferenceAssemblyPackage is object)
                     {
                         // Make sure to include the implicit reference assembly package
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                         if (!preferredVersions.Any(preferred => preferred.Id == ReferenceAssemblyPackage.Id))
                         {
-                            preferredVersions.Add(ReferenceAssemblyPackage);
+                            preferredVersions.Add(ReferenceAssemblyPackage.ToNuGetIdentity());
                         }
                     }
 
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             logger,
                             cancellationToken);
 
-                        if (!PackageIdentityComparer.Default.Equals(packageToInstall, ReferenceAssemblyPackage)
+                        if (!PackageIdentityComparer.Default.Equals(packageToInstall, ReferenceAssemblyPackage?.ToNuGetIdentity())
                             && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Lib).Any()
                             && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Ref).Any())
                         {
@@ -345,8 +345,13 @@ namespace Microsoft.CodeAnalysis.Testing
                         var nearestFrameworkItems = frameworkItems.Single(x => x.TargetFramework == nearestFramework);
                         foreach (var item in nearestFrameworkItems.Items)
                         {
-                            var installedFrameworkPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage)
-                                ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage);
+                            if (ReferenceAssemblyPackage is null)
+                            {
+                                throw new InvalidOperationException($"Cannot resolve framework item '{item}' without a reference assembly package");
+                            }
+
+                            var installedFrameworkPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
+                                ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
                             if (File.Exists(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")))
                             {
                                 resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")));
@@ -357,8 +362,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 foreach (var assembly in Assemblies)
                 {
-                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage)
-                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage);
+                    if (ReferenceAssemblyPackage is null)
+                    {
+                        throw new InvalidOperationException($"Cannot resolve assembly '{assembly}' without a reference assembly package");
+                    }
+
+                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
+                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
                     if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
@@ -369,8 +379,13 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     foreach (var assembly in languageSpecificAssemblies)
                     {
-                        var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage)
-                            ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage);
+                        if (ReferenceAssemblyPackage is null)
+                        {
+                            throw new InvalidOperationException($"Cannot resolve language-specific assembly '{assembly}' without a reference assembly package");
+                        }
+
+                        var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
+                            ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
                         if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                         {
                             resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
@@ -381,8 +396,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 // Add the facade assemblies
                 if (ReferenceAssemblyPackage is object)
                 {
-                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage)
-                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage);
+                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
+                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
                     var facadesPath = Path.Combine(installedPath, ReferenceAssemblyPath, "Facades");
                     if (Directory.Exists(facadesPath))
                     {
@@ -395,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 return resolvedAssemblies.Select(MetadataReferences.CreateReferenceFromFile).ToImmutableArray();
 
-                static string? GetInstalledPath(PackagePathResolver resolver, PackageIdentity id)
+                static string? GetInstalledPath(PackagePathResolver resolver, NuGet.Packaging.Core.PackageIdentity id)
                 {
                     try
                     {
@@ -410,12 +425,12 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         private static async Task GetPackageDependenciesAsync(
-            PackageIdentity packageIdentity,
+            NuGet.Packaging.Core.PackageIdentity packageIdentity,
             NuGetFramework targetFramework,
             ImmutableArray<SourceRepository> repositories,
             SourceCacheContext cacheContext,
             ILogger logger,
-            ImmutableDictionary<PackageIdentity, SourcePackageDependencyInfo>.Builder dependencies,
+            ImmutableDictionary<NuGet.Packaging.Core.PackageIdentity, SourcePackageDependencyInfo>.Builder dependencies,
             CancellationToken cancellationToken)
         {
             if (dependencies.ContainsKey(packageIdentity))
@@ -442,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 dependencies.Add(packageIdentity, dependencyInfo);
                 foreach (var dependency in dependencyInfo.Dependencies)
                 {
-                    await GetPackageDependenciesAsync(new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                    await GetPackageDependenciesAsync(new NuGet.Packaging.Core.PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
                 }
 
                 break;
@@ -458,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net20",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net20",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v2.0"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Data", "System.Xml"))
@@ -475,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net40",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net40",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.0"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Xml", "System.Xml.Linq"))
@@ -496,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net45",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net45",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.5"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -517,7 +532,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net451",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net451",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.5.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -538,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net452",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net452",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.5.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -559,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net46",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net46",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.6"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -580,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net461",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net461",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.6.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -601,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net462",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net462",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.6.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -622,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net47",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net47",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.7"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -643,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net471",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net471",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.7.1"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -664,7 +679,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net472",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net472",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.7.2"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -685,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net48",
                         new PackageIdentity(
                             "Microsoft.NETFramework.ReferenceAssemblies.net48",
-                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                            ReferenceAssembliesPackageVersion),
                         Path.Combine("build", ".NETFramework", "v4.8"))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
@@ -704,57 +719,57 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             public static ReferenceAssemblies NetCoreApp10 { get; }
                 = new ReferenceAssemblies("netcoreapp1.0")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("1.0.16"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", "1.0.16")));
 
             public static ReferenceAssemblies NetCoreApp11 { get; }
                 = new ReferenceAssemblies("netcoreapp1.1")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("1.1.13"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", "1.1.13")));
 
             public static ReferenceAssemblies NetCoreApp20 { get; }
                 = new ReferenceAssemblies("netcoreapp2.0")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("2.0.9"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", "2.0.9")));
 
             public static ReferenceAssemblies NetCoreApp21 { get; }
                 = new ReferenceAssemblies("netcoreapp2.1")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("2.1.13"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", "2.1.13")));
         }
 
         public static class NetStandard
         {
             public static ReferenceAssemblies NetStandard10 { get; }
                 = new ReferenceAssemblies("netstandard1.0")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", "1.6.1")));
 
             public static ReferenceAssemblies NetStandard11 { get; }
                 = new ReferenceAssemblies("netstandard1.1")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", "1.6.1")));
 
             public static ReferenceAssemblies NetStandard12 { get; }
                 = new ReferenceAssemblies("netstandard1.2")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", "1.6.1")));
 
             public static ReferenceAssemblies NetStandard13 { get; }
                 = new ReferenceAssemblies("netstandard1.3")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", "1.6.1")));
 
             public static ReferenceAssemblies NetStandard14 { get; }
                 = new ReferenceAssemblies("netstandard1.4")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", "1.6.1")));
 
             public static ReferenceAssemblies NetStandard15 { get; }
                 = new ReferenceAssemblies("netstandard1.5")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", "1.6.1")));
 
             public static ReferenceAssemblies NetStandard16 { get; }
                 = new ReferenceAssemblies("netstandard1.6")
-                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", "1.6.1")));
 
             public static ReferenceAssemblies NetStandard20 { get; }
                 = new ReferenceAssemblies(
                     "netstandard2.0",
                     new PackageIdentity(
                         "NETStandard.Library",
-                        NuGetVersion.Parse("2.0.3")),
+                        "2.0.3"),
                     Path.Combine("build", "netstandard2.0", "ref"))
                 .AddAssemblies(ImmutableArray.Create("netstandard"))
                 .AddAssemblies(ImmutableArray.Create(
