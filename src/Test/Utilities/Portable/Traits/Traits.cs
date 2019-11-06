@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
             public const string CodeActionsDeclareAsNullable = "CodeActions.DeclareAsNullable";
             public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
+            public const string CodeActionsExtractLocalMethod = "CodeActions.ExtractLocalMethod";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
             public const string CodeActionsFixReturnType = "CodeActions.FixReturnType";

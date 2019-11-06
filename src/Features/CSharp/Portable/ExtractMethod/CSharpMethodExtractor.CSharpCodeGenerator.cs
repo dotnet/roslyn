@@ -34,9 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 bool extractLocalFunction,
+                bool preferStatic,
                 CancellationToken cancellationToken)
             {
-                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
+                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult, extractLocalFunction, preferStatic);
                 return codeGenerator.GenerateAsync(cancellationToken);
             }
 
@@ -44,21 +45,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                bool extractLocalFunction)
+                bool extractLocalFunction,
+                bool preferStatic)
             {
                 if (ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult))
                 {
-                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
+                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction, preferStatic);
                 }
 
                 if (SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult))
                 {
-                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
+                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction, preferStatic);
                 }
 
                 if (MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult))
                 {
-                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction);
+                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, extractLocalFunction, preferStatic);
                 }
 
                 return Contract.FailWithReturn<CSharpCodeGenerator>("Unknown selection");
@@ -68,8 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                bool extractLocalFunction)
-                : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction)
+                bool extractLocalFunction,
+                bool preferStatic)
+                : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction, preferStatic)
             {
                 Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
 

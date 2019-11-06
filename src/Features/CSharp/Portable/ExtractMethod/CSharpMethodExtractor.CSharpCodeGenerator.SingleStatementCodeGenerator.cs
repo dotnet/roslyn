@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
-                    bool extractLocalFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction)
+                    bool extractLocalFunction,
+                    bool preferStatic)
+                    : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction, preferStatic)
                 {
                 }
 

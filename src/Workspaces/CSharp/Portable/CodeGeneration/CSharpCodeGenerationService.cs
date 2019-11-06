@@ -111,7 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddMethod<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, CodeGenerationOptions options, IList<bool> availableIndices)
         {
-            CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax, MethodDeclarationSyntax>(destination);
+            if (destination is PropertyDeclarationSyntax)
+            {
+                return destination;
+            }
+
+            CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax, MethodDeclarationSyntax, LocalFunctionStatementSyntax>(destination);
 
             // Synthesized methods for properties/events are not things we actually generate 
             // declarations for.
@@ -161,6 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is MethodDeclarationSyntax methodDeclaration)
             {
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(methodDeclaration, method, Workspace, options));
+            }
+
+            if (destination is LocalFunctionStatementSyntax localMethodDeclaration)
+            {
+                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(localMethodDeclaration, method, Workspace, options));
             }
 
             if (method.IsConstructor() ||
@@ -591,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return MethodGenerator.GenerateMethodDeclaration<SyntaxNode>(
+                return MethodGenerator.GenerateMethodDeclaration(
                     method, destination, Workspace, options, options.ParseOptions);
             }
         }

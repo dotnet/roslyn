@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal static class ExtractMethodService
     {
-        public static Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, bool extractLocalMethod = false, OptionSet options = null, CancellationToken cancellationToken = default)
+        public static Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, bool extractLocalMethod = false, bool preferStatic = true, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            return document.GetLanguageService<IExtractMethodService>().ExtractMethodAsync(document, textSpan, extractLocalMethod, options, cancellationToken);
+            return document.GetLanguageService<IExtractMethodService>().ExtractMethodAsync(document, textSpan, extractLocalMethod, preferStatic, options, cancellationToken);
         }
     }
 }

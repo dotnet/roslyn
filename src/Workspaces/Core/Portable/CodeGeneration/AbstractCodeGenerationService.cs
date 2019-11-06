@@ -175,6 +175,31 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        protected static void CheckDeclarationNode<TDeclarationNode1, TDeclarationNode2, TDeclarationNode3, TDeclarationNode4, TDeclarationNode5>(SyntaxNode destination)
+            where TDeclarationNode1 : SyntaxNode
+            where TDeclarationNode2 : SyntaxNode
+            where TDeclarationNode3 : SyntaxNode
+            where TDeclarationNode4 : SyntaxNode
+            where TDeclarationNode5 : SyntaxNode
+        {
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
+            if (!(destination is TDeclarationNode1) &&
+                !(destination is TDeclarationNode2) &&
+                !(destination is TDeclarationNode3) &&
+                !(destination is TDeclarationNode4) &&
+                !(destination is TDeclarationNode5))
+            {
+                throw new ArgumentException(
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_2_3_or_4_but_given_one_is_5,
+                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4), typeof(TDeclarationNode5), destination.GetType().Name),
+                    nameof(destination));
+            }
+        }
+
         private async Task<Document> GetEditAsync(
             Solution solution,
             INamespaceOrTypeSymbol destination,

@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public bool ReuseSyntax { get; }
 
+        /// <summary>
+        /// True if the code generator should attempt to add the static modifier to members if possible.
+        /// </summary>
+        public bool GenerateStaticModifier { get; }
+
         public ParseOptions ParseOptions { get; }
 
         public CodeGenerationOptions(
@@ -150,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool autoInsertionLocation = true,
             bool sortMembers = true,
             bool reuseSyntax = false,
+            bool generateStaticModifier = true,
             ParseOptions parseOptions = null)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
@@ -171,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.AutoInsertionLocation = autoInsertionLocation;
             this.SortMembers = sortMembers;
             this.ReuseSyntax = reuseSyntax;
+            this.GenerateStaticModifier = generateStaticModifier;
 
             this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
         }
@@ -211,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Optional<bool> autoInsertionLocation = default,
             Optional<bool> sortMembers = default,
             Optional<bool> reuseSyntax = default,
+            Optional<bool> generateStaticModifier = default,
             Optional<ParseOptions> parseOptions = default)
         {
             var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
@@ -228,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var newAutoInsertionLocation = autoInsertionLocation.HasValue ? autoInsertionLocation.Value : this.AutoInsertionLocation;
             var newSortMembers = sortMembers.HasValue ? sortMembers.Value : this.SortMembers;
             var newReuseSyntax = reuseSyntax.HasValue ? reuseSyntax.Value : this.ReuseSyntax;
+            var newGenerateStaticModifier = generateStaticModifier.HasValue ? generateStaticModifier.Value : this.GenerateStaticModifier;
             var newParseOptions = parseOptions.HasValue ? parseOptions.Value : this.ParseOptions;
 
             return new CodeGenerationOptions(
@@ -246,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 newAutoInsertionLocation,
                 newSortMembers,
                 newReuseSyntax,
+                newGenerateStaticModifier,
                 newParseOptions);
         }
     }

@@ -17,22 +17,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result, bool extractLocalFunction = false)
-            : base(result, extractLocalFunction)
+        public CSharpMethodExtractor(CSharpSelectionResult result, bool extractLocalFunction = false, bool preferStatic = true)
+            : base(result, extractLocalFunction, preferStatic)
         {
         }
 
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             => CSharpAnalyzer.AnalyzeAsync(selectionResult, cancellationToken);
 
-        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
+        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, bool extractLocalFunction, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(position >= 0);
 
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var basePosition = root.FindToken(position);
 
+            // Check if we are extracting a local function are within a local function
+            var localMemberNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
+            if (extractLocalFunction && localMemberNode != null)
+            {
+                return await InsertionPoint.CreateAsync(document, localMemberNode, cancellationToken).ConfigureAwait(false);
+            }
+
             var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
+
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
@@ -67,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<MethodExtractor.GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, bool extractLocalFunction, CancellationToken cancellationToken)
+        protected override Task<MethodExtractor.GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, bool extractLocalFunction, bool preferStatic, CancellationToken cancellationToken)
         {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, extractLocalFunction, cancellationToken);
+            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, extractLocalFunction, preferStatic, cancellationToken);
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
