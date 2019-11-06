@@ -209,7 +209,6 @@
   <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
