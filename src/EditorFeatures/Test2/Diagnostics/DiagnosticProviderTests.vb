@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 If Not enabled Then
                     workspace.Options = workspace.Options _
                                                   .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
-                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects)
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.Default)
                 End If
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()

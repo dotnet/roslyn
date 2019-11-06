@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// Option to turn configure background analysis scope.
         /// </summary>
         public static readonly Option<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new Option<BackgroundAnalysisScope>(
-            nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.OpenFilesAndProjects,
-            storageLocations: new RoamingProfileStorageLocation($"Options.BackgroundAnalysisScopeOption"));
+            nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.BackgroundAnalysisScopeOption"));
 
         /// <summary>
         /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.
