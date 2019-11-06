@@ -132,19 +132,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void Add_Click(object sender, RoutedEventArgs e)
         {
-            var addParameterViewModel = new AddParameterDialogViewModel();
-            var dialog = new AddParameterDialog(addParameterViewModel);
-
             var changeSignatureOptionsService = _viewModel.Document.Project.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
+            var result = changeSignatureOptionsService.GetAddedParameter(_viewModel.Document);
 
-            // TODO Wait?
-            changeSignatureOptionsService.AttachToEditorAsync(_viewModel.Document, CancellationToken.None).Wait();
-
-            var result = dialog.ShowModal();
-
-            if (result == true)
+            if (!result.IsCancelled)
             {
-                _viewModel.AddParameter(addParameterViewModel);
+                _viewModel.AddParameter(result.AddedParameter);
             }
 
             SetFocusToSelectedRow();

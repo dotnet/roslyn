@@ -183,9 +183,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             RemoveRestoreNotifyPropertyChanged();
         }
 
-        internal void AddParameter(AddParameterDialogViewModel addParameterViewModel)
+        internal void AddParameter(AddedParameter addedParameter)
         {
-            _parameterGroup1.Add(new AddedParameterViewModel(this, addParameterViewModel));
+            _parameterGroup1.Add(new AddedParameterViewModel(this, addedParameter));
 
             RemoveRestoreNotifyPropertyChanged();
         }
@@ -539,23 +539,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public class AddedParameterViewModel : ParameterViewModel
         {
-            private readonly AddParameterDialogViewModel _addParameterViewModel;
+            private readonly AddedParameter _addedParameter;
 
-            public AddedParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, AddParameterDialogViewModel addParameterViewModel)
+            public AddedParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, AddedParameter addedParameter)
                 : base(changeSignatureDialogViewModel)
             {
-                _addParameterViewModel = addParameterViewModel;
+                _addedParameter = addedParameter;
             }
 
-            public override string Type => _addParameterViewModel.TypeName;
+            public override string Type => _addedParameter.TypeName;
 
-            public override string Parameter => _addParameterViewModel.ParameterName;
+            public override string Parameter => _addedParameter.ParameterName;
 
             public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
 
             public override string ParameterAutomationText => $"{Type} {Parameter}";
             public override bool IsDisabled => false;
-            public override string Callsite => _addParameterViewModel.CallsiteValue;
+            public override string Callsite => _addedParameter.CallsiteValue;
 
             internal override Parameter CreateParameter()
                 => new AddedParameter(Type, Parameter, Callsite);

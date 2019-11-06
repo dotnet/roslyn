@@ -27,13 +27,9 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Height="Auto" Width="Auto" Orientation="Vertical">
-            <!--<StackPanel Orientation="Horizontal">
-                <Label>Modifier:</Label>
-                <Label Content="{Binding Modifier}"/>
-            </StackPanel>-->
             <StackPanel Orientation="Horizontal">
                 <Label>Type:</Label>
-                <TextBox Width="200" Text="{Binding TypeName}"/>
+                <TextBox Width="200" Text="{Binding TypeNameEditorControl, Mode=OneTime}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label>Name:</Label>
