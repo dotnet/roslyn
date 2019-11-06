@@ -3,7 +3,6 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.SolutionSize;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
@@ -15,11 +14,6 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
 
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: WorkspaceKind.RemoteTemporaryWorkspace), Shared]
     internal class RemoteTemporaryWorkspacePersistentStorageLocationService : DefaultPersistentStorageLocationService
-    {
-    }
-
-    [Export(typeof(ISolutionSizeTracker)), Shared]
-    internal class RemoteWorkspaceSolutionSizeTracker : SolutionSizeTracker
     {
     }
 }
