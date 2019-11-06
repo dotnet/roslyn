@@ -18,21 +18,24 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorLevelWarning()
         {
             base.ErrorLevelWarning();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
         {
