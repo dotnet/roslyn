@@ -56,9 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string externalErrorReportingPrefix,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt)
-            : base(threadingContext)
+            : base(threadingContext, assertIsForeground: true)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(hierarchy);
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
@@ -101,6 +100,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // In the future, we might consider officially exposing "default namespace" for VB project 
             // (e.g. through a <defaultnamespace> msbuild property)
             VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
+
+            if (TryGetMaxLangVersionPropertyValue(hierarchy, out var maxLangVer))
+            {
+                VisualStudioProject.MaxLangVersion = maxLangVer;
+            }
 
             Hierarchy = hierarchy;
             ConnectHierarchyEvents();
@@ -391,6 +395,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             return null;
+        }
+
+        private static bool TryGetMaxLangVersionPropertyValue(IVsHierarchy hierarchy, out string maxLangVer)
+        {
+            if (!(hierarchy is IVsBuildPropertyStorage storage))
+            {
+                maxLangVer = null;
+                return false;
+            }
+
+            return ErrorHandler.Succeeded(storage.GetPropertyValue("MaxSupportedLangVersion", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out maxLangVer));
         }
     }
 }

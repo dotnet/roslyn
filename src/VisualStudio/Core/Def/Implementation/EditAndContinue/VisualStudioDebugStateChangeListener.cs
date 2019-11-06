@@ -38,6 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             DkmCustomMessage? IDkmCustomMessageForwardReceiver.SendLower(DkmCustomMessage customMessage)
             {
+                // Initialize the listener before OnModuleInstanceLoad/OnModuleInstanceUnload can be triggered.
+                // These events are only called when managed debugging is being used due to RuntimeId=DkmRuntimeId.Clr filter in vsdconfigxml.
                 _encService = (IEditAndContinueWorkspaceService)customMessage.Parameter1;
                 return null;
             }

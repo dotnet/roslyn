@@ -19,6 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Private _projectName As String
         Private _projectBinPath As String
+        Private _maxSupportedLangVer As String
         Private ReadOnly _projectRefPath As String
         Private ReadOnly _projectCapabilities As String
         Private ReadOnly _projectMock As Mock(Of EnvDTE.Project) = New Mock(Of EnvDTE.Project)(MockBehavior.Strict)
@@ -330,6 +331,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf pszPropName = "TargetRefPath" Then
                 pbstrPropValue = _projectRefPath
                 Return VSConstants.S_OK
+            ElseIf pszPropName = "MaxSupportedLangVersion" Then
+                pbstrPropValue = _maxSupportedLangVer
+                Return VSConstants.S_OK
             End If
 
             Throw New NotSupportedException($"{NameOf(MockHierarchy)}.{NameOf(GetPropertyValue)} does not support reading {pszPropName}.")
@@ -341,6 +345,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Return VSConstants.S_OK
             ElseIf pszPropName = "TargetFileName" Then
                 _projectName = PathUtilities.GetFileName(pszPropValue, includeExtension:=False)
+                Return VSConstants.S_OK
+            ElseIf pszPropName = "MaxSupportedLangVersion" Then
+                _maxSupportedLangVer = pszPropValue
                 Return VSConstants.S_OK
             End If
 
