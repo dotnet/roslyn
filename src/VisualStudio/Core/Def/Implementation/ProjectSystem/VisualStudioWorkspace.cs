@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.Shell.Interop;
 
