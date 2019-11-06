@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 documentInfos, p2p, metadata, analyzers, additionalDocumentInfos, projectInfo.IsSubmission)
                 .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
                 .WithHasAllInformation(projectInfo.HasAllInformation)
+                .WithRunAnalyzers(projectInfo.RunAnalyzers)
                 .WithDefaultNamespace(projectInfo.DefaultNamespace)
                 .WithAnalyzerConfigDocuments(analyzerConfigDocumentInfos);
         }

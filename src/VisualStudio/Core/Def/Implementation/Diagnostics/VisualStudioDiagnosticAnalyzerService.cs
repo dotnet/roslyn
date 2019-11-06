@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -36,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IThreadingContext _threadingContext;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
         private IServiceProvider? _serviceProvider;
 
@@ -45,12 +47,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             IDiagnosticAnalyzerService diagnosticService,
             IThreadingContext threadingContext,
             IVsHierarchyItemManager vsHierarchyItemManager,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _threadingContext = threadingContext;
             _vsHierarchyItemManager = vsHierarchyItemManager;
+            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         }
 
@@ -175,7 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public void RunAnalyzers(IVsHierarchy? hierarchy)
         {
             var project = GetProject(hierarchy);
-            string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(_workspace.CurrentSolution.FilePath);
+            var solution = _workspace.CurrentSolution;
+            string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
             var statusMessage = projectOrSolutionName != null
@@ -188,7 +193,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
             Task.Run(async () =>
             {
-                await _diagnosticService.ForceAnalyzeAsync(_workspace.CurrentSolution, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                await _diagnosticService.ForceAnalyzeAsync(solution, project?.Id, CancellationToken.None).ConfigureAwait(false);
+
+                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
+                // then ForceAnalyzeAsync will not cause analyzers to execute.
+                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
+                HandleProjectsWithDisabledAnalysis();
 
                 // Add a message to VS status bar that we completed executing code analysis.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -197,6 +207,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     : ServicesVSResources.Code_analysis_completed_for_Solution;
                 statusBar?.SetText(notificationMesage);
             }).CompletesAsyncOperation(asyncToken);
+
+            return;
+
+            void HandleProjectsWithDisabledAnalysis()
+            {
+                // First clear all special host diagostics for all involved projects.
+                var projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
+                foreach (var project in projects)
+                {
+                    _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);
+                }
+
+                // Now compute the new host diagostics for all projects with disabled analysis.
+                var projectsWithDisabledAnalysis = projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
+                if (!projectsWithDisabledAnalysis.IsEmpty)
+                {
+                    // Compute diagnostics by overidding project's RunCodeAnalysis flag to true.
+                    var tasks = new System.Threading.Tasks.Task<ImmutableArray<DiagnosticData>>[projectsWithDisabledAnalysis.Length];
+                    for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
+                    {
+                        var project = projectsWithDisabledAnalysis[index];
+                        project = project.Solution.WithRunAnalyzers(project.Id, runAnalyzers: true).GetProject(project.Id)!;
+                        tasks[index] = Task.Run(
+                            () => _diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id));
+                    }
+
+                    Task.WhenAll(tasks).Wait();
+
+                    // Report new host diagostics.
+                    for (var index = 0; index < projectsWithDisabledAnalysis.Length; index++)
+                    {
+                        var project = projectsWithDisabledAnalysis[index];
+                        var diagnostics = tasks[index].Result;
+                        _hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(project.Id, key: this, diagnostics);
+                    }
+                }
+            }
         }
 
         private Project? GetProject(IVsHierarchy? hierarchy)
