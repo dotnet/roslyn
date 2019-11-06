@@ -543,6 +543,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 _storageLocation = storageLocation;
             }
 
+            public bool IsSupported(Workspace workspace) => true;
+
             public string TryGetStorageLocation(Solution solution)
                 => solution.Id == _solutionId ? _storageLocation : null;
         }

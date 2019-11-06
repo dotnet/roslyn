@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -13,6 +12,8 @@ namespace AnalyzerRunner
     [Shared]
     internal class PersistentStorageLocationService : IPersistentStorageLocationService
     {
+        public bool IsSupported(Workspace workspace) => true;
+
         public string TryGetStorageLocation(Solution _)
         {
             var location = Path.Combine(Path.GetTempPath(), "RoslynTests", "AnalyzerRunner", "temp-db");
