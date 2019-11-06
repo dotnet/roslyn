@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using NuGet.Packaging.Core;
-using NuGet.Versioning;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -232,7 +230,7 @@ class TestClass {
                     Sources = { testCode },
                 },
                 ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Default
-                    .AddPackages(ImmutableArray.Create(new PackageIdentity("System.ValueTuple", NuGetVersion.Parse("4.5.0")))),
+                    .AddPackages(ImmutableArray.Create(new PackageIdentity("System.ValueTuple", "4.5.0"))),
             }.RunAsync();
         }
 
@@ -269,7 +267,7 @@ class TestClass {
                     Sources = { testCode },
                 },
                 ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net452.Default
-                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", NuGetVersion.Parse("1.0.1")))),
+                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "1.0.1"))),
             }.RunAsync();
         }
 
@@ -290,7 +288,7 @@ class TestClass {
                     Sources = { testCode },
                 },
                 ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Default
-                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", NuGetVersion.Parse("2.8.2")))),
+                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "2.8.2"))),
             }.RunAsync();
         }
 
@@ -311,7 +309,7 @@ class TestClass {
                     Sources = { testCode },
                 },
                 ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default
-                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", NuGetVersion.Parse("3.3.1")))),
+                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.3.1"))),
             }.RunAsync();
         }
 
