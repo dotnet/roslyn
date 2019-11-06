@@ -48,7 +48,7 @@
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>4.0.0.4521</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>5.0.2.5153</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildVersion>15.1.548</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.548</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
