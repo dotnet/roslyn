@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySyntaxErrorSquiggles()
@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.VerifySyntaxErrorSquiggles();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySemanticErrorSquiggles()
