@@ -6,12 +6,16 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    Friend NotInheritable Class ExtensionMethodImportCompletionProvider
+        Inherits AbstractExtensionMethodImportCompletionProvider
 
-    Friend NotInheritable Class TypeImportCompletionProvider
-        Inherits AbstractTypeImportCompletionProvider
+        Protected Overrides ReadOnly Property GenericSuffix As String
+            Get
+                Return "(Of ...)"
+            End Get
+        End Property
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
