@@ -491,15 +491,15 @@ public class P2 { }");
                 "Generate nested class 'Stream'",
                 "Generate new type...",
                 "Remove unused variable",
-                "Configure or Suppress issues",
+                "Suppress or Configure issues",
+                "Suppress CS0168",
+                "in Source",
                 "Configure CS0168 severity",
                 "None",
                 "Silent",
                 "Suggestion",
                 "Warning",
                 "Error",
-                "Suppress CS0168",
-                "in Source"
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
@@ -538,15 +538,15 @@ namespace NS
                 "Generate nested class 'Foober'",
                 "Generate new type...",
                 "Goober - using N;",
-                "Configure or Suppress issues",
+                "Suppress or Configure issues",
+                "Suppress CS0168",
+                "in Source",
                 "Configure CS0168 severity",
                 "None",
                 "Silent",
                 "Suggestion",
                 "Warning",
                 "Error",
-                "Suppress CS0168",
-                "in Source",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
@@ -580,15 +580,15 @@ class Program
                 "Introduce local constant for all occurrences of '2'",
                 "Extract Method",
                 generateImplicitTitle,
-                "Configure or Suppress issues",
+                "Suppress or Configure issues",
+                "Suppress CS0612",
+                "in Source",
                 "Configure CS0612 severity",
                 "None",
                 "Silent",
                 "Suggestion",
                 "Warning",
                 "Error",
-                "Suppress CS0612",
-                "in Source",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true);
