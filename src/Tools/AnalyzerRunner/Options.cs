@@ -82,7 +82,7 @@ namespace AnalyzerRunner
             string logFileName = null;
             string profileRoot = null;
             var usePersistentStorage = false;
-            var analysisScope = BackgroundAnalysisScope.OpenFiles;
+            var analysisScope = BackgroundAnalysisScope.OpenFilesAndProjects;
             var incrementalAnalyzerNames = ImmutableList.CreateBuilder<string>();
 
             int i = 0;
