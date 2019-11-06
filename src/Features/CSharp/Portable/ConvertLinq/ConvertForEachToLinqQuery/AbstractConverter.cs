@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
             return convertToQuery
                 ? CreateQueryExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect)
-                : (ExpressionSyntax)CreateLinqInvocation(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
+                : (ExpressionSyntax)CreateLinqInvocationOrSimpleExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         /// <param name="leadingTokensForSelect">extra leading tokens to be added to the select clause</param>
         /// <param name="trailingTokensForSelect">extra trailing tokens to be added to the select clause</param>
         /// <returns></returns>
-        private InvocationExpressionSyntax CreateLinqInvocation(
+        private ExpressionSyntax CreateLinqInvocationOrSimpleExpression(
             ExpressionSyntax selectExpression,
             IEnumerable<SyntaxToken> leadingTokensForSelect,
             IEnumerable<SyntaxToken> trailingTokensForSelect)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             selectExpression = selectExpression.WithCommentsFrom(leadingTokensForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokensForSelect));
             var currentExtendedNodeIndex = 0;
 
-            return CreateLinqInvocation(
+            return CreateLinqInvocationOrSimpleExpression(
                 foreachStatement,
                 receiverForInvocation: foreachStatement.Expression,
                 selectExpression: selectExpression,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private InvocationExpressionSyntax CreateLinqInvocation(
+        private ExpressionSyntax CreateLinqInvocationOrSimpleExpression(
             ForEachStatementSyntax forEachStatement,
             ExpressionSyntax receiverForInvocation,
             IEnumerable<SyntaxTrivia> leadingCommentsTrivia,
@@ -189,10 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             // Avoid `.Select(x => x)`
             if (invokedMethodName == nameof(Enumerable.Select) &&
                 lambdaBody is IdentifierNameSyntax identifier &&
-                identifier.Identifier.ValueText == forEachStatement.Identifier.ValueText &&
-                receiverForInvocation is InvocationExpressionSyntax receiverInvocationExpression)
+                identifier.Identifier.ValueText == forEachStatement.Identifier.ValueText)
             {
-                return receiverInvocationExpression;
+                return receiverForInvocation;
             }
 
             return SyntaxFactory.InvocationExpression(
@@ -243,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     hasForEachChild = true;
                     var foreachStatement = (ForEachStatementSyntax)node.Node;
                     ++extendedNodeIndex;
-                    return CreateLinqInvocation(
+                    return CreateLinqInvocationOrSimpleExpression(
                         foreachStatement,
                         receiverForInvocation: foreachStatement.Expression,
                         selectExpression: selectExpression,
