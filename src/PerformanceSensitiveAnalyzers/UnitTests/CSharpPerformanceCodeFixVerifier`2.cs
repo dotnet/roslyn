@@ -62,7 +62,6 @@ namespace Roslyn.Utilities
                         source,
                         ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
                     },
-                    AdditionalReferences = { AdditionalMetadataReferences.Netstandard },
                 },
                 TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
