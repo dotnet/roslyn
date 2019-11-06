@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -53,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol diagnosticAnalyzer = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerTypeFullName);
-                INamedTypeSymbol diagnosticAnalyzerAttribute = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerAttributeFullName);
+                INamedTypeSymbol diagnosticAnalyzer = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerTypeFullName);
+                INamedTypeSymbol diagnosticAnalyzerAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerAttributeFullName);
 
                 if (diagnosticAnalyzer == null || diagnosticAnalyzerAttribute == null)
                 {

@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private void ProcessTypeForwardedAttributes(Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
             {
-                var typeForwardedToAttribute = compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesTypeForwardedToAttribute);
+                var typeForwardedToAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesTypeForwardedToAttribute);
 
                 if (typeForwardedToAttribute != null)
                 {

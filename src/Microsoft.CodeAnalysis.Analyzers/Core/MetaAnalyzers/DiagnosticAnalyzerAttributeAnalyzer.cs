@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // then the analyzer is pretty likely a language-agnostic analyzer.
                     Compilation compilation = symbolContext.Compilation;
                     string compilationTypeNameToCheck = supportsCSharp ? CSharpCompilationFullName : BasicCompilationFullName;
-                    INamedTypeSymbol compilationType = compilation.GetTypeByMetadataName(compilationTypeNameToCheck);
+                    INamedTypeSymbol compilationType = compilation.GetOrCreateTypeByMetadataName(compilationTypeNameToCheck);
                     if (compilationType == null)
                     {
                         string missingLanguage = supportsCSharp ? LanguageNames.VisualBasic : LanguageNames.CSharp;

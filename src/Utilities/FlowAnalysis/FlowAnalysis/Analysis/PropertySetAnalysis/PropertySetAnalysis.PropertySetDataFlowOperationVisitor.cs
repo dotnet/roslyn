@@ -241,19 +241,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     AnalysisEntity targetAnalysisEntity = null;
                     if (operation.Target.Kind == OperationKind.FlowCaptureReference)
                     {
-                        PointsToAbstractValue lValuePointsToAbstractValue = this.GetPointsToAbstractValue(operation.Target);
-                        if (lValuePointsToAbstractValue.LValueCapturedOperations.Count == 1)
+                        if (this.TryUnwrapFlowCaptureReference(operation.Target, out IOperation lValueOperation, OperationKind.PropertyReference, OperationKind.FieldReference))
                         {
-                            IOperation lValueOperation = lValuePointsToAbstractValue.LValueCapturedOperations.First();
-                            if (lValueOperation.Kind == OperationKind.FieldReference
-                                || lValueOperation.Kind == OperationKind.PropertyReference)
-                            {
-                                this.AnalysisEntityFactory.TryCreate(lValueOperation, out targetAnalysisEntity);
-                            }
-                        }
-                        else
-                        {
-                            Debug.Fail("Can LValues FlowCaptureReferences have more than one operation?");
+                            this.AnalysisEntityFactory.TryCreate(lValueOperation, out targetAnalysisEntity);
                         }
                     }
                     else
@@ -295,7 +285,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                 }
 
-                if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
+                IPropertyReferenceOperation propertyReferenceOperation = operation.Target as IPropertyReferenceOperation;
+                if (propertyReferenceOperation == null && operation.Target.Kind == OperationKind.FlowCaptureReference)
+                {
+                    this.TryUnwrapFlowCaptureReference(operation.Target, out IOperation lValue, OperationKind.PropertyReference);
+                    propertyReferenceOperation = lValue as IPropertyReferenceOperation;
+                }
+
+                if (propertyReferenceOperation != null
                     && propertyReferenceOperation.Instance != null
                     && this.TrackedTypeSymbols.Any(s => propertyReferenceOperation.Instance.Type.GetBaseTypesAndThis().Contains(s))
                     && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
@@ -697,6 +694,37 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     this._visitedLambdas.Add(lambdaOperation);
                 }
+            }
+
+            /// <summary>
+            /// Attempts to find the underlying IOperation that a flow capture reference refers to.
+            /// </summary>
+            /// <param name="flowCaptureReferenceOperation">Operation that may be a flow capture reference to look at.</param>
+            /// <param name="unwrappedOperation">The found underlying operation, if any.</param>
+            /// <param name="kinds">Kinds of operations to look for.</param>
+            /// <returns>True if found, false otherwise.</returns>
+            private bool TryUnwrapFlowCaptureReference(IOperation flowCaptureReferenceOperation, out IOperation unwrappedOperation, params OperationKind[] kinds)
+            {
+                unwrappedOperation = null;
+                if (flowCaptureReferenceOperation != null && flowCaptureReferenceOperation.Kind == OperationKind.FlowCaptureReference)
+                {
+                    PointsToAbstractValue lValuePointsToAbstractValue = this.GetPointsToAbstractValue(flowCaptureReferenceOperation);
+                    if (lValuePointsToAbstractValue.LValueCapturedOperations.Count == 1)
+                    {
+                        IOperation lValueOperation = lValuePointsToAbstractValue.LValueCapturedOperations.First();
+                        if (kinds == null || kinds.Contains(lValueOperation.Kind))
+                        {
+                            unwrappedOperation = lValueOperation;
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Fail("Can LValues FlowCaptureReferences have more than one operation?");
+                    }
+                }
+
+                return false;
             }
         }
     }
