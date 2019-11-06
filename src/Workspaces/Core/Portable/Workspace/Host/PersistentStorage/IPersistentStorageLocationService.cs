@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     interface IPersistentStorageLocationService : IWorkspaceService
     {
+        bool IsSupported(Workspace workspace);
         string? TryGetStorageLocation(Solution solution);
     }
 
@@ -23,8 +24,13 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
+        public virtual bool IsSupported(Workspace workspace) => false;
+
         public string? TryGetStorageLocation(Solution solution)
         {
+            if (!IsSupported(solution.Workspace))
+                return null;
+
             if (string.IsNullOrWhiteSpace(solution.FilePath))
                 return null;
 

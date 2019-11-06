@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
         }
 
         private bool IsSupported(Workspace workspace)
-            => workspace.Options.GetOption(SolutionSizeOptions.ComputeSolutionSize);
+            => workspace.Services.GetService<IPersistentStorageLocationService>().IsSupported(workspace);
 
         /// <summary>
         /// Get approximate solution size at the point of call.
