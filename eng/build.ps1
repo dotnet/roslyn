@@ -331,9 +331,6 @@ function SetVisualStudioBootstrapperBuildArgs() {
 # Core function for running our unit / integration tests tests
 function TestUsingOptimizedRunner() {
 
-  # Capture the Path so we can revert it for integration tests
-  $originalPath = $env:PATH
-
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
 
@@ -420,26 +417,9 @@ function TestUsingOptimizedRunner() {
     $args += " $dll"
   }
 
-  if ($testVsi) {
-    # Capture the Environment variables altered by `InitializeDotNetCli` so we can revert to them
-    $alteredDotNetMultiLevelLookup = $env:DOTNET_MULTILEVEL_LOOKUP
-    $alteredPath = $env:PATH
-
-    # Resolve runtime, shared framework, or SDK from other locations for integration tests
-    $env:DOTNET_MULTILEVEL_LOOKUP = $null
-    $env:PATH = $originalPath
-  }
-
   try {
     Exec-Console $runTests $args
-  }
-  finally {
-    if ($testVsi) {
-      # Revert the environment variables to the state `InitializeDotNetCli` left them in
-      $env:DOTNET_MULTILEVEL_LOOKUP = $alteredDotNetMultiLevelLookup
-      $env:PATH = $alteredPath
-    }
-
+  } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
