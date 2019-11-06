@@ -94,11 +94,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
 
         /// <summary>
-        /// If <paramref name="node"/> is an extension method declaration, this will return true, otherwise it returns false.
-        /// If the return value is true and <paramref name="targetTypeName"/> is null, then it means this is a "complex" method
-        /// (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
+        /// Get the name of the target type of specified extension method declaration. 
+        /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
+        /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
+        /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
-        public abstract bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName);
+        public abstract string GetTargetTypeName(SyntaxNode node);
 
         public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
 

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -512,19 +513,14 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        public override bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName)
+        public override string GetTargetTypeName(SyntaxNode node)
         {
-            if (node is MethodDeclarationSyntax methodDeclaration && IsExtensionMethod(methodDeclaration))
-            {
-                var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
-                TryGetSimpleTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames, out targetTypeName);
+            var methodDeclaration = (MethodDeclarationSyntax)node;
+            Debug.Assert(IsExtensionMethod(methodDeclaration));
 
-                // We always return true here, which indicates we have a valid taget type name. (which would be null for a complex type though).
-                return true;
-            }
-
-            targetTypeName = null;
-            return false;
+            var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
+            TryGetSimpleTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames, out var targetTypeName);
+            return targetTypeName;
         }
 
         private static bool TryGetSimpleTypeName(SyntaxNode node, ImmutableArray<string>? typeParameterNames, out string simpleTypeName)

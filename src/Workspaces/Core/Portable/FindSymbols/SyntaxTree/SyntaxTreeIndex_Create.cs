@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // otherwise we would not be able to get correct data from syntax.
         bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
 
-        bool TryGetTargetTypeName(SyntaxNode node, out string instanceTypeName);
+        // Get the name of the target type of specified extension method declaration node.
+        // The returned value would be null for complex type.
+        string GetTargetTypeName(SyntaxNode node);
 
         bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
 
@@ -304,10 +306,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 return;
             }
 
-            if (!infoFactory.TryGetTargetTypeName(node, out var targetTypeName))
-            {
-                return;
-            }
+            var targetTypeName = infoFactory.GetTargetTypeName(node);
 
             // complex method
             if (targetTypeName == null)

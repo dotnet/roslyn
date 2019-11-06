@@ -460,18 +460,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Public Overrides Function TryGetTargetTypeName(node As SyntaxNode, ByRef targetTypeName As String) As Boolean
-            Dim funcDecl = TryCast(node, MethodBlockSyntax)
-            'TODO: don't call `IsExtensionMethod` again
-            If funcDecl IsNot Nothing AndAlso IsExtensionMethod(funcDecl) Then
+        Public Overrides Function GetTargetTypeName(node As SyntaxNode) As String
+            Dim funcDecl = CType(node, MethodBlockSyntax)
+            Debug.Assert(IsExtensionMethod(funcDecl))
 
-                Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
-                TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName)
-                Return True
-            End If
+            Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
+            Dim targetTypeName As String = Nothing
+            TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName)
 
-            targetTypeName = Nothing
-            Return False
+            Return targetTypeName
         End Function
 
         Public Overrides Function TryGetAliasesFromUsingDirective(node As SyntaxNode, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean

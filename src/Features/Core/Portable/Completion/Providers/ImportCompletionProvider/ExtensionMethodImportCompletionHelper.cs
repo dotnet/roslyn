@@ -269,7 +269,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
                 // Note that we might incorrectly ignore valid types, because, for example, calling `GetTypeByMetadataName` 
                 // would return null if we have multiple definitions of a type even though only one is accessible from here
-                // (e.g. an internal type declared inside a shared document).
+                // (e.g. an internal type declared inside a shared document). In this case, we have to handle the conflicted
+                // types explicitly here.
+                //
+                // TODO:
+                // Alternatively, we can try to get symbols out of each assembly, instead of the compilation (which includes all references), 
+                // to avoid such conflict. We should give this approach a try and see if any perf improvement can be archieved.
                 var containerSymbol = compilation.GetTypeByMetadataName(fullyQualifiedContainerName);
 
                 if (containerSymbol != null)
