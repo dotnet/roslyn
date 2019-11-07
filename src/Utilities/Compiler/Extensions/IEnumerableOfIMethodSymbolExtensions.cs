@@ -15,9 +15,14 @@ namespace Analyzer.Utilities.Extensions
         /// <returns>A filtered list of methods.</returns>
         public static IEnumerable<IMethodSymbol> WhereMethodDoesNotContainAttribute(
             this IEnumerable<IMethodSymbol> methods,
-            INamedTypeSymbol attributeType)
+            INamedTypeSymbol? attributeType)
         {
-            return methods.Where(m => !m.GetAttributes().Any(a => a.AttributeClass.Equals(attributeType)));
+            if (attributeType == null)
+            {
+                return methods;
+            }
+
+            return methods.Where(m => !m.HasAttribute(attributeType));
         }
 
         /// <summary>
@@ -100,7 +105,7 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="members"></param>
         /// <param name="expectedParameterTypesInOrder"></param>
         /// <returns></returns>
-        public static IMethodSymbol? GetFirstOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol> members, params ParameterInfo[] expectedParameterTypesInOrder)
+        public static IMethodSymbol? GetFirstOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol>? members, params ParameterInfo[] expectedParameterTypesInOrder)
         {
             var expectedParameterCount = expectedParameterTypesInOrder.Length;
             return members?.FirstOrDefault(member =>

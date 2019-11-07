@@ -83,45 +83,45 @@ namespace Analyzer.Utilities.Extensions
             return symbol.DeclaredAccessibility == Accessibility.Private;
         }
 
-        public static bool IsErrorType(this ISymbol symbol)
+        public static bool IsErrorType(this ISymbol? symbol)
         {
             return
                 symbol is ITypeSymbol &&
                 ((ITypeSymbol)symbol).TypeKind == TypeKind.Error;
         }
 
-        public static bool IsConstructor(this ISymbol symbol)
+        public static bool IsConstructor(this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
         }
 
-        public static bool IsDestructor(this ISymbol symbol)
+        public static bool IsDestructor(this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.IsFinalizer() ?? false;
         }
 
-        public static bool IsIndexer(this ISymbol symbol)
+        public static bool IsIndexer(this ISymbol? symbol)
         {
             return (symbol as IPropertySymbol)?.IsIndexer == true;
         }
 
-        public static bool IsPropertyWithBackingField(this ISymbol symbol)
+        public static bool IsPropertyWithBackingField(this ISymbol? symbol)
         {
             return symbol is IPropertySymbol propertySymbol &&
                 propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && Equals(f.AssociatedSymbol, symbol));
         }
 
-        public static bool IsUserDefinedOperator(this ISymbol symbol)
+        public static bool IsUserDefinedOperator(this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.UserDefinedOperator;
         }
 
-        public static bool IsConversionOperator(this ISymbol symbol)
+        public static bool IsConversionOperator(this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Conversion;
         }
 
-        public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
+        public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
         {
             return symbol switch
             {
@@ -648,9 +648,9 @@ namespace Analyzer.Utilities.Extensions
         /// If <paramref name="symbol"/> is a type, this method does not find attributes
         /// on its base types.
         /// </remarks>
-        public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
+        public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol? attribute)
         {
-            return symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
+            return attribute != null && symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
         }
 
         /// <summary>
