@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
                     treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
                     analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
-                _optionsCache.TryAdd(sectionKey, result);
+                _optionsCache.TryAdd(new List<Section>(sectionKey), result);
             }
 
             sectionKey.Clear();
