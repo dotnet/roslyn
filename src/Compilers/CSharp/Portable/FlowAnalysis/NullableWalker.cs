@@ -1523,13 +1523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !type.IsNullableTypeOrTypeParameter();
         }
 
-        private static bool RequiresSafetyWarningWhenNullIntroduced(TypeSymbol type, FlowAnalysisAnnotations annotations)
-        {
-            return
-                (annotations & FlowAnalysisAnnotations.MaybeNull) != 0 &&
-                type.IsTypeParameterDisallowingAnnotation();
-        }
-
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
@@ -3187,10 +3180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ReportMaybeNullFromTypeParameterValueIfNeeded(BoundExpression expr, TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
         {
-            if (!expr.IsSuppressed && !typeWithState.IsNotNull && RequiresSafetyWarningWhenNullIntroduced(typeWithState.Type, annotations))
-            {
-                ReportDiagnostic(ErrorCode.WRN_ExpressionMayIntroduceNullT, expr.Syntax, GetTypeAsDiagnosticArgument(expr.Type));
-            }
+            // Not implemented. See https://github.com/dotnet/roslyn/issues/38638 for an alternative.
         }
 
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)

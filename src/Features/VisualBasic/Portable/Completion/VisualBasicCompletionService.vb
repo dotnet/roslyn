@@ -63,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End If
 
             completionProviders = completionProviders.Add(New TypeImportCompletionProvider())
+            completionProviders = completionProviders.Add(New ExtensionMethodImportCompletionProvider())
 
             _completionProviders = completionProviders
         End Sub

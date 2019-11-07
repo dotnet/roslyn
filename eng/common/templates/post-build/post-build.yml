@@ -50,7 +50,6 @@ stages:
       displayName: Signing Validation
       variables:
         - template: common-variables.yml
-        - group: AzureDevOps-Artifact-Feeds-Pats
       pool:
         vmImage: 'windows-2019'
       steps:
@@ -64,7 +63,6 @@ stages:
         # Since sdk-task.ps1 tries to restore packages we need to do this authentication here
         # otherwise it'll complain about accessing a private feed.
         - task: NuGetAuthenticate@0
-          condition: eq(variables['IsInternalBuild'], 'true')
           displayName: 'Authenticate to AzDO Feeds'
 
         - task: PowerShell@2
@@ -119,8 +117,7 @@ stages:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
     dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-
+    
 - template: \eng\common\templates\post-build\channels\netcore-dev-31.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
@@ -135,10 +132,24 @@ stages:
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
 
-- template: \eng\common\templates\post-build\channels\public-validation-release.yml
+- template: \eng\common\templates\post-build\channels\netcore-tools-validation.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
     dependsOn: ${{ parameters.publishDependsOn }}
+    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
+
+- template: \eng\common\templates\post-build\channels\netcore-3-tools-validation.yml
+  parameters:
+    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
+    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
+
+- template: \eng\common\templates\post-build\channels\netcore-3-tools.yml
+  parameters:
+    dependsOn: ${{ parameters.publishDependsOn }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
+    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
 
 - template: \eng\common\templates\post-build\channels\netcore-release-30.yml

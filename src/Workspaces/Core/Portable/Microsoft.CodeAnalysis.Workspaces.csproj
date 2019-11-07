@@ -16,9 +16,6 @@
       A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
-
-    <!-- SQLLite package imports content files. Do not include these in the package. -->
-    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

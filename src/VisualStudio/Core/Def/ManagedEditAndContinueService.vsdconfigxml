@@ -27,8 +27,10 @@
           </Filter>
           <Interface Name="IDkmCustomMessageForwardReceiver"/>
         </InterfaceGroup>
-        <InterfaceGroup>
-          <NoFilter/>
+        <InterfaceGroup CallOnlyWhenLoaded="true">
+          <Filter>
+            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+          </Filter>
           <Interface Name="IDkmModuleInstanceLoadNotification"/>
           <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>

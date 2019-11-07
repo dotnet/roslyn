@@ -72,10 +72,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// In C#, this will always be a single declaration, with all variables in <see cref="IVariableDeclarationOperation.Declarators" />.
         /// </remarks>
         ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
-        /// <summary>
-        /// Specifies the <see cref="VariableDeclarationKind" /> of this declaration group.
-        /// </summary>
-        VariableDeclarationKind DeclarationKind { get; }
     }
     /// <summary>
     /// Represents a switch operation with a value to be switched upon and switch cases.
@@ -2771,6 +2767,29 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Value { get; }
     }
+    /// <summary>
+    /// Represents using variable declaration, with scope spanning across the parent <see cref="IBlockOperation" />.
+    /// <para>
+    /// Current Usage:
+    ///  (1) C# using declaration
+    ///  (1) C# asynchronous using declaration
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface IUsingDeclarationOperation : IOperation
+    {
+        /// <summary>
+        /// The variables declared by this using declaration.
+        /// </summary>
+        IVariableDeclarationGroupOperation DeclarationGroup { get; }
+        /// <summary>
+        /// True if this is an asynchronous using declaration.
+        /// </summary>
+        bool IsAsynchronous { get; }
+    }
     #endregion
 
     #region Implementations
@@ -2827,13 +2846,9 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseVariableDeclarationGroupOperation : Operation, IVariableDeclarationGroupOperation
     {
-        internal BaseVariableDeclarationGroupOperation(VariableDeclarationKind declarationKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(OperationKind.VariableDeclarationGroup, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            DeclarationKind = declarationKind;
-        }
+        internal BaseVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.VariableDeclarationGroup, semanticModel, syntax, type, constantValue, isImplicit) { }
         public abstract ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
-        public VariableDeclarationKind DeclarationKind { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2849,8 +2864,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class VariableDeclarationGroupOperation : BaseVariableDeclarationGroupOperation, IVariableDeclarationGroupOperation
     {
-        internal VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation> declarations, VariableDeclarationKind declarationKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(declarationKind, semanticModel, syntax, type, constantValue, isImplicit)
+        internal VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation> declarations, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Declarations = SetParentOperation(declarations, this);
         }
@@ -2859,8 +2874,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class LazyVariableDeclarationGroupOperation : BaseVariableDeclarationGroupOperation, IVariableDeclarationGroupOperation
     {
         private ImmutableArray<IVariableDeclarationOperation> _lazyDeclarations;
-        internal LazyVariableDeclarationGroupOperation(VariableDeclarationKind declarationKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(declarationKind, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract ImmutableArray<IVariableDeclarationOperation> CreateDeclarations();
         public override ImmutableArray<IVariableDeclarationOperation> Declarations
         {
@@ -8209,6 +8224,54 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
+    internal abstract partial class BaseUsingDeclarationOperation : Operation, IUsingDeclarationOperation
+    {
+        internal BaseUsingDeclarationOperation(bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.UsingDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            IsAsynchronous = isAsynchronous;
+        }
+        public abstract IVariableDeclarationGroupOperation DeclarationGroup { get; }
+        public bool IsAsynchronous { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (DeclarationGroup is object) yield return DeclarationGroup;
+            }
+        }
+        public override void Accept(OperationVisitor visitor) => visitor.VisitUsingDeclaration(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitUsingDeclaration(this, argument);
+    }
+    internal sealed partial class UsingDeclarationOperation : BaseUsingDeclarationOperation, IUsingDeclarationOperation
+    {
+        internal UsingDeclarationOperation(IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            DeclarationGroup = SetParentOperation(declarationGroup, this);
+        }
+        public override IVariableDeclarationGroupOperation DeclarationGroup { get; }
+    }
+    internal abstract partial class LazyUsingDeclarationOperation : BaseUsingDeclarationOperation, IUsingDeclarationOperation
+    {
+        private IVariableDeclarationGroupOperation _lazyDeclarationGroup = s_unsetVariableDeclarationGroup;
+        internal LazyUsingDeclarationOperation(bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit){ }
+        protected abstract IVariableDeclarationGroupOperation CreateDeclarationGroup();
+        public override IVariableDeclarationGroupOperation DeclarationGroup
+        {
+            get
+            {
+                if (_lazyDeclarationGroup == s_unsetVariableDeclarationGroup)
+                {
+                    IVariableDeclarationGroupOperation declarationGroup = CreateDeclarationGroup();
+                    SetParentOperation(declarationGroup, this);
+                    Interlocked.CompareExchange(ref _lazyDeclarationGroup, declarationGroup, s_unsetVariableDeclarationGroup);
+                }
+                return _lazyDeclarationGroup;
+            }
+        }
+    }
     #endregion
     #region Visitors
     public abstract partial class OperationVisitor
@@ -8330,6 +8393,7 @@ namespace Microsoft.CodeAnalysis.Operations
         internal virtual void VisitPlaceholder(IPlaceholderOperation operation) => DefaultVisit(operation);
         internal virtual void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation) => DefaultVisit(operation);
         internal virtual void VisitWith(IWithOperation operation) => DefaultVisit(operation);
+        public virtual void VisitUsingDeclaration(IUsingDeclarationOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -8450,6 +8514,7 @@ namespace Microsoft.CodeAnalysis.Operations
         internal virtual TResult VisitPlaceholder(IPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         internal virtual TResult VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         internal virtual TResult VisitWith(IWithOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitUsingDeclaration(IUsingDeclarationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }
