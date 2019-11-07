@@ -9,7 +9,7 @@ namespace Analyzer.Utilities
 {
     internal static class HashUtilities
     {
-        internal static int GetHashCodeOrDefault(this object objectOpt) => objectOpt?.GetHashCode() ?? 0;
+        internal static int GetHashCodeOrDefault(this object? objectOpt) => objectOpt?.GetHashCode() ?? 0;
 
         internal static int Combine(int newKey, int currentKey)
         {
@@ -27,7 +27,7 @@ namespace Analyzer.Utilities
             var hashCode = Combine(length, currentKey);
             foreach (var element in sequence)
             {
-                hashCode = Combine(element.GetHashCode(), hashCode);
+                hashCode = Combine(element.GetHashCodeOrDefault(), hashCode);
             }
 
             return hashCode;
@@ -41,7 +41,7 @@ namespace Analyzer.Utilities
             var stackSize = 0;
             foreach (var element in stack)
             {
-                hashCode = Combine(element.GetHashCode(), hashCode);
+                hashCode = Combine(element.GetHashCodeOrDefault(), hashCode);
                 stackSize++;
             }
 
@@ -50,13 +50,13 @@ namespace Analyzer.Utilities
 
         internal static int Combine<T>(ImmutableHashSet<T> set) => Combine(set, 0);
         internal static int Combine<T>(ImmutableHashSet<T> set, int currentKey)
-            => Combine(set.Select(element => element?.GetHashCode() ?? 0).Order(),
+            => Combine(set.Select(element => element.GetHashCodeOrDefault()).Order(),
                        set.Count,
                        currentKey);
 
         internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary) => Combine(dictionary, 0);
         internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary, int currentKey)
-            => Combine(dictionary.Select(kvp => Combine(kvp.Key.GetHashCode(), kvp.Value.GetHashCode())).Order(),
+            => Combine(dictionary.Select(kvp => Combine(kvp.Key.GetHashCodeOrDefault(), kvp.Value.GetHashCodeOrDefault())).Order(),
                        dictionary.Count,
                        currentKey);
     }

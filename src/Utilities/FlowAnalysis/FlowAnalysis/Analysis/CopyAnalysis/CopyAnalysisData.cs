@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// We do not support the <see cref="SetAbstractValue(AnalysisEntity, CopyAbstractValue)"/> overload
         /// that updates copy value for each individual entity.
         /// </summary>
-        internal void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity entityBeingAssignedOpt)
+        internal void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity? entityBeingAssignedOpt)
         {
             foreach (var entity in copyValue.AnalysisEntities)
             {
@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         protected override void RemoveEntryInPredicatedData(AnalysisEntity key, CoreCopyAnalysisData predicatedData)
         {
             Debug.Assert(HasPredicatedData);
-            Debug.Assert(predicatedData != null);
 
             var hasEntry = predicatedData.TryGetValue(key, out CopyAbstractValue value);
             base.RemoveEntryInPredicatedData(key, predicatedData);
@@ -186,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         }
 
         [Conditional("DEBUG")]
-        internal void AssertValidCopyAnalysisData(Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null, bool initializingParameters = false)
+        internal void AssertValidCopyAnalysisData(Func<AnalysisEntity, CopyAbstractValue?>? tryGetDefaultCopyValueOpt = null, bool initializingParameters = false)
         {
             AssertValidCopyAnalysisData(CoreAnalysisData, tryGetDefaultCopyValueOpt, initializingParameters);
             AssertValidPredicatedAnalysisData(map => AssertValidCopyAnalysisData(map, tryGetDefaultCopyValueOpt, initializingParameters));
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         [Conditional("DEBUG")]
         internal static void AssertValidCopyAnalysisData(
             IDictionary<AnalysisEntity, CopyAbstractValue> map,
-            Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null,
+            Func<AnalysisEntity, CopyAbstractValue?>? tryGetDefaultCopyValueOpt = null,
             bool initializingParameters = false)
         {
             if (map is CoreCopyAnalysisData coreCopyAnalysisData)

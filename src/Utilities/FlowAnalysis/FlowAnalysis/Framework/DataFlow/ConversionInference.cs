@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 isTryCast: true);
 
         public static ConversionInference Create(
-            ITypeSymbol targetTypeOpt,
-            ITypeSymbol sourceTypeOpt,
+            ITypeSymbol? targetTypeOpt,
+            ITypeSymbol? sourceTypeOpt,
             bool isTryCast)
         {
             return new ConversionInference

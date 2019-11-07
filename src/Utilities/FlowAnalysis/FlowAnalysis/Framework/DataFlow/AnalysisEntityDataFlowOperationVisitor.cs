@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TAbstractAnalysisValue : IEquatable<TAbstractAnalysisValue>
     {
         protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override TAbstractAnalysisValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TAbstractAnalysisValue defaultValue)
         {
-            if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
+            if (AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
             {
                 if (!HasAbstractValue(analysisEntity))
                 {
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
 
-            if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
+            if (AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
             {
                 var value = ComputeAnalysisValueForEscapedRefOrOutArgument(analysisEntity, operation, defaultValue);
                 SetAbstractValueForAssignment(analysisEntity, operation, value);
@@ -87,10 +86,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
-            var keys = currentAnalysisDataOpt?.Keys.ToImmutableArray();
-            foreach (var key in keys)
+            if (currentAnalysisDataOpt != null)
             {
-                ResetAbstractValue(key);
+                var keys = currentAnalysisDataOpt.Keys.ToImmutableArray();
+                foreach (var key in keys)
+                {
+                    ResetAbstractValue(key);
+                }
             }
         }
 
@@ -108,10 +110,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Stop tracking entities for locals and capture Ids that are now out of scope.
                 foreach (var local in locals)
                 {
-                    var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity);
-                    Debug.Assert(success);
-
-                    StopTrackingDataForEntity(analysisEntity, allEntities);
+                    if (AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity))
+                    {
+                        StopTrackingDataForEntity(analysisEntity, allEntities);
+                    }
+                    else
+                    {
+                        Debug.Fail("TryCreateForSymbolDeclaration failed");
+                    }
                 }
 
                 foreach (var captureId in flowCaptures)
@@ -195,7 +201,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected override TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData existingDataOpt, IOperation operation)
+        protected override TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData? existingDataOpt, IOperation operation)
         {
             var entitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
             try
@@ -223,15 +229,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         #region Helper methods to handle initialization/assignment operations
         protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TAbstractAnalysisValue value)
         {
-            if (AnalysisEntityFactory.TryCreateForArrayElementInitializer(arrayCreation, indices, elementType, out AnalysisEntity analysisEntity))
+            if (AnalysisEntityFactory.TryCreateForArrayElementInitializer(arrayCreation, indices, elementType, out var analysisEntity))
             {
                 SetAbstractValueForAssignment(analysisEntity, initializer, value);
             }
         }
 
-        protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, TAbstractAnalysisValue assignedValue, bool mayBeAssignment = false)
+        protected override void SetAbstractValueForAssignment(IOperation target, IOperation? assignedValueOperation, TAbstractAnalysisValue assignedValue, bool mayBeAssignment = false)
         {
-            if (AnalysisEntityFactory.TryCreate(target, out AnalysisEntity targetAnalysisEntity))
+            if (AnalysisEntityFactory.TryCreate(target, out var targetAnalysisEntity))
             {
                 if (mayBeAssignment)
                 {
@@ -256,9 +262,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected virtual void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation assignedValueOperationOpt, TAbstractAnalysisValue assignedValue)
+        protected virtual void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation? assignedValueOperationOpt, TAbstractAnalysisValue assignedValue)
         {
-            AnalysisEntity assignedValueEntityOpt = null;
+            AnalysisEntity? assignedValueEntityOpt = null;
             if (assignedValueOperationOpt != null)
             {
                 var success = AnalysisEntityFactory.TryCreate(assignedValueOperationOpt, out assignedValueEntityOpt);
@@ -268,7 +274,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             SetAbstractValueForAssignment(targetAnalysisEntity, assignedValueEntityOpt, assignedValueOperationOpt, assignedValue);
         }
 
-        private void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, AnalysisEntity assignedValueEntityOpt, IOperation assignedValueOperationOpt, TAbstractAnalysisValue assignedValue)
+        private void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, AnalysisEntity? assignedValueEntityOpt, IOperation? assignedValueOperationOpt, TAbstractAnalysisValue assignedValue)
         {
             // Value type and string type assignment has copy semantics.
             if (HasPointsToAnalysisResult &&
@@ -296,7 +302,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
+        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValueOpt)
         {
             Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
             if (assignedValueOpt != null)
@@ -364,7 +370,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// This involves transfer of data for of all <see cref="AnalysisEntity"/> instances that share the same <see cref="AnalysisEntity.InstanceLocation"/> as <paramref name="valueAnalysisEntityOpt"/> or allocation for the <paramref name="assignedValueOperationOpt"/>
         /// to all <see cref="AnalysisEntity"/> instances that share the same <see cref="AnalysisEntity.InstanceLocation"/> as <paramref name="targetAnalysisEntity"/>.
         /// </summary>
-        private void TransferValueTypeInstanceAnalysisDataForAssignment(AnalysisEntity targetAnalysisEntity, AnalysisEntity valueAnalysisEntityOpt, IOperation assignedValueOperationOpt)
+        private void TransferValueTypeInstanceAnalysisDataForAssignment(AnalysisEntity targetAnalysisEntity, AnalysisEntity? valueAnalysisEntityOpt, IOperation? assignedValueOperationOpt)
         {
             Debug.Assert(HasPointsToAnalysisResult);
             Debug.Assert(targetAnalysisEntity.Type.HasValueCopySemantics());
@@ -423,10 +429,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 IsChildAnalysisEntity(entity, ancestorEntity.InstanceLocation);
         }
 
-        protected ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt)
+        protected ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue? instanceLocationOpt)
            => GetChildAnalysisEntities(instanceLocationOpt, predicateOpt: null);
 
-        private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt, Func<AnalysisEntity, bool> predicateOpt)
+        private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue? instanceLocationOpt, Func<AnalysisEntity, bool>? predicateOpt)
         {
             // We are interested only in dependent child/member infos, not the root info.
             if (instanceLocationOpt == null || instanceLocationOpt.Kind == PointsToAbstractValueKind.Unknown)
@@ -473,7 +479,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override bool IsReachableBlockData(TAnalysisData analysisData)
             => (analysisData as AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>)?.IsReachableBlockData ?? true;
 
-        protected sealed override void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, TAnalysisData truePredicateData, TAnalysisData falsePredicateData)
+        protected sealed override void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, TAnalysisData? truePredicateData, TAnalysisData? falsePredicateData)
                 => (CurrentAnalysisData as AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>)?.StartTrackingPredicatedData(
                         predicatedEntity,
                         truePredicateData as AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>,
@@ -489,9 +495,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override void SetPredicateValueKind(IOperation operation, TAnalysisData analysisData, PredicateValueKind predicateValueKind)
         {
             base.SetPredicateValueKind(operation, analysisData, predicateValueKind);
-            if (predicateValueKind == PredicateValueKind.AlwaysFalse)
+            if (predicateValueKind == PredicateValueKind.AlwaysFalse &&
+                analysisData is AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue> analysisEntityBasedData)
             {
-                (analysisData as AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>).IsReachableBlockData = false;
+                analysisEntityBasedData.IsReachableBlockData = false;
             }
         }
         #endregion
@@ -499,12 +506,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         #region Interprocedural analysis
         protected override TAnalysisData GetInitialInterproceduralAnalysisData(
             IMethodSymbol invokedMethod,
-            (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
+            (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
             (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
             ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
-            IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
-            IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
-            IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
+            IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValuesOpt,
+            IDictionary<AnalysisEntity, CopyAbstractValue>? copyValuesOpt,
+            IDictionary<AnalysisEntity, ValueContentAbstractValue>? valueContentValuesOpt,
             bool isLambdaOrLocalFunction,
             bool hasParameterWithDelegateType)
         {
@@ -638,13 +645,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Local functions.
-            bool AddWorklistEntityAndPointsToValue(AnalysisEntity analysisEntityOpt)
+            bool AddWorklistEntityAndPointsToValue(AnalysisEntity? analysisEntityOpt)
             {
                 if (analysisEntityOpt != null && candidateEntitiesBuilder.Contains(analysisEntityOpt))
                 {
                     worklistEntities.Add(analysisEntityOpt);
 
-                    if (pointsToValuesOpt.TryGetValue(analysisEntityOpt, out var pointsToValue))
+                    if (pointsToValuesOpt!.TryGetValue(analysisEntityOpt, out var pointsToValue))
                     {
                         AddWorklistPointsToValue(pointsToValue);
                     }
@@ -731,7 +738,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 entity.CaptureIdOpt.Value.ControlFlowGraph == DataFlowAnalysisContext.ControlFlowGraph;
         }
 
-        public override TAnalysisData GetMergedDataForUnhandledThrowOperations()
+        public override TAnalysisData? GetMergedDataForUnhandledThrowOperations()
         {
             // For interprocedural analysis, prune analysis data for unhandled exceptions
             // to remove analysis entities that are only valid in the callee.
@@ -778,7 +785,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> coreCurrentAnalysisData,
             ThrownExceptionInfo throwBranchWithExceptionType)
         {
-            Func<AnalysisEntity, bool> predicateOpt = null;
+            Func<AnalysisEntity, bool>? predicateOpt = null;
             if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
             {
                 // Only tracking non-child analysis entities for exceptions path analysis for now.
@@ -821,7 +828,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     else if (AnalysisEntityFactory.TryCreate(element, out var elementEntity))
                     {
-                        var assignedValueEntityOpt = childEntities.FirstOrDefault(c => IsMatchingAssignedEntity(tupleElementEntity, c));
+                        AnalysisEntity? assignedValueEntityOpt = childEntities.FirstOrDefault(c => IsMatchingAssignedEntity(tupleElementEntity, c));
                         var assignedValue = assignedValueEntityOpt != null ? GetAbstractValue(assignedValueEntityOpt) : ValueDomain.UnknownOrMayBeValue;
                         SetAbstractValueForAssignment(elementEntity, assignedValueEntityOpt, assignedValueOperationOpt: null, assignedValue);
                     }
@@ -831,9 +838,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return;
 
             // Local function
-            static bool IsMatchingAssignedEntity(AnalysisEntity tupleElementEntity, AnalysisEntity childEntity)
+            static bool IsMatchingAssignedEntity(AnalysisEntity tupleElementEntity, AnalysisEntity? childEntity)
             {
-                Debug.Assert(tupleElementEntity != null);
                 if (childEntity == null)
                 {
                     return false;

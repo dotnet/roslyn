@@ -19,7 +19,7 @@ namespace Analyzer.Utilities.Extensions
 
             var operationBlocks = context.OperationBlocks.WhereAsArray(operation => !operation.IsOperationNoneRoot());
 
-            IBlockOperation methodBlock = null;
+            IBlockOperation? methodBlock = null;
             if (operationBlocks.Length == 1 && operationBlocks[0].Kind == OperationKind.Block)
             {
                 methodBlock = (IBlockOperation)operationBlocks[0];

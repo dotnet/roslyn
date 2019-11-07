@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private int Compare(DictionaryAnalysisData<TKey, TValue> oldValue, DictionaryAnalysisData<TKey, TValue> newValue, bool assertMonotonicity)
         {
-            Debug.Assert(oldValue != null);
-            Debug.Assert(newValue != null);
-
             if (ReferenceEquals(oldValue, newValue))
             {
                 return 0;
@@ -96,9 +93,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override DictionaryAnalysisData<TKey, TValue> Merge(DictionaryAnalysisData<TKey, TValue> value1, DictionaryAnalysisData<TKey, TValue> value2)
         {
-            Debug.Assert(value1 != null);
-            Debug.Assert(value2 != null);
-
             var result = new DictionaryAnalysisData<TKey, TValue>(value1);
             foreach (var entry in value2)
             {

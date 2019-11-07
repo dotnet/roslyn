@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected AbstractAnalysisDomain<TAnalysisData> AnalysisDomain { get; }
         protected DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> OperationVisitor { get; }
 
-        protected TAnalysisResult TryGetOrComputeResultCore(TAnalysisContext analysisContext, bool cacheResult)
+        protected TAnalysisResult? TryGetOrComputeResultCore(TAnalysisContext analysisContext, bool cacheResult)
         {
             if (analysisContext == null)
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return analysisResultsMap.GetOrAdd(analysisContext, _ => Run(analysisContext));
         }
 
-        private TAnalysisResult Run(TAnalysisContext analysisContext)
+        private TAnalysisResult? Run(TAnalysisContext analysisContext)
         {
             var cfg = analysisContext.ControlFlowGraph;
             if (cfg?.SupportsFlowAnalysis() != true)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var loopRangeMap = PooledDictionary<int, int>.GetInstance();
             ComputeLoopRangeMap(cfg, loopRangeMap);
 
-            TAnalysisData normalPathsExitBlockData = null, exceptionPathsExitBlockDataOpt = null;
+            TAnalysisData? normalPathsExitBlockData = null, exceptionPathsExitBlockDataOpt = null;
 
             try
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (analysisContext.ExceptionPathsAnalysis)
                 {
                     // Clone and save exit block data
-                    normalPathsExitBlockData = AnalysisDomain.Clone(normalPathsExitBlockData);
+                    normalPathsExitBlockData = AnalysisDomain.Clone(normalPathsExitBlockData!);
 
                     OperationVisitor.ExecutingExceptionPathsAnalysisPostPass = true;
                     foreach (var block in cfg.Blocks)
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
                     OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
-                    resultBuilder.EntryBlockOutputData, normalPathsExitBlockData, exceptionPathsExitBlockDataOpt,
+                    resultBuilder.EntryBlockOutputData!, normalPathsExitBlockData!, exceptionPathsExitBlockDataOpt,
                     mergedDataForUnhandledThrowOperationsOpt, OperationVisitor.AnalysisDataForUnhandledThrowOperations,
                     OperationVisitor.TaskWrappedValuesMapOpt, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
                 return ToResult(analysisContext, dataflowAnalysisResult);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph cfg,
             SortedSet<int> worklist,
             SortedSet<int> pendingBlocksNeedingAtLeastOnePass,
-            TAnalysisData initialAnalysisDataOpt,
+            TAnalysisData? initialAnalysisDataOpt,
             DataFlowAnalysisResultBuilder<TAnalysisData> resultBuilder,
             PooledHashSet<BasicBlock> uniqueSuccessors,
             PooledDictionary<int, List<BranchWithInfo>> finallyBlockSuccessorsMap,
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         else
                         {
                             // For catch and filter regions, we track the initial input data in the catchBlockInputDataMap.
-                            ControlFlowRegion enclosingTryAndCatchRegion = GetEnclosingTryAndCatchRegionIfStartsHandler(block);
+                            ControlFlowRegion? enclosingTryAndCatchRegion = GetEnclosingTryAndCatchRegionIfStartsHandler(block);
                             if (enclosingTryAndCatchRegion != null &&
                                 catchBlockInputDataMap.TryGetValue(enclosingTryAndCatchRegion, out var catchBlockInput))
                             {
@@ -403,17 +403,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                                 // Check if the current input data for the successor block is equal to the new input data from this branch.
                                 // If so, we don't need to propagate new input data from this branch.
-                                if (AnalysisDomain.Equals(currentSuccessorInput, newSuccessorInput))
+                                if (AnalysisDomain.Equals(currentSuccessorInput!, newSuccessorInput))
                                 {
                                     newSuccessorInput.Dispose();
                                     continue;
                                 }
 
                                 // Otherwise, check if the input data for the successor block changes after merging with the new input data.
-                                mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput, newSuccessorInput, isBackEdge);
+                                mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput!, newSuccessorInput, isBackEdge);
                                 newSuccessorInput.Dispose();
 
-                                int compare = AnalysisDomain.Compare(currentSuccessorInput, mergedSuccessorInput);
+                                int compare = AnalysisDomain.Compare(currentSuccessorInput!, mergedSuccessorInput);
 
                                 // The newly computed abstract values for each basic block
                                 // must be always greater or equal than the previous value
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            static ControlFlowRegion TryGetReachableCatchRegionStartingHandler(ControlFlowRegion tryAndCatchRegion, BasicBlock sourceBlock)
+            static ControlFlowRegion? TryGetReachableCatchRegionStartingHandler(ControlFlowRegion tryAndCatchRegion, BasicBlock sourceBlock)
             {
                 Debug.Assert(tryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
 
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return catchRegion;
             }
 
-            ControlFlowRegion MergeIntoCatchInputData(ControlFlowRegion tryAndCatchRegion, TAnalysisData dataToMerge, BasicBlock sourceBlock)
+            ControlFlowRegion? MergeIntoCatchInputData(ControlFlowRegion tryAndCatchRegion, TAnalysisData dataToMerge, BasicBlock sourceBlock)
             {
                 var catchRegion = TryGetReachableCatchRegionStartingHandler(tryAndCatchRegion, sourceBlock);
                 if (catchRegion == null)
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // If this block starts a catch/filter region, return the enclosing TryAndCatch region.
-            static ControlFlowRegion GetEnclosingTryAndCatchRegionIfStartsHandler(BasicBlock block)
+            static ControlFlowRegion? GetEnclosingTryAndCatchRegionIfStartsHandler(BasicBlock block)
             {
                 if (block.EnclosingRegion?.FirstBlockOrdinal == block.Ordinal)
                 {
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return null;
             }
 
-            IEnumerable<(BranchWithInfo successorWithBranch, BranchWithInfo preadjustSuccessorWithBranch)> GetSuccessorsWithAdjustedBranches(BasicBlock basicBlock)
+            IEnumerable<(BranchWithInfo successorWithBranch, BranchWithInfo? preadjustSuccessorWithBranch)> GetSuccessorsWithAdjustedBranches(BasicBlock basicBlock)
             {
                 if (basicBlock.Kind != BasicBlockKind.Exit)
                 {
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        private TAnalysisData GetClonedAnalysisDataOrEmptyData(TAnalysisData initialAnalysisDataOpt)
+        private TAnalysisData GetClonedAnalysisDataOrEmptyData(TAnalysisData? initialAnalysisDataOpt)
         {
             if (initialAnalysisDataOpt != null)
             {
@@ -776,8 +776,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private void UpdateInput(DataFlowAnalysisResultBuilder<TAnalysisData> builder, BasicBlock block, TAnalysisData newInput)
         {
-            Debug.Assert(newInput != null);
-            Debug.Assert(builder[block] == null || AnalysisDomain.Compare(builder[block], newInput) <= 0, "Non-monotonic update");
+            Debug.Assert(builder[block] == null || AnalysisDomain.Compare(builder[block]!, newInput) <= 0, "Non-monotonic update");
             builder.Update(block, newInput);
         }
 

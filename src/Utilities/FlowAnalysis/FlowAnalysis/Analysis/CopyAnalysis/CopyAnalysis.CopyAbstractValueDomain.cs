@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             public override int Compare(CopyAbstractValue oldValue, CopyAbstractValue newValue, bool assertMonotonicity)
             {
-                Debug.Assert(oldValue != null);
-                Debug.Assert(newValue != null);
-
                 if (ReferenceEquals(oldValue, newValue))
                 {
                     return 0;

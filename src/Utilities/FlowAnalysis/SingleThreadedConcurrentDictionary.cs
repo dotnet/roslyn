@@ -13,6 +13,7 @@ namespace Analyzer.Utilities
     /// threads simultaneously request the same key.</remarks>
 #pragma warning disable CA1812    // SingleThreadedConcurrentDictionary is too used.
     internal class SingleThreadedConcurrentDictionary<TKey, TValue>
+        where TValue : class
 #pragma warning restore CA1812
     {
         /// <summary>
@@ -20,7 +21,7 @@ namespace Analyzer.Utilities
         /// </summary>
         private class Entry
         {
-            public TValue Value { get; set; }
+            public TValue? Value { get; set; }
         }
 
         /// <summary>
@@ -34,7 +35,7 @@ namespace Analyzer.Utilities
         /// <param name="key">Key to add.</param>
         /// <param name="valueFactory">Function to be invoked to generate the key, if necessary.</param>
         /// <returns>Value of the key, which will either be the existing value, or new value if the key was not in the dictionary.</returns>
-        public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
+        public TValue? GetOrAdd(TKey key, Func<TKey, TValue?> valueFactory)
         {
             if (key == null)
             {

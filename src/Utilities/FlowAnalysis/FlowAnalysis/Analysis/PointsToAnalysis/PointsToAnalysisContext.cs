@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
-            CopyAnalysisResult copyAnalysisResultOpt,
-            Func<PointsToAnalysisContext, PointsToAnalysisResult> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralPointsToAnalysisData interproceduralAnalysisDataOpt,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
+            CopyAnalysisResult? copyAnalysisResultOpt,
+            Func<PointsToAnalysisContext, PointsToAnalysisResult?> tryGetOrComputeAnalysisResult,
+            ControlFlowGraph? parentControlFlowGraphOpt,
+            InterproceduralPointsToAnalysisData? interproceduralAnalysisDataOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: true, exceptionPathsAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt: null, valueContentAnalysisResultOpt: null,
                   tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
-            CopyAnalysisResult copyAnalysisResultOpt,
-            Func<PointsToAnalysisContext, PointsToAnalysisResult> tryGetOrComputeAnalysisResult,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
+            CopyAnalysisResult? copyAnalysisResultOpt,
+            Func<PointsToAnalysisContext, PointsToAnalysisResult?> tryGetOrComputeAnalysisResult,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
         {
             return new PointsToAnalysisContext(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig,
                 pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedControlFlowGraph,
             IOperation operation,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            CopyAnalysisResult copyAnalysisResultOpt,
-            ValueContentAnalysisResult valueContentAnalysisResultOpt,
-            InterproceduralPointsToAnalysisData interproceduralAnalysisData)
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResultOpt,
+            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            InterproceduralPointsToAnalysisData? interproceduralAnalysisData)
         {
             Debug.Assert(pointsToAnalysisResultOpt == null);
             Debug.Assert(valueContentAnalysisResultOpt == null);

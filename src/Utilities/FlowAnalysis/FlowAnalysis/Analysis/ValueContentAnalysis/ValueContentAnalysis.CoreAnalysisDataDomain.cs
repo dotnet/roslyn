@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             public CoreValueContentAnalysisData MergeAnalysisDataForBackEdge(CoreValueContentAnalysisData forwardEdgeAnalysisData, CoreValueContentAnalysisData backEdgeAnalysisData)
             {
-                Debug.Assert(forwardEdgeAnalysisData != null);
-                Debug.Assert(backEdgeAnalysisData != null);
-
                 // Stop tracking values present in both branches if their is an assignment to different literal values from the back edge.
                 // Clone the input forwardEdgeAnalysisData to ensure we don't overwrite the input dictionary.
                 using (forwardEdgeAnalysisData = new CoreValueContentAnalysisData(forwardEdgeAnalysisData))

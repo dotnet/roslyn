@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             public OperationBasedIndex(IOperation operation)
             {
-                Debug.Assert(operation != null);
                 Operation = operation;
             }
 

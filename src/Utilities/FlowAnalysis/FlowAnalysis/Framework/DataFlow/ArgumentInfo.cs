@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         public ArgumentInfo(
             IOperation operation,
-            AnalysisEntity analysisEntityOpt,
+            AnalysisEntity? analysisEntityOpt,
             PointsToAbstractValue instanceLocation,
             TAbstractAnalysisValue value)
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public IOperation Operation { get; }
         // Can be null for allocations.
-        public AnalysisEntity AnalysisEntityOpt { get; }
+        public AnalysisEntity? AnalysisEntityOpt { get; }
         public PointsToAbstractValue InstanceLocation { get; }
         public TAbstractAnalysisValue Value { get; }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             addPart(Operation.GetHashCode());
             addPart(AnalysisEntityOpt.GetHashCodeOrDefault());
             addPart(InstanceLocation.GetHashCode());
-            addPart(Value.GetHashCode());
+            addPart(Value.GetHashCodeOrDefault());
         }
     }
 }

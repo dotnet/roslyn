@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralParameterValidationAnalysisData interproceduralAnalysisDataOpt,
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult?> tryGetOrComputeAnalysisResult,
+            ControlFlowGraph? parentControlFlowGraphOpt,
+            InterproceduralParameterValidationAnalysisData? interproceduralAnalysisDataOpt,
             bool trackHazardousParameterUsages)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig,
                   pessimisticAnalysis, predicateAnalysis: false, exceptionPathsAnalysis: false,
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             SymbolNamesOption nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> tryGetOrComputeAnalysisResult)
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult?> tryGetOrComputeAnalysisResult)
         {
             return new ParameterValidationAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
             IOperation operation,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            CopyAnalysisResult copyAnalysisResultOpt,
-            ValueContentAnalysisResult valueContentAnalysisResultOpt,
-            InterproceduralParameterValidationAnalysisData interproceduralAnalysisData)
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResultOpt,
+            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            InterproceduralParameterValidationAnalysisData? interproceduralAnalysisData)
         {
             Debug.Assert(pointsToAnalysisResultOpt != null);
             Debug.Assert(copyAnalysisResultOpt == null);

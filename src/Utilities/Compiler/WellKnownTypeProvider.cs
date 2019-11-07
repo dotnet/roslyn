@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 
@@ -19,7 +19,7 @@ namespace Analyzer.Utilities
         private WellKnownTypeProvider(Compilation compilation)
         {
             Compilation = compilation;
-            _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
+            _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol?>(StringComparer.Ordinal);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
@@ -36,7 +36,7 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
         /// </summary>
-        private readonly ConcurrentDictionary<string, INamedTypeSymbol> _fullNameToTypeMap;
+        private readonly ConcurrentDictionary<string, INamedTypeSymbol?> _fullNameToTypeMap;
 
         /// <summary>
         /// Attempts to get the type by the full type name.
@@ -44,7 +44,7 @@ namespace Analyzer.Utilities
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
         /// <returns>True if found in the compilation, false otherwise.</returns>
-        public bool TryGetOrCreateTypeByMetadataName(string fullTypeName, out INamedTypeSymbol namedTypeSymbol)
+        public bool TryGetOrCreateTypeByMetadataName(string fullTypeName, [NotNullWhen(returnValue: true)] out INamedTypeSymbol? namedTypeSymbol)
         {
             namedTypeSymbol = _fullNameToTypeMap.GetOrAdd(
                 fullTypeName,
@@ -103,9 +103,9 @@ namespace Analyzer.Utilities
         /// </summary>
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
-        public INamedTypeSymbol GetOrCreateTypeByMetadataName(string fullTypeName)
+        public INamedTypeSymbol? GetOrCreateTypeByMetadataName(string fullTypeName)
         {
-            TryGetOrCreateTypeByMetadataName(fullTypeName, out INamedTypeSymbol namedTypeSymbol);
+            TryGetOrCreateTypeByMetadataName(fullTypeName, out INamedTypeSymbol? namedTypeSymbol);
             return namedTypeSymbol;
         }
 
@@ -117,7 +117,7 @@ namespace Analyzer.Utilities
         /// <param name="typeArgumentPredicate">Predicate to check the <paramref name="typeSymbol"/>'s type argument.</param>
         /// <returns>True if <paramref name="typeSymbol"/> is a <see cref="System.Threading.Tasks.Task{TResult}"/> with its
         /// type argument satisfying <paramref name="typeArgumentPredicate"/>, false otherwise.</returns>
-        internal bool IsTaskOfType(ITypeSymbol typeSymbol, Func<ITypeSymbol, bool> typeArgumentPredicate)
+        internal bool IsTaskOfType(ITypeSymbol? typeSymbol, Func<ITypeSymbol, bool> typeArgumentPredicate)
         {
             return typeSymbol != null
                 && typeSymbol.OriginalDefinition != null

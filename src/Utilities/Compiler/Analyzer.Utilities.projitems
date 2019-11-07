@@ -61,7 +61,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolVisibility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UriExtensions.cs" />
@@ -70,6 +69,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\CategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />

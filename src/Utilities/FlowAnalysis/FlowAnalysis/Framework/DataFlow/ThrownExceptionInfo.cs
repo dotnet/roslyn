@@ -14,10 +14,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private ThrownExceptionInfo(
             BasicBlock block,
             INamedTypeSymbol exceptionType,
-            ImmutableStack<IOperation> interproceduralCallStackOpt,
+            ImmutableStack<IOperation>? interproceduralCallStackOpt,
             bool isDefaultExceptionForExceptionsPathAnalysis)
         {
-            block = block ?? throw new ArgumentNullException(nameof(block));
             BasicBlockOrdinal = block.Ordinal;
             HandlingCatchRegionOpt = GetHandlerRegion(block, exceptionType);
             ContainingFinallyRegionOpt = block.GetContainingRegionOfKind(ControlFlowRegionKind.Finally);
@@ -26,19 +25,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IsDefaultExceptionForExceptionsPathAnalysis = isDefaultExceptionForExceptionsPathAnalysis;
         }
 
-        internal static ThrownExceptionInfo Create(BasicBlock block, INamedTypeSymbol exceptionType, ImmutableStack<IOperation> interproceduralCallStackOpt)
+        internal static ThrownExceptionInfo Create(BasicBlock block, INamedTypeSymbol exceptionType, ImmutableStack<IOperation>? interproceduralCallStackOpt)
         {
             return new ThrownExceptionInfo(block, exceptionType, interproceduralCallStackOpt, isDefaultExceptionForExceptionsPathAnalysis: false);
         }
 
-        internal static ThrownExceptionInfo CreateDefaultInfoForExceptionsPathAnalysis(BasicBlock block, WellKnownTypeProvider wellKnownTypeProvider, ImmutableStack<IOperation> interproceduralCallStackOpt)
+        internal static ThrownExceptionInfo CreateDefaultInfoForExceptionsPathAnalysis(BasicBlock block, WellKnownTypeProvider wellKnownTypeProvider, ImmutableStack<IOperation>? interproceduralCallStackOpt)
         {
             var exceptionNamedType = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException);
             Debug.Assert(exceptionNamedType != null);
-            return new ThrownExceptionInfo(block, exceptionNamedType, interproceduralCallStackOpt, isDefaultExceptionForExceptionsPathAnalysis: true);
+            return new ThrownExceptionInfo(block, exceptionNamedType!, interproceduralCallStackOpt, isDefaultExceptionForExceptionsPathAnalysis: true);
         }
 
-        private static ControlFlowRegion GetHandlerRegion(BasicBlock block, INamedTypeSymbol exceptionType)
+        private static ControlFlowRegion? GetHandlerRegion(BasicBlock block, INamedTypeSymbol exceptionType)
         {
             var enclosingRegion = block.EnclosingRegion;
             while (enclosingRegion != null)
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return null;
         }
 
-        internal ThrownExceptionInfo With(BasicBlock block, ImmutableStack<IOperation> interproceduralCallStackOpt)
+        internal ThrownExceptionInfo With(BasicBlock block, ImmutableStack<IOperation>? interproceduralCallStackOpt)
         {
             Debug.Assert(interproceduralCallStackOpt != InterproceduralCallStack);
             return new ThrownExceptionInfo(block, ExceptionType, interproceduralCallStackOpt, IsDefaultExceptionForExceptionsPathAnalysis);
@@ -78,18 +77,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Optional catch handler that handles this exception.
         /// </summary>
-        internal ControlFlowRegion HandlingCatchRegionOpt { get; }
+        internal ControlFlowRegion? HandlingCatchRegionOpt { get; }
 
         /// <summary>
         /// If the exception happens within a finally region, this points to that finally.
         /// </summary>
-        internal ControlFlowRegion ContainingFinallyRegionOpt { get; }
+        internal ControlFlowRegion? ContainingFinallyRegionOpt { get; }
 
         internal INamedTypeSymbol ExceptionType { get; }
         internal ImmutableStack<IOperation> InterproceduralCallStack { get; }
         internal bool IsDefaultExceptionForExceptionsPathAnalysis { get; }
 
-        public bool Equals(ThrownExceptionInfo other)
+        public bool Equals(ThrownExceptionInfo? other)
         {
             return other != null &&
                 BasicBlockOrdinal == other.BasicBlockOrdinal &&
@@ -102,6 +101,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override bool Equals(object obj)
             => Equals(obj as ThrownExceptionInfo);
+
         public override int GetHashCode()
             => HashUtilities.Combine(InterproceduralCallStack,
                 HashUtilities.Combine(BasicBlockOrdinal.GetHashCodeOrDefault(),

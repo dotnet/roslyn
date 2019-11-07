@@ -40,7 +40,7 @@ namespace Analyzer.Utilities.PooledObjects
             {
             }
 
-            object System.Collections.IEnumerator.Current
+            object? System.Collections.IEnumerator.Current
             {
                 get
                 {

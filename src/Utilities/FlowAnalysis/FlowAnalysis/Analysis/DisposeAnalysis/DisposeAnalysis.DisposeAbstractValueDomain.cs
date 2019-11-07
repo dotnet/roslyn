@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             public override int Compare(DisposeAbstractValue oldValue, DisposeAbstractValue newValue, bool assertMonotonicity)
             {
-                Debug.Assert(oldValue != null);
-                Debug.Assert(newValue != null);
-
                 if (ReferenceEquals(oldValue, newValue))
                 {
                     return 0;

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private PooledDictionary<TKey, TValue> _coreAnalysisData;
+        private PooledDictionary<TKey, TValue>? _coreAnalysisData;
 #pragma warning restore
 
         public DictionaryAnalysisData()
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             get
             {
                 Debug.Assert(!IsDisposed);
-                return _coreAnalysisData[key];
+                return _coreAnalysisData![key];
             }
             set
             {
                 Debug.Assert(!IsDisposed);
-                _coreAnalysisData[key] = value;
+                _coreAnalysisData![key] = value;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             get
             {
                 Debug.Assert(!IsDisposed);
-                return _coreAnalysisData.Keys;
+                return _coreAnalysisData!.Keys;
             }
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 // "Values" might be accessed during dispose.
                 //Debug.Assert(!IsDisposed);
-                return _coreAnalysisData.Values;
+                return _coreAnalysisData!.Values;
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             get
             {
                 Debug.Assert(!IsDisposed);
-                return _coreAnalysisData.Count;
+                return _coreAnalysisData!.Count;
             }
         }
 
@@ -79,56 +79,56 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             get
             {
                 Debug.Assert(!IsDisposed);
-                return ((IDictionary<TKey, TValue>)_coreAnalysisData).IsReadOnly;
+                return ((IDictionary<TKey, TValue>)_coreAnalysisData!).IsReadOnly;
             }
         }
 
         public void Add(TKey key, TValue value)
         {
             Debug.Assert(!IsDisposed);
-            _coreAnalysisData.Add(key, value);
+            _coreAnalysisData!.Add(key, value);
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
             Debug.Assert(!IsDisposed);
-            _coreAnalysisData.Add(item.Key, item.Value);
+            _coreAnalysisData!.Add(item.Key, item.Value);
         }
 
         public void Clear()
         {
             Debug.Assert(!IsDisposed);
-            _coreAnalysisData.Clear();
+            _coreAnalysisData!.Clear();
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
             Debug.Assert(!IsDisposed);
-            return ((IDictionary<TKey, TValue>)_coreAnalysisData).Contains(item);
+            return ((IDictionary<TKey, TValue>)_coreAnalysisData!).Contains(item);
         }
 
         public bool ContainsKey(TKey key)
         {
             Debug.Assert(!IsDisposed);
-            return _coreAnalysisData.ContainsKey(key);
+            return _coreAnalysisData!.ContainsKey(key);
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             Debug.Assert(!IsDisposed);
-            ((IDictionary<TKey, TValue>)_coreAnalysisData).CopyTo(array, arrayIndex);
+            ((IDictionary<TKey, TValue>)_coreAnalysisData!).CopyTo(array, arrayIndex);
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             Debug.Assert(!IsDisposed);
-            return _coreAnalysisData.GetEnumerator();
+            return _coreAnalysisData!.GetEnumerator();
         }
 
         public bool Remove(TKey key)
         {
             Debug.Assert(!IsDisposed);
-            return _coreAnalysisData.Remove(key);
+            return _coreAnalysisData!.Remove(key);
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -140,13 +140,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool TryGetValue(TKey key, out TValue value)
         {
             Debug.Assert(!IsDisposed);
-            return _coreAnalysisData.TryGetValue(key, out value);
+            return _coreAnalysisData!.TryGetValue(key, out value);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             Debug.Assert(!IsDisposed);
-            return _coreAnalysisData.GetEnumerator();
+            return _coreAnalysisData!.GetEnumerator();
         }
 
         protected override void Dispose(bool disposing)
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             if (disposing)
             {
-                _coreAnalysisData.Free();
+                _coreAnalysisData!.Free();
                 _coreAnalysisData = null;
             }
 

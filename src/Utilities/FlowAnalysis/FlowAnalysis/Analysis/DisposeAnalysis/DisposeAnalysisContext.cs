@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<DisposeAnalysisContext, DisposeAnalysisResult> tryGetOrComputeAnalysisResult,
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            Func<DisposeAnalysisContext, DisposeAnalysisResult?> tryGetOrComputeAnalysisResult,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool disposeOwnershipTransferAtConstructor,
             bool disposeOwnershipTransferAtMethodCall,
             bool trackInstanceFields,
-            ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralDisposeAnalysisData interproceduralAnalysisDataOpt,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
+            ControlFlowGraph? parentControlFlowGraphOpt,
+            InterproceduralDisposeAnalysisData? interproceduralAnalysisDataOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph,
                   owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: false,
@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<DisposeAnalysisContext, DisposeAnalysisResult> tryGetOrComputeAnalysisResult,
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            Func<DisposeAnalysisContext, DisposeAnalysisResult?> tryGetOrComputeAnalysisResult,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool disposeOwnershipTransferAtConstructor,
             bool disposeOwnershipTransferAtMethodCall,
@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedControlFlowGraph,
             IOperation operation,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            CopyAnalysisResult copyAnalysisResultOpt,
-            ValueContentAnalysisResult valueContentAnalysisResultOpt,
-            InterproceduralDisposeAnalysisData interproceduralAnalysisData)
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResultOpt,
+            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            InterproceduralDisposeAnalysisData? interproceduralAnalysisData)
         {
             Debug.Assert(pointsToAnalysisResultOpt != null);
             Debug.Assert(copyAnalysisResultOpt == null);

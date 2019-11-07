@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.ArrayBuilder<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
@@ -47,19 +48,19 @@ namespace Analyzer.Utilities.PooledObjects
 
         private readonly ImmutableArray<T>.Builder _builder;
 
-        private readonly ObjectPool<ArrayBuilder<T>> _pool;
+        private readonly ObjectPool<ArrayBuilder<T>>? _pool;
 
         public ArrayBuilder(int size)
         {
             _builder = ImmutableArray.CreateBuilder<T>(size);
         }
 
-        public ArrayBuilder() :
-            this(8)
+        public ArrayBuilder()
+            : this(8)
         { }
 
-        private ArrayBuilder(ObjectPool<ArrayBuilder<T>> pool) :
-            this()
+        private ArrayBuilder(ObjectPool<ArrayBuilder<T>>? pool)
+            : this()
         {
             _pool = pool;
         }
@@ -101,11 +102,11 @@ namespace Analyzer.Utilities.PooledObjects
         /// Write <paramref name="value"/> to slot <paramref name="index"/>. 
         /// Fills in unallocated slots preceding the <paramref name="index"/>, if any.
         /// </summary>
-        public void SetItem(int index, T value)
+        public void SetItem(int index, [MaybeNull]T value)
         {
             while (index > _builder.Count)
             {
-                _builder.Add(default);
+                _builder.Add(default!);
             }
 
             if (index == _builder.Count)
@@ -118,12 +119,12 @@ namespace Analyzer.Utilities.PooledObjects
             }
         }
 
-        public void Add(T item)
+        public void Add([MaybeNull]T item)
         {
             _builder.Add(item);
         }
 
-        public void Insert(int index, T item)
+        public void Insert(int index, [MaybeNull]T item)
         {
             _builder.Insert(index, item);
         }
@@ -141,22 +142,22 @@ namespace Analyzer.Utilities.PooledObjects
             _builder.Clear();
         }
 
-        public bool Contains(T item)
+        public bool Contains([MaybeNull]T item)
         {
             return _builder.Contains(item);
         }
 
-        public int IndexOf(T item)
+        public int IndexOf([MaybeNull]T item)
         {
             return _builder.IndexOf(item);
         }
 
-        public int IndexOf(T item, IEqualityComparer<T> equalityComparer)
+        public int IndexOf([MaybeNull]T item, IEqualityComparer<T> equalityComparer)
         {
             return _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
         }
 
-        public int IndexOf(T item, int startIndex, int count)
+        public int IndexOf([MaybeNull]T item, int startIndex, int count)
         {
             return _builder.IndexOf(item, startIndex, count);
         }
@@ -224,11 +225,13 @@ namespace Analyzer.Utilities.PooledObjects
             _builder.CopyTo(array, start);
         }
 
+        [return: MaybeNull]
         public T Last()
         {
             return _builder[_builder.Count - 1];
         }
 
+        [return: MaybeNull]
         public T First()
         {
             return _builder[0];
@@ -266,7 +269,7 @@ namespace Analyzer.Utilities.PooledObjects
             var tmp = ArrayBuilder<U>.GetInstance(Count);
             foreach (var i in _builder)
             {
-                tmp.Add((U)i);
+                tmp.Add((U)i!);
             }
 
             return tmp.ToImmutableAndFree();
@@ -372,7 +375,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         internal static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
         {
-            ObjectPool<ArrayBuilder<T>> pool = null;
+            ObjectPool<ArrayBuilder<T>>? pool = null;
             pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool), size);
             return pool;
         }
@@ -394,7 +397,7 @@ namespace Analyzer.Utilities.PooledObjects
             return GetEnumerator();
         }
 
-        internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
         {
             if (this.Count == 1)
             {
@@ -496,7 +499,7 @@ namespace Analyzer.Utilities.PooledObjects
             _builder.Count = count;
         }
 
-        public void AddMany(T item, int count)
+        public void AddMany([MaybeNull] T item, int count)
         {
             for (int i = 0; i < count; i++)
             {

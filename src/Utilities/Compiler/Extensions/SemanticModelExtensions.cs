@@ -7,7 +7,7 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class SemanticModelExtensions
     {
-        public static IOperation GetOperationWalkingUpParentChain(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public static IOperation? GetOperationWalkingUpParentChain(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
             // Walk up the parent chain to fetch the first non-null operation.
             do

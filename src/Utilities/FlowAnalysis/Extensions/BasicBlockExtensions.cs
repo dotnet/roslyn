@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        internal static ITypeSymbol GetEnclosingRegionExceptionType(this BasicBlock basicBlock)
+        internal static ITypeSymbol? GetEnclosingRegionExceptionType(this BasicBlock basicBlock)
         {
             var region = basicBlock.EnclosingRegion;
             while (region != null)
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Returns the innermost control flow region of the given <paramref name="regionKind"/> that contains the given <paramref name="basicBlock"/>.
         /// </summary>
-        public static ControlFlowRegion GetContainingRegionOfKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
+        public static ControlFlowRegion? GetContainingRegionOfKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
         {
             var enclosingRegion = basicBlock.EnclosingRegion;
             while (enclosingRegion != null)
@@ -89,28 +90,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Returns true if the given basic block is the first block of a finally region.
         /// </summary>
-        public static bool IsFirstBlockOfFinally(this BasicBlock basicBlock, out ControlFlowRegion finallyRegion)
+        public static bool IsFirstBlockOfFinally(this BasicBlock basicBlock, [NotNullWhen(returnValue: true)] out ControlFlowRegion? finallyRegion)
             => basicBlock.IsFirstBlockOfRegionKind(ControlFlowRegionKind.Finally, out finallyRegion);
 
         /// <summary>
         /// Returns true if the given basic block is the last block of a finally region.
         /// </summary>
-        public static bool IsLastBlockOfFinally(this BasicBlock basicBlock, out ControlFlowRegion finallyRegion)
+        public static bool IsLastBlockOfFinally(this BasicBlock basicBlock, [NotNullWhen(returnValue: true)] out ControlFlowRegion? finallyRegion)
             => basicBlock.IsLastBlockOfRegionKind(ControlFlowRegionKind.Finally, out finallyRegion);
 
         /// <summary>
         /// Returns true if the given basic block is the first block of a region of the given regionKind.
         /// </summary>
-        public static bool IsFirstBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, out ControlFlowRegion region)
+        public static bool IsFirstBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, [NotNullWhen(returnValue: true)] out ControlFlowRegion? region)
             => basicBlock.IsFirstOrLastBlockOfRegionKind(regionKind, first: true, out region);
 
         /// <summary>
         /// Returns true if the given basic block is the last block of a region of the given regionKind.
         /// </summary>
-        public static bool IsLastBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, out ControlFlowRegion region)
+        public static bool IsLastBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, [NotNullWhen(returnValue: true)] out ControlFlowRegion? region)
             => basicBlock.IsFirstOrLastBlockOfRegionKind(regionKind, first: false, out region);
 
-        private static bool IsFirstOrLastBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, bool first, out ControlFlowRegion foundRegion)
+        private static bool IsFirstOrLastBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, bool first, [NotNullWhen(returnValue: true)] out ControlFlowRegion? foundRegion)
         {
             foundRegion = null;
 
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return false;
         }
 
-        internal static ControlFlowRegion GetInnermostRegionStartedByBlock(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
+        internal static ControlFlowRegion? GetInnermostRegionStartedByBlock(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
         {
             if (basicBlock.EnclosingRegion?.FirstBlockOrdinal != basicBlock.Ordinal)
             {
@@ -166,11 +167,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             => Math.Max(basicBlock.FallThroughSuccessor?.Destination?.Ordinal ?? -1,
                         basicBlock.ConditionalSuccessor?.Destination?.Ordinal ?? -1);
 
-        internal static IOperation GetPreviousOperationInBlock(this BasicBlock basicBlock, IOperation operation)
+        internal static IOperation? GetPreviousOperationInBlock(this BasicBlock basicBlock, IOperation operation)
         {
             Debug.Assert(operation != null);
 
-            IOperation previousOperation = null;
+            IOperation? previousOperation = null;
             foreach (var currentOperation in basicBlock.Operations)
             {
                 if (operation == currentOperation)

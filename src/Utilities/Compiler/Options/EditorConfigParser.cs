@@ -70,7 +70,7 @@ namespace Analyzer.Utilities
 
                     Debug.Assert(!string.IsNullOrEmpty(key));
                     Debug.Assert(key == key.Trim());
-                    Debug.Assert(value == value?.Trim());
+                    Debug.Assert(value == value.Trim());
 
                     key = CaseInsensitiveComparison.ToLower(key);
                     if (s_reservedKeys.Contains(key) || s_reservedValues.Contains(value))
@@ -78,7 +78,7 @@ namespace Analyzer.Utilities
                         value = CaseInsensitiveComparison.ToLower(value);
                     }
 
-                    parsedOptions[key] = value ?? "";
+                    parsedOptions[key] = value;
                     continue;
                 }
             }

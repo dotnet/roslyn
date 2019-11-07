@@ -123,10 +123,12 @@ namespace Analyzer.Utilities.Extensions
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.Parameters,
-                (IPropertySymbol p) => p.Parameters,
-                _ => ImmutableArray.Create<IParameterSymbol>());
+            return symbol switch
+            {
+                IMethodSymbol m => m.Parameters,
+                IPropertySymbol p => p.Parameters,
+                _ => ImmutableArray.Create<IParameterSymbol>()
+            };
         }
 
         /// <summary>
@@ -455,7 +457,7 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Get overload from the given overloads that matches given method signature + given parameter
         /// </summary>
-        public static IMethodSymbol GetMatchingOverload(this IMethodSymbol method, IEnumerable<IMethodSymbol> overloads, int parameterIndex, INamedTypeSymbol type, CancellationToken cancellationToken)
+        public static IMethodSymbol? GetMatchingOverload(this IMethodSymbol method, IEnumerable<IMethodSymbol> overloads, int parameterIndex, INamedTypeSymbol type, CancellationToken cancellationToken)
         {
             foreach (IMethodSymbol overload in overloads)
             {
@@ -529,9 +531,8 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Checks if a given symbol implements an interface member or overrides an implementation of an interface member.
         /// </summary>
-        public static bool IsOverrideOrImplementationOfInterfaceMember(this ISymbol symbol, ISymbol interfaceMember)
+        public static bool IsOverrideOrImplementationOfInterfaceMember(this ISymbol symbol, ISymbol? interfaceMember)
         {
-            Debug.Assert(symbol != null);
             if (interfaceMember == null)
             {
                 return false;
@@ -552,7 +553,6 @@ namespace Analyzer.Utilities.Extensions
         /// <remarks>Requires that <see cref="ISymbol.IsOverride"/> is true for the given <paramref name="symbol"/>.</remarks>
         public static ISymbol GetOverriddenMember(this ISymbol symbol)
         {
-            Debug.Assert(symbol != null);
             Debug.Assert(symbol.IsOverride);
 
             return symbol switch
@@ -570,7 +570,7 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Checks if a given symbol implements an interface member explicitly
         /// </summary>
-        public static bool IsImplementationOfAnyExplicitInterfaceMember(this ISymbol symbol)
+        public static bool IsImplementationOfAnyExplicitInterfaceMember(this ISymbol? symbol)
         {
             if (symbol is IMethodSymbol methodSymbol && methodSymbol.ExplicitInterfaceImplementations.Any())
             {
@@ -590,7 +590,7 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        public static ITypeSymbol GetMemberOrLocalOrParameterType(this ISymbol symbol)
+        public static ITypeSymbol? GetMemberOrLocalOrParameterType(this ISymbol symbol)
         {
             return symbol.Kind switch
             {
@@ -602,23 +602,23 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        public static ITypeSymbol GetMemberType(this ISymbol symbol)
+        public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
         {
-            return symbol.Kind switch
+            return symbol switch
             {
-                SymbolKind.Event => ((IEventSymbol)symbol).Type,
+                IEventSymbol eventSymbol => eventSymbol.Type,
 
-                SymbolKind.Field => ((IFieldSymbol)symbol).Type,
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
 
-                SymbolKind.Method => ((IMethodSymbol)symbol).ReturnType,
+                IMethodSymbol methodSymbol => methodSymbol.ReturnType,
 
-                SymbolKind.Property => ((IPropertySymbol)symbol).Type,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
 
                 _ => null,
             };
         }
 
-        public static bool IsReadOnlyFieldOrProperty(this ISymbol symbol)
+        public static bool IsReadOnlyFieldOrProperty(this ISymbol? symbol)
         {
             return symbol switch
             {
@@ -661,7 +661,7 @@ namespace Analyzer.Utilities.Extensions
             return symbol.Locations.Any(l => l.IsInSource);
         }
 
-        public static bool IsLambdaOrLocalFunction(this ISymbol symbol)
+        public static bool IsLambdaOrLocalFunction(this ISymbol? symbol)
             => (symbol as IMethodSymbol)?.IsLambdaOrLocalFunction() == true;
 
         /// <summary>
@@ -669,11 +669,11 @@ namespace Analyzer.Utilities.Extensions
         /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
         /// These symbols can be treated as special discard symbol names.
         /// </summary>
-        public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
+        public static bool IsSymbolWithSpecialDiscardName(this ISymbol? symbol)
             => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
                (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
 
-        public static bool IsConst(this ISymbol symbol)
+        public static bool IsConst(this ISymbol? symbol)
         {
             return symbol switch
             {
@@ -685,7 +685,7 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        public static bool IsReadOnly(this ISymbol symbol)
+        public static bool IsReadOnly(this ISymbol? symbol)
         {
             return symbol switch
             {

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
@@ -100,13 +99,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, CopyAbstractValue value)
             {
-                Debug.Assert(analysisEntity != null);
-                Debug.Assert(value != null);
-
                 SetAbstractValue(CurrentAnalysisData, analysisEntity, value, TryGetAddressSharedCopyValue);
             }
 
-            protected override void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation assignedValueOperation, CopyAbstractValue assignedValue)
+            protected override void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation? assignedValueOperation, CopyAbstractValue assignedValue)
             {
                 if (assignedValue.AnalysisEntities.Contains(targetAnalysisEntity))
                 {
@@ -138,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 CopyAnalysisData copyAnalysisData,
                 AnalysisEntity analysisEntity,
                 CopyAbstractValue value,
-                Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
+                Func<AnalysisEntity, CopyAbstractValue?> tryGetAddressSharedCopyValue,
                 SetCopyAbstractValuePredicateKind? fromPredicateKindOpt = null,
                 bool initializingParameters = false)
             {
@@ -151,14 +147,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 CopyAnalysisData targetCopyAnalysisData,
                 AnalysisEntity analysisEntity,
                 CopyAbstractValue value,
-                Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
+                Func<AnalysisEntity, CopyAbstractValue?> tryGetAddressSharedCopyValue,
                 SetCopyAbstractValuePredicateKind? fromPredicateKindOpt,
                 bool initializingParameters)
             {
                 sourceCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicateKindOpt.HasValue);
-                Debug.Assert(tryGetAddressSharedCopyValue != null);
 
                 // Don't track entities if do not know about it's instance location.
                 if (analysisEntity.HasUnknownInstanceLocation)
@@ -188,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                     if (existingValue.AnalysisEntities.Count > 1)
                     {
-                        CopyAbstractValue addressSharedCopyValue = tryGetAddressSharedCopyValue(analysisEntity);
+                        CopyAbstractValue? addressSharedCopyValue = tryGetAddressSharedCopyValue(analysisEntity);
                         if (addressSharedCopyValue == null || addressSharedCopyValue != existingValue)
                         {
                             CopyAbstractValue newValueForEntitiesInOldSet = addressSharedCopyValue != null ?
@@ -234,7 +229,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 else
                 {
                     // Include address shared entities, if any.
-                    CopyAbstractValue addressSharedCopyValue = tryGetAddressSharedCopyValue(analysisEntity);
+                    CopyAbstractValue? addressSharedCopyValue = tryGetAddressSharedCopyValue(analysisEntity);
                     if (addressSharedCopyValue != null)
                     {
                         newAnalysisEntities = newAnalysisEntities.Union(addressSharedCopyValue.AnalysisEntities);
@@ -247,7 +242,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
             }
 
-            protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<CopyAbstractValue> assignedValueOpt)
+            protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<CopyAbstractValue>? assignedValueOpt)
             {
                 CopyAbstractValue copyValue;
                 if (assignedValueOpt != null)
@@ -308,7 +303,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, CopyAbstractValue defaultValue)
             {
-                if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
+                if (AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
                 {
                     return CurrentAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue value) ? value : GetDefaultCopyValue(analysisEntity);
                 }
@@ -440,7 +435,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(CopyAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
             {
-                Func<AnalysisEntity, bool> predicateOpt = null;
+                Func<AnalysisEntity, bool>? predicateOpt = null;
                 if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
                 {
                     // Only tracking non-child analysis entities for exceptions path analysis for now.
@@ -520,7 +515,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
             }
 
-            private void ApplyMissingCurrentAnalysisDataCore(CopyAnalysisData mergedData, Func<AnalysisEntity, bool> predicateOpt)
+            private void ApplyMissingCurrentAnalysisDataCore(CopyAnalysisData mergedData, Func<AnalysisEntity, bool>? predicateOpt)
             {
                 var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
                 try
@@ -586,12 +581,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAnalysisData GetInitialInterproceduralAnalysisData(
                 IMethodSymbol invokedMethod,
-                (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
+                (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
                 (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
                 ImmutableDictionary<IParameterSymbol, ArgumentInfo<CopyAbstractValue>> argumentValuesMap,
-                IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
-                IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
-                IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
+                IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValuesOpt,
+                IDictionary<AnalysisEntity, CopyAbstractValue>? copyValuesOpt,
+                IDictionary<AnalysisEntity, ValueContentAbstractValue>? valueContentValuesOpt,
                 bool isLambdaOrLocalFunction,
                 bool hasParameterWithDelegateType)
             {
@@ -606,7 +601,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             #endregion
 
             #region Visitor overrides
-            public override CopyAbstractValue DefaultVisit(IOperation operation, object argument)
+            public override CopyAbstractValue DefaultVisit(IOperation operation, object? argument)
             {
                 _ = base.DefaultVisit(operation, argument);
                 return CopyAbstractValue.Unknown;
@@ -638,7 +633,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return CopyAbstractValue.Unknown;
             }
 
-            private static bool FlowConversionOperandValue(ConversionInference inference, ITypeSymbol targetType)
+            private static bool FlowConversionOperandValue(ConversionInference inference, ITypeSymbol? targetType)
             {
                 Debug.Assert(!inference.AlwaysSucceed || !inference.AlwaysFail);
 
@@ -655,7 +650,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     // TODO: For direct cast, we should check if conversion is implicit.
                     // For now, we only flow values for reference type direct cast conversions.
                     if (inference.IsTryCast && inference.AlwaysSucceed ||
-                        !inference.IsTryCast && targetType.IsReferenceType)
+                        !inference.IsTryCast && targetType?.IsReferenceType == true)
                     {
                         return true;
                     }

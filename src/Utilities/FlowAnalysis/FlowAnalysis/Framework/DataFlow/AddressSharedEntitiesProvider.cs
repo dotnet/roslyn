@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// </summary>
     internal sealed class AddressSharedEntitiesProvider<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         /// <summary>
         /// Map builder from entity to set of entities that share the same instance location.
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             SetAddressSharedEntities(analysisContext.InterproceduralAnalysisDataOpt?.AddressSharedEntities);
         }
 
-        public void SetAddressSharedEntities(ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntitiesOpt)
+        public void SetAddressSharedEntities(ImmutableDictionary<AnalysisEntity, CopyAbstractValue>? addressSharedEntitiesOpt)
         {
             _addressSharedEntitiesBuilder.Clear();
             if (addressSharedEntitiesOpt != null)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             }
         }
 
-        public void UpdateAddressSharedEntitiesForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
+        public void UpdateAddressSharedEntitiesForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValueOpt)
         {
             if (parameter.RefKind != RefKind.None &&
                 assignedValueOpt?.AnalysisEntityOpt != null)
@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 var builder = PooledHashSet<AnalysisEntity>.GetInstance();
                 AddIfHasKnownInstanceLocation(analysisEntity, builder);
-                AddIfHasKnownInstanceLocation(assignedValueOpt.AnalysisEntityOpt, builder);
+                AddIfHasKnownInstanceLocation(assignedValueOpt!.AnalysisEntityOpt!, builder);
 
                 // We need to handle multiple ref/out parameters passed the same location.
                 // For example, "M(ref a, ref a);"
-                if (_addressSharedEntitiesBuilder.TryGetValue(assignedValueOpt.AnalysisEntityOpt, out var existingValue))
+                if (_addressSharedEntitiesBuilder.TryGetValue(assignedValueOpt.AnalysisEntityOpt!, out var existingValue))
                 {
                     foreach (var entity in existingValue.AnalysisEntities)
                     {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
             => TryGetAddressSharedCopyValue(analysisEntity) ?? new CopyAbstractValue(analysisEntity);
 
-        public CopyAbstractValue TryGetAddressSharedCopyValue(AnalysisEntity analysisEntity)
+        public CopyAbstractValue? TryGetAddressSharedCopyValue(AnalysisEntity analysisEntity)
             => _addressSharedEntitiesBuilder.TryGetValue(analysisEntity, out var addressSharedEntities) ?
             addressSharedEntities :
             null;

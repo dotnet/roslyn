@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -25,9 +23,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAnalysisData Merge(TAnalysisData value1, TAnalysisData value2)
         {
-            Debug.Assert(value1 != null);
-            Debug.Assert(value2 != null);
-
             AnalysisEntityBasedPredicateAnalysisData<TValue> result;
             if (ReferenceEquals(value1, value2))
             {

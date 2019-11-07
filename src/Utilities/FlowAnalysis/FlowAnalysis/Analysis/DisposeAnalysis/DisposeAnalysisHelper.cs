@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
@@ -37,10 +38,10 @@ namespace Analyzer.Utilities
             OperationKind.Invocation);
 
         private readonly WellKnownTypeProvider _wellKnownTypeProvider;
-        private readonly ImmutableHashSet<INamedTypeSymbol> _disposeOwnershipTransferLikelyTypes;
-        private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>> _lazyDisposableFieldsMap;
-        public INamedTypeSymbol IDisposable { get; }
-        public INamedTypeSymbol Task { get; }
+        private readonly ImmutableHashSet<INamedTypeSymbol>? _disposeOwnershipTransferLikelyTypes;
+        private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>>? _lazyDisposableFieldsMap;
+        public INamedTypeSymbol? IDisposable { get; }
+        public INamedTypeSymbol? Task { get; }
 
         private DisposeAnalysisHelper(Compilation compilation)
         {
@@ -60,7 +61,7 @@ namespace Analyzer.Utilities
             var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
             foreach (var typeName in s_disposeOwnershipTransferLikelyTypes)
             {
-                INamedTypeSymbol typeSymbol = compilation.GetOrCreateTypeByMetadataName(typeName);
+                INamedTypeSymbol? typeSymbol = compilation.GetOrCreateTypeByMetadataName(typeName);
                 if (typeSymbol != null)
                 {
                     builder.Add(typeSymbol);
@@ -78,7 +79,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public static bool TryGetOrCreate(Compilation compilation, out DisposeAnalysisHelper disposeHelper)
+        public static bool TryGetOrCreate(Compilation compilation, [NotNullWhen(returnValue: true)] out DisposeAnalysisHelper? disposeHelper)
         {
             disposeHelper = s_DisposeHelperCache.GetOrCreateValue(compilation, CreateDisposeAnalysisHelper);
             if (disposeHelper.IDisposable == null)
@@ -102,16 +103,16 @@ namespace Analyzer.Utilities
             bool trackInstanceFields,
             bool trackExceptionPaths,
             CancellationToken cancellationToken,
-            out DisposeAnalysisResult disposeAnalysisResult,
-            out PointsToAnalysisResult pointsToAnalysisResult,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null,
+            [NotNullWhen(returnValue: true)] out DisposeAnalysisResult? disposeAnalysisResult,
+            [NotNullWhen(returnValue: true)] out PointsToAnalysisResult? pointsToAnalysisResult,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt = null,
             bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
             var cfg = operationBlocks.GetControlFlowGraph();
-            if (cfg != null)
+            if (cfg != null && IDisposable != null)
             {
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
-                    analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
+                    analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes!, trackInstanceFields,
                     trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
                     interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
@@ -144,7 +145,7 @@ namespace Analyzer.Utilities
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
         {
             EnsureDisposableFieldsMap();
-            if (_lazyDisposableFieldsMap.TryGetValue(namedType, out ImmutableHashSet<IFieldSymbol> disposableFields))
+            if (_lazyDisposableFieldsMap!.TryGetValue(namedType, out ImmutableHashSet<IFieldSymbol> disposableFields))
             {
                 return disposableFields;
             }

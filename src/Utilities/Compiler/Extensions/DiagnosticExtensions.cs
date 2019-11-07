@@ -126,7 +126,7 @@ namespace Analyzer.Utilities.Extensions
         {
             if (!location.IsInSource)
             {
-                location = null;
+                location = Location.None;
             }
 
             return Diagnostic.Create(
@@ -158,7 +158,7 @@ namespace Analyzer.Utilities.Extensions
         public static Diagnostic CreateDiagnostic(
             this IEnumerable<Location> locations,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string>? properties,
             params object[] args)
         {
             IEnumerable<Location> inSource = locations.Where(l => l.IsInSource);
@@ -197,7 +197,7 @@ namespace Analyzer.Utilities.Extensions
             this Compilation compilation,
             DiagnosticDescriptor rule,
             Action<Diagnostic> addDiagnostic,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string>? properties,
             params object[] args)
         {
             var effectiveSeverity = GetEffectiveSeverity();

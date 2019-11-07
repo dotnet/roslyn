@@ -9,14 +9,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public sealed class InterproceduralAnalysisPredicate
     {
-        private readonly Func<IMethodSymbol, bool> _skipAnalysisForInvokedMethodPredicateOpt;
-        private readonly Func<IMethodSymbol, bool> _skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt;
-        private readonly Func<IDataFlowAnalysisContext, bool> _skipAnalysisForInvokedContextPredicateOpt;
+        private readonly Func<IMethodSymbol, bool>? _skipAnalysisForInvokedMethodPredicateOpt;
+        private readonly Func<IMethodSymbol, bool>? _skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt;
+        private readonly Func<IDataFlowAnalysisContext, bool>? _skipAnalysisForInvokedContextPredicateOpt;
 
         public InterproceduralAnalysisPredicate(
-            Func<IMethodSymbol, bool> skipAnalysisForInvokedMethodPredicateOpt,
-            Func<IMethodSymbol, bool> skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt,
-            Func<IDataFlowAnalysisContext, bool> skipAnalysisForInvokedContextPredicateOpt)
+            Func<IMethodSymbol, bool>? skipAnalysisForInvokedMethodPredicateOpt,
+            Func<IMethodSymbol, bool>? skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt,
+            Func<IDataFlowAnalysisContext, bool>? skipAnalysisForInvokedContextPredicateOpt)
         {
             if (skipAnalysisForInvokedMethodPredicateOpt == null &&
                 skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt == null &&

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
             }
 
-            protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, ParameterValidationAbstractValue assignedValue, bool mayBeAssignment = false)
+            protected override void SetAbstractValueForAssignment(IOperation target, IOperation? assignedValueOperation, ParameterValidationAbstractValue assignedValue, bool mayBeAssignment = false)
             {
                 // If we are assigning to parameter, mark it as validated on this path.
                 if (target is IParameterReferenceOperation)

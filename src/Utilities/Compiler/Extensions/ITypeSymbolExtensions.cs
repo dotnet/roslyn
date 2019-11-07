@@ -77,7 +77,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool DerivesFrom(this ITypeSymbol symbol, ITypeSymbol candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
+        public static bool DerivesFrom(this ITypeSymbol? symbol, ITypeSymbol? candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
         {
             if (candidateBaseType == null || symbol == null)
             {
@@ -127,13 +127,13 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Indicates if the given <paramref name="type"/> implements <paramref name="iDisposable"/>.
         /// </summary>
-        public static bool ImplementsIDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+        public static bool ImplementsIDisposable(this ITypeSymbol type, INamedTypeSymbol? iDisposable)
             => iDisposable != null && type.AllInterfaces.Contains(iDisposable);
 
         /// <summary>
         /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or is <see cref="IDisposable"/> type itself.
         /// </summary>
-        public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+        public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol? iDisposable)
             => type.IsReferenceType && (Equals(type, iDisposable) || type.ImplementsIDisposable(iDisposable));
 
         /// <summary>

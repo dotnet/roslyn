@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         protected AbstractLocationDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void SetValueForParameterPointsToLocationOnEntry(IParameterSymbol parameter, PointsToAbstractValue pointsToAbstractValue);
         protected abstract void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations);
 
-        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
+        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValueOpt)
         {
             // Only set the value for non-interprocedural case.
             // For interprocedural case, we have already initialized values for the underlying locations
@@ -115,14 +115,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Helper method to reset analysis data for analysis locations.
         /// </summary>
-        protected void ResetAnalysisData(DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> currentAnalysisDataOpt)
+        protected void ResetAnalysisData(DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue>? currentAnalysisDataOpt)
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
-            var keys = currentAnalysisDataOpt?.Keys.ToImmutableArray();
-            foreach (var key in keys)
+            if (currentAnalysisDataOpt != null)
             {
-                SetAbstractValue(key, ValueDomain.UnknownOrMayBeValue);
+                var keys = currentAnalysisDataOpt.Keys.ToImmutableArray();
+                foreach (var key in keys)
+                {
+                    SetAbstractValue(key, ValueDomain.UnknownOrMayBeValue);
+                }
             }
         }
 

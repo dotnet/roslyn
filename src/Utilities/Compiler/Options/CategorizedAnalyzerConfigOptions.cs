@@ -113,7 +113,7 @@ namespace Analyzer.Utilities
                 return defaultValue;
             }
 
-            return (T)_computedOptionValuesMap.GetOrAdd($"{rule.Id}.{optionName}", _ => ComputeOptionValue(optionName, rule, tryParseValue, defaultValue));
+            return (T)_computedOptionValuesMap.GetOrAdd($"{rule.Id}.{optionName}", _ => ComputeOptionValue(optionName, rule, tryParseValue, defaultValue)!);
         }
 
         private T ComputeOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)

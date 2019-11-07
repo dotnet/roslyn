@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
-        internal static TaintedDataAnalysisResult TryGetOrComputeResult(
+        internal static TaintedDataAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
@@ -41,7 +41,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
         }
 
-        private static TaintedDataAnalysisResult TryGetOrComputeResult(
+        private static TaintedDataAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
@@ -58,21 +58,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            ValueContentAnalysisResult valueContentAnalysisResult = null;
-            CopyAnalysisResult copyAnalysisResult = null;
-            PointsToAnalysisResult pointsToAnalysisResult = null;
+            ValueContentAnalysisResult? valueContentAnalysisResult = null;
+            CopyAnalysisResult? copyAnalysisResult = null;
+            PointsToAnalysisResult? pointsToAnalysisResult = null;
             if (taintedSourceInfos.RequiresValueContentAnalysis || taintedSanitizerInfos.RequiresValueContentAnalysis || taintedSinkInfos.RequiresValueContentAnalysis)
             {
                 valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
-                        cfg,
-                        containingMethod,
-                        analyzerOptions,
-                        wellKnownTypeProvider,
-                        interproceduralAnalysisConfig,
-                        out copyAnalysisResult,
-                        out pointsToAnalysisResult,
-                        pessimisticAnalysis: true,
-                        performCopyAnalysis: false);
+                    cfg,
+                    containingMethod,
+                    analyzerOptions,
+                    wellKnownTypeProvider,
+                    interproceduralAnalysisConfig,
+                    out copyAnalysisResult,
+                    out pointsToAnalysisResult,
+                    pessimisticAnalysis: true,
+                    performCopyAnalysis: false);
                 if (valueContentAnalysisResult == null)
                 {
                     return null;
@@ -81,14 +81,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             else
             {
                 pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
-                cfg,
-                containingMethod,
-                analyzerOptions,
-                wellKnownTypeProvider,
-                interproceduralAnalysisConfig,
-                interproceduralAnalysisPredicateOpt: null,
-                pessimisticAnalysis: true,
-                performCopyAnalysis: false);
+                    cfg,
+                    containingMethod,
+                    analyzerOptions,
+                    wellKnownTypeProvider,
+                    interproceduralAnalysisConfig,
+                    interproceduralAnalysisPredicateOpt: null,
+                    pessimisticAnalysis: true,
+                    performCopyAnalysis: false);
                 if (pointsToAnalysisResult == null)
                 {
                     return null;
@@ -114,7 +114,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static TaintedDataAnalysisResult TryGetOrComputeResultForAnalysisContext(TaintedDataAnalysisContext analysisContext)
+        private static TaintedDataAnalysisResult? TryGetOrComputeResultForAnalysisContext(TaintedDataAnalysisContext analysisContext)
         {
             TaintedDataOperationVisitor visitor = new TaintedDataOperationVisitor(analysisContext);
             TaintedDataAnalysis analysis = new TaintedDataAnalysis(visitor);

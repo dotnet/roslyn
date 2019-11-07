@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AssertValidAnalysisData();
         }
 
-        public void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, AnalysisEntityBasedPredicateAnalysisData<TValue> truePredicateData, AnalysisEntityBasedPredicateAnalysisData<TValue> falsePredicateData)
+        public void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, AnalysisEntityBasedPredicateAnalysisData<TValue>? truePredicateData, AnalysisEntityBasedPredicateAnalysisData<TValue>? falsePredicateData)
         {
             AssertValidAnalysisData();
 

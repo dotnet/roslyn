@@ -16,9 +16,9 @@ namespace Analyzer.Utilities.PooledObjects
     // NOTE: these HashSets always have the default comparer.
     internal sealed class PooledHashSet<T> : HashSet<T>, IDisposable
     {
-        private readonly ObjectPool<PooledHashSet<T>> _pool;
+        private readonly ObjectPool<PooledHashSet<T>>? _pool;
 
-        private PooledHashSet(ObjectPool<PooledHashSet<T>> pool, IEqualityComparer<T> comparer)
+        private PooledHashSet(ObjectPool<PooledHashSet<T>>? pool, IEqualityComparer<T>? comparer)
             : base(comparer)
         {
             _pool = pool;
@@ -55,14 +55,14 @@ namespace Analyzer.Utilities.PooledObjects
             = new ConcurrentDictionary<IEqualityComparer<T>, ObjectPool<PooledHashSet<T>>>();
 
         // if someone needs to create a pool;
-        public static ObjectPool<PooledHashSet<T>> CreatePool(IEqualityComparer<T> comparer = null)
+        public static ObjectPool<PooledHashSet<T>> CreatePool(IEqualityComparer<T>? comparer = null)
         {
-            ObjectPool<PooledHashSet<T>> pool = null;
+            ObjectPool<PooledHashSet<T>>? pool = null;
             pool = new ObjectPool<PooledHashSet<T>>(() => new PooledHashSet<T>(pool, comparer), 128);
             return pool;
         }
 
-        public static PooledHashSet<T> GetInstance(IEqualityComparer<T> comparer = null)
+        public static PooledHashSet<T> GetInstance(IEqualityComparer<T>? comparer = null)
         {
             var pool = comparer == null ?
                 s_poolInstance :

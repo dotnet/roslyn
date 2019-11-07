@@ -100,7 +100,7 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="members"></param>
         /// <param name="expectedParameterTypesInOrder"></param>
         /// <returns></returns>
-        public static IMethodSymbol GetFirstOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol> members, params ParameterInfo[] expectedParameterTypesInOrder)
+        public static IMethodSymbol? GetFirstOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol> members, params ParameterInfo[] expectedParameterTypesInOrder)
         {
             var expectedParameterCount = expectedParameterTypesInOrder.Length;
             return members?.FirstOrDefault(member =>

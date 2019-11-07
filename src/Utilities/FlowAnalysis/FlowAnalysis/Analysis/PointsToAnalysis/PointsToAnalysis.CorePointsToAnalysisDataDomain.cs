@@ -48,11 +48,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 Func<PointsToAbstractValue, ImmutableHashSet<AnalysisEntity>> getChildAnalysisEntities,
                 Action<AnalysisEntity, PointsToAnalysisData> resetAbstractValue)
             {
-                Debug.Assert(forwardEdgeAnalysisData != null);
-                Debug.Assert(backEdgeAnalysisData != null);
-                Debug.Assert(forwardEdgeAnalysisData.CoreAnalysisData != null);
-                Debug.Assert(backEdgeAnalysisData.CoreAnalysisData != null);
-
                 // Stop tracking points to values present in both branches if their is an assignment to a may-be null value from the back edge.
                 // Clone the input forwardEdgeAnalysisData to ensure we don't overwrite the input dictionary.
                 forwardEdgeAnalysisData = (PointsToAnalysisData)forwardEdgeAnalysisData.Clone();

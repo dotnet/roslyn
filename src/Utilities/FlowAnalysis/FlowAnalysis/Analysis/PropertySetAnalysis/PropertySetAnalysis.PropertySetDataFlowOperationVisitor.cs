@@ -146,7 +146,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
             }
 
-            protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, PropertySetAbstractValue assignedValue, bool mayBeAssignment = false)
+            protected override void SetAbstractValueForAssignment(IOperation target, IOperation? assignedValueOperation, PropertySetAbstractValue assignedValue, bool mayBeAssignment = false)
             {
             }
 
@@ -649,7 +649,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return baseValue;
             }
 
-            protected override void ProcessReturnValue(IOperation returnValue)
+            protected override void ProcessReturnValue(IOperation? returnValue)
             {
                 base.ProcessReturnValue(returnValue);
 

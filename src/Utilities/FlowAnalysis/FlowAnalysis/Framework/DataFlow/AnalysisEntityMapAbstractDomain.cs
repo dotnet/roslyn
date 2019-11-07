@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> map1, DictionaryAnalysisData<AnalysisEntity, TValue> map2)
         {
-            Debug.Assert(map1 != null);
             AssertValidAnalysisData(map1);
-            Debug.Assert(map2 != null);
             AssertValidAnalysisData(map2);
 
             TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)

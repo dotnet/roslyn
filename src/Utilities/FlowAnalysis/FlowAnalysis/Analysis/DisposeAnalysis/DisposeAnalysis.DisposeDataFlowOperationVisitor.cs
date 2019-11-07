@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         /// </summary>
         private sealed class DisposeDataFlowOperationVisitor : AbstractLocationDataFlowOperationVisitor<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
         {
-            private readonly Dictionary<IFieldSymbol, PointsToAbstractValue> _trackedInstanceFieldLocationsOpt;
+            private readonly Dictionary<IFieldSymbol, PointsToAbstractValue>? _trackedInstanceFieldLocationsOpt;
             private ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes => DataFlowAnalysisContext.DisposeOwnershipTransferLikelyTypes;
             private bool DisposeOwnershipTransferAtConstructor => DataFlowAnalysisContext.DisposeOwnershipTransferAtConstructor;
             private bool DisposeOwnershipTransferAtMethodCall => DataFlowAnalysisContext.DisposeOwnershipTransferAtMethodCall;
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return DisposeAbstractValue.NotDisposed;
             }
 
-            private void HandleDisposingOperation(IOperation disposingOperation, IOperation disposedInstance)
+            private void HandleDisposingOperation(IOperation disposingOperation, IOperation? disposedInstance)
             {
-                if (disposedInstance.Type?.IsDisposable(IDisposableNamedType) == false)
+                if (disposedInstance == null || disposedInstance.Type?.IsDisposable(IDisposableNamedType) == false)
                 {
                     return;
                 }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // We do not need to do anything here.
             }
 
-            protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, DisposeAbstractValue assignedValue, bool mayBeAssignment = false)
+            protected override void SetAbstractValueForAssignment(IOperation target, IOperation? assignedValueOperation, DisposeAbstractValue assignedValue, bool mayBeAssignment = false)
             {
                 // Assignments should automatically transfer PointsTo value.
                 // We do not need to do anything here.
@@ -213,13 +213,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 => EqualsHelper(value1, value2);
 
             #region Visitor methods
-            public override DisposeAbstractValue DefaultVisit(IOperation operation, object argument)
+            public override DisposeAbstractValue DefaultVisit(IOperation operation, object? argument)
             {
                 _ = base.DefaultVisit(operation, argument);
                 return DisposeAbstractValue.NotDisposable;
             }
 
-            public override DisposeAbstractValue Visit(IOperation operation, object argument)
+            public override DisposeAbstractValue Visit(IOperation operation, object? argument)
             {
                 var value = base.Visit(operation, argument);
                 HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             public override DisposeAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
                 IMethodSymbol targetMethod,
-                IOperation instance,
+                IOperation? instance,
                 ImmutableArray<IArgumentOperation> arguments,
                 bool invokedAsDelegate,
                 IOperation originalOperation,
@@ -317,7 +317,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, interproceduralResult);
 
                 // Apply the tracked instance field locations from interprocedural analysis.
-                if (_trackedInstanceFieldLocationsOpt != null)
+                if (_trackedInstanceFieldLocationsOpt != null &&
+                    interproceduralResult.TrackedInstanceFieldPointsToMap != null)
                 {
                     foreach (var (field, pointsToValue) in interproceduralResult.TrackedInstanceFieldPointsToMap)
                     {

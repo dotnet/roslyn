@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
                 ValueContentAbstractValue currentAssignedValue = GetCachedAbstractValue(assignedValue);
                 if (currentAssignedValue.IsLiteralState &&
-                    AnalysisEntityFactory.TryCreate(target, out AnalysisEntity targetEntity))
+                    AnalysisEntityFactory.TryCreate(target, out var targetEntity))
                 {
                     if (CurrentAnalysisData.TryGetValue(targetEntity, out ValueContentAbstractValue existingTargetValue) &&
                         existingTargetValue.IsLiteralState)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData.CoreAnalysisData, SetAbstractValue);
 
             #region Visitor methods
-            public override ValueContentAbstractValue DefaultVisit(IOperation operation, object argument)
+            public override ValueContentAbstractValue DefaultVisit(IOperation operation, object? argument)
             {
                 _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     return ValueContentAbstractValue.ContainsNullLiteralState;
                 }
 
-                if (ValueContentAbstractValue.IsSupportedType(operation.Type, out ITypeSymbol valueTypeSymbol))
+                if (ValueContentAbstractValue.IsSupportedType(operation.Type, out var valueTypeSymbol))
                 {
                     if (operation.ConstantValue.HasValue)
                     {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             public override ValueContentAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
                 IMethodSymbol method,
-                IOperation visitedInstance,
+                IOperation? visitedInstance,
                 ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
                 IOperation originalOperation,

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, child.CoupledNamedTypes);
                     linesOfCode += child.SourceLines;
                     cyclomaticComplexity += child.CyclomaticComplexity;
-                    depthOfInheritance = Math.Max(child.DepthOfInheritance.Value, depthOfInheritance);
+                    depthOfInheritance = Math.Max(child.DepthOfInheritance.GetValueOrDefault(), depthOfInheritance);
 
                     // Compat: Maintainability index of an assembly is computed based on the values of types, not namespace children.
                     Debug.Assert(child.Symbol.Kind == SymbolKind.Namespace);

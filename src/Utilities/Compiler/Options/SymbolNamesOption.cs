@@ -29,7 +29,7 @@ namespace Analyzer.Utilities
             _symbols = ImmutableHashSet<ISymbol>.Empty;
         }
 
-        public static SymbolNamesOption Create(ImmutableArray<string> symbolNames, Compilation compilation, string optionalPrefix)
+        public static SymbolNamesOption Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix)
         {
             if (symbolNames.IsEmpty)
             {
@@ -98,7 +98,7 @@ namespace Analyzer.Utilities
             return Equals(obj as SymbolNamesOption);
         }
 
-        public bool Equals(SymbolNamesOption other)
+        public bool Equals(SymbolNamesOption? other)
         {
             return other != null &&
                 _names.SetEquals(other._names) &&
