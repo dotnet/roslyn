@@ -191,7 +191,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 lambdaBody is IdentifierNameSyntax identifier &&
                 identifier.Identifier.ValueText == forEachStatement.Identifier.ValueText)
             {
-                return receiverForInvocation;
+                // Because we're dropping the lambda, any comments associated with it need to be preserved.
+
+                var droppedTrivia = new List<SyntaxTrivia>();
+                foreach (var token in lambda.DescendantTokens())
+                {
+                    droppedTrivia.AddRange(token.GetAllTrivia().Where(t => !t.IsWhitespace()));
+                }
+
+                return receiverForInvocation.WithAppendedTrailingTrivia(droppedTrivia);
             }
 
             return SyntaxFactory.InvocationExpression(
