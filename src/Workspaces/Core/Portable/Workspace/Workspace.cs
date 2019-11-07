@@ -608,6 +608,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when a project's RunAnalyzers property is changed in the host environment.
+        /// </summary>
+        internal void OnRunAnalyzersChanged(ProjectId projectId, bool runAnalyzers)
+        {
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithRunAnalyzers(projectId, runAnalyzers));
+        }
+
+        /// <summary>
         /// Call this method when a document is added to a project in the host environment.
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
