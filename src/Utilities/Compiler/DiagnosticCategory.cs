@@ -17,11 +17,11 @@ namespace Analyzer.Utilities
         public const string Documentation = nameof(Documentation);
         public const string Maintainability = nameof(Maintainability);
 
-        public const string RoslyDiagnosticsDesign = nameof(RoslyDiagnosticsDesign);
-        public const string RoslyDiagnosticsMaintainability = nameof(RoslyDiagnosticsMaintainability);
-        public const string RoslyDiagnosticsPerformance = nameof(RoslyDiagnosticsPerformance);
-        public const string RoslyDiagnosticsReliability = nameof(RoslyDiagnosticsReliability);
-        public const string RoslyDiagnosticsUsage = nameof(RoslyDiagnosticsUsage);
+        public const string RoslynDiagnosticsDesign = nameof(RoslynDiagnosticsDesign);
+        public const string RoslynDiagnosticsMaintainability = nameof(RoslynDiagnosticsMaintainability);
+        public const string RoslynDiagnosticsPerformance = nameof(RoslynDiagnosticsPerformance);
+        public const string RoslynDiagnosticsReliability = nameof(RoslynDiagnosticsReliability);
+        public const string RoslynDiagnosticsUsage = nameof(RoslynDiagnosticsUsage);
 
         public const string MicrosoftCodeAnalysisCorrectness = nameof(MicrosoftCodeAnalysisCorrectness);
         public const string MicrosoftCodeAnalysisDesign = nameof(MicrosoftCodeAnalysisDesign);
