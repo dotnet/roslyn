@@ -243,7 +243,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 Directory.CreateDirectory(temporaryPackagesFolder);
                 var localPathResolver = new PackagePathResolver(temporaryPackagesFolder);
 #if NET452
-                var packageExtractionContext = new PackageExtractionContext(logger);
+                var packageExtractionContext = new PackageExtractionContext(logger)
+                {
+                    PackageSaveMode = PackageSaveMode.Defaultv3,
+                    XmlDocFileSaveMode = XmlDocFileSaveMode.None,
+                };
 #elif NET46 || NET472 || NETSTANDARD2_0
                 var packageExtractionContext = new PackageExtractionContext(
                     PackageSaveMode.Defaultv3,
