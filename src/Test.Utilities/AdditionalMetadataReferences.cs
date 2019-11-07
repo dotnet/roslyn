@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
-using NuGet.Packaging.Core;
-using NuGet.Versioning;
 
 namespace Test.Utilities
 {
@@ -14,7 +12,7 @@ namespace Test.Utilities
     {
         public static ReferenceAssemblies Default { get; } = ReferenceAssemblies.Default
             .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", NuGetVersion.Parse("3.0.0"))));
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0")));
 
         public static MetadataReference SystemCollectionsImmutableReference { get; } = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static MetadataReference SystemComponentModelCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
