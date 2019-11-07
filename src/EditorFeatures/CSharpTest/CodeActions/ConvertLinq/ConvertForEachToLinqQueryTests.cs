@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
@@ -1320,6 +1321,44 @@ partial class C
     partial IEnumerable<int> M(IEnumerable<int> nums)
     {
         return nums.SelectMany(n1 => nums.Select(n2 => n1));
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        [WorkItem(31784, "https://github.com/dotnet/roslyn/issues/31784")]
+        public async Task QueryWhichRequiresSelectManyWithIdentityLambda()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [|foreach (var x in new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } })
+        {
+            foreach (var y in x)
+            {
+                yield return y;
+            }
+        }|]
+    }
+}
+";
+
+            var linqInvocationOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        return (new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } }).SelectMany(x => x);
     }
 }
 ";
