@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
@@ -41,12 +42,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <remarks>
             /// Mapping of AnalysisEntity (for a field or property of the tracked type) to AbstractLocation(s) to IAssignmentOperation(s)
             /// </remarks>
-            private PooledDictionary<AnalysisEntity, TrackedAssignmentData> TrackedFieldPropertyAssignmentsOpt;
+            private PooledDictionary<AnalysisEntity, TrackedAssignmentData>? TrackedFieldPropertyAssignmentsOpt;
 
             /// <summary>
             /// The types containing the property set we're tracking.
             /// </summary>
-            private readonly ImmutableHashSet<INamedTypeSymbol> TrackedTypeSymbols;
+            private readonly ImmutableHashSet<INamedTypeSymbol?> TrackedTypeSymbols;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -59,10 +60,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 this._visitedLambdas = ImmutableHashSet.CreateBuilder<IFlowAnonymousFunctionOperation>();
 
-                ImmutableHashSet<INamedTypeSymbol>.Builder builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+                ImmutableHashSet<INamedTypeSymbol?>.Builder builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol?>();
                 foreach (string typeToTrackMetadataName in analysisContext.TypeToTrackMetadataNames)
                 {
-                    this.WellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(typeToTrackMetadataName, out INamedTypeSymbol trackedTypeSymbol);
+                    this.WellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(typeToTrackMetadataName, out INamedTypeSymbol? trackedTypeSymbol);
                     builder.Add(trackedTypeSymbol);
                 }
 
@@ -213,7 +214,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
                 else
                 {
-                    if (TryFindNonTrackedTypeHazardousUsageEvaluator(operation.Constructor, operation.Arguments, out HazardousUsageEvaluator hazardousUsageEvaluator, out IOperation propertySetInstance))
+                    if (TryFindNonTrackedTypeHazardousUsageEvaluator(operation.Constructor, operation.Arguments, out HazardousUsageEvaluator? hazardousUsageEvaluator, out IOperation? propertySetInstance))
                     {
                         this.EvaluatePotentialHazardousUsage(
                             operation.Syntax,
@@ -228,7 +229,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             protected override PropertySetAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
             {
-                PropertySetAbstractValue baseValue = base.VisitAssignmentOperation(operation, argument);
+                PropertySetAbstractValue? baseValue = base.VisitAssignmentOperation(operation, argument);
 
                 // If we need to evaluate hazardous usages on initializations, track assignments of properties and fields, so
                 // at the end of the CFG we can figure out which assignment operations to flag.
@@ -238,10 +239,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         || operation.Target.Kind == OperationKind.FieldReference
                         || operation.Target.Kind == OperationKind.FlowCaptureReference))
                 {
-                    AnalysisEntity targetAnalysisEntity = null;
+                    AnalysisEntity? targetAnalysisEntity = null;
                     if (operation.Target.Kind == OperationKind.FlowCaptureReference)
                     {
-                        if (this.TryUnwrapFlowCaptureReference(operation.Target, out IOperation lValueOperation, OperationKind.PropertyReference, OperationKind.FieldReference))
+                        if (this.TryUnwrapFlowCaptureReference(operation.Target, out IOperation? lValueOperation, OperationKind.PropertyReference, OperationKind.FieldReference))
                         {
                             this.AnalysisEntityFactory.TryCreate(lValueOperation, out targetAnalysisEntity);
                         }
@@ -285,10 +286,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                 }
 
-                IPropertyReferenceOperation propertyReferenceOperation = operation.Target as IPropertyReferenceOperation;
+                IPropertyReferenceOperation? propertyReferenceOperation = operation.Target as IPropertyReferenceOperation;
                 if (propertyReferenceOperation == null && operation.Target.Kind == OperationKind.FlowCaptureReference)
                 {
-                    this.TryUnwrapFlowCaptureReference(operation.Target, out IOperation lValue, OperationKind.PropertyReference);
+                    this.TryUnwrapFlowCaptureReference(operation.Target, out IOperation? lValue, OperationKind.PropertyReference);
                     propertyReferenceOperation = lValue as IPropertyReferenceOperation;
                 }
 
@@ -365,12 +366,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(
                         out HazardousUsageEvaluator initializationHazardousUsageEvaluator);
-                    Debug.Assert(initializationHazardousUsageEvaluator != null);
 
                     foreach (KeyValuePair<AnalysisEntity, TrackedAssignmentData> kvp
                         in this.TrackedFieldPropertyAssignmentsOpt)
                     {
-                        if (!this.DataFlowAnalysisContext.PointsToAnalysisResultOpt.ExitBlockOutput.Data.TryGetValue(
+                        if (!this.DataFlowAnalysisContext.PointsToAnalysisResultOpt!.ExitBlockOutput.Data.TryGetValue(
                                 kvp.Key, out PointsToAbstractValue pointsToAbstractValue))
                         {
                             continue;
@@ -410,7 +410,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                         {
                                             this.MergeHazardousUsageResult(
                                                 assignmentOperation.Syntax,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                                                 methodSymbol: null,    // No method invocation; just evaluating initialization value.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                                                 result);
                                         }
                                     }
@@ -434,7 +436,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                     {
                                         this.MergeHazardousUsageResult(
                                             assignmentOperation.Syntax,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                                             methodSymbol: null,    // No method invocation; just evaluating initialization value.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                                             result);
                                     }
                                 }
@@ -466,7 +470,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
+            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
@@ -479,7 +483,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         {
                             this.EvaluatePotentialHazardousUsage(
                                 visitedArgument.Value.Syntax,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                                 null,
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                                 visitedArgument.Value,
                                 (PropertySetAbstractValue abstractValue) => argumentHazardousUsageEvaluator.ValueEvaluator(abstractValue));
                         }
@@ -488,16 +494,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 // If we have a HazardousUsageEvaluator for a method within the tracked type,
                 // or for a method within a different type.
-                IOperation propertySetInstance = visitedInstance;
+                IOperation? propertySetInstance = visitedInstance;
                 if ((visitedInstance != null
                     && this.TrackedTypeSymbols.Any(s => visitedInstance.Type.GetBaseTypesAndThis().Contains(s))
-                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out HazardousUsageEvaluator hazardousUsageEvaluator))
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out HazardousUsageEvaluator? hazardousUsageEvaluator))
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(method, visitedArguments, out hazardousUsageEvaluator, out propertySetInstance))
                 {
                     this.EvaluatePotentialHazardousUsage(
                         originalOperation.Syntax,
                         method,
+#pragma warning disable CS8604 // Possible null reference argument.
                         propertySetInstance,
+#pragma warning restore CS8604 // Possible null reference argument.
                         (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.InvocationEvaluator(method, abstractValue));
                 }
                 else
@@ -515,11 +523,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <param name="visitedArguments">IArgumentOperations of this invocation.</param>
             /// <param name="evaluator">Target evaluator.</param>
             /// <param name="instance">The tracked argument.</param>
-            bool TryFindNonTrackedTypeHazardousUsageEvaluator(IMethodSymbol method, ImmutableArray<IArgumentOperation> visitedArguments, out HazardousUsageEvaluator evaluator, out IOperation instance)
+            bool TryFindNonTrackedTypeHazardousUsageEvaluator(
+                IMethodSymbol method,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                [NotNullWhen(returnValue: true)] out HazardousUsageEvaluator? evaluator,
+                [NotNullWhen(returnValue: true)] out IOperation? instance)
             {
                 evaluator = null;
                 instance = null;
-                PooledHashSet<string> hazardousUsageTypeNames = null;
+                PooledHashSet<string>? hazardousUsageTypeNames = null;
                 try
                 {
                     if (!GetNamesOfHazardousUsageTypes(method.ContainingType, out hazardousUsageTypeNames))
@@ -556,7 +568,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return false;
             }
 
-            private bool GetNamesOfHazardousUsageTypes(INamedTypeSymbol containingType, out PooledHashSet<string> hazardousUsageTypeNames)
+            private bool GetNamesOfHazardousUsageTypes(INamedTypeSymbol containingType, [NotNullWhen(returnValue: true)] out PooledHashSet<string>? hazardousUsageTypeNames)
             {
                 hazardousUsageTypeNames = null;
                 if (this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
@@ -597,7 +609,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <param name="propertySetInstance">IOperation of the tracked type containing the properties to be evaluated.</param>
             /// <param name="evaluationFunction">Function to evaluate a PropertySetAbstractValue to a HazardousUsageEvaluationResult.</param>
             /// <param name="locationToAbstractValueMapping">Optional function to map AbstractLocations to PropertySetAbstractValues.  If null, uses this.CurrentAnalysisData.</param>
-            private void EvaluatePotentialHazardousUsage(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, IOperation propertySetInstance, Func<PropertySetAbstractValue, HazardousUsageEvaluationResult> evaluationFunction, Func<AbstractLocation, PropertySetAbstractValue> locationToAbstractValueMapping = null)
+            private void EvaluatePotentialHazardousUsage(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, IOperation propertySetInstance, Func<PropertySetAbstractValue, HazardousUsageEvaluationResult> evaluationFunction, Func<AbstractLocation, PropertySetAbstractValue>? locationToAbstractValueMapping = null)
             {
                 if (locationToAbstractValueMapping == null)
                 {
@@ -660,7 +672,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     this.EvaluatePotentialHazardousUsage(
                         returnValue.Syntax,
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                         null,
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
                         returnValue,
                         (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ValueEvaluator(abstractValue));
                 }
@@ -668,7 +682,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             private void MergeInterproceduralResults(IOperation originalOperation)
             {
-                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult subResult))
+                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult? subResult))
                 {
                     return;
                 }
@@ -703,7 +717,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <param name="unwrappedOperation">The found underlying operation, if any.</param>
             /// <param name="kinds">Kinds of operations to look for.</param>
             /// <returns>True if found, false otherwise.</returns>
-            private bool TryUnwrapFlowCaptureReference(IOperation flowCaptureReferenceOperation, out IOperation unwrappedOperation, params OperationKind[] kinds)
+            private bool TryUnwrapFlowCaptureReference(IOperation flowCaptureReferenceOperation, [NotNullWhen(returnValue: true)] out IOperation? unwrappedOperation, params OperationKind[] kinds)
             {
                 unwrappedOperation = null;
                 if (flowCaptureReferenceOperation != null && flowCaptureReferenceOperation.Kind == OperationKind.FlowCaptureReference)

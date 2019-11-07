@@ -24,9 +24,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             public override int Compare(PropertySetAbstractValue oldValue, PropertySetAbstractValue newValue, bool assertMonotonicity)
             {
-                Debug.Assert(oldValue != null);
-                Debug.Assert(newValue != null);
-
                 if (Object.ReferenceEquals(oldValue, newValue))
                 {
                     return 0;
@@ -58,9 +55,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             public override PropertySetAbstractValue Merge(PropertySetAbstractValue value1, PropertySetAbstractValue value2)
             {
-                Debug.Assert(value1 != null);
-                Debug.Assert(value2 != null);
-
                 // The PropertySetAbstractValue indexer allows accessing beyond KnownValuesCount (returns Unknown),
                 // so looping through the max of the two KnownValuesCount.
                 int maxKnownCount = Math.Max(value1.KnownValuesCount, value2.KnownValuesCount);

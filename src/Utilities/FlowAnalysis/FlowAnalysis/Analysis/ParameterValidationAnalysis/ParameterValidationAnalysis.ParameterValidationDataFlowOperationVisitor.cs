@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         private sealed class ParameterValidationDataFlowOperationVisitor :
             AbstractLocationDataFlowOperationVisitor<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationAbstractValue>
         {
-            private readonly ImmutableDictionary<IParameterSymbol, SyntaxNode>.Builder _hazardousParameterUsageBuilderOpt;
+            private readonly ImmutableDictionary<IParameterSymbol, SyntaxNode>.Builder? _hazardousParameterUsageBuilderOpt;
 
             public ParameterValidationDataFlowOperationVisitor(ParameterValidationAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 get
                 {
                     Debug.Assert(_hazardousParameterUsageBuilderOpt != null);
-                    return _hazardousParameterUsageBuilderOpt.ToImmutable();
+                    return _hazardousParameterUsageBuilderOpt!.ToImmutable();
                 }
             }
 
@@ -184,8 +183,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 {
                     Debug.Assert(IsNotOrMaybeValidatedLocation(location));
 
-                    var parameter = (IParameterSymbol)location.SymbolOpt;
-                    if (!_hazardousParameterUsageBuilderOpt.TryGetValue(parameter, out SyntaxNode currentSyntaxNode) ||
+                    var parameter = (IParameterSymbol)location.SymbolOpt!;
+                    if (!_hazardousParameterUsageBuilderOpt!.TryGetValue(parameter, out SyntaxNode currentSyntaxNode) ||
                         syntaxNode.SpanStart < currentSyntaxNode.SpanStart)
                     {
                         _hazardousParameterUsageBuilderOpt[parameter] = syntaxNode;
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 => EqualsHelper(value1, value2);
 
             #region Visit overrides
-            public override ParameterValidationAbstractValue Visit(IOperation operation, object argument)
+            public override ParameterValidationAbstractValue Visit(IOperation operation, object? argument)
             {
                 var value = base.Visit(operation, argument);
                 if (operation != null)
@@ -234,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             public override ParameterValidationAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
                 IMethodSymbol targetMethod,
-                IOperation visitedInstance,
+                IOperation? visitedInstance,
                 ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
                 IOperation originalOperation,
@@ -319,7 +318,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                             var notValidatedLocations = GetNotValidatedLocations(argument);
                             foreach (var location in notValidatedLocations)
                             {
-                                var parameter = (IParameterSymbol)location.SymbolOpt;
+                                var parameter = (IParameterSymbol)location.SymbolOpt!;
                                 if (hazardousParameterUsagesInInvokedMethod.ContainsKey(parameter))
                                 {
                                     HandlePotentiallyHazardousOperation(argument, notValidatedLocations);

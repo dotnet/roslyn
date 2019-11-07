@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -31,9 +32,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
-            Lazy<PointsToAnalysisResult> pointsToAnalysisResult,
-            Lazy<ValueContentAnalysisResult> valueContentAnalysisResult,
-            out PooledHashSet<string> allTaintedTargets)
+            Lazy<PointsToAnalysisResult?> pointsToAnalysisResult,
+            Lazy<ValueContentAnalysisResult?> valueContentAnalysisResult,
+            [NotNullWhen(returnValue: true)] out PooledHashSet<string>? allTaintedTargets)
         {
             allTaintedTargets = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
@@ -58,7 +59,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s =>
                             s.pointsToCheck(
                                 arguments.Select(o =>
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                                     pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                         if (positivePointsToTaintedTargets != null)
                         {
                             if (allTaintedTargets == null)
@@ -78,8 +81,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s =>
                             s.valueContentCheck(
                                 arguments.Select(o =>
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                                 pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray(),
                                 arguments.Select(o => valueContentAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                         if (positiveValueContentTaintedTargets != null)
                         {
                             if (allTaintedTargets == null)
@@ -150,7 +155,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
             ImmutableArray<string> taintedParameterNames,
-            out PooledHashSet<(string, string)> taintedParameterPairs)
+            [NotNullWhen(returnValue: true)] out PooledHashSet<(string, string)>? taintedParameterPairs)
         {
             taintedParameterPairs = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))

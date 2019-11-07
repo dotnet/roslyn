@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -34,7 +33,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             foreach (TInfo info in taintedDataInfos)
             {
-                if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(info.FullTypeName, out INamedTypeSymbol namedTypeSymbol))
+                if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(info.FullTypeName, out INamedTypeSymbol? namedTypeSymbol))
                 {
                     if (info.IsInterface)
                     {
@@ -119,7 +118,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
         }
 
-        public bool Equals(TaintedDataSymbolMap<TInfo> other)
+        public bool Equals(TaintedDataSymbolMap<TInfo>? other)
         {
             if (Object.ReferenceEquals(this, other))
             {
