@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string DiagnosticIdParameterName = "id";
 
         private const string DiagnosticCategoryAndIdRangeFile = "DiagnosticCategoryAndIdRanges.txt";
-        private static readonly (string prefix, int start, int end) s_defaultAllowedIdsInfo = (null, -1, -1);
+        private static readonly (string? prefix, int start, int end) s_defaultAllowedIdsInfo = (null, -1, -1);
 
         private static readonly LocalizableString s_localizableUseLocalizableStringsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableUseLocalizableStringsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol diagnosticDescriptorType = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticDescriptorFullName);
+                INamedTypeSymbol? diagnosticDescriptorType = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticDescriptorFullName);
                 if (diagnosticDescriptorType == null)
                 {
                     return;
@@ -150,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var checkCategoryAndAllowedIds = TryGetCategoryAndAllowedIdsMap(
                     compilationContext.Options.AdditionalFiles,
                     compilationContext.CancellationToken,
-                    out AdditionalText additionalTextOpt,
-                    out ImmutableDictionary<string, ImmutableArray<(string prefix, int start, int end)>> categoryAndAllowedIdsMap,
-                    out List<Diagnostic> invalidFileDiagnostics);
+                    out AdditionalText? additionalTextOpt,
+                    out ImmutableDictionary<string, ImmutableArray<(string? prefix, int start, int end)>>? categoryAndAllowedIdsMap,
+                    out List<Diagnostic>? invalidFileDiagnostics);
 
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
@@ -173,10 +174,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     AnalyzeTitle(operationAnalysisContext, objectCreation);
                     AnalyzeHelpLinkUri(operationAnalysisContext, objectCreation);
 
-                    string categoryOpt = null;
+                    string? categoryOpt = null;
                     if (!checkCategoryAndAllowedIds ||
                         !TryAnalyzeCategory(operationAnalysisContext, objectCreation,
-                            additionalTextOpt, categoryAndAllowedIdsMap, out categoryOpt, out var allowedIdsInfoList))
+                            additionalTextOpt!, categoryAndAllowedIdsMap!, out categoryOpt, out var allowedIdsInfoList))
                     {
                         allowedIdsInfoList = default;
                     }
@@ -259,9 +260,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             OperationAnalysisContext operationAnalysisContext,
             IObjectCreationOperation objectCreation,
             AdditionalText additionalText,
-            ImmutableDictionary<string, ImmutableArray<(string prefix, int start, int end)>> categoryAndAllowedIdsInfoMap,
-            out string category,
-            out ImmutableArray<(string prefix, int start, int end)> allowedIdsInfoList)
+            ImmutableDictionary<string, ImmutableArray<(string? prefix, int start, int end)>> categoryAndAllowedIdsInfoMap,
+            [NotNullWhen(returnValue: true)] out string? category,
+            out ImmutableArray<(string? prefix, int start, int end)> allowedIdsInfoList)
         {
             category = null;
             allowedIdsInfoList = default;
@@ -305,13 +306,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static void AnalyzeRuleId(
             OperationAnalysisContext operationAnalysisContext,
             IObjectCreationOperation objectCreation,
-            AdditionalText additionalTextOpt,
-            string categoryOpt,
-            ImmutableArray<(string prefix, int start, int end)> allowedIdsInfoListOpt,
+            AdditionalText? additionalTextOpt,
+            string? categoryOpt,
+            ImmutableArray<(string? prefix, int start, int end)> allowedIdsInfoListOpt,
             ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>> idToAnalyzerMap)
         {
             var analyzer = ((IFieldSymbol)operationAnalysisContext.ContainingSymbol).ContainingType.OriginalDefinition;
-            string ruleId = null;
+            string? ruleId = null;
             foreach (var argument in objectCreation.Arguments)
             {
                 if (argument.Parameter.Name.Equals(DiagnosticIdParameterName, StringComparison.OrdinalIgnoreCase))
@@ -367,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             Debug.Assert(additionalTextOpt != null);
 
                             var foundMatch = false;
-                            static bool ShouldValidateRange((string prefix, int start, int end) range)
+                            static bool ShouldValidateRange((string? prefix, int start, int end) range)
                                 => range.start >= 0 && range.end >= 0;
 
                             // Check if ID matches any one of the required ranges.
@@ -379,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 {
                                     if (ShouldValidateRange(allowedIds))
                                     {
-                                        var suffix = ruleId.Substring(allowedIds.prefix.Length);
+                                        var suffix = ruleId.Substring(allowedIds.prefix!.Length);
                                         if (int.TryParse(suffix, out int ruleIdInt) &&
                                             ruleIdInt >= allowedIds.start &&
                                             ruleIdInt <= allowedIds.end)
@@ -400,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             {
                                 // Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.
                                 string arg1 = ruleId;
-                                string arg2 = categoryOpt;
+                                string arg2 = categoryOpt!;
                                 string arg3 = string.Empty;
                                 foreach (var range in allowedIdsInfoListOpt)
                                 {
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                     arg3 += !ShouldValidateRange(range) ? range.prefix + "XXXX" : $"{range.prefix}{range.start}-{range.prefix}{range.end}";
                                 }
 
-                                string arg4 = Path.GetFileName(additionalTextOpt.Path);
+                                string arg4 = Path.GetFileName(additionalTextOpt!.Path);
                                 var diagnostic = Diagnostic.Create(DiagnosticIdMustBeInSpecifiedFormatRule, argument.Value.Syntax.GetLocation(), arg1, arg2, arg3, arg4);
                                 operationAnalysisContext.ReportDiagnostic(diagnostic);
                             }
@@ -434,9 +435,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static bool TryGetCategoryAndAllowedIdsMap(
             ImmutableArray<AdditionalText> additionalFiles,
             CancellationToken cancellationToken,
-            out AdditionalText additionalText,
-            out ImmutableDictionary<string, ImmutableArray<(string prefix, int start, int end)>> categoryAndAllowedIdsMap,
-            out List<Diagnostic> invalidFileDiagnostics)
+            [NotNullWhen(returnValue: true)] out AdditionalText? additionalText,
+            [NotNullWhen(returnValue: true)] out ImmutableDictionary<string, ImmutableArray<(string? prefix, int start, int end)>>? categoryAndAllowedIdsMap,
+            out List<Diagnostic>? invalidFileDiagnostics)
         {
             invalidFileDiagnostics = null;
             categoryAndAllowedIdsMap = null;
@@ -448,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 TryParseCategoryAndAllowedIdsInfoFile(additionalText, cancellationToken, out categoryAndAllowedIdsMap, out invalidFileDiagnostics);
         }
 
-        private static AdditionalText TryGetCategoryAndAllowedIdsInfoFile(ImmutableArray<AdditionalText> additionalFiles, CancellationToken cancellationToken)
+        private static AdditionalText? TryGetCategoryAndAllowedIdsInfoFile(ImmutableArray<AdditionalText> additionalFiles, CancellationToken cancellationToken)
         {
             StringComparer comparer = StringComparer.Ordinal;
             foreach (AdditionalText textFile in additionalFiles)
@@ -468,8 +469,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static bool TryParseCategoryAndAllowedIdsInfoFile(
             AdditionalText additionalText,
             CancellationToken cancellationToken,
-            out ImmutableDictionary<string, ImmutableArray<(string prefix, int start, int end)>> categoryAndAllowedIdsInfoMap,
-            out List<Diagnostic> invalidFileDiagnostics)
+            [NotNullWhen(returnValue: true)] out ImmutableDictionary<string, ImmutableArray<(string? prefix, int start, int end)>>? categoryAndAllowedIdsInfoMap,
+            out List<Diagnostic>? invalidFileDiagnostics)
         {
             // Parse the additional file with allowed diagnostic categories and corresponding ID range.
             // FORMAT:
@@ -478,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             categoryAndAllowedIdsInfoMap = null;
             invalidFileDiagnostics = null;
 
-            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<(string prefix, int start, int end)>>();
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<(string? prefix, int start, int end)>>();
             var lines = additionalText.GetText(cancellationToken).Lines;
             foreach (var line in lines)
             {
@@ -516,10 +517,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
                     var ranges = parts[1].Split(',');
 
-                    var infoList = ImmutableArray.CreateBuilder<(string prefix, int start, int end)>(ranges.Length);
+                    var infoList = ImmutableArray.CreateBuilder<(string? prefix, int start, int end)>(ranges.Length);
                     for (int i = 0; i < ranges.Length; i++)
                     {
-                        (string prefix, int start, int end) allowedIdsInfo = s_defaultAllowedIdsInfo;
+                        (string? prefix, int start, int end) allowedIdsInfo = s_defaultAllowedIdsInfo;
                         string range = ranges[i].Trim();
                         if (!range.Contains('-'))
                         {

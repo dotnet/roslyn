@@ -50,15 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SolutionFullName);
-                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(ProjectFullName);
-                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DocumentFullName);
-                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SyntaxNodeFullName);
-                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(CompilationFullName);
+                INamedTypeSymbol? solutionSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SolutionFullName);
+                INamedTypeSymbol? projectSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(ProjectFullName);
+                INamedTypeSymbol? documentSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DocumentFullName);
+                INamedTypeSymbol? syntaxNodeSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SyntaxNodeFullName);
+                INamedTypeSymbol? compilationSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(CompilationFullName);
 
-                ImmutableArray<INamedTypeSymbol> immutableSymbols = ImmutableArray.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
+                ImmutableArray<INamedTypeSymbol> immutableSymbols = ImmutableArray.CreateRange(new[] { solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol }.WhereNotNull());
                 //Only register our node action if we can find the symbols for our immutable types
-                if (immutableSymbols.Any(n => n == null))
+                if (immutableSymbols.IsEmpty)
                 {
                     return;
                 }

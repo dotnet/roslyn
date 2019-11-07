@@ -35,65 +35,65 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(InvalidReportDiagnosticRule);
 
         [SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "Method returns an analyzer that is registered by the caller.")]
-        protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+        protected override DiagnosticAnalyzerSymbolAnalyzer? GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
             Compilation compilation = compilationContext.Compilation;
 
-            INamedTypeSymbol compilationEndAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CompilationEndAnalysisContextFullName);
+            INamedTypeSymbol? compilationEndAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CompilationEndAnalysisContextFullName);
             if (compilationEndAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol codeBlockAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CodeBlockAnalysisContextFullName);
+            INamedTypeSymbol? codeBlockAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CodeBlockAnalysisContextFullName);
             if (codeBlockAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol operationBlockAnalysisContext = compilation.GetOrCreateTypeByMetadataName(OperationBlockAnalysisContextFullName);
+            INamedTypeSymbol? operationBlockAnalysisContext = compilation.GetOrCreateTypeByMetadataName(OperationBlockAnalysisContextFullName);
             if (operationBlockAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol operationAnalysisContext = compilation.GetOrCreateTypeByMetadataName(OperationAnalysisContextFullName);
+            INamedTypeSymbol? operationAnalysisContext = compilation.GetOrCreateTypeByMetadataName(OperationAnalysisContextFullName);
             if (operationAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol semanticModelAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SemanticModelAnalysisContextFullName);
+            INamedTypeSymbol? semanticModelAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SemanticModelAnalysisContextFullName);
             if (semanticModelAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol symbolAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SymbolAnalysisContextFullName);
+            INamedTypeSymbol? symbolAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SymbolAnalysisContextFullName);
             if (symbolAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol syntaxNodeAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SyntaxNodeAnalysisContextFullName);
+            INamedTypeSymbol? syntaxNodeAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SyntaxNodeAnalysisContextFullName);
             if (syntaxNodeAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol syntaxTreeAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SyntaxTreeAnalysisContextFullName);
+            INamedTypeSymbol? syntaxTreeAnalysisContext = compilation.GetOrCreateTypeByMetadataName(SyntaxTreeAnalysisContextFullName);
             if (syntaxTreeAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol diagnosticType = compilation.GetOrCreateTypeByMetadataName(DiagnosticFullName);
+            INamedTypeSymbol? diagnosticType = compilation.GetOrCreateTypeByMetadataName(DiagnosticFullName);
             if (diagnosticType == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol diagnosticDescriptorType = compilation.GetOrCreateTypeByMetadataName(DiagnosticDescriptorFullName);
+            INamedTypeSymbol? diagnosticDescriptorType = compilation.GetOrCreateTypeByMetadataName(DiagnosticDescriptorFullName);
             if (diagnosticDescriptorType == null)
             {
                 return null;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 _supportedDescriptorFieldsMap = ImmutableDictionary<INamedTypeSymbol, ImmutableArray<IFieldSymbol>>.Empty;
             }
 
-            protected abstract IEnumerable<SyntaxNode> GetArgumentExpressions(TInvocationExpressionSyntax invocation);
+            protected abstract IEnumerable<SyntaxNode>? GetArgumentExpressions(TInvocationExpressionSyntax invocation);
             protected virtual SyntaxNode GetPropertyGetterBlockSyntax(SyntaxNode declaringSyntaxRefNode)
             {
                 return declaringSyntaxRefNode;
@@ -203,8 +203,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                IEnumerable<SyntaxNode> arguments = GetArgumentExpressions(invocation);
-                if (arguments.HasExactly(1))
+                IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
+                if (arguments?.HasExactly(1) == true)
                 {
                     SyntaxNode argument = arguments.First();
                     ITypeSymbol type = semanticModel.GetTypeInfo(argument, symbolContext.CancellationToken).ConvertedType;
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         ISymbol argSymbol = semanticModel.GetSymbolInfo(argument, symbolContext.CancellationToken).Symbol;
                         if (argSymbol != null)
                         {
-                            SyntaxNode diagnosticInitializerOpt = null;
+                            SyntaxNode? diagnosticInitializerOpt = null;
 
                             if (argSymbol is ILocalSymbol local)
                             {

@@ -55,8 +55,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeIsSealed = ((INamedTypeSymbol)model.GetDeclaredSymbol(classDecl)).IsSealed;
 
-            INamedTypeSymbol codeFixProviderSymbol = model.Compilation.GetOrCreateTypeByMetadataName(FixerWithFixAllAnalyzer.CodeFixProviderMetadataName);
-            IMethodSymbol getFixAllProviderMethod = codeFixProviderSymbol.GetMembers(FixerWithFixAllAnalyzer.GetFixAllProviderMethodName).OfType<IMethodSymbol>().First();
+            INamedTypeSymbol? codeFixProviderSymbol = model.Compilation.GetOrCreateTypeByMetadataName(FixerWithFixAllAnalyzer.CodeFixProviderMetadataName);
+            IMethodSymbol? getFixAllProviderMethod = codeFixProviderSymbol?.GetMembers(FixerWithFixAllAnalyzer.GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
+            if (getFixAllProviderMethod == null)
+            {
+                return document;
+            }
+
             var returnStatement = generator.ReturnStatement(generator.MemberAccessExpression(
                 generator.IdentifierName("WellKnownFixAllProviders"), "BatchFixer"));
             var statements = new SyntaxNode[] { returnStatement };

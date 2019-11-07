@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol diagnosticAnalyzer = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerTypeFullName);
-                INamedTypeSymbol diagnosticAnalyzerAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerAttributeFullName);
+                INamedTypeSymbol? diagnosticAnalyzer = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerTypeFullName);
+                INamedTypeSymbol? diagnosticAnalyzerAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerAttributeFullName);
 
                 if (diagnosticAnalyzer == null || diagnosticAnalyzerAttribute == null)
                 {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                DiagnosticAnalyzerSymbolAnalyzer analyzer = GetDiagnosticAnalyzerSymbolAnalyzer(compilationContext, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+                DiagnosticAnalyzerSymbolAnalyzer? analyzer = GetDiagnosticAnalyzerSymbolAnalyzer(compilationContext, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
                 if (analyzer != null)
                 {
                     compilationContext.RegisterSymbolAction(c => analyzer.AnalyzeSymbol(c), SymbolKind.NamedType);
@@ -71,6 +71,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             });
         }
 
-        protected abstract DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
+        protected abstract DiagnosticAnalyzerSymbolAnalyzer? GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
     }
 }
