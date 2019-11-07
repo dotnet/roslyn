@@ -508,17 +508,25 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
-                var includedCompilerDiagnostics = compilation.GetDiagnostics(cancellationToken).Where(IsCompilerDiagnosticIncluded);
-                var diags = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
-                var failureDiagnostics = allDiagnostics.Where(diagnostic => diagnostic.Id == "AD0001");
-                diagnostics.AddRange(diags.Concat(includedCompilerDiagnostics).Concat(failureDiagnostics));
+                diagnostics.AddRange(allDiagnostics.Where(IsIncludedDiagnostic));
             }
 
             var results = SortDistinctDiagnostics(diagnostics);
             return results.ToImmutableArray();
 
             // Local function
+            bool IsIncludedDiagnostic(Diagnostic diagnostic)
+            {
+                return !IsCompilerDiagnostic(diagnostic)
+                    || IsCompilerDiagnosticIncluded(diagnostic);
+            }
+
+            static bool IsCompilerDiagnostic(Diagnostic diagnostic)
+            {
+                return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
+            }
+
             bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic)
             {
                 switch (compilerDiagnostics)
