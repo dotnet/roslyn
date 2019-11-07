@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             return;
 
-            Dictionary<ISymbol, BanFileEntry> ReadBannedApis()
+            Dictionary<ISymbol, BanFileEntry>? ReadBannedApis()
             {
                 var query =
                     from additionalFile in compilationContext.Options.AdditionalFiles
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
             }
 
-            bool VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode)
+            bool VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode)
             {
                 do
                 {
@@ -261,13 +261,14 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     {
                         return false;
                     }
+
                     if (type == null)
                     {
                         // Type will be null for arrays and pointers.
                         return true;
                     }
 
-                    if (entryBySymbol.TryGetValue(type, out var entry))
+                    if (entryBySymbol!.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
                             Diagnostic.Create(
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return true;
             }
 
-            bool VerifyTypeArguments(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode, out ITypeSymbol originalDefinition)
+            bool VerifyTypeArguments(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode, out ITypeSymbol? originalDefinition)
             {
                 switch (type)
                 {
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         return VerifyType(reportDiagnostic, pointerTypeSymbol.PointedAtType, syntaxNode);
 
                     default:
-                        originalDefinition = type.OriginalDefinition;
+                        originalDefinition = type?.OriginalDefinition;
                         break;
 
                 }
@@ -323,7 +324,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 symbol = symbol.OriginalDefinition;
 
-                if (entryBySymbol.TryGetValue(symbol, out var entry))
+                if (entryBySymbol!.TryGetValue(symbol, out var entry))
                 {
                     reportDiagnostic(
                         Diagnostic.Create(
