@@ -70,6 +70,49 @@ End Class"
         End Sub
 
         <Fact>
+        Public Sub ExpansionOfNullValue()
+
+            Dim source =
+"Class A
+    Dim s1 As String = ""S1""
+    Dim s2 As String = ""S2""
+End Class
+Class B
+    Dim a1 As A = new A()
+    Dim a2 As A = Nothing
+End Class"
+
+            Dim assembly = GetAssembly(source)
+            Dim type = assembly.GetType("B")
+            Dim rootExpr = "new B()"
+
+            Dim favoritesByTypeName = New Dictionary(Of String, DkmClrObjectFavoritesInfo) From
+            {
+                {"A", New DkmClrObjectFavoritesInfo(New String() {"s2"})}
+            }
+
+            Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(assembly), favoritesByTypeName)
+
+            Dim value = CreateDkmClrValue(
+                value:=Activator.CreateInstance(type),
+                type:=runtime.GetType(type))
+
+            Dim result = FormatResult(rootExpr, value)
+            Verify(result,
+                EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable))
+            Dim children = GetChildren(result)
+            Verify(children,
+                EvalResult("a1", "{A}", "A", "(new B()).a1", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite Or DkmEvaluationResultFlags.HasFavorites),
+                EvalResult("a2", "Nothing", "A", "(new B()).a2", DkmEvaluationResultFlags.CanFavorite))
+
+            ' Dim a1 As A = new A()
+            Dim more = GetChildren(children(0))
+            Verify(more,
+                EvalResult("s2", """S2""", "String", "(new B()).a1.s2", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite Or DkmEvaluationResultFlags.IsFavorite, editableValue:="""S2"""),
+                EvalResult("s1", """S1""", "String", "(new B()).a1.s1", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite, editableValue:="""S1"""))
+        End Sub
+
+        <Fact>
         Public Sub FilteredExpansion()
 
             Dim source =
