@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
+        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
+        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">Будет создано пространство имен</target>
@@ -72,6 +77,16 @@
         <target state="translated">Классификации</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_0">
+        <source>Code analysis completed for '{0}'.</source>
+        <target state="new">Code analysis completed for '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_Solution">
+        <source>Code analysis completed for Solution.</source>
+        <target state="new">Code analysis completed for Solution.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Выделить регулярные выражения цветом</target>
@@ -90,11 +105,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Элемент недопустим.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">Включить функции IDE для анализа ссылок, допускающих значение NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -352,6 +362,11 @@
         <target state="translated">Приостановлено (задач в очереди: {0})</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="new">Prefer 'System.HashCode' in 'GetHashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Предпочитать составные присваивания</target>
@@ -402,6 +417,11 @@
         <target state="translated">Сообщать о недопустимых регулярных выражениях</target>
         <note />
       </trans-unit>
+      <trans-unit id="Requires_System_HashCode_be_present_in_project">
+        <source>Requires 'System.HashCode' be present in project</source>
+        <target state="new">Requires 'System.HashCode' be present in project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Сброс схемы назначения клавиш Visual Studio по умолчанию</target>
@@ -410,6 +430,21 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">Проверить изменения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Code_Analysis_on_0">
+        <source>Run Code Analysis on {0}</source>
+        <target state="new">Run Code Analysis on {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_0">
+        <source>Running code analysis for '{0}'...</source>
+        <target state="new">Running code analysis for '{0}'...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_Solution">
+        <source>Running code analysis for Solution...</source>
+        <target state="new">Running code analysis for Solution...</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_low_priority_background_processes">

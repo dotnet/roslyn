@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -95,7 +96,7 @@ public class Base
             var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2,
                 options: TestOptions.SigningReleaseDll,
                 assemblyName: "Paul");
-            var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
+            var bb = (NamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {
                 switch (member.Name)

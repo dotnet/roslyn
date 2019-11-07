@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class AbstractFlowPass<TLocalState>
+    internal partial class AbstractFlowPass<TLocalState, TLocalFunctionState>
     {
         /// <summary>
         /// This is the "top" state of the data flow lattice. Generally, it is considered the state
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 3. Meet(Top, X) = X
         ///
         /// </summary>
-        protected abstract void Meet(ref TLocalState self, ref TLocalState other);
+        protected abstract bool Meet(ref TLocalState self, ref TLocalState other);
 
         internal interface ILocalState
         {

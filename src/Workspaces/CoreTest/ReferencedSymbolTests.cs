@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
             {
-                return equalityComparer.Equals(this, other);
+                return this.Equals(other);
             }
         }
     }

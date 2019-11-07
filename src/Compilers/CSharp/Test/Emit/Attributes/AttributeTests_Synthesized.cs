@@ -1302,7 +1302,7 @@ class Test
 
                 var stateMachineAttribute = attributes.First();
                 Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
-                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().Value);
+                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().ValueInternal);
 
                 if (optimizationLevel == OptimizationLevel.Debug)
                 {
@@ -1346,7 +1346,7 @@ class Test
 
                 var stateMachineAttribute = attributes.First();
                 Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
-                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().Value);
+                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().ValueInternal);
 
                 if (optimizationLevel == OptimizationLevel.Debug)
                 {
@@ -1389,7 +1389,7 @@ public class Test<T>
 
                 var stateMachineAttribute = attributes.First();
                 Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
-                Assert.Equal(stateMachine.AsUnboundGenericType(), stateMachineAttribute.ConstructorArguments.Single().Value);
+                Assert.Equal(stateMachine.AsUnboundGenericType(), stateMachineAttribute.ConstructorArguments.Single().ValueInternal);
 
                 if (optimizationLevel == OptimizationLevel.Debug)
                 {
@@ -1470,7 +1470,7 @@ class Test
 
                 var iteratorAttribute = iteratorMethod.GetAttributes().Single();
                 Assert.Equal("IteratorStateMachineAttribute", iteratorAttribute.AttributeClass.Name);
-                Assert.Equal(stateMachine, iteratorAttribute.ConstructorArguments.Single().Value);
+                Assert.Equal(stateMachine, iteratorAttribute.ConstructorArguments.Single().ValueInternal);
             });
         }
 
@@ -1501,7 +1501,7 @@ public class Test<T>
 
                 var iteratorAttribute = iteratorMethod.GetAttributes().Single();
                 Assert.Equal("IteratorStateMachineAttribute", iteratorAttribute.AttributeClass.Name);
-                Assert.Equal(stateMachine.AsUnboundGenericType(), iteratorAttribute.ConstructorArguments.Single().Value);
+                Assert.Equal(stateMachine.AsUnboundGenericType(), iteratorAttribute.ConstructorArguments.Single().ValueInternal);
             });
         }
 

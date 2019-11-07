@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
         {
-            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt((CSharpParseOptions)_syntax.SyntaxTree.Options);
+            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)_syntax.SyntaxTree.Options);
             if (diagnosticInfo is object)
             {
                 foreach (var attrList in attributes)

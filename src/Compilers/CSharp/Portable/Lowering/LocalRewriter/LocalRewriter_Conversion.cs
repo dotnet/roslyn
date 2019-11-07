@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SpecialType GetUnderlyingSpecialType(TypeSymbol type) =>
-                type.StrippedType().EnumUnderlyingType().SpecialType;
+                type.StrippedType().EnumUnderlyingTypeOrSelf().SpecialType;
 
             bool IsInRange(SpecialType type, SpecialType low, SpecialType high) =>
                 low <= type && type <= high;

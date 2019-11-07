@@ -126,6 +126,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?.
+        /// </summary>
+        internal static string A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item {
+            get {
+                return ResourceManager.GetString("A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_" +
+                        "to_make_it_a_solution_item", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A new namespace will be created.
         /// </summary>
         internal static string A_new_namespace_will_be_created {
@@ -578,6 +588,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for &apos;{0}&apos;..
+        /// </summary>
+        internal static string Code_analysis_completed_for_0 {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for Solution..
+        /// </summary>
+        internal static string Code_analysis_completed_for_Solution {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_Solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code block preferences:.
         /// </summary>
         internal static string Code_block_preferences_colon {
@@ -873,15 +901,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enable_navigation_to_decompiled_sources {
             get {
                 return ResourceManager.GetString("Enable_navigation_to_decompiled_sources", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enable nullable reference analysis IDE features.
-        /// </summary>
-        internal static string Enable_nullable_reference_analysis_IDE_features {
-            get {
-                return ResourceManager.GetString("Enable_nullable_reference_analysis_IDE_features", resourceCulture);
             }
         }
         
@@ -2424,6 +2443,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;System.HashCode&apos; in &apos;GetHashCode&apos;.
+        /// </summary>
+        internal static string Prefer_System_HashCode_in_GetHashCode {
+            get {
+                return ResourceManager.GetString("Prefer_System_HashCode_in_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to prefer throwing properties.
         /// </summary>
         internal static string prefer_throwing_properties {
@@ -2718,6 +2746,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Requires &apos;System.HashCode&apos; be present in project.
+        /// </summary>
+        internal static string Requires_System_HashCode_be_present_in_project {
+            get {
+                return ResourceManager.GetString("Requires_System_HashCode_be_present_in_project", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reset Visual Studio default keymapping.
         /// </summary>
         internal static string Reset_Visual_Studio_default_keymapping {
@@ -2768,6 +2805,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Review_Changes {
             get {
                 return ResourceManager.GetString("Review_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run Code Analysis on {0}.
+        /// </summary>
+        internal static string Run_Code_Analysis_on_0 {
+            get {
+                return ResourceManager.GetString("Run_Code_Analysis_on_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for &apos;{0}&apos;....
+        /// </summary>
+        internal static string Running_code_analysis_for_0 {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for Solution....
+        /// </summary>
+        internal static string Running_code_analysis_for_Solution {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_Solution", resourceCulture);
             }
         }
         

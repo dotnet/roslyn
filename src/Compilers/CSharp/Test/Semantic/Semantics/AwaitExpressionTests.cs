@@ -188,8 +188,8 @@ class C
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
             var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
-            var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
-            Assert.Equal("System.Int32", symbolV.TypeWithAnnotations.ToTestDisplayString());
+            var symbolV = (ILocalSymbol)semanticModel.GetDeclaredSymbol(decl);
+            Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
         }
 
         [Fact]

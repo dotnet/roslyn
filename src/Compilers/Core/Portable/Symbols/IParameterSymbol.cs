@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         /// is the default value of the struct type.
         /// </remarks>
         /// <exception cref="System.InvalidOperationException">The parameter has no default value.</exception>
-        object ExplicitDefaultValue { get; }
+        object? ExplicitDefaultValue { get; }
 
         /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another

@@ -1166,9 +1166,6 @@ I agree to all of the foregoing:</value>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
   </data>
-  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
-    <value>Enable nullable reference analysis IDE features</value>
-  </data>
   <data name="Move_to_namespace" xml:space="preserve">
     <value>Move to Namespace</value>
   </data>
@@ -1322,5 +1319,29 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Updating_severity" xml:space="preserve">
     <value>Updating severity</value>
+  </data>
+  <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
+    <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
+  </data>
+  <data name="Requires_System_HashCode_be_present_in_project" xml:space="preserve">
+    <value>Requires 'System.HashCode' be present in project</value>
+  </data>
+  <data name="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item" xml:space="preserve">
+    <value>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</value>
+  </data>
+  <data name="Run_Code_Analysis_on_0" xml:space="preserve">
+    <value>Run Code Analysis on {0}</value>
+  </data>
+  <data name="Running_code_analysis_for_0" xml:space="preserve">
+    <value>Running code analysis for '{0}'...</value>
+  </data>
+  <data name="Running_code_analysis_for_Solution" xml:space="preserve">
+    <value>Running code analysis for Solution...</value>
+  </data>
+  <data name="Code_analysis_completed_for_0" xml:space="preserve">
+    <value>Code analysis completed for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
+    <value>Code analysis completed for Solution.</value>
   </data>
 </root>

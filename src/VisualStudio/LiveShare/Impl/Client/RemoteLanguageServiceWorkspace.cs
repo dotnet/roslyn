@@ -96,11 +96,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             _session = session;
             var roots = await session.ListRootsAsync(CancellationToken.None).ConfigureAwait(false);
-            _remoteRootPath = session.ConvertSharedUriToLocalPath(roots[0]);
-            _remoteRootPath = _remoteRootPath.Substring(0, _remoteRootPath.Length - 1);
-            var lastSlash = _remoteRootPath.LastIndexOf('\\');
-            _externalPath = _remoteRootPath.Substring(0, lastSlash + 1);
-            _externalPath += "~external";
+            if (roots.Length > 0)
+            {
+                _remoteRootPath = session.ConvertSharedUriToLocalPath(roots[0]);
+                _remoteRootPath = _remoteRootPath.Substring(0, _remoteRootPath.Length - 1);
+                var lastSlash = _remoteRootPath.LastIndexOf('\\');
+                _externalPath = _remoteRootPath.Substring(0, lastSlash + 1);
+                _externalPath += "~external";
+            }
             IsRemoteSession = true;
             session.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
             {
@@ -175,8 +178,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private bool IsExternalLocalUri(string localPath)
         {
-            return localPath.StartsWith(_externalPath) &&
-                localPath.Length > (_externalPath.Length + 1);
+            return _externalPath == null
+                ? false
+                : localPath.StartsWith(_externalPath) && localPath.Length > (_externalPath.Length + 1);
         }
 
         public Document GetOrAddDocument(string filePath)
@@ -192,10 +196,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
+            if (_remoteRootPath == null)
+            {
+                return null;
+            }
+
             // If the document is within the joined folder or it's a registered external file,
             // add it to the workspace, otherwise bail out.
             if (!filePath.StartsWith(_remoteRootPath) &&
-                !IsExternalLocalUri(filePath))
+                    !IsExternalLocalUri(filePath))
             {
                 return null;
             }

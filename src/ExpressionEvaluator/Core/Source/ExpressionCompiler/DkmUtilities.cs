@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Clr.NativeCompilation;
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)
-            where TSymbol : ISymbol
+            where TSymbol : ISymbolInternal
         {
             var haveSymbol = symbol != null;
 
@@ -251,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 modifierFlags = DkmEvaluationResultTypeModifierFlags.Virtual;
             }
-            else if (symbol.Kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsVolatile)
+            else if (symbol.Kind == SymbolKind.Field && ((IFieldSymbolInternal)symbol).IsVolatile)
             {
                 modifierFlags = DkmEvaluationResultTypeModifierFlags.Volatile;
             }

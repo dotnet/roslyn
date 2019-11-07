@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CaseCorrection
@@ -22,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         public static async Task<Document> CaseCorrectAsync(Document document, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root is null)
+            {
+                throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+            }
+
             return await CaseCorrectAsync(document, root.FullSpan, cancellationToken).ConfigureAwait(false);
         }
 
@@ -32,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         public static async Task<Document> CaseCorrectAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root is null)
+            {
+                throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+            }
+
             return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
         }
 
@@ -48,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// Case corrects all names found in the provided spans.
         /// </summary>
         public static Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default)
-            => document.GetLanguageService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken);
+            => document.Project.LanguageServices.GetRequiredService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken);
 
         /// <summary>
         /// Case correct only things that don't require semantic information
         /// </summary>
         internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default)
-            => workspace.Services.GetLanguageServices(root.Language).GetService<ICaseCorrectionService>().CaseCorrect(root, spans, workspace, cancellationToken);
+            => workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ICaseCorrectionService>().CaseCorrect(root, spans, workspace, cancellationToken);
     }
 }

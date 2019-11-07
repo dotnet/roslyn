@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>>();
         }
 
-        public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic, ISymbol symbolOpt = null)
+        public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, ISymbol symbolOpt = null)
         {
             if (diagnostic.IsSuppressed)
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             SuppressMessageInfo info;
-            if (IsDiagnosticSuppressed(diagnostic, out info))
+            if (IsDiagnosticSuppressed(diagnostic, getSemanticModel, out info))
             {
                 // Attach the suppression info to the diagnostic.
                 diagnostic = diagnostic.WithIsSuppressed(true);
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return diagnostic;
         }
 
-        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, out AttributeData suppressingAttribute)
+        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out AttributeData suppressingAttribute)
         {
             SuppressMessageInfo info;
-            if (IsDiagnosticSuppressed(diagnostic, out info))
+            if (IsDiagnosticSuppressed(diagnostic, getSemanticModel, out info))
             {
                 suppressingAttribute = info.Attribute;
                 return true;
@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, out SuppressMessageInfo info)
-            => IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, out info);
+        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
+            => IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, getSemanticModel, out info);
 
-        private bool IsDiagnosticSuppressed(string id, Location location, out SuppressMessageInfo info)
+        private bool IsDiagnosticSuppressed(string id, Location location, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
         {
             Debug.Assert(id != null);
             Debug.Assert(location != null);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Walk up the syntax tree checking for suppression by any declared symbols encountered
             if (location.IsInSource)
             {
-                var model = _compilation.GetSemanticModel(location.SourceTree);
+                var model = getSemanticModel(_compilation, location.SourceTree);
                 bool inImmediatelyContainingSymbol = true;
 
                 for (var node = location.SourceTree.GetRoot().FindNode(location.SourceSpan, getInnermostNodeForTie: true);
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Ignore the category parameter because it does not identify the diagnostic
             // and category information can be obtained from diagnostics themselves.
-            info.Id = attribute.CommonConstructorArguments[1].Value as string;
+            info.Id = attribute.CommonConstructorArguments[1].ValueInternal as string;
             if (info.Id == null)
             {
                 return false;

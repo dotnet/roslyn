@@ -3167,6 +3167,106 @@ public class Program
             Assert.Equal<string>(expected, actual);
         }
 
+        [Fact]
+        [WorkItem(39315, "https://github.com/dotnet/roslyn/issues/39315")]
+        public void WriteDocumentationCommentXml_01()
+        {
+            var comp = CreateCompilation(new[] {
+                Parse(@"
+/// <summary> a
+/// </summary>
+"),
+                Parse(@"
+
+/// <summary> b
+/// </summary>
+")});
+
+            var diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: comp.SyntaxTrees[0]);
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (2,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> a
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1)
+                );
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: comp.SyntaxTrees[0],
+                filterSpanWithinTree: new TextSpan(0, 0));
+
+            diags.ToReadOnlyAndFree().Verify();
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: comp.SyntaxTrees[1]);
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (3,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> b
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
+                );
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: null);
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (2,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> a
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1),
+                // (3,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> b
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
+                );
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: null,
+                filterSpanWithinTree: new TextSpan(0, 0));
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (2,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> a
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1),
+                // (3,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> b
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
+                );
+        }
+
         #region Xml Test helpers
 
         /// <summary>

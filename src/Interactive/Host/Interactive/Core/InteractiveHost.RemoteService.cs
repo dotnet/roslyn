@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
-            private SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
+            private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private InteractiveHost _host;              // nulled on dispose
@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            // Dispose may called anytime.
-            internal void Dispose(bool joinThreads)
+            // Dispose may called anytime, on any thread.
+            internal void Dispose()
             {
                 // There can be a call from host initiated from OnProcessExit. 
                 // We should not proceed with disposing if _disposeSemaphore is locked.
@@ -140,22 +140,25 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
-                try
+                if (_host._joinOutputWritingThreadsOnDisposal)
                 {
-                    _readOutputThread?.Join();
-                }
-                catch (ThreadStateException)
-                {
-                    // thread hasn't started	
-                }
+                    try
+                    {
+                        _readOutputThread?.Join();
+                    }
+                    catch (ThreadStateException)
+                    {
+                        // thread hasn't started	
+                    }
 
-                try
-                {
-                    _readErrorOutputThread?.Join();
-                }
-                catch (ThreadStateException)
-                {
-                    // thread hasn't started	
+                    try
+                    {
+                        _readErrorOutputThread?.Join();
+                    }
+                    catch (ThreadStateException)
+                    {
+                        // thread hasn't started	
+                    }
                 }
 
                 // null the host so that we don't attempt to write to the buffer anymore:

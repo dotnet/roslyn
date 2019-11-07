@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbols.Length == 1)
                 {
-                    return new SymbolInfo(symbols[0], CandidateReason.LateBound);
+                    return new SymbolInfo(symbols[0].GetPublicSymbol(), CandidateReason.LateBound);
                 }
                 else
                 {
-                    return new SymbolInfo(StaticCast<ISymbol>.From(symbols), CandidateReason.LateBound);
+                    return new SymbolInfo(symbols.GetPublicSymbols(), CandidateReason.LateBound);
                 }
             }
             else if (resultKind == LookupResultKind.Viable)
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbols.Length > 0)
                 {
                     Debug.Assert(symbols.Length == 1);
-                    return new SymbolInfo(symbols[0]);
+                    return new SymbolInfo(symbols[0].GetPublicSymbol());
                 }
                 else
                 {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new SymbolInfo(StaticCast<ISymbol>.From(symbols), (symbols.Length > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
+                return new SymbolInfo(symbols.GetPublicSymbols(), (symbols.Length > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
             }
         }
     }

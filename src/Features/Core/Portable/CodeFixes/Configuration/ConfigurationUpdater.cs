@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
         // Regular expression for .editorconfig code style option entry.
         // For example: "dotnet_style_object_initializer = true:suggestion   # Optional comment"
-        private static readonly Regex s_optionBasedEntryPattern = new Regex(@"([\w ]+)=([\w ]+):[ ]*([\w]+)([ ]*[;#].*)?");
+        private static readonly Regex s_optionBasedEntryPattern = new Regex(@"([\w ]+)=([\w, ]+):[ ]*([\w]+)([ ]*[;#].*)?");
 
         // Regular expression for .editorconfig diagnosticID severity configuration entry.
         // For example: "dotnet_diagnostic.CA2000.severity = suggestion   # Optional comment"
@@ -185,9 +185,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             // Compute the updated text for analyzer config document.
             var newText = GetNewAnalyzerConfigDocumentText(originalText, editorConfigDocument);
 
-            return newText != null
-                ? solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText)
-                : solution;
+            if (newText == null)
+            {
+                return solution;
+            }
+
+            // Add the newly added analyzer config document as a solution item.
+            // The analyzer config document is not yet created, so we just mark the file
+            // path for tracking and add it as a solution item whenever the file gets created by the code fix application.
+            var service = _project.Solution.Workspace.Services.GetService<IAddSolutionItemService>();
+            service?.TrackFilePathAndAddSolutionItemWhenFileCreated(editorConfigDocument.FilePath);
+
+            return solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText);
         }
 
         private AnalyzerConfigDocument FindOrGenerateEditorConfig()
@@ -198,7 +207,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 return null;
             }
 
-            return _project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+            if (_project.Solution?.FilePath == null)
+            {
+                // Project has no solution or solution without a file path.
+                // Add analyzer config to just the current project.
+                return _project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+            }
+
+            // Otherwise, add analyzer config document to all applicable projects for the current project's solution.
+            AnalyzerConfigDocument analyzerConfigDocument = null;
+            var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath);
+            var currentSolution = _project.Solution;
+            foreach (var projectId in _project.Solution.ProjectIds)
+            {
+                var project = currentSolution.GetProject(projectId);
+                if (project?.FilePath?.StartsWith(analyzerConfigDirectory) == true)
+                {
+                    var addedAnalyzerConfigDocument = project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+                    if (addedAnalyzerConfigDocument != null)
+                    {
+                        analyzerConfigDocument ??= addedAnalyzerConfigDocument;
+                        currentSolution = addedAnalyzerConfigDocument.Project.Solution;
+                    }
+                }
+            }
+
+            return analyzerConfigDocument;
         }
 
         private static ImmutableArray<(string optionName, string currentOptionValue, string currentSeverity, bool isPerLanguage)> GetCodeStyleOptionValuesForDiagnostic(

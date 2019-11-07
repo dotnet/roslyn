@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     ///     IList&lt;Symbol&gt; SemanticModel.LookupSymbols(CSharpSyntaxNode location, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, LookupOptions options = LookupOptions.Default, List&lt;Symbol> results = null);
     /// </pre>
     /// </summary>
-    internal sealed class AliasSymbol : Symbol, IAliasSymbol
+    internal sealed class AliasSymbol : Symbol
     {
         private readonly SyntaxToken _aliasName;
         private readonly Binder _binder;
@@ -359,27 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        #region IAliasSymbol Members
-
-        INamespaceOrTypeSymbol IAliasSymbol.Target
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.Target; }
+            return new PublicModel.AliasSymbol(this);
         }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitAlias(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitAlias(this);
-        }
-
-        #endregion
     }
 }
