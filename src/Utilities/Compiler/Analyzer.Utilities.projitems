@@ -11,6 +11,12 @@
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
     <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
     <HasIOperation>true</HasIOperation>
+
+	<!-- Explicitly enable nullable for all projects that link Analyzer.Utilities.
+	     This is needed as this project is linked into test projects which don't yet have nullable enabled,
+		 and building the test projects without the explict enable nullable below leads to following warnings:
+			"warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context" -->
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup Condition="'$(HasIOperation)' == 'true'">
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableHashSetExtensions.cs" />

@@ -75,7 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var exportAttribute = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
             var exportAttributeSymbol = semanticModel.GetSymbolInfo(exportAttribute, cancellationToken).Symbol?.ContainingType;
-            INamedTypeSymbol importingConstructorAttributeSymbol = null;
+            INamedTypeSymbol? importingConstructorAttributeSymbol = null;
             while (exportAttributeSymbol is object)
             {
                 importingConstructorAttributeSymbol = exportAttributeSymbol.ContainingNamespace?.GetTypeMembers(nameof(ImportingConstructorAttribute)).FirstOrDefault();
@@ -189,10 +189,10 @@ namespace Roslyn.Diagnostics.Analyzers
                 return document;
             }
 
-            INamedTypeSymbol importingConstructorAttributeSymbol = null;
+            INamedTypeSymbol? importingConstructorAttributeSymbol = null;
             foreach (var attributeData in exportedType.GetAttributes())
             {
-                INamedTypeSymbol exportAttributeSymbol = null;
+                INamedTypeSymbol? exportAttributeSymbol = null;
                 foreach (var attributeClass in attributeData.AttributeClass.GetBaseTypesAndThis())
                 {
                     if (attributeClass.Name == nameof(ExportAttribute))

@@ -84,7 +84,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                     if (arrayType.RankSpecifiers[0].ChildNodes()
                         .FirstOrDefault(n => n.Kind() == SyntaxKind.NumericLiteralExpression) is LiteralExpressionSyntax literalRankSpecifier)
                     {
-                        Debug.Assert(literalRankSpecifier.Token.Value != null);
                         AnalyzeArrayLength((int)literalRankSpecifier.Token.Value, arrayCreationExpression, addDiagnostic);
                         return;
                     }

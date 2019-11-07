@@ -243,7 +243,7 @@ namespace Roslyn.Diagnostics.Analyzers
             if (knownConstant is object)
             {
                 attributeArgument = generator.MemberAccessExpression(
-                    generator.TypeExpressionForStaticMemberAccess(mefConstructionType),
+                    generator.TypeExpressionForStaticMemberAccess(mefConstructionType!),
                     generator.IdentifierName("ImportingConstructorMessage"));
             }
             else

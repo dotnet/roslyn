@@ -56,7 +56,7 @@ namespace Roslyn.Diagnostics.Analyzers
             });
         }
 
-        private static void AnalyzeSymbol(SymbolAnalysisContext symbolContext, IEnumerable<INamedTypeSymbol> exportAttributes, INamedTypeSymbol attributeUsageAttribute)
+        private static void AnalyzeSymbol(SymbolAnalysisContext symbolContext, IEnumerable<INamedTypeSymbol> exportAttributes, INamedTypeSymbol? attributeUsageAttribute)
         {
             var namedType = (INamedTypeSymbol)symbolContext.Symbol;
             var namedTypeAttributes = namedType.GetApplicableAttributes(attributeUsageAttribute);
