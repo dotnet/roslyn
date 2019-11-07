@@ -244,7 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<CSharpAttributeData> attributes)
                 : base(container, type, ordinal, refKind, name)
             {
-                _refCustomModifiers = refCustomModifiers.NullToEmpty();
+                Debug.Assert(!refCustomModifiers.IsDefault);
+                Debug.Assert(!attributes.IsDefault);
+
+                _refCustomModifiers = refCustomModifiers;
                 _attributes = attributes;
             }
 

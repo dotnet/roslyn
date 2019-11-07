@@ -1,11 +1,11 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+﻿using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -5297,7 +5297,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunctionNullableAttribute()
+        public void LocalFunction_DontEmitNullableAttribute()
         {
             var source = @"
 #nullable enable
@@ -5398,7 +5398,7 @@ class C
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: validate,
-                expectedOutput: "hello");
+                expectedOutput: "");
 
             void validate(ModuleSymbol module)
             {
