@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
         #region "Utilities"
 
-        internal static List<BlockSyntax> GetBlockSyntaxList(MethodSymbol symbol)
+        internal static List<BlockSyntax> GetBlockSyntaxList(IMethodSymbol symbol)
         {
             var list = new List<BlockSyntax>();
 
@@ -195,13 +195,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         {
             var list = new List<ISymbol>();
             var localDumper = includeLocal ? new LocalSymbolDumper(compilation) : null;
-            GetSourceMemberSymbols(compilation.SourceModule.GlobalNamespace, list, localDumper);
+            GetSourceMemberSymbols(compilation.SourceModule.GlobalNamespace.GetPublicSymbol(), list, localDumper);
 
             // ??
             // if (includeLocal)
             GetSourceAliasSymbols(compilation, list);
-            list.Add(compilation.Assembly);
-            list.AddRange(compilation.Assembly.Modules);
+            Compilation c = compilation;
+            list.Add(c.Assembly);
+            list.AddRange(c.Assembly.Modules);
 
             return list;
         }
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
         #region "Private Helpers"
 
-        private static void GetSourceMemberSymbols(NamespaceOrTypeSymbol symbol, List<ISymbol> list, LocalSymbolDumper localDumper)
+        private static void GetSourceMemberSymbols(INamespaceOrTypeSymbol symbol, List<ISymbol> list, LocalSymbolDumper localDumper)
         {
             foreach (var memberSymbol in symbol.GetMembers())
             {
@@ -220,10 +221,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 {
                     case SymbolKind.NamedType:
                     case SymbolKind.Namespace:
-                        GetSourceMemberSymbols((NamespaceOrTypeSymbol)memberSymbol, list, localDumper);
+                        GetSourceMemberSymbols((INamespaceOrTypeSymbol)memberSymbol, list, localDumper);
                         break;
                     case SymbolKind.Method:
-                        var method = (MethodSymbol)memberSymbol;
+                        var method = (IMethodSymbol)memberSymbol;
                         foreach (var parameter in method.Parameters)
                         {
                             list.Add(parameter);
@@ -231,14 +232,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
                         if (localDumper != null)
                         {
-                            localDumper.GetLocalSymbols(method, list);
+                            localDumper.GetLocalSymbols(method.GetSymbol(), list);
                         }
 
                         break;
                     case SymbolKind.Field:
                         if (localDumper != null)
                         {
-                            localDumper.GetLocalSymbols((FieldSymbol)memberSymbol, list);
+                            localDumper.GetLocalSymbols(memberSymbol.GetSymbol<FieldSymbol>(), list);
                         }
 
                         break;
@@ -328,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                             var df = model.AnalyzeDataFlow(a.Expression);
 
                             // VisitLocals(arg, df);
-                            list.AddRange(df.VariablesDeclared.OfType<Symbol>());
+                            list.AddRange(df.VariablesDeclared);
 
                             GetAnonymousExprSymbols(a.Expression, model, list);
                         }
@@ -340,8 +341,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             {
                 foreach (var v in df.VariablesDeclared)
                 {
-                    list.Add((Symbol)v);
-                    if (v is LocalSymbol local && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
+                    list.Add(v);
+                    if (v is ILocalSymbol local && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
                     {
                         list.Add(local.Type);
                     }
@@ -406,16 +407,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                     // var f = (Func<int>)(() => { return 1; }); Type is delegate
                     // method symbol
                     var sinfo = model.GetSymbolInfo(expr);
-                    list.Add((Symbol)sinfo.Symbol);
+                    list.Add(sinfo.Symbol);
                 }
                 else if (tinfo.Type != null && tinfo.Type.TypeKind != TypeKind.Delegate)
                 {
                     // bug#12625
                     // GetSymbolInfo -> .ctor (part of members)
-                    list.Add((Symbol)tinfo.Type); // NamedType with empty name
+                    list.Add(tinfo.Type); // NamedType with empty name
                     foreach (var m in tinfo.Type.GetMembers())
                     {
-                        list.Add((Symbol)m);
+                        list.Add(m);
                     }
                 }
             }

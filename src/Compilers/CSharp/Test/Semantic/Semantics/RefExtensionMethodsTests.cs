@@ -2141,7 +2141,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.Ref, symbol.RefKind);
         }
 
@@ -2160,7 +2160,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.In, symbol.RefKind);
         }
 
@@ -2179,7 +2179,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.Ref, symbol.RefKind);
         }
 
@@ -2198,7 +2198,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.In, symbol.RefKind);
         }
 

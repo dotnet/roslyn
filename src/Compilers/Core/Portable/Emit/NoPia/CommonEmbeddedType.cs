@@ -6,6 +6,7 @@ using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                                 builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
 
                                 // Embed members matching default member name.
-                                string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
+                                string defaultMember = attrData.CommonConstructorArguments[0].ValueInternal as string;
                                 if (defaultMember != null)
                                 {
                                     EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
@@ -685,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingNamedType).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return ((ISymbolInternal)UnderlyingNamedType).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

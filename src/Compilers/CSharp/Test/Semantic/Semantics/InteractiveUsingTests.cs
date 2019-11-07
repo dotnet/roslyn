@@ -73,7 +73,7 @@ using T = Type;
 class Type { }
 ";
 
-            var sub = CreateSubmission(source);
+            var sub = (Compilation)CreateSubmission(source);
             sub.VerifyDiagnostics();
 
             var typeSymbol = sub.ScriptClass.GetMember("Type");
@@ -84,7 +84,7 @@ class Type { }
 
             var aliasSymbol = model.GetDeclaredSymbol(syntax);
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind);
-            Assert.Equal(typeSymbol, ((AliasSymbol)aliasSymbol).Target);
+            Assert.Equal(typeSymbol, ((IAliasSymbol)aliasSymbol).Target);
 
             Assert.Equal(typeSymbol, model.GetSymbolInfo(syntax.Name).Symbol);
 
@@ -106,7 +106,7 @@ class Type { }
             var sub4 = CreateSubmission("using C1 = C; typeof(C1)", previous: sub3);
             sub4.VerifyDiagnostics();
 
-            var typeSymbol = sub3.ScriptClass.GetMember("C");
+            var typeSymbol = ((Compilation)sub3).ScriptClass.GetMember("C");
 
             var tree = sub4.SyntaxTrees.Single();
             var model = sub4.GetSemanticModel(tree);
@@ -114,7 +114,7 @@ class Type { }
 
             var aliasSymbol = model.GetDeclaredSymbol(syntax);
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind);
-            Assert.Equal(typeSymbol, ((AliasSymbol)aliasSymbol).Target);
+            Assert.Equal(typeSymbol, ((IAliasSymbol)aliasSymbol).Target);
 
             Assert.Equal(typeSymbol, model.GetSymbolInfo(syntax.Name).Symbol);
 
@@ -186,7 +186,7 @@ using J = I;
             Assert.Equal(SpecialType.System_Int16, GetSpeculativeType(sub2, "A").SpecialType);
 
             var sub3 = CreateSubmission("class A { }", previous: sub2);
-            Assert.Equal(sub3.ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
+            Assert.Equal(((Compilation)sub3).ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
 
             var sub4 = CreateSubmission("using A = System.Int64; typeof(A)", previous: sub3);
             Assert.Equal(SpecialType.System_Int64, GetSpeculativeType(sub4, "A").SpecialType);
@@ -205,7 +205,7 @@ class Type
 }
 ";
 
-            var sub = CreateSubmission(source);
+            var sub = (Compilation)CreateSubmission(source);
             sub.VerifyDiagnostics();
 
             Assert.Equal(sub.ScriptClass.GetMember("Type"), GetSpeculativeSymbol(sub, "Field").ContainingType);
@@ -225,7 +225,7 @@ class Type
             var sub4 = CreateSubmission("using static C;", previous: sub3);
             sub4.VerifyDiagnostics();
 
-            var typeSymbol = sub3.ScriptClass.GetMember("C");
+            var typeSymbol = ((Compilation)sub3).ScriptClass.GetMember("C");
 
             Assert.Equal(typeSymbol, GetSpeculativeSymbol(sub4, "CC").ContainingType);
         }
@@ -573,21 +573,21 @@ namespace NOuter
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 14));
         }
 
-        private static Symbol GetSpeculativeSymbol(CSharpCompilation comp, string name)
+        private static ISymbol GetSpeculativeSymbol(Compilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            return (Symbol)model.GetSpeculativeSymbolInfo(
+            return model.GetSpeculativeSymbolInfo(
                 tree.Length,
                 SyntaxFactory.IdentifierName(name),
                 SpeculativeBindingOption.BindAsExpression).Symbol;
         }
 
-        private static TypeSymbol GetSpeculativeType(CSharpCompilation comp, string name)
+        private static ITypeSymbol GetSpeculativeType(Compilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            return (TypeSymbol)model.GetSpeculativeTypeInfo(
+            return model.GetSpeculativeTypeInfo(
                 tree.Length,
                 SyntaxFactory.IdentifierName(name),
                 SpeculativeBindingOption.BindAsTypeOrNamespace).Type;

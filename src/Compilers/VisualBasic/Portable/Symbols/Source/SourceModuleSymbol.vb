@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each attrData In assembly.GetAttributes()
                     If attrData.IsTargetAttribute(assembly, AttributeDescription.GuidAttribute) Then
                         If attrData.CommonConstructorArguments.Length = 1 Then
-                            Dim value = attrData.CommonConstructorArguments(0).Value
+                            Dim value = attrData.CommonConstructorArguments(0).ValueInternal
                             If value Is Nothing OrElse TypeOf value Is String Then
                                 hasGuidAttribute = True
                             End If

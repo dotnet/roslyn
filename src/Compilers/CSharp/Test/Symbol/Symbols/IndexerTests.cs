@@ -119,7 +119,7 @@ class C : IB, IC
             var compilation = CompileAndVerify(source);
             compilation.VerifyDiagnostics();
 
-            var globalNamespace = (NamespaceSymbol)compilation.Compilation.GlobalNamespace;
+            var globalNamespace = (NamespaceSymbol)((CSharpCompilation)compilation.Compilation).GlobalNamespace;
 
             var type = globalNamespace.GetMember<NamedTypeSymbol>("IA");
             CheckIndexer(type.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
@@ -1279,7 +1279,7 @@ public class Derived : Base
             // Confirm that the base indexer is used (even though the derived indexer signature matches).
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(indexerAccessSyntax);
-            Assert.Equal(baseIndexer, symbolInfo.Symbol);
+            Assert.Equal(baseIndexer.GetPublicSymbol(), symbolInfo.Symbol);
         }
 
         /// <summary>
@@ -2622,18 +2622,18 @@ public class Wrapper
             // The receiver of each access expression has an indexer group.
             foreach (var syntax in receiverSyntaxes)
             {
-                var type = model.GetTypeInfo(syntax).Type;
+                var type = model.GetTypeInfo(syntax).Type.GetSymbol();
                 Assert.NotNull(type);
 
                 var indexerGroup = model.GetIndexerGroup(syntax);
 
                 if (type.Equals(baseType))
                 {
-                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else if (type.Equals(derivedType))
                 {
-                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else
                 {
@@ -2706,17 +2706,17 @@ class Derived2 : Base
 
             // In declaring type, can see everything.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[0]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can see non-private.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[1]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can only see public (or internal) members of other subtypes.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[2]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
         }
 

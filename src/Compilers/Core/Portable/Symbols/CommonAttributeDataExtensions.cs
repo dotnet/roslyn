@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (attrData.CommonConstructorArguments.Length == 1)
             {
-                object? value = attrData.CommonConstructorArguments[0].Value;
+                object? value = attrData.CommonConstructorArguments[0].ValueInternal;
 
                 if (value == null || value is string)
                 {

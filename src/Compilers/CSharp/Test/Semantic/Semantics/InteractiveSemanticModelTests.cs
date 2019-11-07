@@ -39,7 +39,7 @@ namespace Goo.Bar
             var baseType = symbol?.BaseType;
             Assert.NotNull(baseType);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
-            Assert.Equal(LookupResultKind.Inaccessible, ((ErrorTypeSymbol)baseType).ResultKind); // Script class members are private.
+            Assert.Equal(LookupResultKind.Inaccessible, baseType.GetSymbol<ErrorTypeSymbol>().ResultKind); // Script class members are private.
         }
 
         [Fact]
@@ -121,7 +121,7 @@ int field = constantField;
             Assert.Equal(SpecialType.System_Int32, bindInfo.Type.SpecialType);
             var symbol = bindInfo.Symbol;
             Assert.Equal("System.Int32 local1", symbol.ToTestDisplayString());
-            Assert.IsAssignableFrom<SourceLocalSymbol>(symbol);
+            Assert.IsAssignableFrom<SourceLocalSymbol>(symbol.GetSymbol());
         }
 
         [WorkItem(540513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540513")]

@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     usingsBinder = new InContainerBinder(binder.Container, binder.Next, imports);
                 }
 
-                var uniqueUsings = SpecializedCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
+                var uniqueUsings = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
 
                 foreach (var usingDirective in usingDirectives)
                 {
