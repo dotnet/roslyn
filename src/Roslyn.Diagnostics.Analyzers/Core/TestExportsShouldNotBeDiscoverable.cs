@@ -28,7 +28,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.TestExportsShouldNotBeDiscoverableRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: false,
             description: s_localizableDescription,

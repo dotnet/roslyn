@@ -27,7 +27,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.ExportedPartsShouldHaveImportingConstructorRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescription,

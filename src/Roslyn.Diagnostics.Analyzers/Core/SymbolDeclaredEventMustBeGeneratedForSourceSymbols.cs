@@ -24,7 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
             description: s_localizableDescription,

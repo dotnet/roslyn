@@ -23,8 +23,8 @@ MicrosoftCodeAnalysisPerformance: RS1000-RS1999
 MicrosoftCodeAnalysisCompatibility: RS1000-RS1999
 
 # Roslyn specific rules
-RoslyDiagnosticsDesign: RS0000-RS0999
-RoslyDiagnosticsMaintainability: RS0000-RS0999
-RoslyDiagnosticsPerformance: RS0000-RS0999
-RoslyDiagnosticsReliability: RS0000-RS0999
-RoslyDiagnosticsUsage: RS0000-RS0999
+RoslynDiagnosticsDesign: RS0000-RS0999
+RoslynDiagnosticsMaintainability: RS0000-RS0999
+RoslynDiagnosticsPerformance: RS0000-RS0999
+RoslynDiagnosticsReliability: RS0000-RS0999
+RoslynDiagnosticsUsage: RS0000-RS0999
