@@ -381,7 +381,7 @@ Class C
     End Sub
 End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef
     Module MefConstruction
         Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
     End Module
@@ -394,12 +394,12 @@ Imports {mefNamespace}
 <Export>
 Class C
     <ImportingConstructor>
-    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, True)>
+    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.ImportingConstructorMessage, True)>
     Public Sub New()
     End Sub
 End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef
     Module MefConstruction
         Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
     End Module
@@ -611,7 +611,7 @@ Class C
     End Sub
 End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef
     Module MefConstruction
         Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
     End Module
@@ -624,12 +624,12 @@ Imports {mefNamespace}
 <Export>
 Class C
     <ImportingConstructor>
-    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, True)>
+    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.ImportingConstructorMessage, True)>
     Public Sub New()
     End Sub
 End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef
     Module MefConstruction
         Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
     End Module
