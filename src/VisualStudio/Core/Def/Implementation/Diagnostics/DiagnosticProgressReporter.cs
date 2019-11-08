@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     {
         private static readonly TimeSpan s_minimumInterval = TimeSpan.FromMilliseconds(200);
 
-        #region Fields Protected By Lock
+        #region Fields protected by _lock
 
         /// <summary>
         /// Gate access to reporting sln crawler events so we cannot
