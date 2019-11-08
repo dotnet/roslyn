@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
         {
         }
 
-        internal override async Task<(CodeAction action, string methodBlock)> GetCodeActionAsync(
+        protected override async Task<(CodeAction action, string methodBlock)> GetCodeActionAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -43,26 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
 
             if (result.Succeeded || result.SucceededWithSuggestion)
             {
-                // We want to ensure that there is an empty line in between the generated local method and the previous statements.
-                var resultDocument = result.Document;
-                var resultMethodDeclarationNode = result.MethodDeclarationNode;
-                var resultInvocationNameToken = result.InvocationNameToken;
+                // We insert an empty line between the generated local method and the previous statements if there is not one already.
+                var (resultDocument, resultMethodDeclarationNode, resultInvocationNameToken) = await InsertNewLineBeforeLocalMethodIfNecessaryAsync(result, cancellationToken).ConfigureAwait(false);
 
-                var leadingTrivia = result.MethodDeclarationNode.GetLeadingTrivia();
-                if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)))
-                {
-                    resultMethodDeclarationNode = result.MethodDeclarationNode.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
-
-                    var root = await resultDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var newRoot = root.ReplaceNode(result.MethodDeclarationNode, resultMethodDeclarationNode);
-                    resultDocument = resultDocument.WithSyntaxRoot(newRoot);
-
-                    newRoot = await resultDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    resultInvocationNameToken = newRoot.FindToken(result.InvocationNameToken.SpanStart);
-                }
-
-                var description = documentOptions.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
-                                      FeaturesResources.Extract_Local_Method_plus_Local : FeaturesResources.Extract_Local_Method;
+                var description = FeaturesResources.Extract_Local_Method;
 
                 var codeAction = new MyCodeAction(description, c => AddRenameAnnotationAsync(resultDocument, resultInvocationNameToken, c));
                 var methodBlock = resultMethodDeclarationNode;
@@ -71,6 +54,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
             }
 
             return default;
+        }
+
+        private async Task<(Document resultDocument, SyntaxNode resultMethodDeclarationNode, SyntaxToken resultInvocationNameToken)> InsertNewLineBeforeLocalMethodIfNecessaryAsync(
+            ExtractMethodResult result,
+            CancellationToken cancellationToken)
+        {
+            var resultDocument = result.Document;
+            var resultMethodDeclarationNode = result.MethodDeclarationNode;
+            var resultInvocationNameToken = result.InvocationNameToken;
+
+            // Checking to see if there is already an empty line before the local method declaration.
+            var leadingTrivia = result.MethodDeclarationNode.GetLeadingTrivia();
+            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)))
+            {
+                resultMethodDeclarationNode = result.MethodDeclarationNode.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
+
+                // Generating the new document and associated variables.
+                var root = await resultDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                resultDocument = resultDocument.WithSyntaxRoot(root.ReplaceNode(result.MethodDeclarationNode, resultMethodDeclarationNode));
+
+                var newRoot = await resultDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                resultInvocationNameToken = newRoot.FindToken(result.InvocationNameToken.SpanStart);
+            }
+
+            return (resultDocument, resultMethodDeclarationNode, resultInvocationNameToken);
         }
     }
 }

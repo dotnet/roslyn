@@ -222,11 +222,6 @@
         <target state="new">Extract Local Method</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Local_Method_plus_Local">
-        <source>Extract Local Method + Local</source>
-        <target state="new">Extract Local Method + Local</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Non è stato possibile analizzare il flusso di dati per: {0}</target>

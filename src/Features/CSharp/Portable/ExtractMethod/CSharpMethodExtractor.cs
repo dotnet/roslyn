@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             => CSharpAnalyzer.AnalyzeAsync(selectionResult, cancellationToken);
 
-        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, bool extractLocalFunction, CancellationToken cancellationToken)
+        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(position >= 0);
 
@@ -34,13 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             // Check if we are extracting a local function and are within a local function
             var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
-            if (extractLocalFunction && localMethodNode != null)
+            if (ExtractLocalFunction && localMethodNode != null)
             {
                 return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
             }
 
             var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
-
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
@@ -75,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<MethodExtractor.GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, bool extractLocalFunction, bool preferStatic, CancellationToken cancellationToken)
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken)
         {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, extractLocalFunction, preferStatic, cancellationToken);
+            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, ExtractLocalFunction, PreferStaticFunction, cancellationToken);
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)

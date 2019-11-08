@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
-        protected abstract Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, bool extractLocalFunction, CancellationToken cancellationToken);
+        protected abstract Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, bool extractLocalFunction, bool preferStatic, CancellationToken cancellationToken);
+        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return new FailedExtractMethodResult(operationStatus);
             }
 
-            var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, OriginalSelectionResult.OriginalSpan.Start, ExtractLocalFunction, cancellationToken).ConfigureAwait(false);
+            var insertionPoint = await GetInsertionPointAsync(analyzeResult.SemanticDocument, OriginalSelectionResult.OriginalSpan.Start, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var triviaResult = await PreserveTriviaAsync(OriginalSelectionResult.With(insertionPoint.SemanticDocument), cancellationToken).ConfigureAwait(false);
@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 insertionPoint.With(expandedDocument),
                 OriginalSelectionResult.With(expandedDocument),
                 analyzeResult.With(expandedDocument),
-                ExtractLocalFunction,
-                PreferStaticFunction,
                 cancellationToken).ConfigureAwait(false);
 
             var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);

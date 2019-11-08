@@ -601,9 +601,6 @@
   <data name="Extract_Local_Method" xml:space="preserve">
     <value>Extract Local Method</value>
   </data>
-  <data name="Extract_Local_Method_plus_Local" xml:space="preserve">
-    <value>Extract Local Method + Local</value>
-  </data>
   <data name="Extract_Method" xml:space="preserve">
     <value>Extract Method</value>
   </data>

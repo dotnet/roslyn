@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 
-        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, position As Integer, extractLocalFunction As Boolean, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
+        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, position As Integer, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
             Contract.ThrowIfFalse(position >= 0)
 
             Dim root = Await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, extractLocalFunction As Boolean, preferStatic As Boolean, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 

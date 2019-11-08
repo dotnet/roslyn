@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             localFunction = root.GetCurrentNode(localFunction);
             container = root.GetCurrentNode(container);
 
-            method = WithBodyFrom((MethodDeclarationSyntax)method, localFunction);
+            method = WithBodyFrom(method, localFunction);
 
             editor = new SyntaxEditor(root, generator);
             editor.InsertAfter(container, method);
