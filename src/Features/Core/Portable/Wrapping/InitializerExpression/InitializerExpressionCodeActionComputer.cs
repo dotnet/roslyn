@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             private async Task AddWrappingGroups(ArrayBuilder<WrappingGroup> result)
             {
                 result.Add(await GetWrapEveryGroupAsync().ConfigureAwait(false));
-                //result.Add(await GetUnwrapGroupAsync().ConfigureAwait(false));
+                result.Add(await GetUnwrapGroupAsync().ConfigureAwait(false));
                 //result.Add(await GetWrapLongGroupAsync().ConfigureAwait(false));
             }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     }
                 }
 
-                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _afterOpenTokenIndentationTrivia , _listSyntax.GetLastToken()));
+                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _elasticTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }
@@ -172,6 +172,44 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 result.Add(wrappingStyle == WrappingStyle.WrapFirst_IndentRest
                     ? Edit.UpdateBetween(_listSyntax.GetFirstToken(), NewLineTrivia, _singleIndentationTrivia, _listItems[0])
                     : Edit.DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
+            }
+
+            private async Task<WrappingGroup> GetUnwrapGroupAsync()
+            {
+                var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+
+                var parentTitle = Wrapper.Unwrap_list;
+
+                // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
+                unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+
+                // The 'unwrap' title strings are unique and do not collide with any other code
+                // actions we're computing.  So they can be inlined if possible.
+                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
+            }
+
+            private async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
+            {
+                var edits = GetUnwrapAllEdits(wrappingStyle);
+                var title = Wrapper.Unwrap_all_items;
+
+                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+            }
+
+            private ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
+            {
+                var result = ArrayBuilder<Edit>.GetInstance();
+
+                AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
+
+                foreach (var comma in _listItems.GetSeparators())
+                {
+                    result.Add(Edit.DeleteBetween(comma.GetPreviousToken(), comma));
+                    result.Add(Edit.DeleteBetween(comma, comma.GetNextToken()));
+                }
+
+                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                return result.ToImmutableAndFree();
             }
         }
     }
