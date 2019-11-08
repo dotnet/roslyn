@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             lock (Gate)
             {
-                if (DefinitionResults.TryGetValue(definitionItem, out var definitionResult))
+                if (DefinitionResults.TryGetValue(definition, out var definitionResult))
                 {
                     return definitionResult;
                 }

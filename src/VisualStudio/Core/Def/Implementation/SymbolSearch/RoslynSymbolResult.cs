@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                 var docText = await result.ReferenceItem.SourceSpan.Document.GetTextAsync(token).ConfigureAwait(false);
                 result.ClassifiedContext = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
-                result.HighlightSpan = AsSpan(classifiedSpansAndHighlightSpan.HighlightSpan);
+                result.ContextHighlightSpan = AsSpan(classifiedSpansAndHighlightSpan.HighlightSpan);
 
                 if (result.ReferenceItem.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
                 {
@@ -126,7 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 result.ClassifiedContext = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
                     new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
 
-                result.HighlightSpan = AsSpan(excerptResult.MappedSpan);
+                result.ContextHighlightSpan = AsSpan(excerptResult.MappedSpan);
+                // TODO: add definition context and its highlight
             }
 
             // Set location so that Editor can navigate to the result
@@ -148,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public ClassifiedTextElement ClassifiedDefinition { get; private set; }
 
-        public Span HighlightSpan { get; private set; }
+        public Span ContextHighlightSpan { get; private set; }
 
         public string DocumentId { get; private set; }
 

@@ -28,10 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             if (snapshot != null)
             {
                 var snapshotPoint = new SnapshotPoint(snapshot, position);
+                var buffer = snapshotPoint.Snapshot.TextBuffer;
 
-                options = options.WithChangedOption(FormattingOptions.UseTabs, !indentationManagerService.UseSpacesForWhitespace(snapshotPoint, explicitFormat))
-                                 .WithChangedOption(FormattingOptions.IndentationSize, indentationManagerService.GetIndentSize(snapshotPoint, explicitFormat))
-                                 .WithChangedOption(FormattingOptions.TabSize, indentationManagerService.GetTabSize(snapshotPoint, explicitFormat));
+                options = options.WithChangedOption(FormattingOptions.UseTabs, !indentationManagerService.UseSpacesForWhitespace(buffer, explicitFormat))
+                                 .WithChangedOption(FormattingOptions.IndentationSize, indentationManagerService.GetIndentSize(buffer, explicitFormat))
+                                 .WithChangedOption(FormattingOptions.TabSize, indentationManagerService.GetTabSize(buffer, explicitFormat));
             }
 
             return options;

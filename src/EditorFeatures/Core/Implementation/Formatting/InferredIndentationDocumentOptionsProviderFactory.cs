@@ -70,20 +70,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     // the implementation ignores the location and just uses the result for the entire file so it doesn't matter. But
                     // our Roslyn options abstraction is per-document today, so we don't have a position to hand in here.
                     var snapshotPoint = new SnapshotPoint(_snapshot, 0);
+                    var buffer = snapshotPoint.Snapshot.TextBuffer;
 
                     if (option.Option == FormattingOptions.UseTabs)
                     {
-                        value = !_indentationManagerService.UseSpacesForWhitespace(snapshotPoint, explicitFormat: false);
+                        value = !_indentationManagerService.UseSpacesForWhitespace(buffer, explicitFormat: false);
                         return true;
                     }
                     else if (option.Option == FormattingOptions.TabSize)
                     {
-                        value = _indentationManagerService.GetTabSize(snapshotPoint, explicitFormat: false);
+                        value = _indentationManagerService.GetTabSize(buffer, explicitFormat: false);
                         return true;
                     }
                     else if (option.Option == FormattingOptions.IndentationSize)
                     {
-                        value = _indentationManagerService.GetIndentSize(snapshotPoint, explicitFormat: false);
+                        value = _indentationManagerService.GetIndentSize(buffer, explicitFormat: false);
                         return true;
                     }
                     else
