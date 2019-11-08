@@ -1685,6 +1685,119 @@ parameters: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"#nullable enable
+
+struct Foo
+{
+    public int Bar { get; }
+    [||]
+}",
+@"#nullable enable
+
+using System;
+
+struct Foo : IEquatable<Foo>
+{
+    public int Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Foo foo && Equals(foo);
+    }
+
+    public bool Equals(Foo other)
+    {
+        return Bar == other.Bar;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+struct Foo
+{
+    public bool Bar { get; }
+    [||]
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+@"
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+struct Foo : IEquatable<Foo>
+{
+    public bool Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Foo foo && Equals(foo);
+    }
+
+    public bool Equals(Foo other)
+    {
+        return Bar == other.Bar;
+    }
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8, retainNonFixableDiagnostics: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestImplementIEquatableOnClass()
         {
             await TestWithPickMembersDialogAsync(
@@ -1718,6 +1831,121 @@ class Program : IEquatable<Program>
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, ImplementIEquatableId),
 parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClassInNullableContextWithUnannotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"#nullable enable
+
+class Foo
+{
+    public int Bar { get; }
+    [||]
+}",
+@"#nullable enable
+
+using System;
+
+class Foo : IEquatable<Foo?>
+{
+    public int Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as Foo);
+    }
+
+    public bool Equals(Foo? other)
+    {
+        return other != null &&
+               Bar == other.Bar;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class Foo
+{
+    public bool Bar { get; }
+    [||]
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+@"
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class Foo : IEquatable<Foo?>
+{
+    public bool Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as Foo);
+    }
+
+    public bool Equals(Foo? other)
+    {
+        return other != null &&
+               Bar == other.Bar;
+    }
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8, retainNonFixableDiagnostics: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
