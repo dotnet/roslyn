@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.WhenKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.NotKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1106,6 +1106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhenKeyword:
                 case SyntaxKind.UnderscoreToken:
                 case SyntaxKind.VarKeyword:
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.NotKeyword:
                     return true;
                 default:
                     return false;

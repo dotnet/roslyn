@@ -502,11 +502,20 @@ case_pattern_switch_label
   ;
 
 pattern
-  : constant_pattern
+  : binary_pattern
+  | constant_pattern
   | declaration_pattern
   | discard_pattern
+  | parenthesized_pattern
   | recursive_pattern
+  | relational_pattern
+  | type_pattern
+  | unary_pattern
   | var_pattern
+  ;
+
+binary_pattern
+  : pattern (or_keyword | and_keyword) pattern
   ;
 
 constant_pattern
@@ -539,6 +548,10 @@ discard_pattern
   : '_'
   ;
 
+parenthesized_pattern
+  : '(' pattern ')'
+  ;
+
 recursive_pattern
   : type? positional_pattern_clause? property_pattern_clause? variable_designation?
   ;
@@ -553,6 +566,23 @@ subpattern
 
 property_pattern_clause
   : '{' (subpattern (',' subpattern)* ','?)? '}'
+  ;
+
+relational_pattern
+  : '!=' expression
+  | '<' expression
+  | '<=' expression
+  | '==' expression
+  | '>' expression
+  | '>=' expression
+  ;
+
+type_pattern
+  : type
+  ;
+
+unary_pattern
+  : not_keyword pattern
   ;
 
 var_pattern
@@ -1189,6 +1219,10 @@ skipped_tokens_trivia
   : syntax_token*
   ;
 
+and_keyword
+  : /* see lexical specification */
+  ;
+
 base_argument_list
   : argument_list
   | bracketed_argument_list
@@ -1216,7 +1250,15 @@ interpolated_string_text_token
   : /* see lexical specification */
   ;
 
+not_keyword
+  : /* see lexical specification */
+  ;
+
 numeric_literal_token
+  : /* see lexical specification */
+  ;
+
+or_keyword
   : /* see lexical specification */
   ;
 

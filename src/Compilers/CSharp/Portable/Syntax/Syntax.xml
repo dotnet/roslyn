@@ -1904,6 +1904,57 @@
     </Field>
   </Node>
 
+  <!-- Pattern forms added for C# 9.0 -->
+  <Node Name="ParenthesizedPatternSyntax" Base="PatternSyntax">
+    <Kind Name="ParenthesizedPattern"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="RelationalPatternSyntax" Base="PatternSyntax">
+    <Kind Name="RelationalPattern"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="EqualsEqualsToken"/>
+      <Kind Name="ExclamationEqualsToken"/>
+      <Kind Name="LessThanToken"/>
+      <Kind Name="LessThanEqualsToken"/>
+      <Kind Name="GreaterThanToken"/>
+      <Kind Name="GreaterThanEqualsToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the relational pattern.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="TypePatternSyntax" Base="PatternSyntax">
+    <Kind Name="TypePattern"/>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>The type for the type pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="BinaryPatternSyntax" Base="PatternSyntax">
+    <Kind Name="BinaryPattern"/>
+    <Field Name="LeftPattern" Type="PatternSyntax" />
+    <Field Name="PatternOperator" Type="SyntaxToken">
+      <Kind Name="OrKeyword"/>
+      <Kind Name="AndKeyword"/>
+    </Field>
+    <Field Name="RightPattern" Type="PatternSyntax" />
+  </Node>
+  <Node Name="UnaryPatternSyntax" Base="PatternSyntax">
+    <Kind Name="UnaryPattern"/>
+    <Field Name="PatternOperator" Type="SyntaxToken">
+      <Kind Name="NotKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+  </Node>
+
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
     <Kind Name="InterpolatedStringText"/>

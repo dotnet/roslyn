@@ -259,6 +259,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.ConstantPatternSyntax GenerateConstantPattern()
             => InternalSyntaxFactory.ConstantPattern(GenerateIdentifierName());
 
+        private static Syntax.InternalSyntax.ParenthesizedPatternSyntax GenerateParenthesizedPattern()
+            => InternalSyntaxFactory.ParenthesizedPattern(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateDiscardPattern(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        private static Syntax.InternalSyntax.RelationalPatternSyntax GenerateRelationalPattern()
+            => InternalSyntaxFactory.RelationalPattern(InternalSyntaxFactory.Token(SyntaxKind.EqualsEqualsToken), GenerateIdentifierName());
+
+        private static Syntax.InternalSyntax.TypePatternSyntax GenerateTypePattern()
+            => InternalSyntaxFactory.TypePattern(GenerateIdentifierName());
+
+        private static Syntax.InternalSyntax.BinaryPatternSyntax GenerateBinaryPattern()
+            => InternalSyntaxFactory.BinaryPattern(GenerateDiscardPattern(), InternalSyntaxFactory.Token(SyntaxKind.OrKeyword), GenerateDiscardPattern());
+
+        private static Syntax.InternalSyntax.UnaryPatternSyntax GenerateUnaryPattern()
+            => InternalSyntaxFactory.UnaryPattern(InternalSyntaxFactory.Token(SyntaxKind.NotKeyword), GenerateDiscardPattern());
+
         private static Syntax.InternalSyntax.InterpolatedStringTextSyntax GenerateInterpolatedStringText()
             => InternalSyntaxFactory.InterpolatedStringText(InternalSyntaxFactory.Token(SyntaxKind.InterpolatedStringTextToken));
 
@@ -1636,6 +1651,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateConstantPattern();
 
             Assert.NotNull(node.Expression);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestParenthesizedPatternFactoryAndProperties()
+        {
+            var node = GenerateParenthesizedPattern();
+
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
+            Assert.NotNull(node.Pattern);
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestRelationalPatternFactoryAndProperties()
+        {
+            var node = GenerateRelationalPattern();
+
+            Assert.Equal(SyntaxKind.EqualsEqualsToken, node.OperatorToken.Kind);
+            Assert.NotNull(node.Expression);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestTypePatternFactoryAndProperties()
+        {
+            var node = GenerateTypePattern();
+
+            Assert.NotNull(node.Type);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestBinaryPatternFactoryAndProperties()
+        {
+            var node = GenerateBinaryPattern();
+
+            Assert.NotNull(node.LeftPattern);
+            Assert.Equal(SyntaxKind.OrKeyword, node.PatternOperator.Kind);
+            Assert.NotNull(node.RightPattern);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestUnaryPatternFactoryAndProperties()
+        {
+            var node = GenerateUnaryPattern();
+
+            Assert.Equal(SyntaxKind.NotKeyword, node.PatternOperator.Kind);
+            Assert.NotNull(node.Pattern);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -5556,6 +5627,136 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestParenthesizedPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateParenthesizedPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedPatternIdentityRewriter()
+        {
+            var oldNode = GenerateParenthesizedPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestRelationalPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateRelationalPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRelationalPatternIdentityRewriter()
+        {
+            var oldNode = GenerateRelationalPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestTypePatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateTypePattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypePatternIdentityRewriter()
+        {
+            var oldNode = GenerateTypePattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestBinaryPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateBinaryPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBinaryPatternIdentityRewriter()
+        {
+            var oldNode = GenerateBinaryPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestUnaryPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateUnaryPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnaryPatternIdentityRewriter()
+        {
+            var oldNode = GenerateUnaryPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestInterpolatedStringTextTokenDeleteRewriter()
         {
             var oldNode = GenerateInterpolatedStringText();
@@ -9241,6 +9442,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ConstantPatternSyntax GenerateConstantPattern()
             => SyntaxFactory.ConstantPattern(GenerateIdentifierName());
 
+        private static ParenthesizedPatternSyntax GenerateParenthesizedPattern()
+            => SyntaxFactory.ParenthesizedPattern(SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        private static RelationalPatternSyntax GenerateRelationalPattern()
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.EqualsEqualsToken), GenerateIdentifierName());
+
+        private static TypePatternSyntax GenerateTypePattern()
+            => SyntaxFactory.TypePattern(GenerateIdentifierName());
+
+        private static BinaryPatternSyntax GenerateBinaryPattern()
+            => SyntaxFactory.BinaryPattern(GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.OrKeyword), GenerateDiscardPattern());
+
+        private static UnaryPatternSyntax GenerateUnaryPattern()
+            => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), GenerateDiscardPattern());
+
         private static InterpolatedStringTextSyntax GenerateInterpolatedStringText()
             => SyntaxFactory.InterpolatedStringText(SyntaxFactory.Token(SyntaxKind.InterpolatedStringTextToken));
 
@@ -10619,6 +10835,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(node.Expression);
             var newNode = node.WithExpression(node.Expression);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestParenthesizedPatternFactoryAndProperties()
+        {
+            var node = GenerateParenthesizedPattern();
+
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
+            Assert.NotNull(node.Pattern);
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
+            var newNode = node.WithOpenParenToken(node.OpenParenToken).WithPattern(node.Pattern).WithCloseParenToken(node.CloseParenToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestRelationalPatternFactoryAndProperties()
+        {
+            var node = GenerateRelationalPattern();
+
+            Assert.Equal(SyntaxKind.EqualsEqualsToken, node.OperatorToken.Kind());
+            Assert.NotNull(node.Expression);
+            var newNode = node.WithOperatorToken(node.OperatorToken).WithExpression(node.Expression);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestTypePatternFactoryAndProperties()
+        {
+            var node = GenerateTypePattern();
+
+            Assert.NotNull(node.Type);
+            var newNode = node.WithType(node.Type);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestBinaryPatternFactoryAndProperties()
+        {
+            var node = GenerateBinaryPattern();
+
+            Assert.NotNull(node.LeftPattern);
+            Assert.Equal(SyntaxKind.OrKeyword, node.PatternOperator.Kind());
+            Assert.NotNull(node.RightPattern);
+            var newNode = node.WithLeftPattern(node.LeftPattern).WithPatternOperator(node.PatternOperator).WithRightPattern(node.RightPattern);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestUnaryPatternFactoryAndProperties()
+        {
+            var node = GenerateUnaryPattern();
+
+            Assert.Equal(SyntaxKind.NotKeyword, node.PatternOperator.Kind());
+            Assert.NotNull(node.Pattern);
+            var newNode = node.WithPatternOperator(node.PatternOperator).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
         }
 
@@ -14531,6 +14803,136 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestConstantPatternIdentityRewriter()
         {
             var oldNode = GenerateConstantPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestParenthesizedPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateParenthesizedPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedPatternIdentityRewriter()
+        {
+            var oldNode = GenerateParenthesizedPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestRelationalPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateRelationalPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRelationalPatternIdentityRewriter()
+        {
+            var oldNode = GenerateRelationalPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestTypePatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateTypePattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypePatternIdentityRewriter()
+        {
+            var oldNode = GenerateTypePattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestBinaryPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateBinaryPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBinaryPatternIdentityRewriter()
+        {
+            var oldNode = GenerateBinaryPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestUnaryPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateUnaryPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnaryPatternIdentityRewriter()
+        {
+            var oldNode = GenerateUnaryPattern();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
