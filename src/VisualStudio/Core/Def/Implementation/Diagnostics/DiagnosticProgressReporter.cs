@@ -127,10 +127,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private void ReportProgress()
         {
-            ProgressData data;
             lock (_lock)
             {
-                data = _lastProgressData;
+                var data = _lastProgressData;
                 _intervalTask = null;
 
                 _updateUITask = _updateUITask.ContinueWith(_ => UpdateUI(data),
