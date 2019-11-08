@@ -2606,5 +2606,51 @@ struct S
                 //         void f() { F = x; }
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(7, 20));
         }
+
+        [Fact]
+        public void TestUnusedInterpolatedString()
+        {
+            var program = @"
+            public class Program
+            {
+                public static void Main(string[] args)
+                {
+                    var constString = ""abc"";
+                    var constInterpolatedString1 = $""abc"";
+                    var constInterpolatedString2 = $""ab{1}c"";
+                    var constInterpolatedString3 = $""ab{""1""}c"";
+                    var constNestedInterpolatedString = $""{$""a""}abc"";
+
+                    var nonConstInterpolatedString1 = $""Function: {GetFunction()}"";
+                    var nonConstInterpolatedString2 = $""Function: {GetProperty}"";
+
+                    var variable = ""abc"";
+                    var nonConstInterpolatedString3 = $""Variable: {variable}"";
+                }
+
+                public static string GetFunction() => ""function"";
+                public static string GetProperty => ""property"";
+            }";
+ 
+            var comp = CreateCompilation(program);
+            comp.VerifyDiagnostics
+            (
+                // (6,25): warning CS0219: The variable 'constString' is assigned but its value is never used
+                //                     var consString = "abc";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "constString").WithArguments("constString").WithLocation(6, 25),
+                // (7,25): warning CS0219: The variable 'constInterpolatedString1' is assigned but its value is never used
+                //                     var constInterpolatedString1 = $"abc";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "constInterpolatedString1").WithArguments("constInterpolatedString1").WithLocation(7, 25),
+                // (8,25): warning CS0219: The variable 'constInterpolatedString2' is assigned but its value is never used
+                //                     var constInterpolatedString2 = $"ab{1}c";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "constInterpolatedString2").WithArguments("constInterpolatedString2").WithLocation(8, 25),
+                // (9,25): warning CS0219: The variable 'constInterpolatedString3' is assigned but its value is never used
+                //                     var constInterpolatedString3 = $"ab{"1"}c";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "constInterpolatedString3").WithArguments("constInterpolatedString3").WithLocation(9, 25),
+                // (10,25): warning CS0219: The variable 'constNestedInterpolatedString' is assigned but its value is never used
+                //                     var constNestedInterpolatedString = $"{$"a"}abc";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "constNestedInterpolatedString").WithArguments("constNestedInterpolatedString").WithLocation(10, 25)
+            );
+        }
     }
 }
