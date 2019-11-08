@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../PublicApiAnalyzerResources.resx">
     <body>
+      <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
+        <source>Add all items in document '{0}' to the public API</source>
+        <target state="new">Add all items in document '{0}' to the public API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
+        <source>Add all items in project '{0}' to the public API</source>
+        <target state="new">Add all items in project '{0}' to the public API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
+        <source>Add all items in the solution to the public API</source>
+        <target state="new">Add all items in the solution to the public API</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
         <target state="translated">El símbolo "{0}" infringe el requisito de compatibilidad con versiones anteriores: "No agregar varias sobrecargas con los parámetros opcionales". Consulte "{1}" para obtener más detalles.</target>
