@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal sealed class SymbolNamesOption : IEquatable<SymbolNamesOption>
+    internal sealed class SymbolNamesOption : IEquatable<SymbolNamesOption?>
     {
         public static readonly SymbolNamesOption Empty = new SymbolNamesOption();
 

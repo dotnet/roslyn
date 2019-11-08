@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities;
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
                 else if (supportsCSharp ^ supportsVB)
                 {
-                    Debug.Assert(attributeSyntax != null);
+                    RoslynDebug.Assert(attributeSyntax != null);
 
                     // If the analyzer assembly doesn't reference either C# or VB CodeAnalysis assemblies,
                     // then the analyzer is pretty likely a language-agnostic analyzer.
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     if (compilationType == null)
                     {
                         string missingLanguage = supportsCSharp ? LanguageNames.VisualBasic : LanguageNames.CSharp;
-                        Diagnostic diagnostic = Diagnostic.Create(AddLanguageSupportToAnalyzerRule, attributeSyntax!.GetLocation(), namedType.Name, missingLanguage);
+                        Diagnostic diagnostic = Diagnostic.Create(AddLanguageSupportToAnalyzerRule, attributeSyntax.GetLocation(), namedType.Name, missingLanguage);
                         symbolContext.ReportDiagnostic(diagnostic);
                     }
                 }

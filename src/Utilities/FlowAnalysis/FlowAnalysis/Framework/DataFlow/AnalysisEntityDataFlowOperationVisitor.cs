@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
@@ -647,11 +648,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Local functions.
             bool AddWorklistEntityAndPointsToValue(AnalysisEntity? analysisEntityOpt)
             {
+                RoslynDebug.Assert(pointsToValuesOpt != null);
+
                 if (analysisEntityOpt != null && candidateEntitiesBuilder.Contains(analysisEntityOpt))
                 {
                     worklistEntities.Add(analysisEntityOpt);
 
-                    if (pointsToValuesOpt!.TryGetValue(analysisEntityOpt, out var pointsToValue))
+                    if (pointsToValuesOpt.TryGetValue(analysisEntityOpt, out var pointsToValue))
                     {
                         AddWorklistPointsToValue(pointsToValue);
                     }

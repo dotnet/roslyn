@@ -33,7 +33,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool Inherits(this ITypeSymbol? type, ITypeSymbol? possibleBase)
+        public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)]  ITypeSymbol? possibleBase)
         {
             if (type == null || possibleBase == null)
             {
@@ -128,13 +128,13 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Indicates if the given <paramref name="type"/> implements <paramref name="iDisposable"/>.
         /// </summary>
-        public static bool ImplementsIDisposable(this ITypeSymbol type, INamedTypeSymbol? iDisposable)
+        public static bool ImplementsIDisposable(this ITypeSymbol type, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
             => iDisposable != null && type.AllInterfaces.Contains(iDisposable);
 
         /// <summary>
         /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or is <see cref="IDisposable"/> type itself.
         /// </summary>
-        public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol? iDisposable)
+        public static bool IsDisposable(this ITypeSymbol type, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
             => type.IsReferenceType && (Equals(type, iDisposable) || type.ImplementsIDisposable(iDisposable));
 
         /// <summary>
@@ -266,16 +266,16 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
 
-        public static bool IsNonNullableValueType(this ITypeSymbol typeSymbol)
+        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
 
-        public static bool IsNullableValueType(this ITypeSymbol typeSymbol)
+        public static bool IsNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
-        public static bool IsReferenceTypeOrNullableValueType(this ITypeSymbol typeSymbol)
+        public static bool IsReferenceTypeOrNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
 
-        public static bool IsNullableOfBoolean(this ITypeSymbol typeSymbol)
+        public static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
 
 #if HAS_IOPERATION

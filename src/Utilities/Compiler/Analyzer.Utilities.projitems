@@ -11,8 +11,7 @@
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
     <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
     <HasIOperation>true</HasIOperation>
-
-	<!-- Explicitly enable nullable for all projects that link Analyzer.Utilities.
+    <!-- Explicitly enable nullable for all projects that link Analyzer.Utilities.
 	     This is needed as this project is linked into test projects which don't yet have nullable enabled,
 		 and building the test projects without the explict enable nullable below leads to following warnings:
 			"warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context" -->
@@ -38,6 +37,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ReportDiagnosticExtensions.cs" />
@@ -76,6 +76,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\CategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />

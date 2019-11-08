@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 
@@ -100,11 +101,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public void StopTrackingPredicatedData(AnalysisEntity predicatedEntity)
         {
+            RoslynDebug.Assert(_lazyPredicateDataMap != null);
             Debug.Assert(HasPredicatedDataForEntity(predicatedEntity));
-            Debug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
             AssertValidAnalysisData();
 
-            if (_lazyPredicateDataMap!.TryGetValue(predicatedEntity, out var perEntityPredicatedAnalysisData))
+            if (_lazyPredicateDataMap.TryGetValue(predicatedEntity, out var perEntityPredicatedAnalysisData))
             {
                 perEntityPredicatedAnalysisData.Dispose();
             }
@@ -124,8 +126,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public void TransferPredicatedData(AnalysisEntity fromEntity, AnalysisEntity toEntity)
         {
             Debug.Assert(HasPredicatedDataForEntity(fromEntity));
-            Debug.Assert(fromEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
-            Debug.Assert(toEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(_lazyPredicateDataMap != null);
+            RoslynDebug.Assert(fromEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(toEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
             AssertValidAnalysisData();
 
             if (_lazyPredicateDataMap!.TryGetValue(fromEntity, out var fromEntityPredicatedData))
@@ -168,10 +171,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected void RemoveEntriesInPredicatedData(TKey key)
         {
+            RoslynDebug.Assert(_lazyPredicateDataMap != null);
             Debug.Assert(HasPredicatedData);
             AssertValidAnalysisData();
 
-            foreach (var kvp in _lazyPredicateDataMap!)
+            foreach (var kvp in _lazyPredicateDataMap)
             {
                 if (kvp.Value.TruePredicatedData != null)
                 {
@@ -438,9 +442,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (HasPredicatedData)
             {
+                RoslynDebug.Assert(_lazyPredicateDataMap != null);
                 AssertValidAnalysisData();
 
-                foreach (var kvp in _lazyPredicateDataMap!)
+                foreach (var kvp in _lazyPredicateDataMap)
                 {
                     if (kvp.Value.TruePredicatedData != null)
                     {

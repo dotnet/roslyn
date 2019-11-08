@@ -255,6 +255,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             bool VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode)
             {
+                RoslynDebug.Assert(entryBySymbol != null);
+
                 do
                 {
                     if (!VerifyTypeArguments(reportDiagnostic, type, syntaxNode, out type))
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         return true;
                     }
 
-                    if (entryBySymbol!.TryGetValue(type, out var entry))
+                    if (entryBySymbol.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
                             Diagnostic.Create(
@@ -322,9 +324,11 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             void VerifySymbol(Action<Diagnostic> reportDiagnostic, ISymbol symbol, SyntaxNode syntaxNode)
             {
+                RoslynDebug.Assert(entryBySymbol != null);
+
                 symbol = symbol.OriginalDefinition;
 
-                if (entryBySymbol!.TryGetValue(symbol, out var entry))
+                if (entryBySymbol.TryGetValue(symbol, out var entry))
                 {
                     reportDiagnostic(
                         Diagnostic.Create(

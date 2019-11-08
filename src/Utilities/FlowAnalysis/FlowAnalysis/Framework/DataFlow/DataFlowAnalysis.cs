@@ -117,8 +117,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (analysisContext.ExceptionPathsAnalysis)
                 {
+                    RoslynDebug.Assert(normalPathsExitBlockData != null);
+
                     // Clone and save exit block data
-                    normalPathsExitBlockData = AnalysisDomain.Clone(normalPathsExitBlockData!);
+                    normalPathsExitBlockData = AnalysisDomain.Clone(normalPathsExitBlockData);
 
                     OperationVisitor.ExecutingExceptionPathsAnalysisPostPass = true;
                     foreach (var block in cfg.Blocks)

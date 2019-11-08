@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
@@ -52,9 +53,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             ImmutableHashSet<AnalysisEntity> ComputeAddressSharedEntities()
             {
+                RoslynDebug.Assert(assignedValueOpt != null);
+                RoslynDebug.Assert(assignedValueOpt.AnalysisEntityOpt != null);
+
                 var builder = PooledHashSet<AnalysisEntity>.GetInstance();
                 AddIfHasKnownInstanceLocation(analysisEntity, builder);
-                AddIfHasKnownInstanceLocation(assignedValueOpt!.AnalysisEntityOpt!, builder);
+                AddIfHasKnownInstanceLocation(assignedValueOpt.AnalysisEntityOpt, builder);
 
                 // We need to handle multiple ref/out parameters passed the same location.
                 // For example, "M(ref a, ref a);"

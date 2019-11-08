@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -39,8 +40,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 get
                 {
-                    Debug.Assert(_hazardousParameterUsageBuilderOpt != null);
-                    return _hazardousParameterUsageBuilderOpt!.ToImmutable();
+                    RoslynDebug.Assert(_hazardousParameterUsageBuilderOpt != null);
+                    return _hazardousParameterUsageBuilderOpt.ToImmutable();
                 }
             }
 
@@ -177,14 +178,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             private void HandleHazardousOperation(SyntaxNode syntaxNode, IEnumerable<AbstractLocation> nonValidatedLocations)
             {
-                Debug.Assert(_hazardousParameterUsageBuilderOpt != null);
+                RoslynDebug.Assert(_hazardousParameterUsageBuilderOpt != null);
 
                 foreach (var location in nonValidatedLocations)
                 {
                     Debug.Assert(IsNotOrMaybeValidatedLocation(location));
 
                     var parameter = (IParameterSymbol)location.SymbolOpt!;
-                    if (!_hazardousParameterUsageBuilderOpt!.TryGetValue(parameter, out SyntaxNode currentSyntaxNode) ||
+                    if (!_hazardousParameterUsageBuilderOpt.TryGetValue(parameter, out SyntaxNode currentSyntaxNode) ||
                         syntaxNode.SpanStart < currentSyntaxNode.SpanStart)
                     {
                         _hazardousParameterUsageBuilderOpt[parameter] = syntaxNode;

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -363,9 +362,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         // If we have an additional file specifying required range and/or format for the ID, validate the ID.
                         if (!allowedIdsInfoListOpt.IsDefault)
                         {
-                            Debug.Assert(!allowedIdsInfoListOpt.IsEmpty);
-                            Debug.Assert(categoryOpt != null);
-                            Debug.Assert(additionalTextOpt != null);
+                            RoslynDebug.Assert(!allowedIdsInfoListOpt.IsEmpty);
+                            RoslynDebug.Assert(categoryOpt != null);
+                            RoslynDebug.Assert(additionalTextOpt != null);
 
                             var foundMatch = false;
                             static bool ShouldValidateRange((string? prefix, int start, int end) range)
@@ -374,13 +373,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             // Check if ID matches any one of the required ranges.
                             foreach (var allowedIds in allowedIdsInfoListOpt)
                             {
-                                Debug.Assert(allowedIds.prefix != null);
+                                RoslynDebug.Assert(allowedIds.prefix != null);
 
                                 if (ruleId.StartsWith(allowedIds.prefix, StringComparison.Ordinal))
                                 {
                                     if (ShouldValidateRange(allowedIds))
                                     {
-                                        var suffix = ruleId.Substring(allowedIds.prefix!.Length);
+                                        var suffix = ruleId.Substring(allowedIds.prefix.Length);
                                         if (int.TryParse(suffix, out int ruleIdInt) &&
                                             ruleIdInt >= allowedIds.start &&
                                             ruleIdInt <= allowedIds.end)
@@ -401,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             {
                                 // Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.
                                 string arg1 = ruleId;
-                                string arg2 = categoryOpt!;
+                                string arg2 = categoryOpt;
                                 string arg3 = string.Empty;
                                 foreach (var range in allowedIdsInfoListOpt)
                                 {
@@ -413,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                     arg3 += !ShouldValidateRange(range) ? range.prefix + "XXXX" : $"{range.prefix}{range.start}-{range.prefix}{range.end}";
                                 }
 
-                                string arg4 = Path.GetFileName(additionalTextOpt!.Path);
+                                string arg4 = Path.GetFileName(additionalTextOpt.Path);
                                 var diagnostic = Diagnostic.Create(DiagnosticIdMustBeInSpecifiedFormatRule, argument.Value.Syntax.GetLocation(), arg1, arg2, arg3, arg4);
                                 operationAnalysisContext.ReportDiagnostic(diagnostic);
                             }

@@ -50,24 +50,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol? solutionSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SolutionFullName);
-                INamedTypeSymbol? projectSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(ProjectFullName);
-                INamedTypeSymbol? documentSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DocumentFullName);
-                INamedTypeSymbol? syntaxNodeSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SyntaxNodeFullName);
-                INamedTypeSymbol? compilationSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(CompilationFullName);
-
-                ImmutableArray<INamedTypeSymbol> immutableSymbols = ImmutableArray.CreateRange(new[] { solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol }.WhereNotNull());
-                //Only register our node action if we can find the symbols for our immutable types
-                if (immutableSymbols.IsEmpty)
+                if (!compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(SolutionFullName, out var solutionSymbol) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(ProjectFullName, out var projectSymbol) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(DocumentFullName, out var documentSymbol) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(SyntaxNodeFullName, out var syntaxNodeSymbol) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(CompilationFullName, out var compilationSymbol))
                 {
+                    // Only register our node action if we can find the symbols for our immutable types
                     return;
                 }
 
+                var immutableSymbols = ImmutableHashSet.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
                 compilationContext.RegisterSyntaxNodeAction(sc => AnalyzeInvocationForIgnoredReturnValue(sc, immutableSymbols), SyntaxKind.InvocationExpression);
             });
         }
 
-        public static void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
+        public static void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableHashSet<INamedTypeSymbol> immutableTypeSymbols)
         {
             SemanticModel model = context.SemanticModel;
             var candidateInvocation = (InvocationExpressionSyntax)context.Node;

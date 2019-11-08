@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                     }
 
-                    Debug.Assert(parentEntity != null);
+                    RoslynDebug.Assert(parentEntity != null);
                 }
                 else
                 {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         underlyingValueTupleType, instanceLocation, parentOpt: null);
                 }
 
-                Debug.Assert(parentEntity!.InstanceLocation == instanceLocation);
+                Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
 
                 var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
                 foreach (var field in tupleType.TupleElements)

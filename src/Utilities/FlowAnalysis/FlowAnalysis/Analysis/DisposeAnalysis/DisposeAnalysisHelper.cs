@@ -145,7 +145,9 @@ namespace Analyzer.Utilities
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
         {
             EnsureDisposableFieldsMap();
-            if (_lazyDisposableFieldsMap!.TryGetValue(namedType, out ImmutableHashSet<IFieldSymbol> disposableFields))
+            RoslynDebug.Assert(_lazyDisposableFieldsMap != null);
+
+            if (_lazyDisposableFieldsMap.TryGetValue(namedType, out ImmutableHashSet<IFieldSymbol> disposableFields))
             {
                 return disposableFields;
             }

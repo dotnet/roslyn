@@ -61,7 +61,7 @@ namespace Analyzer.Utilities
 
                     var method = (IMethodSymbol)operationBlockAnalysisContext.OwningSymbol;
 
-                    if (RequiresAttributeOnMethod && !MethodHasAttribute(method, requiredAttributeType!))
+                    if (RequiresAttributeOnMethod && !method.HasAttribute(requiredAttributeType))
                     {
                         return;
                     }
@@ -82,12 +82,8 @@ namespace Analyzer.Utilities
 
         private INamedTypeSymbol? GetRequiredAttributeType(Compilation compilation)
         {
-            return compilation.GetOrCreateTypeByMetadataName(_enablingMethodAttributeFullyQualifiedName!);
-        }
-
-        private bool MethodHasAttribute(IMethodSymbol method, INamedTypeSymbol attributeType)
-        {
-            return method.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(attributeType));
+            RoslynDebug.Assert(_enablingMethodAttributeFullyQualifiedName != null);
+            return compilation.GetOrCreateTypeByMetadataName(_enablingMethodAttributeFullyQualifiedName);
         }
 
         private static IReadOnlyCollection<INamedTypeSymbol> GetDisallowedCatchTypes(Compilation compilation)

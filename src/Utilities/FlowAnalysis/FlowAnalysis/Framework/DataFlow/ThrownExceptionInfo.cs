@@ -9,7 +9,7 @@ using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    public sealed class ThrownExceptionInfo : IEquatable<ThrownExceptionInfo>
+    public sealed class ThrownExceptionInfo : IEquatable<ThrownExceptionInfo?>
     {
         private ThrownExceptionInfo(
             BasicBlock block,
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         internal static ThrownExceptionInfo CreateDefaultInfoForExceptionsPathAnalysis(BasicBlock block, WellKnownTypeProvider wellKnownTypeProvider, ImmutableStack<IOperation>? interproceduralCallStackOpt)
         {
             var exceptionNamedType = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException);
-            Debug.Assert(exceptionNamedType != null);
-            return new ThrownExceptionInfo(block, exceptionNamedType!, interproceduralCallStackOpt, isDefaultExceptionForExceptionsPathAnalysis: true);
+            RoslynDebug.Assert(exceptionNamedType != null);
+            return new ThrownExceptionInfo(block, exceptionNamedType, interproceduralCallStackOpt, isDefaultExceptionForExceptionsPathAnalysis: true);
         }
 
         private static ControlFlowRegion? GetHandlerRegion(BasicBlock block, INamedTypeSymbol exceptionType)

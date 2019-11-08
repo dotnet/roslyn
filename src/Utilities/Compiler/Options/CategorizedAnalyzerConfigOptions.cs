@@ -36,7 +36,7 @@ namespace Analyzer.Utilities
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
 
-        private readonly ConcurrentDictionary<string, object> _computedOptionValuesMap;
+        private readonly ConcurrentDictionary<string, object?> _computedOptionValuesMap;
 
         private CategorizedAnalyzerConfigOptions(
             ImmutableDictionary<string, string> generalOptions,
@@ -44,7 +44,7 @@ namespace Analyzer.Utilities
         {
             GeneralOptions = generalOptions;
             SpecificOptions = specificOptions;
-            _computedOptionValuesMap = new ConcurrentDictionary<string, object>();
+            _computedOptionValuesMap = new ConcurrentDictionary<string, object?>();
         }
 
         public ImmutableDictionary<string, string> GeneralOptions { get; }
@@ -113,7 +113,7 @@ namespace Analyzer.Utilities
                 return defaultValue;
             }
 
-            return (T)_computedOptionValuesMap.GetOrAdd($"{rule.Id}.{optionName}", _ => ComputeOptionValue(optionName, rule, tryParseValue, defaultValue)!);
+            return (T)_computedOptionValuesMap.GetOrAdd($"{rule.Id}.{optionName}", _ => ComputeOptionValue(optionName, rule, tryParseValue, defaultValue))!;
         }
 
         private T ComputeOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
