@@ -18,31 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     {
         private static readonly TimeSpan s_minimumInterval = TimeSpan.FromMilliseconds(200);
 
-        private readonly IVsTaskStatusCenterService _taskCenterService;
-        private readonly TaskHandlerOptions _options;
-
-        /// <summary>
-        /// Task handler to provide a task to the <see cref="_taskCenterService"/>
-        /// </summary>
-        private ITaskHandler? _taskHandler;
-
-        /// <summary>
-        /// Stores the currently running task center task.
-        /// This is manually started and completed based on receiving start / stop events
-        /// from the <see cref="ISolutionCrawlerProgressReporter"/>
-        /// </summary>
-        private TaskCompletionSource<VoidResult>? _taskCenterTask;
-
-        /// <summary>
-        /// Task used to trigger throttled UI updates in an interval
-        /// defined by <see cref="s_minimumInterval"/>
-        /// </summary>
-        private Task? _intervalTask;
-
-        /// <summary>
-        /// Task used to ensure serialization of UI updates.
-        /// </summary>
-        private Task _updateUITask = Task.CompletedTask;
+        #region Fields Protected By Lock
 
         /// <summary>
         /// Gate access to reporting sln crawler events so we cannot
@@ -51,16 +27,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly object _lock = new object();
 
         /// <summary>
+        /// Task used to trigger throttled UI updates in an interval
+        /// defined by <see cref="s_minimumInterval"/>
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private Task? _intervalTask;
+
+        /// <summary>
         /// Stores the last shown <see cref="ProgressData"/>
+        /// Protected from concurrent access by the <see cref="_lock"/>
         /// </summary>
         private ProgressData _lastProgressData;
+
+        #endregion
+
+        #region Fields Protected By UI Serialization Task
+
+        /// <summary>
+        /// Task used to ensure serialization of UI updates.
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private Task _updateUITask = Task.CompletedTask;
+
+        private readonly IVsTaskStatusCenterService _taskCenterService;
+        private readonly TaskHandlerOptions _options;
+
+        /// <summary>
+        /// Task handler to provide a task to the <see cref="_taskCenterService"/>
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
+        private ITaskHandler? _taskHandler;
+
+        /// <summary>
+        /// Stores the currently running task center task.
+        /// This is manually started and completed based on receiving start / stop events
+        /// from the <see cref="ISolutionCrawlerProgressReporter"/>
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
+        private TaskCompletionSource<VoidResult>? _taskCenterTask;
 
         /// <summary>
         /// Unfortunately, <see cref="ProgressData.PendingItemCount"/> is only reported
         /// when the <see cref="ProgressData.Status"/> is <see cref="ProgressStatus.PendingItemCountUpdated"/>
         /// So we have to store the count separately for the UI so that we do not overwrite the last reported count with 0.
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
         /// </summary>
         private int _lastPendingItemCount;
+
+        #endregion
 
         [ImportingConstructor]
         public TaskCenterSolutionAnalysisProgressReporter(
@@ -78,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var crawlerService = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
 
-            OnSolutionCrawlerProgressChanged(this, new ProgressData(reporter.InProgress? ProgressStatus.Started : ProgressStatus.Stopped,
+            OnSolutionCrawlerProgressChanged(this, new ProgressData(reporter.InProgress ? ProgressStatus.Started : ProgressStatus.Stopped,
                 pendingItemCount: null));
 
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
@@ -147,7 +161,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var statusMessage = progressData.Status == ProgressStatus.Paused
                 ? ServicesVSResources.Paused_0_tasks_in_queue
                 : ServicesVSResources.Evaluating_0_tasks_in_queue;
-            ChangeProgress(string.Format(statusMessage, _lastPendingItemCount));
+
+            _taskHandler?.Progress.Report(new TaskProgressData
+            {
+                ProgressText = string.Format(statusMessage, _lastPendingItemCount),
+                CanBeCanceled = false,
+                PercentComplete = null,
+            });
         }
 
         private void StartTaskCenter()
@@ -157,21 +177,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // Register a new task handler to handle a new task center task.
             // Each task handler can only register one task, so we must create a new one each time we start.
-            var taskHandler = _taskCenterService.PreRegister(_options, data: default);
+            _taskHandler = _taskCenterService.PreRegister(_options, data: default);
 
             // Create a new non-completed task to be tracked by the task handler.
             _taskCenterTask = new TaskCompletionSource<VoidResult>();
-            taskHandler.RegisterTask(_taskCenterTask.Task);
-
-            // Update the stored handler so progress changes update this task.
-            _taskHandler = taskHandler;
+            _taskHandler.RegisterTask(_taskCenterTask.Task);
         }
 
         private void StopTaskCenter()
         {
-            // Clear progress message.
-            ChangeProgress(message: null);
-
             // Mark the progress task as completed so it shows complete in the task center.
             _taskCenterTask?.TrySetResult(default);
 
@@ -180,18 +194,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             _taskHandler = null;
             _lastProgressData = default;
             _lastPendingItemCount = 0;
-        }
-
-        private void ChangeProgress(string? message)
-        {
-            var data = new TaskProgressData
-            {
-                ProgressText = message,
-                CanBeCanceled = false,
-                PercentComplete = null,
-            };
-
-            _taskHandler?.Progress.Report(data);
         }
     }
 }
