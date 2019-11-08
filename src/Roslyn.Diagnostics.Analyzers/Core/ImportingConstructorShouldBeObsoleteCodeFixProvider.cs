@@ -238,7 +238,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             SyntaxNode attributeArgument;
             if (semanticModel.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisHostMefMefConstruction, out var mefConstructionType) &&
-                mefConstructionType?.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any() is object)
+                mefConstructionType.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any())
             {
                 attributeArgument = generator.MemberAccessExpression(
                     generator.TypeExpressionForStaticMemberAccess(mefConstructionType),
