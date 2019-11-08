@@ -469,6 +469,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static bool IsInSourceFile(DiagnosticResult result, (string filename, SourceText content)[] sources)
         {
+            if (!result.HasLocation)
+            {
+                return false;
+            }
+
             return sources.Any(source => source.filename.Equals(result.Spans[0].Span.Path));
         }
 
