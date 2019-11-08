@@ -40,6 +40,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private Task? _intervalTask;
 
         /// <summary>
+        /// Task used to ensure serialization of UI updates.
+        /// </summary>
+        private Task _updateUITask = Task.CompletedTask;
+
+        /// <summary>
         /// Gate access to reporting sln crawler events so we cannot
         /// report UI changes concurrently.
         /// </summary>
@@ -53,10 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// <summary>
         /// Unfortunately, <see cref="ProgressData.PendingItemCount"/> is only reported
         /// when the <see cref="ProgressData.Status"/> is <see cref="ProgressStatus.PendingItemCountUpdated"/>
-        /// So we have to store this in addition to <see cref="_lastProgressData"/> so that we
-        /// do not overwrite the last reported count with 0.
+        /// So we have to store the count separately for the UI so that we do not overwrite the last reported count with 0.
         /// </summary>
-        private int _lastProgressCount;
+        private int _lastPendingItemCount;
 
         [ImportingConstructor]
         public TaskCenterSolutionAnalysisProgressReporter(
@@ -74,14 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var crawlerService = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
 
-            if (reporter.InProgress)
-            {
-                Started();
-            }
-            else
-            {
-                Stopped();
-            }
+            OnSolutionCrawlerProgressChanged(this, new ProgressData(reporter.InProgress? ProgressStatus.Started : ProgressStatus.Stopped,
+                pendingItemCount: null));
 
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
         }
@@ -105,14 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     return;
                 }
 
-                // Report progress immediately to ensure we update the UI on the first event.
-                ReportProgress();
-
                 // Kick off task to update the UI after a delay to pick up any new events.
-                _intervalTask = Task.CompletedTask.ContinueWithAfterDelay(() =>
+                _intervalTask = Task.Delay(s_minimumInterval).ContinueWith(_ =>
                 {
                     ReportProgress();
-                }, CancellationToken.None, s_minimumInterval, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
 
@@ -123,47 +118,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 data = _lastProgressData;
                 _intervalTask = null;
-            }
 
-            UpdateUI(data);
+                _updateUITask = _updateUITask.ContinueWith(_ => UpdateUI(data),
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
         }
 
         private void UpdateUI(ProgressData progressData)
         {
-            switch (progressData.Status)
+            if (progressData.Status == ProgressStatus.Stopped)
             {
-                case ProgressStatus.Started:
-                    Started();
-                    break;
-                case ProgressStatus.PendingItemCountUpdated:
-                    _lastProgressCount = progressData.PendingItemCount ?? 0;
-                    ChangeProgress(GetMessage(progressData, _lastProgressCount));
-                    break;
-                case ProgressStatus.Stopped:
-                    Stopped();
-                    break;
-                case ProgressStatus.Evaluating:
-                case ProgressStatus.Paused:
-                    ChangeProgress(GetMessage(progressData, _lastProgressCount));
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(progressData.Status);
+                StopTaskCenter();
+                return;
             }
+
+            // Update the pending item count if the progress data specifies a value.
+            if (progressData.PendingItemCount.HasValue)
+            {
+                _lastPendingItemCount = progressData.PendingItemCount.Value;
+            }
+
+            // Start the task center task if not already running.
+            if (_taskHandler == null)
+            {
+                StartTaskCenter();
+            }
+
+            var statusMessage = progressData.Status == ProgressStatus.Paused
+                ? ServicesVSResources.Paused_0_tasks_in_queue
+                : ServicesVSResources.Evaluating_0_tasks_in_queue;
+            ChangeProgress(string.Format(statusMessage, _lastPendingItemCount));
         }
 
-        private static string GetMessage(ProgressData progressData, int pendingItemCount)
+        private void StartTaskCenter()
         {
-            var statusMessage = (progressData.Status == ProgressStatus.Paused) ? ServicesVSResources.Paused_0_tasks_in_queue : ServicesVSResources.Evaluating_0_tasks_in_queue;
-            return string.Format(statusMessage, pendingItemCount);
-        }
-
-        private void Started()
-        {
-            _lastProgressData = default;
-            _lastProgressCount = 0;
-
-            // Make sure when we start a new task, the previous one is removed from the task center.
-            _taskCenterTask?.TrySetResult(default);
+            // Make sure to stop the previous task center task if present.
+            StopTaskCenter();
 
             // Register a new task handler to handle a new task center task.
             // Each task handler can only register one task, so we must create a new one each time we start.
@@ -175,11 +165,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // Update the stored handler so progress changes update this task.
             _taskHandler = taskHandler;
-
-            ChangeProgress(message: null);
         }
 
-        private void Stopped()
+        private void StopTaskCenter()
         {
             // Clear progress message.
             ChangeProgress(message: null);
@@ -191,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             _taskCenterTask = null;
             _taskHandler = null;
             _lastProgressData = default;
-            _lastProgressCount = 0;
+            _lastPendingItemCount = 0;
         }
 
         private void ChangeProgress(string? message)
