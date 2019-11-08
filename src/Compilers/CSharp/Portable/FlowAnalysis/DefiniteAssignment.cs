@@ -628,7 +628,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (value.ConstantValue != null) return false;
+            if (IsConstant(value)) return false;
+
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -657,6 +658,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return true;
             }
+        }
+
+        private static bool IsConstant(BoundExpression value)
+        {
+            if (value.ConstantValue != null)
+            {
+                return true;
+            }
+            
+            if (value is BoundInterpolatedString boundInterpolatedString)
+            {
+                return boundInterpolatedString.Parts.All(IsConstant);
+            }
+
+            if (value is BoundStringInsert boundStringInsert)
+            {
+                return IsConstant(boundStringInsert.Value);
+            }
+
+            return false;
         }
 
         private void NoteWrite(BoundExpression n, BoundExpression value, bool read)
