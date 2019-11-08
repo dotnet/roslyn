@@ -39,15 +39,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// </summary>
         private ProgressData _lastProgressData;
 
-        #endregion
-
-        #region Fields protected by _updateUITask 
-
         /// <summary>
         /// Task used to ensure serialization of UI updates.
         /// Protected from concurrent access by the <see cref="_lock"/>
         /// </summary>
         private Task _updateUITask = Task.CompletedTask;
+
+        #endregion
+
+        #region Fields protected by _updateUITask 
 
         private readonly IVsTaskStatusCenterService _taskCenterService;
         private readonly TaskHandlerOptions _options;
@@ -92,8 +92,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var crawlerService = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
 
-            OnSolutionCrawlerProgressChanged(this, new ProgressData(reporter.InProgress ? ProgressStatus.Started : ProgressStatus.Stopped,
-                pendingItemCount: null));
+            if (reporter.InProgress)
+            {
+                // The reporter was already sending events before we were able to subscribe, so trigger an update to the task center.
+                OnSolutionCrawlerProgressChanged(this, new ProgressData(ProgressStatus.Started, pendingItemCount: null));
+            }
 
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
         }
@@ -118,10 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 }
 
                 // Kick off task to update the UI after a delay to pick up any new events.
-                _intervalTask = Task.Delay(s_minimumInterval).ContinueWith(_ =>
-                {
-                    ReportProgress();
-                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                _intervalTask = Task.Delay(s_minimumInterval).ContinueWith(_ => ReportProgress(),
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
 
@@ -154,33 +155,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Start the task center task if not already running.
             if (_taskHandler == null)
             {
-                StartTaskCenter();
+                // Make sure to stop the previous task center task if present.
+                StopTaskCenter();
+
+                // Register a new task handler to handle a new task center task.
+                // Each task handler can only register one task, so we must create a new one each time we start.
+                _taskHandler = _taskCenterService.PreRegister(_options, data: default);
+
+                // Create a new non-completed task to be tracked by the task handler.
+                _taskCenterTask = new TaskCompletionSource<VoidResult>();
+                _taskHandler.RegisterTask(_taskCenterTask.Task);
             }
 
             var statusMessage = progressData.Status == ProgressStatus.Paused
                 ? ServicesVSResources.Paused_0_tasks_in_queue
                 : ServicesVSResources.Evaluating_0_tasks_in_queue;
 
-            _taskHandler?.Progress.Report(new TaskProgressData
+            _taskHandler.Progress.Report(new TaskProgressData
             {
                 ProgressText = string.Format(statusMessage, _lastPendingItemCount),
                 CanBeCanceled = false,
                 PercentComplete = null,
             });
-        }
-
-        private void StartTaskCenter()
-        {
-            // Make sure to stop the previous task center task if present.
-            StopTaskCenter();
-
-            // Register a new task handler to handle a new task center task.
-            // Each task handler can only register one task, so we must create a new one each time we start.
-            _taskHandler = _taskCenterService.PreRegister(_options, data: default);
-
-            // Create a new non-completed task to be tracked by the task handler.
-            _taskCenterTask = new TaskCompletionSource<VoidResult>();
-            _taskHandler.RegisterTask(_taskCenterTask.Task);
         }
 
         private void StopTaskCenter()
