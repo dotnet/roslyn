@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var basePosition = root.FindToken(position);
 
-            // Check if we are extracting a local function are within a local function
-            var localMemberNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
-            if (extractLocalFunction && localMemberNode != null)
+            // Check if we are extracting a local function and are within a local function
+            var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
+            if (extractLocalFunction && localMethodNode != null)
             {
-                return await InsertionPoint.CreateAsync(document, localMemberNode, cancellationToken).ConfigureAwait(false);
+                return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
             }
 
             var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();

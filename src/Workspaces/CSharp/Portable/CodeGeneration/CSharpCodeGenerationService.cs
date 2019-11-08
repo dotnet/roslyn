@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddMethod<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, CodeGenerationOptions options, IList<bool> availableIndices)
         {
-            if (destination is PropertyDeclarationSyntax)
+            if (destination is PropertyDeclarationSyntax || destination is IndexerDeclarationSyntax)
             {
                 return destination;
             }

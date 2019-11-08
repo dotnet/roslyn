@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 method, GetDestination(destination), workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
+
             return destination.AddBodyStatements(localMethodDeclaration);
         }
 

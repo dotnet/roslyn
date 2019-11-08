@@ -179,7 +179,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
         static bool NewMethod(bool b)
         {
             return b !=/*
-    */true;
+*/true;
         }
     }
 }",
@@ -209,7 +209,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
         static bool NewMethod()
         {
             return """" != @""
-    "";
+"";
         }
     }
 }",
@@ -294,11 +294,6 @@ class C
         };
     label2:
         return;
-
-        static int NewMethod(int x)
-        {
-            return x * x;
-        }
     }
 }",
 @"delegate int del(int i);
@@ -314,6 +309,11 @@ class C
         };
     label2:
         return;
+
+        static int NewMethod(int x)
+        {
+            return x * x;
+        }
     }
 }");
         }
@@ -945,11 +945,6 @@ class Program
     {
         ValueTuple<int> y = ValueTuple.Create(1);
         [|y.Item1.ToString();|]
-
-        static void NewMethod(ValueTuple<int> y)
-        {
-            y.Item1.ToString();
-        }
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"using System;
@@ -959,6 +954,11 @@ class Program
     {
         ValueTuple<int> y = ValueTuple.Create(1);
         {|Rename:NewMethod|}(y);
+
+        static void NewMethod(ValueTuple<int> y)
+        {
+            y.Item1.ToString();
+        }
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
@@ -1172,11 +1172,6 @@ class Program
         int r;
         [|r = M1(out int y, i);|]
         System.Console.WriteLine(r + y);
-
-        static void NewMethod(int i, out int r, out int y)
-        {
-            r = M1(out y, i);
-        }
     }
 }",
 @"class C
@@ -1187,6 +1182,11 @@ class Program
         int y;
         {|Rename:NewMethod|}(i, out r, out y);
         System.Console.WriteLine(r + y);
+
+        static void NewMethod(int i, out int r, out int y)
+        {
+            r = M1(out y, i);
+        }
     }
 }");
         }
@@ -1569,14 +1569,14 @@ class C
         void Local()
         {|Warning:{
             {|Rename:NewMethod|}();
+
+            static void NewMethod()
+            {
+                int x = 0;
+                x++;
+            }
         }|}
         Local();
-
-        static void NewMethod()
-        {
-            int x = 0;
-            x++;
-        }
     }
 }");
         }
@@ -2542,13 +2542,13 @@ class C
 
         return x;
 
-    static string NewMethod()
-    {
-        string? x = null;
-        x?.ToString();
-        x = string.Empty;
-        return x;
-    }
+        static string NewMethod()
+        {
+            string? x = null;
+            x?.ToString();
+            x = string.Empty;
+            return x;
+        }
     }
 }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
