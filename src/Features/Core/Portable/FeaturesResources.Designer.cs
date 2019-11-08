@@ -4048,6 +4048,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap element list.
+        /// </summary>
+        internal static string Unwrap_element_list {
+            get {
+                return ResourceManager.GetString("Unwrap_element_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unwrap expression.
         /// </summary>
         internal static string Unwrap_expression {
@@ -4636,7 +4645,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string UseRecommendedDisposePatternDescription {
             get {
@@ -4790,6 +4799,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Wrap every element.
+        /// </summary>
+        internal static string Wrap_every_element {
+            get {
+                return ResourceManager.GetString("Wrap_every_element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrap every parameter.
         /// </summary>
         internal static string Wrap_every_parameter {
@@ -4822,6 +4840,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_long_call_chain {
             get {
                 return ResourceManager.GetString("Wrap_long_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long element list.
+        /// </summary>
+        internal static string Wrap_long_element_list {
+            get {
+                return ResourceManager.GetString("Wrap_long_element_list", resourceCulture);
             }
         }
         

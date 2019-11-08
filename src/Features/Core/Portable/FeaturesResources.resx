@@ -1711,4 +1711,13 @@ This version used in: {2}</value>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
   </data>
+  <data name="Unwrap_element_list" xml:space="preserve">
+    <value>Unwrap element list</value>
+  </data>
+  <data name="Wrap_every_element" xml:space="preserve">
+    <value>Wrap every element</value>
+  </data>
+  <data name="Wrap_long_element_list" xml:space="preserve">
+    <value>Wrap long element list</value>
+  </data>
 </root>

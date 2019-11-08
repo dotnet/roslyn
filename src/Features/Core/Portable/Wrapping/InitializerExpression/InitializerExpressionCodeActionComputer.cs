@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             /// </summary>
             private readonly SyntaxTrivia _singleIndentationTrivia;
 
+            private readonly SyntaxTrivia _elasticTrivia;
+
             public InitializerExpressionCodeActionComputer(
                 AbstractInitializerExpression<TListSyntax, TListItemSyntax> service,
                 Document document, SourceText sourceText, DocumentOptionSet options,
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
+                _elasticTrivia = generator.ElasticCarriageReturnLineFeed;
             }
 
             private string GetAfterOpenTokenIdentation()
@@ -158,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     }
                 }
 
-                // last item.  Delete whatever is between it and the close token of the list.
-                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _afterOpenTokenIndentationTrivia , _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }

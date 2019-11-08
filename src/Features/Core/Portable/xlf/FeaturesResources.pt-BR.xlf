@@ -522,6 +522,11 @@
         <target state="translated">Desencapsular cadeia de chamadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_element_list">
+        <source>Unwrap element list</source>
+        <target state="new">Unwrap element list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Desencapsular a expressão</target>
@@ -642,6 +647,11 @@
         <target state="translated">Encapsular cada argumento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_every_element">
+        <source>Wrap every element</source>
+        <target state="new">Wrap every element</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
         <target state="translated">Encapsular cada parâmetro</target>
@@ -660,6 +670,11 @@
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Encapsular cadeia longa de chamadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_element_list">
+        <source>Wrap long element list</source>
+        <target state="new">Wrap long element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

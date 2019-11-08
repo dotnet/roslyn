@@ -522,6 +522,11 @@
         <target state="translated">호출 체인 래핑 해제</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_element_list">
+        <source>Unwrap element list</source>
+        <target state="new">Unwrap element list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">식 줄 바꿈 조정</target>
@@ -642,6 +647,11 @@
         <target state="translated">모든 인수 줄 바꿈</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_every_element">
+        <source>Wrap every element</source>
+        <target state="new">Wrap every element</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
         <target state="translated">모든 매개 변수 줄 바꿈</target>
@@ -660,6 +670,11 @@
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">긴 호출 체인 래핑</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_element_list">
+        <source>Wrap long element list</source>
+        <target state="new">Wrap long element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
