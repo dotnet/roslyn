@@ -12,9 +12,11 @@ namespace AnalyzerRunner
         public readonly string AnalyzerPath;
         public readonly string SolutionPath;
         public readonly ImmutableHashSet<string> AnalyzerNames;
+        public readonly ImmutableHashSet<string> RefactoringNodes;
 
         public readonly bool RunConcurrent;
         public readonly bool ReportSuppressedDiagnostics;
+        public readonly bool ApplyChanges;
         public readonly bool ShowStats;
         public readonly bool UseAll;
         public readonly int Iterations;
@@ -33,8 +35,10 @@ namespace AnalyzerRunner
             string analyzerPath,
             string solutionPath,
             ImmutableHashSet<string> analyzerIds,
+            ImmutableHashSet<string> refactoringNodes,
             bool runConcurrent,
             bool reportSuppressedDiagnostics,
+            bool applyChanges,
             bool showStats,
             bool useAll,
             int iterations,
@@ -50,8 +54,10 @@ namespace AnalyzerRunner
             AnalyzerPath = analyzerPath;
             SolutionPath = solutionPath;
             AnalyzerNames = analyzerIds;
+            RefactoringNodes = refactoringNodes;
             RunConcurrent = runConcurrent;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            ApplyChanges = applyChanges;
             ShowStats = showStats;
             UseAll = useAll;
             Iterations = iterations;
@@ -70,8 +76,10 @@ namespace AnalyzerRunner
             string analyzerPath = null;
             string solutionPath = null;
             var builder = ImmutableHashSet.CreateBuilder<string>();
+            var refactoringBuilder = ImmutableHashSet.CreateBuilder<string>();
             bool runConcurrent = false;
             bool reportSuppressedDiagnostics = false;
+            bool applyChanges = false;
             bool showStats = false;
             bool useAll = false;
             int iterations = 1;
@@ -118,8 +126,14 @@ namespace AnalyzerRunner
                     case "/suppressed":
                         reportSuppressedDiagnostics = true;
                         break;
+                    case "/apply":
+                        applyChanges = true;
+                        break;
                     case "/a":
                         builder.Add(ReadValue());
+                        break;
+                    case "/refactor":
+                        refactoringBuilder.Add(ReadValue());
                         break;
                     case "/log":
                         logFileName = ReadValue();
@@ -169,8 +183,10 @@ namespace AnalyzerRunner
                 analyzerPath: analyzerPath,
                 solutionPath: solutionPath,
                 analyzerIds: builder.ToImmutableHashSet(),
+                refactoringNodes: refactoringBuilder.ToImmutableHashSet(),
                 runConcurrent: runConcurrent,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
+                applyChanges: applyChanges,
                 showStats: showStats,
                 useAll: useAll,
                 iterations: iterations,
