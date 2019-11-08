@@ -63,7 +63,7 @@ class Driver
 
             v.VerifyIL("TestCase.<Run>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      289 (0x121)
+  // Code size      303 (0x12f)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
@@ -121,7 +121,7 @@ class Driver
     IL_007e:  ldloca.s   V_2
     IL_0080:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, TestCase.<Run>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref TestCase.<Run>d__1)""
     IL_0085:  nop
-    IL_0086:  leave      IL_0120
+    IL_0086:  leave      IL_012e
    >IL_008b:  ldarg.0
     IL_008c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
     IL_0091:  stloc.1
@@ -159,7 +159,7 @@ class Driver
    -IL_00e5:  ldsfld     ""System.Threading.AutoResetEvent Driver.CompletedSignal""
     IL_00ea:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
     IL_00ef:  pop
-    IL_00f0:  leave.s    IL_010c
+    IL_00f0:  leave.s    IL_0113
   }
   catch System.Exception
   {
@@ -168,20 +168,26 @@ class Driver
     IL_00f5:  ldc.i4.s   -2
     IL_00f7:  stfld      ""int TestCase.<Run>d__1.<>1__state""
     IL_00fc:  ldarg.0
-    IL_00fd:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-    IL_0102:  ldloc.s    V_4
-    IL_0104:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
-    IL_0109:  nop
-    IL_010a:  leave.s    IL_0120
+    IL_00fd:  ldnull
+    IL_00fe:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+    IL_0103:  ldarg.0
+    IL_0104:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+    IL_0109:  ldloc.s    V_4
+    IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_0110:  nop
+    IL_0111:  leave.s    IL_012e
   }
- -IL_010c:  ldarg.0
-  IL_010d:  ldc.i4.s   -2
-  IL_010f:  stfld      ""int TestCase.<Run>d__1.<>1__state""
- ~IL_0114:  ldarg.0
-  IL_0115:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-  IL_011a:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
-  IL_011f:  nop
-  IL_0120:  ret
+ -IL_0113:  ldarg.0
+  IL_0114:  ldc.i4.s   -2
+  IL_0116:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+ ~IL_011b:  ldarg.0
+  IL_011c:  ldnull
+  IL_011d:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+  IL_0122:  ldarg.0
+  IL_0123:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+  IL_0128:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_012d:  nop
+  IL_012e:  ret
 }",
 sequencePoints: "TestCase+<Run>d__1.MoveNext");
 
@@ -268,8 +274,8 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <customDebugInfo>
         <forward declaringType=""TestCase"" methodName="".cctor"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x121"" />
-          <slot startOffset=""0x0"" endOffset=""0x121"" />
+          <slot startOffset=""0x0"" endOffset=""0x12f"" />
+          <slot startOffset=""0x0"" endOffset=""0x12f"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -293,8 +299,8 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0xd9"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""44"" document=""1"" />
         <entry offset=""0xe5"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""38"" document=""1"" />
         <entry offset=""0xf2"" hidden=""true"" document=""1"" />
-        <entry offset=""0x10c"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x114"" hidden=""true"" document=""1"" />
+        <entry offset=""0x113"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x11b"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <catchHandler offset=""0xf2"" />
@@ -465,7 +471,7 @@ namespace ConsoleApplication1
       <customDebugInfo>
         <forward declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x144"" />
+          <slot startOffset=""0x0"" endOffset=""0x152"" />
           <slot />
           <slot />
           <slot startOffset=""0x41"" endOffset=""0xe3"" />
@@ -497,8 +503,8 @@ namespace ConsoleApplication1
         <entry offset=""0xf1"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""30"" document=""1"" />
         <entry offset=""0x10b"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""30"" document=""1"" />
         <entry offset=""0x114"" hidden=""true"" document=""1"" />
-        <entry offset=""0x12e"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x136"" hidden=""true"" document=""1"" />
+        <entry offset=""0x135"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x13d"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""ConsoleApplication1.Program"" methodName=""ZBar"" />
@@ -848,7 +854,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x106"" />
+          <slot startOffset=""0x0"" endOffset=""0x114"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -869,8 +875,8 @@ class C
         <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" document=""1"" />
         <entry offset=""0x86"" hidden=""true"" document=""1"" />
         <entry offset=""0xd9"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf1"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf8"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x100"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
@@ -949,7 +955,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0xe4"" />
+          <slot startOffset=""0x0"" endOffset=""0xf2"" />
         </hoistedLocalScopes>
       </customDebugInfo>
       <sequencePoints>
@@ -964,8 +970,8 @@ class C
         <entry offset=""0x5b"" hidden=""true"" document=""1"" />
         <entry offset=""0xa7"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""1"" />
         <entry offset=""0xb9"" hidden=""true"" document=""1"" />
-        <entry offset=""0xd0"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xd8"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd7"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xdf"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
@@ -1037,7 +1043,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0xf5"" />
+          <slot startOffset=""0x0"" endOffset=""0x103"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1059,8 +1065,8 @@ class C
         <entry offset=""0x64"" hidden=""true"" document=""1"" />
         <entry offset=""0xb5"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""1"" />
         <entry offset=""0xc8"" hidden=""true"" document=""1"" />
-        <entry offset=""0xe0"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xe8"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe7"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xef"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
@@ -1364,7 +1370,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x102"" />
+          <slot startOffset=""0x0"" endOffset=""0x110"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1382,10 +1388,10 @@ class C
         <entry offset=""0x27"" hidden=""true"" document=""1"" />
         <entry offset=""0x7b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""1"" />
         <entry offset=""0xd5"" hidden=""true"" document=""1"" />
-        <entry offset=""0xed"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf5"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf4"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xfc"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x102"">
+      <scope startOffset=""0x0"" endOffset=""0x110"">
         <namespace name=""System.Threading.Tasks"" />
       </scope>
       <asyncInfo>
@@ -1543,7 +1549,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x102"" />
+          <slot startOffset=""0x0"" endOffset=""0x110"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1561,10 +1567,10 @@ class C
         <entry offset=""0x76"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""29"" document=""1"" />
         <entry offset=""0x82"" hidden=""true"" document=""1"" />
         <entry offset=""0xd5"" hidden=""true"" document=""1"" />
-        <entry offset=""0xed"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf5"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf4"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xfc"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x102"">
+      <scope startOffset=""0x0"" endOffset=""0x110"">
         <namespace name=""System.Threading.Tasks"" />
       </scope>
       <asyncInfo>
@@ -2072,7 +2078,7 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x5a"" />
+          <slot startOffset=""0x0"" endOffset=""0x68"" />
           <slot startOffset=""0x13"" endOffset=""0x2b"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
@@ -2092,10 +2098,10 @@ class C
         <entry offset=""0x28"" hidden=""true"" document=""1"" />
         <entry offset=""0x2b"" hidden=""true"" document=""1"" />
         <entry offset=""0x2d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x45"" hidden=""true"" document=""1"" />
-        <entry offset=""0x4d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x54"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x5a"">
+      <scope startOffset=""0x0"" endOffset=""0x68"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
       </scope>

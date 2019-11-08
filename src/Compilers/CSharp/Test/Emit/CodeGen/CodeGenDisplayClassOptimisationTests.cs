@@ -1485,7 +1485,7 @@ public class Program
 		{
 			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
 			// Method begins at RVA 0x20d4
-			// Code size 388 (0x184)
+			// Code size 416 (0x1a0)
 			.maxstack 4
 			.locals init (
 				[0] int32,
@@ -1571,7 +1571,7 @@ public class Program
 				IL_00e6: ldloca.s 3
 				IL_00e8: ldarg.0
 				IL_00e9: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter`1<bool>, valuetype Program/'<M>d__0'>(!!0&, !!1&)
-				IL_00ee: leave IL_0183
+				IL_00ee: leave IL_019f
 				IL_00f3: ldarg.0
 				IL_00f4: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter`1<bool> Program/'<M>d__0'::'<>u__1'
 				IL_00f9: stloc.3
@@ -1604,7 +1604,7 @@ public class Program
 				IL_014a: ldc.i4.2
 				IL_014b: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action>::get_Item(int32)
 				IL_0150: callvirt instance void [mscorlib]System.Action::Invoke()
-				IL_0155: leave.s IL_0170
+				IL_0155: leave.s IL_017e
 			} // end .try
 			catch [mscorlib]System.Exception
 			{
@@ -1613,18 +1613,30 @@ public class Program
 				IL_015a: ldc.i4.s -2
 				IL_015c: stfld int32 Program/'<M>d__0'::'<>1__state'
 				IL_0161: ldarg.0
-				IL_0162: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
-				IL_0167: ldloc.s 4
-				IL_0169: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::SetException(class [mscorlib]System.Exception)
-				IL_016e: leave.s IL_0183
+				IL_0162: ldnull
+				IL_0163: stfld class Program/'<>c__DisplayClass0_0' Program/'<M>d__0'::'<>8__1'
+				IL_0168: ldarg.0
+				IL_0169: ldnull
+				IL_016a: stfld class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> Program/'<M>d__0'::'<actions>5__2'
+				IL_016f: ldarg.0
+				IL_0170: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
+				IL_0175: ldloc.s 4
+				IL_0177: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::SetException(class [mscorlib]System.Exception)
+				IL_017c: leave.s IL_019f
 			} // end handler
-			IL_0170: ldarg.0
-			IL_0171: ldc.i4.s -2
-			IL_0173: stfld int32 Program/'<M>d__0'::'<>1__state'
-			IL_0178: ldarg.0
-			IL_0179: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
-			IL_017e: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::SetResult()
-			IL_0183: ret
+			IL_017e: ldarg.0
+			IL_017f: ldc.i4.s -2
+			IL_0181: stfld int32 Program/'<M>d__0'::'<>1__state'
+			IL_0186: ldarg.0
+			IL_0187: ldnull
+			IL_0188: stfld class Program/'<>c__DisplayClass0_0' Program/'<M>d__0'::'<>8__1'
+			IL_018d: ldarg.0
+			IL_018e: ldnull
+			IL_018f: stfld class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> Program/'<M>d__0'::'<actions>5__2'
+			IL_0194: ldarg.0
+			IL_0195: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
+			IL_019a: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::SetResult()
+			IL_019f: ret
 		} // end of method '<M>d__0'::MoveNext
 		.method private final hidebysig newslot virtual 
 			instance void SetStateMachine (
@@ -1635,7 +1647,7 @@ public class Program
 				01 00 00 00
 			)
 			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-			// Method begins at RVA 0x2280
+			// Method begins at RVA 0x229c
 			// Code size 13 (0xd)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -8140,7 +8152,7 @@ public class C {
 		{
 			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
 			// Method begins at RVA 0x20cc
-			// Code size 785 (0x311)
+			// Code size 792 (0x318)
 			.maxstack 3
 			.locals init (
 				[0] int32,
@@ -8181,7 +8193,7 @@ public class C {
 				IL_006b: ldloca.s 1
 				IL_006d: ldarg.0
 				IL_006e: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter, valuetype C/'<M>d__0'>(!!0&, !!1&)
-				IL_0073: leave IL_0310
+				IL_0073: leave IL_0317
 				IL_0078: ldarg.0
 				IL_0079: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter C/'<M>d__0'::'<>u__1'
 				IL_007e: stloc.1
@@ -8223,7 +8235,7 @@ public class C {
 				IL_00e2: ldloca.s 1
 				IL_00e4: ldarg.0
 				IL_00e5: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter, valuetype C/'<M>d__0'>(!!0&, !!1&)
-				IL_00ea: leave IL_0310
+				IL_00ea: leave IL_0317
 				IL_00ef: ldarg.0
 				IL_00f0: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter C/'<M>d__0'::'<>u__1'
 				IL_00f5: stloc.1
@@ -8261,7 +8273,7 @@ public class C {
 				IL_0149: ldloca.s 1
 				IL_014b: ldarg.0
 				IL_014c: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter, valuetype C/'<M>d__0'>(!!0&, !!1&)
-				IL_0151: leave IL_0310
+				IL_0151: leave IL_0317
 				IL_0156: ldarg.0
 				IL_0157: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter C/'<M>d__0'::'<>u__1'
 				IL_015c: stloc.1
@@ -8295,7 +8307,7 @@ public class C {
 				IL_01a4: ldloca.s 1
 				IL_01a6: ldarg.0
 				IL_01a7: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter, valuetype C/'<M>d__0'>(!!0&, !!1&)
-				IL_01ac: leave IL_0310
+				IL_01ac: leave IL_0317
 				IL_01b1: ldarg.0
 				IL_01b2: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter C/'<M>d__0'::'<>u__1'
 				IL_01b7: stloc.1
@@ -8333,7 +8345,7 @@ public class C {
 				IL_020b: ldloca.s 1
 				IL_020d: ldarg.0
 				IL_020e: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter, valuetype C/'<M>d__0'>(!!0&, !!1&)
-				IL_0213: leave IL_0310
+				IL_0213: leave IL_0317
 				IL_0218: ldarg.0
 				IL_0219: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter C/'<M>d__0'::'<>u__1'
 				IL_021e: stloc.1
@@ -8375,7 +8387,7 @@ public class C {
 				IL_0282: ldloca.s 1
 				IL_0284: ldarg.0
 				IL_0285: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter, valuetype C/'<M>d__0'>(!!0&, !!1&)
-				IL_028a: leave IL_0310
+				IL_028a: leave IL_0317
 				IL_028f: ldarg.0
 				IL_0290: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.TaskAwaiter C/'<M>d__0'::'<>u__1'
 				IL_0295: stloc.1
@@ -8422,12 +8434,15 @@ public class C {
 				IL_02fb: ldc.i4.s -2
 				IL_02fd: stfld int32 C/'<M>d__0'::'<>1__state'
 				IL_0302: ldarg.0
-				IL_0303: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder C/'<M>d__0'::'<>t__builder'
-				IL_0308: ldloc.2
-				IL_0309: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::SetException(class [mscorlib]System.Exception)
-				IL_030e: leave.s IL_0310
+				IL_0303: ldnull
+				IL_0304: stfld class C/'<>c__DisplayClass0_0' C/'<M>d__0'::'<>8__1'
+				IL_0309: ldarg.0
+				IL_030a: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder C/'<M>d__0'::'<>t__builder'
+				IL_030f: ldloc.2
+				IL_0310: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::SetException(class [mscorlib]System.Exception)
+				IL_0315: leave.s IL_0317
 			} // end handler
-			IL_0310: ret
+			IL_0317: ret
 		} // end of method '<M>d__0'::MoveNext
 		.method private final hidebysig newslot virtual 
 			instance void SetStateMachine (
@@ -8438,7 +8453,7 @@ public class C {
 				01 00 00 00
 			)
 			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-			// Method begins at RVA 0x2408
+			// Method begins at RVA 0x240c
 			// Code size 13 (0xd)
 			.maxstack 8
 			IL_0000: ldarg.0

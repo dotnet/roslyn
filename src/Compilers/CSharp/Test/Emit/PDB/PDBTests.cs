@@ -7711,7 +7711,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c"" methodName=""&lt;F&gt;b__0_0"" parameterNames=""i"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x79"" />
+          <slot startOffset=""0x0"" endOffset=""0x87"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -7724,8 +7724,8 @@ class C
         <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" document=""1"" />
         <entry offset=""0x1f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" document=""1"" />
         <entry offset=""0x4c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x64"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x6c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6b"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x73"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""F"" />
@@ -7779,7 +7779,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""M"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x79"" />
+          <slot startOffset=""0x0"" endOffset=""0x87"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""50"" />
@@ -7792,8 +7792,8 @@ class C
         <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""39"" document=""1"" />
         <entry offset=""0x1f"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""30"" document=""1"" />
         <entry offset=""0x4c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x6c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x73"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <catchHandler offset=""0x4c"" />
