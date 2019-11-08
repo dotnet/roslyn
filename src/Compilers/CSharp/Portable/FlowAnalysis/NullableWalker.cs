@@ -1060,9 +1060,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (RequiresSafetyWarningWhenNullIntroduced(targetType))
             {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (conversion.Kind == ConversionKind.UnsetConversionKind)
                     conversion = this._conversions.ClassifyImplicitConversionFromType(valueType.Type, targetType.Type, ref useSiteDiagnostics);
 
@@ -6025,7 +6025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitDeconstructionAssignmentOperator(node, rightResultOpt: null);
         }
 
-        private BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, TypeWithState? rightResultOpt = null)
+        private BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, TypeWithState? rightResultOpt)
         {
             var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
             _disableNullabilityAnalysis = true;
@@ -6124,7 +6124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (invocation.InvokedAsExtensionMethod)
                 {
                     // Check nullability for `this` parameter
-                    CheckExtensionMethodThisNullability(right, conversion, deconstructMethod.Parameters[0], rightResult);
+                    var argConversion = RemoveConversion(invocation.Arguments[0], includeExplicitConversions: false).conversion;
+                    CheckExtensionMethodThisNullability(right, argConversion, deconstructMethod.Parameters[0], rightResult);
                 }
 
                 for (int i = 0; i < n; i++)
@@ -6891,7 +6892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assignment = node.DeconstructionOpt.DeconstructionAssignment;
 
                 // Visit the assignment as a deconstruction with an explicit type
-                VisitDeconstructionAssignmentOperator(assignment, sourceState);
+                VisitDeconstructionAssignmentOperator(assignment, sourceState.HasNullType ? (TypeWithState?)null : sourceState);
 
                 // https://github.com/dotnet/roslyn/issues/35010: if the iteration variable is a tuple deconstruction, we need to put something in the tree
                 Visit(node.IterationVariableType);
