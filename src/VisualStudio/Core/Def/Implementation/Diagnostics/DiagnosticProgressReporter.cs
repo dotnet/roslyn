@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         #endregion
 
-        #region Fields protected by _updateUITask
+        #region Fields protected by _updateUITask running serially
 
         /// <summary>
         /// Task handler to provide a task to the <see cref="_taskCenterService"/>
