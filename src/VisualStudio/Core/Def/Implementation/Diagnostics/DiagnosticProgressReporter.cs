@@ -18,6 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     {
         private static readonly TimeSpan s_minimumInterval = TimeSpan.FromMilliseconds(200);
 
+        private readonly IVsTaskStatusCenterService _taskCenterService;
+        private readonly TaskHandlerOptions _options;
+
         #region Fields protected by _lock
 
         /// <summary>
@@ -47,10 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         #endregion
 
-        #region Fields protected by _updateUITask 
-
-        private readonly IVsTaskStatusCenterService _taskCenterService;
-        private readonly TaskHandlerOptions _options;
+        #region Fields protected by _updateUITask
 
         /// <summary>
         /// Task handler to provide a task to the <see cref="_taskCenterService"/>
@@ -155,9 +155,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Start the task center task if not already running.
             if (_taskHandler == null)
             {
-                // Make sure to stop the previous task center task if present.
-                StopTaskCenter();
-
                 // Register a new task handler to handle a new task center task.
                 // Each task handler can only register one task, so we must create a new one each time we start.
                 _taskHandler = _taskCenterService.PreRegister(_options, data: default);
