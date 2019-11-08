@@ -62,6 +62,7 @@ This document provides guidance for thinking about language interactions and tes
 - Dynamic
 - Ref structs, Readonly structs
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
+- SkipLocalsInit
  
 # Code
 - Operators (see Eric's list below)
