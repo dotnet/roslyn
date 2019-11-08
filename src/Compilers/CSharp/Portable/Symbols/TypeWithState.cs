@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -19,13 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeWithState ForType(TypeSymbol type)
         {
-            var state = type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
-            return new TypeWithState(type, state);
+            return Create(type, NullableFlowState.MaybeNullEvenIfNotNullable);
         }
 
         public static TypeWithState Create(TypeSymbol type, NullableFlowState defaultState)
         {
-            var state = defaultState == NullableFlowState.MaybeNull && type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+            if (defaultState == NullableFlowState.MaybeNullEvenIfNotNullable &&
+                (type is null || type.IsTypeParameterDisallowingAnnotation()))
+            {
+                return new TypeWithState(type, defaultState);
+            }
+            var state = defaultState != NullableFlowState.NotNull && type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
             return new TypeWithState(type, state);
         }
 
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
                 {
-                    state = NullableFlowState.MaybeNull;
+                    state = NullableFlowState.MaybeNullEvenIfNotNullable;
                 }
                 else if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
                 {
@@ -55,12 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state = NullableFlowState.NotNull;
             }
 
-            return new TypeWithState(type, state);
+            return Create(type, state);
         }
 
         private TypeWithState(TypeSymbol type, NullableFlowState state)
         {
             Debug.Assert(state == NullableFlowState.NotNull || type?.CanContainNull() != false);
+            Debug.Assert(state != NullableFlowState.MaybeNullEvenIfNotNullable || type is null || type.IsTypeParameterDisallowingAnnotation());
             Type = type;
             State = state;
         }

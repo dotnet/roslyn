@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class NullableFlowStateExtensions
     {
-        public static bool MayBeNull(this NullableFlowState state) => state == NullableFlowState.MaybeNull;
+        public static bool MayBeNull(this NullableFlowState state) => state != NullableFlowState.NotNull;
 
         public static bool IsNotNull(this NullableFlowState state) => state == NullableFlowState.NotNull;
 
@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CSharp.NullableFlowState.NotNull => CodeAnalysis.NullableFlowState.NotNull,
                 CSharp.NullableFlowState.MaybeNull => CodeAnalysis.NullableFlowState.MaybeNull,
+                CSharp.NullableFlowState.MaybeNullEvenIfNotNullable => CodeAnalysis.NullableFlowState.MaybeNull,
                 _ => throw ExceptionUtilities.UnexpectedValue(nullableFlowState)
             };
 

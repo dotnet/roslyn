@@ -39,10 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
             builder.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
             builder.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
-            builder.Add(getId(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT));
-            builder.Add(getId(ErrorCode.WRN_NullLiteralMayIntroduceNullT));
-            builder.Add(getId(ErrorCode.WRN_ConditionalAccessMayReturnNull));
-            builder.Add(getId(ErrorCode.WRN_AsOperatorMayReturnNull));
             builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
 
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
@@ -421,10 +417,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_ThrowPossibleNull:
                 case ErrorCode.WRN_UnboxPossibleNull:
-                case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
-                case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
-                case ErrorCode.WRN_ConditionalAccessMayReturnNull:
-                case ErrorCode.WRN_AsOperatorMayReturnNull:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:

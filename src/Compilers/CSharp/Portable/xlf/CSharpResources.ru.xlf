@@ -1334,16 +1334,6 @@
         <target state="translated">SyntaxTree не входит в компиляцию, поэтому его невозможно удалить</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Оператор as может создавать значение NULL, если "{0}" является ссылочным типом, не допускающим значение NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">Оператор as может создавать значение NULL для параметра типа.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">Имя "_" ссылается на константу, а не на шаблон отмены. Используйте "var _", чтобы отменить значение, или "@_", чтобы сослаться на константу по этому имени.</target>
@@ -1354,16 +1344,6 @@
         <target state="translated">Не используйте "_" для константы case.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Условный доступ может создавать значение NULL, если "{0}" является ссылочным типом, не допускающим значение NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">Условный доступ может создавать значение NULL для параметра типа.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Преобразование литерала, допускающего значение NULL или возможного значения NULL в тип, не допускающий значение NULL.</target>
@@ -1372,16 +1352,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Преобразование литерала, допускающего значение NULL или возможного значения NULL в тип, не допускающий значение NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Выражение по умолчанию вводит значение NULL, если "{0}" является ссылочным типом, не допускающим значение NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">Выражение по умолчанию вводит значение NULL для параметра типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1472,16 +1442,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Литерал NULL вводит значение NULL, если "{0}" является ссылочным типом, не допускающим значение NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">Литерал NULL вводит значение NULL для параметра типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

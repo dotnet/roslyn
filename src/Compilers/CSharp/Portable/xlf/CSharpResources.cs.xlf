@@ -1334,16 +1334,6 @@
         <target state="translated">SyntaxTree není součástí kompilace, takže se nedá odebrat.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Operátor as může vytvořit hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">Operátor as může pro parametr typu vytvořit hodnotu null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">Název „_“ odkazuje na konstantu, ne na vzor discard. Zadáním „var _“ hodnotu zahodíte a zadáním „@_“ nastavíte pod tímto názvem odkaz na konstantu.</target>
@@ -1354,16 +1344,6 @@
         <target state="translated">Nepoužívejte „_“ jako konstantu case.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Podmíněný přístup může vytvořit hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">Podmíněný přístup může pro parametr typu vytvořit hodnotu null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
@@ -1372,16 +1352,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Výchozí výraz zavádí hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">Výchozí výraz zavádí pro parametr typu hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1472,16 +1442,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Literál null nejde převést na odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Literál null zavádí hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">Literál null zavádí pro parametr typu hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

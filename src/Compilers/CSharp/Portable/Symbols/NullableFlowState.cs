@@ -9,7 +9,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal enum NullableFlowState : byte
     {
-        NotNull,
-        MaybeNull
+        /// <summary>
+        /// Not null.
+        /// </summary>
+        NotNull = 0b00,
+
+        /// <summary>
+        /// Maybe null (type is nullable).
+        /// </summary>
+        MaybeNull = 0b01,
+
+        /// <summary>
+        /// Maybe null (type may be not nullable).
+        /// </summary>
+        MaybeNullEvenIfNotNullable = 0b11,
     }
 }

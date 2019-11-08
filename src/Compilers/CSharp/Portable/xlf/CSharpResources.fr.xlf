@@ -1334,16 +1334,6 @@
         <target state="translated">SyntaxTree ne faisant pas partie de la compilation, il ne peut pas être supprimé</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">L'opérateur 'as' peut produire une valeur null quand '{0}' est un type référence non Nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">L'opérateur 'as' peut produire une valeur null pour un paramètre de type.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">Le nom '_' fait référence à la constante, pas au modèle d'abandon. Utilisez 'var _' pour abandonner la valeur, ou '@_' pour faire référence à une constante par ce nom.</target>
@@ -1354,16 +1344,6 @@
         <target state="translated">N'utilisez pas '_' pour une constante case.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">L'accès conditionnel peut produire une valeur null quand '{0}' est un type référence non Nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">L'accès conditionnel peut produire une valeur null pour un paramètre de type.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Conversion de littéral ayant une valeur null ou d'une éventuelle valeur null en type non Nullable.</target>
@@ -1372,16 +1352,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Conversion de littéral ayant une valeur null ou d'une éventuelle valeur null en type non Nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Une expression par défaut introduit une valeur null quand '{0}' est un type référence non Nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">Une expression par défaut introduit une valeur null pour un paramètre de type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1472,16 +1442,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Impossible de convertir un littéral ayant une valeur null en type référence non Nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Un littéral ayant une valeur null introduit une valeur null quand '{0}' est un type référence non Nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">Un littéral ayant une valeur null introduit une valeur null pour un paramètre de type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
