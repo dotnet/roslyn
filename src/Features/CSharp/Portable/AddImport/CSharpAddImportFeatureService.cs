@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             {
                 var containingNamespaceSymbol = semanticModel.GetDeclaredSymbol(namespaceToAddTo);
 
-                while (containingNamespaceSymbol != null && !containingNamespaceSymbol.IsGlobalNamespace)
+                while (containingNamespaceSymbol is { IsGlobalNamespace: false })
                 {
                     if (containingNamespaceSymbol.GetMembers(rightOfAliasName).Any())
                     {

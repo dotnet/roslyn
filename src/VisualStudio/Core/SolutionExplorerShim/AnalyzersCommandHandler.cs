@@ -339,10 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool SelectedProjectSupportsAnalyzers()
         {
-            return _tracker != null &&
-                   _tracker.SelectedHierarchy != null &&
-                   _tracker.SelectedHierarchy.TryGetProject(out var project) &&
-                   project.Object is VSProject3;
+            return _tracker is { SelectedHierarchy: { } } && _tracker.SelectedHierarchy.TryGetProject(out var project) && project is { Object: VSProject3 _ };
         }
 
         /// <summary>

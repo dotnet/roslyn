@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (!previousMetadataBlocks.IsDefault && index < previousMetadataBlocks.Length)
             {
                 var previousBlock = previousMetadataBlocks[index];
-                if (previousBlock.Pointer == ptr && previousBlock.Size == size)
+                if (previousBlock is { Pointer: ptr, Size: size })
                 {
                     return previousBlock;
                 }

@@ -30,9 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax &&
-                    interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
-                    ((BaseTypeSyntax)interfaceNode.Parent).Type == interfaceNode)
+                if (node is TypeSyntax
+                {
+                    Parent: BaseTypeSyntax { Type: interfaceNode },
+                    Parent: BaseTypeSyntax _
+                } interfaceNode && interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList))
                 {
                     if (interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration) ||
                         interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.StructDeclaration))

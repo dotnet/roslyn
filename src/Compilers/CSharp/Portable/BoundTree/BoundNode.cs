@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // NOTE: check Syntax rather than WasCompilerGenerated because sequence points can have null syntax.
-                if (this.HasErrors || this.Syntax != null && this.Syntax.HasErrors)
+                if (this.HasErrors || this is { Syntax: { HasErrors: true } })
                 {
                     return true;
                 }

@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             TypeWithAnnotations type = GetConstraintTypeOrDefault(moduleSymbol, metadataReader, tokenDecoder, constraintHandle, ref hasUnmanagedModreqPattern);
 
-                            Debug.Assert(type.HasType && type.SpecialType == SpecialType.System_Object);
+                            Debug.Assert(type is { HasType: true, SpecialType: SpecialType.System_Object });
                             if (!type.HasType)
                             {
                                 continue;

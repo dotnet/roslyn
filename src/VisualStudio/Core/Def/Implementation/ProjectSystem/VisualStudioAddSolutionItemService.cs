@@ -130,8 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var fileName = PathUtilities.GetFileName(filePath);
             foreach (Project project in solution.Projects)
             {
-                if (project.Kind == EnvDTE.Constants.vsProjectKindSolutionItems &&
-                    project.Name == SolutionItemsFolderName)
+                if (project is { Kind: EnvDTE.Constants.vsProjectKindSolutionItems, Name: SolutionItemsFolderName })
                 {
                     solutionItemsFolder = project;
 

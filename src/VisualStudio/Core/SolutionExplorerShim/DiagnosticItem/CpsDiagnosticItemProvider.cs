@@ -40,10 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         protected override IAttachedCollectionSource CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
         {
-            if (item != null &&
-                item.HierarchyIdentity != null &&
-                item.HierarchyIdentity.NestedHierarchy != null &&
-                relationshipName == KnownRelationships.Contains)
+            if (item is { HierarchyIdentity: { NestedHierarchy: { } } } && relationshipName is KnownRelationships.Contains)
             {
                 if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerDependency"))
                 {

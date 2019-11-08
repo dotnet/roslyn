@@ -160,7 +160,7 @@ namespace Microsoft.Cci
                 {
                     foreach (var import in scope.GetUsedNamespaces())
                     {
-                        if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
+                        if (import is { TargetNamespaceOpt: null, TargetTypeOpt: null })
                         {
                             Debug.Assert(import.AliasOpt != null);
                             Debug.Assert(import.TargetAssemblyOpt == null);

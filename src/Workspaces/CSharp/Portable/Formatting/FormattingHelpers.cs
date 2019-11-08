@@ -199,9 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 statementOrElse = node as ElseClauseSyntax;
             }
 
-            return statementOrElse != null
-                && statementOrElse.Parent != null
-                && statementOrElse.Parent.IsEmbeddedStatementOwner();
+            return statementOrElse is { Parent: { } } && statementOrElse.Parent.IsEmbeddedStatementOwner();
         }
 
         public static bool IsCommaInEnumDeclaration(this SyntaxToken token)

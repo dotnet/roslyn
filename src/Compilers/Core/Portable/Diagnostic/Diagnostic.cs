@@ -365,8 +365,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.DefaultSeverity == DiagnosticSeverity.Warning &&
-                    this.Severity == DiagnosticSeverity.Error;
+                return this is { DefaultSeverity: DiagnosticSeverity.Warning, Severity: DiagnosticSeverity.Error };
             }
         }
 

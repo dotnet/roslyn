@@ -246,8 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return true;
             }
 
-            if (nextStatement is ReturnStatementSyntax returnStatement &&
-                returnStatement.Expression == null)
+            if (nextStatement is ReturnStatementSyntax { Expression: null } returnStatement)
             {
                 // using statement followed by `return`.  Can conver this as executing 
                 // the `return` will cause the code to exit the using scope, causing 

@@ -112,14 +112,17 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         private static bool IsValidGetMethod(IMethodSymbol getMethod)
         {
-            return getMethod != null &&
-                getMethod.ContainingType != null &&
-                !getMethod.IsGenericMethod &&
-                !getMethod.IsAsync &&
-                getMethod.Parameters.Length == 0 &&
-                !getMethod.ReturnsVoid &&
-                getMethod.DeclaringSyntaxReferences.Length == 1 &&
-                !OverridesMethodFromSystemObject(getMethod);
+            return getMethod is
+            {
+                ContainingType: {
+                },
+                IsGenericMethod: false,
+                IsAsync: false,
+                Parameters: { Length: 0 },
+                ReturnsVoid: false,
+                DeclaringSyntaxReferences: { Length: 1 }
+            }
+&& !OverridesMethodFromSystemObject(getMethod);
         }
 
         private static bool OverridesMethodFromSystemObject(IMethodSymbol method)

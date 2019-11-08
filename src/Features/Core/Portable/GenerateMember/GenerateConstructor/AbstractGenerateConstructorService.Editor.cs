@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
-                if (symbol != null && !symbol.IsStatic)
+                if (symbol is { IsStatic: false })
                 {
                     if (symbol is IFieldSymbol field)
                     {

@@ -33,8 +33,11 @@ namespace Microsoft.CodeAnalysis.UnsealClass
 
             var node = syntaxRoot.FindNode(context.Span, getInnermostNodeForTie: true);
 
-            if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is INamedTypeSymbol type &&
-                type.TypeKind == TypeKind.Class && type.IsSealed && !type.IsStatic)
+            if (semanticModel.GetSymbolInfo(node, cancellationToken) is
+            {
+                Symbol: INamedTypeSymbol { IsStatic: false, IsSealed: true, TypeKind: TypeKind.Class } type
+            }
+)
             {
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(
                     type, document.Project.Solution, cancellationToken).ConfigureAwait(false);

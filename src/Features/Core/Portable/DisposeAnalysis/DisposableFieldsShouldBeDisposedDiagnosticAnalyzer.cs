@@ -229,8 +229,11 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                     // We have a field reference for a disposable field.
                     // Check if it is being assigned a locally created disposable object.
                     // PERF: Do not perform interprocedural analysis for this detection.
-                    if (fieldReference.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
-                        simpleAssignmentOperation.Target == fieldReference)
+                    if (fieldReference is
+                    {
+                        Parent: ISimpleAssignmentOperation { Target: fieldReference } simpleAssignmentOperation
+                    }
+)
                     {
                         if (lazyPointsToAnalysisResult == null)
                         {

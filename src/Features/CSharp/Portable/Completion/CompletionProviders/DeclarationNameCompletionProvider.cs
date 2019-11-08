@@ -159,7 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return UnwrapType(arrayType.ElementType, compilation, wasPlural: true, seenTypes: seenTypes);
             }
 
-            if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
+            if (type is INamedTypeSymbol {
+                OriginalDefinition: {
+                }
+            } namedType)
             {
                 var originalDefinition = namedType.OriginalDefinition;
 

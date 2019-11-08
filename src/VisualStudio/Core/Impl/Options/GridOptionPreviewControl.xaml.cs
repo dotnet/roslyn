@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void Options_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             // TODO: make the combo to drop down on space or some key.
-            if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
+            if (e is { Key: Key.Space, KeyboardDevice: { Modifiers: ModifierKeys.None } })
             {
             }
         }

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OpenTypeVisitor visitor = new OpenTypeVisitor();
                 visitor.Visit(typeSyntax);
                 allowedMap = visitor._allowedMap;
-                isUnboundGenericType = visitor._seenGeneric && !visitor._seenConstructed;
+                isUnboundGenericType = visitor is { _seenGeneric: true, _seenConstructed: false };
             }
 
             public override void VisitGenericName(GenericNameSyntax node)

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // don't create diagnosis unless lookup fails
             this.LookupMembersInternal(result, nsOrType, name, arity, basesBeingResolved, options, originalBinder: this, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
-            if (!result.IsMultiViable && !result.IsClear)
+            if (result is { IsMultiViable: false, IsClear: false })
             {
                 result.Clear();
                 // retry to get diagnosis

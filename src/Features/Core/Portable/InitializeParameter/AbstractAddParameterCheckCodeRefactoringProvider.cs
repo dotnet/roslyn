@@ -194,8 +194,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         return true;
                     }
                 }
-                else if (condition is IIsPatternOperation isPatternOperation &&
-                         isPatternOperation.Pattern is IConstantPatternOperation constantPattern)
+                else if (condition is IIsPatternOperation
+                {
+                    Pattern: IConstantPatternOperation { } constantPattern
+                } isPatternOperation)
                 {
                     // Look for code of the form "if (p is null)"
                     if (IsNullCheck(constantPattern.Value, isPatternOperation.Value, parameter))

@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis
 
             public static bool ReachedEnd(XmlReader reader)
             {
-                return reader.Depth == 1
-                    && reader.NodeType == XmlNodeType.EndElement
-                    && reader.Name == s_currentElementName;
+                return reader is { Depth: 1, NodeType: XmlNodeType.EndElement, Name: s_currentElementName };
             }
 
             public bool Eof

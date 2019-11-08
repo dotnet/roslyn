@@ -104,10 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CrefTypeParameterSymbol other = t2 as CrefTypeParameterSymbol;
-            return (object)other != null &&
-                other._name == _name &&
-                other._ordinal == _ordinal &&
-                other._declaringSyntax.GetSyntax() == _declaringSyntax.GetSyntax();
+            return other is object { _name: _name, _ordinal: _ordinal } && other._declaringSyntax.GetSyntax() is _declaringSyntax.GetSyntax();
         }
 
         public override int GetHashCode()

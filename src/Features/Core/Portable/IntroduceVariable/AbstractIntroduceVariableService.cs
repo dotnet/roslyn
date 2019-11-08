@@ -342,8 +342,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             return false;
             static bool IsInstanceMemberReference(IOperation operation)
-                => operation is IMemberReferenceOperation memberReferenceOperation &&
-                    memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
+                => operation is IMemberReferenceOperation { Instance: { Kind: OperationKind.InstanceReference } } memberReferenceOperation;
         }
 
         protected TNode Rewrite<TNode>(

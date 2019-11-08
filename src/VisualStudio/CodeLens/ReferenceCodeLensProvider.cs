@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public Task<bool> CanCreateDataPointAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
-            if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
+            if (descriptorContext is { ApplicableSpan: { HasValue: true } })
             {
                 // we allow all reference points. 
                 // engine will call this for all points our roslyn code lens (reference) tagger tagged.

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundObjectInitializerExpressionBase MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase initializerExpressionOpt)
         {
-            if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
+            if (initializerExpressionOpt is { HasErrors: false })
             {
                 // We may need to MakeArguments for collection initializer add method call if the method has a param array parameter.
                 var rewrittenInitializers = MakeObjectOrCollectionInitializersForExpressionTree(initializerExpressionOpt);

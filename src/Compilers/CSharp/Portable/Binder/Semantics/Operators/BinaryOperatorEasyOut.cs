@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion leftConversion = Conversions.FastClassifyConversion(left.Type, signature.LeftType);
             Conversion rightConversion = Conversions.FastClassifyConversion(right.Type, signature.RightType);
 
-            Debug.Assert(leftConversion.Exists && leftConversion.IsImplicit);
+            Debug.Assert(leftConversion is { Exists: true, IsImplicit: true });
             Debug.Assert(rightConversion.Exists && rightConversion.IsImplicit);
 
             result.Results.Add(BinaryOperatorAnalysisResult.Applicable(signature, leftConversion, rightConversion));

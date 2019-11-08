@@ -245,7 +245,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (current.HasCondition)
                 {
-                    if (current.BranchValue.ConstantValue.HasValue && current.BranchValue.ConstantValue.Value is bool constant)
+                    if (current is {
+                        BranchValue:
+                        {
+                            ConstantValue:
+                            {
+                                HasValue: true,
+                                Value: bool { } constant
+                            }
+                        }
+                    })
                     {
                         if (constant == (current.ConditionKind == ControlFlowConditionKind.WhenTrue))
                         {

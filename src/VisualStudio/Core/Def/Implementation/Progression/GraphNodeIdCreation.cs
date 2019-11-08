@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, "System"));
                 }
-                else if (underlyingType.ContainingNamespace != null && !underlyingType.ContainingNamespace.IsGlobalNamespace)
+                else if (underlyingType is { ContainingNamespace: { IsGlobalNamespace: false } })
                 {
                     items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, underlyingType.ContainingNamespace.ToDisplayString()));
                 }

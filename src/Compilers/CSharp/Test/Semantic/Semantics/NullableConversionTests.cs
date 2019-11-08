@@ -753,7 +753,7 @@ class C
                 compilation.GetBinder(target).BindExpression(operand, bag),
                 nullableIntType,
                 ref unused);
-            Assert.True(conversion.IsExplicit && conversion.IsNullable);
+            Assert.True(conversion is { IsExplicit: true, IsNullable: true });
         }
     }
 }

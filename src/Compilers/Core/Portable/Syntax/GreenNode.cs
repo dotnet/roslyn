@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
                     var child = node.GetSlot(i);
-                    if (child != null && !child.IsMissing)
+                    if (child is { IsMissing: false })
                     {
                         nonmissingChild = child;
                         break;

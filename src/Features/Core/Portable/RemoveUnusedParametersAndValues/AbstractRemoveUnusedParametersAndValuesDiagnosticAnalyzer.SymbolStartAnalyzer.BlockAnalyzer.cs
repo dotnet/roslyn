@@ -240,8 +240,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // 3. For anonymous functions parented by delegate creation, we analyze the parent operation.
                     //    For example, for 'Action a = () => { ... };', the lambda generates an anonymous function
                     //    operation parented by a delegate creation.
-                    if (operation.Kind == OperationKind.AnonymousFunction &&
-                        operation.Parent is IDelegateCreationOperation)
+                    if (operation is { Kind: OperationKind.AnonymousFunction, Parent: IDelegateCreationOperation _ })
                     {
                         return IsHandledDelegateCreationOrAnonymousFunctionTreeShape(operation.Parent);
                     }

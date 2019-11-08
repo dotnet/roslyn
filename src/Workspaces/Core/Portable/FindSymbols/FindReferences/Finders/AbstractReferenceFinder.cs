@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document> scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
         {
             // special case for HR
-            if (scope != null && scope.Count == 1)
+            if (scope is { Count: 1 })
             {
                 var document = scope.First();
                 if (document.Project == project)

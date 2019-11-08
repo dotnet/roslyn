@@ -13,7 +13,7 @@ namespace Roslyn.Test.Utilities
             var fields = targetType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var properties = targetType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var fieldsAndProps = fields.Where(f => !f.IsPrivate).Select(f => f.Name).Concat(
-                                 properties.Where(p => p.GetMethod != null && !p.GetMethod.IsPrivate).Select(p => p.Name)).
+                                 properties.Where(p => p is { GetMethod: { IsPrivate: false } }).Select(p => p.Name)).
                                  OrderBy(s => s);
 
             AssertEx.SetEqual(expectedFieldsAndProperties, fieldsAndProps, itemSeparator: "\r\n");

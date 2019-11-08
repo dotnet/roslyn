@@ -309,10 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builderType = builderAttributeArgument as NamedTypeSymbol;
 
-            if ((object)builderType != null &&
-                 !builderType.IsErrorType() &&
-                 !builderType.IsVoidType() &&
-                 builderType.DeclaredAccessibility == desiredAccessibility)
+            if (builderType is object { DeclaredAccessibility: desiredAccessibility } && !builderType.IsErrorType() && !builderType.IsVoidType())
             {
                 bool isArityOk = isGeneric
                                  ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1

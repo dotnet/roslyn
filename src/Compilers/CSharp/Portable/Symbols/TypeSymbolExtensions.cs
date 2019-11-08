@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameter = (TypeParameterSymbol)type;
             // https://github.com/dotnet/roslyn/issues/30056: Test `where T : unmanaged`. See
             // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
-            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullable == true);
+            return !typeParameter.IsValueType && !(typeParameter is { IsReferenceType: true, IsNotNullable: true });
         }
 
         /// <summary>

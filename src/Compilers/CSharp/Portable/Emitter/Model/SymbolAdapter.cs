@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // must be declared in the module we are building
             Debug.Assert(this.ContainingModule is SourceModuleSymbol ||
-                         (this.Kind == SymbolKind.Assembly && this is SourceAssemblySymbol) ||
+                         (this is SourceAssemblySymbol { Kind: SymbolKind.Assembly }) ||
                          (this.Kind == SymbolKind.NetModule && this is SourceModuleSymbol));
         }
 

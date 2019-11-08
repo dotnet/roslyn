@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void KillProcess(Process process)
         {
-            if (process != null && !process.HasExited)
+            if (process is { HasExited: false })
             {
                 process.Kill();
             }

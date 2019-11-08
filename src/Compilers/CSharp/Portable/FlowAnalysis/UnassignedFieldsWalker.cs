@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!method.IsStatic && method.ContainingType.IsValueType)
+            if (method is { IsStatic: false, ContainingType: { IsValueType: true } })
             {
                 return;
             }

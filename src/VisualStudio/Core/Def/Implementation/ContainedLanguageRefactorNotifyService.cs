@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return ContainedLanguageRenameType.CLRT_NAMESPACE;
             }
-            else if (symbol is INamedTypeSymbol && (symbol as INamedTypeSymbol).TypeKind == TypeKind.Class)
+            else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class })
             {
                 return ContainedLanguageRenameType.CLRT_CLASS;
             }

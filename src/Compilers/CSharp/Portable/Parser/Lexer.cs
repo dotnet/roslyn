@@ -2176,7 +2176,7 @@ LoopExit:
             if (this.ScanIdentifier(ref info))
             {
                 // check to see if it is an actual keyword
-                if (!info.IsVerbatim && !info.HasIdentifierEscapeSequence)
+                if (info is { IsVerbatim: false, HasIdentifierEscapeSequence: false })
                 {
                     if (this.ModeIs(LexerMode.Directive))
                     {

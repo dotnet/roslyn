@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
             Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol ||
-                (localOrParameter as MethodSymbol)?.MethodKind == MethodKind.LocalFunction);
+localOrParameter is MethodSymbol { MethodKind: MethodKind.LocalFunction });
             return _allCapturedVariables.Contains(localOrParameter);
         }
 

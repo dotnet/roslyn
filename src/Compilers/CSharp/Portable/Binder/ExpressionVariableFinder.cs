@@ -529,8 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol container = _scopeBinder.ContainingType;
-            if ((object)container != null && container.IsScriptClass &&
-                (object)_scopeBinder.LookupDeclaredField(designation) != null)
+            if (container is object { IsScriptClass: true } && _scopeBinder.LookupDeclaredField(designation) is object _)
             {
                 // This is a field declaration
                 return null;

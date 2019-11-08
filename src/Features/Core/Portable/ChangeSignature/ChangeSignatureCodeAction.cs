@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            if (options is ChangeSignatureOptionsResult changeSignatureOptions && !changeSignatureOptions.IsCancelled)
+            if (options is ChangeSignatureOptionsResult { IsCancelled: false } changeSignatureOptions)
             {
                 var changeSignatureResult = await _changeSignatureService.ChangeSignatureWithContextAsync(_context, changeSignatureOptions, cancellationToken).ConfigureAwait(false);
 

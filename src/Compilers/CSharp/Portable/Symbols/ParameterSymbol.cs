@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DiagnosticInfo info = null;
                 DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                return info is object { Code: (int)ErrorCode.ERR_BogusType };
             }
         }
 

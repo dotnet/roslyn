@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var symbol in members)
                 {
-                    if (symbol.Kind == SymbolKind.Namespace || (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).Arity == 0))
+                    if (symbol.Kind == SymbolKind.Namespace || (symbol is INamedTypeSymbol { Arity: 0, Kind: SymbolKind.NamedType }))
                     {
                         results.Add(symbol);
                     }

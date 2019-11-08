@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         protected override bool IsRef(IReturnOperation returnOperation)
-            => returnOperation.Syntax is ReturnStatementSyntax statement &&
-               statement.Expression is RefExpressionSyntax;
+            => returnOperation is
+        {
+            Syntax: ReturnStatementSyntax { Expression: RefExpressionSyntax _ } statement
+        };
 
         protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;

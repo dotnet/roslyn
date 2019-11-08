@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     // if we are called because a document is opened, we invalidate the document so that
                                     // it can be re-analyzed. otherwise, since newly opened document has same version as before
                                     // analyzer will simply return same data back
-                                    if (workItem.MustRefresh && !workItem.IsRetry)
+                                    if (workItem is { MustRefresh: true, IsRetry: false })
                                     {
                                         var isOpen = document.IsOpen();
 

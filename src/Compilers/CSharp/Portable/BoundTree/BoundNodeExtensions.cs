@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Like HasErrors property, but also returns false for a null node. 
         public static bool HasErrors(this BoundNode? node)
         {
-            return node != null && node.HasErrors;
+            return node is { HasErrors: true };
         }
 
         public static bool IsConstructorInitializer(this BoundStatement statement)

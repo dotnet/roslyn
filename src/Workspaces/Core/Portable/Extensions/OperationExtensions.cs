@@ -11,9 +11,10 @@ namespace Microsoft.CodeAnalysis
     internal static partial class OperationExtensions
     {
         public static bool IsTargetOfObjectMemberInitializer(this IOperation operation)
-            => operation.Parent is IAssignmentOperation assignmentOperation &&
-               assignmentOperation.Target == operation &&
-               assignmentOperation.Parent?.Kind == OperationKind.ObjectOrCollectionInitializer;
+            => operation is
+        {
+            Parent: IAssignmentOperation { Parent: { Kind: OperationKind.ObjectOrCollectionInitializer }, Target: operation } assignmentOperation
+        };
 
         /// <summary>
         /// Returns the <see cref="ValueUsageInfo"/> for the given operation.

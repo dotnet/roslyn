@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 switch (symbol)
                 {
-                    case ILocalSymbol localSymbol when localSymbol.NullableAnnotation == NullableAnnotation.Annotated:
+                    case ILocalSymbol { NullableAnnotation: NullableAnnotation.Annotated } localSymbol:
                     case IParameterSymbol parameterSymbol when parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated:
 
                         // For local symbols and parameters, we can check what the flow state 

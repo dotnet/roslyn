@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
 
         public static bool IsFolder(this ProjectItem item)
         {
-            return item != null && item.Kind == Constants.vsProjectItemKindPhysicalFolder;
+            return item is { Kind: Constants.vsProjectItemKindPhysicalFolder };
         }
     }
 }

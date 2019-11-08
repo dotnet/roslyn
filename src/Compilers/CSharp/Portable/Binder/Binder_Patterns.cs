@@ -501,9 +501,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // required to identify it.  When that bug is fixed we should be able to remove this code and its callers.
         internal static bool IsZeroElementTupleType(TypeSymbol type)
         {
-            return type.IsStructType() && type.Name == "ValueTuple" && type.GetArity() == 0 &&
-                type.ContainingSymbol is var declContainer && declContainer.Kind == SymbolKind.Namespace && declContainer.Name == "System" &&
-                (declContainer.ContainingSymbol as NamespaceSymbol)?.IsGlobalNamespace == true;
+            return type.IsStructType() && type is
+            {
+                Name: "ValueTuple",
+                ContainingSymbol:
+                {
+                    ContainingSymbol: NamespaceSymbol { IsGlobalNamespace: true },
+                    Name: "System",
+                    Kind: SymbolKind.Namespace
+                } declContainer
+            }
+&& type.GetArity() is 0;
         }
 
         private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)

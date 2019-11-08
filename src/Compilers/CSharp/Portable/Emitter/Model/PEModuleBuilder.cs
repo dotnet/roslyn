@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            if (_embeddedTypesManagerOpt != null && _embeddedTypesManagerOpt.IsFrozen)
+            if (_embeddedTypesManagerOpt is { IsFrozen: true })
             {
                 _embeddedTypesManagerOpt.ReportIndirectReferencesToLinkedAssemblies(assembly, diagnostics);
             }

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundRecursivePattern rp:
                     {
                         // for positional part: we only learn from tuples (not Deconstruct)
-                        if (rp.DeconstructMethod is null && !rp.Deconstruction.IsDefault)
+                        if (rp is { DeconstructMethod: null, Deconstruction: { IsDefault: false } })
                         {
                             var elements = inputType.TupleElements;
                             for (int i = 0, n = Math.Min(rp.Deconstruction.Length, elements.IsDefault ? 0 : elements.Length); i < n; i++)

@@ -151,8 +151,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 Debug.Assert(symbolOpt != null || operation.Kind == OperationKind.FlowCaptureReference);
 
-                if (operation.Parent is IAssignmentOperation assignmentOperation &&
-                    assignmentOperation.Target == operation)
+                if (operation is
+                {
+                    Parent: IAssignmentOperation { Target: operation } assignmentOperation
+                }
+)
                 {
                     var set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
                     set.Add((symbolOpt, operation));

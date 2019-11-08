@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-            if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
+            if (containingMethod is { IsAsync: true } && localSymbol.RefKind != RefKind.None)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
             }

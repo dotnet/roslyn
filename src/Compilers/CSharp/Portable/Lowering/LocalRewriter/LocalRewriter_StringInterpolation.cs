@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var fillin = part as BoundStringInsert;
                 if (fillin == null)
                 {
-                    Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
+                    Debug.Assert(part is BoundLiteral { ConstantValue: { } });
                     // this is one of the literal parts
                     stringBuilder.Append(part.ConstantValue.StringValue);
                 }

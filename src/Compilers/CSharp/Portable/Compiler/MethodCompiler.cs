@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Property:
                         {
                             SourcePropertySymbol sourceProperty = member as SourcePropertySymbol;
-                            if ((object)sourceProperty != null && sourceProperty.IsSealed && compilationState.Emitting)
+                            if (sourceProperty is object { IsSealed: true } && compilationState is { Emitting: true })
                             {
                                 CompileSynthesizedSealedAccessors(sourceProperty, compilationState);
                             }

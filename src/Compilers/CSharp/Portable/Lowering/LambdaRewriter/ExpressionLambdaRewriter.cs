@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitExactType(BoundExpression e)
         {
             var conversion = e as BoundConversion;
-            if (conversion != null && !conversion.ExplicitCastInCode)
+            if (conversion is { ExplicitCastInCode: false })
             {
                 e = conversion.Update(
                     conversion.Operand,

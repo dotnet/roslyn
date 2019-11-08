@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             compilation.References.Single(r =>
                             {
                                 var cr = r as CompilationReference;
-                                return cr != null && cr.Compilation == compilationReference.Compilation;
+                                return cr is { Compilation: compilationReference.Compilation };
                             });
                         }
                     }

@@ -79,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     var expressionType = semanticModel.GetTypeInfo(castExpression.Expression).Type;
                     if (expressionType != null)
                     {
-                        if (expressionType is ITypeParameterSymbol typeParameter &&
-                            !typeParameter.HasReferenceTypeConstraint)
+                        if (expressionType is ITypeParameterSymbol { HasReferenceTypeConstraint: false } typeParameter)
                         {
                             return false;
                         }

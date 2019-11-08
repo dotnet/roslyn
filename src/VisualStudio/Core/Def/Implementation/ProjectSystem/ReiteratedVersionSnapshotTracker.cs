@@ -69,8 +69,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (sender is ITextBuffer buffer)
             {
                 var snapshot = _latestReiteratedVersionSnapshot;
-                if (snapshot != null && snapshot.Version != null && e.AfterVersion != null &&
-                    snapshot.Version.ReiteratedVersionNumber < e.AfterVersion.ReiteratedVersionNumber)
+                if (snapshot is
+                {
+                    Version: {
+                    }
+                } && e is {
+                    AfterVersion: {
+                    }
+                } && snapshot.Version.ReiteratedVersionNumber < e.AfterVersion.ReiteratedVersionNumber)
                 {
                     _latestReiteratedVersionSnapshot = e.After;
                 }

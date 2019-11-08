@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultRight = BindToNaturalType(resultRight, diagnostics, reportDefaultMissingType: false);
             }
 
-            hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
+            hasErrors = hasErrors || resultConstant is { IsBad: true };
 
             return new BoundBinaryOperator(
                 node,

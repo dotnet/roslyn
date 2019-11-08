@@ -288,7 +288,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             foreach (var id in localFunction.DescendantNodes().OfType<IdentifierNameSyntax>())
             {
                 var symbol = semanticModel.GetSymbolInfo(id).Symbol;
-                if (symbol != null && symbol.OriginalDefinition is ITypeParameterSymbol typeParameter)
+                if (symbol is
+                {
+                    OriginalDefinition: ITypeParameterSymbol { } typeParameter
+                }
+)
                 {
                     unusedTypeParameters.Remove(typeParameter);
                 }

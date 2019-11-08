@@ -26,7 +26,13 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
             //       rather than using enums
-            if (_tempService != null && storage != null && storage.Name != null)
+            if (_tempService is
+            {
+            } && storage is
+            {
+                Name: {
+                }
+            })
             {
                 writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
                 writer.WriteString(storage.Name);

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     }
                 }
 
-                if (change.NewText.Length == 0 && change.Span.IsEmpty)
+                if (change is { NewText: { Length: 0 }, Span: { IsEmpty: true } })
                 {
                     // No actual change (allows for the formatter to report a NOP change without triggering a
                     // diagnostic that can't be fixed).

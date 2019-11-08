@@ -22,7 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 
         public bool IsCondition(SyntaxNode expression, out SyntaxNode ifOrElseIf)
         {
-            if (expression.Parent is IfStatementSyntax ifStatement && ifStatement.Condition == expression)
+            if (expression is
+            {
+                Parent: IfStatementSyntax { Condition: expression } ifStatement
+            }
+)
             {
                 ifOrElseIf = ifStatement;
                 return true;

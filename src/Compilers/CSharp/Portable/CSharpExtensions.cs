@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool HasReferenceDirectives(this SyntaxTree tree)
         {
             var csharpTree = tree as CSharpSyntaxTree;
-            return csharpTree != null && csharpTree.HasReferenceDirectives;
+            return csharpTree is { HasReferenceDirectives: true };
         }
 
         internal static bool HasReferenceOrLoadDirectives(this SyntaxTree tree)

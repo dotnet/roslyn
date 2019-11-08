@@ -26,11 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 {
                     case CompilationUnitSyntax _:
                     case NamespaceDeclarationSyntax _:
-                    // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
-                    // [$$
-                    // class Goo {
-                    // for these cases is necessary check if they Parent is CompilationUnitSyntax
-                    case BaseTypeDeclarationSyntax baseType when baseType.Parent is CompilationUnitSyntax:
+                    case BaseTypeDeclarationSyntax { Parent: CompilationUnitSyntax _ } baseType:
                     // The case where the parent of attributeList is IncompleteMemberSyntax(See test: ), like:
                     // [$$
                     // for that case is necessary check if they Parent is CompilationUnitSyntax

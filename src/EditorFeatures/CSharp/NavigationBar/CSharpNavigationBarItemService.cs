@@ -75,7 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         }
 
                         var method = member as IMethodSymbol;
-                        if (method != null && method.PartialImplementationPart != null)
+                        if (method is
+                        {
+                            PartialImplementationPart: {
+                            }
+                        })
                         {
                             memberItems.Add(CreateItemForMember(
                                 method,

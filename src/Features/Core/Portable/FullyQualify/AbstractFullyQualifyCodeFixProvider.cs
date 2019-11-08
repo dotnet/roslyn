@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
             var container = symbol.ContainingSymbol;
             return container is INamespaceSymbol ||
-                   (container is INamedTypeSymbol parentType && !parentType.IsGenericType);
+                   (container is INamedTypeSymbol { IsGenericType: false } parentType);
         }
 
         private async Task<ImmutableArray<SymbolResult>> GetMatchingNamespacesAsync(

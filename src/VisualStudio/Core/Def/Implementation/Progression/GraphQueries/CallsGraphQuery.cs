@@ -51,8 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var newSymbol = semanticModel.GetSymbolInfo(syntaxNode, cancellationToken).Symbol;
-                    if (newSymbol != null && newSymbol is IMethodSymbol &&
-                        (newSymbol.CanBeReferencedByName || ((IMethodSymbol)newSymbol).MethodKind == MethodKind.Constructor))
+                    if (newSymbol is IMethodSymbol _ && (newSymbol.CanBeReferencedByName || ((IMethodSymbol)newSymbol).MethodKind == MethodKind.Constructor))
                     {
                         symbols.Add(newSymbol);
                     }

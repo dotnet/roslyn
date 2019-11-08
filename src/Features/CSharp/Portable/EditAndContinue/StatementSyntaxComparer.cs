@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // We need to capture it in the match since these expressions can be "active statements" and as such we need to map them.
             //
             // The parent is not available only when comparing nodes for value equality.
-            if (node != null && node.Parent.IsKind(SyntaxKind.ForStatement) && node is ExpressionSyntax)
+            if (node is ExpressionSyntax _ && node.Parent.IsKind(SyntaxKind.ForStatement))
             {
                 return Label.ForStatementPart;
             }

@@ -126,9 +126,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
             // sealed.
-            return symbol?.ContainingType?.TypeKind == TypeKind.Class &&
-                   (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
-                   !symbol.IsSealed;
+            return symbol is { ContainingType: { TypeKind: TypeKind.Class }, IsSealed: false } && (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride);
         }
 
         public static bool IsImplementableMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)

@@ -445,7 +445,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return false;
             }
 
-            if (typeSymbol.TypeKind == TypeKind.Interface && typeSymbol.Interfaces.IsEmpty)
+            if (typeSymbol is { TypeKind: TypeKind.Interface, Interfaces: { IsEmpty: true } })
             {
                 return false;
             }

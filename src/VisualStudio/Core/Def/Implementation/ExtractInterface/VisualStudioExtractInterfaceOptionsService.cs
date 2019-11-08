@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             var dialog = new ExtractInterfaceDialog(viewModel);
             var result = dialog.ShowModal();
 
-            if (result.HasValue && result.Value)
+            if (result is { HasValue: true, Value: true })
             {
                 var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
 

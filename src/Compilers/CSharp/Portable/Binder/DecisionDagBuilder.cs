@@ -1032,9 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isRuntimeSimilar(TypeSymbol expressionType, TypeSymbol patternType)
             {
-                while (expressionType is ArrayTypeSymbol { ElementType: var e1, IsSZArray: var sz1, Rank: var r1 } &&
-                       patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
-                       sz1 == sz2 && r1 == r2)
+                while (expressionType is ArrayTypeSymbol { ElementType: var e1, IsSZArray: { } sz1, Rank: { } r1 } && patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 })
                 {
                     e1 = e1.EnumUnderlyingType();
                     e2 = e2.EnumUnderlyingType();

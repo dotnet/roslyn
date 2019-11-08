@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias))
                 {
                     var assemblyProject = project.Solution.GetProject(referencedAssemblySymbol, cancellationToken);
-                    if (assemblyProject != null && assemblyProject.SupportsCompilation)
+                    if (assemblyProject is { SupportsCompilation: true })
                     {
                         return await typeImportCompletionService.GetTopLevelTypesAsync(
                             assemblyProject,

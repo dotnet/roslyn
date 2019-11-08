@@ -206,7 +206,7 @@ namespace AnalyzerRunner
             {
                 // AnalyzerRunner is running for IIncrementalAnalyzer testing. DiagnosticAnalyzer testing is disabled
                 // unless /all or /a was used.
-                if (!options.UseAll && options.AnalyzerNames.IsEmpty)
+                if (options is { UseAll: false, AnalyzerNames: { IsEmpty: true } })
                 {
                     yield break;
                 }

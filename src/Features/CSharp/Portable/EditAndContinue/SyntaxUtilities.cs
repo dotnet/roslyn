@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             // expression body
-            if (syntax is ExpressionSyntax && syntax.Parent is ArrowExpressionClauseSyntax)
+            if (syntax is ExpressionSyntax { Parent: ArrowExpressionClauseSyntax _ })
             {
                 return;
             }

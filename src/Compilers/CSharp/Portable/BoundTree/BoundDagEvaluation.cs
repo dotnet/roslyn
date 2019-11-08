@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj) => obj is BoundDagEvaluation other && this.Equals(other);
         public virtual bool Equals(BoundDagEvaluation other)
         {
-            return other != (object)null && this.Kind == other.Kind && this.GetOriginalInput().Equals(other.GetOriginalInput()) && this.Symbol == other.Symbol;
+            return other != (object)null && this is { Kind: other.Kind, Symbol: other.Symbol } && this.GetOriginalInput().Equals(other.GetOriginalInput());
         }
         private Symbol Symbol
         {

@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             var documentWithOpenParenthesis = document.WithText(textWithOpenParenthesis);
             var syntaxRoot = await documentWithOpenParenthesis.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodeAtInsertPosition = syntaxRoot.FindNode(new TextSpan(openParenthesisPosition, 0));
-            if (nodeAtInsertPosition is ParenthesizedExpressionSyntax parenthesizedExpression &&
-                parenthesizedExpression.CloseParenToken.IsMissing)
+            if (nodeAtInsertPosition is ParenthesizedExpressionSyntax { CloseParenToken: { IsMissing: true } } parenthesizedExpression)
             {
                 var newCloseParen = SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(parenthesizedExpression.CloseParenToken);
                 var parenthesizedExpressionWithClosingParen = parenthesizedExpression.WithCloseParenToken(newCloseParen);

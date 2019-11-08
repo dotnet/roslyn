@@ -3813,7 +3813,7 @@ static class Program
             var typeInfo0 = model.GetTypeInfo(init0);
             Assert.True(value0.HasValue);
             Assert.Equal(0, (short)value0.Value);
-            Assert.True(typeInfo0.Type != null && typeInfo0.Type.SpecialType == SpecialType.System_Int16);
+            Assert.True(typeInfo0 is { Type: { SpecialType: SpecialType.System_Int16 } });
 
             // The CodePlex bug indicates this should return a constant value of 5.  While 'case2' should 
             // have that value it is not constant because of the nullable cast

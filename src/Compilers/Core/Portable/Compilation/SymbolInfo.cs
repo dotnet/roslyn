@@ -117,8 +117,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.Symbol == null
-                    && this.CandidateSymbols.Length == 0;
+                return this is { Symbol: null, CandidateSymbols: { Length: 0 } };
             }
         }
     }

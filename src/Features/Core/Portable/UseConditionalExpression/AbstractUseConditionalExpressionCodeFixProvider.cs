@@ -125,7 +125,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (trueValue is ILiteralOperation)
             {
                 var constant = trueValue.ConstantValue;
-                return constant.HasValue && constant.Value is bool b && b == val;
+                return constant is
+                {
+                    HasValue: true,
+                    Value: bool { } b
+                };
             }
 
             return false;

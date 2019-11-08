@@ -391,7 +391,10 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.Green.ContainsStructuredTrivia && !this.Green.IsStructuredTrivia;
+                return this is
+                {
+                    Green: { ContainsStructuredTrivia: true, IsStructuredTrivia: false }
+                };
             }
         }
 

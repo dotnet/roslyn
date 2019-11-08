@@ -89,10 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
 
             var newBody =
-                document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType
-                && delegateType.DelegateInvokeMethod != null
-                && delegateType.DelegateInvokeMethod.ReturnsVoid
-                    ? SyntaxFactory.Block(declarationStatement)
+                document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken) is
+            {
+                ConvertedType: INamedTypeSymbol {
+                    DelegateInvokeMethod:
+                    {
+                        ReturnsVoid: true
+                    }, DelegateInvokeMethod: {
+                    }
+                } delegateType
+            } ? SyntaxFactory.Block(declarationStatement)
                     : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
 
             // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.

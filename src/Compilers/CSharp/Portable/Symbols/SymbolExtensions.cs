@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsCompilationOutputWinMdObj(this Symbol symbol)
         {
             var comp = symbol.DeclaringCompilation;
-            return comp != null && comp.Options.OutputKind == OutputKind.WindowsRuntimeMetadata;
+            return comp is { Options: { OutputKind: OutputKind.WindowsRuntimeMetadata } };
         }
 
         /// <summary>

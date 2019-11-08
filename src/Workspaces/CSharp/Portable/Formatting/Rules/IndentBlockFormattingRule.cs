@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // can this ever happen?
-            if (section.Labels.Count == 0 &&
-                section.Statements.Count == 0)
+            if (section is { Labels: { Count: 0 }, Statements: { Count: 0 } })
             {
                 return;
             }

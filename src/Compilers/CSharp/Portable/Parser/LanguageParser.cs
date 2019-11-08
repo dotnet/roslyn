@@ -624,10 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //   extern alias goo();
             //   extern alias goo { get; }
 
-            return this.CurrentToken.Kind == SyntaxKind.ExternKeyword
-                && this.PeekToken(1).Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).ContextualKind == SyntaxKind.AliasKeyword
-                && this.PeekToken(2).Kind == SyntaxKind.IdentifierToken
-                && this.PeekToken(3).Kind == SyntaxKind.SemicolonToken;
+            return this is { CurrentToken: { Kind: SyntaxKind.ExternKeyword } } && this.PeekToken(1) is { Kind: SyntaxKind.IdentifierToken, ContextualKind: SyntaxKind.AliasKeyword } && this.PeekToken(2) is { Kind: SyntaxKind.IdentifierToken } && this.PeekToken(3) is { Kind: SyntaxKind.SemicolonToken };
         }
 
         private ExternAliasDirectiveSyntax ParseExternAliasDirective()

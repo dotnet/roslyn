@@ -294,10 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 QueryExpressionProcessingInfo queryExpressionProcessingInfo,
                 out DocumentUpdateInfo documentUpdateInfo)
             {
-                if (_semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken).Symbol is IMethodSymbol methodSymbol &&
-                    methodSymbol.Parameters.Length == 0 &&
-                    methodSymbol.ReturnType?.SpecialType == SpecialType.System_Int32 &&
-                    methodSymbol.RefKind == RefKind.None)
+                if (_semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken) is
+                {
+                    Symbol: IMethodSymbol { RefKind: RefKind.None, ReturnType: { SpecialType: SpecialType.System_Int32 }, Parameters: { Length: 0 } } methodSymbol
+                }
+)
                 {
                     // before var count = (from a in b select a).Count();
                     // after

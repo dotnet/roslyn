@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared)
+            if (ContainingSymbol is { Kind: SymbolKind.NamedType, IsImplicitlyDeclared: true })
             {
                 return;
             }

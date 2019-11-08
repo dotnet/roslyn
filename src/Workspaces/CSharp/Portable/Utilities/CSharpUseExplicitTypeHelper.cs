@@ -98,7 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
 
                 // This error case is handled by a separate code fix (UseExplicitTypeForConst).
-                if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
+                if (variableDeclaration is
+                {
+                    Parent: LocalDeclarationStatementSyntax { IsConst: true }
+                }
+)
                 {
                     return false;
                 }

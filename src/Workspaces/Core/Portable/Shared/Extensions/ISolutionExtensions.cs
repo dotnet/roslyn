@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var documentId in documentIds)
             {
                 var document = solution.GetDocument(documentId);
-                if (document != null && document.Project.Language == language)
+                if (document is { Project: { Language: language } })
                 {
                     yield return documentId;
                 }

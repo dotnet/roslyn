@@ -94,9 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
 
-            if (isFirstParam &&
-                parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
-                methodSymbol.IsExtensionMethod)
+            if (isFirstParam && parameter is
+            {
+                ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } methodSymbol
+            }
+)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
             }

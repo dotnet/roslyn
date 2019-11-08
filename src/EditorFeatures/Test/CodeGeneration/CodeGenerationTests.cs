@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var retainedMembers = context.GetAnnotatedDeclaredSymbols(retainedMembersKey, context.SemanticModel);
                 var newMembersToAdd = GetSymbols(getNewMembers, context);
                 var allMembers = new List<ISymbol>();
-                if (declareNewMembersAtTop.HasValue && declareNewMembersAtTop.Value)
+                if (declareNewMembersAtTop is { HasValue: true, Value: true })
                 {
                     allMembers.AddRange(newMembersToAdd);
                     allMembers.AddRange(retainedMembers);

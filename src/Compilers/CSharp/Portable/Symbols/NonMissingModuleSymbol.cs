@@ -99,7 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (definitionId.Version > referenceId.Version)
                 {
                     // unified with a definition whose version is higher than the reference                    
-                    ErrorCode warning = (definitionId.Version.Major == referenceId.Version.Major && definitionId.Version.Minor == referenceId.Version.Minor) ?
+                    ErrorCode warning = (definitionId is
+                    {
+                        Version: { Major: referenceId.Version.Major, Minor: referenceId.Version.Minor }
+                    }
+) ?
                                         ErrorCode.WRN_UnifyReferenceBldRev : ErrorCode.WRN_UnifyReferenceMajMin;
 
                     // warning: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy.

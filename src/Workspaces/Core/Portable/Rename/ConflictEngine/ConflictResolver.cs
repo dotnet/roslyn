@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
 
                 var location = await GetSymbolLocationAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-                if (location != null && location.IsInSource)
+                if (location is { IsInSource: true })
                 {
                     renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Length);
                 }

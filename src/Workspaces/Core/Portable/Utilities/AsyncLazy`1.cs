@@ -142,8 +142,7 @@ namespace Roslyn.Utilities
                                  !_computationActive);
 
             // Invariant #2: thou shalt never waste memory holding onto empty HashSets
-            Contract.ThrowIfTrue(_requests != null &&
-                                 _requests.Count == 0);
+            Contract.ThrowIfTrue(_requests is { Count: 0 });
 
             // Invariant #3: thou shalt never have an request if there is not
             // something trying to compute it

@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvocationOperation));
 
             var isVirtualStr = operation.IsVirtual ? "virtual " : string.Empty;
-            var spacing = !operation.IsVirtual && operation.Instance != null ? " " : string.Empty;
+            var spacing = operation is { IsVirtual: false, Instance: { } } ? " " : string.Empty;
             LogString($" ({isVirtualStr}{spacing}");
             LogSymbol(operation.TargetMethod, header: string.Empty);
             LogString(")");

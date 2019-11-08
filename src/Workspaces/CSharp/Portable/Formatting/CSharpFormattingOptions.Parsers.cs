@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         internal static bool DetermineIfSpaceOptionIsSet(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
             => (from v in value.Split(',').Select(v => v.Trim())
                 let option = ConvertToSpacingOption(v)
-                where option.HasValue && option.Value == parenthesesSpacingOption
+                where option is { HasValue: true, Value: parenthesesSpacingOption }
                 select option)
                 .Any();
 

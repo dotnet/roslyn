@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static bool GetIsUnsafe(CodeGenerationFieldInfo info)
         {
-            return info != null && info._isUnsafe;
+            return info is { _isUnsafe: true };
         }
 
         public static bool GetIsUnsafe(IFieldSymbol field)

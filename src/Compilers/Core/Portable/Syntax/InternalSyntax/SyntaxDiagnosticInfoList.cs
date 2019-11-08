@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 Current = null;
                 _stack = null;
                 _count = 0;
-                if (node != null && node.ContainsDiagnostics)
+                if (node is { ContainsDiagnostics: true })
                 {
                     _stack = new NodeIteration[8];
                     this.PushNodeOrToken(node);

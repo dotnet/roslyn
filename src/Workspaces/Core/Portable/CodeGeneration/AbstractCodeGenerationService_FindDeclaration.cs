@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
             var fallbackDeclaration = default(SyntaxNode);
-            if (locationOpt != null && locationOpt.IsInSource)
+            if (locationOpt is { IsInSource: true })
             {
                 var token = locationOpt.FindToken(cancellationToken);
 

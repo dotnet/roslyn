@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 if (info != null)
                 {
                     var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
-                    if (state != null && state.MatchingConstructor == null)
+                    if (state is { MatchingConstructor: null })
                     {
                         return GetCodeActions(document, state, addNullChecks);
                     }

@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(builder.Value == null);
-            if (!builder.HasLocals && !builder.HasStatements)
+            if (builder is { HasLocals: false, HasStatements: false })
             {
                 builder.Free();
                 return expression;

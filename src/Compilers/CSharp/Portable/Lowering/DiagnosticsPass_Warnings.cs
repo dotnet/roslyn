@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReceiverIfField(BoundExpression receiverOpt)
         {
-            if (receiverOpt != null && receiverOpt.Kind == BoundKind.FieldAccess)
+            if (receiverOpt is { Kind: BoundKind.FieldAccess })
             {
                 CheckFieldAsReceiver((BoundFieldAccess)receiverOpt);
             }

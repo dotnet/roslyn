@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 {
                     var parent = parenthesizedExpr.Parent;
                     var grandParent = parent.Parent;
-                    if (grandParent is ArgumentListSyntax && grandParent.Parent is TSyntaxNode)
+                    if (grandParent is ArgumentListSyntax { Parent: TSyntaxNode _ })
                     {
                         // Argument to TSyntaxNode's argument list
                         return true;

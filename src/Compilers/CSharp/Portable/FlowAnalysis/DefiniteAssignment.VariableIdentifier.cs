@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SymbolKind.Property => true,
                     SymbolKind.Event => true,
                     SymbolKind.ErrorType => true,
-                    SymbolKind.Method when symbol is MethodSymbol m && m.MethodKind == MethodKind.LocalFunction => true,
+                    SymbolKind.Method when symbol is MethodSymbol { MethodKind: MethodKind.LocalFunction } m => true,
                     _ => false
                 });
                 Symbol = symbol;

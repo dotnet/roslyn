@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
 
-                if (_arguments != null && _arguments.Length == 0)
+                if (_arguments is { Length: 0 })
                 {
                     _arguments = null;
                 }

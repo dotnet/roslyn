@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 foreach (var argSyntax in argumentList.Arguments)
                 {
-                    if (argSyntax.NameEquals != null && argSyntax.NameEquals.Name.Identifier.ValueText == namedArgName)
+                    if (argSyntax is { NameEquals: { Name: { Identifier: { ValueText: namedArgName } } } })
                     {
                         return argSyntax;
                     }

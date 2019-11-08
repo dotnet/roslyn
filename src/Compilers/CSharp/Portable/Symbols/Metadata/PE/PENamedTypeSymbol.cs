@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 FieldSymbol result = null;
 
                 var candidates = this.GetMembers(FixedFieldImplementationType.FixedElementFieldName);
-                if (!candidates.IsDefault && candidates.Length == 1)
+                if (candidates is { IsDefault: false, Length: 1 })
                 {
                     result = candidates[0] as FieldSymbol;
                 }

@@ -57,11 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) &&
-                token.ValueText.Length == 1 &&
-                IsTriggerCharacter(token.ValueText[0]) &&
-                token.Parent is TypeArgumentListSyntax &&
-                token.Parent.Parent is GenericNameSyntax;
+            return !token.IsKind(SyntaxKind.None) && token is
+            {
+                ValueText: { Length: 1 },
+                Parent: TypeArgumentListSyntax { Parent: GenericNameSyntax _ }
+            }
+&& IsTriggerCharacter(token.ValueText[0]);
         }
 
         private bool IsArgumentListToken(GenericNameSyntax node, SyntaxToken token)

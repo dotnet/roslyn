@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // Check for use-site diagnostics (e.g. missing types in the signature).
             DiagnosticInfo useSiteDiagnosticInfo = null;
             this.CalculateUseSiteDiagnostic(ref useSiteDiagnosticInfo);
-            if (useSiteDiagnosticInfo != null && useSiteDiagnosticInfo.Severity == DiagnosticSeverity.Error)
+            if (useSiteDiagnosticInfo is { Severity: DiagnosticSeverity.Error })
             {
                 diagnostics.Add(useSiteDiagnosticInfo, this.Locations[0]);
                 return;

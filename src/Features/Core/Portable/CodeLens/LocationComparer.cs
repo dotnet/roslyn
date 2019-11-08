@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         public bool Equals(Location x, Location y)
         {
-            if (x != null && x.IsInSource && y != null && y.IsInSource)
+            if (x is { IsInSource: true } && y is { IsInSource: true })
             {
                 return x.SourceSpan.Equals(y.SourceSpan) &&
                        x.SourceTree.FilePath.Equals(y.SourceTree.FilePath, StringComparison.OrdinalIgnoreCase);

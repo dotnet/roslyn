@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             // Make sure we're starting at 0.
             var initializerValue = semanticModel.GetConstantValue(initializer, cancellationToken);
-            if (!(initializerValue.HasValue && initializerValue.Value is 0))
+            if (!(initializerValue is { HasValue: true, Value: 0 }))
             {
                 return;
             }

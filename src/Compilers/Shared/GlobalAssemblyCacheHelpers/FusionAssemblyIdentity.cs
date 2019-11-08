@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis
         private static unsafe void SetPublicKeyToken(IAssemblyName nameObject, byte[] value)
         {
             // An empty public key token is set via NULL_PUBLIC_KEY_TOKEN property.
-            if (value != null && value.Length == 0)
+            if (value is { Length: 0 })
             {
                 nameObject.SetProperty(PropertyId.NULL_PUBLIC_KEY_TOKEN, null, 0);
             }

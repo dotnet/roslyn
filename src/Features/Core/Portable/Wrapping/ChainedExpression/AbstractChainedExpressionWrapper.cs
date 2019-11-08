@@ -220,10 +220,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         }
 
         private bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
-            => index < pieces.Count &&
-               pieces[index] is var piece &&
-               piece.IsNode &&
-               piece.AsNode() is TNode;
+            => index < pieces.Count && pieces[index] is { IsNode: true } piece && piece.AsNode() is TNode _;
 
         private bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&

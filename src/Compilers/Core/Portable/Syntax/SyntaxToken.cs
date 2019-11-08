@@ -676,7 +676,10 @@ namespace Microsoft.CodeAnalysis
         {
             return
                 (Node == null && token.Node == null) ||
-                (Node != null && token.Node != null && Node.IsEquivalentTo(token.Node));
+                (token is {
+                    Node: {
+                    }
+                } && Node.IsEquivalentTo(token.Node));
         }
     }
 }

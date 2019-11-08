@@ -185,7 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
-                if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
+                if (propertyDeclNode is {
+                    Initializer: {
+                    }, AccessorList: {
+                    }
+                })
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, propertyDeclNode.AccessorList.GetLastToken());
                 }

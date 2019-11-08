@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private void DisplayException(Exception e)
             {
-                if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
+                if (e is FileLoadException { InnerException: InteractiveAssemblyLoaderException _ })
                 {
                     Console.Error.WriteLine(e.InnerException.Message);
                 }

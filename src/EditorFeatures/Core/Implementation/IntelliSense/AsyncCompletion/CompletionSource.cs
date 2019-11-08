@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Enter does not trigger completion.
-            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\n')
+            if (trigger is { Reason: AsyncCompletionData.CompletionTriggerReason.Insertion, Character: '\n' })
             {
                 return false;
             }

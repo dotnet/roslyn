@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion? conversion = Conversions.FastClassifyConversion(operandType, signature.OperandType);
 
-            Debug.Assert(conversion.HasValue && conversion.Value.IsImplicit);
+            Debug.Assert(conversion is { HasValue: true, Value: { IsImplicit: true } });
 
             result.Results.Add(UnaryOperatorAnalysisResult.Applicable(signature, conversion.Value));
         }

@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
                 return VSConstants.S_OK;
             }
 
-            var enumFields = typeSymbol.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.IsStatic);
+            var enumFields = typeSymbol.GetMembers().Where(m => m is { Kind: SymbolKind.Field, IsStatic: true });
 
             // Find and use the most simplified legal version of the enum type name in this context
             var simplifiedTypeName = string.Empty;

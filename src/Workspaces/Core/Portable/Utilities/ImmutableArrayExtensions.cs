@@ -44,7 +44,7 @@ namespace Roslyn.Utilities
 
         internal static IReadOnlyList<T> ToImmutableReadOnlyListOrEmpty<T>(this IEnumerable<T>? items)
         {
-            if (items is ImmutableArray<T> array && !array.IsDefault)
+            if (items is ImmutableArray<T> { IsDefault: false } array)
             {
                 return (IReadOnlyList<T>)items;
             }

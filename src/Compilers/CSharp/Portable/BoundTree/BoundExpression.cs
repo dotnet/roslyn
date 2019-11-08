@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var indexer in ApplicableIndexers)
             {
-                if (!indexer.IsIndexer && indexer.IsIndexedProperty)
+                if (indexer is { IsIndexer: false, IsIndexedProperty: true })
                 {
                     return indexer.Name;
                 }

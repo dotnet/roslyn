@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool HasParameterClosureScope(ISymbol member)
         {
             // in instance constructor parameters are lifted to a closure different from method body
-            return (member as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+            return member is IMethodSymbol { MethodKind: MethodKind.Constructor };
         }
 
         protected override IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)

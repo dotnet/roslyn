@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess(nameof(IntPtr.Zero));
                 }
-                else if (semanticModel.GetConstantValue(defaultLiteral, cancellationToken) is var constant && constant.HasValue)
+                else if (semanticModel.GetConstantValue(defaultLiteral, cancellationToken) is { HasValue: true } constant)
                 {
                     var newLiteral = generator.LiteralExpression(constant.Value);
                     return (newLiteral, newLiteral.ToString());

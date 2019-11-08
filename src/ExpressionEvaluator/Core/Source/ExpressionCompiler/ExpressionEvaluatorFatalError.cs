@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (registryType != null)
                 {
                     var hKeyCurrentUserField = registryType.GetTypeInfo().GetDeclaredField("CurrentUser");
-                    if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
+                    if (hKeyCurrentUserField is { IsStatic: true })
                     {
                         using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
                         {

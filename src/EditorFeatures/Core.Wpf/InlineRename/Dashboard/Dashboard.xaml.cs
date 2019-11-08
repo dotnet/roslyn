@@ -183,7 +183,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             _presentationSource = presentationSource ?? throw new ArgumentNullException(nameof(presentationSource));
 
-            if (Application.Current != null && Application.Current.MainWindow != null)
+            if (Application.Current is
+            {
+                MainWindow: {
+                }
+            })
             {
                 _rootDependencyObject = Application.Current.MainWindow as DependencyObject;
             }

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
             var previous = ForEachInfo.ForEachStatement.GetPreviousStatement();
 
-            if (previous != null && !previous.ContainsDirectives)
+            if (previous is { ContainsDirectives: false })
             {
                 switch (previous.Kind())
                 {

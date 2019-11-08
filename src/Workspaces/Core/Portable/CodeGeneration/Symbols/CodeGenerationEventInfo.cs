@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static bool GetIsUnsafe(CodeGenerationEventInfo info)
         {
-            return info != null && info._isUnsafe;
+            return info is { _isUnsafe: true };
         }
     }
 }

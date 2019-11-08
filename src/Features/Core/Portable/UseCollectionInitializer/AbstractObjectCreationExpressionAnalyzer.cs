@@ -101,8 +101,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             _initializedSymbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
-            if (_initializedSymbol is ILocalSymbol local &&
-                local.Type is IDynamicTypeSymbol)
+            if (_initializedSymbol is ILocalSymbol { Type: IDynamicTypeSymbol _ } local)
             {
                 // Not supported if we're creating a dynamic local.  The object we're instantiating
                 // may not have the members that we're trying to access on the dynamic object.

@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public override bool IsSealed => this.IsMetadataFinal &&
                                          (this._containingType.IsInterface ?
                                             this.IsAbstract && this.IsMetadataVirtual() && !this.IsMetadataNewSlot() :
-                                            !this.IsAbstract && this.IsOverride); //slowest check last
+this is { IsAbstract: false, IsOverride: true }); //slowest check last
 
         public override bool HidesBaseMethodsByName => !HasFlag(MethodAttributes.HideBySig);
 

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
             => Equals((FSharpDocumentSpan)obj);
 
         public bool Equals(FSharpDocumentSpan obj)
-            => this.Document == obj.Document && this.SourceSpan == obj.SourceSpan;
+            => this is { Document: obj.Document, SourceSpan: obj.SourceSpan };
 
         public static bool operator ==(FSharpDocumentSpan d1, FSharpDocumentSpan d2)
             => d1.Equals(d2);

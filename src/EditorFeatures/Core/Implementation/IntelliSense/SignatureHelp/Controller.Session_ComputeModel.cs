@@ -86,13 +86,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return null;
                         }
 
-                        if (currentModel != null &&
-                            currentModel.Provider == provider &&
-                            currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
-                            currentModel.Items.IndexOf(currentModel.SelectedItem) == items.SelectedItemIndex &&
-                            currentModel.ArgumentIndex == items.ArgumentIndex &&
-                            currentModel.ArgumentCount == items.ArgumentCount &&
-                            currentModel.ArgumentName == items.ArgumentName)
+                        if (currentModel is
+                        {
+                            Provider: provider,
+                            ArgumentIndex: items.ArgumentIndex,
+                            ArgumentCount: items.ArgumentCount,
+                            ArgumentName: items.ArgumentName
+                        }
+&& currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot) is { Span: { Start: items.ApplicableSpan.Start } } && currentModel.Items.IndexOf(currentModel.SelectedItem) is items.SelectedItemIndex)
                         {
                             // The new model is the same as the current model.  Return the currentModel
                             // so we keep the active selection.

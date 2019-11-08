@@ -465,8 +465,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (other != null)
             {
-                return other.Display == this.Display &&
-                       other.FullPath == this.FullPath;
+                return other is { Display: this.Display, FullPath: this.FullPath };
             }
 
             return base.Equals(other);

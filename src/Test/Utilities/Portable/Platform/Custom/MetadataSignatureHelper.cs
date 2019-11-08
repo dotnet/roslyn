@@ -470,7 +470,7 @@ namespace Roslyn.Test.Utilities
                 sb.Append(") ");
             }
 
-            if (property.CanRead && property.CanWrite)
+            if (property is { CanRead: true, CanWrite: true })
             {
                 sb.Append("readwrite ");
             }

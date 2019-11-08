@@ -35,11 +35,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                 nodesAndSeparators[nodeIndex + 1].IsToken;
 
             nextSeparatorBelongsToNode =
-                nextTokenIsSeparator &&
-                nodesAndSeparators[nodeIndex + 1].AsToken() is var nextSeparator &&
-                !nextSeparator.HasLeadingTrivia &&
-                !ContainsEndOfLine(node.GetTrailingTrivia(), endOfLineKind) &&
-                ContainsEndOfLine(nextSeparator.TrailingTrivia, endOfLineKind);
+                nextTokenIsSeparator && nodesAndSeparators[nodeIndex + 1].AsToken() is { HasLeadingTrivia: false } nextSeparator && !ContainsEndOfLine(node.GetTrailingTrivia(), endOfLineKind) && ContainsEndOfLine(nextSeparator.TrailingTrivia, endOfLineKind);
         }
 
         private static bool ContainsEndOfLine(SyntaxTriviaList triviaList, int endOfLineKind)

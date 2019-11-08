@@ -316,7 +316,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 case SymbolKind.Parameter:
                     // If it's an indexer parameter, we will have also cascaded to the accessor
                     // one that actually receives the references
-                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
+                    if (symbol is
+                    {
+                        ContainingSymbol: IPropertySymbol { IsIndexer: true } containingProperty
+                    }
+)
                     {
                         return false;
                     }

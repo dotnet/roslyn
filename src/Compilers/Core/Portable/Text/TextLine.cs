@@ -178,9 +178,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public bool Equals(TextLine other)
         {
-            return other._text == _text
-                && other._start == _start
-                && other._endIncludingBreaks == _endIncludingBreaks;
+            return other is { _text: _text, _start: _start, _endIncludingBreaks: _endIncludingBreaks };
         }
 
         public override bool Equals(object obj)

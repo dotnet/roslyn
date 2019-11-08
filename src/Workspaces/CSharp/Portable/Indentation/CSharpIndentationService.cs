@@ -133,9 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
 
                 // only valid if the user has started to actually type a constructor initializer
-                if (node is ConstructorInitializerSyntax constructorInitializer &&
-                    constructorInitializer.ArgumentList.OpenParenToken.Kind() != SyntaxKind.None &&
-                    !constructorInitializer.ThisOrBaseKeyword.IsMissing)
+                if (node is ConstructorInitializerSyntax { ThisOrBaseKeyword: { IsMissing: false } } constructorInitializer && constructorInitializer.ArgumentList.OpenParenToken.Kind() != SyntaxKind.None)
                 {
                     var text = node.SyntaxTree.GetText();
 

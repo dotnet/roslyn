@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
 
             private bool FieldIsReadOnly(ISymbol symbol)
-                => symbol is IFieldSymbol field && field.IsReadOnly;
+                => symbol is IFieldSymbol { IsReadOnly: true } field;
 
             private int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
             {

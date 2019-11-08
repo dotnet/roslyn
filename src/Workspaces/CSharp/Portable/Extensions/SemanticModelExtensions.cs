@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (@using.Alias == null)
                 {
                     var symbolInfo = semanticModel.GetSymbolInfo(@using.Name);
-                    if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
+                    if (symbolInfo is { Symbol: { Kind: SymbolKind.Namespace } })
                     {
                         result ??= new HashSet<INamespaceSymbol>();
                         result.Add((INamespaceSymbol)symbolInfo.Symbol);

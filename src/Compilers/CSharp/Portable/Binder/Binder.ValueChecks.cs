@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var receiver = ((BoundPointerElementAccess)expr).Expression;
-                        if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
+                        if (receiver is BoundFieldAccess { FieldSymbol: { IsFixedSizeBuffer: true } } fieldAccess)
                         {
                             return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
                         }

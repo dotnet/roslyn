@@ -115,8 +115,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Name == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name
-                && e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
+            if (e is
+            {
+                Option: { Name: FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name, Feature: FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature }
+            }
+)
             {
                 UpdateProjectForNewHostValues();
             }

@@ -86,7 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var call = (BoundCall)expression;
 
             // First check if the target method is async.
-            if ((object)call.Method != null && call.Method.IsAsync)
+            if (call is
+            {
+                Method: object { IsAsync: true }
+            }
+)
             {
                 return true;
             }

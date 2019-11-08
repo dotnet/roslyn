@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             get
             {
                 var semicolon = SemicolonToken;
-                return semicolon.IsMissing && !semicolon.ContainsDiagnostics;
+                return semicolon is { IsMissing: true, ContainsDiagnostics: false };
             }
         }
     }

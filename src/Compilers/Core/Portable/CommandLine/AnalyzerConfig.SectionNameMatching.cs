@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
             // implies the negation of the character class, '-' implies matching
             // between the locale-dependent range of the previous and next characters,
             // '\' escapes the following character, and ']' ends the range
-            if (!lexer.IsDone && lexer.CurrentCharacter == '!')
+            if (lexer is { IsDone: false, CurrentCharacter: '!' })
             {
                 sb.Append('^');
                 lexer.Position++;

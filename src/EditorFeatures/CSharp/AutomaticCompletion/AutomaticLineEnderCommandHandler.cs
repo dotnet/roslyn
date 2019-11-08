@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 var node = ParseNode(tree, owningNode, textToParse);
 
                 // Insert line ender if we didn't introduce any diagnostics, if not try the next owning node.
-                if (node != null && !node.ContainsDiagnostics)
+                if (node is { ContainsDiagnostics: false })
                 {
                     return semicolon;
                 }

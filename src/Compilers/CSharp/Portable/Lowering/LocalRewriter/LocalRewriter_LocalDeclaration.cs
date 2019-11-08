@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // around because we'll be generating debug info for it.)
             if (localSymbol.IsConst)
             {
-                if (!localSymbol.Type.IsReferenceType && localSymbol.ConstantValue == null)
+                if (localSymbol is { Type: { IsReferenceType: false }, ConstantValue: null })
                 {
                     // This can occur in error scenarios (e.g. bad imported metadata)
                     hasErrors = true;

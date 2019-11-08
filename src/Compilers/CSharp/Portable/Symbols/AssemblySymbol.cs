@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.GlobalNamespace;
             }
 
-            if (namespaceSymbol.NamespaceKind == NamespaceKind.Assembly && namespaceSymbol.ContainingAssembly == this)
+            if (namespaceSymbol is { NamespaceKind: NamespaceKind.Assembly, ContainingAssembly: this })
             {
                 // this is already the correct assembly namespace
                 return namespaceSymbol;

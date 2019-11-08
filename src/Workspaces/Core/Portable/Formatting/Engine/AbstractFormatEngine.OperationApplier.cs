@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var triviaInfo = _context.TokenStream.GetTriviaData(pairIndex);
 
-                if (triviaInfo.LineBreaks == 0 && triviaInfo.Spaces == operation.Space)
+                if (triviaInfo is { LineBreaks: 0, Spaces: operation.Space })
                 {
                     return false;
                 }

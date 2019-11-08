@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 void AfterBlockAnalysis()
                 {
                     // If we are exiting the control flow graph, handle ref/out parameter definitions from method declaration.
-                    if (basicBlock.FallThroughSuccessor?.Destination == null &&
-                        basicBlock.ConditionalSuccessor?.Destination == null)
+                    if (basicBlock is { FallThroughSuccessor: { Destination: null }, ConditionalSuccessor: { Destination: null } })
                     {
                         _analysisData.SetAnalysisDataOnMethodExit();
                     }

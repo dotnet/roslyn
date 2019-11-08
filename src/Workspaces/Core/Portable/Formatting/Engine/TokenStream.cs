@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return this.FormatBeginningOfTree && this.FormatEndOfTree;
+                return this is { FormatBeginningOfTree: true, FormatEndOfTree: true };
             }
         }
 

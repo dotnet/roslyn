@@ -232,7 +232,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var codeBlocks = GetParameterListInitializersAndAttributes(t.ParameterList);
                         codeBlocks = codeBlocks.Concat(t.Body);
 
-                        if (t is ConstructorDeclarationSyntax ctorDecl && ctorDecl.Initializer != null)
+                        if (t is ConstructorDeclarationSyntax {
+                            Initializer: {
+                            }
+                        } ctorDecl)
                         {
                             codeBlocks = codeBlocks.Concat(ctorDecl.Initializer);
                         }

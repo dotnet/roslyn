@@ -80,8 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
                             switch (node.Pattern)
                             {
-                                case DeclarationPatternSyntax p
-                                    when p.Designation is SingleVariableDesignationSyntax designation:
+                                case DeclarationPatternSyntax
+                                {
+                                    Designation: SingleVariableDesignationSyntax { } designation
+                                } p:
                                     return new Pattern.ByType(p.Type, designation.Identifier);
 
                                 case ConstantPatternSyntax p:

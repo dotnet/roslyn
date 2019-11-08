@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected static AccessorDeclarationSyntax GetSingleGetAccessor(AccessorListSyntax accessorList)
         {
-            if (accessorList != null &&
-                accessorList.Accessors.Count == 1 &&
-                accessorList.Accessors[0].AttributeLists.Count == 0 &&
-                accessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration))
+            if (accessorList is { Accessors: { Count: 1 } } && accessorList.Accessors[0] is { AttributeLists: { Count: 0 } } && accessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration))
             {
                 return accessorList.Accessors[0];
             }

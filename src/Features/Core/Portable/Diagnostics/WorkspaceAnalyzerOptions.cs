@@ -51,10 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            return obj is WorkspaceAnalyzerOptions other &&
-                _solution.WorkspaceVersion == other._solution.WorkspaceVersion &&
-                _solution.Workspace == other._solution.Workspace &&
-                base.Equals(other);
+            return obj is WorkspaceAnalyzerOptions { } other && _solution is { WorkspaceVersion: other._solution.WorkspaceVersion, Workspace: other._solution.Workspace } && base.Equals(other);
         }
 
         public override int GetHashCode()

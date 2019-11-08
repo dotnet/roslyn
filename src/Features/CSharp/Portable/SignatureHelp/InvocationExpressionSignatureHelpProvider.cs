@@ -81,7 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
 
             // if the symbol could be bound, replace that item in the symbol list
-            if (symbolInfo.Symbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
+            if (symbolInfo is
+            {
+                Symbol: IMethodSymbol { IsGenericMethod: true } matchedMethodSymbol
+            }
+)
             {
                 methodGroup = methodGroup.SelectAsArray(m => Equals(matchedMethodSymbol.OriginalDefinition, m) ? matchedMethodSymbol : m);
             }

@@ -387,12 +387,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var existingMethods =
                 from baseType in containingType.GetBaseTypes()
                 from method in baseType.GetMembers(EqualsName).OfType<IMethodSymbol>()
-                where method.IsOverride &&
-                      method.DeclaredAccessibility == Accessibility.Public &&
-                      !method.IsStatic &&
-                      method.Parameters.Length == 1 &&
-                      method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                      method.Parameters[0].Type.SpecialType == SpecialType.System_Object
+                where method is
+                {
+                    IsOverride: true,
+                    DeclaredAccessibility: Accessibility.Public,
+                    IsStatic: false,
+                    Parameters: { Length: 1 },
+                    ReturnType: { SpecialType: SpecialType.System_Boolean }
+                }
+&& method.Parameters[0] is { Type: { SpecialType: SpecialType.System_Object } }
                 select method;
 
             return existingMethods.Any();

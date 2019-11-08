@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         {
             CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans);
 
-            if (!enumDeclaration.OpenBraceToken.IsMissing &&
-                !enumDeclaration.CloseBraceToken.IsMissing)
+            if (enumDeclaration is { OpenBraceToken: { IsMissing: false }, CloseBraceToken: { IsMissing: false } })
             {
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     enumDeclaration,

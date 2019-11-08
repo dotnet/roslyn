@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private ImmutableArray<INamedTypeSymbol> DetermineInterfaces()
             {
-                if (_state.BaseTypeOrInterfaceOpt != null && _state.BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface)
+                if (_state is { BaseTypeOrInterfaceOpt: { TypeKind: TypeKind.Interface } })
                 {
                     var type = RemoveUnavailableTypeParameters(_state.BaseTypeOrInterfaceOpt);
                     if (type != null)

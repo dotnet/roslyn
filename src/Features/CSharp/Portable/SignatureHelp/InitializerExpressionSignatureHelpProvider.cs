@@ -26,10 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                expression != null;
 
         private bool IsTriggerToken(SyntaxToken token)
-            => !token.IsKind(SyntaxKind.None) &&
-               token.ValueText.Length == 1 &&
-               IsTriggerCharacter(token.ValueText[0]) &&
-               token.Parent is InitializerExpressionSyntax;
+            => !token.IsKind(SyntaxKind.None) && token is { ValueText: { Length: 1 }, Parent: InitializerExpressionSyntax _ } && IsTriggerCharacter(token.ValueText[0]);
 
         private static bool IsInitializerExpressionToken(InitializerExpressionSyntax expression, SyntaxToken token)
             => expression.Span.Contains(token.SpanStart) && token != expression.CloseBraceToken;

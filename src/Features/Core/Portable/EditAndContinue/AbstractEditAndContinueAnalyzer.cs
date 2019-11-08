@@ -1315,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // The lambda has already been included when enumerating parent body matches.
                     Debug.Assert(
                         !map.ContainsKey(pair.Key) ||
-                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key) && IsLambda(pair.Value));
+                        pair is { Key: lambdaBodyMatch.OldRoot, Value: lambdaBodyMatch.NewRoot } && IsLambda(pair.Key) && IsLambda(pair.Value));
 
                     map[pair.Key] = pair.Value;
                     reverseMap[pair.Value] = pair.Key;

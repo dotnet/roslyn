@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return GetAttributeItems(elementName, existingAttributes);
                 }
 
-                var wasTriggeredAfterSpace = trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ';
+                var wasTriggeredAfterSpace = trigger is { Kind: CompletionTriggerKind.Insertion, Character: ' ' };
                 if (wasTriggeredAfterSpace)
                 {
                     // Nothing below this point should triggered by a space character

@@ -166,9 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
                     }
-                    else if (!hasErrors &&
-                            !resolution.IsEmpty &&
-                            resolution.ResultKind == LookupResultKind.Viable)
+                    else if (hasErrors is false && resolution is { IsEmpty: false, ResultKind: LookupResultKind.Viable })
                     {
                         var overloadDiagnostics = DiagnosticBag.GetInstance();
 

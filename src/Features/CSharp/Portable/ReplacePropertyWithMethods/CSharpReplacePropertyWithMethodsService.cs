@@ -278,8 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         /// Used by the documentation comment rewriters to identify top-level <c>&lt;value&gt;</c> nodes.
         /// </summary>
         private static bool IsValueName(XmlNameSyntax name)
-            => name.Prefix == null &&
-               name.LocalName.ValueText == "value";
+            => name is { Prefix: null, LocalName: { ValueText: "value" } };
 
         public override SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)
         {

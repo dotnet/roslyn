@@ -384,10 +384,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
-            forStatement.Initializers.Count == 0
-            && forStatement.Declaration == null
-            && forStatement.Condition == null
-            && forStatement.Incrementors.Count == 0;
+            forStatement is
+        {
+            Initializers: { Count: 0 },
+            Declaration: null,
+            Condition: null,
+            Incrementors: { Count: 0 }
+        };
 
         private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet)
         {

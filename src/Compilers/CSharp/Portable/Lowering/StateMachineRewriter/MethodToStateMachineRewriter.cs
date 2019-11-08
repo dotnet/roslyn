@@ -148,10 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // create cache local for reference type "this" in Release
             var thisParameter = originalMethod.ThisParameter;
             CapturedSymbolReplacement thisProxy;
-            if ((object)thisParameter != null &&
-                thisParameter.Type.IsReferenceType &&
-                proxies.TryGetValue(thisParameter, out thisProxy) &&
-                F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+            if (thisParameter is object { Type: { IsReferenceType: true } } && proxies.TryGetValue(thisParameter, out thisProxy) && F is { Compilation: { Options: { OptimizationLevel: OptimizationLevel.Release } } })
             {
                 BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);

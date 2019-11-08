@@ -504,7 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // if the expression is the child of a base-list node, then the expression should be
             // bound in the context of the containing symbols base being resolved.
-            for (; expression != null && expression.Parent != null; expression = expression.Parent as TypeSyntax)
+            for (; expression is
+            {
+                Parent: {
+                }
+            }; expression = expression.Parent as TypeSyntax)
             {
                 var parent = expression.Parent;
                 if (parent is BaseTypeSyntax baseType && parent.Parent != null && parent.Parent.Kind() == SyntaxKind.BaseList && baseType.Type == expression)

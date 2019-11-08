@@ -919,8 +919,7 @@ namespace Microsoft.Cci
             // Method definition has body if it is a non-abstract, non-extern method.
             // Additionally, methods within COM types have no body.
 
-            return !methodDef.IsAbstract && !methodDef.IsExternal &&
-                (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
+            return methodDef is { IsAbstract: false, IsExternal: false } && (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
         }
 
         /// <summary>

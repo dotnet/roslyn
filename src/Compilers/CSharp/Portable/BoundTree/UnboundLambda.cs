@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // No return statements have expressions; use delegate InvokeMethod
                 // or infer type Task if delegate type not available.
-                var resultType = (object)taskType != null && taskType.Arity == 0 ?
+                var resultType = taskType is object { Arity: 0 } ?
                     taskType :
                     compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
                 return TypeWithAnnotations.Create(resultType);

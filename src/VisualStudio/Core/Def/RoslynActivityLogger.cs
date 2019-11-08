@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             lock (s_gate)
             {
                 // internally, it just uses our existing ILogger
-                Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceSourceLogger(traceSource), Logger.GetLogger(), l => (l as TraceSourceLogger)?.TraceSource == traceSource));
+                Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceSourceLogger(traceSource), Logger.GetLogger(), l => l is TraceSourceLogger { TraceSource: traceSource }));
             }
         }
 

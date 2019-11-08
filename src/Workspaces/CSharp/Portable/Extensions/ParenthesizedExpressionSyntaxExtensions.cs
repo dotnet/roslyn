@@ -77,7 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // int Prop => (x); -> int Prop => x;
-            if (node.Parent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
+            if (node is
+            {
+                Parent: ArrowExpressionClauseSyntax { Expression: node } arrowExpressionClause
+            }
+)
             {
                 return true;
             }

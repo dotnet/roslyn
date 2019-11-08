@@ -167,9 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var structuredTrivia = trivia.GetStructure();
 
-            return structuredTrivia != null &&
-                structuredTrivia.HasTrailingTrivia &&
-                structuredTrivia.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia);
+            return structuredTrivia is { HasTrailingTrivia: true } && structuredTrivia.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia);
         }
 
         private bool IsStartOrEndOfFile(SyntaxTrivia trivia1, SyntaxTrivia trivia2)

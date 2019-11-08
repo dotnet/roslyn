@@ -96,10 +96,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             ExpansionSession.GetSnippetSpan(fullSnippetSpan);
 
             var isFullSnippetFormat =
-                fullSnippetSpan[0].iStartLine == tsInSurfaceBuffer[0].iStartLine &&
-                fullSnippetSpan[0].iStartIndex == tsInSurfaceBuffer[0].iStartIndex &&
-                fullSnippetSpan[0].iEndLine == tsInSurfaceBuffer[0].iEndLine &&
-                fullSnippetSpan[0].iEndIndex == tsInSurfaceBuffer[0].iEndIndex;
+                fullSnippetSpan[0] is
+            {
+                iStartLine: tsInSurfaceBuffer[0].iStartLine,
+                iStartIndex: tsInSurfaceBuffer[0].iStartIndex,
+                iEndLine: tsInSurfaceBuffer[0].iEndLine,
+                iEndIndex: tsInSurfaceBuffer[0].iEndIndex
+            };
             var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));

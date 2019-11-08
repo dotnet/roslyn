@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             }
 
             var endTag = parentElement.EndTag;
-            return endTag != null && !endTag.IsMissing && endTag.Name.LocalName.ValueText == parentStartTag.Name.LocalName.ValueText;
+            return endTag is { IsMissing: false, Name: { LocalName: { ValueText: parentStartTag.Name.LocalName.ValueText } } };
         }
 
         private void CheckNameAndInsertText(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint position, XmlElementStartTagSyntax startTag, int? finalCaretPosition, string formatString)

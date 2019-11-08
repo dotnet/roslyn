@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public static bool IsArrayInitializer([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
-            return node is InitializerExpressionSyntax && node.Parent is EqualsValueClauseSyntax;
+            return node is InitializerExpressionSyntax { Parent: EqualsValueClauseSyntax _ };
         }
 
         public static bool IsExpressionInCast([NotNullWhen(returnValue: true)] this SyntaxNode? node)

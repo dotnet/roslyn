@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // NOTE: Being a bit sneaky here - if the width isn't 0, we consumed something else in
             // place of the quote and we should continue parsing the attribute.
-            if (startQuote.IsMissing && startQuote.FullWidth == 0)
+            if (startQuote is { IsMissing: true, FullWidth: 0 })
             {
                 endQuote = SyntaxFactory.MissingToken(quoteKind);
             }

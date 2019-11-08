@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static void GetNameParts(INamespaceOrTypeSymbol? namespaceOrTypeSymbol, List<string> result)
         {
-            if (namespaceOrTypeSymbol == null || (namespaceOrTypeSymbol.IsNamespace && ((INamespaceSymbol)namespaceOrTypeSymbol).IsGlobalNamespace))
+            if (namespaceOrTypeSymbol == null || (namespaceOrTypeSymbol is INamespaceSymbol { IsGlobalNamespace: true, IsNamespace: true }))
             {
                 return;
             }

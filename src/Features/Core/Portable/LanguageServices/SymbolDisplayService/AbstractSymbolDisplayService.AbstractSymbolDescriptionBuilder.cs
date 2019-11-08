@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     var typeArgument = typeArguments[i];
                     var typeParameter = typeParameters[i];
-                    if (typeArgument is ITypeParameterSymbol && typeArgument.Name == typeParameter.Name)
+                    if (typeArgument is ITypeParameterSymbol { Name: typeParameter.Name })
                     {
                         continue;
                     }

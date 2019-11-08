@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             if (fullName.Parent is ObjectCreationExpressionSyntax)
             {
                 var objectCreationExpression = (ObjectCreationExpressionSyntax)fullName.Parent;
-                if (objectCreationExpression.ArgumentList != null &&
-                    !objectCreationExpression.ArgumentList.CloseParenToken.IsMissing)
+                if (objectCreationExpression is { ArgumentList: { CloseParenToken: { IsMissing: false } } })
                 {
                     var symbolInfo = document.SemanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken);
                     token = simpleName.Identifier;

@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var diagnostic = GetUseSiteDiagnostic();
-                return diagnostic != null && diagnostic.Severity == DiagnosticSeverity.Error;
+                return diagnostic is { Severity: DiagnosticSeverity.Error };
             }
         }
 

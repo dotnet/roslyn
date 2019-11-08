@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 if (token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
                 {
                     var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
-                    if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
+                    if (typeSymbol is ITypeSymbol { TypeKind: TypeKind.Delegate } && typeSymbol.IsKind(SymbolKind.NamedType))
                     {
                         return (typeSymbol, 0);
                     }

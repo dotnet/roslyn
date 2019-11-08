@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // should be defined in the directly enclosing block (see note below)
 
             Binder possibleScopeBinder = enclosing;
-            while (possibleScopeBinder != null && !possibleScopeBinder.IsLocalFunctionsScopeBinder)
+            while (possibleScopeBinder is { IsLocalFunctionsScopeBinder: false })
             {
                 possibleScopeBinder = possibleScopeBinder.Next;
             }

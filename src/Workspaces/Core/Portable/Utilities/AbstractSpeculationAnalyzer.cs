@@ -326,10 +326,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // As we are comparing symbols from different semantic models, locations will differ.
                     // Hence perform minimal checks for these symbol kinds.
                     case SymbolKind.Local:
-                        return newSymbol.Kind == SymbolKind.Local &&
-                            newSymbol.IsImplicitlyDeclared == symbol.IsImplicitlyDeclared &&
-                            string.Equals(symbol.Name, newSymbol.Name, StringComparison.Ordinal) &&
-                            ((ILocalSymbol)newSymbol).Type.Equals(((ILocalSymbol)symbol).Type);
+                        return newSymbol is { Kind: SymbolKind.Local, IsImplicitlyDeclared: symbol.IsImplicitlyDeclared } && string.Equals(symbol.Name, newSymbol.Name, StringComparison.Ordinal) && ((ILocalSymbol)newSymbol).Type.Equals(((ILocalSymbol)symbol).Type);
 
                     case SymbolKind.Label:
                     case SymbolKind.RangeVariable:

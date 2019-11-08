@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var data = Data;
             var otherData = otherTodoItem.Data;
-            return data.DocumentId == otherData.DocumentId && data.Message == otherData.Message;
+            return data is { DocumentId: otherData.DocumentId, Message: otherData.Message };
         }
 
         /// <summary>

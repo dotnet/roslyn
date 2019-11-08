@@ -256,8 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private void BuildMemberOf(ISymbol containingSymbol, _VSOBJDESCOPTIONS options)
         {
-            if (containingSymbol is INamespaceSymbol &&
-                ((INamespaceSymbol)containingSymbol).IsGlobalNamespace)
+            if (containingSymbol is INamespaceSymbol { IsGlobalNamespace: true })
             {
                 containingSymbol = containingSymbol.ContainingAssembly;
             }

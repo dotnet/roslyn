@@ -71,8 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     // C# syntax node for foreach statement has no syntax node for the loop control variable declaration,
                     // so the operation tree has an IVariableDeclaratorOperation with the syntax mapped to the type node syntax instead of variable declarator syntax.
                     // Check if the unused definition syntax is the foreach statement's type node.
-                    if (unusedDefinition.Syntax.Parent is ForEachStatementSyntax forEachStatement &&
-                        forEachStatement.Type == unusedDefinition.Syntax)
+                    if (unusedDefinition is {
+                        Syntax:
+                        {
+                            Parent: ForEachStatementSyntax { Type: unusedDefinition.Syntax } forEachStatement
+                        }
+                    })
                     {
                         return forEachStatement.Identifier.GetLocation();
                     }

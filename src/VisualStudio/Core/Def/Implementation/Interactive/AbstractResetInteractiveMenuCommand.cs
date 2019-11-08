@@ -60,9 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
             resetInteractiveFromProjectCommand.BeforeQueryStatus += (_, __) =>
             {
                 GetActiveProject(out var project, out var frameworkName);
-                var available = ResetInteractiveCommand != null
-                    && project != null && project.Kind == ProjectKind
-                    && frameworkName != null && frameworkName.Identifier == ".NETFramework";
+                var available = ResetInteractiveCommand is { } && project is { Kind: ProjectKind } && frameworkName is { Identifier: ".NETFramework" };
 
                 resetInteractiveFromProjectCommand.Enabled = available;
                 resetInteractiveFromProjectCommand.Supported = available;

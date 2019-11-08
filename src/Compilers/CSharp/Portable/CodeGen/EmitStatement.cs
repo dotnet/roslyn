@@ -1217,7 +1217,7 @@ oneMoreTime:
 
             Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
-            if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
+            if (stringLengthMethod is { HasUseSiteError: false })
             {
                 stringLengthRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
             }

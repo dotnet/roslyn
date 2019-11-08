@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
             }
 
-            if (expressionSymbol != null && expressionSymbol is INamedTypeSymbol)
+            if (expressionSymbol is INamedTypeSymbol _)
             {
                 return null;
             }

@@ -257,9 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var newArgument = (ArgumentSyntax)base.VisitArgument(node);
 
-                if (node.NameColon == null
-                    && node.Parent is TupleExpressionSyntax tuple
-                    && !IsTupleInDeconstruction(tuple)) // The language currently does not allow explicit element names in deconstruction
+                if (node is
+                {
+                    NameColon: null,
+                    Parent: TupleExpressionSyntax { } tuple
+                }
+&& !IsTupleInDeconstruction(tuple)) // The language currently does not allow explicit element names in deconstruction
                 {
                     var inferredName = node.Expression.TryGetInferredMemberName();
                     if (CanMakeNameExplicitInTuple(tuple, inferredName))

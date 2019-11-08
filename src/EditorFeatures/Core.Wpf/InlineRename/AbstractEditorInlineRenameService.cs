@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
-            if (symbol.Kind == SymbolKind.Alias && symbol.IsExtern)
+            if (symbol is { Kind: SymbolKind.Alias, IsExtern: true })
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }

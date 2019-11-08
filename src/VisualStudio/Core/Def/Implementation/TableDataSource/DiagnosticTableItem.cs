@@ -58,13 +58,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var otherDiagnostic = otherDiagnosticItem.Data;
 
             // everything same except location
-            return diagnostic.Id == otherDiagnostic.Id &&
-                   diagnostic.ProjectId == otherDiagnostic.ProjectId &&
-                   diagnostic.DocumentId == otherDiagnostic.DocumentId &&
-                   diagnostic.Category == otherDiagnostic.Category &&
-                   diagnostic.Severity == otherDiagnostic.Severity &&
-                   diagnostic.WarningLevel == otherDiagnostic.WarningLevel &&
-                   diagnostic.Message == otherDiagnostic.Message;
+            return diagnostic is
+            {
+                Id: otherDiagnostic.Id,
+                ProjectId: otherDiagnostic.ProjectId,
+                DocumentId: otherDiagnostic.DocumentId,
+                Category: otherDiagnostic.Category,
+                Severity: otherDiagnostic.Severity,
+                WarningLevel: otherDiagnostic.WarningLevel,
+                Message: otherDiagnostic.Message
+            };
         }
 
         /// <summary>

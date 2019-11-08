@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             IEnumerable<CodeActionOperation> operations = null;
 
-            if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
+            if (options is ExtractInterfaceOptionsResult { IsCancelled: false } extractInterfaceOptions)
             {
                 var extractInterfaceResult = await _extractInterfaceService
                         .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);

@@ -103,7 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             case CaseSwitchLabelSyntax p:
-                                if (label.Pattern is BoundConstantPattern cp && !cp.ConstantValue.IsBad && FindMatchingSwitchCaseLabel(cp.ConstantValue, p) != label.Label)
+                                if (label is
+                                {
+                                    Pattern: BoundConstantPattern { ConstantValue: { IsBad: false } } cp
+                                }
+&& FindMatchingSwitchCaseLabel(cp.ConstantValue, p) != label.Label)
                                 {
                                     // We use the traditional diagnostic when possible
                                     diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                    .FirstOrDefault();
 
         public static bool IsPublicInstance(ISymbol symbol)
-            => !symbol.IsStatic && symbol.DeclaredAccessibility == Accessibility.Public;
+            => symbol is { IsStatic: false, DeclaredAccessibility: Accessibility.Public };
 
         /// <summary>
         /// Creates an `^expr` index expression from a given `expr`.

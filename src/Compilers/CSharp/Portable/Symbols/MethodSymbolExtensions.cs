@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsSynthesizedLambda(this MethodSymbol method)
         {
             Debug.Assert((object)method != null);
-            return method.IsImplicitlyDeclared && method.MethodKind == MethodKind.AnonymousFunction;
+            return method is { IsImplicitlyDeclared: true, MethodKind: MethodKind.AnonymousFunction };
         }
 
         /// <summary>

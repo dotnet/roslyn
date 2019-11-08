@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Text
             bool canBeEmbedded = false)
         {
             Debug.Assert(stream != null);
-            Debug.Assert(stream.CanRead && stream.CanSeek);
+            Debug.Assert(stream is { CanRead: true, CanSeek: true });
 
             bool detectEncoding = defaultEncoding == null;
             if (detectEncoding)

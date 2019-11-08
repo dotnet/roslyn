@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var baseType = attributeType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-                if ((object)baseType != null && baseType.IsConditional)
+                if (baseType is object { IsConditional: true })
                 {
                     return IsAttributeConditionallyOmitted(baseType, syntaxTree, ref useSiteDiagnostics);
                 }

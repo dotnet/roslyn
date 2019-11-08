@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         private void OnListViewPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
+            if (e is { Key: Key.Space, KeyboardDevice: { Modifiers: ModifierKeys.None } })
             {
                 ToggleCheckSelection();
                 e.Handled = true;

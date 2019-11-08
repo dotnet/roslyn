@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var alias = symbol as IAliasSymbol;
             if (alias != null)
             {
-                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
+                if (alias is
+                {
+                    Target: INamespaceSymbol { IsGlobalNamespace: true } ns
+                }
+)
                 {
                     return ImmutableArray.Create<DefinitionItem>();
                 }

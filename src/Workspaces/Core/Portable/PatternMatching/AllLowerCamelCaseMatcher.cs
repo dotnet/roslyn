@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 for (int humpIndex = candidateHumpIndex, n = _candidateHumps.Count; humpIndex < n; humpIndex++)
                 {
                     // If we've been contiguous, but we jumped past a hump, then we're no longer contiguous.
-                    if (contiguous.HasValue && contiguous.Value)
+                    if (contiguous is { HasValue: true, Value: true })
                     {
                         contiguous = humpIndex == candidateHumpIndex;
                     }

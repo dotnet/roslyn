@@ -151,9 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     IOperation conditionLeft = condition.LeftOperand;
                     IOperation conditionRight = condition.RightOperand;
 
-                    if (conditionRight.ConstantValue.HasValue &&
-                        conditionRight.Type.SpecialType == SpecialType.System_Int32 &&
-                        conditionLeft.Kind == OperationKind.LocalReference)
+                    if (conditionRight is { ConstantValue: { HasValue: true }, Type: { SpecialType: SpecialType.System_Int32 } } && conditionLeft is { Kind: OperationKind.LocalReference })
                     {
                         // Test is known to be a comparison of a local against a constant.
 

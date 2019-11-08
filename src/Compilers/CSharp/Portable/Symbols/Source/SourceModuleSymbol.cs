@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!a.IsMissing && a.IsLinked)
+                if (a is { IsMissing: false, IsLinked: true })
                 {
                     bool hasGuidAttribute = false;
                     bool hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = false;

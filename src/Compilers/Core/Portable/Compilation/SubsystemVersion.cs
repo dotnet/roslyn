@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SubsystemVersion other)
         {
-            return this.Major == other.Major && this.Minor == other.Minor;
+            return this is { Major: other.Major, Minor: other.Minor };
         }
 
         public override string ToString()

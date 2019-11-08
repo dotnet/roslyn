@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static IOption GetOption(string optionName, string feature, IOptionService optionService)
         {
-            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
+            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o is { Feature: feature, Name: optionName });
             if (option == null)
             {
                 throw new Exception($"Failed to find option with feature name '{feature}' and option name '{optionName}'");

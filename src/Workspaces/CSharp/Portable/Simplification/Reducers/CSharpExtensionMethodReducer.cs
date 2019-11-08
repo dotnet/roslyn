@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             var targetSymbol = semanticModel.GetSymbolInfo(expressionName);
 
-            if (targetSymbol.Symbol != null && targetSymbol.Symbol.Kind == SymbolKind.Method)
+            if (targetSymbol is { Symbol: { Kind: SymbolKind.Method } })
             {
                 var targetMethodSymbol = (IMethodSymbol)targetSymbol.Symbol;
                 if (!targetMethodSymbol.IsReducedExtension())

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessi
                 return false;
             }
 
-            return token.RawKind == OpeningTokenKind && token.SpanStart == position;
+            return token is { RawKind: OpeningTokenKind, SpanStart: position };
         }
 
         protected bool IsValidToken(SyntaxToken token)

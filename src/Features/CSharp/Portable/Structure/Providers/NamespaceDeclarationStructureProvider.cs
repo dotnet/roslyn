@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // add leading comments
             CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans);
 
-            if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
-                !namespaceDeclaration.CloseBraceToken.IsMissing)
+            if (namespaceDeclaration is { OpenBraceToken: { IsMissing: false }, CloseBraceToken: { IsMissing: false } })
             {
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     namespaceDeclaration,

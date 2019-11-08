@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in GetTypeMembers(name, arity))
             {
                 var memberT = member as SourceNamedTypeSymbol;
-                if ((object)memberT != null && memberT.TypeKind == typeKind)
+                if (memberT is object { TypeKind: typeKind })
                 {
                     if (syntax != null)
                     {

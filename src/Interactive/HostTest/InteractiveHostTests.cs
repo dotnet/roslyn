@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 DisposeInteractiveHostProcess(_host);
 
                 // the process should be terminated 
-                if (process != null && !process.HasExited)
+                if (process is { HasExited: false })
                 {
                     process.WaitForExit();
                 }

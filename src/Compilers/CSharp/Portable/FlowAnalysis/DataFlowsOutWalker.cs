@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool FlowsOut(ParameterSymbol param)
         {
-            return (object)param != null && param.RefKind != RefKind.None && !param.IsImplicitlyDeclared && !RegionContains(param.Locations[0].SourceSpan);
+            return param is object { IsImplicitlyDeclared: false } && param.RefKind != RefKind.None && !RegionContains(param.Locations[0].SourceSpan);
         }
 
         private ParameterSymbol Param(BoundNode node)

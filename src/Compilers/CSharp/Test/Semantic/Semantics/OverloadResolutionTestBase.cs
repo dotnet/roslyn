@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value)
-                .Where(x => x.Text == "method" && x.Value != null)
+                .Where(x => x is { Text: "method", Value: { } })
                 .Select(x => x.Value)
                 .ToArray());
 

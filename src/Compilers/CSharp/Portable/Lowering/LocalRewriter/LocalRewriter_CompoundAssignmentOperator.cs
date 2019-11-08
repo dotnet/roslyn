@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsInvariantArray(TypeSymbol type)
         {
-            return (type as ArrayTypeSymbol)?.ElementType.IsSealed == true;
+            return type is ArrayTypeSymbol { ElementType: { IsSealed: true } };
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)

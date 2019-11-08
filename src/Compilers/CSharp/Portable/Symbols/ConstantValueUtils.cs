@@ -98,10 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var constantValue = boundValue.ConstantValue;
 
                     var unconvertedConstantValue = unconvertedBoundValue.ConstantValue;
-                    if (unconvertedConstantValue != null &&
-                        !unconvertedConstantValue.IsNull &&
-                        typeSymbol.IsReferenceType &&
-                        typeSymbol.SpecialType != SpecialType.System_String)
+                    if (unconvertedConstantValue is { IsNull: false } && typeSymbol is { IsReferenceType: true } && typeSymbol.SpecialType != SpecialType.System_String)
                     {
                         // Suppose we are in this case:
                         //

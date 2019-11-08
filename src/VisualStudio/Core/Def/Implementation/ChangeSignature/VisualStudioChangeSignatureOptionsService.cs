@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var dialog = new ChangeSignatureDialog(viewModel);
             var result = dialog.ShowModal();
 
-            if (result.HasValue && result.Value)
+            if (result is { HasValue: true, Value: true })
             {
                 return new ChangeSignatureOptionsResult { IsCancelled = false, UpdatedSignature = new SignatureChange(parameters, viewModel.GetParameterConfiguration()), PreviewChanges = viewModel.PreviewChanges };
             }

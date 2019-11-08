@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Text
                 if (this.Container is TextBufferContainer container)
                 {
                     var lastEventArgs = container.LastEventArgs;
-                    if (lastEventArgs != null && lastEventArgs.OldText == oldText && lastEventArgs.NewText == this)
+                    if (lastEventArgs is { OldText: oldText, NewText: this })
                     {
                         return lastEventArgs.Changes;
                     }

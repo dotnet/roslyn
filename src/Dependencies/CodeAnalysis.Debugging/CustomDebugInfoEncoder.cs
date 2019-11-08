@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                     {
                         // Constants have slot index -1 and scope specified,
                         // variables have a slot index specified and no scope.
-                        Debug.Assert((info.SlotIndex == -1) ^ (info.ScopeStart == 0 && info.ScopeEnd == 0));
+                        Debug.Assert((info.SlotIndex == -1) ^ (info is { ScopeStart: 0, ScopeEnd: 0 }));
 
                         builder.WriteInt32(info.Names.Length);
                         foreach (var name in info.Names)

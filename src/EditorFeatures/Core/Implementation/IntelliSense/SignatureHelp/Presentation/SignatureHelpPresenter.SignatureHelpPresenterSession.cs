@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         triggerSpan.GetStartTrackingPoint(PointTrackingMode.Negative),
                         trackCaret: false);
 
-                    if (_textView is IDebuggerTextView debugTextView && !debugTextView.IsImmediateWindow)
+                    if (_textView is IDebuggerTextView { IsImmediateWindow: false } debugTextView)
                     {
                         debugTextView.HACK_StartCompletionSession(_editorSessionOpt);
                     }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
-                if (document != null && document.Project.Solution.Workspace == e.Workspace && document.Id == e.DocumentId)
+                if (document is { Project: { Solution: { Workspace: e.Workspace } }, Id: e.DocumentId })
                 {
                     this.RaiseChanged();
                 }

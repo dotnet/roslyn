@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
-            if ((MemberSymbol as MethodSymbol)?.MethodKind == MethodKind.Constructor)
+            if (MemberSymbol is MethodSymbol { MethodKind: MethodKind.Constructor })
             {
                 var binder = this.GetEnclosingBinder(position);
                 if (binder != null)

@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (ResolvedReference reference in referenceMap)
             {
-                if (!reference.IsSkipped && !reference.RecursiveAliasesOpt.IsDefault)
+                if (reference is { IsSkipped: false, RecursiveAliasesOpt: { IsDefault: false } })
                 {
                     var recursiveAliases = reference.RecursiveAliasesOpt;
 

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return;
             }
 
-            if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface && state.IsStatic)
+            if (state is { TypeToGenerateIn: { TypeKind: TypeKind.Interface }, IsStatic: true })
             {
                 return;
             }

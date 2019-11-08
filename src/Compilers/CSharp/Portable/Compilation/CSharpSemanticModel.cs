@@ -613,11 +613,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InitializerExpressionSyntax initializer = (InitializerExpressionSyntax)expression.Parent;
 
                 // Skip containing object initializers
-                while (initializer.Parent != null &&
-                       initializer.Parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                       ((AssignmentExpressionSyntax)initializer.Parent).Right == initializer &&
-                       initializer.Parent.Parent != null &&
-                       initializer.Parent.Parent.Kind() == SyntaxKind.ObjectInitializerExpression)
+                while (initializer is
+                {
+                    Parent: AssignmentExpressionSyntax {
+                        Right: initializer, Parent: {
+                        }
+                    }
+                }
+&& initializer.Parent.Kind() is SyntaxKind.SimpleAssignmentExpression && initializer.Parent.Parent.Kind() is SyntaxKind.ObjectInitializerExpression)
                 {
                     initializer = (InitializerExpressionSyntax)initializer.Parent.Parent;
                 }

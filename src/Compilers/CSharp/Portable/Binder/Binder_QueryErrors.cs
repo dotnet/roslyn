@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new object[] { instanceArgument.Type, name },
                     symbols), new SourceLocation(fromClause != null ? fromClause.Expression : queryClause));
             }
-            else if (fromClause != null && fromClause.Type == null && HasCastToQueryProvider(instanceArgument.Type, ref useSiteDiagnostics))
+            else if (fromClause is { Type: null } && HasCastToQueryProvider(instanceArgument.Type, ref useSiteDiagnostics))
             {
                 // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Consider explicitly specifying the type of the range variable '{2}'.
                 diagnostics.Add(new DiagnosticInfoWithSymbols(

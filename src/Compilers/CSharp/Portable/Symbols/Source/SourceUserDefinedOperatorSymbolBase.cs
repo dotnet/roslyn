@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType, syntax.GetReference(), location)
         {
             _name = name;
-            _isExpressionBodied = syntax.Body == null && syntax.ExpressionBody != null;
+            _isExpressionBodied = syntax is { Body: null, ExpressionBody: { } };
 
             var defaultAccess = DeclarationModifiers.Private;
             var allowedModifiers =

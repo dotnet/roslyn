@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsVarargMethod(Symbol member)
         {
-            return member.Kind == SymbolKind.Method && ((MethodSymbol)member).IsVararg;
+            return member is MethodSymbol { IsVararg: true, Kind: SymbolKind.Method };
         }
 
         /// <summary>

@@ -141,8 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   |
             if (token.IsKind(SyntaxKind.SemicolonToken))
             {
-                if (token.Parent is MemberDeclarationSyntax &&
-                    token.Parent.Parent is BaseTypeDeclarationSyntax)
+                if (token is
+                {
+                    Parent: MemberDeclarationSyntax { Parent: BaseTypeDeclarationSyntax _ }
+                }
+)
                 {
                     return true;
                 }

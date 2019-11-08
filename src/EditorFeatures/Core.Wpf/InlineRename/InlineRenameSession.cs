@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             this.UndoManager.Disconnect();
 
-            if (_triggerView != null && !_triggerView.IsClosed)
+            if (_triggerView is { IsClosed: false })
             {
                 _triggerView.Selection.Clear();
             }

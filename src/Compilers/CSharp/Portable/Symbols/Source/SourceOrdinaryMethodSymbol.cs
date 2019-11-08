@@ -88,9 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const bool returnsVoid = false;
 
             var firstParam = syntax.ParameterList.Parameters.FirstOrDefault();
-            bool isExtensionMethod = firstParam != null &&
-                !firstParam.IsArgList &&
-                firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
+            bool isExtensionMethod = firstParam is { IsArgList: false } && firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;

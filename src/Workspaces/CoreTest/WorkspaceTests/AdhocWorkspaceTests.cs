@@ -493,8 +493,7 @@ language: LanguageNames.CSharp);
             var tcs = new TaskCompletionSource<bool>();
             ws.WorkspaceChanged += (s, args) =>
             {
-                if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
-                    && args.DocumentId == originalDoc.Id)
+                if (args is { Kind: WorkspaceChangeKind.DocumentInfoChanged, DocumentId: originalDoc.Id })
                 {
                     tcs.SetResult(true);
                 }

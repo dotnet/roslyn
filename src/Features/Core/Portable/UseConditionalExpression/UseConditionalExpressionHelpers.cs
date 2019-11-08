@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// support both <c>if (expr) { statement }</c> and <c>if (expr) statement</c>
         /// </summary>
         public static IOperation UnwrapSingleStatementBlock(IOperation statement)
-            => statement is IBlockOperation block && block.Operations.Length == 1
-                ? block.Operations[0]
+            => statement is IBlockOperation { Operations: { Length: 1 } } block ? block.Operations[0]
                 : statement;
 
         public static IOperation UnwrapImplicitConversion(IOperation value)

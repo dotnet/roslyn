@@ -235,10 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
             }
 
-            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
-                symbol.IsConst &&
-                symbol.HasConstantValue &&
-                CanAddConstant(symbol.Type, symbol.ConstantValue))
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) && symbol is { IsConst: true, HasConstantValue: true } && CanAddConstant(symbol.Type, symbol.ConstantValue))
             {
                 AddSpace();
                 AddPunctuation(SyntaxKind.EqualsToken);

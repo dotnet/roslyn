@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeArgumentListSyntax GenerateAttributeArgumentList(AttributeData attribute)
         {
-            if (attribute.ConstructorArguments.Length == 0 && attribute.NamedArguments.Length == 0)
+            if (attribute is { ConstructorArguments: { Length: 0 }, NamedArguments: { Length: 0 } })
             {
                 return null;
             }

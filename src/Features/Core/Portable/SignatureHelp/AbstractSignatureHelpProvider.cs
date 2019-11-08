@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             foreach (var related in relatedDocuments)
             {
                 // If we don't have symbol keys, give up.
-                if (related.Item2.Any(s => (s as SymbolKeySignatureHelpItem)?.SymbolKey == null))
+                if (related.Item2.Any(s => s is SymbolKeySignatureHelpItem { SymbolKey: null }))
                 {
                     continue;
                 }

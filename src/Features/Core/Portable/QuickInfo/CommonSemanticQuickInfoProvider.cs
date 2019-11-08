@@ -191,8 +191,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             var documentationContent = GetDocumentationContent(symbols, groups, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
-            if (syntaxFactsService.IsAwaitKeyword(token) &&
-                (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
+            if (syntaxFactsService.IsAwaitKeyword(token) && symbols.First() is INamedTypeSymbol { SpecialType: SpecialType.System_Void })
             {
                 documentationContent = default;
                 showSymbolGlyph = false;

@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             var initializer = SyntaxFactory.InitializerExpression(
                 SyntaxKind.ObjectInitializerExpression, expressions).WithOpenBraceToken(openBrace);
 
-            if (objectCreation.ArgumentList != null &&
-                objectCreation.ArgumentList.Arguments.Count == 0)
+            if (objectCreation is { ArgumentList: { Arguments: { Count: 0 } } })
             {
                 objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
                                                .WithArgumentList(null);

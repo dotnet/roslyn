@@ -43,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // https://github.com/dotnet/roslyn/issues/30317 for some additional conversation about this design decision.
             //
             // We don't check if methodSymbol.ContainingType is object, in case you're overriding something that is itself an override
-            if (newOverriddenMember is IMethodSymbol methodSymbol &&
-                methodSymbol.Name == "ToString" &&
-                methodSymbol.Parameters.Length == 0)
+            if (newOverriddenMember is IMethodSymbol { Parameters: { Length: 0 }, Name: "ToString" } methodSymbol)
             {
                 newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullability(NullableAnnotation.NotAnnotated));
             }

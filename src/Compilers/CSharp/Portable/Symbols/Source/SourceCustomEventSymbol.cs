@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
 
-                    if (checkBody && !IsAbstract && accessor.Body == null && accessor.ExpressionBody == null && accessor.SemicolonToken.Kind() == SyntaxKind.SemicolonToken)
+                    if (checkBody && IsAbstract is false && accessor is { Body: null, ExpressionBody: null } && accessor.SemicolonToken.Kind() is SyntaxKind.SemicolonToken)
                     {
                         diagnostics.Add(ErrorCode.ERR_AddRemoveMustHaveBody, accessor.SemicolonToken.GetLocation());
                     }

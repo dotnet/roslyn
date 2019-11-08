@@ -198,7 +198,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
 
 #if !NETFX20
-            if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerExceptions[0].Data[s_reportedMarker] != null)
+            if (exception is AggregateException { InnerExceptions: { Count: 1 } } aggregate && aggregate.InnerExceptions[0].Data[s_reportedMarker] is
+            {
+            })
             {
                 return;
             }

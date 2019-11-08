@@ -145,10 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //  placed at the end of it such that block offset of the marker points
             //  to the next byte *after* the block is closed. In this case the marker 
             //  should be moved to the next block
-            if (_lastCompleteBlock != null &&
-                _lastCompleteBlock.BranchCode == ILOpCode.Nop &&
-                _lastCompleteBlock.LastILMarker >= 0 &&
-                _allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset == _lastCompleteBlock.RegularInstructionsLength)
+            if (_lastCompleteBlock is { BranchCode: ILOpCode.Nop } && _lastCompleteBlock.LastILMarker >= 0 && _allocatedILMarkers[_lastCompleteBlock.LastILMarker] is { BlockOffset: _lastCompleteBlock.RegularInstructionsLength })
             {
                 int startMarker = -1;
                 int endMarker = -1;

@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 _console.SetForegroundColor(ConsoleColor.Red);
 
-                if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
+                if (e is FileLoadException { InnerException: InteractiveAssemblyLoaderException _ })
                 {
                     _console.Error.WriteLine(e.InnerException.Message);
                 }

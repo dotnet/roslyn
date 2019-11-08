@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Func<Location, bool> s_isInSource = loc => loc.IsInSource;
 
         private static Func<INamedTypeSymbol, bool> s_isNonSealedClass =
-            t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
+            t => t is { TypeKind: TypeKind.Class, IsSealed: false };
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
             t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);

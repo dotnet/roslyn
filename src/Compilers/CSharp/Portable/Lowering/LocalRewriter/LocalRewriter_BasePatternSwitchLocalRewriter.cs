@@ -377,9 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int indexOfNode)
             {
                 Debug.Assert(node == nodesToLower[indexOfNode]);
-                if (node is BoundTestDecisionDagNode testNode &&
-                    testNode.WhenTrue is BoundEvaluationDecisionDagNode evaluationNode &&
-                    TryLowerTypeTestAndCast(testNode.Test, evaluationNode.Evaluation, out BoundExpression sideEffect, out BoundExpression test)
+                if (node is BoundTestDecisionDagNode
+                {
+                    WhenTrue: BoundEvaluationDecisionDagNode { } evaluationNode
+                } testNode && TryLowerTypeTestAndCast(testNode.Test, evaluationNode.Evaluation, out BoundExpression sideEffect, out BoundExpression test)
                     )
                 {
                     var whenTrue = evaluationNode.Next;

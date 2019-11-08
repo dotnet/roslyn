@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 stack.Push(ns.Name);
                 ns = ns.ContainingNamespace;
             }
-            while (ns != null && !ns.IsGlobalNamespace);
+            while (ns is { IsGlobalNamespace: false });
 
             return string.Join(".", stack);
         }

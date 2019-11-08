@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
                 ////isNew: (property != null && property.OverriddenProperty == null) || (method != null && method.OverriddenMethod == null),
-                isReadOnly: (field != null && field.IsReadOnly) || (property != null && property.IsReadOnly),
+                isReadOnly: (field is { IsReadOnly: true }) || (property != null && property.IsReadOnly),
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed,

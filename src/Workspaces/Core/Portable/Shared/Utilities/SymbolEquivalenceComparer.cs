@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private static bool IsObjectType(ISymbol symbol)
         {
-            return symbol.Kind == SymbolKind.NamedType && ((ITypeSymbol)symbol).SpecialType == SpecialType.System_Object;
+            return symbol is ITypeSymbol { SpecialType: SpecialType.System_Object, Kind: SymbolKind.NamedType };
         }
 
         private static bool CheckContainingType(IMethodSymbol x)

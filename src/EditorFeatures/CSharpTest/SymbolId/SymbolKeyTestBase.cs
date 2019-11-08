@@ -281,7 +281,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             {
                 foreach (var node in symbol.DeclaringSyntaxReferences.Select(d => d.GetSyntax()))
                 {
-                    if (node is VariableDeclaratorSyntax declarator && declarator.Initializer != null)
+                    if (node is VariableDeclaratorSyntax {
+                        Initializer: {
+                        }
+                    } declarator)
                     {
                         var model = _compilation.GetSemanticModel(declarator.SyntaxTree);
 

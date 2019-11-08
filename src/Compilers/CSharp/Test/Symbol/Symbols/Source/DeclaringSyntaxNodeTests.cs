@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             {
                 Assert.True(symbol.IsFromCompilation(compilation) || symbol is MergedNamespaceSymbol, "symbol with declaration should be in source, except for merged namespaces");
 
-                if (symbol.Kind == SymbolKind.Namespace && ((NamespaceSymbol)symbol).IsGlobalNamespace)
+                if (symbol is NamespaceSymbol { IsGlobalNamespace: true, Kind: SymbolKind.Namespace })
                 {
                     Assert.True(symbol.IsImplicitlyDeclared);
                 }

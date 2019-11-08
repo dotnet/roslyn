@@ -45,10 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
                 {
-                    if (expression.Parent != null &&
-                        expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
-                        expression.Parent.Parent != null &&
-                        expression.Parent.Parent.Kind() == SyntaxKind.VariableDeclarator)
+                    if (expression is { Parent: { Parent: { } } } && expression.Parent.Kind() is SyntaxKind.EqualsValueClause && expression.Parent.Parent.Kind() is SyntaxKind.VariableDeclarator)
                     {
                         var name = ((VariableDeclaratorSyntax)expression.Parent.Parent).Identifier.ValueText;
                         return (name != null && name.Length > 0) ? MakeMethodName("Get", name) : methodName;

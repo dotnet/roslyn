@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 if (info != null)
                 {
                     var state = await State.GenerateAsync(this, info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
-                    if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
+                    if (state is { ConstructorCandidates: { IsEmpty: false } })
                     {
                         return CreateCodeActions(document, state);
                     }

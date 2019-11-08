@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var result = FlowAnalysisAnnotations.None;
-                if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbol property)
+                if (ContainingSymbol is SourcePropertyAccessorSymbol
+                {
+                    AssociatedSymbol: SourcePropertySymbol { } property
+                } propertyAccessor)
                 {
                     if (property.HasDisallowNull)
                     {

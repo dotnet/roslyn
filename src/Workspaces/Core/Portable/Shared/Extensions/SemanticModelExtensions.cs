@@ -117,9 +117,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // type of the symbol.  built-in operators can happen when querying the semantic model
             // for operators.  However, we would prefer to just use the real operator on the type
             // if it has one.
-            if (symbol is IMethodSymbol methodSymbol &&
-                methodSymbol.MethodKind == MethodKind.BuiltinOperator &&
-                methodSymbol.ContainingType is ITypeSymbol containingType)
+            if (symbol is IMethodSymbol
+            {
+                ContainingType: ITypeSymbol { } containingType,
+                MethodKind: MethodKind.BuiltinOperator
+            } methodSymbol)
             {
                 var comparer = SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer;
 

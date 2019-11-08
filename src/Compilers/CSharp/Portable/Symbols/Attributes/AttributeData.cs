@@ -454,9 +454,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (members.Length == 1 && members[0].Kind == SymbolKind.Property)
             {
                 var property = (PropertySymbol)members[0];
-                if (property.TypeWithAnnotations.HasType && property.Type.SpecialType == SpecialType.System_String &&
-                    property.DeclaredAccessibility == Accessibility.Public && property.GetMemberArity() == 0 &&
-                    (object)property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public)
+                if (property is
+                {
+                    TypeWithAnnotations: { HasType: true },
+                    Type: { SpecialType: SpecialType.System_String },
+                    DeclaredAccessibility: Accessibility.Public,
+                    SetMethod: object { DeclaredAccessibility: Accessibility.Public }
+                }
+&& property.GetMemberArity() is 0)
                 {
                     return true;
                 }

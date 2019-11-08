@@ -588,10 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         MethodSymbol baseTypeMethod = (MethodSymbol)member;
                         Accessibility accessibility = baseTypeMethod.DeclaredAccessibility;
-                        if ((accessibility == Accessibility.ProtectedOrInternal || accessibility == Accessibility.Protected) &&
-                            baseTypeMethod.ParameterCount == 0 &&
-                            baseTypeMethod.Arity == 0 && // NOTE: the native compiler doesn't check this, so it broken IL.
-                            baseTypeMethod.ReturnsVoid) // NOTE: not checking for virtual
+                        if ((accessibility == Accessibility.ProtectedOrInternal || accessibility == Accessibility.Protected) && baseTypeMethod is { ParameterCount: 0, Arity: 0, ReturnsVoid: true }) // NOTE: not checking for virtual
                         {
                             return baseTypeMethod;
                         }

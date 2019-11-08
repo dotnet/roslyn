@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int offset, width;
 
             SyntaxToken token = node as SyntaxToken;
-            if (token != null && token.ContainsSkippedText)
+            if (token is { ContainsSkippedText: true })
             {
                 // This code exists to clean up an anti-pattern:
                 //   1) an undesirable token is parsed,

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                                                                          out info,
                                                                          isOptional: false);
 
-                if (info != null && info.Severity == DiagnosticSeverity.Error)
+                if (info is { Severity: DiagnosticSeverity.Error })
                 {
                     symbol = null;
                 }

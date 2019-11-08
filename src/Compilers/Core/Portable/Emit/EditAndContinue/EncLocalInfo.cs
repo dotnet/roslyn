@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public bool IsDefault
         {
-            get { return this.Type == null && this.Signature == null; }
+            get { return this is { Type: null, Signature: null }; }
         }
 
         public bool IsUnused

@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 // This will returns all the references, not just in the reduced form. But we will
                 // not further distinguish the usage. In the worst case, those references are redundant because
                 // they are already covered by the type references found above.
-                if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
+                if (symbol is INamedTypeSymbol { MightContainExtensionMethods: true } typeSymbol)
                 {
                     foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
                     {

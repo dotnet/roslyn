@@ -1794,9 +1794,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
                 foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
                 {
-                    if (convertedProject.path == path &&
-                        convertedProject.projectReference.EmbedInteropTypes == properties.EmbedInteropTypes &&
-                        convertedProject.projectReference.Aliases.SequenceEqual(properties.Aliases))
+                    if (convertedProject is { path: path, projectReference: { EmbedInteropTypes: properties.EmbedInteropTypes } } && convertedProject.projectReference.Aliases.SequenceEqual(properties.Aliases))
                     {
                         projectReferenceInformation.ConvertedProjectReferences.Remove(convertedProject);
                         return convertedProject.projectReference;

@@ -86,14 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(ForEachStatementInfo other)
         {
-            return this.IsAsynchronous == other.IsAsynchronous
-                && object.Equals(this.GetEnumeratorMethod, other.GetEnumeratorMethod)
-                && object.Equals(this.MoveNextMethod, other.MoveNextMethod)
-                && object.Equals(this.CurrentProperty, other.CurrentProperty)
-                && object.Equals(this.DisposeMethod, other.DisposeMethod)
-                && object.Equals(this.ElementType, other.ElementType)
-                && this.ElementConversion == other.ElementConversion
-                && this.CurrentConversion == other.CurrentConversion;
+            return this is { IsAsynchronous: other.IsAsynchronous, ElementConversion: other.ElementConversion, CurrentConversion: other.CurrentConversion } && object.Equals(this.GetEnumeratorMethod, other.GetEnumeratorMethod)
+&& object.Equals(this.MoveNextMethod, other.MoveNextMethod)
+&& object.Equals(this.CurrentProperty, other.CurrentProperty)
+&& object.Equals(this.DisposeMethod, other.DisposeMethod)
+&& object.Equals(this.ElementType, other.ElementType)
+;
         }
 
         public override int GetHashCode()

@@ -131,8 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             var symbol = LookupSymbol();
 
-            if (symbol.Kind == SymbolKind.Namespace &&
-                ((INamespaceSymbol)symbol).IsGlobalNamespace)
+            if (symbol is INamespaceSymbol { IsGlobalNamespace: true, Kind: SymbolKind.Namespace })
             {
                 // TODO: We should be returning the RootCodeModel object here.
                 throw new NotImplementedException();

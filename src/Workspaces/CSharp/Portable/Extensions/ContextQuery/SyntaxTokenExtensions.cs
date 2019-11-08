@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.UsingKeyword))
             {
                 var usingDirective = token.GetAncestor<UsingDirectiveSyntax>();
-                if (usingDirective != null &&
-                    usingDirective.UsingKeyword == token)
+                if (usingDirective is { UsingKeyword: token })
                 {
                     return true;
                 }

@@ -129,7 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(SyntaxNode node)
         {
-            if (node is BaseMethodDeclarationSyntax methodDeclaration && methodDeclaration.Body != null)
+            if (node is BaseMethodDeclarationSyntax {
+                Body: {
+                }
+            } methodDeclaration)
             {
                 return ValueTuple.Create(methodDeclaration.Body.OpenBraceToken, methodDeclaration.Body.CloseBraceToken);
             }

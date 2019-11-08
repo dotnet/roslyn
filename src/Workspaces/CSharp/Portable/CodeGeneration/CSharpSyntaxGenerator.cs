@@ -878,7 +878,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.AttributeArgument(expr);
             }
 
-            if (node is ArgumentSyntax arg && arg.Expression != null)
+            if (node is ArgumentSyntax {
+                Expression: {
+                }
+            } arg)
             {
                 return SyntaxFactory.AttributeArgument(default, arg.NameColon, arg.Expression);
             }

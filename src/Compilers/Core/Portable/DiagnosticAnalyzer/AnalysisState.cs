@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool HasPendingSyntaxAnalysis(AnalysisScope analysisScope)
         {
-            if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
+            if (analysisScope is { IsTreeAnalysis: true, IsSyntaxOnlyTreeAnalysis: false })
             {
                 return false;
             }

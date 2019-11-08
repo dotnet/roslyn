@@ -169,7 +169,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 newNode = newNode.WithTriviaFrom(oldNode);
                 return true;
             }
-            else if (nameRef.Parent is NameMemberCrefSyntax crefName && crefName.Parent is QualifiedCrefSyntax qualifiedCref)
+            else if (nameRef is
+            {
+                Parent: NameMemberCrefSyntax
+                {
+                    Parent: QualifiedCrefSyntax { } qualifiedCref
+                } crefName
+            }
+)
             {
                 // This is the case where the reference is the right most part of a qualified name in `cref`.
                 // for example, `<see cref="Foo.Baz.Bar"/>` and `<see cref="SomeAlias::Foo.Baz.Bar"/>`. 

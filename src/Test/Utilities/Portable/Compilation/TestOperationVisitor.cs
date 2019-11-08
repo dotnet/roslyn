@@ -473,8 +473,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
             // as their receivers
-            if (operation.TargetMethod.IsStatic &&
-                operation.Instance is IInstanceReferenceOperation)
+            if (operation is { TargetMethod: { IsStatic: true }, Instance: IInstanceReferenceOperation _ })
             {
                 Assert.False(operation.Instance.IsImplicit, $"Implicit {nameof(IInstanceReferenceOperation)} on {operation.Syntax}");
             }

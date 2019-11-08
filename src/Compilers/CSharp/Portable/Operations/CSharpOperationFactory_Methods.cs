@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal static Optional<object> ConvertToOptional(ConstantValue value)
         {
-            return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
+            return value is { IsBad: false } ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
         internal ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)

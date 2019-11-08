@@ -1299,8 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = BindNamespaceOrTypeSymbol(leftName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics: false).NamespaceOrTypeSymbol;
             ReportDiagnosticsIfObsolete(diagnostics, left, leftName, hasBaseReceiver: false);
 
-            bool isLeftUnboundGenericType = left.Kind == SymbolKind.NamedType &&
-                ((NamedTypeSymbol)left).IsUnboundGenericType;
+            bool isLeftUnboundGenericType = left is NamedTypeSymbol { IsUnboundGenericType: true, Kind: SymbolKind.NamedType };
 
             if (isLeftUnboundGenericType)
             {

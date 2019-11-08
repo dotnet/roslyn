@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             foreach (var attribute in attributes)
             {
                 var containingType = attribute.AttributeConstructor.ContainingType;
-                if (containingType.Name == name && containingType.ContainingNamespace.QualifiedName == namespaceName)
+                if (containingType is { Name: name, ContainingNamespace: { QualifiedName: namespaceName } })
                 {
                     return attribute;
                 }

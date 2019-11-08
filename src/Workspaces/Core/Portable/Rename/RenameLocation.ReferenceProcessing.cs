@@ -88,7 +88,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
                     var typeSymbol = (INamedTypeSymbol)symbol;
-                    if (typeSymbol.IsImplicitlyDeclared && typeSymbol.IsDelegateType() && typeSymbol.AssociatedSymbol != null)
+                    if (typeSymbol is {
+                        IsImplicitlyDeclared: true, AssociatedSymbol: {
+                        }
+                    } && typeSymbol.IsDelegateType())
                     {
                         return bestSymbolAndProjectId.WithSymbol(
                             typeSymbol.AssociatedSymbol);

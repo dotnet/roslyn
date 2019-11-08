@@ -296,9 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // It is an error to be an extension method, but we need to compute it to report it
                 var firstParam = _syntax.ParameterList.Parameters.FirstOrDefault();
-                return firstParam != null &&
-                    !firstParam.IsArgList &&
-                    firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
+                return firstParam is { IsArgList: false } && firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
             }
         }
 

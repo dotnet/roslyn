@@ -161,7 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
 
             private bool IsExpressionBodiedAccessor(SyntaxNode node)
-                => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
+                => node is AccessorDeclarationSyntax {
+                    ExpressionBody: {
+                    }
+                } accessor;
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {

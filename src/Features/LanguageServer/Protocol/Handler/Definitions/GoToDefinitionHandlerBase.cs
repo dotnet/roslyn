@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(keepThreadContext);
-                if (symbol != null && symbol.Locations != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
+                if (symbol is { Locations: { IsEmpty: false } } && symbol.Locations.First() is { IsInMetadata: true })
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {

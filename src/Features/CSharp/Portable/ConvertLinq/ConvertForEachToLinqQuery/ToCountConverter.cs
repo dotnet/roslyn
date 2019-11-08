@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         protected override bool CanReplaceInitialization(
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
-            => expression is LiteralExpressionSyntax literalExpression && literalExpression.Token.ValueText == "0";
+            => expression is LiteralExpressionSyntax { Token: { ValueText: "0" } } literalExpression;
 
         /// Input:
         /// foreach(...)

@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private bool IsSourceDefinition(IMethodSymbol method)
         {
-            return method.ContainingModule == CommonSourceModule && method.IsDefinition;
+            return method is { ContainingModule: CommonSourceModule, IsDefinition: true };
         }
 
         /// <summary>

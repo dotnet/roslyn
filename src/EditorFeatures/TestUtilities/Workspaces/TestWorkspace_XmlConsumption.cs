@@ -598,8 +598,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
 
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
-                if (outputTypeAttribute != null
-                    && outputTypeAttribute.Value == "WindowsRuntimeMetadata")
+                if (outputTypeAttribute is { Value: "WindowsRuntimeMetadata" })
                 {
                     if (rootNamespaceAttribute == null)
                     {

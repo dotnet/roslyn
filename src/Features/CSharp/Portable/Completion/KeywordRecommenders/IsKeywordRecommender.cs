@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             // cases:
             //    expr |
-            return !context.IsInNonUserCode && context.IsIsOrAsOrSwitchExpressionContext;
+            return context is { IsInNonUserCode: false, IsIsOrAsOrSwitchExpressionContext: true };
         }
     }
 }

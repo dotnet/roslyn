@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyName, Stream xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
             StreamWriter writer = null;
-            if (xmlDocStream != null && xmlDocStream.CanWrite)
+            if (xmlDocStream is { CanWrite: true })
             {
                 writer = new StreamWriter(
                     stream: xmlDocStream,

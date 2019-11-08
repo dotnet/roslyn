@@ -315,10 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationDestination destination,
             IMethodSymbol accessor)
         {
-            return destination != CodeGenerationDestination.InterfaceType &&
-                !property.IsAbstract &&
-                accessor != null &&
-                !accessor.IsAbstract;
+            return destination != CodeGenerationDestination.InterfaceType && property is { IsAbstract: false } && accessor is { IsAbstract: false };
         }
 
         private static SyntaxTokenList GenerateAccessorModifiers(

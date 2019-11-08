@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity: type.Arity);
                     result = scope.LookupMetadataType(ref mdName);
-                    Debug.Assert((object)result != null && result.Arity == type.Arity);
+                    Debug.Assert(result is object { Arity: type.Arity });
                 }
                 else
                 {

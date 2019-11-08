@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 case SymbolKind.Field:
                     var containingType = symbol.ContainingType;
-                    if (containingType != null && containingType.TypeKind == TypeKind.Enum)
+                    if (containingType is { TypeKind: TypeKind.Enum })
                     {
                         return Glyph.EnumMemberPublic;
                     }

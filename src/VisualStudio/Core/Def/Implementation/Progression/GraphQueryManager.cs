@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private static bool IsTrackingContext(WeakReference<IGraphContext> weakContext)
         {
             var context = weakContext.GetTarget();
-            return context != null && !context.CancelToken.IsCancellationRequested;
+            return context is { CancelToken: { IsCancellationRequested: false } };
         }
 
         /// <summary>

@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = ReverseLastTwoParameterOrder(result);
 
                         BoundExpression unoptimizedForm = null;
-                        if (vId != null && vId.Identifier.ValueText == x.Name)
+                        if (vId is { Identifier: { ValueText: x.Name } })
                         {
                             // The optimized form.  We store the unoptimized form for analysis
                             unoptimizedForm = result;

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             ISyntaxFactsService syntaxFacts)
         {
             var argsArgumentType = TryGetArgsArgumentType(semanticModel, arguments, parameters, syntaxFacts);
-            return argsArgumentType is IArrayTypeSymbol arrayType && arrayType.ElementType.IsReferenceType;
+            return argsArgumentType is IArrayTypeSymbol { ElementType: { IsReferenceType: true } } arrayType;
         }
 
         private ITypeSymbol TryGetArgsArgumentType(

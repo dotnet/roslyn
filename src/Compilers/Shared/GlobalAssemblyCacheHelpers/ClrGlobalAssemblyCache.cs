@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var candidates = GetAssemblyObjects(nameObject, architectureFilter);
-            string cultureName = (preferredCulture != null && !preferredCulture.IsNeutralCulture) ? preferredCulture.Name : null;
+            string cultureName = (preferredCulture is { IsNeutralCulture: false }) ? preferredCulture.Name : null;
 
             var bestMatch = FusionAssemblyIdentity.GetBestMatch(candidates, cultureName);
             if (bestMatch == null)

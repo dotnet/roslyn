@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                         {
                                             IVariableInitializerOperation initializer = variable.GetVariableInitializer();
-                                            if (initializer != null && initializer.Value.ConstantValue.HasValue)
+                                            if (initializer is { Value: { ConstantValue: { HasValue: true } } })
                                             {
                                                 mightBecomeConstLocals.Add(local);
                                             }

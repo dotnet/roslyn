@@ -1249,7 +1249,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // cannot be hit, because an invalid delegate does not have an unfixed return type
             // this will be checked earlier.
-            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
+            Debug.Assert(delegateType is
+            {
+                DelegateInvokeMethod: object { HasUseSiteError: false }
+            }
+,
                          "This method should only be called for valid delegate types.");
             var returnType = delegateType.DelegateInvokeMethod.ReturnTypeWithAnnotations;
             if (!returnType.HasType || returnType.SpecialType == SpecialType.System_Void)

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 IEnumerable<CodeActionOperation> operations = null;
 
-                if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
+                if (options is GenerateTypeOptionsResult { IsCancelled: false } generateTypeOptions)
                 {
                     var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
                     var editor = new Editor(_service, semanticDocument, _state, true, generateTypeOptions, cancellationToken);

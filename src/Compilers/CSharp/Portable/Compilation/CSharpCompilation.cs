@@ -562,8 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldOptions = this.Options;
             bool reuseReferenceManager = oldOptions.CanReuseCompilationReferenceManager(options);
-            bool reuseSyntaxAndDeclarationManager = oldOptions.ScriptClassName == options.ScriptClassName &&
-                oldOptions.SourceReferenceResolver == options.SourceReferenceResolver;
+            bool reuseSyntaxAndDeclarationManager = oldOptions is { ScriptClassName: options.ScriptClassName, SourceReferenceResolver: options.SourceReferenceResolver };
 
             return new CSharpCompilation(
                 this.AssemblyName,

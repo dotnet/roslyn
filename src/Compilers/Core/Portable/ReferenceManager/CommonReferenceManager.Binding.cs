@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < resolvedReferences.Length; i++)
             {
                 var resolvedReference = resolvedReferences[i];
-                if (!resolvedReference.IsSkipped && resolvedReference.Kind == MetadataImageKind.Module)
+                if (resolvedReference is { IsSkipped: false, Kind: MetadataImageKind.Module })
                 {
                     result[resolvedReference.Index] = i;
                 }

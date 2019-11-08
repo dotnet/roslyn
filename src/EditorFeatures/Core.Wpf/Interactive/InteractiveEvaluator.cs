@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public virtual bool CanExecuteCode(string text)
         {
-            if (_interactiveCommands != null && _interactiveCommands.InCommand)
+            if (_interactiveCommands is { InCommand: true })
             {
                 return true;
             }

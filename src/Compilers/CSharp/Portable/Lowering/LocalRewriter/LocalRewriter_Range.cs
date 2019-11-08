@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            Debug.Assert(node != null && node.MethodOpt != null);
+            Debug.Assert(node is { MethodOpt: { } });
 
             bool needLifting = false;
             var F = _factory;

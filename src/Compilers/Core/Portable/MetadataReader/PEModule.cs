@@ -1091,9 +1091,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute" || description.Name == "DoesNotReturnIfAttribute");
 
             AttributeInfo info = FindTargetAttribute(token, description);
-            if (info.HasValue &&
-                // MaybeNullWhen(bool), NotNullWhen(bool), DoesNotReturnIf(bool)
-                info.SignatureIndex == 0)
+            if (info is { HasValue: true, SignatureIndex: 0 })
             {
                 return TryExtractValueFromAttribute(info.Handle, out when, s_attributeBooleanValueExtractor);
             }

@@ -257,7 +257,7 @@ nextOldChange:
                     var oldChange = oldChanges[oldIndex];
 
 tryAgain:
-                    if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
+                    if (oldChange is { Span: { Length: 0 }, NewLength: 0 })
                     {
                         // old change is a non-change, just ignore it and move on
                         oldIndex++;

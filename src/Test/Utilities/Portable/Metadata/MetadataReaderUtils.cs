@@ -76,8 +76,7 @@ namespace Roslyn.Test.Utilities
 
         internal static bool Requires64Bits(this PEHeaders headers)
         {
-            return headers.PEHeader != null && headers.PEHeader.Magic == PEMagic.PE32Plus
-                || headers.CoffHeader.Machine == Machine.Amd64
+            return headers is { PEHeader: { Magic: PEMagic.PE32Plus } } || headers.CoffHeader.Machine == Machine.Amd64
                 || headers.CoffHeader.Machine == Machine.IA64;
         }
 

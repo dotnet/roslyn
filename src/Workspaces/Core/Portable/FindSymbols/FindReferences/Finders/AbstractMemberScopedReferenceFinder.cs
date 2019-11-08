@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return FindReferencesInContainer(symbol, container, document, semanticModel, cancellationToken);
             }
 
-            if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
+            if (symbol is { ContainingType: { IsScriptClass: true } })
             {
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();

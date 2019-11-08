@@ -29,8 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol
-                && methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
+            if (symbolInfo is
+            {
+                Symbol: IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator } methodSymbol
+            }
+)
             {
                 var operatorSpan = GetOperatorTokenSpan(syntax);
                 if (!operatorSpan.IsEmpty)

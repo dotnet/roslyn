@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             // Check if any of the parameter is of Type Dynamic
             foreach (var parameter in lambdaMethod.Parameters)
             {
-                if (parameter.Type != null && parameter.Type.Kind == SymbolKind.DynamicType)
+                if (parameter is { Type: { Kind: SymbolKind.DynamicType } })
                 {
                     return false;
                 }

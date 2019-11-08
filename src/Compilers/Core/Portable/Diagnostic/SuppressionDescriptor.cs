@@ -76,10 +76,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             return
-                other != null &&
-                this.Id == other.Id &&
-                this.SuppressedDiagnosticId == other.SuppressedDiagnosticId &&
-                this.Justification.Equals(other.Justification);
+                other is
+            {
+                } && this is { Id: other.Id, SuppressedDiagnosticId: other.SuppressedDiagnosticId } && this.Justification.Equals(other.Justification);
         }
 
         public override bool Equals(object obj)

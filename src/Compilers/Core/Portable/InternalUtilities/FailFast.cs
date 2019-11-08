@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
 #if !NETFX20
             // don't fail fast with an aggregate exception that is masking true exception
             var aggregate = exception as AggregateException;
-            if (aggregate != null && aggregate.InnerExceptions.Count == 1)
+            if (aggregate is { InnerExceptions: { Count: 1 } })
             {
                 exception = aggregate.InnerExceptions[0];
             }

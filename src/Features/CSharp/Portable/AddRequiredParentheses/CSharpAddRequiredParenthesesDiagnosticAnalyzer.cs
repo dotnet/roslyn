@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 
         protected override bool IsBinaryLike(ExpressionSyntax node)
             => node is BinaryExpressionSyntax ||
-               node is IsPatternExpressionSyntax isPattern && isPattern.Pattern is ConstantPatternSyntax;
+               node is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax _ } isPattern;
 
         protected override (ExpressionSyntax, SyntaxToken, ExpressionSyntax) GetPartsOfBinaryLike(ExpressionSyntax binaryLike)
         {

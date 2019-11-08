@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             out string name,
             out INamespaceSymbol innermostNamespace)
         {
-            if (options.GenerateMembers && options.MergeNestedNamespaces && @namespace.Name != string.Empty)
+            if (options is { GenerateMembers: true, MergeNestedNamespaces: true } && @namespace.Name != string.Empty)
             {
                 var names = new List<string>();
                 names.Add(@namespace.Name);

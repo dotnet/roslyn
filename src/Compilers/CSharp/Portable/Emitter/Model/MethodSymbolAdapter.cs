@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (!this.IsDefinition &&
-                    this.IsGenericMethod)
+                if (this is { IsDefinition: false, IsGenericMethod: true })
                 {
                     return this;
                 }

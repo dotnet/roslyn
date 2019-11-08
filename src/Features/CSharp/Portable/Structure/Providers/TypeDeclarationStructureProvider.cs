@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         {
             CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, spans);
 
-            if (!typeDeclaration.OpenBraceToken.IsMissing &&
-                !typeDeclaration.CloseBraceToken.IsMissing)
+            if (typeDeclaration is { OpenBraceToken: { IsMissing: false }, CloseBraceToken: { IsMissing: false } })
             {
                 var lastToken = typeDeclaration.TypeParameterList == null
                     ? typeDeclaration.Identifier

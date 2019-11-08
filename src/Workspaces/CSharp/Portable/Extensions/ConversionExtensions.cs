@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsIdentityOrImplicitReference(this Conversion conversion)
         {
             return conversion.IsIdentity ||
-                (conversion.IsImplicit && conversion.IsReference);
+                (conversion is { IsImplicit: true, IsReference: true });
         }
 
         public static bool IsImplicitUserDefinedConversion(this Conversion conversion)

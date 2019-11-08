@@ -122,7 +122,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 : Join(" | ", field.Kinds.Select(k => HandleTokenName(k.Name))).Parenthesize(when: field.Kinds.Count >= 2);
 
         private static Production HandleTokenName(string tokenName)
-            => GetSyntaxKind(tokenName) is var kind && kind == SyntaxKind.None ? RuleReference("SyntaxToken") :
+            => GetSyntaxKind(tokenName) is { } kind ? RuleReference("SyntaxToken") :
                SyntaxFacts.GetText(kind) is var text && text != "" ? new Production(text == "'" ? "'\\''" : $"'{text}'") :
                tokenName.StartsWith("EndOf") ? new Production("") :
                tokenName.StartsWith("Omitted") ? new Production("/* epsilon */") : RuleReference(tokenName);

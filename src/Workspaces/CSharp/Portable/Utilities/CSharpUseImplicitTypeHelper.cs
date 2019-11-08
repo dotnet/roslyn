@@ -112,7 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var variableDeclaration = (VariableDeclarationSyntax)typeName.Parent;
 
                 // implicitly typed variables cannot be constants.
-                if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
+                if (variableDeclaration is
+                {
+                    Parent: LocalDeclarationStatementSyntax { IsConst: true }
+                }
+)
                 {
                     return false;
                 }

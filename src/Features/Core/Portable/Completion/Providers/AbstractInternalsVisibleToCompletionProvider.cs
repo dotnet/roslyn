@@ -228,7 +228,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
             var constantCandidate = semanticModel.GetConstantValue(constructorArgument);
-            if (constantCandidate.HasValue && constantCandidate.Value is string argument)
+            if (constantCandidate is
+            {
+                HasValue: true,
+                Value: string { } argument
+            }
+)
             {
                 if (AssemblyIdentity.TryParseDisplayName(argument, out var assemblyIdentity))
                 {

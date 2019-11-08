@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                     case CandidateReason.WrongArity:
                         var arity = GetRightmostNameArity(node);
 
-                        if (arity.HasValue && arity.Value == 0)
+                        if (arity is { HasValue: true, Value: 0 })
                         {
                             // When the user writes something like "IList" we don't want to *not* classify 
                             // just because the type bound to "IList<T>".  This is also important for use

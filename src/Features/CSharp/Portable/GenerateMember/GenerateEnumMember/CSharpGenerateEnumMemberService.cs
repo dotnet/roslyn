@@ -31,8 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
             if (identifierToken.ValueText != string.Empty &&
                 !identifierName.IsVar)
             {
-                simpleNameOrMemberAccessExpression = identifierName.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == identifierName
-                    ? (ExpressionSyntax)memberAccess
+                simpleNameOrMemberAccessExpression = identifierName is
+                {
+                    Parent: MemberAccessExpressionSyntax { Name: identifierName } memberAccess
+                } ? (ExpressionSyntax)memberAccess
                     : identifierName;
 
                 // If we're being invoked, then don't offer this, offer generate method instead.

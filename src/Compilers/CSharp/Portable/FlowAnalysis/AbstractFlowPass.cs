@@ -1317,7 +1317,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = node.Argument as BoundMethodGroup;
             if (methodGroup != null)
             {
-                if ((object)node.MethodOpt != null && node.MethodOpt.RequiresInstanceReceiver)
+                if (node is
+                {
+                    MethodOpt: object { RequiresInstanceReceiver: true }
+                }
+)
                 {
                     if (_trackRegions)
                     {

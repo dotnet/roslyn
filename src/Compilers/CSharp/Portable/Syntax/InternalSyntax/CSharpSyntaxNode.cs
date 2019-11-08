@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static void GetDirectives(GreenNode node, List<DirectiveTriviaSyntax> directives)
         {
-            if (node != null && node.ContainsDirectives)
+            if (node is { ContainsDirectives: true })
             {
                 var d = node as DirectiveTriviaSyntax;
                 if (d != null)

@@ -167,7 +167,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 EqualsValueClauseSyntax equalsValue)
             {
-                if (equalsValue != null && equalsValue.Value != null)
+                if (equalsValue is
+                {
+                    Value: {
+                    }
+                })
                 {
                     var semanticModel = GetSemanticModel(equalsValue.SyntaxTree);
                     if (semanticModel != null)

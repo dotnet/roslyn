@@ -624,7 +624,7 @@ next:;
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             var bag = _lazyCustomAttributesBag;
-            if (bag != null && bag.IsSealed)
+            if (bag is { IsSealed: true })
             {
                 return bag;
             }

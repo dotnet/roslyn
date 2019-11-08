@@ -74,9 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override bool IsAttributeListWithAssemblyAttributes(SyntaxNode node)
         {
-            return node is AttributeListSyntax attributeList &&
-                attributeList.Target != null &&
-                attributeList.Target.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
+            return node is AttributeListSyntax { Target: { } } attributeList && attributeList.Target.Identifier.Kind() is SyntaxKind.AssemblyKeyword;
         }
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)

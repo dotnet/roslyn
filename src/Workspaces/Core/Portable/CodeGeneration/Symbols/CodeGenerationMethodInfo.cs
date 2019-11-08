@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => info?._handlesExpressions ?? ImmutableArray<SyntaxNode>.Empty;
 
         private static bool GetIsNew(CodeGenerationMethodInfo info)
-            => info != null && info._isNew;
+            => info is { _isNew: true };
 
         private static bool GetIsUnsafe(CodeGenerationMethodInfo info)
             => info != null && info._isUnsafe;

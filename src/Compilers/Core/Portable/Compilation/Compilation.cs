@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
                 options.CryptoKeyFile != null ||
                 options.DelaySign != null ||
                 !options.CryptoPublicKey.IsEmpty ||
-                (options.DelaySign == true && options.PublicSign))
+                (options is { DelaySign: true, PublicSign: true }))
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, nameof(options));
             }

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 document, spans.Single().Span.ToTextSpan(), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             Contract.ThrowIfNull(result);
 
-            if (!result.Succeeded && !result.SucceededWithSuggestion)
+            if (result is { Succeeded: false, SucceededWithSuggestion: false })
             {
                 // if it failed due to out/ref parameter in async method, try it with different option
                 var newResult = TryWithoutMakingValueTypesRef(document, spans, result, cancellationToken);

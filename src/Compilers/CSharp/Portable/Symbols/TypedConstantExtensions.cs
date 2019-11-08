@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var field = member as IFieldSymbol;
 
-                if ((object)field != null && field.HasConstantValue)
+                if (field is object { HasConstantValue: true })
                 {
                     ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue, specialType);
                     ulong memberValue = memberConstant.UInt64Value;

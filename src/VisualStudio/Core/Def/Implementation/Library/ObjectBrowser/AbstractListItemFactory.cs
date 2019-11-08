@@ -508,8 +508,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     .GetCompilationAsync(cancellationToken)
                     .WaitAndGetResult(cancellationToken);
 
-                if (compilation != null &&
-                    compilation.Assembly != null)
+                if (compilation is
+                {
+                    Assembly: {
+                    }
+                })
                 {
                     set.Add(Tuple.Create(projectId, compilation.Assembly));
 

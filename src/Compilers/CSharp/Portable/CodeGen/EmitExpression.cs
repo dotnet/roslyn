@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             object doneLabel = new object();
             LocalDefinition cloneTemp = null;
 
-            var notConstrained = !receiverType.IsReferenceType && !receiverType.IsValueType;
+            var notConstrained = receiverType is { IsReferenceType: false, IsValueType: false };
 
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once) 

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 var w = (PragmaWarningDirectiveTriviaSyntax)d;
 
                 // Ignore directives with errors (i.e., Unrecognized #pragma directive)
-                if (!w.DisableOrRestoreKeyword.IsMissing && !w.WarningKeyword.IsMissing)
+                if (w is { DisableOrRestoreKeyword: { IsMissing: false }, WarningKeyword: { IsMissing: false } })
                 {
                     directiveList.Add(w);
                 }

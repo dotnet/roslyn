@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static bool IsSourceLocation(Location location)
             {
-                return location != null && location.Kind == LocationKind.SourceFile;
+                return location is { Kind: LocationKind.SourceFile };
             }
 
             private static void ReportDiagnostics(

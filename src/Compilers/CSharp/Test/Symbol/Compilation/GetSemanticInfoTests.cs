@@ -640,7 +640,7 @@ class C {
         private void CheckIsAssignableTo(SemanticModel model, ExpressionSyntax syntax)
         {
             var info = model.GetTypeInfo(syntax);
-            var conversion = info.Type != null && info.ConvertedType != null ? model.Compilation.ClassifyConversion(info.Type, info.ConvertedType) : Conversion.NoConversion;
+            var conversion = info is { Type: { }, ConvertedType: { } } ? model.Compilation.ClassifyConversion(info.Type, info.ConvertedType) : Conversion.NoConversion;
             Assert.Equal(conversion.IsImplicit, model.Compilation.HasImplicitConversion(info.Type, info.ConvertedType));
         }
 

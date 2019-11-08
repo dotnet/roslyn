@@ -411,7 +411,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void RemoveEmptyCustomDebugInfo(XElement pdb)
         {
             RemoveElements(from e in pdb.DescendantsAndSelf()
-                           where e.Name == "customDebugInfo" && !e.HasElements
+                           where e is {
+                               Name: "customDebugInfo", HasElements: false
+                           }
                            select e);
         }
 

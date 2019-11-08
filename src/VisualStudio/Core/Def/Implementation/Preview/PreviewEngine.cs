@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private ITextView EnsureTextViewIsInitialized(object previewTextView)
         {
             // We pass in a regular ITextView in tests
-            if (previewTextView != null && previewTextView is ITextView)
+            if (previewTextView is ITextView _)
             {
                 return (ITextView)previewTextView;
             }

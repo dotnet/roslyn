@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it.
             // While we need to count the cascaded symbol definition from the named type to its constructor, we should not double count the
             // reference location for the invocation while computing references count for the named type symbol. 
-            var isImplicitReference = _queriedSymbol.Kind == SymbolKind.NamedType &&
-                                      (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+            var isImplicitReference = _queriedSymbol is { Kind: SymbolKind.NamedType } && definition is IMethodSymbol { MethodKind: MethodKind.Constructor };
             return isImplicitlyDeclared ||
                    isImplicitReference ||
                    !reference.Location.IsInSource ||

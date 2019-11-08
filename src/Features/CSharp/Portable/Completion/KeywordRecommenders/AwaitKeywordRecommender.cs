@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     if (node.IsKind(SyntaxKind.LockStatement))
                     {
                         var lockStatement = (LockStatementSyntax)node;
-                        if (lockStatement.Statement != null &&
-                            !lockStatement.Statement.IsMissing &&
-                            lockStatement.Statement.Span.Contains(position))
+                        if (lockStatement is { Statement: { IsMissing: false } } && lockStatement.Statement.Span.Contains(position))
                         {
                             return false;
                         }

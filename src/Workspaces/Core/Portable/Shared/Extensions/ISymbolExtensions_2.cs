@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool IsImplicitValueParameter([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            if (symbol is IParameterSymbol && symbol.IsImplicitlyDeclared)
+            if (symbol is IParameterSymbol { IsImplicitlyDeclared: true })
             {
                 if (symbol.ContainingSymbol is IMethodSymbol method)
                 {

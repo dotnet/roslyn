@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             var idx = hash & mask;
 
             var entry = this.entries[idx];
-            if (entry != null && entry.hash == hash && _keyComparer.Equals(entry.key, key))
+            if (entry is { hash: hash } && _keyComparer.Equals(entry.key, key))
             {
                 return false;
             }

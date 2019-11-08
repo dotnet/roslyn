@@ -450,9 +450,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 case SymbolKind.Field:
                     var fieldSymbol = (IFieldSymbol)symbol;
-                    if (!fieldSymbol.IsConst &&
-                        !fieldSymbol.IsReadOnly &&
-                        !fieldSymbol.IsStatic)
+                    if (fieldSymbol is { IsConst: false, IsReadOnly: false, IsStatic: false })
                     {
                         return fieldSymbol;
                     }

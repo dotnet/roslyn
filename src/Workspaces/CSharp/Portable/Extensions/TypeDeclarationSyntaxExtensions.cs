@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
                     {
-                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDecl && typeDecl.BaseList != null)
+                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList: { } } typeDecl)
                         {
                             baseListTypes = baseListTypes.Concat(typeDecl.BaseList.Types);
                         }

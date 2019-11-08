@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
-                    ? ImmutableArray<Location>.Empty
+                return _identifierNodeOrToken is { IsToken: true, Parent: null } ? ImmutableArray<Location>.Empty
                     : ImmutableArray.Create<Location>(_identifierNodeOrToken.GetLocation());
             }
         }

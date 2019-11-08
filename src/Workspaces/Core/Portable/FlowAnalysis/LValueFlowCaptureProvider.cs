@@ -46,8 +46,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 foreach (var flowCaptureReference in cfg.DescendantOperations<IFlowCaptureReferenceOperation>(OperationKind.FlowCaptureReference))
                 {
-                    if (flowCaptureReference.Parent is IAssignmentOperation assignment &&
-                        assignment.Target == flowCaptureReference ||
+                    if (flowCaptureReference is
+                    {
+                        Parent: IAssignmentOperation { Target: flowCaptureReference } assignment
+                    }
+||
                         flowCaptureReference.IsInLeftOfDeconstructionAssignment(out _))
                     {
                         lvalueFlowCaptureIdBuilder ??= ImmutableDictionary.CreateBuilder<CaptureId, FlowCaptureKind>();

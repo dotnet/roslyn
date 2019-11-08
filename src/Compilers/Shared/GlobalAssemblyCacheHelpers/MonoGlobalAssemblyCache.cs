@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(displayName));
             }
 
-            string cultureName = (preferredCulture != null && !preferredCulture.IsNeutralCulture) ? preferredCulture.Name : null;
+            string cultureName = (preferredCulture is { IsNeutralCulture: false }) ? preferredCulture.Name : null;
 
             var assemblyName = new AssemblyName(displayName);
             AssemblyIdentity assemblyIdentity = null;

@@ -55,8 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var languageServices = componentModel.DefaultExportProvider.GetExports<ILanguageService, LanguageServiceMetadata>();
             foreach (var languageService in languageServices)
             {
-                if (languageService.Metadata.ServiceType == serviceTypeAssemblyQualifiedName &&
-                    languageService.Metadata.Language == languageName)
+                if (languageService is
+                {
+                    Metadata: { ServiceType: serviceTypeAssemblyQualifiedName, Language: languageName }
+                }
+)
                 {
                     var unused = languageService.Value;
                     break;

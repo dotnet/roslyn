@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-            if (project != null && project.SupportsCompilation)
+            if (project is { SupportsCompilation: true })
             {
                 var symbolId = symbol.GetSymbolKey();
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

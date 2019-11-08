@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxTree = null;
             _current = null;
             _position = position;
-            if (node != null && node.ContainsDiagnostics)
+            if (node is { ContainsDiagnostics: true })
             {
                 _syntaxTree = syntaxTree;
                 _stack = new NodeIterationStack(DefaultStackCapacity);

@@ -385,7 +385,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             return null;
                         case ParenthesizedExpressionSyntax paren:
                             return paren.Expression;
-                        case IdentifierNameSyntax id when id.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node:
+                        case IdentifierNameSyntax
+                        {
+                            Parent: MemberAccessExpressionSyntax { Name: node } memberAccess
+                        } id:
                             node = memberAccess;
                             continue;
                         case ExpressionSyntax expr when expr.Parent is ConditionalAccessExpressionSyntax cond && cond.WhenNotNull == node:

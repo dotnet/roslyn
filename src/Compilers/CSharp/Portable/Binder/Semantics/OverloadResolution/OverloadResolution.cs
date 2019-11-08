@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool MemberGroupContainsOverride<TMember>(ArrayBuilder<TMember> members, TMember member)
             where TMember : Symbol
         {
-            if (!member.IsVirtual && !member.IsAbstract && !member.IsOverride)
+            if (member is { IsVirtual: false, IsAbstract: false, IsOverride: false })
             {
                 return false;
             }

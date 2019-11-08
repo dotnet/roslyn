@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol containingTypeOpt,
             IDictionary<string, ISymbol> parameterToExistingFieldMap)
         {
-            if (containingTypeOpt != null && containingTypeOpt.TypeKind == TypeKind.Struct)
+            if (containingTypeOpt is { TypeKind: TypeKind.Struct })
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
                 // to initialize all fields in the struct, not just the ones we're creating.

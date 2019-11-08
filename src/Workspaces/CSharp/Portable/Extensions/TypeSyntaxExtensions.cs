@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: true, cancellationToken);
             var firstSymbol = symbols.FirstOrDefault();
 
-            var typeSymbol = firstSymbol != null && firstSymbol.Kind == SymbolKind.Alias
-                ? (firstSymbol as IAliasSymbol).Target
+            var typeSymbol = firstSymbol is { Kind: SymbolKind.Alias } ? (firstSymbol as IAliasSymbol).Target
                 : firstSymbol as ITypeSymbol;
 
             return typeSymbol != null

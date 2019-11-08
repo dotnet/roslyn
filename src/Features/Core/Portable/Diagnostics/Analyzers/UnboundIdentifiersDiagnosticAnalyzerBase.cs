@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             foreach (var typeName in typeNames)
             {
                 var info = context.SemanticModel.GetSymbolInfo(typeName);
-                if (info.Symbol == null && info.CandidateSymbols.Length == 0)
+                if (info is { Symbol: null, CandidateSymbols: { Length: 0 } })
                 {
                     // GetSymbolInfo returns no symbols for "nameof" expression, so handle it specially.
                     if (IsNameOf(typeName))

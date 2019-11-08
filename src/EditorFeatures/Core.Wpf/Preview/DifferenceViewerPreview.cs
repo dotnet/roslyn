@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             GC.SuppressFinalize(this);
 
-            if (_viewer != null && !_viewer.IsClosed)
+            if (_viewer is { IsClosed: false })
             {
                 _viewer.Close();
             }

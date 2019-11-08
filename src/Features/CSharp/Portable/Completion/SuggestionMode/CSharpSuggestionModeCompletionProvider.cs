@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // We might be in the arguments to a parenthesized lambda
             if (token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken)
             {
-                if (token.Parent != null && token.Parent is ParameterListSyntax)
+                if (token is { Parent: ParameterListSyntax _ })
                 {
                     return token.Parent.Parent != null && token.Parent.Parent is ParenthesizedLambdaExpressionSyntax;
                 }

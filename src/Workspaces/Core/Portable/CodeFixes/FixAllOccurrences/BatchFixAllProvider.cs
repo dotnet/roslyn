@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> result)
             => (action, diagnostics) =>
                {
-                   if (action != null && action.EquivalenceKey == fixAllState.CodeActionEquivalenceKey)
+                   if (action is { EquivalenceKey: fixAllState.CodeActionEquivalenceKey })
                    {
                        result.Add((diagnostics.First(), action));
                    }

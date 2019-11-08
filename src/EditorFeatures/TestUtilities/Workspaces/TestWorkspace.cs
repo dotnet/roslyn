@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument DocumentWithCursor
-            => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
+            => Documents.Single(d => d is { CursorPosition: { HasValue: true }, IsLinkFile: false });
 
         protected override void OnDocumentTextChanged(Document document)
         {

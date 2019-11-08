@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                 if (context.Node is SimpleNameSyntax node)
                 {
                     var symbol = context.SemanticModel.GetSymbolInfo(node).Symbol;
-                    if (symbol != null && symbol.Kind == SymbolKind.Field)
+                    if (symbol is { Kind: SymbolKind.Field })
                     {
                         var diagnostic = Diagnostic.Create(Descriptor, node.GetLocation());
                         context.ReportDiagnostic(diagnostic);

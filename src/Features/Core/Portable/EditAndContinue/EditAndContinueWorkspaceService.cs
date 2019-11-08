@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     yield break;
                 }
 
-                if (change.Span.Length == 0 && change.NewText.Length == 0)
+                if (change is { Span: { Length: 0 }, NewText: { Length: 0 } })
                 {
                     continue;
                 }

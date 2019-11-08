@@ -608,9 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsSimpleArgument(SyntaxNode node)
         {
-            return node is ArgumentSyntax argument &&
-                   argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
-                   argument.NameColon == null;
+            return node is ArgumentSyntax { NameColon: null } argument && argument.RefOrOutKeyword.Kind() is SyntaxKind.None;
         }
 
         public bool IsTypeArgumentList(SyntaxNode node)

@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
 
             // C++ produces spans without columns
-            if (span.StartColumn == 0 && span.EndColumn == 0)
+            if (span is { StartColumn: 0, EndColumn: 0 })
             {
                 return new LinePositionSpan(new LinePosition(span.StartLine - 1, 0), new LinePosition(span.EndLine - 1, 0));
             }

@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var symbol = obj as SourceParameterSymbolBase;
-            return (object)symbol != null
-                && symbol.Ordinal == this.Ordinal
-                && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
+            return symbol is object { Ordinal: this.Ordinal } && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
 
         public sealed override int GetHashCode()

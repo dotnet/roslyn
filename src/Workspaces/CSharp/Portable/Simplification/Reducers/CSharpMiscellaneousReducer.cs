@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            if (parenthesizedLambda.ParameterList != null &&
-                parenthesizedLambda.ParameterList.Parameters.Count == 1)
+            if (parenthesizedLambda is { ParameterList: { Parameters: { Count: 1 } } })
             {
                 var parameter = parenthesizedLambda.ParameterList.Parameters.First();
                 if (CanRemoveTypeFromParameter(parameter, semanticModel, cancellationToken))

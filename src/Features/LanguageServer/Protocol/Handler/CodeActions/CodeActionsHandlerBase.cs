@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                                 codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
 
             // Flatten out the nested codeactions.
-            var nestedCodeActions = codeActions.Where(c => c is CodeAction.CodeActionWithNestedActions nc && nc.IsInlinable).SelectMany(nc => nc.NestedCodeActions);
+            var nestedCodeActions = codeActions.Where(c => c is CodeAction.CodeActionWithNestedActions { IsInlinable: true } nc).SelectMany(nc => nc.NestedCodeActions);
             codeActions = codeActions.Where(c => !(c is CodeAction.CodeActionWithNestedActions)).Concat(nestedCodeActions);
 
             return codeActions;

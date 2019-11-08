@@ -31,7 +31,7 @@ End Interface
             var comp = CreateEmptyCompilation(new[] { tree }, new[] { ref1 });
 
             var t = comp.GetTypeByMetadataName("I");
-            Assert.Empty(t.GetMembersUnordered().Where(x => x.Kind == SymbolKind.Method && !x.CanBeReferencedByName));
+            Assert.Empty(t.GetMembersUnordered().Where(x => x is { Kind: SymbolKind.Method, CanBeReferencedByName: false }));
             Assert.False(t.GetMembersUnordered().Where(x => x.Kind == SymbolKind.Property).First().CanBeReferencedByName); //there's only one.
         }
     }

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 // The file might not actually have a path yet, if it's a file being proposed by a code action. We'll guess a file path to use
                 if (path == null)
                 {
-                    if (document.Name != null && document.Project.FilePath != null)
+                    if (document is { Name: { }, Project: { FilePath: { } } })
                     {
                         path = Path.Combine(Path.GetDirectoryName(document.Project.FilePath), document.Name);
                     }

@@ -1827,7 +1827,11 @@ namespace Microsoft.CodeAnalysis
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
-                    if (this.Workspace is Workspace ws && ws.TestHookPartialSolutionsDisabled)
+                    if (this is
+                    {
+                        Workspace: Workspace { TestHookPartialSolutionsDisabled: true } ws
+                    }
+)
                     {
                         return this;
                     }

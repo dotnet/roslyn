@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             {
                                                 DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteDiagnostic();
 
-                                                if (useSiteDiagnostic != null && useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)
+                                                if (useSiteDiagnostic is { DefaultSeverity: DiagnosticSeverity.Error })
                                                 {
                                                     diagnostics.Add(useSiteDiagnostic, GetImplementsLocation(@interface));
                                                 }

@@ -1379,7 +1379,7 @@ class D<T>
             var symbolsInC = model.LookupSymbols(positionInC);
             var test = symbolsInC.Where(s => s.ContainingAssembly == null).ToList();
             Assert.Equal(9, symbolsInC.Where(s => s.ContainingType == null || s.ContainingType.SpecialType != SpecialType.System_Object).Count());
-            Assert.True(symbolsInC.Any(s => s.Name == "A" && s.Kind == SymbolKind.NamedType));
+            Assert.True(symbolsInC.Any(s => s is { Name: "A", Kind: SymbolKind.NamedType }));
             Assert.True(symbolsInC.Any(s => s.Name == "B" && s.Kind == SymbolKind.NamedType));
             Assert.True(symbolsInC.Any(s => s.Name == "C" && s.Kind == SymbolKind.NamedType));
             Assert.True(symbolsInC.Any(s => s.Name == "M" && s.Kind == SymbolKind.Method && s.ContainingType.Name == "A"));

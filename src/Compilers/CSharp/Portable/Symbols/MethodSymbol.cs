@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
 
             MethodSymbol m = this;
-            while (m.IsOverride && !m.HidesBaseMethodsByName)
+            while (m is { IsOverride: true, HidesBaseMethodsByName: false })
             {
                 // We might not be able to access the overridden method. For example,
                 //

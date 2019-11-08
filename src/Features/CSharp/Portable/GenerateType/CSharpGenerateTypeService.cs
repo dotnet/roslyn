@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     type = type.OriginalDefinition;
                     var typeParameter = parameterIndex < type.TypeParameters.Length ? type.TypeParameters[parameterIndex] : null;
-                    return typeParameter != null && typeParameter.HasValueTypeConstraint;
+                    return typeParameter is { HasValueTypeConstraint: true };
                 }
 
                 if (symbol is IMethodSymbol method)

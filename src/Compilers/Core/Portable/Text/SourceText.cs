@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Text
             // Checksum may be provided by a subclass, which is thus responsible for passing us a true hash.
             ImmutableArray<byte> leftChecksum = _lazyChecksum;
             ImmutableArray<byte> rightChecksum = other._lazyChecksum;
-            if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding && this.ChecksumAlgorithm == other.ChecksumAlgorithm)
+            if (leftChecksum is { IsDefault: false } && rightChecksum is { IsDefault: false } && this is { Encoding: other.Encoding, ChecksumAlgorithm: other.ChecksumAlgorithm })
             {
                 return leftChecksum.SequenceEqual(rightChecksum);
             }

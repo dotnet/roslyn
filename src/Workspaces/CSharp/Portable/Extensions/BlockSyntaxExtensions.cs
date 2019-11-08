@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out ExpressionSyntax expression,
             out SyntaxToken semicolonToken)
         {
-            if (preference != ExpressionBodyPreference.Never &&
-                block != null && block.Statements.Count == 1)
+            if (preference != ExpressionBodyPreference.Never && block is { Statements: { Count: 1 } })
             {
                 var firstStatement = block.Statements[0];
 

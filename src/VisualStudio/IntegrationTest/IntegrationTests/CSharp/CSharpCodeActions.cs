@@ -461,7 +461,7 @@ class Program
 }");
             VisualStudio.Editor.InvokeCodeActionList();
             var classifiedTokens = GetLightbulbPreviewClassification("Generate method 'Program.Foo'");
-            Assert.True(classifiedTokens.Any(c => c.Text == "void" && c.Classification == "keyword"));
+            Assert.True(classifiedTokens.Any(c => c is { Text: "void", Classification: "keyword" }));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

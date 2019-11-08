@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static async Task AddSubmissionDependentProjectsAsync(Solution solution, Project sourceProject, HashSet<DependentProject> dependentProjects, CancellationToken cancellationToken)
         {
-            var isSubmission = sourceProject != null && sourceProject.IsSubmission;
+            var isSubmission = sourceProject is { IsSubmission: true };
             if (!isSubmission)
             {
                 return;

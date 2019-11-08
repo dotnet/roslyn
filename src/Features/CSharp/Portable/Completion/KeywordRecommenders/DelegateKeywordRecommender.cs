@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                (context.IsNonAttributeExpressionContext && !context.IsConstantExpressionContext) ||
+                (context is { IsNonAttributeExpressionContext: true, IsConstantExpressionContext: false }) ||
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,

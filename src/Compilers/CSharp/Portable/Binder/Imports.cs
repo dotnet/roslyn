@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticDiagnostics.AddRange(alias.Alias.AliasTargetDiagnostics);
             }
 
-            if (_diagnostics != null && !_diagnostics.IsEmptyWithoutResolution)
+            if (_diagnostics is { IsEmptyWithoutResolution: false })
             {
                 semanticDiagnostics.AddRange(_diagnostics.AsEnumerable());
             }

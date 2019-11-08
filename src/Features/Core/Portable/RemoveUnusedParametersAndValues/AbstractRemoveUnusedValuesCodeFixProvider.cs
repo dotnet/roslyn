@@ -442,7 +442,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                     // For example, VB simple assignment statement "a = 0"
                                     nodesToRemove.Add(node.Parent);
                                 }
-                                else if (node.Parent is TExpressionSyntax && node.Parent.Parent is TExpressionStatementSyntax)
+                                else if (node is
+                                {
+                                    Parent: TExpressionSyntax { Parent: TExpressionStatementSyntax _ }
+                                }
+)
                                 {
                                     // For example, C# simple assignment statement "a = 0;"
                                     nodesToRemove.Add(node.Parent.Parent);

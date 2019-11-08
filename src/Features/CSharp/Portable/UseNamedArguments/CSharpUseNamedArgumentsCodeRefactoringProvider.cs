@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
             BaseAnalyzer<AttributeArgumentSyntax, AttributeArgumentListSyntax>
         {
             protected override bool IsPositionalArgument(AttributeArgumentSyntax argument)
-                => argument.NameColon == null && argument.NameEquals == null;
+                => argument is { NameColon: null, NameEquals: null };
 
             protected override SeparatedSyntaxList<AttributeArgumentSyntax> GetArguments(AttributeArgumentListSyntax argumentList)
                 => argumentList.Arguments;

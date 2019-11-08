@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 DiagnosticInfo useSiteDiag = member.GetUseSiteDiagnostic();
-                if ((object)useSiteDiag != null && useSiteDiag.Severity == DiagnosticSeverity.Error)
+                if (useSiteDiag is object { Severity: DiagnosticSeverity.Error })
                 {
                     diagnostics.Add(useSiteDiag, syntax.GetLocation());
                 }

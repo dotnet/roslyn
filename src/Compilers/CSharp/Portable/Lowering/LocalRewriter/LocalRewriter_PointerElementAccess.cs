@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression LowerReceiverOfPointerElementAccess(BoundExpression receiver)
         {
-            if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
+            if (receiver is BoundFieldAccess { FieldSymbol: { IsFixedSizeBuffer: true } } fieldAccess)
             {
                 var loweredFieldReceiver = VisitExpression(fieldAccess.ReceiverOpt);
                 fieldAccess = fieldAccess.Update(loweredFieldReceiver, fieldAccess.FieldSymbol, fieldAccess.ConstantValueOpt, fieldAccess.ResultKind, fieldAccess.Type);

@@ -31,7 +31,7 @@ namespace IOperationGenerator
                     error = true;
                 }
 
-                if (!abstractNode.IsInternal && abstractNode.Obsolete is null)
+                if (abstractNode is { IsInternal: false, Obsolete: null })
                 {
                     if (abstractNode.Comments?.Elements?[0].Name != "summary")
                     {

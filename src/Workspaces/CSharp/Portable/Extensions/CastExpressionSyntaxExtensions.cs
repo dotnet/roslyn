@@ -208,8 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
-                if (conversion.Exists &&
-                    conversion.IsImplicit)
+                if (conversion is { Exists: true, IsImplicit: true })
                 {
                     return false;
                 }

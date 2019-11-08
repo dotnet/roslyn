@@ -197,8 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else if (codeModelEvent.Type == CodeModelEventType.Remove)
             {
-                if (codeModelEvent.ParentNode != null &&
-                    codeModelEvent.ParentNode.Parent != null)
+                if (codeModelEvent is { ParentNode: { Parent: { } } })
                 {
                     return this.GetOrCreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.ParentNode);
                 }

@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 
         private void BuildMemberModifiers(ISymbol memberSymbol)
         {
-            if (memberSymbol.ContainingType != null && memberSymbol.ContainingType.TypeKind == TypeKind.Interface)
+            if (memberSymbol is { ContainingType: { TypeKind: TypeKind.Interface } })
             {
                 return;
             }

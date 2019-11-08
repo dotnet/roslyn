@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 if (typeParameters != null && token == typeParameters.GetLastToken(includeSkipped: true))
                 {
                     var decl = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
-                    if (decl != null && decl.TypeParameterList == typeParameters)
+                    if (decl is { TypeParameterList: typeParameters })
                     {
                         return true;
                     }

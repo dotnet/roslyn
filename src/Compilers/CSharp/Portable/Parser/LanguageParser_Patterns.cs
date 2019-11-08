@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation)
         {
-            if (this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
+            if (this is { IsInAsync: true, CurrentToken: { ContextualKind: SyntaxKind.AwaitKeyword } })
             {
                 // can't be a declaration expression.
                 return false;

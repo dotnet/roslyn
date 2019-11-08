@@ -710,7 +710,7 @@ namespace Roslyn.Test.Utilities
             }
             catch (Exception e)
             {
-                if (e is AggregateException agg && agg.InnerExceptions.Count == 1)
+                if (e is AggregateException { InnerExceptions: { Count: 1 } } agg)
                 {
                     e = agg.InnerExceptions[0];
                 }

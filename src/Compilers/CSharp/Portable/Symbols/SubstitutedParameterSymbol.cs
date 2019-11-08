@@ -52,9 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.TypeWithAnnotations);
 
-                if (substituted.CustomModifiers.IsEmpty &&
-                    this._underlyingParameter.TypeWithAnnotations.CustomModifiers.IsEmpty &&
-                    this._underlyingParameter.RefCustomModifiers.IsEmpty)
+                if (substituted is { CustomModifiers: { IsEmpty: true } } && this is
+                {
+                    _underlyingParameter: { TypeWithAnnotations: { CustomModifiers: { IsEmpty: true } }, RefCustomModifiers: { IsEmpty: true } }
+                }
+)
                 {
                     _mapOrType = substituted;
                 }

@@ -429,10 +429,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     // field that we could assign this parameter to, and it's not already
                     // been assigned to, then this field is a good candidate for us to
                     // hook up to.
-                    if (memberWithName is IFieldSymbol field &&
-                        !field.IsConst &&
-                        IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
-                        !ContainsMemberAssignment(blockStatementOpt, field))
+                    if (memberWithName is IFieldSymbol { IsConst: false } field && IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) && !ContainsMemberAssignment(blockStatementOpt, field))
                     {
                         return field;
                     }

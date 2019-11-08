@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
 
         public bool IsDefault
         {
-            get { return Span.Length == 0 && Span.Start == 0 && Text == null; }
+            get { return Span is { Length: 0, Start: 0 } && Text is null; }
         }
     }
 }

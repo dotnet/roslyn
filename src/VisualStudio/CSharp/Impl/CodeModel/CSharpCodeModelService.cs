@@ -2304,7 +2304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 // If this is a method, remove the body if it is empty.
                 if (member is MethodDeclarationSyntax method)
                 {
-                    if (method.Body != null && method.Body.Statements.Count == 0)
+                    if (method is { Body: { Statements: { Count: 0 } } })
                     {
                         member = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), SyntaxKind.SemicolonToken, method.Body.CloseBraceToken.TrailingTrivia));
                     }

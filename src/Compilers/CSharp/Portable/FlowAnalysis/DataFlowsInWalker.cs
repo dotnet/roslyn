@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             Location location)
         {
-            if (node != null && node is ReturnStatementSyntax && RegionContains(node.Span))
+            if (node is ReturnStatementSyntax _ && RegionContains(node.Span))
             {
                 _dataFlowsIn.Add(parameter);
             }

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             field = field.CorrespondingTupleField ?? field;
 
             DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-            if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+            if (useSiteInfo is object { Severity: DiagnosticSeverity.Error })
             {
                 Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
             }

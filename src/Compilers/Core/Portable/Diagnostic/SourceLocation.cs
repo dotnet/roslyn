@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return other != null && other._syntaxTree == _syntaxTree && other._span == _span;
+            return other is { _syntaxTree: _syntaxTree, _span: _span };
         }
 
         public override bool Equals(object obj)

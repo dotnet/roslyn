@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             if (m.Kind == SymbolKind.Property)
             {
                 var prop = m as IPropertySymbol;
-                return (prop.GetMethod != null && prop.GetMethod.DeclaredAccessibility == Accessibility.Public) ||
+                return (prop is { GetMethod: { DeclaredAccessibility: Accessibility.Public } }) ||
                     (prop.SetMethod != null && prop.SetMethod.DeclaredAccessibility == Accessibility.Public);
             }
 

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.ReturnsVoid || method.IsIterator || method.IsTaskReturningAsync(compilation))
             {
                 // we don't analyze synthesized void methods.
-                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
+                if ((method is { IsImplicitlyDeclared: true, IsScriptInitializer: false }) || Analyze(compilation, method, block, diagnostics))
                 {
                     block = AppendImplicitReturn(block, method, originalBodyNested);
                 }

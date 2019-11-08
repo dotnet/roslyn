@@ -48,8 +48,10 @@ namespace Microsoft.CodeAnalysis
         {
             if (ValueUsageInfoOpt.HasValue)
             {
-                return other.ValueUsageInfoOpt.HasValue &&
-                    ValueUsageInfoOpt.Value == other.ValueUsageInfoOpt.Value;
+                return other is
+                {
+                    ValueUsageInfoOpt: { HasValue: true, Value: other.ValueUsageInfoOpt.Value }
+                };
             }
 
             return other.TypeOrNamespaceUsageInfoOpt.HasValue &&

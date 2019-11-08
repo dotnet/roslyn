@@ -56,9 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             var methodDeclaration = (MethodDeclarationSyntax)node;
             identifierToken = methodDeclaration.Identifier;
 
-            if (methodDeclaration.ExplicitInterfaceSpecifier != null &&
-                !methodDeclaration.ParameterList.OpenParenToken.IsMissing &&
-                !methodDeclaration.ParameterList.CloseParenToken.IsMissing)
+            if (methodDeclaration is
+            {
+                ExplicitInterfaceSpecifier: {
+                },
+                ParameterList: { OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
+            }
+)
             {
                 var semanticModel = document.SemanticModel;
                 methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol;

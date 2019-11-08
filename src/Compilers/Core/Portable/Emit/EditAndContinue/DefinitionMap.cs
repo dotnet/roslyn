@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // to a class that has field/property initializers with lambdas. These lambdas get "copied" into the constructor
                 // (assuming it doesn't have "this" constructor initializer) and thus their generated names need to be preserved. 
 
-                if (edit.Kind == SemanticEditKind.Update && edit.PreserveLocalVariables)
+                if (edit is { Kind: SemanticEditKind.Update, PreserveLocalVariables: true })
                 {
                     var method = edit.NewSymbol as IMethodSymbol;
                     if (method != null)

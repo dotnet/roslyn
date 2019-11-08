@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 var dialog = new GenerateTypeDialog(viewModel);
                 var result = dialog.ShowModal();
 
-                if (result.HasValue && result.Value)
+                if (result is { HasValue: true, Value: true })
                 {
                     // Retain choice
                     _isNewFile = viewModel.IsNewFile;

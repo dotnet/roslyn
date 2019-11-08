@@ -390,11 +390,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
                 // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
                 // to equivalentTypesWithDifferingAssemblies map.
-                if (equivalentTypesWithDifferingAssemblies != null &&
-                    x.ContainingType == null &&
-                    x.ContainingAssembly != null &&
-                    !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.Name, y.ContainingAssembly.Name) &&
-                    !equivalentTypesWithDifferingAssemblies.ContainsKey(x))
+                if (equivalentTypesWithDifferingAssemblies is
+                {
+                } && x is {
+                    ContainingType: null, ContainingAssembly: {
+                    }
+                } && !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.Name, y.ContainingAssembly.Name) && !equivalentTypesWithDifferingAssemblies.ContainsKey(x))
                 {
                     equivalentTypesWithDifferingAssemblies.Add(x, y);
                 }

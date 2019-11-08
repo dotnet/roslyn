@@ -104,8 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return explicitImplementations.SelectAsArray(symbolAndProjectId.WithSymbol);
                 }
                 else if (
-                    symbol.DeclaredAccessibility == Accessibility.Public && !symbol.IsStatic &&
-                    (symbol.ContainingType.TypeKind == TypeKind.Class || symbol.ContainingType.TypeKind == TypeKind.Struct))
+                    symbol is { DeclaredAccessibility: Accessibility.Public, IsStatic: false } && (symbol.ContainingType.TypeKind == TypeKind.Class || symbol.ContainingType.TypeKind == TypeKind.Struct))
                 {
                     // Interface implementation is a tricky thing.  A method may implement an interface
                     // method, even if its containing type doesn't state that it implements the

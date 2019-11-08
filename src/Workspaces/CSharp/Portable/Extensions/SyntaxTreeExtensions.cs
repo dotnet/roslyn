@@ -731,8 +731,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsFullyWrittenGeneric(SyntaxToken token, SyntaxToken lessThanToken)
         {
-            return token.Parent is GenericNameSyntax genericName && genericName.TypeArgumentList != null &&
-                   genericName.TypeArgumentList.LessThanToken == lessThanToken && !genericName.TypeArgumentList.GreaterThanToken.IsMissing;
+            return token is
+            {
+                Parent: GenericNameSyntax {
+                    TypeArgumentList: { GreaterThanToken: { IsMissing: false } }, TypeArgumentList: { LessThanToken: lessThanToken }, TypeArgumentList: {
+                    }
+                } genericName
+            };
         }
     }
 }

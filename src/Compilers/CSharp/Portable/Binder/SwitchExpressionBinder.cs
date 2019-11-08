@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // nulls is the job of the nullable walker.
             foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
             {
-                if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
+                if (n is BoundLeafDecisionDagNode { Label: defaultLabel } leaf)
                 {
                     diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
                     return true;

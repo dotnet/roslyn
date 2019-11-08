@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.Extensions
             // Second, check the type and converted type of the binary expression.
             // Are they the same?
             var innerTypeInfo = semanticModel.GetTypeInfo(innerExpression);
-            if (innerTypeInfo.Type != null && innerTypeInfo.ConvertedType != null)
+            if (innerTypeInfo is {
+                Type: {
+                }, ConvertedType: {
+                }
+            })
             {
                 if (!innerTypeInfo.Type.Equals(innerTypeInfo.ConvertedType))
                 {

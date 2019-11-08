@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool IsObject(this Type type)
         {
-            bool result = type.IsClass && (type.BaseType == null) && !type.IsPointer;
+            bool result = type is { IsClass: true, IsPointer: false } && (type.BaseType == null);
             Debug.Assert(result == type.IsMscorlibType("System", "Object"));
             return result;
         }

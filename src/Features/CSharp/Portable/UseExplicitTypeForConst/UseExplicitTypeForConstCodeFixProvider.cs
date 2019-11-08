@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            if (root.FindNode(context.Span) is VariableDeclarationSyntax variableDeclaration &&
-                variableDeclaration.Variables.Count == 1)
+            if (root.FindNode(context.Span) is VariableDeclarationSyntax { Variables: { Count: 1 } } variableDeclaration)
             {
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 

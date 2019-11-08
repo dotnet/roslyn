@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 while (type != null)
                 {
                     members.AddRange(type.DeclaredFields.Where(f => !f.IsStatic));
-                    members.AddRange(type.DeclaredProperties.Where(f => f.GetMethod != null && !f.GetMethod.IsStatic));
+                    members.AddRange(type.DeclaredProperties.Where(f => f is { GetMethod: { IsStatic: false } }));
                     type = type.BaseType?.GetTypeInfo();
                 }
 

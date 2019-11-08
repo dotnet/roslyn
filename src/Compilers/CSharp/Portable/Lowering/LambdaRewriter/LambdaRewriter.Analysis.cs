@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public static Scope GetVariableDeclarationScope(Scope startingScope, Symbol variable)
             {
-                if (variable is ParameterSymbol p && p.IsThis)
+                if (variable is ParameterSymbol { IsThis: true } p)
                 {
                     return null;
                 }

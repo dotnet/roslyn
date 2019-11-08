@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
-                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+                (node is { DefaultLabel: null, Expression: { ConstantValue: null } } && IsTraditionalSwitch(node)))
             {
                 Join(ref afterSwitchState, ref initialState);
             }

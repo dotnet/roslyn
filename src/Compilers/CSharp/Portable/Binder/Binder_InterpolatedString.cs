@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
                                 var alignmentConstant = alignment.ConstantValue;
-                                if (alignmentConstant != null && !alignmentConstant.IsBad)
+                                if (alignmentConstant is { IsBad: false })
                                 {
                                     const int magnitudeLimit = 32767;
                                     // check that the magnitude of the alignment is "in range".

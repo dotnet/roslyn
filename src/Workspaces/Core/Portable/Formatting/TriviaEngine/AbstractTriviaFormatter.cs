@@ -413,9 +413,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return defaultRule;
             }
 
-            if (spaceOperation != null &&
-                spaceOperation.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
-                spaceOperation.Space == 1)
+            if (spaceOperation is { Option: AdjustSpacesOption.DefaultSpacesIfOnSingleLine, Space: 1 })
             {
                 return defaultRule;
             }

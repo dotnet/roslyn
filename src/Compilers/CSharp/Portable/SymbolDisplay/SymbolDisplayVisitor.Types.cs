@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var array = symbol as ArrayTypeSymbol;
 
-                if ((object)array != null && !array.IsSZArray)
+                if (array is object { IsSZArray: false })
                 {
                     // Always add an asterisk in this case in order to distinguish between SZArray and MDArray.
                     AddPunctuation(SyntaxKind.AsteriskToken);

@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType.WithoutNullability());
-            members = members.Where(m => IsInitializable(m, enclosing) &&
-                                         m.CanBeReferencedByName &&
-                                         IsLegalFieldOrProperty(m) &&
-                                         !m.IsImplicitlyDeclared);
+            members = members.Where(m => IsInitializable(m, enclosing) && m is { CanBeReferencedByName: true, IsImplicitlyDeclared: false } && IsLegalFieldOrProperty(m));
 
             // Filter out those members that have already been typed
             var alreadyTypedMembers = GetInitializedMembers(semanticModel.SyntaxTree, position, cancellationToken);

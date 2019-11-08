@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
 
             var lastInfo = _lastTokenInfo;
-            if (lastInfo != null && lastInfo.OptionText == optionText)
+            if (lastInfo is { OptionText: optionText })
             {
                 return lastInfo.Tokens;
             }

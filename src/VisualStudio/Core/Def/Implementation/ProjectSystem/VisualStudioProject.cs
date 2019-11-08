@@ -473,7 +473,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             // TODO: find a cleaner way to fetch this
                             var metadataReference = _workspace.CurrentSolution.GetProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                    .Single(m => m.FilePath == path && m.Properties == properties);
+                                                                                    .Single(m => m is { FilePath: path, Properties: properties });
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
 

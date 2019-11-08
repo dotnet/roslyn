@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ConstantValue constantValue = this.GetConstantValue(null, null, null);
-                return constantValue != null && !constantValue.IsBad; //can be null in error scenarios
+                return constantValue is { IsBad: false }; //can be null in error scenarios
             }
         }
 

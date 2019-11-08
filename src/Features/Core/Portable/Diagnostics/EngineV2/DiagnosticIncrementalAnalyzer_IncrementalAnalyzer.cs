@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             //
             // that can sometime cause issues. for example, if the error turns out to be syntax error (live) then we at the end fail to de-dup.
             // but since this optimization saves us a lot of refresh between live errors analysis we want to disable this only in this condition.
-            var forceUpdate = oldResult.FromBuild && oldResult.IsAggregatedForm;
+            var forceUpdate = oldResult is { FromBuild: true, IsAggregatedForm: true };
 
             var oldItems = GetResult(oldResult, kind, document.Id);
             var newItems = GetResult(newResult, kind, document.Id);

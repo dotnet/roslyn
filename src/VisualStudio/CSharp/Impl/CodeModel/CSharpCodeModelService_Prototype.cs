@@ -254,10 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             AppendVariablePrototype(builder, symbol, flags, GetName(node));
 
-            if ((flags & PrototypeFlags.Initializer) != 0 &&
-                node.Initializer != null &&
-                node.Initializer.Value != null &&
-                !node.Initializer.Value.IsMissing)
+            if ((flags & PrototypeFlags.Initializer) != 0 && node is { Initializer: { Value: { IsMissing: false } } })
             {
                 builder.Append(" = ");
                 builder.Append(node.Initializer.Value);

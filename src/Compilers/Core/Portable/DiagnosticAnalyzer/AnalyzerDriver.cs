@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteSyntaxTreeActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
+            if (analysisScope is { IsTreeAnalysis: true, IsSyntaxOnlyTreeAnalysis: false })
             {
                 // For partial analysis, only execute syntax tree actions if performing syntax analysis.
                 return;

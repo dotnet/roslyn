@@ -148,7 +148,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
 
                 // report both parts of partial methods
-                if (symbol is IMethodSymbol method && method.PartialImplementationPart != null)
+                if (symbol is IMethodSymbol {
+                    PartialImplementationPart: {
+                    }
+                } method)
                 {
                     results.Add(method);
                 }

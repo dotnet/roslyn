@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 var t = p as NamedTypeSymbol;
 
-                if ((object)t != null && t.Arity == 1)
+                if (t is object { Arity: 1 })
                 {
                     orderablePartitioner = t;
                     break;

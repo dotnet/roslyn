@@ -211,8 +211,11 @@ namespace Microsoft.CodeAnalysis
             // Verify suppression is unaffected by toggling /warnaserror.
             // Only perform this additional verification if the caller hasn't
             // explicitly overridden specific or general diagnostic options.
-            if (c.Options.GeneralDiagnosticOption == ReportDiagnostic.Default &&
-                c.Options.SpecificDiagnosticOptions.IsEmpty)
+            if (c is
+            {
+                Options: { GeneralDiagnosticOption: ReportDiagnostic.Default, SpecificDiagnosticOptions: { IsEmpty: true } }
+            }
+)
             {
                 _ = c.VerifySuppressedDiagnostics(toggleWarnAsError: true,
                     analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics,

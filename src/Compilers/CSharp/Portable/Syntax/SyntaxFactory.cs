@@ -1357,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var collection = nodes as ICollection<TNode>;
 
-            if (collection != null && collection.Count == 0)
+            if (collection is { Count: 0 })
             {
                 return default(SeparatedSyntaxList<TNode>);
             }

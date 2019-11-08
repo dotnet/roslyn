@@ -119,8 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (node is IdentifierNameSyntax id)
                 {
                     var symbolInfo = model.GetSymbolInfo(id);
-                    if (symbolInfo.Symbol is IMethodSymbol method &&
-                        method.MethodKind == MethodKind.LocalFunction)
+                    if (symbolInfo is
+                    {
+                        Symbol: IMethodSymbol { MethodKind: MethodKind.LocalFunction } method
+                    }
+)
                     {
                         return true;
                     }

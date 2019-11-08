@@ -37,8 +37,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected ImmutableArray<ISymbol> GetSymbols(IParameterSymbol parameter, int position)
         {
             // Starting from a. in the example, looking for a => a.
-            if (!(parameter.ContainingSymbol is IMethodSymbol containingMethod &&
-                containingMethod.MethodKind == MethodKind.AnonymousFunction))
+            if (!(parameter is
+            {
+                ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } containingMethod
+            }
+))
             {
                 return default;
             }

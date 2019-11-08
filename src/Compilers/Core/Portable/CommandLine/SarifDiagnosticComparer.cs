@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
-            Debug.Assert(x.Description != null && x.Title != null && x.CustomTags != null);
+            Debug.Assert(x is { Description: { }, Title: { }, CustomTags: { } });
             Debug.Assert(y.Description != null && y.Title != null && y.CustomTags != null);
 
             return (x.Category == y.Category

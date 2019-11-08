@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static DirectiveStack ApplyDirectivesToTrivia(GreenNode triviaList, DirectiveStack stack)
         {
-            if (triviaList != null && triviaList.ContainsDirectives)
+            if (triviaList is { ContainsDirectives: true })
             {
                 return ApplyDirectivesToListOrNode(triviaList, stack);
             }

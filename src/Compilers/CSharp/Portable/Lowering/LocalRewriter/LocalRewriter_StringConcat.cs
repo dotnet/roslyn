@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     var boundCall = (BoundCall)lowered;
                     var method = boundCall.Method;
-                    if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
+                    if (method is { IsStatic: true, ContainingType: { SpecialType: SpecialType.System_String } })
                     {
                         if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
                             (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||

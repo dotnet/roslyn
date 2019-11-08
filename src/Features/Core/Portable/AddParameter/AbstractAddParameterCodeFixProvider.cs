@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgument);
                     var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgument);
 
-                    if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
+                    if (argumentTypeInfo is { Type: null, ConvertedType: null })
                     {
                         // Didn't know the type of the argument.  We shouldn't assume it doesn't
                         // match a parameter.  However, if the user wrote 'null' and it didn't

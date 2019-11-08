@@ -66,8 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 var statementToUpdateIndex = originalBlock.Statements.IndexOf(s => topmostUsingStatements.Contains(s));
                 var statementToUpdate = currentBlock.Statements[statementToUpdateIndex];
 
-                if (statementToUpdate is UsingStatementSyntax usingStatement &&
-                    usingStatement.Declaration != null)
+                if (statementToUpdate is UsingStatementSyntax {
+                    Declaration: {
+                    }
+                } usingStatement)
                 {
                     var updatedStatements = currentBlock.Statements.ReplaceRange(
                         statementToUpdate,

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             // If the Dashboard is focused, just navigate through its UI.
             var dashboard = GetDashboard(args.TextView);
-            if (dashboard != null && dashboard.ShouldReceiveKeyboardNavigation)
+            if (dashboard is { ShouldReceiveKeyboardNavigation: true })
             {
                 dashboard.FocusNextElement();
                 return;

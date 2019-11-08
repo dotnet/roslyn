@@ -330,8 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
 
                     // TODO: improve the comparison mechanism for generic types.
-                    if (typeSym.Kind == SymbolKind.NamedType &&
-                        ((NamedTypeSymbol)typeSym).IsGenericType)
+                    if (typeSym is NamedTypeSymbol { IsGenericType: true, Kind: SymbolKind.NamedType })
                     {
                         var s1 = typeSym.ToDisplayString(SymbolDisplayFormat.TestFormat);
                         var s2 = expected.ToString();

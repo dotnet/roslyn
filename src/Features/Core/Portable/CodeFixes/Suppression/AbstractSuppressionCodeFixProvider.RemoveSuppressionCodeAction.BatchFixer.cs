@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
                     var pragmaDiagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
 
-                    foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && d.IsSuppressed))
+                    foreach (var diagnostic in diagnostics.Where(d => d is { Location: { IsInSource: true }, IsSuppressed: true }))
                     {
                         var span = diagnostic.Location.SourceSpan;
                         var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(

@@ -206,8 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var contextLocation = location as Location;
 
-            var contextTree = contextLocation != null && contextLocation.IsInSource
-                ? contextLocation.SourceTree
+            var contextTree = contextLocation is
+            {
+                IsInSource: true
+            } ? contextLocation.SourceTree
                 : null;
 
             return contextTree?.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;

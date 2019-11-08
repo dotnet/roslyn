@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewritten = base.InstrumentReturnStatement(original, rewritten);
 
-            if (original.WasCompilerGenerated && original.ExpressionOpt == null && original.Syntax.Kind() == SyntaxKind.Block)
+            if (original is { WasCompilerGenerated: true, ExpressionOpt: null } && original.Syntax.Kind() is SyntaxKind.Block)
             {
                 // implicit return added by the compiler
                 return new BoundSequencePointWithSpan(original.Syntax, rewritten, ((BlockSyntax)original.Syntax).CloseBraceToken.Span);

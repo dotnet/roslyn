@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public PullMembersUpOptions CreatePullMemberUpOptions()
         {
             var selectedOptionFromDialog = Members.
-                Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
+                Where(memberSymbolView => memberSymbolView is { IsChecked: true, IsCheckable: true }).
                 SelectAsArray(memberViewModel =>
                     (member: memberViewModel.Symbol,
                     makeAbstract: memberViewModel.IsMakeAbstractCheckable && memberViewModel.MakeAbstract));

@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    if (symbol is LocalSymbol local && local.IsConst)
+                    if (symbol is LocalSymbol { IsConst: true } local)
                     {
                         // consts aren't captured since they're inlined
                         return;

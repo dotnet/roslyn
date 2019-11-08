@@ -178,8 +178,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
            parameter.Equals(parameterReference.Parameter);
 
         protected static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
+            => operation is IConversionOperation {
+                IsImplicit: true
+            } conversion ? conversion.Operand
                 : operation;
 
         protected static bool ContainsParameterReference(

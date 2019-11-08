@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (this.IsDefinition &&
-                this.ContainingModule == moduleBeingBuilt.SourceModule)
+            if (this is { IsDefinition: true, ContainingModule: moduleBeingBuilt.SourceModule })
             {
                 return this;
             }

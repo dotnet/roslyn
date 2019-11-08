@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
         {
-            return argument.NameColon != null && !argument.NameColon.IsMissing;
+            return argument is { NameColon: { IsMissing: false } };
         }
 
         protected override string GetNamedArgumentIdentifierValueText(ArgumentSyntax argument)

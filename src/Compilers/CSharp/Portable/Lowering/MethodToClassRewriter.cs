@@ -654,8 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool BaseReferenceInReceiverWasRewritten(BoundExpression originalReceiver, BoundExpression rewrittenReceiver)
         {
-            return originalReceiver != null && originalReceiver.Kind == BoundKind.BaseReference &&
-                   rewrittenReceiver != null && rewrittenReceiver.Kind != BoundKind.BaseReference;
+            return originalReceiver is { Kind: BoundKind.BaseReference } && rewrittenReceiver is { } && rewrittenReceiver.Kind != BoundKind.BaseReference;
         }
 
         /// <summary>

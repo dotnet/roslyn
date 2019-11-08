@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var token = root.FindToken(index, findInsideTrivia: true);
 
                 var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
+                if (token is { IsMissing: false } && span is { Start: index, Length: text.Length } && candidate(token))
                 {
                     result.Add(token);
                 }

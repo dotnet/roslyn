@@ -372,7 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         break;
 
                     case EnvDTE.vsCMPart.vsCMPartNavigate:
-                        if (node.Body != null && !node.Body.OpenBraceToken.IsMissing)
+                        if (node is { Body: { OpenBraceToken: { IsMissing: false } } })
                         {
                             var line = text.Lines.GetLineFromPosition(node.SpanStart);
                             var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(GetTabSize(options));

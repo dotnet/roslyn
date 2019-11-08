@@ -70,8 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                     // on the left side of an 'x is pat' expression
                     parentExpression = isPatternExpression;
                     break;
-
-                case ConstantPatternSyntax constantPattern when constantPattern.Parent is IsPatternExpressionSyntax isPatternExpression:
+                case ConstantPatternSyntax
+                {
+                    Parent: IsPatternExpressionSyntax { } isPatternExpression
+                } constantPattern:
                     // on the right side of an 'x is const_pattern' expression
                     parentExpression = isPatternExpression;
                     break;

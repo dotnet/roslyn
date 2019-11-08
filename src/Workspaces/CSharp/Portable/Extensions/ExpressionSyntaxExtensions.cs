@@ -223,7 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return
                 IsLeftSideOfQualifiedName(expression) ||
-                (expression.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
+                (expression is
+            {
+                Parent: MemberAccessExpressionSyntax { Expression: expression }
+            }
+);
         }
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)

@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     items.Add(GetItem(ValueElementName));
                 }
 
-                var returns = symbol is IMethodSymbol method && !method.ReturnsVoid;
+                var returns = symbol is IMethodSymbol { ReturnsVoid: false } method;
                 if (returns && !existingTopLevelTags.Contains(ReturnsElementName))
                 {
                     items.Add(GetItem(ReturnsElementName));

@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.RemoveReturns();
 
-            if (currentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
+            if (currentSymbol is MethodSymbol { IsImplicitlyDeclared: false, IsAsync: true } currentMethod)
             {
                 var foundAwait = result.Any(pending => HasAwait(pending));
                 if (!foundAwait)

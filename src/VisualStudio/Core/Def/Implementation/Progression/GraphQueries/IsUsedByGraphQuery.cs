@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         var projectId = graphBuilder.GetContextProject(node).Id;
 
                         var allLocations = referencedSymbol.Locations.Concat(reference.Locations.Select(r => r.Location))
-                                                                     .Where(l => l != null && l.IsInSource);
+                                                                     .Where(l => l is { IsInSource: true });
 
                         foreach (var location in allLocations)
                         {

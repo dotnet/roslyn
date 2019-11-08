@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Text
         public bool Equals(TextChangeRange other)
         {
             return
-                other.Span == this.Span &&
-                other.NewLength == this.NewLength;
+                other is { Span: this.Span, NewLength: this.NewLength };
         }
 
         /// <summary>

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     var preview = _previewService.GetSolutionPreviews(
                         oldSolution, newSolution, cancellationToken);
 
-                    if (preview != null && !preview.IsEmpty)
+                    if (preview is { IsEmpty: false })
                     {
                         currentResult = SolutionPreviewResult.Merge(currentResult, preview);
                         continue;

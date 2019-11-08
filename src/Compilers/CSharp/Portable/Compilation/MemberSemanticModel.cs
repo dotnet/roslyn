@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
 
-            while (binder != null && !binder.IsLabelsScopeBinder)
+            while (binder is { IsLabelsScopeBinder: false })
             {
                 binder = binder.Next;
             }

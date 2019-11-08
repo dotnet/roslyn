@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public bool HasUnfinishedRegion()
         {
             var prev = GetPreviousIfElifElseOrRegion(_directives);
-            return prev != null && prev.Any() && prev.Head.Kind == SyntaxKind.RegionDirectiveTrivia;
+            return prev is { Head: { Kind: SyntaxKind.RegionDirectiveTrivia } } && prev.Any();
         }
 
         public DirectiveStack Add(Directive directive)

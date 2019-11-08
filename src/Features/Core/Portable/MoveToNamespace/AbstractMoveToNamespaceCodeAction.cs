@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
             // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
-            if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&
-                !moveToNamespaceOptions.IsCancelled &&
-                !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
+            if (options is MoveToNamespaceOptionsResult { IsCancelled: false } moveToNamespaceOptions && !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
             {
                 var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                     _moveToNamespaceAnalysisResult,

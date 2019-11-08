@@ -224,9 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Get the source symbol if possible
                 var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
-                if (sourceSymbol.Kind == SymbolKind.Field &&
-                    ((IFieldSymbol)sourceSymbol).ContainingType.IsTupleType &&
-                    sourceSymbol.IsImplicitlyDeclared)
+                if (sourceSymbol is IFieldSymbol { ContainingType: { IsTupleType: true }, Kind: SymbolKind.Field, IsImplicitlyDeclared: true })
                 {
                     // should not rename Item1, Item2...
                     // when user did not declare them in source.

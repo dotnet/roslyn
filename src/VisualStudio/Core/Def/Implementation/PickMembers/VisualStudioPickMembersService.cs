@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             var dialog = new PickMembersDialog(viewModel, title);
             var result = dialog.ShowModal();
 
-            if (result.HasValue && result.Value)
+            if (result is { HasValue: true, Value: true })
             {
                 return new PickMembersResult(
                     viewModel.MemberContainers.Where(c => c.IsChecked)

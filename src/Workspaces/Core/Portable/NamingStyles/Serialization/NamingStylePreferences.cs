@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             var methodElements = rootElement
                 .Descendants()
-                .Where(e => e.Name.LocalName == "SymbolKind" && e.Value == "Method").ToList();
+                .Where(e => e is { Name: { LocalName: "SymbolKind" }, Value: "Method" }).ToList();
 
             foreach (var element in methodElements)
             {

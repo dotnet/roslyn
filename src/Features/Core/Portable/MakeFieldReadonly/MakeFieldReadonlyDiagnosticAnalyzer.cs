@@ -101,13 +101,16 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
 
                 static bool IsCandidateField(IFieldSymbol symbol) =>
-                        symbol.DeclaredAccessibility == Accessibility.Private &&
-                        !symbol.IsReadOnly &&
-                        !symbol.IsConst &&
-                        !symbol.IsImplicitlyDeclared &&
-                        symbol.Locations.Length == 1 &&
-                        symbol.Type.IsMutableValueType() == false &&
-                        !symbol.IsFixedSizeBuffer;
+                        symbol is
+                {
+                    DeclaredAccessibility: Accessibility.Private,
+                    IsReadOnly: false,
+                    IsConst: false,
+                    IsImplicitlyDeclared: false,
+                    Locations: { Length: 1 },
+                    IsFixedSizeBuffer: false
+                }
+&& symbol.Type.IsMutableValueType() is false;
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)

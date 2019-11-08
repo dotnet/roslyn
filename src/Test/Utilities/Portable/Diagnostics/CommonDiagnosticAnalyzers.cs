@@ -1695,7 +1695,7 @@ namespace Microsoft.CodeAnalysis
                         yield return symbol;
                         symbol = symbol.ContainingSymbol;
                     }
-                    while (symbol != null && !symbol.IsImplicitlyDeclared);
+                    while (symbol is { IsImplicitlyDeclared: false });
                 }
 
                 void verifySymbolStartOrdering(SymbolStartAnalysisContext symbolStartContext)

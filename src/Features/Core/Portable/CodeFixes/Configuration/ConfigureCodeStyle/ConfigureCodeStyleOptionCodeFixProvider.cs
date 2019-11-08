@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         AddCodeActionWithOptionValue(codeStyleOption, boolValue);
                     }
                 }
-                else if (codeStyleOption.Value?.GetType() is Type t && t.IsEnum)
+                else if (codeStyleOption.Value?.GetType() is Type { IsEnum: true } t)
                 {
                     foreach (var enumValue in Enum.GetValues(t))
                     {

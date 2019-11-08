@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 return implementationsAndOverrides.ToImmutableArray();
             }
-            else if ((symbol as INamedTypeSymbol)?.TypeKind == TypeKind.Class)
+            else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class })
             {
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
                     (INamedTypeSymbol)symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);

@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
 
-                return baseType.TypeKind == TypeKind.Class && baseType.SpecialType == SpecialType.System_Object;
+                return baseType is { TypeKind: TypeKind.Class, SpecialType: SpecialType.System_Object };
             }
 
             return false;

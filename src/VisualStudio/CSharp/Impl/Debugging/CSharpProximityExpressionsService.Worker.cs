@@ -91,8 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             {
                 return IsFirstBlockStatement()
                     ? (BlockSyntax)_parentStatement.Parent
-                    : _parentStatement is BlockSyntax && ((BlockSyntax)_parentStatement).OpenBraceToken == _token
-                        ? (BlockSyntax)_parentStatement
+                    : _parentStatement is BlockSyntax { OpenBraceToken: _token } ? (BlockSyntax)_parentStatement
                         : null;
             }
 

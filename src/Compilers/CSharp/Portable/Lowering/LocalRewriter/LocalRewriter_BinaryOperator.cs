@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
-            for (BoundBinaryOperator current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
+            for (BoundBinaryOperator current = node; current is { ConstantValue: null }; current = current.Left as BoundBinaryOperator)
             {
                 stack.Push(current);
             }

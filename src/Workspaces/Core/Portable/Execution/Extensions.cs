@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // filePath will point to actual file on disk, but in memory solultion, or
             // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
             // Make sure we return only if given filePath is in right form.
-            if (info.FilePath == null && info.OutputFilePath == null)
+            if (info is { FilePath: null, OutputFilePath: null })
             {
                 // return empty since that is what IDE does for this case
                 // see AbstractProject.GetStrongNameKeyPaths

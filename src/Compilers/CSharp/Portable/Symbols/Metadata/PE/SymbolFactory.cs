@@ -96,8 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Let's return unsupported metadata type if any argument is unsupported metadata type 
             foreach (var arg in arguments)
             {
-                if (arg.Key.Kind == SymbolKind.ErrorType &&
-                    arg.Key is UnsupportedMetadataTypeSymbol)
+                if (arg is
+                {
+                    Key: UnsupportedMetadataTypeSymbol { Kind: SymbolKind.ErrorType }
+                }
+)
                 {
                     return new UnsupportedMetadataTypeSymbol();
                 }

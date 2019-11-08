@@ -170,15 +170,17 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(DiagnosticDescriptor other)
         {
             return
-                other != null &&
-                this.Category == other.Category &&
-                this.DefaultSeverity == other.DefaultSeverity &&
-                this.Description.Equals(other.Description) &&
-                this.HelpLinkUri == other.HelpLinkUri &&
-                this.Id == other.Id &&
-                this.IsEnabledByDefault == other.IsEnabledByDefault &&
-                this.MessageFormat.Equals(other.MessageFormat) &&
-                this.Title.Equals(other.Title);
+                other is
+            {
+                } && this is
+            {
+                Category: other.Category,
+                DefaultSeverity: other.DefaultSeverity,
+                HelpLinkUri: other.HelpLinkUri,
+                Id: other.Id,
+                IsEnabledByDefault: other.IsEnabledByDefault
+            }
+&& this.Description.Equals(other.Description) && this.MessageFormat.Equals(other.MessageFormat) && this.Title.Equals(other.Title);
         }
 
         public override bool Equals(object obj)

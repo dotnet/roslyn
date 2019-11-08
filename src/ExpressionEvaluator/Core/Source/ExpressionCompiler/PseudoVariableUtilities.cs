@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(alias.Kind != DkmClrAliasKind.ReturnValue ||
                 alias.FullName.StartsWith("$ReturnValue", StringComparison.OrdinalIgnoreCase));
             return
-                alias.Kind == DkmClrAliasKind.ReturnValue &&
-                alias.FullName.Length == ReturnValuePrefixLength;
+                alias is { Kind: DkmClrAliasKind.ReturnValue, FullName: { Length: ReturnValuePrefixLength } };
         }
     }
 }
