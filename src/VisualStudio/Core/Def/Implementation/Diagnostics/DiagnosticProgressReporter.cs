@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         #endregion
 
-        #region Fields Protected By UI Serialization Task
+        #region Fields protected by _updateUITask 
 
         /// <summary>
         /// Task used to ensure serialization of UI updates.
