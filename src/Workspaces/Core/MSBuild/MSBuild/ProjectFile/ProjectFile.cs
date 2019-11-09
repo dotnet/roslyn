@@ -56,13 +56,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
                 // each value, and build the project.
 
-                var hasTargetFrameworkProp = _loadedProject.GetProperty(PropertyNames.TargetFramework) != null;
                 var targetFrameworks = targetFrameworksValue.Split(';');
                 var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(targetFrameworks.Length);
 
                 foreach (var targetFramework in targetFrameworks)
                 {
-                    _loadedProject.SetProperty(PropertyNames.TargetFramework, targetFramework);
+                    _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
                     _loadedProject.ReevaluateIfNecessary();
 
                     var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
@@ -70,18 +69,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     results.Add(projectFileInfo);
                 }
 
-                // Remove the <TargetFramework> property if it didn't exist in the file before we set it.
-                // Otherwise, set it back to it's original value.
-                if (!hasTargetFrameworkProp)
-                {
-                    var targetFrameworkProp = _loadedProject.GetProperty(PropertyNames.TargetFramework);
-                    _loadedProject.RemoveProperty(targetFrameworkProp);
-                }
-                else
-                {
-                    _loadedProject.SetProperty(PropertyNames.TargetFramework, targetFrameworkValue);
-                }
-
+                _loadedProject.RemoveGlobalProperty(PropertyNames.TargetFramework);
                 _loadedProject.ReevaluateIfNecessary();
 
                 return results.ToImmutable();
