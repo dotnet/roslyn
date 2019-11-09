@@ -46,7 +46,7 @@ variables:
     value: 529
 
   # .NET Core 3.1 Blazor Features
-  - name: NetCore_31_Blazor_Features
+  - name: NetCore_31_Blazor_Features_Channel_Id
     value: 531
 
   # Whether the build is internal or not
