@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
                 else
                 {
-                    throw new InvalidOperationException("syntaxNode must be a MethodDeclarationSyntax or LocalFunctionStatementSyntax.");
+                    throw new NotSupportedException("SyntaxNode expected to be a MethodDeclarationSyntax or LocalFunctionStatementSyntax.");
                 }
 
                 static bool ReturnOperationBelongsToMethod(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax)
