@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var annotationResolver = GetAnnotationResolver(callsite, method);
                 var triviaResolver = GetTriviaResolver(method);
-
                 if (annotationResolver == null || triviaResolver == null)
                 {
                     // bug # 6644

@@ -132,11 +132,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public bool ReuseSyntax { get; }
 
-        /// <summary>
-        /// True if the code generator should attempt to add the static modifier to members if possible.
-        /// </summary>
-        public bool GenerateStaticModifier { get; }
-
         public ParseOptions ParseOptions { get; }
 
         public CodeGenerationOptions(

@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
                 document,
                 textSpan,
                 extractLocalMethod: true,
-                preferStatic: preferStatic,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 

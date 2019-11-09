@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected readonly bool ExtractLocalFunction;
 
-
             protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool extractLocalFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);

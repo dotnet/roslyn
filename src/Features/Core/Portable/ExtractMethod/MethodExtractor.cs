@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected readonly SelectionResult OriginalSelectionResult;
         protected readonly bool ExtractLocalFunction;
-        protected readonly bool PreferStaticFunction;
 
         public MethodExtractor(SelectionResult selectionResult, bool extractLocalFunction = false)
         {
