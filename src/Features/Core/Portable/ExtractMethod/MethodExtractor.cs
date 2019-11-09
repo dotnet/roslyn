@@ -17,12 +17,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected readonly bool ExtractLocalFunction;
         protected readonly bool PreferStaticFunction;
 
-        public MethodExtractor(SelectionResult selectionResult, bool extractLocalFunction = false, bool preferStatic = true)
+        public MethodExtractor(SelectionResult selectionResult, bool extractLocalFunction = false)
         {
             Contract.ThrowIfNull(selectionResult);
             OriginalSelectionResult = selectionResult;
             ExtractLocalFunction = extractLocalFunction;
-            PreferStaticFunction = preferStatic;
         }
 
         protected abstract Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken);

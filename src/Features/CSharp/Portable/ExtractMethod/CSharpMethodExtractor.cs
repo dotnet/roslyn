@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result, bool extractLocalFunction = false, bool preferStatic = true)
-            : base(result, extractLocalFunction, preferStatic)
+        public CSharpMethodExtractor(CSharpSelectionResult result, bool extractLocalFunction = false)
+            : base(result, extractLocalFunction)
         {
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken)
         {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, ExtractLocalFunction, PreferStaticFunction, cancellationToken);
+            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, ExtractLocalFunction, cancellationToken);
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)

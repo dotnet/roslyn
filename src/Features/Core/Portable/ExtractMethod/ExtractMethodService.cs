@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         public static Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, bool extractLocalMethod = false, bool preferStatic = true, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            return document.GetLanguageService<IExtractMethodService>().ExtractMethodAsync(document, textSpan, extractLocalMethod, preferStatic, options, cancellationToken);
+            return document.GetLanguageService<IExtractMethodService>().ExtractMethodAsync(document, textSpan, extractLocalMethod, options, cancellationToken);
         }
     }
 }

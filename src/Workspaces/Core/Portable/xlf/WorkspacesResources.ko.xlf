@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Destination_type_must_be_a_0_1_2_3_or_4_but_given_one_is_5">
-        <source>Destination type must be a {0}, {1} or {2}, {3} or {4}, but given one is {5}.</source>
-        <target state="new">Destination type must be a {0}, {1} or {2}, {3} or {4}, but given one is {5}.</target>
+        <source>Destination type must be a {0}, {1}, {2}, {3} or {4}, but given one is {5}.</source>
+        <target state="new">Destination type must be a {0}, {1}, {2}, {3} or {4}, but given one is {5}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">

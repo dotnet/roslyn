@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -169,8 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
+            var preferStaticFunction = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
+
             var localMethodDeclaration = SyntaxFactory.LocalFunctionStatement(
-                modifiers: GenerateModifiers(method, destination, options),
+                modifiers: GenerateModifiers(method, destination, options, preferStaticFunction),
                 returnType: method.GenerateReturnTypeSyntax(),
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
@@ -251,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxTokenList GenerateModifiers(
-            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options, bool preferStaticFunction = true)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
                     }
 
-                    if (method.IsStatic && options.GenerateStaticModifier)
+                    if (method.IsStatic && preferStaticFunction)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }

@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly bool ExtractLocalFunction;
-            protected readonly bool PreferStaticFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool extractLocalFunction = false, bool preferStatic = true)
+
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool extractLocalFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 AnalyzerResult = analyzerResult;
 
                 ExtractLocalFunction = extractLocalFunction;
-                PreferStaticFunction = preferStatic;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
                 CallSiteAnnotation = new SyntaxAnnotation();
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
-                        new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, generateStaticModifier: PreferStaticFunction),
+                        new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true),
                         cancellationToken);
                 }
                 else
