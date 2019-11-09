@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private MetadataShadowCopyProvider _metadataFileProvider;
             private ReplServiceProvider _replServiceProvider;
             private InteractiveScriptGlobals _globals;
+            private CultureInfo _culture;
 
             // Session is not thread-safe by itself, and the compilation
             // and execution of scripts are asynchronous operations.
@@ -155,11 +156,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(_assemblyLoader == null);
                 Debug.Assert(_replServiceProvider == null);
 
+                _culture = new CultureInfo(cultureName);
+
                 // TODO (tomat): we should share the copied files with the host
                 _metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
-                    documentationCommentsCulture: new CultureInfo(cultureName));
+                    documentationCommentsCulture: _culture);
 
                 _assemblyLoader = new InteractiveAssemblyLoader(_metadataFileProvider);
 
@@ -843,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 foreach (var diagnostic in displayedDiagnostics)
                 {
-                    output.WriteLine(formatter.Format(diagnostic, output.FormatProvider as CultureInfo));
+                    output.WriteLine(formatter.Format(diagnostic, _culture));
                 }
 
                 if (diagnostics.Length > MaxErrorCount)

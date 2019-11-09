@@ -937,7 +937,7 @@ OK
             Execute("new Process()");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
+{initFile.Path}(1,3): error CS1002: { ErrorFacts.GetMessage(ErrorCode.ERR_SemicolonExpected, CultureInfo.InvariantCulture) }
 ", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
@@ -994,8 +994,25 @@ WriteLine(new Complex(2, 6).Real);
         {
             Execute("nameof(Microsoft.Missing)");
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+(1,8): error CS0234: { string.Format(ErrorFacts.GetMessage(ErrorCode.ERR_DottedTypeNameNotFoundInNS, CultureInfo.InvariantCulture), "Missing", "Microsoft") }",
     ReadErrorOutputToEnd());
+
+            Assert.Equal("", ReadOutputToEnd());
+        }
+
+        [Theory]
+        [InlineData("fr-FR")]
+        [InlineData("es-ES")]
+        public void LocalizedDiagnostics(string cultureName)
+        {
+            var culture = CultureInfo.GetCultureInfo(cultureName);
+            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: culture)).Wait();
+
+            Execute("nameof(Microsoft.Missing)");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+(1,8): error CS0234: { string.Format(ErrorFacts.GetMessage(ErrorCode.ERR_DottedTypeNameNotFoundInNS, culture), "Missing", "Microsoft") }",
+                ReadErrorOutputToEnd());
 
             Assert.Equal("", ReadOutputToEnd());
         }
