@@ -17,7 +17,7 @@ stages:
   - job:
     displayName: Symbol Publishing
     dependsOn: setupMaestroVars
-    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.NetCore_31_Blazor_Features))
+    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.NetCore_31_Blazor_Features_Channel_Id))
     variables:
       - group: DotNet-Symbol-Server-Pats
     pool:
@@ -68,7 +68,7 @@ stages:
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.BARBuildId'] ]
       - name: IsStableBuild
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.IsStableBuild'] ]
-    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.NetCore_31_Blazor_Features))
+    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.NetCore_31_Blazor_Features_Channel_Id))
     pool:
       vmImage: 'windows-2019'
     steps:
@@ -140,4 +140,4 @@ stages:
 
       - template: ../../steps/promote-build.yml
         parameters:
-          ChannelId: ${{ variables.NetCore_31_Blazor_Features }}
+          ChannelId: ${{ variables.NetCore_31_Blazor_Features_Channel_Id }}
