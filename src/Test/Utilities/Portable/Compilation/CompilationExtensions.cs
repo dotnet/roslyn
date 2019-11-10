@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this Compilation comp,
             EmitOptions options = null,
             bool embedInteropTypes = false,
-            ImmutableArray<string> aliases = default(ImmutableArray<string>),
+            ImmutableArray<string> aliases = default,
             DiagnosticDescription[] expectedWarnings = null)
         {
             var image = comp.EmitToArray(options, expectedWarnings: expectedWarnings);
@@ -116,34 +117,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ISymbol> allAddedSymbols = null,
             CompilationTestData testData = null)
         {
-            testData = testData ?? new CompilationTestData();
+            testData ??= new CompilationTestData();
             var isAddedSymbol = new Func<ISymbol, bool>(s => allAddedSymbols?.Contains(s) ?? false);
 
-            var pdbName = Path.ChangeExtension(compilation.SourceModule.Name, "pdb");
+            using var mdStream = new MemoryStream();
+            using var ilStream = new MemoryStream();
+            using var pdbStream = new MemoryStream();
 
-            using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
-            {
-                var updatedMethods = new List<MethodDefinitionHandle>();
+            var updatedMethods = new List<MethodDefinitionHandle>();
 
-                var result = compilation.EmitDifference(
-                    baseline,
-                    edits,
-                    isAddedSymbol,
-                    mdStream,
-                    ilStream,
-                    pdbStream,
-                    updatedMethods,
-                    testData,
-                    default(CancellationToken));
+            var result = compilation.EmitDifference(
+                baseline,
+                edits,
+                isAddedSymbol,
+                mdStream,
+                ilStream,
+                pdbStream,
+                updatedMethods,
+                testData,
+                CancellationToken.None);
 
-                return new CompilationDifference(
-                    mdStream.ToImmutable(),
-                    ilStream.ToImmutable(),
-                    pdbStream.ToImmutable(),
-                    testData,
-                    result,
-                    updatedMethods.ToImmutableArray());
-            }
+            return new CompilationDifference(
+                mdStream.ToImmutable(),
+                ilStream.ToImmutable(),
+                pdbStream.ToImmutable(),
+                testData,
+                result,
+                updatedMethods.ToImmutableArray());
         }
 
         internal static void VerifyAssemblyVersionsAndAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)

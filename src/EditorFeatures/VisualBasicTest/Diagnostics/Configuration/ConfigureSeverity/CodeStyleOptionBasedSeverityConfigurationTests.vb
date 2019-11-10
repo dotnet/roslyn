@@ -90,7 +90,7 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:none
@@ -217,7 +217,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:suggestion
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:none
@@ -253,7 +253,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -281,7 +281,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:none
+dotnet_style_object_initializer = true:none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -413,7 +413,7 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:silent
@@ -540,7 +540,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:suggestion
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:silent
@@ -576,7 +576,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -604,7 +604,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:silent
+dotnet_style_object_initializer = true:silent
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -736,7 +736,7 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -863,7 +863,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:warning
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -899,7 +899,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:warning
+dotnet_style_object_initializer = true:warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -927,7 +927,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1059,7 +1059,7 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:warning
@@ -1186,7 +1186,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:suggestion
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:warning
@@ -1222,7 +1222,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1250,7 +1250,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:warning
+dotnet_style_object_initializer = true:warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1382,7 +1382,7 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:error
@@ -1509,7 +1509,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:suggestion
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:error
@@ -1545,7 +1545,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1573,7 +1573,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:error
+dotnet_style_object_initializer = true:error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"

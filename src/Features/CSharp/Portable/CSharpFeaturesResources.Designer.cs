@@ -485,11 +485,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; expression.
         /// </summary>
-        internal static string Convert_to_switch {
+        internal static string Convert_to_switch_expression {
             get {
-                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
+                return ResourceManager.GetString("Convert_to_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; statement.
+        /// </summary>
+        internal static string Convert_to_switch_statement {
+            get {
+                return ResourceManager.GetString("Convert_to_switch_statement", resourceCulture);
             }
         }
         
@@ -1016,6 +1025,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pass in captured variables as arguments.
+        /// </summary>
+        internal static string Pass_in_captured_variables_as_arguments {
+            get {
+                return ResourceManager.GetString("Pass_in_captured_variables_as_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -1066,15 +1084,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ref_local_or_expression {
             get {
                 return ResourceManager.GetString("ref_local_or_expression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to R&amp;emove and Sort Usings.
-        /// </summary>
-        internal static string Remove_and_Sort_Usings {
-            get {
-                return ResourceManager.GetString("Remove_and_Sort_Usings", resourceCulture);
             }
         }
         
@@ -1246,15 +1255,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Sort_accessibility_modifiers {
             get {
                 return ResourceManager.GetString("Sort_accessibility_modifiers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Sort Usings.
-        /// </summary>
-        internal static string Sort_Usings {
-            get {
-                return ResourceManager.GetString("Sort_Usings", resourceCulture);
             }
         }
         
@@ -1549,6 +1549,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Adding parameters to local function declaration may produce invalid code..
+        /// </summary>
+        internal static string Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code {
+            get {
+                return ResourceManager.GetString("Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid" +
+                        "_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Moving using directives may change code meaning..
         /// </summary>
         internal static string Warning_colon_Moving_using_directives_may_change_code_meaning {
@@ -1563,6 +1573,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Warning_Extracting_a_local_function_reference_may_produce_invalid_code {
             get {
                 return ResourceManager.GetString("Warning_Extracting_a_local_function_reference_may_produce_invalid_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Inlining temporary into conditional method call..
+        /// </summary>
+        internal static string Warning_Inlining_temporary_into_conditional_method_call {
+            get {
+                return ResourceManager.GetString("Warning_Inlining_temporary_into_conditional_method_call", resourceCulture);
             }
         }
         

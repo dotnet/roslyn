@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Determine what we can learn from one successful runtime type test about another planned
         /// runtime type test for the purpose of building the decision tree.
-        /// We accomodate a special behavior of the runtime here, which does not match the language rules.
+        /// We accommodate a special behavior of the runtime here, which does not match the language rules.
         /// A value of type `int[]` is an "instanceof" (i.e. result of the `isinst` instruction) the type
         /// `uint[]` and vice versa.  It is similarly so for every pair of same-sized numeric types, and
         /// arrays of enums are considered to be their underlying type.  We need the dag construction to
@@ -1036,8 +1036,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                        patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
                        sz1 == sz2 && r1 == r2)
                 {
-                    e1 = e1.EnumUnderlyingType();
-                    e2 = e2.EnumUnderlyingType();
+                    e1 = e1.EnumUnderlyingTypeOrSelf();
+                    e2 = e2.EnumUnderlyingTypeOrSelf();
                     switch (e1.SpecialType, e2.SpecialType)
                     {
                         // The following support CLR behavior that is required by

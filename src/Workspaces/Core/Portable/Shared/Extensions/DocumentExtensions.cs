@@ -1,39 +1,51 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
-        public static TLanguageService GetLanguageService<TLanguageService>(this TextDocument document) where TLanguageService : class, ILanguageService
+        // ⚠ Verify IVTs do not use this method before removing it.
+        public static TLanguageService? GetLanguageService<TLanguageService>(this Document? document) where TLanguageService : class, ILanguageService
             => document?.Project?.LanguageServices?.GetService<TLanguageService>();
 
-        // ⚠ Verify IVTs do not use this method before removing it.
-        public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
-            => document?.Project?.LanguageServices?.GetService<TLanguageService>();
+        public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
+            => document.Project.LanguageServices.GetRequiredService<TLanguageService>();
+
+        public static async Task<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxTree == null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+            }
+
+            return syntaxTree;
+        }
 
         public static bool IsOpen(this Document document)
         {
             var workspace = document.Project.Solution.Workspace as Workspace;
             return workspace != null && workspace.IsDocumentOpen(document.Id);
         }
-
-#nullable enable
 
         /// <summary>
         /// this will return either regular semantic model or speculative semantic based on context. 
@@ -66,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var node = token.Parent.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
-            return (await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false))!;
+            return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -103,19 +115,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return document.GetSemanticModelAsync(cancellationToken)!;
             }
 
-            return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken)!;
+            return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);
         }
 
-#nullable restore
-
 #if DEBUG
-        public static async Task<bool> HasAnyErrorsAsync(this Document document, CancellationToken cancellationToken, List<string> ignoreErrorCode = null)
+        public static async Task<bool> HasAnyErrorsAsync(this Document document, CancellationToken cancellationToken, List<string>? ignoreErrorCode = null)
         {
             var errors = await GetErrorsAsync(document, cancellationToken, ignoreErrorCode).ConfigureAwait(false);
             return errors.Length > 0;
         }
 
-        public static async Task<ImmutableArray<Diagnostic>> GetErrorsAsync(this Document document, CancellationToken cancellationToken, IList<string> ignoreErrorCode = null)
+        public static async Task<ImmutableArray<Diagnostic>> GetErrorsAsync(this Document document, CancellationToken cancellationToken, IList<string>? ignoreErrorCode = null)
         {
             if (!document.SupportsSemanticModel)
             {
@@ -124,14 +134,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             ignoreErrorCode ??= SpecializedCollections.EmptyList<string>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
+            return semanticModel!.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
                 diag => diag.Severity == DiagnosticSeverity.Error && !ignoreErrorCode.Contains(diag.Id));
         }
 
         /// <summary>
         /// Debug only extension method to verify no errors were introduced by formatting, pretty listing and other related document altering service in error-free code.
         /// </summary>
-        public static async Task VerifyNoErrorsAsync(this Document newDocument, string message, CancellationToken cancellationToken, List<string> ignoreErrorCodes = null)
+        public static async Task VerifyNoErrorsAsync(this Document newDocument, string message, CancellationToken cancellationToken, List<string>? ignoreErrorCodes = null)
         {
             var errors = await newDocument.GetErrorsAsync(cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
             if (errors.Length > 0)
@@ -174,13 +184,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
-            => SyntaxTreeIndex.GetIndexAsync(document, cancellationToken);
+            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
+
+        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
+            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 
         /// <summary>
         /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model
         /// is only guaranteed to contain the syntax tree for <paramref name="document"/> and nothing else.
         /// </summary>
-        public static async Task<SemanticModel> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        public static async Task<SemanticModel?> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
             if (document.Project.TryGetCompilation(out var compilation))
             {
@@ -202,6 +215,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
+        }
+
+        public static async Task<SemanticModel> RequireSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return model ?? throw new InvalidOperationException();
         }
     }
 }

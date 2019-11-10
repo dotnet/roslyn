@@ -428,7 +428,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var moniker = monikers[0];
                 moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
-                // FullDisplayName will look something like: <ProgID>:<ProccessId>
+                // FullDisplayName will look something like: <ProgID>:<ProcessId>
                 var displayNameParts = fullDisplayName.Split(':');
                 if (!int.TryParse(displayNameParts.Last(), out var displayNameProcessId))
                 {

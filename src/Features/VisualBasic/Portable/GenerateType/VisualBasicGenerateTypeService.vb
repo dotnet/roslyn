@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End If
 
             Dim memberGroup = semanticModel.GetMemberGroup(expression, cancellationToken)
-            If memberGroup.Count <> 0 Then
+            If memberGroup.Length <> 0 Then
                 Return If(memberGroup.ElementAt(0).IsKind(SymbolKind.Method), DirectCast(memberGroup.ElementAt(0), IMethodSymbol), Nothing)
             End If
 

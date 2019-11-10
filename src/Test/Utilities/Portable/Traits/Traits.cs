@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
+            public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
@@ -239,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Peek = nameof(Peek);
             public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
+            public const string SarifErrorLogging = nameof(SarifErrorLogging);
             public const string QuickInfo = nameof(QuickInfo);
             public const string RQName = nameof(RQName);
             public const string ReduceTokens = nameof(ReduceTokens);
@@ -265,6 +267,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Venus = nameof(Venus);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
+            public const string VsSearch = nameof(VsSearch);
             public const string WinForms = nameof(WinForms);
             public const string Workspace = nameof(Workspace);
             public const string XmlTagCompletion = nameof(XmlTagCompletion);

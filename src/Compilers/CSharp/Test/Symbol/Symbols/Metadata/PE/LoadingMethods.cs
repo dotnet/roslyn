@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal("void TC10.M1()", localM1.ToTestDisplayString());
             Assert.True(localM1.ReturnsVoid);
             Assert.Equal(Accessibility.Public, localM1.DeclaredAccessibility);
-            Assert.Same(module2, localM1.Locations.Single().MetadataModule);
+            Assert.Same(module2, localM1.Locations.Single().MetadataModuleInternal);
 
             Assert.Equal("void TC10.M2(System.Int32 m1_1)", localM2.ToTestDisplayString());
             Assert.True(localM2.ReturnsVoid);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.False(basicC1_M1.Parameters[0].IsOptional);
             Assert.False(basicC1_M1.Parameters[0].HasExplicitDefaultValue);
-            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModule);
+            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModuleInternal);
 
             Assert.True(basicC1_M2.Parameters[0].IsOptional);
             Assert.False(basicC1_M2.Parameters[0].HasExplicitDefaultValue);
@@ -1344,7 +1344,7 @@ class P
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var method = type.GetMember<MethodSymbol>("M");
-            Assert.NotNull(method.ReturnTypeWithAnnotations);
+            Assert.False(method.ReturnTypeWithAnnotations.IsDefault);
         }
 
         [Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")]

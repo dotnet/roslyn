@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption<ExpressionBodyPreference> value)
         {
-            Debug.Assert(value.Notification != null);
-
             var notificationString = value.Notification.ToEditorConfigString();
             return value.Value switch
             {
@@ -75,8 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption<AddImportPlacement> value)
         {
-            Debug.Assert(value.Notification != null);
-
             var notificationString = value.Notification.ToEditorConfigString();
             return value.Value switch
             {
@@ -116,8 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption<PreferBracesPreference> value)
         {
-            Debug.Assert(value.Notification != null);
-
             var notificationString = value.Notification.ToEditorConfigString();
             return value.Value switch
             {

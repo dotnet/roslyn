@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -159,16 +159,23 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
-                return RecoverRoot(stream, cancellationToken);
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken))
+                {
+                    using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
+                    return RecoverRoot(stream, cancellationToken);
+                }
             }
 
             protected override TRoot Recover(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(_storage);
 
-                using var stream = _storage.ReadStream(cancellationToken);
-                return RecoverRoot(stream, cancellationToken);
+                var tickCount = Environment.TickCount;
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken))
+                {
+                    using var stream = _storage.ReadStream(cancellationToken);
+                    return RecoverRoot(stream, cancellationToken);
+                }
             }
 
             private TRoot RecoverRoot(Stream stream, CancellationToken cancellationToken)
@@ -180,6 +187,8 @@ namespace Microsoft.CodeAnalysis.Host
 
     internal interface IRecoverableSyntaxTree<TRoot> where TRoot : SyntaxNode
     {
+        string FilePath { get; }
+
         TRoot CloneNodeAsRoot(TRoot root);
     }
 }

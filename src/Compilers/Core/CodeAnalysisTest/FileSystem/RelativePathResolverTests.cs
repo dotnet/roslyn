@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
 
             path = resolver.ResolvePath(@"\" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"/" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@".", baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@".\" + fileName, baseFilePath: null);
             Assert.Equal(subFilePath, path);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(dotted, path);
 
             path = resolver.ResolvePath(@"..", baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"..\" + fileName, baseFilePath: null);
             Assert.Equal(filePath, path);
@@ -70,17 +70,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
 
             path = resolver.ResolvePath(@"C:\" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"C:/" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(filePath, baseFilePath: null);
             Assert.Equal(filePath, path);
 
             // drive-relative paths not supported:
             path = resolver.ResolvePath(drive + ":" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             // \abc\def
             string rooted = filePath.Substring(2);

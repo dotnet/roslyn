@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol, nullableAnnotationOpt: null, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // null indicates the default format
             format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol, nullableAnnotation, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol.WithNullableAnnotation(nullableAnnotation), semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol, nullableAnnotationOpt: null, semanticModel, position, format, minimal: true);
+            return ToDisplayParts(symbol, semanticModel, position, format, minimal: true);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol, nullableAnnotation, semanticModel, position, format, minimal: true);
+            return ToDisplayParts(symbol.WithNullableAnnotation(nullableAnnotation), semanticModel, position, format, minimal: true);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -194,14 +194,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format,
             bool minimal)
         {
-            // https://github.com/dotnet/roslyn/issues/35035: Refactor this. We need to be able to handle non-TypeSymbol inputs
-            var annotation = (CodeAnalysis.NullableAnnotation?)TypeWithState.Create((TypeSymbol)symbol, nullableFlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToPublicAnnotation();
-            return ToDisplayParts(symbol, annotation, semanticModelOpt, positionOpt, format, minimal);
+            return ToDisplayParts(symbol.WithNullableAnnotation(StateToAnnotation(nullableFlowState)), semanticModelOpt, positionOpt, format, minimal);
+        }
+
+        private static CodeAnalysis.NullableAnnotation StateToAnnotation(CodeAnalysis.NullableFlowState nullableFlowState)
+        {
+            switch (nullableFlowState)
+            {
+                case CodeAnalysis.NullableFlowState.MaybeNull:
+                    return CodeAnalysis.NullableAnnotation.Annotated;
+                case CodeAnalysis.NullableFlowState.NotNull:
+                    return CodeAnalysis.NullableAnnotation.NotAnnotated;
+                default:
+                    return CodeAnalysis.NullableAnnotation.None;
+            }
         }
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ISymbol symbol,
-            CodeAnalysis.NullableAnnotation? nullableAnnotationOpt,
             SemanticModel semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
@@ -211,8 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw new ArgumentNullException(nameof(symbol));
             }
-
-            Debug.Assert(!nullableAnnotationOpt.HasValue || symbol is ITypeSymbol);
 
             if (minimal)
             {
@@ -233,14 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
             var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
-            if (nullableAnnotationOpt.HasValue)
-            {
-                visitor.VisitWithNullableAnnotation((TypeSymbol)symbol, nullableAnnotationOpt.GetValueOrDefault().ToInternalAnnotation());
-            }
-            else
-            {
-                symbol.Accept(visitor);
-            }
+            symbol.Accept(visitor);
 
             return builder.ToImmutableAndFree();
         }

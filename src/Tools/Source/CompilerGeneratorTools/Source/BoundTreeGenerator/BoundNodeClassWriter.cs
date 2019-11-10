@@ -748,6 +748,11 @@ namespace BoundTreeGenerator
             return AllFields(node).Where(field => TypeIsTypeSymbol(field));
         }
 
+        private IEnumerable<Field> AllSymbolOrSymbolListFields(TreeType node)
+        {
+            return AllFields(node).Where(field => TypeIsSymbol(field) || (IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType)));
+        }
+
         private NullHandling FieldNullHandling(TreeType node, string fieldName)
         {
             Field f = GetField(node, fieldName);
@@ -982,7 +987,7 @@ namespace BoundTreeGenerator
                 var format = TypeIsTypeSymbol(field)
                                 ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
                                 : TypeIsSymbol(field)
-                                    ? "!SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
+                                    ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
                                     : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
@@ -991,7 +996,8 @@ namespace BoundTreeGenerator
 
         private static bool TypeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
 
-        private static bool TypeIsSymbol(Field field) => field.Type.TrimEnd('?').EndsWith("Symbol");
+        private static bool TypeIsSymbol(Field field) => TypeIsSymbol(field.Type);
+        private static bool TypeIsSymbol(string type) => type.TrimEnd('?').EndsWith("Symbol");
 
         private string StripBound(string name)
         {
@@ -1200,7 +1206,7 @@ namespace BoundTreeGenerator
                                     Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
                                 else if (IsListOfDerived("BoundNode", field.Type))
                                 {
-                                    if (IsImmutableArray(field.Type) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
+                                    if (IsImmutableArray(field.Type, out _) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
                                     {
                                         Write("new TreeDumperNode(\"{0}\", null, from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
@@ -1411,15 +1417,18 @@ namespace BoundTreeGenerator
                         Brace();
 
                         var updatedNullabilities = "_updatedNullabilities";
-                        var updatedMethodSymbols = "_updatedSymbols";
+                        var snapshotManager = "_snapshotManager";
+                        var remappedSymbols = "_remappedSymbols";
                         WriteLine($"private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> {updatedNullabilities};");
-                        WriteLine($"private readonly ImmutableDictionary<(BoundNode, Symbol), Symbol> {updatedMethodSymbols};");
+                        WriteLine($"private readonly NullableWalker.SnapshotManager? {snapshotManager};");
+                        WriteLine($"private readonly ImmutableDictionary<Symbol, Symbol>.Builder {remappedSymbols};");
 
                         Blank();
-                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedSymbols)");
+                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, NullableWalker.SnapshotManager? snapshotManager, ImmutableDictionary<Symbol, Symbol>.Builder remappedSymbols)");
                         Brace();
                         WriteLine($"{updatedNullabilities} = updatedNullabilities;");
-                        WriteLine($"{updatedMethodSymbols} = updatedSymbols;");
+                        WriteLine($"{snapshotManager} = snapshotManager;");
+                        WriteLine($"{remappedSymbols} = remappedSymbols;");
                         Unbrace();
 
                         foreach (var node in _tree.Types.OfType<Node>())
@@ -1429,7 +1438,7 @@ namespace BoundTreeGenerator
                             var allSpecifiableFields = AllSpecifiableFields(node).ToList();
                             var isExpression = IsDerivedType("BoundExpression", node.Name);
 
-                            if (!isExpression && !allSpecifiableFields.Any(f => symbolIsPotentiallyUpdated(f)))
+                            if (!isExpression && !allSpecifiableFields.Any(f => symbolIsPotentiallyUpdated(f) || immutableArrayIsPotentiallyUpdated(f)))
                             {
                                 continue;
                             }
@@ -1438,6 +1447,21 @@ namespace BoundTreeGenerator
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
+
+                            foreach (var field in AllSymbolOrSymbolListFields(node))
+                            {
+                                if (symbolIsPotentiallyUpdated(field))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = GetUpdatedSymbol(node, node.{field.Name});");
+                                    hadField = true;
+                                }
+                                else if (immutableArrayIsPotentiallyUpdated(field))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = GetUpdatedArray(node, node.{field.Name});");
+                                    hadField = true;
+                                }
+                            }
+
                             foreach (var field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
@@ -1499,7 +1523,11 @@ namespace BoundTreeGenerator
                                     allSpecifiableFields,
                                     field =>
                                     {
-                                        if (IsDerivedOrListOfDerived("BoundNode", field.Type))
+                                        if (SkipInNullabilityRewriter(field))
+                                        {
+                                            return $"node.{field.Name}";
+                                        }
+                                        else if (IsDerivedOrListOfDerived("BoundNode", field.Type))
                                         {
                                             return ToCamelCase(field.Name);
                                         }
@@ -1507,9 +1535,9 @@ namespace BoundTreeGenerator
                                         {
                                             return "infoAndType.Type";
                                         }
-                                        else if (symbolIsPotentiallyUpdated(field))
+                                        else if (symbolIsPotentiallyUpdated(field) || immutableArrayIsPotentiallyUpdated(field))
                                         {
-                                            return $"GetUpdatedSymbol(node, node.{field.Name})";
+                                            return $"{ToCamelCase(field.Name)}";
                                         }
                                         else
                                         {
@@ -1529,9 +1557,16 @@ namespace BoundTreeGenerator
 
                                 if (f.Name == "Type") return false;
 
-                                switch (f.Type.TrimEnd('?'))
+                                return typeIsUpdated(f.Type);
+                            }
+
+                            bool immutableArrayIsPotentiallyUpdated(Field field) =>
+                                IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
+
+                            static bool typeIsUpdated(string type)
+                            {
+                                switch (type.TrimEnd('?'))
                                 {
-                                    case "LocalSymbol":
                                     case "LabelSymbol":
                                     case "GeneratedLabelSymbol":
                                     case "AliasSymbol":
@@ -1563,17 +1598,23 @@ namespace BoundTreeGenerator
             return IsNodeList(derivedType) && IsDerivedType(baseType, GetElementType(derivedType));
         }
 
-        private bool IsImmutableArray(string typeName)
+        private bool IsImmutableArray(string typeName, out string elementType)
         {
-            switch (_targetLang)
+            string immutableArrayPrefix = _targetLang switch
             {
-                case TargetLanguage.CSharp:
-                    return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
-                case TargetLanguage.VB:
-                    return typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);
-                default:
-                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+                TargetLanguage.CSharp => "ImmutableArray<",
+                TargetLanguage.VB => "ImmutableArray(Of ",
+                _ => throw new InvalidOperationException($"Unknown target language {_targetLang}")
+            };
+
+            if (typeName.StartsWith(immutableArrayPrefix, StringComparison.Ordinal))
+            {
+                elementType = typeName[immutableArrayPrefix.Length..^1];
+                return true;
             }
+
+            elementType = null;
+            return false;
         }
 
         private bool IsNodeList(string typeName)
@@ -1712,6 +1753,11 @@ namespace BoundTreeGenerator
         private static bool SkipInNullabilityRewriter(Node n)
         {
             return string.Compare(n.SkipInNullabilityRewriter, "true", true) == 0;
+        }
+
+        private static bool SkipInNullabilityRewriter(Field f)
+        {
+            return string.Compare(f.SkipInNullabilityRewriter, "true", ignoreCase: true) == 0;
         }
 
         private string ToCamelCase(string name)

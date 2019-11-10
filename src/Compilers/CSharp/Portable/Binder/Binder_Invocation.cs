@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalCandidates.ToImmutableAndFree();
         }
 
-        private void CheckRestrictedTypeReceiver(BoundExpression expression, Compilation compilation, DiagnosticBag diagnostics)
+        private void CheckRestrictedTypeReceiver(BoundExpression expression, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -1269,6 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             args = BuildArgumentsForErrorRecovery(analyzedArguments, methods);
             var argNames = analyzedArguments.GetNames();
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+            receiver = BindToTypeForErrorRecovery(receiver);
             return BoundCall.ErrorCall(node, receiver, method, args, argNames, argRefKinds, isDelegate, invokedAsExtensionMethod: invokedAsExtensionMethod, originalMethods: methods, resultKind: resultKind, binder: this);
         }
 
@@ -1324,23 +1325,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
-            // Since the purpose is to bind any unbound arguments, we return early if there are none.
-            if (!analyzedArguments.Arguments.Any(e => (object)e.Type == null))
-            {
-                return analyzedArguments.Arguments.ToImmutable();
-            }
-
+            var discardedDiagnostics = DiagnosticBag.GetInstance();
             int argumentCount = analyzedArguments.Arguments.Count;
             ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
             newArguments.AddRange(analyzedArguments.Arguments);
             for (int i = 0; i < argumentCount; i++)
             {
                 var argument = newArguments[i];
-                if ((object)argument.Type != null)
-                {
-                    continue;
-                }
-
                 switch (argument.Kind)
                 {
                     case BoundKind.UnboundLambda:
@@ -1369,26 +1360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             }
 
-                            // See if all applicable applicable parameters have the same type
-                            TypeSymbol candidateType = null;
-                            foreach (var parameterList in parameterListList)
-                            {
-                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                                if ((object)parameterType != null)
-                                {
-                                    if ((object)candidateType == null)
-                                    {
-                                        candidateType = parameterType;
-                                    }
-                                    else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
-                                    {
-                                        // type mismatch
-                                        candidateType = null;
-                                        break;
-                                    }
-                                }
-                            }
-
+                            var candidateType = getCorrespondingParameterType(i);
                             if (argument.Kind == BoundKind.OutVariablePendingInference)
                             {
                                 if ((object)candidateType == null)
@@ -1419,10 +1391,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                             newArguments[i] = ((OutDeconstructVarPendingInference)argument).FailInference(this);
                             break;
                         }
+                    case BoundKind.Parameter:
+                    case BoundKind.Local:
+                        {
+                            newArguments[i] = BindToTypeForErrorRecovery(argument);
+                            break;
+                        }
+                    default:
+                        {
+                            newArguments[i] = BindToTypeForErrorRecovery(argument, getCorrespondingParameterType(i));
+                            break;
+                        }
                 }
             }
 
+            discardedDiagnostics.Free();
             return newArguments.ToImmutableAndFree();
+
+            TypeSymbol getCorrespondingParameterType(int i)
+            {
+                // See if all applicable applicable parameters have the same type
+                TypeSymbol candidateType = null;
+                foreach (var parameterList in parameterListList)
+                {
+                    var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                    if ((object)parameterType != null)
+                    {
+                        if ((object)candidateType == null)
+                        {
+                            candidateType = parameterType;
+                        }
+                        else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                        {
+                            // type mismatch
+                            candidateType = null;
+                            break;
+                        }
+                    }
+                }
+                return candidateType;
+            }
         }
 
         /// <summary>

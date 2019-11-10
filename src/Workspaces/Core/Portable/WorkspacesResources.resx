@@ -951,7 +951,7 @@ If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</value>
     <value>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</value>
   </data>
   <data name="Regex_hexadecimal_escape_short" xml:space="preserve">
-    <value>hexidecimal escape</value>
+    <value>hexadecimal escape</value>
   </data>
   <data name="Regex_letter_uppercase" xml:space="preserve">
     <value>letter, uppercase</value>
@@ -1452,50 +1452,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Changing_document_0_is_not_supported" xml:space="preserve">
     <value>Changing document '{0}' is not supported.</value>
   </data>
-  <data name="ValueUsageInfo_Name" xml:space="preserve">
-    <value>Name</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="ValueUsageInfo_Read" xml:space="preserve">
-    <value>Read</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="ValueUsageInfo_Reference" xml:space="preserve">
-    <value>Reference</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="ValueUsageInfo_Write" xml:space="preserve">
-    <value>Write</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Qualify" xml:space="preserve">
-    <value>Qualify</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_TypeArgument" xml:space="preserve">
-    <value>Type Argument</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_TypeConstraint" xml:space="preserve">
-    <value>Type Constraint</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_BaseType" xml:space="preserve">
-    <value>Base Type</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Construct" xml:space="preserve">
-    <value>Construct</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Import" xml:space="preserve">
-    <value>Import</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Declare" xml:space="preserve">
-    <value>Declare</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
   <data name="Parameter_preferences" xml:space="preserve">
     <value>Parameter preferences</value>
   </data>
@@ -1516,5 +1472,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Symbol_specifications" xml:space="preserve">
     <value>Symbol specifications</value>
+  </data>
+  <data name="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access" xml:space="preserve">
+    <value>Adding imports will bring an extension method into scope with the same name as '{0}'</value>
+  </data>
+  <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
+    <value>Document does not support syntax trees</value>
+  </data>
+  <data name="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0" xml:space="preserve">
+    <value>Compilation is required to accomplish the task but is not supported by project {0}.</value>
+  </data>
+  <data name="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0" xml:space="preserve">
+    <value>Syntax tree is required to accomplish the task but is not supported by document {0}.</value>
   </data>
 </root>

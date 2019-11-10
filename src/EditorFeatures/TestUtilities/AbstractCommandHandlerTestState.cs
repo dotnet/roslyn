@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -16,6 +19,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -27,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public readonly IEditorOperations EditorOperations;
         public readonly ITextUndoHistoryRegistry UndoHistoryRegistry;
         private readonly ITextView _textView;
+        private readonly DisposableTextView? _createdTextView;
         private readonly ITextBuffer _subjectBuffer;
 
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
-            IList<Type> excludedTypes = null,
-            ComposableCatalog extraParts = null,
-            string workspaceKind = null)
-            : this(workspaceElement, GetExportProvider(excludedTypes, extraParts), workspaceKind)
+            ComposableCatalog extraParts,
+            string? workspaceKind = null)
+            : this(workspaceElement, GetExportProvider(excludedTypes: null, extraParts), workspaceKind)
         {
         }
 
@@ -61,59 +65,65 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
             ExportProvider exportProvider,
-            string workspaceKind)
+            string? workspaceKind,
+            bool makeSeparateBufferForCursor = false,
+            ImmutableArray<string> roles = default)
         {
             this.Workspace = TestWorkspace.CreateWorkspace(
                 workspaceElement,
                 exportProvider: exportProvider,
                 workspaceKind: workspaceKind);
 
-            var cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
-            _textView = cursorDocument.GetTextView();
-            _subjectBuffer = cursorDocument.GetTextBuffer();
-
-            if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out var selectionSpanList))
+            if (makeSeparateBufferForCursor)
             {
-                var firstSpan = selectionSpanList.First();
-                var lastSpan = selectionSpanList.Last();
-                var cursorPosition = cursorDocument.CursorPosition.Value;
-
-                Assert.True(cursorPosition == firstSpan.Start || cursorPosition == firstSpan.End
-                            || cursorPosition == lastSpan.Start || cursorPosition == lastSpan.End,
-                    "cursorPosition wasn't at an endpoint of the 'Selection' annotated span");
-
-                _textView.Selection.Mode = selectionSpanList.Length > 1
-                    ? TextSelectionMode.Box
-                    : TextSelectionMode.Stream;
-
-                SnapshotPoint boxSelectionStart, boxSelectionEnd;
-                bool isReversed;
-
-                if (cursorPosition == firstSpan.Start || cursorPosition == lastSpan.End)
-                {
-                    // Top-left and bottom-right corners used as anchor points.
-                    boxSelectionStart = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, firstSpan.Start);
-                    boxSelectionEnd = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, lastSpan.End);
-                    isReversed = cursorPosition == firstSpan.Start;
-                }
-                else
-                {
-                    // Top-right and bottom-left corners used as anchor points.
-                    boxSelectionStart = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, firstSpan.End);
-                    boxSelectionEnd = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, lastSpan.Start);
-                    isReversed = cursorPosition == firstSpan.End;
-                }
-
-                _textView.Selection.Select(
-                        new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
-                        isReversed: isReversed);
+                var languageName = Workspace.Projects.First().Language;
+                var contentType = Workspace.Services.GetLanguageServices(languageName).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType();
+                _createdTextView = EditorFactory.CreateView(exportProvider, contentType, roles);
+                _textView = _createdTextView.TextView;
+                _subjectBuffer = _textView.TextBuffer;
             }
             else
             {
-                _textView.Caret.MoveTo(
-                    new SnapshotPoint(
-                        _textView.TextBuffer.CurrentSnapshot,
-                        cursorDocument.CursorPosition.Value));
+                var cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
+                _textView = cursorDocument.GetTextView();
+                _subjectBuffer = cursorDocument.GetTextBuffer();
+
+                if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out var selectionSpanList))
+                {
+                    var firstSpan = selectionSpanList.First();
+                    var lastSpan = selectionSpanList.Last();
+                    var cursorPosition = cursorDocument.CursorPosition!.Value;
+
+                    Assert.True(cursorPosition == firstSpan.Start || cursorPosition == firstSpan.End
+                                || cursorPosition == lastSpan.Start || cursorPosition == lastSpan.End,
+                        "cursorPosition wasn't at an endpoint of the 'Selection' annotated span");
+
+                    _textView.Selection.Mode = selectionSpanList.Length > 1
+                        ? TextSelectionMode.Box
+                        : TextSelectionMode.Stream;
+
+                    SnapshotPoint boxSelectionStart, boxSelectionEnd;
+                    bool isReversed;
+
+                    if (cursorPosition == firstSpan.Start || cursorPosition == lastSpan.End)
+                    {
+                        // Top-left and bottom-right corners used as anchor points.
+                        boxSelectionStart = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, firstSpan.Start);
+                        boxSelectionEnd = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, lastSpan.End);
+                        isReversed = cursorPosition == firstSpan.Start;
+                    }
+                    else
+                    {
+                        // Top-right and bottom-left corners used as anchor points.
+                        boxSelectionStart = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, firstSpan.End);
+                        boxSelectionEnd = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, lastSpan.Start);
+                        isReversed = cursorPosition == firstSpan.End;
+                    }
+
+                    _textView.Selection.Select(
+                            new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
+                            isReversed: isReversed);
+                }
             }
 
             this.EditorOperations = GetService<IEditorOperationsFactoryService>().GetEditorOperations(_textView);
@@ -122,6 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public void Dispose()
         {
+            _createdTextView?.Dispose();
             Workspace.Dispose();
         }
 
@@ -130,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return Workspace.GetService<T>();
         }
 
-        internal static ExportProvider GetExportProvider(IList<Type> excludedTypes, ComposableCatalog extraParts)
+        internal static ExportProvider GetExportProvider(IList<Type>? excludedTypes, ComposableCatalog extraParts)
         {
             excludedTypes = excludedTypes ?? Type.EmptyTypes;
 
@@ -310,8 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.False(provider.HasPendingWaiter(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
-        // Cannot make it void even for the modern completion for now
-        // because it is used by SignatureHelp for both Modern and Legacy completions.
+        // This one is not used by the completion but used by SignatureHelp.
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
@@ -453,11 +463,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public void SendTypeChar(char typeChar, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
         {
             commandHandler(new TypeCharCommandArgs(TextView, SubjectBuffer, typeChar), nextHandler, TestCommandExecutionContext.Create());
-        }
-
-        public void ToggleSuggestionMode(Action<ToggleCompletionModeCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
-        {
-            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
         }
 
         public void SendTypeChars(string typeChars, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler)

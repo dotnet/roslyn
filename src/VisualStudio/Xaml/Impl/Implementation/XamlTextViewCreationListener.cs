@@ -38,19 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private uint? _rdtEventsCookie;
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new Dictionary<IVsHierarchy, VisualStudioProject>();
 
-        internal ICommandHandlerServiceFactory CommandHandlerServiceFactory { get; }
-
         [ImportingConstructor]
         public XamlTextViewCreationListener(
             [Import(typeof(SVsServiceProvider))] System.IServiceProvider services,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IXamlDocumentAnalyzerService analyzerService,
             VisualStudioWorkspaceImpl vsWorkspace,
             VisualStudioProjectFactory visualStudioProjectFactory)
         {
             _serviceProvider = services;
-            CommandHandlerServiceFactory = commandHandlerServiceFactory;
             _editorAdaptersFactory = editorAdaptersFactoryService;
             _vsWorkspace = vsWorkspace;
             _visualStudioProjectFactory = visualStudioProjectFactory;
@@ -117,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             AttachRunningDocTableEvents();
 
             var wpfTextView = _editorAdaptersFactory.GetWpfTextView(vsTextView);
-            var target = new XamlOleCommandTarget(wpfTextView, CommandHandlerServiceFactory, _editorAdaptersFactory, _serviceProvider);
+            var target = new XamlOleCommandTarget(wpfTextView, _editorAdaptersFactory, _serviceProvider);
             target.AttachToVsTextView();
         }
 

@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionGroup conversionGroupOpt,
             bool wasCompilerGenerated,
             TypeSymbol destination,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool hasErrors = false)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
@@ -109,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
             {
                 TypeSymbol type = source.Type;
-                bool hasErrors = false;
                 if (type is null)
                 {
                     Debug.Assert(!conversion.Exists);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // User-defined conversions are likely to be represented as multiple
                 // BoundConversion instances so a ConversionGroup is necessary.
-                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
+                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -146,7 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: isCast && !wasCompilerGenerated,
                 conversionGroupOpt,
                 constantValueOpt: constantValue,
-                type: destination) { WasCompilerGenerated = wasCompilerGenerated };
+                type: destination,
+                hasErrors: hasErrors)
+            { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         /// <summary>
@@ -171,13 +173,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
         }
 
-        private BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateUserDefinedConversion(
+            SyntaxNode syntax,
+            BoundExpression source,
+            Conversion conversion,
+            bool isCast,
+            ConversionGroup conversionGroup,
+            TypeSymbol destination,
+            DiagnosticBag diagnostics,
+            bool hasErrors)
         {
             Debug.Assert(conversionGroup != null);
 
             if (!conversion.IsValid)
             {
-                GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+                if (!hasErrors)
+                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
 
                 return new BoundConversion(
                     syntax,
@@ -225,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source: source,
                 conversion: conversion.UserDefinedFromConversion,
                 isCast: false,
-                conversionGroup,
+                conversionGroupOpt: conversionGroup,
                 wasCompilerGenerated: false,
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
                 diagnostics: diagnostics);
@@ -242,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     source: convertedOperand,
                     conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteDiagnostics),
                     isCast: false,
-                    conversionGroup,
+                    conversionGroupOpt: conversionGroup,
                     wasCompilerGenerated: true,
                     destination: conversionParameterType,
                     diagnostics: diagnostics);
@@ -286,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         source: userDefinedConversion,
                         conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteDiagnostics),
                         isCast: false,
-                        conversionGroup,
+                        conversionGroupOpt: conversionGroup,
                         wasCompilerGenerated: true,
                         destination: conversionToType,
                         diagnostics: diagnostics);
@@ -316,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source: userDefinedConversion,
                 conversion: toConversion,
                 isCast: false,
-                conversionGroup,
+                conversionGroupOpt: conversionGroup,
                 wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
                 destination: destination,
                 diagnostics: diagnostics);

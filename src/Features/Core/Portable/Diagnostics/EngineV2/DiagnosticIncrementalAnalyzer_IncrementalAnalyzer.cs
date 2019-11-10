@@ -75,6 +75,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
+            // Perf optimization. check whether we want to analyze this project or not.
+            if (!Executor.FullAnalysisEnabled(project, forceAnalyzerRun: false))
+            {
+                return;
+            }
+
+            await AnalyzeProjectAsync(project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false);
+        }
+
+        public Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+            => AnalyzeProjectAsync(project, forceAnalyzerRun: true, cancellationToken);
+
+        private async Task AnalyzeProjectAsync(Project project, bool forceAnalyzerRun, CancellationToken cancellationToken)
+        {
             try
             {
                 var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
@@ -91,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var includeSuppressedDiagnostics = true;
                 var analyzerDriverOpt = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var forceAnalyzerRun = false;
                 var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)
                 {
@@ -413,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
                     // so we might be out of sync.
                     // example of such cases will be changing anything about solution while building is going on.
-                    // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                    // it can be user explicit actions such as unloading project, deleting a file, but also it can be 
                     // something project system or roslyn workspace does such as populating workspace right after
                     // solution is loaded.
                     continue;

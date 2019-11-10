@@ -281,6 +281,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectInfo.RunAnalyzers)
+            {
+                project = project.Solution.WithRunAnalyzers(project.Id, newProjectInfo.RunAnalyzers).GetProject(project.Id);
+            }
+
             return project;
         }
 

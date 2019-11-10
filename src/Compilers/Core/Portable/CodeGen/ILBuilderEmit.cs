@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // map a field to the block (that makes it addressable)
             var field = module.GetFieldForData(data, syntaxNode, diagnostics);
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalOrParameter key,
-            LocalDefinition keyHash,
+            LocalDefinition? keyHash,
             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate,
             SwitchStringJumpTableEmitter.GetStringHashCode computeStringHashcodeDelegate)
         {

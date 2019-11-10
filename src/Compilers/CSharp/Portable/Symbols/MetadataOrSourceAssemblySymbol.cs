@@ -236,5 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
             }
         }
+
+        internal virtual bool IsNetModule() => false;
     }
 }

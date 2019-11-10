@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TupleUnderlyingType ?? type;
         }
 
-        public static TypeSymbol EnumUnderlyingType(this TypeSymbol type)
+        public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
             return type.IsEnumType() ? type.GetEnumUnderlyingType() : type;
         }
@@ -667,13 +667,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 switch (current.TypeKind)
                 {
-                    case TypeKind.Error:
                     case TypeKind.Dynamic:
                     case TypeKind.TypeParameter:
                     case TypeKind.Submission:
                     case TypeKind.Enum:
                         return null;
 
+                    case TypeKind.Error:
                     case TypeKind.Class:
                     case TypeKind.Struct:
                     case TypeKind.Interface:
@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (!typeParameters[i].Equals(
                                  typeArguments[i].Type.OriginalDefinition,
-                                 SymbolEqualityComparer.ConsiderEverything.CompareKind))
+                                 TypeCompareKind.ConsiderEverything))
                         {
                             return false;
                         }
@@ -1536,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        builderArgument = attr.CommonConstructorArguments[0].Value;
+                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal;
                         return true;
                     }
                 }
@@ -1726,13 +1726,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
 
-        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+        internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
 
-        internal static bool IsWellKnownTypeUnmanagedType(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
+        internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
 
-        private static bool IsWellKnownInteropServicesTopLevelType(this ITypeSymbol typeSymbol, string name)
+        private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {
-            if (typeSymbol.Name != name || typeSymbol.ContainingType != null)
+            if (typeSymbol.Name != name || typeSymbol.ContainingType is object)
             {
                 return false;
             }

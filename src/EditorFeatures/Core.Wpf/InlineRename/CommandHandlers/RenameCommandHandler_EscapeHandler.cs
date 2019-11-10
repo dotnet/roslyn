@@ -4,13 +4,12 @@ using System;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class RenameCommandHandler : VSCommanding.ICommandHandler<EscapeKeyCommandArgs>
+    internal partial class RenameCommandHandler : ICommandHandler<EscapeKeyCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args)
+        public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
             return GetCommandState();
         }

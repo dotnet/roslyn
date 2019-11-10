@@ -18,33 +18,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     {
         internal XamlOleCommandTarget(
             IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
             IServiceProvider serviceProvider)
-            : base(wpfTextView, commandHandlerServiceFactory, editorAdaptersFactory, serviceProvider)
+            : base(wpfTextView, editorAdaptersFactory, serviceProvider)
         {
-            wpfTextView.Closed += OnTextViewClosed;
-            wpfTextView.BufferGraph.GraphBufferContentTypeChanged += OnGraphBuffersChanged;
-            wpfTextView.BufferGraph.GraphBuffersChanged += OnGraphBuffersChanged;
-        }
-
-        private void OnGraphBuffersChanged(object sender, EventArgs e)
-        {
-            RefreshCommandFilters();
-        }
-
-        private void OnTextViewClosed(object sender, EventArgs e)
-        {
-            WpfTextView.Closed -= OnTextViewClosed;
-            WpfTextView.BufferGraph.GraphBufferContentTypeChanged -= OnGraphBuffersChanged;
-            WpfTextView.BufferGraph.GraphBuffersChanged -= OnGraphBuffersChanged;
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()
         {
-            ITextBuffer result = this.WpfTextView.GetBufferContainingCaret(contentType: ContentTypeNames.XamlContentType);
-
-            return result;
+            return this.WpfTextView.GetBufferContainingCaret(contentType: ContentTypeNames.XamlContentType);
         }
     }
 }

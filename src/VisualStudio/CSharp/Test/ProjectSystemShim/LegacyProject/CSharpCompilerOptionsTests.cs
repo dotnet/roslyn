@@ -4,10 +4,13 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -144,13 +147,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
             var outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
-            Assert.Equal(null, outputs.AssemblyFilePath);
+            Assert.Null(outputs.AssemblyFilePath);
 
             Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/pdb:C:\a\1.pdb /debug+", out _));
 
             // Compilation doesn't have output file, so we don't expect any build outputs either.
             outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
-            Assert.Equal(null, outputs.AssemblyFilePath);
+            Assert.Null(outputs.AssemblyFilePath);
 
             Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/out:C:\a\2.dll /debug+", out _));
 
@@ -166,6 +169,81 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
             Assert.Equal(@"C:\a\3.dll", outputs.AssemblyFilePath);
+        }
+
+        [WpfTheory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [InlineData(LanguageVersion.LatestMajor)]
+        [InlineData(LanguageVersion.Preview)]
+        [InlineData(null)]
+        public void SetProperty_MaxSupportedLangVersion(LanguageVersion? maxSupportedLangVersion)
+        {
+            var catalog = TestEnvironment.s_exportCatalog.Value
+                .WithParts(
+                    typeof(CSharpParseOptionsChangingService));
+
+            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
+            using var environment = new TestEnvironment(exportProviderFactory: factory);
+
+            var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
+            var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);
+
+            Assert.True(ErrorHandler.Succeeded(
+                storage.SetPropertyValue(
+                    "MaxSupportedLangVersion", null, (uint)_PersistStorageType.PST_PROJECT_FILE, maxSupportedLangVersion?.ToDisplayString())));
+
+            _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
+
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
+
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
+
+            if (maxSupportedLangVersion.HasValue)
+            {
+                Assert.Equal(attemptedVersion <= maxSupportedLangVersion.Value, canApply);
+            }
+            else
+            {
+                Assert.True(canApply);
+            }
+        }
+
+        [WpfFact]
+        public void SetProperty_MaxSupportedLangVersion_NotSet()
+        {
+            var catalog = TestEnvironment.s_exportCatalog.Value
+                .WithParts(
+                    typeof(CSharpParseOptionsChangingService));
+
+            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
+            using var environment = new TestEnvironment(exportProviderFactory: factory);
+
+            var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
+            var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);
+
+            _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
+
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
+
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
+
+            Assert.True(canApply);
         }
     }
 }

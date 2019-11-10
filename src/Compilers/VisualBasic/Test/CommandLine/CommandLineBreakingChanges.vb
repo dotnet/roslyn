@@ -42,7 +42,7 @@ SRC.VB(7) : warning BC42104: Variable 'x' is used before it has been assigned a 
         End Sub
 
         <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
-        Public Sub WarnAsErrorPrecedence2()
+        Public Sub WarnAsErrorPrecedence2_1()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1
     Sub Main
@@ -70,15 +70,43 @@ SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;';
 
         if (a.Something &lt;&gt; 2)
             ~~~~~~~~~~~      
-SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
-
-        if (a.Something &lt;&gt; 2)
-           ~~~~~~~~~~~~~~~~~~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
         End Sub
 
         <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
-        Public Sub WarnAsErrorPrecedence3()
+        Public Sub WarnAsErrorPrecedence2_2()
+            Dim src As String = Temp.CreateFile().WriteAllText(<text>
+Module M1
+    Sub Main
+    End Sub
+    Sub M(a as Object)
+        if a.Something &lt;&gt; 2
+        end if
+    End Sub
+End Module
+</text>.Value).Path
+            Dim tempOut = Temp.CreateFile()
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /nowarn:41008 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Assert.Equal("", output.Trim())
+
+            'See bug 16673.
+            'In Dev11, /warnaserror+ does not come into effect strangely and the code only reports warnings.
+            'In Roslyn, /warnaserror+ does come into effect and the code reports the warnings as errors.
+
+            Assert.Equal(<text>
+SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
+
+        if a.Something &lt;&gt; 2
+           ~~~~~~~~~~~     
+SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;'; use the 'IsNot' operator to test object identity.
+
+        if a.Something &lt;&gt; 2
+           ~~~~~~~~~~~      
+</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+        End Sub
+
+        <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
+        Public Sub WarnAsErrorPrecedence3_1()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1
     Sub Main
@@ -106,10 +134,41 @@ SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;';
 
         if (a.Something &lt;&gt; 2)
             ~~~~~~~~~~~      
-SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
+</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
 
-        if (a.Something &lt;&gt; 2)
-           ~~~~~~~~~~~~~~~~~~
+            CleanupAllGeneratedFiles(src)
+            CleanupAllGeneratedFiles(tempOut.Path)
+        End Sub
+
+        <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
+        Public Sub WarnAsErrorPrecedence3_2()
+            Dim src As String = Temp.CreateFile().WriteAllText(<text>
+Module M1
+    Sub Main
+    End Sub
+    Sub M(a as Object)
+        if a.Something &lt;&gt; 2
+        end if
+    End Sub
+End Module
+</text>.Value).Path
+            Dim tempOut = Temp.CreateFile()
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /warnaserror-:42025 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Assert.Equal("", output.Trim())
+
+            'See bug 16673.
+            'In Dev11, /warnaserror+ does not come into effect strangely and the code only reports warnings.
+            'In Roslyn, /warnaserror+ does come into effect and the code reports the warnings as errors.
+
+            Assert.Equal(<text>
+SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
+
+        if a.Something &lt;&gt; 2
+           ~~~~~~~~~~~     
+SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;'; use the 'IsNot' operator to test object identity.
+
+        if a.Something &lt;&gt; 2
+           ~~~~~~~~~~~      
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
 
             CleanupAllGeneratedFiles(src)

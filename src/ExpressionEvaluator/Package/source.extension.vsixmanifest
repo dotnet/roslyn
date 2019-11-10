@@ -5,6 +5,7 @@
     <DisplayName>Roslyn Expression Evaluators</DisplayName>
     <Description xml:space="preserve">Roslyn Expression Evaluators</Description>
     <PackageId>Microsoft.CodeAnalysis.ExpressionEvaluator</PackageId>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />

@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ImmutableHashSet<Symbol> _allCapturedVariables;
 
+#nullable enable
+
         private LambdaRewriter(
             Analysis analysis,
             NamedTypeSymbol thisType,
@@ -157,11 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
-            Debug.Assert(analysis != null);
-            Debug.Assert((object)thisType != null);
-            Debug.Assert(method != null);
-            Debug.Assert(compilationState != null);
-            Debug.Assert(diagnostics != null);
+            RoslynDebug.Assert(analysis != null);
+            RoslynDebug.Assert((object)thisType != null);
+            RoslynDebug.Assert(method != null);
+            RoslynDebug.Assert(compilationState != null);
+            RoslynDebug.Assert(diagnostics != null);
 
             _topLevelMethod = method;
             _substitutedSourceMethod = substitutedSourceMethod;
@@ -184,6 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             });
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
+
+#nullable restore
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -421,6 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
                 }
                 else if (closure.CapturedEnvironments.Count == 0 &&
+                         originalMethod.MethodKind == MethodKind.LambdaMethod &&
                          _analysis.MethodsConvertedToDelegates.Contains(originalMethod))
                 {
                     translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
@@ -988,6 +993,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFrame = translatedLambdaContainer;
             }
 
+            synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
+            if (synthesizedMethod.IsGenericMethod)
+            {
+                synthesizedMethod = synthesizedMethod.Construct(realTypeArguments);
+            }
+            else
+            {
+                Debug.Assert(realTypeArguments.Length == 0);
+            }
+
             // for instance lambdas, receiver is the frame
             // for static lambdas, get the singleton receiver
             if (closureKind == ClosureKind.Singleton)
@@ -997,21 +1012,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (closureKind == ClosureKind.Static)
             {
-                receiver = null;
+                receiver = new BoundTypeExpression(syntax, null, synthesizedMethod.ContainingType);
             }
             else // ThisOnly and General
             {
                 receiver = FrameOfType(syntax, constructedFrame);
-            }
-
-            synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
-            if (synthesizedMethod.IsGenericMethod)
-            {
-                synthesizedMethod = synthesizedMethod.Construct(realTypeArguments);
-            }
-            else
-            {
-                Debug.Assert(realTypeArguments.Length == 0);
             }
         }
 

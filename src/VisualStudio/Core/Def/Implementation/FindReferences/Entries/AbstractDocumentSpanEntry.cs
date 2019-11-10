@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
 
@@ -23,10 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// a <see cref="CodeAnalysis.Document"/>.  Navigation to that location is provided by this type.
         /// Subclasses can be used to provide customized line text to display in the entry.
         /// </summary>
-        private abstract class AbstractDocumentSpanEntry : Entry
+        private abstract class AbstractDocumentSpanEntry : AbstractItemEntry
         {
-            private readonly AbstractTableDataSourceFindUsagesContext _context;
-
             private readonly string _projectName;
             private readonly object _boxedProjectGuid;
 
@@ -40,18 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Guid projectGuid,
                 SourceText lineText,
                 MappedSpanResult mappedSpanResult)
-                : base(definitionBucket)
+                : base(definitionBucket, context.Presenter)
             {
-                _context = context;
-
                 _projectName = projectName;
                 _boxedProjectGuid = projectGuid;
 
                 _lineText = lineText;
                 _mappedSpanResult = mappedSpanResult;
             }
-
-            protected StreamingFindUsagesPresenter Presenter => _context.Presenter;
 
             protected override object GetValueWorker(string keyName)
             {
@@ -74,23 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
-            {
-                if (columnName == StandardTableColumnDefinitions2.LineText)
-                {
-                    var inlines = CreateLineTextInlines();
-                    var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, wrap: false);
-
-                    content = textBlock;
-                    return true;
-                }
-
-                content = null;
-                return false;
-            }
-
-            protected abstract IList<Inline> CreateLineTextInlines();
-
             public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
             {
                 var service = documentSpan.Document.Services.GetService<ISpanMappingService>();
@@ -109,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // if span mapping service filtered out the span, make sure
                 // to return null so that we remove the span from the result
-                return results.FirstOrNullable(r => !r.IsDefault);
+                return results.FirstOrNull(r => !r.IsDefault);
             }
 
             public static SourceText GetLineContainingPosition(SourceText text, int position)

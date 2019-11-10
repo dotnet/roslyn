@@ -153,19 +153,19 @@ partial class A : Object {}
             var model = comp.GetSemanticModel(tree);
 
             var symbolInfo = model.GetSpeculativeSymbolInfo(base2.SpanStart, base2, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            var info2 = symbolInfo.Symbol as TypeSymbol;
+            var info2 = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotNull(info2);
             Assert.Equal("System.Object", info2.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
             Assert.Equal("System.Object", info2.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
 
             symbolInfo = model.GetSpeculativeSymbolInfo(base3.SpanStart, base3, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            var info3 = symbolInfo.Symbol as TypeSymbol;
+            var info3 = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotNull(info3);
             Assert.Equal("System.Object", info3.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
             Assert.Equal("System.Object", info3.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
 
             symbolInfo = model.GetSpeculativeSymbolInfo(base4.SpanStart, base4, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            var info4 = symbolInfo.Symbol as TypeSymbol;
+            var info4 = symbolInfo.Symbol as ITypeSymbol;
             Assert.Null(info4); // no "using System;"
         }
 
@@ -186,8 +186,8 @@ partial class A : Object {}
             var alias = model.GetDeclaredSymbol(usingAlias);
             Assert.Equal("O", alias.ToDisplayString());
             Assert.Equal("O=System.Object", alias.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
-            var global = (NamespaceSymbol)alias.ContainingSymbol;
-            Assert.Equal(NamespaceKind.Module, global.Extent.Kind);
+            var global = (INamespaceSymbol)alias.ContainingSymbol;
+            Assert.Equal(NamespaceKind.Module, global.NamespaceKind);
         }
 
         [Fact]
@@ -203,7 +203,7 @@ partial class A : Object {}
             var model = comp.GetSemanticModel(tree);
 
             var alias = model.GetDeclaredSymbol(usingAlias);
-            Assert.Equal(null, alias);
+            Assert.Null(alias);
         }
 
         [Fact]

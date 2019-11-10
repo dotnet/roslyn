@@ -575,6 +575,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation is required to accomplish the task but is not supported by project {0}..
+        /// </summary>
+        internal static string Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0 {
+            get {
+                return ResourceManager.GetString("Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
         internal static string Core_EditorConfig_Options {
@@ -688,6 +697,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Diagnostic_must_have_span_0 {
             get {
                 return ResourceManager.GetString("Diagnostic_must_have_span_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Document does not support syntax trees.
+        /// </summary>
+        internal static string Document_does_not_support_syntax_trees {
+            get {
+                return ResourceManager.GetString("Document_does_not_support_syntax_trees", resourceCulture);
             }
         }
         
@@ -1972,7 +1990,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to hexidecimal escape.
+        ///   Looks up a localized string similar to hexadecimal escape.
         /// </summary>
         internal static string Regex_hexadecimal_escape_short {
             get {
@@ -3367,6 +3385,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Syntax tree is required to accomplish the task but is not supported by document {0}..
+        /// </summary>
+        internal static string SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0 {
+            get {
+                return ResourceManager.GetString("SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Temporary storage cannot be written more than once..
         /// </summary>
         internal static string Temporary_storage_cannot_be_written_more_than_once {
@@ -3601,69 +3628,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Base Type.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_BaseType {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Construct.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Construct {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Construct", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Declare.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Declare {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Declare", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Import.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Import {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Import", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Qualify.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Qualify {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Qualify", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Argument.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_TypeArgument {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeArgument", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Constraint.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_TypeConstraint {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeConstraint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Types.
         /// </summary>
         internal static string Types {
@@ -3781,42 +3745,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name.
-        /// </summary>
-        internal static string ValueUsageInfo_Name {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Read.
-        /// </summary>
-        internal static string ValueUsageInfo_Read {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reference.
-        /// </summary>
-        internal static string ValueUsageInfo_Reference {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Write.
-        /// </summary>
-        internal static string ValueUsageInfo_Write {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Variables captured:.
         /// </summary>
         internal static string Variables_captured_colon {
@@ -3840,6 +3768,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning {
             get {
                 return ResourceManager.GetString("Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding imports will bring an extension method into scope with the same name as &apos;{0}&apos;.
+        /// </summary>
+        internal static string Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access {
+            get {
+                return ResourceManager.GetString("Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_na" +
+                        "me_as_member_access", resourceCulture);
             }
         }
         

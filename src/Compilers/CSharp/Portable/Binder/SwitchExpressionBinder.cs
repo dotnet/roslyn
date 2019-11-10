@@ -116,11 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Infer the result type of the switch expression by looking for a common type.
+        /// Infer the result type of the switch expression by looking for a common type
+        /// to which every arm's expression can be converted.
         /// </summary>
         private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, DiagnosticBag diagnostics)
         {
-            var seenTypes = SpecializedCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
+            var seenTypes = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
             foreach (var @case in switchCases)
             {
@@ -131,10 +132,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            seenTypes.Free();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
+            typesInOrder.Free();
+
+            // We've found a candidate common type among those arms that have a type.  Also check that every arm's
+            // expression (even those without a type) can be converted to that type.
+            if (commonType is object)
+            {
+                foreach (var @case in switchCases)
+                {
+                    if (!this.Conversions.ClassifyImplicitConversionFromExpression(@case.Value, commonType, ref useSiteDiagnostics).Exists)
+                    {
+                        commonType = null;
+                        break;
+                    }
+                }
+            }
+
             diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
-            seenTypes.Free();
             return commonType;
         }
 

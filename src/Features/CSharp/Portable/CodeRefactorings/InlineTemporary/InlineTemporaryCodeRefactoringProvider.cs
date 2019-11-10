@@ -201,12 +201,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var topmostParentingExpressions = nonConflictingIdentifierNodes
                 .Select(ident => GetTopMostParentingExpression(ident))
-                .Distinct();
+                .Distinct().ToList();
 
             var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value, cancellationToken);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
-            updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) => Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
+            updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
+            {
+                var node = Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken);
+
+                // warn when inlining into a conditional expression, as the inlined expression will not be executed.
+                if (semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
+                {
+                    node = node.WithAdditionalAnnotations(
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
+                }
+                return node;
+            }, cancellationToken).ConfigureAwait(false);
+
             semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticModelBeforeInline = semanticModel;
 

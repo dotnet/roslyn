@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public void ClearAll()
             {
             }
+
+            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => _context;
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]

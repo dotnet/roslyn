@@ -1847,7 +1847,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns, expect);
             checkNodes();
 
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularPreview);
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.Regular8);
             checkNodes();
 
             void checkNodes()
@@ -5184,7 +5184,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         }
 
         [Fact]
-        public void ParenthseizedExpressionOfSwitchExpression()
+        public void ParenthesizedExpressionOfSwitchExpression()
         {
             UsingStatement("Console.Write((t) switch {var x => x});");
             N(SyntaxKind.ExpressionStatement);

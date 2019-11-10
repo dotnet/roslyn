@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     append(") ");
                                     if (catchBlock.ExceptionFilterOpt != null)
                                     {
-                                        append("... exception filter ommitted ...");
+                                        append("... exception filter omitted ...");
                                     }
                                     appendLine("");
 

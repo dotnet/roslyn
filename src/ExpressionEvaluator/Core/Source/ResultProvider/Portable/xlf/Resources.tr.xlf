@@ -27,6 +27,11 @@
         <target state="translated">'{0}', '{1}' türünde bir özel durum oluşturdu</target>
         <note>Threw an exception while evaluating a value.</note>
       </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: host value not found</source>
+        <target state="new">Cannot provide the value: host value not found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
         <target state="translated">{0}' başvurusu çözülemiyor. İşaretçi geçerli değil.</target>

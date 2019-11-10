@@ -18,6 +18,7 @@ Param(
   [switch] $sign,
   [switch] $pack,
   [switch] $publish,
+  [switch] $clean,
   [switch][Alias('bl')]$binaryLog,
   [switch] $ci,
   [switch] $prepareMachine,
@@ -48,6 +49,7 @@ function Print-Usage() {
     Write-Host "  -pack                   Package build outputs into NuGet packages and Willow components"
     Write-Host "  -sign                   Sign build outputs"
     Write-Host "  -publish                Publish artifacts (e.g. symbols)"
+    Write-Host "  -clean                  Clean the solution"
     Write-Host ""
 
     Write-Host "Advanced settings:"
@@ -85,6 +87,10 @@ function Build {
     # Re-assign properties to a new variable because PowerShell doesn't let us append properties directly for unclear reasons.
     # Explicitly set the type as string[] because otherwise PowerShell would make this char[] if $properties is empty.
     [string[]] $msbuildArgs = $properties
+    
+    # Resolve relative project paths into full paths 
+    $projects = ($projects.Split(';').ForEach({Resolve-Path $_}) -join ';')
+    
     $msbuildArgs += "/p:Projects=$projects"
     $properties = $msbuildArgs
   }
@@ -108,6 +114,14 @@ function Build {
     @properties
 }
 
+if ($clean) {
+  if(Test-Path $ArtifactsDir) {
+    Remove-Item -Recurse -Force $ArtifactsDir
+    Write-Host "Artifacts directory deleted."
+  }
+  exit 0
+}
+
 try {
   if ($help -or (($null -ne $properties) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
     Print-Usage
@@ -119,14 +133,7 @@ try {
     $nodeReuse = $false
   }
 
-  # Import custom tools configuration, if present in the repo.
-  # Note: Import in global scope so that the script set top-level variables without qualification.
-  $configureToolsetScript = Join-Path $EngRoot "configure-toolset.ps1"
-  if (Test-Path $configureToolsetScript) {
-    . $configureToolsetScript
-  }
-
-  if (($restore) -and ($null -eq $env:DisableNativeToolsetInstalls)) {
+  if ($restore) {
     InitializeNativeTools
   }
 

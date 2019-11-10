@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private async Task<ProjectAnalysisData> CreateProjectAnalysisDataAsync(Project project, ImmutableArray<StateSet> stateSets, ImmutableArray<DiagnosticData> diagnostics)
         {
-            // we always load data sicne we don't know right version.
+            // we always load data since we don't know right version.
             var avoidLoadingData = false;
             var oldAnalysisData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
             var newResult = CreateAnalysisResults(project, stateSets, oldAnalysisData, diagnostics);
@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,
                 diagnostic.AdditionalLocations,
+                diagnostic.Language,
                 descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 descriptor.HelpLinkUri,

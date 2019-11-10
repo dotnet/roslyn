@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         #region General
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void EmitDebugInfoForSourceTextWithoutEncoding1()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class A { }", encoding: null, path: "Foo.cs");
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.False(result.Success);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void EmitDebugInfoForSourceTextWithoutEncoding2()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class A { public void F() { } }", encoding: Encoding.Unicode, path: "Foo.cs");
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         }
 
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        public void RelativePathForExternalSource_Sha1()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void RelativePathForExternalSource_Sha1_Windows()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 #pragma checksum ""..\Test2.cs"" ""{406ea660-64cf-4c82-b6f0-42d48172a799}"" ""BA8CBEA9C2EFABD90D53B616FB80A081""
 
 public class C
@@ -89,7 +89,7 @@ public class C
         #line default
     }
 }
-";
+");
 
             var compilation = CreateCompilation(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
@@ -100,6 +100,50 @@ public class C
   <files>
     <file id=""1"" name=""C:\Folder1\Folder2\Test1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""40-A6-20-02-2E-60-7D-4F-2D-A8-F4-A6-ED-2E-0E-49-8D-9F-D7-EB"" />
     <file id=""2"" name=""C:\Folder1\Test2.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""BA-8C-BE-A9-C2-EF-AB-D9-0D-53-B6-16-FB-80-A0-81"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""InitializeComponent"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""39"" endLine=""6"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""9"" endLine=""4"" endColumn=""31"" document=""2"" />
+        <entry offset=""0x8"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void RelativePathForExternalSource_Sha1_Unix()
+        {
+            var text1 = WithWindowsLineBreaks(@"
+#pragma checksum ""../Test2.cs"" ""{406ea660-64cf-4c82-b6f0-42d48172a799}"" ""BA8CBEA9C2EFABD90D53B616FB80A081""
+
+public class C
+{
+    public void InitializeComponent() {
+        #line 4 ""../Test2.cs""
+        InitializeComponent();
+        #line default
+    }
+}
+");
+
+            var compilation = CreateCompilation(
+                new[] { Parse(text1, @"/Folder1/Folder2/Test1.cs") },
+                options: TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default));
+
+            compilation.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""/Folder1/Folder2/Test1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""82-08-07-BA-BA-52-02-D8-1D-1F-7C-E7-95-8A-6C-04-64-FF-50-31"" />
+    <file id=""2"" name=""/Folder1/Test2.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""BA-8C-BE-A9-C2-EF-AB-D9-0D-53-B6-16-FB-80-A0-81"" />
   </files>
   <methods>
     <method containingType=""C"" name=""InitializeComponent"">
@@ -243,7 +287,7 @@ public class C
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SuppressDynamicAndEncCDIForWinRT()
         {
             var source = @"
@@ -334,7 +378,7 @@ public class C
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SuppressTupleElementNamesCDIForWinRT()
         {
             var source =
@@ -392,7 +436,7 @@ public class C
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DuplicateDocuments()
         {
             var source1 = @"class C { static void F() { } }";
@@ -433,7 +477,7 @@ public class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void CustomDebugEntryPoint_DLL()
         {
             var source = @"class C { static void F() { } }";
@@ -448,15 +492,15 @@ public class C
   </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
-</symbols>", debugEntryPoint: f, options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
+</symbols>", debugEntryPoint: f.GetPublicSymbol(), options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
 
-            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f.GetPublicSymbol()));
             int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
 
             Assert.Equal(0, peEntryPointToken);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void CustomDebugEntryPoint_EXE()
         {
             var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
@@ -471,9 +515,9 @@ public class C
   </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
-</symbols>", debugEntryPoint: f, options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
+</symbols>", debugEntryPoint: f.GetPublicSymbol(), options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
 
-            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f.GetPublicSymbol()));
             int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
 
             var mdReader = peReader.GetMetadataReader();
@@ -481,7 +525,7 @@ public class C
             Assert.Equal("Main", mdReader.GetString(methodDef.Name));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void CustomDebugEntryPoint_Errors()
         {
             var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
@@ -505,28 +549,28 @@ public class C
             var d_int_g = d_int.GetMember<MethodSymbol>("G");
             var d_int_g_int = d_int_g.Construct(stInt);
 
-            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2);
+            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
 
-            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int);
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
 
-            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g);
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
 
-            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g_int);
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g_int.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(768862, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/768862")]
         public void TestLargeLineDelta()
         {
@@ -579,7 +623,7 @@ class C {{ public static void Main() => System.Console.WriteLine(@""{verbatim}""
 ", format: DebugInformationFormat.Pdb);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
         public void TestLargeStartAndEndColumn_SameLine()
         {
@@ -614,7 +658,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
         public void TestLargeStartAndEndColumn_DifferentLine()
         {
@@ -654,10 +698,10 @@ class C
 
         #region Method Bodies
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestBasic()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     Program() { }
@@ -667,7 +711,7 @@ class Program
         Program p = new Program();
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"
@@ -696,10 +740,10 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSimpleLocals()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C 
 { 
     void Method()
@@ -722,7 +766,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
@@ -772,11 +816,11 @@ class C
 </symbols>");
         }
 
+        [Fact]
         [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ConstructorsWithoutInitializers()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     C()
@@ -787,7 +831,7 @@ class C
     {
         object y = x;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
@@ -839,10 +883,10 @@ class C
         }
 
         [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ConstructorsWithInitializers()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static object G = 1;
@@ -855,7 +899,7 @@ class C
     {
         object y = x;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
@@ -918,10 +962,10 @@ class C
         /// It's up to the tool that consumes the debugging information, not the compiler to decide whether to ignore the info or not.
         /// BTW, the information can actually be retrieved at runtime from the PDB file via Reflection StackTrace.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void MethodsWithDebuggerAttributes()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.Diagnostics;
 
@@ -948,7 +992,7 @@ class Program
         Console.WriteLine(z);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -1022,10 +1066,10 @@ class Program
         /// offset 0 for correct stepping behavior.
         /// </summary>
         [WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SequencePointAtOffset0()
         {
-            string source =
+            string source = WithWindowsLineBreaks(
 @"using System;
 class C
 {
@@ -1035,7 +1079,7 @@ class C
         Func<Func<object, int>, Func<object, int>> g = h => y => h(y);
         return g(f)(null);
     };
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -1123,7 +1167,7 @@ class C
         /// <summary>
         /// Leading trivia is not included in the syntax offset.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffsetInPresenceOfTrivia_Methods()
         {
             string source = @"
@@ -1182,7 +1226,7 @@ class C
         /// <summary>
         /// Leading and trailing trivia are not included in the syntax offset.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffsetInPresenceOfTrivia_Initializers()
         {
             string source = @"
@@ -1263,10 +1307,10 @@ class C2
 
         #region ReturnStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Method1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     static int Main()
@@ -1274,7 +1318,7 @@ class Program
         return 1;
     }
 }
-";
+");
 
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
@@ -1318,10 +1362,10 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Property1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     static int P
@@ -1329,7 +1373,7 @@ class C
         get { return 1; }
     }
 }
-";
+");
 
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
@@ -1373,7 +1417,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Void1()
         {
             var source = @"
@@ -1398,7 +1442,7 @@ class Program
 }", sequencePoints: "Program.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_ExpressionBodied1()
         {
             var source = @"
@@ -1419,10 +1463,10 @@ class Program
 }", sequencePoints: "Program.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_FromExceptionHandler1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -1440,7 +1484,7 @@ class Program
         }
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
@@ -1507,10 +1551,10 @@ class Program
 
         #region IfStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IfStatement()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C 
 { 
     void Method()
@@ -1537,7 +1581,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
@@ -1610,7 +1654,7 @@ class C
         #region WhileStatement
 
         [WorkItem(538299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538299")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void WhileStatement()
         {
             var source = @"using System;
@@ -1714,10 +1758,10 @@ public class SeqPointForWhile
 
         #region ForStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForStatement1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     static bool F(int i) { return true; }
@@ -1730,7 +1774,7 @@ class C
             System.Console.WriteLine(1);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -1768,7 +1812,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForStatement2()
         {
             var source = @"
@@ -1809,10 +1853,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForStatement3()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     static void M()
@@ -1823,7 +1867,7 @@ class C
             System.Console.WriteLine(i);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"<symbols>
   <files>
@@ -1861,7 +1905,7 @@ class C
 
         #region ForEachStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_String()
         {
             var source = @"
@@ -1918,10 +1962,10 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_Array()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class C
 {
     public static void Main()
@@ -1932,7 +1976,7 @@ public class C
         }
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -1990,7 +2034,7 @@ public class C
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_MultiDimensionalArray()
         {
             var source = @"
@@ -2082,11 +2126,11 @@ public class C
 ", sequencePoints: "C.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInAsyncMethod()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -2100,7 +2144,7 @@ class Program
                 .WriteLine();
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2215,7 +2259,7 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalBeforeLocalFunction()
         {
@@ -2276,7 +2320,7 @@ class C
 ", sequencePoints: "C.M", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInAsyncMethodWithExplicitReturn()
         {
@@ -2361,7 +2405,7 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInSimpleMethod()
         {
@@ -2409,11 +2453,11 @@ class Program
 ", sequencePoints: "Program.Test", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ElseConditionalInAsyncMethod()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -2428,7 +2472,7 @@ class Program
             Console.WriteLine(""other"");
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2550,11 +2594,11 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInTry()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -2571,7 +2615,7 @@ class Program
         catch { }
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Test", @"
@@ -2659,7 +2703,7 @@ class Program
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_MultiDimensionalArrayBreakAndContinue()
         {
             var source = @"
@@ -2710,7 +2754,7 @@ class C
   IL_0003:  ldc.i4.2
   IL_0004:  newobj     ""int[*,*,*]..ctor""
   IL_0009:  dup
-  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.EB196F988F4F427D318CA25B68671CF3A4510012""
+  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18""
   IL_000f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0014:  stloc.0
  -IL_0015:  nop
@@ -2796,7 +2840,7 @@ class C
 ", sequencePoints: "C.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_Enumerator()
         {
             var source = @"
@@ -2868,10 +2912,10 @@ public class C
         }
 
         [WorkItem(718501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718501")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachNops()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2899,7 +2943,7 @@ class Program
             }
         }
 }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"<symbols>
@@ -2956,10 +3000,10 @@ class Program
 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_Deconstruction()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class C
 {
     public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
@@ -2972,7 +3016,7 @@ public class C
         }
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -3093,10 +3137,10 @@ public class C
 
         #region Switch
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithPattern_01()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3132,7 +3176,7 @@ class Program
 class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
@@ -3184,10 +3228,10 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithPattern_02()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3223,7 +3267,7 @@ class Program
 class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
@@ -3279,10 +3323,10 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithPatternAndLocalFunctions()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3322,7 +3366,7 @@ class Program
 class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate", @"
@@ -3380,7 +3424,7 @@ class Student : Person { public double GPA; }
         }
 
         [WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithConstantPattern()
         {
             string source = @"
@@ -3502,7 +3546,7 @@ expectedIL: @"{
         }
 
         [WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithConstantGenericPattern_01()
         {
             string source = @"
@@ -3683,7 +3727,7 @@ expectedIL: @"{
         }
 
         [WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithConstantGenericPattern_02()
         {
             string source = @"
@@ -3763,10 +3807,11 @@ expectedIL: @"{
 
         #region DoStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DoStatement()
         {
-            var source = @"using System;
+            var source = WithWindowsLineBreaks(
+@"using System;
 
 public class SeqPointForWhile
 {
@@ -3800,7 +3845,7 @@ public class SeqPointForWhile
         field = -1;
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -3870,10 +3915,11 @@ public class SeqPointForWhile
         #region Constructor
 
         [WorkItem(538317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538317")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ConstructorSequencePoints1()
         {
-            var source = @"namespace NS
+            var source = WithWindowsLineBreaks(
+@"namespace NS
 {
     public class MyClass
     {
@@ -3903,7 +3949,7 @@ public class SeqPointForWhile
         }
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -3990,7 +4036,7 @@ public class SeqPointForWhile
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ConstructorSequencePoints2()
         {
             TestSequencePoints(
@@ -4054,7 +4100,7 @@ class D
 
         #region Destructor
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Destructors()
         {
             var source = @"
@@ -4120,17 +4166,17 @@ public class Derived : Base
 
         #region Field and Property Initializers
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestPartialClassFieldInitializers()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int x = 1;
 }
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int y = 1;
@@ -4140,10 +4186,10 @@ public partial class C
         C c = new C();
     }
 }
-";
-            //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
-            //loads the assembly into the ReflectionOnlyLoadFrom context.
-            //So it's probably a good idea to have a new name for each assembly.
+");
+            // Having a unique name here may be important. The infrastructure of the pdb to xml conversion
+            // loads the assembly into the ReflectionOnlyLoadFrom context.
+            // So it's probably a good idea to have a new name for each assembly.
             var compilation = CreateCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
 
             compilation.VerifyPdb("C..ctor", @"
@@ -4166,10 +4212,10 @@ public partial class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestPartialClassFieldInitializersWithLineDirectives()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4183,9 +4229,9 @@ public partial class C
 
 #pragma checksum ""mah.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
 
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4195,9 +4241,9 @@ public partial class C
     int z2 = Math.Abs(-3);
     int w2 = Math.Abs(4);
 }
-";
+");
 
-            var text3 = @"
+            var text3 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4218,7 +4264,7 @@ public partial class C
         C c = new C();
     }
 }
-";
+");
 
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
@@ -4270,7 +4316,7 @@ public partial class C
         }
 
         [WorkItem(543313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543313")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestFieldInitializerExpressionLambda()
         {
             var source = @"
@@ -4311,7 +4357,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FieldInitializerSequencePointSpans()
         {
             var source = @"
@@ -4347,7 +4393,7 @@ class C
         #region Auto-Property
 
         [WorkItem(820806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820806")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void BreakpointForAutoImplementedProperty()
         {
             var source = @"
@@ -4401,7 +4447,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void PropertyDeclaration()
         {
             TestSequencePoints(
@@ -4441,7 +4487,7 @@ public class C
 
         #region ReturnStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Implicit()
         {
             var source = @"class C
@@ -4474,7 +4520,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Explicit()
         {
             var source = @"class C
@@ -4510,10 +4556,11 @@ public class C
         }
 
         [WorkItem(538298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538298")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void RegressSeqPtEndOfMethodAfterReturn()
         {
-            var source = @"using System;
+            var source = WithWindowsLineBreaks(
+@"using System;
 
 public class SeqPointAfterReturn
 {
@@ -4566,7 +4613,7 @@ public class SeqPointAfterReturn
         }
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -4682,10 +4729,10 @@ public class SeqPointAfterReturn
         #region Exception Handling
 
         [WorkItem(542064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542064")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Test
 {
     static int Main()
@@ -4711,7 +4758,7 @@ class Test
 
     }
 }
-";
+");
             // Dev12 inserts an additional sequence point on catch clause, just before 
             // the exception object is assigned to the variable. We don't place that sequence point.
             // Also the scope of he exception variable is different.
@@ -4763,10 +4810,10 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Debug1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 
@@ -4793,7 +4840,7 @@ class Test
         }
     }
 }
-";
+");
             var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
 
             v.VerifyIL("Test.Main", @"
@@ -4919,10 +4966,10 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Debug2()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Test
 {
     static void Main()
@@ -4942,7 +4989,7 @@ class Test
         return true;
     }
 }
-";
+");
             var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
@@ -5011,10 +5058,10 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Debug3()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Test
 {
     static bool a = true;
@@ -5031,7 +5078,7 @@ class Test
         }
     }
 }
-";
+");
             var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
@@ -5100,7 +5147,7 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Release3()
         {
             var source = @"
@@ -5174,10 +5221,10 @@ class Test
         }
 
         [WorkItem(778655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778655")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void BranchToStartOfTry()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -5201,7 +5248,7 @@ class Program
         }
     }
 }
-";
+");
             // Note the hidden sequence point @IL_0019.
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
@@ -5253,10 +5300,10 @@ class Program
 
         #region UsingStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedStatement()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class DisposableClass : System.IDisposable
 {
     public DisposableClass(int a) { }
@@ -5271,7 +5318,7 @@ class C
             System.Console.WriteLine(""First"");
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -5368,10 +5415,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_Block()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class DisposableClass : System.IDisposable
 {
     public DisposableClass(int a) { }
@@ -5388,7 +5435,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -5492,7 +5539,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedConditional()
         {
             var source = @"
@@ -5582,7 +5629,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedConditional2()
         {
             var source = @"
@@ -5678,7 +5725,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedWhile()
         {
             var source = @"
@@ -5739,7 +5786,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedFor()
         {
             var source = @"
@@ -5800,7 +5847,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LockStatement_EmbeddedIf()
         {
             var source = @"
@@ -5886,10 +5933,10 @@ class C
         #region Using Declaration
 
         [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingDeclaration_BodyBlockScope()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 class C
@@ -5900,7 +5947,7 @@ class C
         Console.WriteLine(1);
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -6000,10 +6047,10 @@ class C
         }
 
         [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingDeclaration_BodyBlockScopeWithReturn()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 class C
@@ -6015,7 +6062,7 @@ class C
         return 1;
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -6097,10 +6144,10 @@ class C
         }
 
         [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingDeclaration_IfBodyScope()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 class C
@@ -6117,7 +6164,7 @@ class C
         Console.WriteLine(2);
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -6217,10 +6264,10 @@ class C
 
         #region Anonymous Type
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AnonymousType_Empty()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     static void Main(string[] args)
@@ -6228,7 +6275,7 @@ class Program
         var o = new {};
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -6258,10 +6305,10 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AnonymousType_NonEmpty()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     static void Main(string[] args)
@@ -6269,7 +6316,7 @@ class Program
         var o = new { a = 1 };
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -6303,10 +6350,10 @@ class Program
 
         #region FixedStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementSingleAddress()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6323,7 +6370,7 @@ unsafe class C
         Console.WriteLine(c.x);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
@@ -6366,10 +6413,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementSingleString()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6382,7 +6429,7 @@ unsafe class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -6420,10 +6467,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementSingleArray()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6441,7 +6488,7 @@ unsafe class C
         Console.Write(c.a[0]);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
@@ -6493,10 +6540,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleAddresses()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6515,7 +6562,7 @@ unsafe class C
         Console.WriteLine(c.x + c.y);
     }
 }
-";
+");
             // NOTE: stop on each declarator.
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
@@ -6564,10 +6611,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleStrings()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6581,7 +6628,7 @@ unsafe class C
         }
     }
 }
-";
+");
             // NOTE: stop on each declarator.
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
@@ -6625,10 +6672,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleArrays()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6650,7 +6697,7 @@ unsafe class C
         Console.Write(c.b[0]);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
@@ -6710,10 +6757,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleMixed()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6732,7 +6779,7 @@ unsafe class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"<symbols>
   <files>
@@ -6795,7 +6842,7 @@ unsafe class C
 
         #region Line Directives
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LineDirective()
         {
             var source = @"
@@ -6839,7 +6886,7 @@ unsafe class C
         }
 
         [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DisabledLineDirective()
         {
             var source = @"
@@ -6884,10 +6931,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestLineDirectivesHidden()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 using System;
 public class C
 {
@@ -6911,7 +6958,7 @@ public class C
         }
     }
 }
-";
+");
 
             var compilation = CreateCompilation(text1, options: TestOptions.DebugDll);
             compilation.VerifyPdb(@"
@@ -6985,7 +7032,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HiddenMethods()
         {
             var src = @"
@@ -7046,7 +7093,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HiddenEntryPoint()
         {
             var src = @"
@@ -7081,10 +7128,10 @@ class C
             options: PdbValidationOptions.SkipConversionValidation);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HiddenIterator()
         {
-            var src = @"
+            var src = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -7110,7 +7157,7 @@ class C
 
         yield return 1;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
 
             // We don't really need the debug info for kickoff method when the entire iterator method is hidden, 
@@ -7155,10 +7202,10 @@ class C
 
         #region Nested Types
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void NestedTypes()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 namespace N
@@ -7177,7 +7224,7 @@ namespace N
 		}
 	}
 }
-";
+");
             var c = CreateCompilation(Parse(source, filename: "file.cs"));
             c.VerifyPdb(@"
 <symbols>
@@ -7208,10 +7255,10 @@ namespace N
 
         #region Expression Bodied Members
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     public int P => M();
@@ -7220,6 +7267,7 @@ class C
         return 2;
     }
 }");
+            var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();
             comp.VerifyPdb(@"
 <symbols>
@@ -7249,7 +7297,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedIndexer()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7296,7 +7344,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedMethod()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7331,7 +7379,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedOperator()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7361,7 +7409,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedConversion()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7397,7 +7445,7 @@ class C
         }
 
         [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedConstructor()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7434,7 +7482,7 @@ class C
         }
 
         [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedDestructor()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7467,7 +7515,7 @@ class C
         }
 
         [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedAccessor()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7534,10 +7582,10 @@ class C
 
         #region Synthesized Methods
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInLambda()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Collections.Generic;
 using System.Linq;
 class C
@@ -7551,7 +7599,7 @@ class C
         };
         f();
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
@@ -7580,10 +7628,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInIterator()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Collections.Generic;
 using System.Linq;
 class C
@@ -7596,7 +7644,7 @@ class C
             yield return i;
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
@@ -7638,10 +7686,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInAsync()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Linq;
 using System.Threading.Tasks;
 class C
@@ -7651,7 +7699,7 @@ class C
         var c = new[] { 1, 2, 3 };
         c.Select(i => i);
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
@@ -7688,10 +7736,10 @@ class C
         }
 
         [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInAsyncLambda()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Linq;
 class C
 {
@@ -7703,7 +7751,7 @@ class C
             c.Select(i => i);
         };
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
@@ -7760,7 +7808,7 @@ class C
 
         #region Patterns
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_IsPattern()
         {
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
@@ -7792,10 +7840,10 @@ class C
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchStatement()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     public void Deconstruct() { }
@@ -7845,7 +7893,7 @@ class Program
         };
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
@@ -8185,10 +8233,10 @@ class Program
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchExpression()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     public void Deconstruct() { }
@@ -8238,7 +8286,7 @@ class Program
         };
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
@@ -8512,10 +8560,10 @@ class Program
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_IsPattern()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     public void Deconstruct() { }
@@ -8562,7 +8610,7 @@ class Program
             obj is D { P: 1, Q: D { P: 2 }, R: C(int z2) };
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
@@ -8755,10 +8803,10 @@ class Program
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [WorkItem(37232, "https://github.com/dotnet/roslyn/issues/37232")]
         [WorkItem(37237, "https://github.com/dotnet/roslyn/issues/37237")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchExpression_Closures()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 public class C
 {
@@ -8791,7 +8839,7 @@ public class C
     static object F() => null;
     static int G(Func<int> f) => 0;
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
 
@@ -9053,10 +9101,10 @@ public class C
 
         [WorkItem(12378, "https://github.com/dotnet/roslyn/issues/12378")]
         [WorkItem(13971, "https://github.com/dotnet/roslyn/issues/13971")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchStatement_Constant()
         {
-            string source =
+            string source = WithWindowsLineBreaks(
 @"class Program
 {
     static void M(object o)
@@ -9089,7 +9137,7 @@ public class C
                 break;
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             CompileAndVerify(c).VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
 expectedIL: @"{
@@ -9250,10 +9298,10 @@ expectedIL: @"{
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchStatement_Tuple()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 public class C
 {
     static int F(int i)
@@ -9266,7 +9314,7 @@ public class C
     }
 
     static (object, object) G() => (2, 3);
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
             var cv = CompileAndVerify(c);
 
@@ -9365,7 +9413,7 @@ public class C
 
         #region Tuples
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleDeconstruction()
         {
             var source = @"class C { int F() { (int a, (_, int c)) = (1, (2, 3)); return a + c; } }";
@@ -9402,7 +9450,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestDeconstruction()
         {
             var source = @"
@@ -9448,7 +9496,7 @@ public class C
 ", sequencePoints: "C.Main", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleParenthesized()
         {
             var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
@@ -9484,7 +9532,7 @@ public class C
 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleVarDefined()
         {
             var source = @"class C { int F() { var x = (1, 2); return x.Item1 + x.Item2; } }";
@@ -9519,7 +9567,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleIgnoreDeconstructionIfVariableDeclared()
         {
             var source = @"class C { int F() { (int x, int y) a = (1, 2); return a.Item1 + a.Item2; } }";
@@ -9561,7 +9609,7 @@ public class C
 
         #region OutVar
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInConstructor()
         {
             var source = @"
@@ -9599,7 +9647,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(13, 7));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInMethod()
         {
             var source = @"class C { int G(out int x) { int z = 1; G(out var y); G(out var w); return x = y; } }";
@@ -9643,10 +9691,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_01()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -9667,7 +9715,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -9711,10 +9759,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_02()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -9734,7 +9782,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -9772,10 +9820,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_03()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -9792,7 +9840,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -9827,10 +9875,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_04()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C
 { 
@@ -9850,7 +9898,7 @@ class C
 #line 2000
     int y1 = G(out var z) + F(() => z);
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -9908,10 +9956,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_05()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C
 { 
@@ -9927,7 +9975,7 @@ class C
 #line 2000
     int y1 { get; } = G(out var z) + F(() => z);
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -9982,10 +10030,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_06()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C
 { 
@@ -10001,7 +10049,7 @@ class C
 #line 2000
     int y1 = G(out var z) + F(() => z), y2 = G(out var u) + F(() => u);
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -10120,10 +10168,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_07()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -10146,7 +10194,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -10202,10 +10250,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInQuery_01()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 using System.Linq;
 
@@ -10224,7 +10272,7 @@ class C
         throw null;
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -10288,10 +10336,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInQuery_02()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 using System.Linq;
 
@@ -10315,7 +10363,7 @@ class C
         throw null;
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -10400,8 +10448,8 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        public void SyntaxOffset_OutVarInSwitchExpresison()
+        [Fact]
+        public void SyntaxOffset_OutVarInSwitchExpression()
         {
             var source = @"class C { static object G() => N(out var x) switch { null => x switch {1 =>  1, _ => 2 }, _ => 1 }; static object N(out int x) { x = 1; return null; } }";
 
@@ -10439,10 +10487,10 @@ class C
         #endregion
 
         [WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HeadingHiddenSequencePointsPickUpDocumentFromVisibleSequencePoint()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"#line 1 ""C:\Async.cs""
 #pragma checksum ""C:\Async.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""DBEB2A067B2F0E0D678A002C587A2806056C3DCE""
 
@@ -10454,7 +10502,7 @@ public class C
     {
     }
 }
-";
+");
 
             var tree = SyntaxFactory.ParseSyntaxTree(source, encoding: Encoding.UTF8, path: "HIDDEN.cs");
             var c = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef_v46 }, options: TestOptions.DebugDll.WithDebugPlusMode(true));
@@ -10463,6 +10511,7 @@ public class C
 @"<symbols>
   <files>
     <file id=""1"" name=""C:\Async.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""DB-EB-2A-06-7B-2F-0E-0D-67-8A-00-2C-58-7A-28-06-05-6C-3D-CE"" />
+    <file id=""2"" name=""HIDDEN.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8A-92-EE-2F-D6-6F-C0-69-F4-A8-54-CB-11-BE-A3-06-76-2C-9C-98"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M1"">
@@ -10501,25 +10550,25 @@ public class C
         }
 
         [WorkItem(12923, "https://github.com/dotnet/roslyn/issues/12923")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SequencePointsForConstructorWithHiddenInitializer()
         {
-            string initializerSource = @"
+            string initializerSource = WithWindowsLineBreaks(@"
 #line hidden
 partial class C
 {
     int i = 42;
 }
-";
+");
 
-            string constructorSource = @"
+            string constructorSource = WithWindowsLineBreaks(@"
 partial class C
 {
     C()
     {
     }
 }
-";
+");
 
             var c = CreateCompilation(
                 new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
@@ -10529,6 +10578,7 @@ partial class C
 <symbols>
   <files>
     <file id=""1"" name=""constructor.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""EA-D6-0A-16-6C-6A-BC-C1-5D-98-0F-B7-4B-78-13-93-FB-C7-C2-5A"" />
+    <file id=""2"" name=""initializer.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""84-32-24-D7-FE-32-63-BA-41-D5-17-A2-D5-90-23-B8-12-3C-AF-D5"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -10550,10 +10600,10 @@ partial class C
         }
 
         [WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LocalFunctionSequencePoints()
         {
-            string source =
+            string source = WithWindowsLineBreaks(
 @"class Program
 {
     static int Main(string[] args)
@@ -10567,7 +10617,7 @@ partial class C
         }                                            // 11
         return Local1(args) + Local2(args);          // 12
     }                                                // 13
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
@@ -10620,7 +10670,7 @@ partial class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void SwitchInAsyncMethod()
         {
@@ -10707,7 +10757,7 @@ class Program
 }", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void WhileInAsyncMethod()
         {
@@ -10789,7 +10839,7 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ForInAsyncMethod()
         {
@@ -10880,7 +10930,7 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ForWithInnerLocalsInAsyncMethod()
         {
@@ -10988,6 +11038,77 @@ class Program
                     // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                     Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
             }
+        }
+
+        [Fact]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
+        public void FilesOneWithNoMethodBody()
+        {
+            string source1 = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+");
+            string source2 = WithWindowsLineBreaks(@"
+// no code
+");
+
+            var tree1 = Parse(source1, "f:/build/goo.cs");
+            var tree2 = Parse(source2, "f:/build/nocode.cs");
+            var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" />
+    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
+        public void SingleFileWithNoMethodBody()
+        {
+            string source = WithWindowsLineBreaks(@"
+// no code
+");
+
+            var tree = Parse(source, "f:/build/nocode.cs");
+            var c = CreateCompilation(new[] { tree }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" />
+  </files>
+  <methods />
+</symbols>
+");
         }
     }
 }

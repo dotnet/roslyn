@@ -1299,12 +1299,12 @@ End Class
             var sourceV1 = "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")] public class T {}";
             var sourceV2 = "[assembly: System.Reflection.AssemblyVersion(\"2.0.0.0\")] public class T {}";
 
-            var a1 = CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
-            var a2 = CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
+            var a1 = (Compilation)CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
+            var a2 = (Compilation)CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
 
-            var b1 = CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV1) }, references, CSharpSignedDllOptions);
-            var b2 = CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV2) }, references, CSharpSignedDllOptions);
-            var b3 = CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV2) }, references, CSharpSignedDllOptions);
+            var b1 = (Compilation)CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV1) }, references, CSharpSignedDllOptions);
+            var b2 = (Compilation)CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV2) }, references, CSharpSignedDllOptions);
+            var b3 = (Compilation)CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV2) }, references, CSharpSignedDllOptions);
 
             var ta1 = (ITypeSymbol)a1.GlobalNamespace.GetMembers("T").Single();
             var ta2 = (ITypeSymbol)a2.GlobalNamespace.GetMembers("T").Single();
@@ -1397,8 +1397,8 @@ End Class
                 r2 = MetadataReference.CreateFromImage(bytes);
             }
 
-            var c1 = CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r1 });
-            var c2 = CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r2 });
+            var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r1 });
+            var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r2 });
             var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
             var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 
@@ -1435,10 +1435,10 @@ End Class
             var method2 = GetInvokedSymbol<TInvocation>(comp2, typeName, methodName);
 
             Assert.NotNull(method1);
-            Assert.Equal(method1.MethodKind, MethodKind.ReducedExtension);
+            Assert.Equal(MethodKind.ReducedExtension, method1.MethodKind);
 
             Assert.NotNull(method2);
-            Assert.Equal(method2.MethodKind, MethodKind.ReducedExtension);
+            Assert.Equal(MethodKind.ReducedExtension, method2.MethodKind);
 
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(method1, method2));
 

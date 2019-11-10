@@ -1,14 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -75,7 +79,7 @@ namespace Roslyn.Utilities
             yield return value;
         }
 
-        public static bool SetEquals<T>(this IEnumerable<T> source1, IEnumerable<T> source2, IEqualityComparer<T> comparer)
+        public static bool SetEquals<T>(this IEnumerable<T> source1, IEnumerable<T> source2, IEqualityComparer<T>? comparer)
         {
             if (source1 == null)
             {
@@ -105,7 +109,7 @@ namespace Roslyn.Utilities
             return source1.ToSet().SetEquals(source2);
         }
 
-        public static ISet<T> ToSet<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
+        public static ISet<T> ToSet<T>(this IEnumerable<T> source, IEqualityComparer<T>? comparer)
         {
             if (source == null)
             {
@@ -125,7 +129,7 @@ namespace Roslyn.Utilities
             return source as ISet<T> ?? new HashSet<T>(source);
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source)
+        public static T? FirstOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -136,7 +140,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault();
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        public static T? FirstOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
             where T : struct
         {
             if (source == null)
@@ -144,10 +148,10 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return source.Cast<T?>().FirstOrDefault(v => predicate(v.Value));
+            return source.Cast<T?>().FirstOrDefault(v => predicate(v!.Value));
         }
 
-        public static T? LastOrNullable<T>(this IEnumerable<T> source)
+        public static T? LastOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -227,7 +231,7 @@ namespace Roslyn.Utilities
 
         private static readonly Func<object, bool> s_notNullTest = x => x != null;
 
-        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
             where T : class
         {
             if (source == null)
@@ -235,13 +239,13 @@ namespace Roslyn.Utilities
                 return SpecializedCollections.EmptyEnumerable<T>();
             }
 
-            return source.Where((Func<T, bool>)s_notNullTest);
+            return source.Where((Func<T?, bool>)s_notNullTest)!;
         }
 
         public static T[] AsArray<T>(this IEnumerable<T> source)
             => source as T[] ?? source.ToArray();
 
-        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, TResult> selector)
         {
             if (source == null)
             {
@@ -282,7 +286,7 @@ namespace Roslyn.Utilities
             return sequence.SelectMany(s => s);
         }
 
-        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T> comparer)
+        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T>? comparer)
         {
             return source.OrderBy(Functions<T>.Identity, comparer);
         }
@@ -297,7 +301,7 @@ namespace Roslyn.Utilities
             return source.OrderBy(Comparisons<T>.Comparer);
         }
 
-        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T> comparer)
+        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
         {
             return source.ThenBy(Functions<T>.Identity, comparer);
         }
@@ -364,7 +368,8 @@ namespace Roslyn.Utilities
             return Comparer<T>.Create(comparison);
         }
 
-        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>> items)
+        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>>? items)
+            where K : notnull
         {
             if (items == null)
             {
@@ -374,7 +379,8 @@ namespace Roslyn.Utilities
             return ImmutableDictionary.CreateRange(items);
         }
 
-        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>> items, IEqualityComparer<K> keyComparer)
+        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>>? items, IEqualityComparer<K>? keyComparer)
+            where K : notnull
         {
             if (items == null)
             {
@@ -384,6 +390,7 @@ namespace Roslyn.Utilities
             return ImmutableDictionary.CreateRange(keyComparer, items);
         }
 
+#nullable disable // Transpose doesn't handle empty arrays. Needs to be updated as appropriate.
         internal static IList<IList<T>> Transpose<T>(this IEnumerable<IEnumerable<T>> data)
         {
 #if DEBUG
@@ -436,9 +443,11 @@ namespace Roslyn.Utilities
                 }
             }
         }
+#nullable enable
 
 #if !CODE_STYLE
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             var dictionary = new Dictionary<K, ImmutableArray<T>>(comparer);
             var groups = data.GroupBy(keySelector, comparer);
@@ -456,11 +465,12 @@ namespace Roslyn.Utilities
         /// Returns the only element of specified sequence if it has exactly one, and default(TSource) otherwise.
         /// Unlike <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/> doesn't throw if there is more than one element in the sequence.
         /// </summary>
-        internal static TSource AsSingleton<TSource>(this IEnumerable<TSource> source)
+        [return: MaybeNull]
+        internal static TSource AsSingleton<TSource>(this IEnumerable<TSource>? source)
         {
             if (source == null)
             {
-                return default;
+                return default!;
             }
 
             if (source is IList<TSource> list)
@@ -471,13 +481,13 @@ namespace Roslyn.Utilities
             using IEnumerator<TSource> e = source.GetEnumerator();
             if (!e.MoveNext())
             {
-                return default;
+                return default!;
             }
 
             TSource result = e.Current;
             if (e.MoveNext())
             {
-                return default;
+                return default!;
             }
 
             return result;
@@ -513,9 +523,9 @@ namespace System.Linq
     /// </summary>
     internal static class EnumerableExtensions
     {
-        public static bool SequenceEqual<T>(this IEnumerable<T> first, IEnumerable<T> second, Func<T, T, bool> comparer)
+        public static bool SequenceEqual<T>(this IEnumerable<T>? first, IEnumerable<T>? second, Func<T, T, bool> comparer)
         {
-            Debug.Assert(comparer != null);
+            RoslynDebug.Assert(comparer != null);
 
             if (first == second)
             {
@@ -545,6 +555,26 @@ namespace System.Linq
             }
 
             return true;
+        }
+
+        [return: MaybeNull]
+        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
+        {
+            using (var e = source.GetEnumerator())
+            {
+                if (!e.MoveNext())
+                {
+                    return default!;
+                }
+
+                var result = e.Current;
+                while (e.MoveNext())
+                {
+                    result = func(result, e.Current);
+                }
+
+                return result;
+            }
         }
     }
 }

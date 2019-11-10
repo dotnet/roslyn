@@ -517,7 +517,7 @@ next:;
                             mergedConstraintTypes.AddRange(originalConstraintTypes);
                         }
 
-                        mergedConstraintTypes[index1] = constraintType1.MergeNullability(constraintType2, VarianceKind.None);
+                        mergedConstraintTypes[index1] = constraintType1.MergeEquivalentTypes(constraintType2, VarianceKind.None);
                     }
                 }
 
@@ -1037,7 +1037,7 @@ next:;
                 TypedConstant argument = attribute.CommonConstructorArguments[0];
                 Debug.Assert(argument.Kind == TypedConstantKind.Type);
 
-                var coClassType = argument.Value as NamedTypeSymbol;
+                var coClassType = argument.ValueInternal as NamedTypeSymbol;
                 if ((object)coClassType != null && coClassType.TypeKind == TypeKind.Class)
                 {
                     arguments.GetOrCreateData<TypeWellKnownAttributeData>().ComImportCoClass = coClassType;

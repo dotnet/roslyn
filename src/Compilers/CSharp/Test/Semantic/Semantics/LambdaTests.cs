@@ -780,7 +780,7 @@ class Program
             var sym = model.GetSymbolInfo(expr).Symbol;
             Assert.NotNull(sym);
             Assert.Equal(SymbolKind.Method, sym.Kind);
-            Assert.Equal(MethodKind.AnonymousFunction, (sym as MethodSymbol).MethodKind);
+            Assert.Equal(MethodKind.AnonymousFunction, (sym as IMethodSymbol).MethodKind);
 
             expr = exprs.Last();
             tinfo = model.GetTypeInfo(expr);
@@ -790,7 +790,7 @@ class Program
             sym = model.GetSymbolInfo(expr).Symbol;
             Assert.NotNull(sym);
             Assert.Equal(SymbolKind.Method, sym.Kind);
-            Assert.Equal(MethodKind.AnonymousFunction, (sym as MethodSymbol).MethodKind);
+            Assert.Equal(MethodKind.AnonymousFunction, (sym as IMethodSymbol).MethodKind);
         }
 
         [WorkItem(544594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544594")]
@@ -962,7 +962,7 @@ namespace IntellisenseBug
                 .Where(e => e.ToFullString() == "x/* */")
                 .Last();
             var typeInfo = model.GetTypeInfo(xReference);
-            Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("String"));
+            Assert.NotNull(((ITypeSymbol)typeInfo.Type).GetMember("String"));
         }
 
         [WorkItem(722288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722288")]
@@ -1016,7 +1016,7 @@ public class IntelliSenseError
                 .Where(e => e.ToFullString() == "o/* */")
                 .Last();
             var typeInfo = model.GetTypeInfo(oReference);
-            Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
+            Assert.NotNull(((ITypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
         }
 
         [WorkItem(871896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871896")]
@@ -1903,7 +1903,7 @@ namespace RoslynAsyncDelegate
 
             Assert.Equal("void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)", model.GetTypeInfo(node1).ConvertedType.GetMembers("Invoke").Single().ToTestDisplayString());
 
-            var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
+            var lambdaParameters = ((IMethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
 
             Assert.Equal("System.Object <p0>", lambdaParameters[0].ToTestDisplayString());
             Assert.Equal("System.EventArgs <p1>", lambdaParameters[1].ToTestDisplayString());
@@ -2585,23 +2585,23 @@ class C
             // F(1, (t, a, b, c) => { });
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
-            var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            var parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
             Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
             Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
             Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
             Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
             Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
@@ -2961,14 +2961,14 @@ class Program
 
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("ContentType", contentType.ToString());
-            var lambda = (MethodSymbol)model.GetEnclosingSymbol(contentType.SpanStart);
+            var lambda = (IMethodSymbol)model.GetEnclosingSymbol(contentType.SpanStart);
             Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
 
             ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
 
             model = comp.GetSemanticModel(tree);
             Assert.Equal("b", b.ToString());
-            lambda = (MethodSymbol)model.GetEnclosingSymbol(b.SpanStart);
+            lambda = (IMethodSymbol)model.GetEnclosingSymbol(b.SpanStart);
             Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
 
             model = comp.GetSemanticModel(tree);

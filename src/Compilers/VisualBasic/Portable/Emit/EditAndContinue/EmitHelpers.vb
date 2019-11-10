@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=AddressOf changes.RequiresCompilation,
+                                   filterOpt:=Function(s) changes.RequiresCompilation(s.GetISymbol()),
                                    cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.
