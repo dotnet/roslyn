@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             /// </summary>
             private readonly SyntaxTrivia _singleIndentationTrivia;
 
+            private readonly SyntaxTrivia _closeBraceIndentationTrivia;
+
             private readonly SyntaxTrivia _elasticTrivia;
 
             public InitializerExpressionCodeActionComputer(
@@ -62,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
+                _closeBraceIndentationTrivia = generator.Whitespace(GetCloseTokenIndentation());
                 _elasticTrivia = generator.ElasticCarriageReturnLineFeed;
             }
 
@@ -71,6 +74,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 var afterOpenTokenOffset = OriginalSourceText.GetOffset(openToken.Span.End);
 
                 var indentString = afterOpenTokenOffset.CreateIndentationString(UseTabs, TabSize);
+                return indentString;
+            }
+
+            private string GetCloseTokenIndentation()
+            {
+                var initialStatement = _listSyntax.Parent.Parent.Parent.Parent;
+                var afterInitialStatementOffset = OriginalSourceText.GetOffset(initialStatement.SpanStart);
+
+                var indentString = afterInitialStatementOffset.CreateIndentationString(UseTabs, TabSize);
                 return indentString;
             }
 
@@ -161,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     }
                 }
 
-                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _elasticTrivia, _listSyntax.GetLastToken()));
+                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _closeBraceIndentationTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }
@@ -276,13 +288,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                         }
                     }
 
-                    // Get rid of any spaces between the list item and the following token (a
-                    // comma or close token).
+                    //// Get rid of any spaces between the list item and the following token (a
+                    //// comma or close token).
                     var nextToken = item.GetLastToken().GetNextToken();
 
-                    result.Add(Edit.DeleteBetween(item, nextToken));
+                    //result.Add(Edit.DeleteBetween(item, nextToken));
                     currentOffset += nextToken.Span.Length;
                 }
+
+                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _closeBraceIndentationTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }
