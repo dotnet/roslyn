@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var solution = document.Project.Solution;
 
             var codeAction = new MyCodeAction(
-                $"Implicit {explicitImpl.Name} implicitly",
+                string.Format(FeaturesResources.Implement_0_implicitly, explicitImpl.Name),
                 c => ImplementImplicitlyAsync(solution, new HashSet<ISymbol> { member }, c));
 
             var containingType = member.ContainingType;
@@ -74,18 +74,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
             nestedActions.Add(codeAction);
             if (explicitlyImplementedMembers.Count > 1)
-                nestedActions.Add(new MyCodeAction($"Implicit {interfaceName} implicitly",
+                nestedActions.Add(new MyCodeAction(
+                    string.Format(FeaturesResources.Implement_0_implicitly, interfaceName),
                     c => ImplementImplicitlyAsync(solution, explicitlyImplementedMembers, c)));
 
             var allExplicitlyImplementedMembers = containingType.AllInterfaces.SelectMany(
                 i => GetExplicitlyImplementedMembers(containingType, i)).ToSet();
 
             if (allExplicitlyImplementedMembers.Count > explicitlyImplementedMembers.Count)
-                nestedActions.Add(new MyCodeAction($"Implicit all interfaces implicitly",
+                nestedActions.Add(new MyCodeAction(
+                    FeaturesResources.Implement_all_interfaces_implicitly,
                     c => ImplementImplicitlyAsync(solution, allExplicitlyImplementedMembers, c)));
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
-                "Implicit implicitly", nestedActions.ToImmutableAndFree(), isInlinable: true));
+                FeaturesResources.Implement_implicitly, nestedActions.ToImmutableAndFree(), isInlinable: true));
         }
 
         private IEnumerable<ISymbol> GetExplicitlyImplementedMembers(INamedTypeSymbol containingType, INamedTypeSymbol interfaceType)
