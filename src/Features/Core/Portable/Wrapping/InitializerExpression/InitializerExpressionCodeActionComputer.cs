@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 result.Add(await GetWrapEveryGroupAsync().ConfigureAwait(false));
                 result.Add(await GetUnwrapGroupAsync().ConfigureAwait(false));
-                //result.Add(await GetWrapLongGroupAsync().ConfigureAwait(false));
+                result.Add(await GetWrapLongGroupAsync().ConfigureAwait(false));
             }
 
             private async Task<WrappingGroup> GetWrapEveryGroupAsync()
@@ -209,6 +209,81 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 }
 
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                return result.ToImmutableAndFree();
+            }
+
+            private async Task<WrappingGroup> GetWrapLongGroupAsync()
+            {
+                var parentTitle = Wrapper.Wrap_long_list;
+                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+
+                // MethodName(
+                //     int a, int b, int c, int d, int e,
+                //     int f, int g, int h, int i, int j)
+                codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                    parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+
+
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+            }
+
+            private async Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
+                string parentTitle, WrappingStyle wrappingStyle)
+            {
+                var indentationTrivia = GetIndentationTrivia(wrappingStyle);
+
+                var edits = GetWrapLongLinesEdits(wrappingStyle, indentationTrivia);
+                var title = GetNestedCodeActionTitle(wrappingStyle);
+
+                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+            }
+
+            private ImmutableArray<Edit> GetWrapLongLinesEdits(
+                WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
+            {
+                var result = ArrayBuilder<Edit>.GetInstance();
+
+                AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
+
+                var currentOffset = wrappingStyle == WrappingStyle.WrapFirst_IndentRest
+                    ? indentationTrivia.FullWidth()
+                    : _afterOpenTokenIndentationTrivia.FullWidth();
+                var itemsAndSeparators = _listItems.GetWithSeparators();
+
+                for (var i = 0; i < itemsAndSeparators.Count; i += 2)
+                {
+                    var item = itemsAndSeparators[i].AsNode();
+
+                    // Figure out where we'd be after this item.
+                    currentOffset += item.Span.Length;
+
+                    if (i > 0)
+                    {
+                        if (currentOffset < WrappingColumn)
+                        {
+                            // this item would not make us go pass our preferred wrapping column. So
+                            // keep it on this line, making sure there's a space between the previous
+                            // comma and us.
+                            result.Add(Edit.UpdateBetween(itemsAndSeparators[i - 1], SingleWhitespaceTrivia, NoTrivia, item));
+                            currentOffset += " ".Length;
+                        }
+                        else
+                        {
+                            // not the first item on the line and this item makes us go past the wrapping
+                            // limit.  We want to wrap before this item.
+                            result.Add(Edit.UpdateBetween(itemsAndSeparators[i - 1], NewLineTrivia, indentationTrivia, item));
+                            currentOffset = indentationTrivia.FullWidth() + item.Span.Length;
+                        }
+                    }
+
+                    // Get rid of any spaces between the list item and the following token (a
+                    // comma or close token).
+                    var nextToken = item.GetLastToken().GetNextToken();
+
+                    result.Add(Edit.DeleteBetween(item, nextToken));
+                    currentOffset += nextToken.Span.Length;
+                }
+
                 return result.ToImmutableAndFree();
             }
         }
