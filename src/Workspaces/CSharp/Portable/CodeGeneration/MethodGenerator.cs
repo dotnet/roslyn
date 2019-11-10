@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return (default, returnNullableAnnotation);
             }
 
-            var attributes = new List<AttributeListSyntax>();
+            using var _ = ArrayBuilder<AttributeListSyntax>.GetInstance(out var attributes);
 
             attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options));
 
