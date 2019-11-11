@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
 
-        private (ImmutableArray<RefKind>, ImmutableArray<TypeWithAnnotations>, ImmutableArray<string>, bool) AnalyzeAnonymousFunction(
-            CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private (ImmutableArray<RefKind>, ImmutableArray<TypeWithAnnotations>, ImmutableArray<string>, bool isAsync, bool isStatic) AnalyzeAnonymousFunction(
+            AnonymousFunctionExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var names = default(ImmutableArray<string>);
             var refKinds = default(ImmutableArray<RefKind>);
             var types = default(ImmutableArray<TypeWithAnnotations>);
-            bool isAsync = false;
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
@@ -54,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
-                    isAsync = (simple.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     // (T x, U y) => ...
@@ -63,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
                     CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
-                    isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
                     // delegate (int x) { }
@@ -74,9 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         parameterSyntaxList = anon.ParameterList.Parameters;
                     }
-                    isAsync = (anon.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
             }
+
+            var isAsync = syntax.Modifiers.Any(SyntaxKind.AsyncKeyword);
+            var isStatic = syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
 
             if (parameterSyntaxList != null)
             {
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return (refKinds, types, names, isAsync);
+            return (refKinds, types, names, isAsync, isStatic);
         }
 
         private void CheckParenthesizedLambdaParameters(
@@ -211,12 +210,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private UnboundLambda BindAnonymousFunction(AnonymousFunctionExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var (refKinds, types, names, isAsync) = AnalyzeAnonymousFunction(syntax, diagnostics);
+            var (refKinds, types, names, isAsync, isStatic) = AnalyzeAnonymousFunction(syntax, diagnostics);
             if (!types.IsDefault)
             {
                 foreach (var type in types)
@@ -229,7 +228,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync);
+            // Parser will only have accepted static/async as allowed modifiers on this construct.
+            // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
+            // are reported now.
+            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics);
+
+            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync: isAsync, isStatic: isStatic);
             if (!names.IsDefault)
             {
                 var binder = new LocalScopeBinder(this);

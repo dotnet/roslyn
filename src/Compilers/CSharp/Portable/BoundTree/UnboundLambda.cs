@@ -328,12 +328,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> types,
             ImmutableArray<string> names,
             bool isAsync,
-            bool hasErrors = false)
-            : base(BoundKind.UnboundLambda, syntax, null, hasErrors || !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
+            bool isStatic)
+            : base(BoundKind.UnboundLambda, syntax, null, !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
-            this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isAsync);
+            this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isAsync, isStatic);
         }
 
         private UnboundLambda(UnboundLambda other, Binder binder, NullableWalker.VariableState nullableState) :
@@ -372,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
+        public bool IsStatic => Data.IsStatic;
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
@@ -419,6 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract bool HasExplicitlyTypedParameterList { get; }
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
+        public abstract bool IsStatic { get; }
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
         //public abstract SyntaxToken ParameterIdentifier(int index);
@@ -1081,6 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
         private readonly bool _isAsync;
+        private readonly bool _isStatic;
 
         internal PlainUnboundLambdaState(
             UnboundLambda unboundLambda,
@@ -1088,13 +1091,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> parameterNames,
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
-            bool isAsync)
+            bool isAsync,
+            bool isStatic)
             : base(binder, unboundLambda)
         {
             _parameterNames = parameterNames;
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
             _parameterRefKinds = parameterRefKinds;
             _isAsync = isAsync;
+            _isStatic = isStatic;
         }
 
         public override bool HasSignature { get { return !_parameterNames.IsDefault; } }
@@ -1104,6 +1109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ParameterCount { get { return _parameterNames.IsDefault ? 0 : _parameterNames.Length; } }
 
         public override bool IsAsync { get { return _isAsync; } }
+
+        public override bool IsStatic => _isStatic;
 
         public override MessageID MessageID { get { return this.UnboundLambda.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
