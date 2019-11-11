@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 
         public AbstractUseInferredMemberNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,
-                   CodeStyleOptions.PreferInferredTupleNames,
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.PreferInferredTupleNames, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_inferred_member_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Member_name_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
