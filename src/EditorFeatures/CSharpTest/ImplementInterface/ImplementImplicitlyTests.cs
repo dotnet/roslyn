@@ -148,5 +148,29 @@ class C : IGoo
     public event Action E { add { } remove { } }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNotOnImplicitMember()
+        {
+            await TestMissingAsync(
+@"
+interface IGoo { void Goo1(); }
+
+class C : IGoo
+{
+    public void [||]Goo1() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNotOnUnboundExplicitImpl()
+        {
+            await TestMissingAsync(
+@"
+class C : IGoo
+{
+    void IGoo.[||]Goo1() { }
+}");
+        }
     }
 }
