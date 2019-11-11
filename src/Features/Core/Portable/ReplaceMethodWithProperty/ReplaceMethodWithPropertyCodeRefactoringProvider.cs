@@ -163,11 +163,14 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var originalSolution = document.Project.Solution;
-            var getMethodReferences = await SymbolFinder.FindReferencesAsync(getMethod, originalSolution, cancellationToken).ConfigureAwait(false);
+            var project = document.Project;
+            var originalSolution = project.Solution;
+            var getMethodReferences = await SymbolFinder.FindReferencesAsync(
+                new SymbolAndProjectId(getMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
             var setMethodReferences = setMethod == null
                 ? SpecializedCollections.EmptyEnumerable<ReferencedSymbol>()
-                : await SymbolFinder.FindReferencesAsync(setMethod, originalSolution, cancellationToken).ConfigureAwait(false);
+                : await SymbolFinder.FindReferencesAsync(
+                    new SymbolAndProjectId(setMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(getMethodReferences);

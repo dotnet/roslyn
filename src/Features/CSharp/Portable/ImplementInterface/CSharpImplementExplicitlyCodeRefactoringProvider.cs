@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -39,19 +41,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var member = semanticModel.GetDeclaredSymbol(container, cancellationToken) ??
                 throw new InvalidOperationException();
 
-            // If this member doesn't implement anythin implicitly, then we don't need to do anythin
+            // If this member doesn't implement anything implicitly, then we don't need to do anything
             // with it.
             if (member.ExplicitOrImplicitInterfaceImplementations().Length == 0)
                 return;
 
-            var solution = document.Project.Solution;
+            var project = document.Project;
 
             var directlyImplementedMembers = new MultiDictionary<ISymbol, ISymbol>();
             directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
 
             var codeAction = new MyCodeAction(
                 string.Format(FeaturesResources.Implement_0_explicitly, member.Name),
-                c => ImplementExplicitlyAsync(solution, directlyImplementedMembers, c));
+                c => ImplementExplicitlyAsync(project, directlyImplementedMembers, c));
 
             var containingType = member.ContainingType;
             var interfaceTypes = directlyImplementedMembers.Values.SelectMany(
@@ -77,14 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 var interfaceNames = interfaceTypes.Select(i => i.ToDisplayString(NameAndTypeParametersFormat));
                 nestedActions.Add(new MyCodeAction(
                     string.Format(FeaturesResources.Implement_0_explicitly, string.Join(", ", interfaceNames)),
-                    c => ImplementExplicitlyAsync(solution, implementedMembersFromSameInterfaces, c)));
+                    c => ImplementExplicitlyAsync(project, implementedMembersFromSameInterfaces, c)));
             }
 
             if (offerForAllInterfaces)
             {
                 nestedActions.Add(new MyCodeAction(
                     FeaturesResources.Implement_all_interfaces_explicitly,
-                    c => ImplementExplicitlyAsync(solution, implementedMembersFromAllInterfaces, c)));
+                    c => ImplementExplicitlyAsync(project, implementedMembersFromAllInterfaces, c)));
             }
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
@@ -110,9 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 foreach (var interfaceMember in interfaceType.GetMembers())
                 {
                     var impl = containingType.FindImplementationForInterfaceMember(interfaceMember);
-                    if (impl != null
-                        && containingType.Equals(impl.ContainingType)
-                        && impl.ExplicitInterfaceImplementations().Length == 0)
+                    if (impl != null &&
+                        containingType.Equals(impl.ContainingType) &&
+                        impl.ExplicitInterfaceImplementations().Length == 0)
                     {
                         result.Add(impl, interfaceMember);
                     }
@@ -123,21 +125,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         }
 
         private async Task<Solution> ImplementExplicitlyAsync(
-            Solution solution, MultiDictionary<ISymbol, ISymbol> implMemberToInterfaceMembers,
+            Project project, MultiDictionary<ISymbol, ISymbol> implMemberToInterfaceMembers,
             CancellationToken cancellationToken)
         {
-            // First, we have to go through and find all the references to these inteface
-            // implementation members.  We'll have to update all callers to call throuh the
+            // First, we have to go through and find all the references to these interface
+            // implementation members.  We'll have to update all callers to call through the
             // interface instead to preserve semantics.  i.e. a call to goo.Bar() will be 
             // updated to `((IGoo)goo).Bar()`.  We'll also add a simplification annotation
             // here so that the cast can go away if not necessary.
             var documentToEditor = new Dictionary<Document, SyntaxEditor>();
-            foreach (var (implMember, _) in implMemberToInterfaceMembers)
+            foreach (var (implMember, interfaceMembers) in implMemberToInterfaceMembers)
             {
                 await UpdateReferencesAsync(
-                    solution, documentToEditor, implMember, cancellationToken).ConfigureAwait(false);
+                    project, documentToEditor, implMember,
+                    interfaceMembers.First().ContainingType,
+                    cancellationToken).ConfigureAwait(false);
             }
 
+            var solution = project.Solution;
 
             // Not, bucket all the implemented members by which document they appear in.
             // That way, we can update all the members in a specific document in bulk.
@@ -174,11 +179,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     }
                     else
                     {
-                        // member implemented multiple interface members.  Break them apart into 
+                        // member implemented multiple interface members.  Break them apart into
                         // copies and have each copy implement the new interface type.
+
+                        // We have to see if we can find the member in the current syntax editor
+                        // though in case it has been modified while we were updating references.
+                        var latest = editor.GetChangedRoot().GetCurrentNode(decl) ?? decl;
+
                         foreach (var symbol in symbols)
                         {
-                            editor.InsertAfter(decl, ImplementExplicitly(editor.Generator, decl, symbol));
+                            editor.InsertAfter(decl, ImplementExplicitly(editor.Generator, latest, symbol));
                         }
 
                         // Then, remove the original decl
@@ -193,9 +203,84 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return currentSolution;
         }
 
-        private Task UpdateReferencesAsync(Solution solution, Dictionary<Document, SyntaxEditor> documentToEditor, ISymbol implMember, CancellationToken cancellationToken)
+        private async Task UpdateReferencesAsync(
+            Project project, Dictionary<Document, SyntaxEditor> documentToEditor,
+            ISymbol implMember, INamedTypeSymbol interfaceType, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            var solution = project.Solution;
+
+            var references = await SymbolFinder.FindReferencesAsync(
+                new SymbolAndProjectId(implMember, project.Id),
+                solution, cancellationToken).ConfigureAwait(false);
+
+            var implReferences = references.FirstOrDefault(r => implMember.Equals(r.Definition));
+            if (implReferences == null)
+                return;
+
+            var referenceByDocument = implReferences.Locations.GroupBy(loc => loc.Document);
+
+            foreach (var group in referenceByDocument)
+            {
+                var document = group.Key;
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var editor = new SyntaxEditor(root, solution.Workspace);
+                documentToEditor.Add(document, editor);
+
+                foreach (var refLocation in group)
+                {
+                    if (refLocation.IsImplicit)
+                        continue;
+
+                    var location = refLocation.Location;
+                    if (!location.IsInSource)
+                        continue;
+
+                    UpdateLocation(interfaceType, editor, syntaxFacts, location, cancellationToken);
+                }
+            }
+        }
+
+        private void UpdateLocation(
+            INamedTypeSymbol interfaceType, SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
+            Location location, CancellationToken cancellationToken)
+        {
+            var identifierName = location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            if (identifierName == null || !syntaxFacts.IsIdentifierName(identifierName))
+                return;
+
+            var parent = identifierName.Parent;
+            if (syntaxFacts.IsAnyMemberAccessExpression(parent))
+            {
+                // We have something like `expr.Goo` replace it with `((IGoo)expr).Goo`
+                var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(parent);
+                editor.ReplaceNode(
+                    expr, (current, g) => g.AddParentheses(g.CastExpression(interfaceType, current)));
+                return;
+            }
+
+            if (syntaxFacts.IsMemberBindingExpression(parent))
+            {
+                // We have something like `expr?.Goo` replace it with `((IGoo)expr)?.Goo`
+                var expr = syntaxFacts.GetTargetOfMemberBinding(parent);
+                editor.ReplaceNode(
+                    expr, (current, g) => g.AddParentheses(g.CastExpression(interfaceType, current)));
+
+                return;
+            }
+
+            // Accessing the member not off of <dot>.  i.e just plain `Goo()`.  Replace with
+            // ((IGoo)this).Goo();
+            var generator = editor.Generator;
+            editor.ReplaceNode(
+                identifierName,
+                generator.MemberAccessExpression(
+                    generator.AddParentheses(
+                        generator.CastExpression(
+                            interfaceType,
+                            generator.ThisExpression())),
+                    identifierName));
         }
 
         private SyntaxNode ImplementExplicitly(SyntaxGenerator generator, SyntaxNode decl, ISymbol interfaceMember)

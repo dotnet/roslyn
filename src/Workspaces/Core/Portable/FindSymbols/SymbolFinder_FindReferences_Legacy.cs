@@ -20,14 +20,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="symbol">The symbol to find references to.</param>
         /// <param name="solution">The solution to find references within.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
+            Solution solution,
+            CancellationToken cancellationToken = default)
+        {
+            return FindReferencesAsync(new SymbolAndProjectId(symbol, projectId: null), solution, cancellationToken);
+        }
+
+        /// <summary>
+        /// Finds all references to a symbol throughout a solution
+        /// </summary>
+        /// <param name="symbol">The symbol to find references to.</param>
+        /// <param name="solution">The solution to find references within.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken = default)
         {
             var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
             await FindReferencesAsync(
-                SymbolAndProjectId.Create(symbol, projectId: null),
+                symbolAndProjectId,
                 solution, progress: progressCollector, documents: null,
                 options: FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
