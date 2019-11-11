@@ -19,53 +19,47 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
+    using static Helpers;
+
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal class CSharpImplementImplicitlyCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, span, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
 
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
-
-            // Move back if the user is at: X.Goo$$(
-            if (span.IsEmpty && token.Kind() == SyntaxKind.OpenParenToken)
-                token = token.GetPreviousToken();
-
-            var (container, explicitName, name) = GetContainer(token);
+            var (container, explicitName, name) = await GetContainerAsync(context).ConfigureAwait(false);
             if (explicitName == null)
-                return;
-
-            var applicableSpan = TextSpan.FromBounds(explicitName.FullSpan.Start, name.FullSpan.End);
-            if (!applicableSpan.Contains(span))
                 return;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var member = semanticModel.GetDeclaredSymbol(container, cancellationToken) ??
                 throw new InvalidOperationException();
 
-            var explicitImpls = member.ExplicitInterfaceImplementations();
-            if (explicitImpls.Length != 1)
+            if (member.ExplicitInterfaceImplementations().Length != 1)
                 return;
-
-            var explicitImpl = explicitImpls[0];
-            var interfaceType = explicitImpl.ContainingType;
-            var interfaceName = interfaceType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
             var solution = document.Project.Solution;
 
+            var interfaceMember = member.ExplicitInterfaceImplementations().Single();
+            var directImplementions = new HashSet<ISymbol> { member };
             var codeAction = new MyCodeAction(
-                string.Format(FeaturesResources.Implement_0_implicitly, explicitImpl.Name),
-                c => ImplementImplicitlyAsync(solution, new HashSet<ISymbol> { member }, c));
+                string.Format(FeaturesResources.Implement_0_implicitly, interfaceMember.Name),
+                c => ImplementImplicitlyAsync(solution, directImplementions, c));
 
             var containingType = member.ContainingType;
-            var explicitlyImplementedMembers = GetExplicitlyImplementedMembers(containingType, interfaceType).ToSet();
+            var interfaceType = member.ExplicitInterfaceImplementations().Single().ContainingType;
+
+            var implementationsFromSameInterface = GetExplicitlyImplementedMembers(containingType, interfaceType).ToSet();
+            var implementationsFromAllInterfaces = containingType.AllInterfaces.SelectMany(
+                i => GetExplicitlyImplementedMembers(containingType, i)).ToSet();
+
+            var offerForSameInterface = implementationsFromSameInterface.Count > directImplementions.Count;
+            var offerForAllInterfaces = implementationsFromAllInterfaces.Count > implementationsFromSameInterface.Count;
 
             // There was only one member in the interface that we implement.  Only need to show
             // the single action.
-            if (explicitlyImplementedMembers.Count <= 1)
+            if (!offerForSameInterface && !offerForAllInterfaces)
             {
                 context.RegisterRefactoring(codeAction);
                 return;
@@ -73,18 +67,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
             nestedActions.Add(codeAction);
-            if (explicitlyImplementedMembers.Count > 1)
+
+            if (offerForSameInterface)
+            {
                 nestedActions.Add(new MyCodeAction(
-                    string.Format(FeaturesResources.Implement_0_implicitly, interfaceName),
-                    c => ImplementImplicitlyAsync(solution, explicitlyImplementedMembers, c)));
+                    string.Format(
+                        FeaturesResources.Implement_0_implicitly,
+                        interfaceType.ToDisplayString(NameAndTypeParametersFormat)),
+                    c => ImplementImplicitlyAsync(solution, implementationsFromSameInterface, c)));
+            }
 
-            var allExplicitlyImplementedMembers = containingType.AllInterfaces.SelectMany(
-                i => GetExplicitlyImplementedMembers(containingType, i)).ToSet();
-
-            if (allExplicitlyImplementedMembers.Count > explicitlyImplementedMembers.Count)
+            if (offerForAllInterfaces)
+            {
                 nestedActions.Add(new MyCodeAction(
                     FeaturesResources.Implement_all_interfaces_implicitly,
-                    c => ImplementImplicitlyAsync(solution, allExplicitlyImplementedMembers, c)));
+                    c => ImplementImplicitlyAsync(solution, implementationsFromAllInterfaces, c)));
+            }
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
                 FeaturesResources.Implement_implicitly, nestedActions.ToImmutableAndFree(), isInlinable: true));

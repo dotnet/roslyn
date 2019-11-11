@@ -1729,4 +1729,13 @@ This version used in: {2}</value>
   <data name="Implement_implicitly" xml:space="preserve">
     <value>Implement implicitly</value>
   </data>
+  <data name="Implement all interfaces explicitly" xml:space="preserve">
+    <value>Implement all interfaces explicitly</value>
+  </data>
+  <data name="Implement explicitly" xml:space="preserve">
+    <value>Implement explicitly</value>
+  </data>
+  <data name="Implement_0_explicitly" xml:space="preserve">
+    <value>Implement '{0}' explicitly</value>
+  </data>
 </root>

@@ -1977,6 +1977,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; explicitly.
+        /// </summary>
+        internal static string Implement_0_explicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement &apos;{0}&apos; implicitly.
         /// </summary>
         internal static string Implement_0_implicitly {
@@ -1995,11 +2004,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces explicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_explicitly {
+            get {
+                return ResourceManager.GetString("Implement all interfaces explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement all interfaces implicitly.
         /// </summary>
         internal static string Implement_all_interfaces_implicitly {
             get {
                 return ResourceManager.GetString("Implement_all_interfaces_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement explicitly.
+        /// </summary>
+        internal static string Implement_explicitly {
+            get {
+                return ResourceManager.GetString("Implement explicitly", resourceCulture);
             }
         }
         
