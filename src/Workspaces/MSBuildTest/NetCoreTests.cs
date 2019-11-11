@@ -439,5 +439,29 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 var compilation = await project.GetCompilationAsync();
             }
         }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_OverrideTFM()
+        {
+            CreateFiles(GetNetCoreApp2AndLibraryFiles());
+
+            var projectFilePath = GetSolutionFileName(@"Library\Library.csproj");
+
+            DotNetRestore(@"Library\Library.csproj");
+
+            // Override the TFM properties defined in the file
+            using (var workspace = CreateMSBuildWorkspace((PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "netcoreapp2.1;net461")))
+            {
+                await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that two projects have been loaded, one for each TFM.
+                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+
+                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(netcoreapp2.1)");
+                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net461)");
+            }
+        }
     }
 }

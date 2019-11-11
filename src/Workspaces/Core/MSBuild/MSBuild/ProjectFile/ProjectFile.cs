@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var targetFrameworks = targetFrameworksValue.Split(';');
                 var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(targetFrameworks.Length);
 
+                if (!_loadedProject.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
+                    initialGlobalTargetFrameworkValue = null;
+
                 foreach (var targetFramework in targetFrameworks)
                 {
                     _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
@@ -69,7 +72,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     results.Add(projectFileInfo);
                 }
 
-                _loadedProject.RemoveGlobalProperty(PropertyNames.TargetFramework);
+                if (initialGlobalTargetFrameworkValue is null)
+                {
+                    _loadedProject.RemoveGlobalProperty(PropertyNames.TargetFramework);
+                }
+                else
+                {
+                    _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, initialGlobalTargetFrameworkValue);
+                }
+
                 _loadedProject.ReevaluateIfNecessary();
 
                 return results.ToImmutable();
