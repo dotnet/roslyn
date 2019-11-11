@@ -3177,6 +3177,60 @@ class C
         }
 
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false)|];
+    }
+}",
+@"class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+    }
+
+    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+    {
+        return await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks
+
+class C
+{
+    async Task MyDelay() 
+    {
+        [|await new ValueTask<int>(0).ConfigureAwait(false)|];
+    }
+}",
+@"using System.Threading.Tasks
+
+class C
+{
+    async Task MyDelay()
+    {
+        await {|Rename:NewMethod|}().ConfigureAwait(false);
+    }
+
+    private static async Task<object> NewMethod()
+    {
+        return await new ValueTask<int>(0).ConfigureAwait(false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitTrue()
         {
             await TestInRegularAndScriptAsync(
@@ -3288,14 +3342,16 @@ class C
         async Task F() => await Task.Delay(duration).ConfigureAwait(false);|]
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
     async Task MyDelay(TimeSpan duration)
     {|Warning:{
         await {|Rename:NewMethod|}(duration);
     }|}
 
-    private static async System.Threading.Tasks.Task NewMethod(TimeSpan duration)
+    private static async Task NewMethod(TimeSpan duration)
     {
         await Task.Run(F());
         async Task F() => await Task.Delay(duration).ConfigureAwait(false);
@@ -3315,14 +3371,16 @@ class C
         await Task.Delay(duration).ConfigureAwait(true);|]
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
     async Task MyDelay(TimeSpan duration)
     {
         await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
     }
 
-    private static async System.Threading.Tasks.Task NewMethod(TimeSpan duration)
+    private static async Task NewMethod(TimeSpan duration)
     {
         await Task.Delay(duration).ConfigureAwait(false);
         await Task.Delay(duration).ConfigureAwait(true);
@@ -3342,14 +3400,16 @@ class C
         await Task.Delay(duration).ConfigureAwait(false);|]
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
     async Task MyDelay(TimeSpan duration)
     {
         await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
     }
 
-    private static async System.Threading.Tasks.Task NewMethod(TimeSpan duration)
+    private static async Task NewMethod(TimeSpan duration)
     {
         await Task.Delay(duration).ConfigureAwait(true);
         await Task.Delay(duration).ConfigureAwait(false);
@@ -3369,14 +3429,16 @@ class C
         await Task.Delay(duration).ConfigureAwait(false);|]
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
     async Task MyDelay(TimeSpan duration)
     {
         await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
     }
 
-    private static async System.Threading.Tasks.Task NewMethod(TimeSpan duration)
+    private static async Task NewMethod(TimeSpan duration)
     {
         await Task.Delay(duration).ConfigureAwait(M());
         await Task.Delay(duration).ConfigureAwait(false);
@@ -3396,7 +3458,9 @@ class C
         [|await Task.Delay(duration).ConfigureAwait(true);|]
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
     async Task MyDelay(TimeSpan duration)
     {
@@ -3404,7 +3468,7 @@ class C
         await {|Rename:NewMethod|}(duration);
     }
 
-    private static async System.Threading.Tasks.Task NewMethod(TimeSpan duration)
+    private static async Task NewMethod(TimeSpan duration)
     {
         await Task.Delay(duration).ConfigureAwait(true);
     }

@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                 Return False
                             End If
 
-                            If Not CaseInsensitiveComparison.Equals(method.Name, "ConfigureAwait") Then
+                            If Not CaseInsensitiveComparison.Equals(method.Name, NameOf(Task.ConfigureAwait)) Then
                                 Return False
                             End If
 
@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 invocation,
                                 SyntaxFactory.Token(SyntaxKind.DotToken),
-                                SyntaxFactory.IdentifierName("ConfigureAwait")),
+                                SyntaxFactory.IdentifierName(NameOf(Task.ConfigureAwait))),
                             SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(Of ArgumentSyntax)(
                                 SyntaxFactory.SimpleArgument(
                                     SyntaxFactory.LiteralExpression(
