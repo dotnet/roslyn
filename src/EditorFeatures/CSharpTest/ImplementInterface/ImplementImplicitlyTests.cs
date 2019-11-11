@@ -108,5 +108,45 @@ class C : IGoo, IBar
     public void Bar() { }
 }", index: 2);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IGoo { int Goo1 { get; } }
+
+class C : IGoo
+{
+    int IGoo.[||]Goo1 { get { } }
+}",
+@"
+interface IGoo { int Goo1 { get; } }
+
+class C : IGoo
+{
+    public int Goo1 { get { } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestEvent()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IGoo { event Action E; }
+
+class C : IGoo
+{
+    event Action IGoo.[||]E { add { } remove { } }
+}",
+@"
+interface IGoo { event Action E; }
+
+class C : IGoo
+{
+    public event Action E { add { } remove { } }
+}");
+        }
     }
 }
