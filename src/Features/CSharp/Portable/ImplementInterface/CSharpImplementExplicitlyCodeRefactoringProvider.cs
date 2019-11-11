@@ -286,24 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         private SyntaxNode ImplementExplicitly(SyntaxGenerator generator, SyntaxNode decl, ISymbol interfaceMember)
             => generator.WithExplicitInterfaceImplementations(decl, ImmutableArray.Create(interfaceMember));
 
-        private (SyntaxNode, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
-        {
-            for (var node = token.Parent; node != null; node = node.Parent)
-            {
-                switch (node)
-                {
-                    case MethodDeclarationSyntax method:
-                        return (method, method.ExplicitInterfaceSpecifier, method.Identifier);
-                    case PropertyDeclarationSyntax property:
-                        return (property, property.ExplicitInterfaceSpecifier, property.Identifier);
-                    case EventDeclarationSyntax ev:
-                        return (ev, ev.ExplicitInterfaceSpecifier, ev.Identifier);
-                }
-            }
-
-            return default;
-        }
-
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)

@@ -28,12 +28,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindReferencesAsync(new SymbolAndProjectId(symbol, projectId: null), solution, cancellationToken);
         }
 
-        /// <summary>
-        /// Finds all references to a symbol throughout a solution
-        /// </summary>
-        /// <param name="symbol">The symbol to find references to.</param>
-        /// <param name="solution">The solution to find references within.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
         internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,

@@ -148,24 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 _ => null,
             };
 
-        private (SyntaxNode, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
-        {
-            for (var node = token.Parent; node != null; node = node.Parent)
-            {
-                switch (node)
-                {
-                    case MethodDeclarationSyntax method:
-                        return (method, method.ExplicitInterfaceSpecifier, method.Identifier);
-                    case PropertyDeclarationSyntax property:
-                        return (property, property.ExplicitInterfaceSpecifier, property.Identifier);
-                    case EventDeclarationSyntax ev:
-                        return (ev, ev.ExplicitInterfaceSpecifier, ev.Identifier);
-                }
-            }
-
-            return default;
-        }
-
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
