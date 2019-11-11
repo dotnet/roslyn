@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
-    public partial class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
+    public partial class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpImplementImplicitlyCodeRefactoringProvider();
+            => new CSharpImplementExplicitlyCodeRefactoringProvider();
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
@@ -29,11 +29,11 @@ interface IBar { void Bar(); }
 
 class C : IGoo, IBar
 {
-    void IGoo.[||]Goo1() { }
+    public void [||]Goo1() { }
 
-    void IGoo.Goo2() { }
+    public void Goo2() { }
 
-    void IBar.Bar() { }
+    public void Bar() { }
 }",
 @"
 interface IGoo { void Goo1(); void Goo2(); }
@@ -41,11 +41,11 @@ interface IBar { void Bar(); }
 
 class C : IGoo, IBar
 {
-    public void Goo1() { }
+    void IGoo.Goo1() { }
 
-    void IGoo.Goo2() { }
+    public void Goo2() { }
 
-    void IBar.Bar() { }
+    public void Bar() { }
 }");
         }
 
@@ -59,11 +59,11 @@ interface IBar { void Bar(); }
 
 class C : IGoo, IBar
 {
-    void IGoo.[||]Goo1() { }
+    public void [||]Goo1() { }
 
-    void IGoo.Goo2() { }
+    public void Goo2() { }
 
-    void IBar.Bar() { }
+    public void Bar() { }
 }",
 @"
 interface IGoo { void Goo1(); void Goo2(); }
@@ -71,11 +71,11 @@ interface IBar { void Bar(); }
 
 class C : IGoo, IBar
 {
-    public void Goo1() { }
+    void IGoo.Goo1() { }
 
-    public void Goo2() { }
+    void IGoo.Goo2() { }
 
-    void IBar.Bar() { }
+    public void Bar() { }
 }", index: 1);
         }
 
@@ -89,11 +89,11 @@ interface IBar { void Bar(); }
 
 class C : IGoo, IBar
 {
-    void IGoo.[||]Goo1() { }
+    public void [||]Goo1() { }
 
-    void IGoo.Goo2() { }
+    public void Goo2() { }
 
-    void IBar.Bar() { }
+    public void Bar() { }
 }",
 @"
 interface IGoo { void Goo1(); void Goo2(); }
@@ -101,11 +101,11 @@ interface IBar { void Bar(); }
 
 class C : IGoo, IBar
 {
-    public void Goo1() { }
+    void IGoo.Goo1() { }
 
-    public void Goo2() { }
+    void IGoo.Goo2() { }
 
-    public void Bar() { }
+    void IBar.Bar() { }
 }", index: 2);
         }
 
@@ -118,14 +118,14 @@ interface IGoo { int Goo1 { get; } }
 
 class C : IGoo
 {
-    int IGoo.[||]Goo1 { get { } }
+    public int [||]Goo1 { get { } }
 }",
 @"
 interface IGoo { int Goo1 { get; } }
 
 class C : IGoo
 {
-    public int Goo1 { get { } }
+    int IGoo.Goo1 { get { } }
 }");
         }
 
@@ -138,19 +138,19 @@ interface IGoo { event Action E; }
 
 class C : IGoo
 {
-    event Action IGoo.[||]E { add { } remove { } }
+    public event Action [||]E { add { } remove { } }
 }",
 @"
 interface IGoo { event Action E; }
 
 class C : IGoo
 {
-    public event Action E { add { } remove { } }
+    event Action IGoo.E { add { } remove { } }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestNotOnImplicitMember()
+        public async Task TestNotOnExplicitMember()
         {
             await TestMissingAsync(
 @"
@@ -158,18 +158,20 @@ interface IGoo { void Goo1(); }
 
 class C : IGoo
 {
-    public void [||]Goo1() { }
+    void IGoo.[||]Goo1() { }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestNotOnUnboundExplicitImpl()
+        public async Task TestNotOnUnboundImplicitImpl()
         {
             await TestMissingAsync(
 @"
-class C : IGoo
+interface IGoo { void Goo1(); }
+
+class C
 {
-    void IGoo.[||]Goo1() { }
+    public void [||]Goo1() { }
 }");
         }
     }
