@@ -141,7 +141,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                var forceReanalysis = false;
                 // if solution crawler got turned off or on.
                 if (e.Option == InternalSolutionCrawlerOptions.SolutionCrawler)
                 {
@@ -162,25 +161,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
                     return;
                 }
-                else if (e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption)
-                {
-                    forceReanalysis = true;
-                }
 
-                ReanalyzeOnOptionChange(sender, e, forceReanalysis);
+                ReanalyzeOnOptionChange(sender, e);
             }
 
-            private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e, bool forceReanalysis)
+            private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e)
             {
                 // get off from option changed event handler since it runs on UI thread
                 // getting analyzer can be slow for the very first time since it is lazily initialized
                 var asyncToken = _listener.BeginAsyncOperation("ReanalyzeOnOptionChange");
+
+                // Force analyze all analyzers if background analysis scope has changed.
+                var forceAnalyze = e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption;
+
                 _eventProcessingQueue.ScheduleTask(() =>
                 {
                     // let each analyzer decide what they want on option change
                     foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                     {
-                        if (forceReanalysis || analyzer.NeedsReanalysisOnOptionChanged(sender, e))
+                        if (forceAnalyze || analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                         {
                             var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
                             Reanalyze(analyzer, scope);
