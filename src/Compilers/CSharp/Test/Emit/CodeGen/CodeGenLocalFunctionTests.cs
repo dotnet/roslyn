@@ -5191,7 +5191,7 @@ class C
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: validate);
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
@@ -5240,7 +5240,7 @@ class C
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: validate);
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
@@ -5281,7 +5281,7 @@ class C
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: validate);
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
@@ -5314,7 +5314,7 @@ class C
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: validate);
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
@@ -5348,7 +5348,7 @@ class C
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: validate);
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
@@ -5399,7 +5399,7 @@ class C
                 symbolValidator: validate,
                 expectedOutput: "");
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<Main>g__local1|0_0");
