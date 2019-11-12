@@ -99,7 +99,7 @@ class Program
 {
     static void M()
     {
-        System.Func<int, string, int> f = $$delegate(int x, string y) { return 1; };
+        System.Func<int, string, int> f = [||]delegate(int x, string y) { return 1; };
     }
 }";
             await TestMissingAsync(markup);
@@ -113,7 +113,7 @@ class Program
 {
     static void M()
     {
-        System.Func<int, string, int> f = $$delegate(int _, string _) { return 1; };
+        System.Func<int, string, int> f = [||]delegate(int _, string _) { return 1; };
     }
 }";
             await TestMissingAsync(markup);
