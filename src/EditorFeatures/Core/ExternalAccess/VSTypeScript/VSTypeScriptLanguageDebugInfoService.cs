@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Shared]
     [ExportLanguageService(typeof(ILanguageDebugInfoService), InternalLanguageNames.TypeScript)]
-    internal class VSTypeScriptLanguageDebugInfoService : ILanguageDebugInfoService
+    internal sealed class VSTypeScriptLanguageDebugInfoService : ILanguageDebugInfoService
     {
         private readonly IVSTypeScriptLanguageDebugInfoService _service;
 
@@ -24,15 +24,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         }
 
         public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var result = await _service.GetDataTipInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return new DebugDataTipInfo(result.Span, result.Text);
-        }
+            => (await _service.GetDataTipInfoAsync(document, position, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
 
         public async Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var result = await _service.GetLocationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return result.IsDefault ? default : new DebugLocationInfo(result.Name, result.LineOffset);
-        }
+            => (await _service.GetLocationInfoAsync(document, position, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
     }
 }

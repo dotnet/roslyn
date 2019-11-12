@@ -5,25 +5,22 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal sealed class VSTypeScriptBreakpointResolutionResult
+    internal readonly struct VSTypeScriptBreakpointResolutionResult
     {
-        public Document Document { get; }
-        public TextSpan TextSpan { get; }
-        public string LocationNameOpt { get; }
-        public bool IsLineBreakpoint { get; }
+        internal readonly BreakpointResolutionResult UnderlyingObject;
 
-        private VSTypeScriptBreakpointResolutionResult(Document document, TextSpan textSpan, string locationNameOpt, bool isLineBreakpoint)
-        {
-            Document = document;
-            TextSpan = textSpan;
-            LocationNameOpt = locationNameOpt;
-            IsLineBreakpoint = isLineBreakpoint;
-        }
+        private VSTypeScriptBreakpointResolutionResult(BreakpointResolutionResult result)
+            => UnderlyingObject = result;
+
+        public Document Document => UnderlyingObject.Document;
+        public TextSpan TextSpan => UnderlyingObject.TextSpan;
+        public string LocationNameOpt => UnderlyingObject.LocationNameOpt;
+        public bool IsLineBreakpoint => UnderlyingObject.IsLineBreakpoint;
 
         public static VSTypeScriptBreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResult(document, textSpan, locationNameOpt, isLineBreakpoint: false);
+            => new VSTypeScriptBreakpointResolutionResult(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
 
         public static VSTypeScriptBreakpointResolutionResult CreateLineResult(Document document, string locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResult(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
+            => new VSTypeScriptBreakpointResolutionResult(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
     }
 }

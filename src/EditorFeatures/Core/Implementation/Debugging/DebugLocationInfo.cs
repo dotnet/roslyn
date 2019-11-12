@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
 {
-    internal struct DebugLocationInfo
+    internal readonly struct DebugLocationInfo
     {
         public readonly string Name;
         public readonly int LineOffset;

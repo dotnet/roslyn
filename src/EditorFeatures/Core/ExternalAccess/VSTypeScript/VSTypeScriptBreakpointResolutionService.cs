@@ -28,21 +28,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         }
 
         public async Task<BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-            => ToBreakpointResolutionResult(await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false));
+            => (await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
 
         public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
-            => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(ToBreakpointResolutionResult);
+            => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
 
-        private static BreakpointResolutionResult ToBreakpointResolutionResult(VSTypeScriptBreakpointResolutionResult result)
-        {
-            if (result == null)
-            {
-                return null;
-            }
-
-            return result.IsLineBreakpoint ?
-                BreakpointResolutionResult.CreateLineResult(result.Document, result.LocationNameOpt) :
-                BreakpointResolutionResult.CreateSpanResult(result.Document, result.TextSpan, result.LocationNameOpt);
-        }
     }
 }
