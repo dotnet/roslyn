@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -21,6 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
+    // A mapping from a concrete member to the interface members it implements.
+    using MemberImplementationMap = OrderedMultiDictionary<ISymbol, ISymbol>;
+
     internal abstract class AbstractChangeImplementionCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly SymbolDisplayFormat NameAndTypeParametersFormat =
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var project = document.Project;
 
-            var directlyImplementedMembers = new OrderedMultiDictionary<ISymbol, ISymbol>();
+            var directlyImplementedMembers = new MemberImplementationMap();
             directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
 
             var codeAction = new MyCodeAction(
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return default;
         }
 
-        private int TotalCount(OrderedMultiDictionary<ISymbol, ISymbol> dictionary)
+        private int TotalCount(MemberImplementationMap dictionary)
         {
             var result = 0;
             foreach (var (key, values) in dictionary)
@@ -165,10 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         /// Returns a mapping from members in our containing types to all the interface members (of
         /// the sort we care about) that it implements.
         /// </summary>
-        private OrderedMultiDictionary<ISymbol, ISymbol> GetImplementedMembers(
-            INamedTypeSymbol containingType, ImmutableArray<INamedTypeSymbol> interfaceTypes)
+        private MemberImplementationMap GetImplementedMembers(INamedTypeSymbol containingType, ImmutableArray<INamedTypeSymbol> interfaceTypes)
         {
-            var result = new OrderedMultiDictionary<ISymbol, ISymbol>();
+            var result = new MemberImplementationMap();
             foreach (var interfaceType in interfaceTypes)
             {
                 foreach (var interfaceMember in interfaceType.GetMembers())
@@ -188,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         }
 
         private async Task<Solution> ChangeImplementationAsync(
-            Project project, OrderedMultiDictionary<ISymbol, ISymbol> implMemberToInterfaceMembers,
-            CancellationToken cancellationToken)
+            Project project, MemberImplementationMap implMemberToInterfaceMembers, CancellationToken cancellationToken)
         {
             // First, we have to go through and find all the references to these interface
             // implementation members.  We may have to update them to preserve semantics.  i.e. a

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         // If we don't implement any interface members we can't convert this to be explicit.
         protected override bool CheckMember(ISymbol member)
-            => member.ExplicitOrImplicitInterfaceImplementations().Length > 0;
+            => member.ImplicitInterfaceImplementations().Length > 0;
 
         protected override async Task UpdateReferencesAsync(
             Project project, Dictionary<Document, SyntaxEditor> documentToEditor,
