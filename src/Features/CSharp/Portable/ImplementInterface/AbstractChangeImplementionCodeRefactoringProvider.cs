@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -22,26 +23,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
     internal abstract class AbstractChangeImplementionCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public static readonly SymbolDisplayFormat NameAndTypeParametersFormat =
+        private static readonly SymbolDisplayFormat NameAndTypeParametersFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        protected abstract string Implement_0 { get; }
+        protected abstract string Implement_all_interfaces { get; }
+        protected abstract string Implement { get; }
+
         protected abstract bool CheckExplicitName(ExplicitInterfaceSpecifierSyntax? explicitName);
         protected abstract bool CheckMember(ISymbol member);
         protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol interfaceMember);
         protected abstract Task UpdateReferencesAsync(Project project, Dictionary<Document, SyntaxEditor> documentToEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken);
 
-        protected abstract string Implement_0 { get; }
-        protected abstract string Implement_all_interfaces { get; }
-        protected abstract string Implement { get; }
-
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, _, cancellationToken) = context;
-
             var (container, explicitName, name) = await GetContainerAsync(context).ConfigureAwait(false);
             if (container == null)
                 return;
@@ -49,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (!CheckExplicitName(explicitName))
                 return;
 
+            var (document, _, cancellationToken) = context;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var member = semanticModel.GetDeclaredSymbol(container, cancellationToken) ??
                 throw new InvalidOperationException();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var project = document.Project;
 
-            var directlyImplementedMembers = new MultiDictionary<ISymbol, ISymbol>();
+            var directlyImplementedMembers = new OrderedMultiDictionary<ISymbol, ISymbol>();
             directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
 
             var codeAction = new MyCodeAction(
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 c => ChangeImplementationAsync(project, directlyImplementedMembers, c));
 
             var containingType = member.ContainingType;
-            var interfaceTypes = directlyImplementedMembers.Values.SelectMany(
-                c => c.Select(d => d.ContainingType)).Distinct().ToImmutableArray();
+            var interfaceTypes = directlyImplementedMembers.SelectMany(kvp => kvp.Value).Select(
+                s => s.ContainingType).Distinct().ToImmutableArray();
 
             var implementedMembersFromSameInterfaces = GetImplementedMembers(containingType, interfaceTypes);
             var implementedMembersFromAllInterfaces = GetImplementedMembers(containingType, containingType.AllInterfaces);
@@ -75,11 +75,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var offerForSameInterface = TotalCount(implementedMembersFromSameInterfaces) > TotalCount(directlyImplementedMembers);
             var offerForAllInterfaces = TotalCount(implementedMembersFromAllInterfaces) > TotalCount(implementedMembersFromSameInterfaces);
 
+            // If there's only one member in the interface we implement, and there are no other
+            // interfaces, then just offer to switch the implementation for this single member
             if (!offerForSameInterface && !offerForAllInterfaces)
             {
                 context.RegisterRefactoring(codeAction);
                 return;
             }
+
+            // Otherwise, create a top level action to change the implementation, and offer this
+            // action, along with either/both of the other two.
 
             var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
             nestedActions.Add(codeAction);
@@ -114,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (span.IsEmpty && token.Kind() == SyntaxKind.OpenParenToken)
                 token = token.GetPreviousToken();
 
+            // Offer the feature if the user is anywhere between the start of the explicit-impl of
+            // the member (if we have one) and the end if the identifier of the member.
             var (container, explicitName, identifier) = GetContainer(token);
             var applicableSpan = explicitName == null
                 ? identifier.FullSpan
@@ -129,21 +136,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {
             for (var node = token.Parent; node != null; node = node.Parent)
             {
-                switch (node)
+                var result = node switch
                 {
-                    case MethodDeclarationSyntax method:
-                        return (method, method.ExplicitInterfaceSpecifier, method.Identifier);
-                    case PropertyDeclarationSyntax property:
-                        return (property, property.ExplicitInterfaceSpecifier, property.Identifier);
-                    case EventDeclarationSyntax ev:
-                        return (ev, ev.ExplicitInterfaceSpecifier, ev.Identifier);
-                }
+                    MethodDeclarationSyntax member => (member, member.ExplicitInterfaceSpecifier, member.Identifier),
+                    PropertyDeclarationSyntax member => (member, member.ExplicitInterfaceSpecifier, member.Identifier),
+                    EventDeclarationSyntax member => (member, member.ExplicitInterfaceSpecifier, member.Identifier),
+                    _ => default((SyntaxNode member, ExplicitInterfaceSpecifierSyntax?, SyntaxToken)),
+                };
+
+                if (result.member != null)
+                    return result;
             }
 
             return default;
         }
 
-        private int TotalCount(MultiDictionary<ISymbol, ISymbol> dictionary)
+        private int TotalCount(OrderedMultiDictionary<ISymbol, ISymbol> dictionary)
         {
             var result = 0;
             foreach (var (key, values) in dictionary)
@@ -153,10 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return result;
         }
 
-        private MultiDictionary<ISymbol, ISymbol> GetImplementedMembers(
+        /// <summary>
+        /// Returns a mapping from members in our containing types to all the interface members (of
+        /// the sort we care about) that it implements.
+        /// </summary>
+        private OrderedMultiDictionary<ISymbol, ISymbol> GetImplementedMembers(
             INamedTypeSymbol containingType, ImmutableArray<INamedTypeSymbol> interfaceTypes)
         {
-            var result = new MultiDictionary<ISymbol, ISymbol>();
+            var result = new OrderedMultiDictionary<ISymbol, ISymbol>();
             foreach (var interfaceType in interfaceTypes)
             {
                 foreach (var interfaceMember in interfaceType.GetMembers())
@@ -176,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         }
 
         private async Task<Solution> ChangeImplementationAsync(
-            Project project, MultiDictionary<ISymbol, ISymbol> implMemberToInterfaceMembers,
+            Project project, OrderedMultiDictionary<ISymbol, ISymbol> implMemberToInterfaceMembers,
             CancellationToken cancellationToken)
         {
             // First, we have to go through and find all the references to these interface
@@ -196,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             // Now, bucket all the implemented members by which document they appear in.
             // That way, we can update all the members in a specific document in bulk.
-            var documentToImplDeclarations = new MultiDictionary<Document, (SyntaxNode, ISet<ISymbol>)>();
+            var documentToImplDeclarations = new OrderedMultiDictionary<Document, (SyntaxNode, SetWithInsertionOrder<ISymbol>)>();
             foreach (var (implMember, interfaceMembers) in implMemberToInterfaceMembers)
             {
                 foreach (var syntaxRef in implMember.DeclaringSyntaxReferences)
@@ -206,7 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     {
                         var decl = await syntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                         if (decl != null)
-                            documentToImplDeclarations.Add(doc, (decl, interfaceMembers.ToSet()));
+                        {
+                            documentToImplDeclarations.Add(doc, (decl, interfaceMembers));
+                        }
                     }
                 }
             }

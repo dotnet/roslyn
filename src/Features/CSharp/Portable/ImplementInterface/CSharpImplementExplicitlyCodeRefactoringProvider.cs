@@ -2,7 +2,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -10,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -124,13 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
             else
             {
-                editor.ReplaceNode(instance.Syntax, (current, g) => AddCast(interfaceType, current, g));
+                // Accessing the member like `x.Goo()`.  Replace with `((IGoo)x).Goo()`
+                editor.ReplaceNode(
+                    instance.Syntax, (current, g) =>
+                        g.AddParentheses(
+                            g.CastExpression(interfaceType, current.WithoutTrivia())).WithTriviaFrom(current));
             }
         }
-
-        private static SyntaxNode AddCast(INamedTypeSymbol interfaceType, SyntaxNode current, SyntaxGenerator g)
-            => g.AddParentheses(
-                g.CastExpression(interfaceType, current.WithoutTrivia())).WithTriviaFrom(current);
 
         protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol interfaceMember)
             => generator.WithExplicitInterfaceImplementations(decl, ImmutableArray.Create(interfaceMember));

@@ -410,5 +410,69 @@ class T
     }
 }", index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMemberWhichImplementsMultipleMembers()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IGoo { int M(int i); }
+interface IBar { int M(int i); }
+
+class C : IGoo, IBar
+{
+    public int [||]M(int i)
+    {
+        throw new System.Exception();
+    }
+}",
+@"
+interface IGoo { int M(int i); }
+interface IBar { int M(int i); }
+
+class C : IGoo, IBar
+{
+    int IBar.M(int i)
+    {
+        throw new System.Exception();
+    }
+    int IGoo.M(int i)
+    {
+        throw new System.Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMemberWhichImplementsMultipleMembers2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IGoo { int M(int i); }
+interface IBar { int M(int i); }
+
+class C : IGoo, IBar
+{
+    public int [||]M(int i)
+    {
+        return this.M(1);
+    }
+}",
+@"
+interface IGoo { int M(int i); }
+interface IBar { int M(int i); }
+
+class C : IGoo, IBar
+{
+    int IBar.M(int i)
+    {
+        return this.M(1);
+    }
+    int IGoo.M(int i)
+    {
+        return this.M(1);
+    }
+}");
+        }
     }
 }
