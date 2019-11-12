@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     var impl = containingType.FindImplementationForInterfaceMember(interfaceMember);
                     if (impl != null &&
                         containingType.Equals(impl.ContainingType) &&
-                        CheckMember(impl))
+                        CheckMember(impl) &&
+                        !impl.IsAccessor())
                     {
                         result.Add(impl, interfaceMember);
                     }
