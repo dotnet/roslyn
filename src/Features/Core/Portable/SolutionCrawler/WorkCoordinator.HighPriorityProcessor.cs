@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
+                    private readonly object _gate;
 
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
+                        _gate = new object();
 
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
@@ -44,7 +46,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
-                    public ImmutableArray<IIncrementalAnalyzer> Analyzers => _lazyAnalyzers.Value;
+                    public ImmutableArray<IIncrementalAnalyzer> Analyzers
+                    {
+                        get
+                        {
+                            lock (_gate)
+                            {
+                                return _lazyAnalyzers.Value;
+                            }
+                        }
+                    }
 
                     public Task Running => _running;
 
@@ -53,8 +64,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public void AddAnalyzer(IIncrementalAnalyzer analyzer)
                     {
-                        var analyzers = this.Analyzers;
-                        Interlocked.Exchange(ref _lazyAnalyzers, new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer)));
+                        lock (_gate)
+                        {
+                            var analyzers = _lazyAnalyzers.Value;
+                            _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                        }
                     }
 
                     public void Enqueue(WorkItem item)
