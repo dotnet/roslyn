@@ -1232,6 +1232,9 @@ namespace Microsoft.CodeAnalysis.Editing
             }
         }
 
+        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+            => root.ReplaceNode(node, newDeclarations);
+
         /// <summary>
         /// Inserts the new node before the specified declaration.
         /// </summary>

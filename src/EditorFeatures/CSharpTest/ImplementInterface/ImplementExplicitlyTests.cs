@@ -432,11 +432,11 @@ interface IBar { int M(int i); }
 
 class C : IGoo, IBar
 {
-    int IBar.M(int i)
+    int IGoo.M(int i)
     {
         throw new System.Exception();
     }
-    int IGoo.M(int i)
+    int IBar.M(int i)
     {
         throw new System.Exception();
     }
@@ -464,13 +464,13 @@ interface IBar { int M(int i); }
 
 class C : IGoo, IBar
 {
-    int IBar.M(int i)
-    {
-        return this.M(1);
-    }
     int IGoo.M(int i)
     {
-        return this.M(1);
+        return ((IGoo)this).M(1);
+    }
+    int IBar.M(int i)
+    {
+        return ((IGoo)this).M(1);
     }
 }");
         }

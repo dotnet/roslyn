@@ -232,31 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
                 foreach (var (decl, symbols) in declsAndSymbol)
                 {
-                    if (symbols.Count == 1)
-                    {
-                        // Make sure we pass in the current value of the decl as it may have had 
-                        // edits made inside it as we updated references.
-                        editor.ReplaceNode(decl, (currentDecl, _) =>
-                            ChangeImplementation(editor.Generator, currentDecl, symbols.First()));
-                    }
-                    else
-                    {
-                        // member implemented multiple interface members.  Break them apart into
-                        // copies and have each copy implement the new interface type.
-
-                        // We have to see if we can find the member in the current syntax editor
-                        // though in case it has been modified while we were updating references.
-                        var latest = editor.GetChangedRoot().GetCurrentNode(decl) ?? decl;
-
-                        foreach (var symbol in symbols)
-                        {
-                            editor.InsertAfter(decl,
-                                ChangeImplementation(editor.Generator, latest, symbol));
-                        }
-
-                        // Then, remove the original decl
-                        editor.RemoveNode(decl);
-                    }
+                    editor.ReplaceNode(decl, (currentDecl, g) =>
+                        symbols.Select(s => ChangeImplementation(g, currentDecl, s)));
                 }
 
                 currentSolution = currentSolution.WithDocumentSyntaxRoot(
