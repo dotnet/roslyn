@@ -538,5 +538,35 @@ public class C
             Assert.NotNull(parameterSymbol2);
             Assert.False(parameterSymbol2.IsDiscard);
         }
+
+        [Fact]
+        public void DiscardParameters_Shadowing()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public class C
+{
+    public static void M()
+    {
+        Action<int> f1 = (_) =>
+        {
+            _.ToString(); // ok
+            Action<int> g2 = (_) => _.ToString(); // ok
+        };
+
+        Action<int, int> f2 = (_, _) =>
+        {
+            _.ToString(); // error
+            Action<int> g2 = (_) => _.ToString(); // ok
+        };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (15,14): error CS0103: The name '_' does not exist in the current context
+                //              _.ToString(); // error
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(15, 14)
+                );
+        }
     }
 }
