@@ -102,6 +102,10 @@ namespace Microsoft.CodeAnalysis.Host
 
                 if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Options) == BackgroundAnalysisScope.ActiveFile)
                 {
+                    // Avoid performing any background compilation if the user has explicitly
+                    // set the background analysis scope to only analyze active files.
+                    // Note that we bail out after executing CancelBuild to ensure
+                    // all the current background compilation tasks are cancelled.
                     return;
                 }
 
