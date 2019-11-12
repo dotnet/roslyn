@@ -81,6 +81,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, names.Length);
         }
 
+        [MonoOnlyFact("https://github.com/dotnet/roslyn/pull/39369")]
+        public void GetFacadeAssemblyIdentities()
+        {
+            var gac = GlobalAssemblyCache.Instance;
+
+            AssemblyIdentity[] names;
+
+            // One netstandard.dll should resolve from Facades on Mono
+            names = gac.GetAssemblyIdentities(new AssemblyName("netstandard")).ToArray();
+            Assert.Collection(names, name =>
+            {
+                Assert.Equal("netstandard", name.Name);
+                Assert.True(name.Version >= new Version("2.0.0.0"), "netstandard version must be >= 2.0.0.0");
+            });
+        }
+
         [ClrOnlyFact(ClrOnlyReason.Fusion)]
         public void AssemblyAndGacLocation()
         {
