@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Windows;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
+using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -12,14 +15,20 @@ using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
-        public AdvancedOptionPageControl(OptionStore optionStore) : base(optionStore)
+        private ColorSchemeApplier _colorSchemeApplier;
+
+        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
         {
+            _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
+
             InitializeComponent();
 
             BindToFullSolutionAnalysisOption(Enable_full_solution_analysis, LanguageNames.CSharp);
@@ -67,7 +76,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.CSharp);
 
-            BindToOption(Use_enhanced_colors, FeatureOnOffOptions.UseEnhancedColors);
+            BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
+        }
+
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            var isKnownTheme = _colorSchemeApplier.IsKnowTheme();
+
+            Editor_color_scheme.IsEnabled = isKnownTheme;
+            Custom_VS_Theme_Warning.Visibility = isKnownTheme ? Visibility.Collapsed : Visibility.Visible;
+
+            base.OnRender(drawingContext);
         }
     }
 }

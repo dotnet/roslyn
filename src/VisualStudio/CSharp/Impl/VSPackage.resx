@@ -187,7 +187,8 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</value>
+Use enhanced colors;
+Editor Color Scheme;</value>
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">

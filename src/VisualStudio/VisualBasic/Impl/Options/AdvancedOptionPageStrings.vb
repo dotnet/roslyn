@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Options
+
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
 
@@ -220,10 +222,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_completion_list As String =
             ServicesVSResources.Show_completion_list
 
-        Public ReadOnly Property Option_Classifications As String =
-            ServicesVSResources.Classifications
+        Public ReadOnly Property Option_Editor_Color_Scheme As String =
+            ServicesVSResources.Editor_Color_Scheme
 
-        Public ReadOnly Property Option_Use_enhanced_colors_for_C_and_Basic As String =
-            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic
+        Public ReadOnly Property Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page As String =
+            ServicesVSResources.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page
+
+        Public ReadOnly Property Option_Color_Scheme_Enhanced As String =
+            ServicesVSResources.Enhanced
+
+        Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
+            ServicesVSResources.Visual_Studio_2017
+
+        Public ReadOnly Property Color_Scheme_Enhanced_Tag As String =
+            ColorSchemeOptions.Enhanced
+
+        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As String =
+            ColorSchemeOptions.VisualStudio2017
     End Module
 End Namespace

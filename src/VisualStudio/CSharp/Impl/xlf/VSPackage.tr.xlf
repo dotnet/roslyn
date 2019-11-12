@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">Kapatılan dosyalara ilişkin tanılamaları göster;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
 İmlecin altında ilgili bileşenleri vurgula; 
 Geçersiz normal ifadeleri bildir;

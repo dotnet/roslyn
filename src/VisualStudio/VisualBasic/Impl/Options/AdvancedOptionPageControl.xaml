@@ -120,11 +120,16 @@
                 </StackPanel>
             </GroupBox>
             
-            <GroupBox x:Uid="ClassificationsGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Classifications}">
+            <GroupBox x:Uid="EditorColorSchemeGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
                 <StackPanel>
-                    <CheckBox x:Name="Use_enhanced_colors"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Use_enhanced_colors_for_C_and_Basic}" />
+                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false">
+                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_Enhanced}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_Enhanced_Tag}" />
+                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
+                    </ComboBox>
+                    <TextBlock x:Name="Custom_VS_Theme_Warning"
+                           TextWrapping="WrapWithOverflow"
+                           Text="{x:Static local:AdvancedOptionPageStrings.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page}"/>
                 </StackPanel>
             </GroupBox>
 

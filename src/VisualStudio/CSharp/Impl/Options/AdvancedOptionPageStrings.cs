@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Editor.Options;
+
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal static class AdvancedOptionPageStrings
@@ -184,10 +186,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_completion_list =>
             ServicesVSResources.Show_completion_list;
 
-        public static string Option_Classifications =>
-            ServicesVSResources.Classifications;
+        public static string Option_Editor_Color_Scheme =>
+            ServicesVSResources.Editor_Color_Scheme;
 
-        public static string Option_Use_enhanced_colors_for_C_and_Basic =>
-            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic;
+        public static string Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page
+            => ServicesVSResources.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page;
+
+        public static string Option_Color_Scheme_Enhanced =>
+            ServicesVSResources.Enhanced;
+
+        public static string Option_Color_Scheme_VisualStudio2017 =>
+            ServicesVSResources.Visual_Studio_2017;
+
+        public static string Color_Scheme_Enhanced_Tag =>
+            ColorSchemeOptions.Enhanced;
+
+        public static string Color_Scheme_VisualStudio2017_Tag =>
+            ColorSchemeOptions.VisualStudio2017;
     }
 }

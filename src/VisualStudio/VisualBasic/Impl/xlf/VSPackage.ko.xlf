@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="translated">맺음 구문 자동 삽입;자동 서식 지정 설정 변경;개요 모드 변경;인터페이스 및 MustOverride 멤버 자동 삽입;프로시저 줄 구분선 표시/숨기기;오류 수정 제안 설정/해제;참조 및 키워드의 강조 표시 설정/해제;Regex;정규식 색 입히기;커서 아래에 관련 구성 요소 강조 표시;잘못된 정규식 보고;regex;정규식</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;</source>
+        <target state="needs-review-translation">맺음 구문 자동 삽입;자동 서식 지정 설정 변경;개요 모드 변경;인터페이스 및 MustOverride 멤버 자동 삽입;프로시저 줄 구분선 표시/숨기기;오류 수정 제안 설정/해제;참조 및 키워드의 강조 표시 설정/해제;Regex;정규식 색 입히기;커서 아래에 관련 구성 요소 강조 표시;잘못된 정규식 보고;regex;정규식</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

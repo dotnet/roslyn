@@ -72,11 +72,6 @@
         <target state="translated">Calculando dependentes...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Classifications">
-        <source>Classifications</source>
-        <target state="translated">Classificações</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="new">Code analysis completed for '{0}'.</target>
@@ -102,9 +97,24 @@
         <target state="new">Containing Type</target>
         <note />
       </trans-unit>
+      <trans-unit id="Editor_Color_Scheme">
+        <source>Editor Color Scheme</source>
+        <target state="new">Editor Color Scheme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
+        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
+        <target state="new">Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">O elemento é inválido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enhanced">
+        <source>Enhanced</source>
+        <target state="new">Enhanced</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -527,11 +537,6 @@
         <target state="translated">Usar o modo de compatibilidade .editorconfig (exige reinicialização)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
-        <source>Use enhanced colors for C# and Basic</source>
-        <target state="translated">Usar cores aprimoradas para C# e Basic</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">Usar o corpo da expressão para lambdas</target>
@@ -550,6 +555,11 @@
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">O valor retornado por chamada é implicitamente ignorado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_2017">
+        <source>Visual Studio 2017</source>
+        <target state="new">Visual Studio 2017</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">

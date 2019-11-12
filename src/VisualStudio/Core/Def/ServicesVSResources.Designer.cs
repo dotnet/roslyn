@@ -860,6 +860,26 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Editor Color Scheme.
+        /// </summary>
+        internal static string Editor_Color_Scheme {
+            get {
+                return ResourceManager.GetString("Editor_Color_Scheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page..
+        /// </summary>
+        internal static string Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page {
+            get {
+                return ResourceManager.GetString("Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_w" +
+                        "ith_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General" +
+                        "_options_page", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Element is not valid..
         /// </summary>
         internal static string Element_is_not_valid {
@@ -919,6 +939,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string End_position_must_be_start_position {
             get {
                 return ResourceManager.GetString("End_position_must_be_start_position", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enhanced.
+        /// </summary>
+        internal static string Enhanced {
+            get {
+                return ResourceManager.GetString("Enhanced", resourceCulture);
             }
         }
         
@@ -3399,15 +3428,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use enhanced colors for C# and Basic.
-        /// </summary>
-        internal static string Use_enhanced_colors_for_C_and_Basic {
-            get {
-                return ResourceManager.GetString("Use_enhanced_colors_for_C_and_Basic", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Use expression body for accessors.
         /// </summary>
         internal static string Use_expression_body_for_accessors {
@@ -3512,6 +3532,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Variable_preferences_colon {
             get {
                 return ResourceManager.GetString("Variable_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Studio 2017.
+        /// </summary>
+        internal static string Visual_Studio_2017 {
+            get {
+                return ResourceManager.GetString("Visual_Studio_2017", resourceCulture);
             }
         }
         
