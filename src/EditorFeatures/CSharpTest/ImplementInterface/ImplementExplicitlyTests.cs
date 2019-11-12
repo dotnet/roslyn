@@ -174,5 +174,241 @@ class C
     public void [||]Goo1() { }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUpdateReferences_InsideDeclarations_Explicit()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    public int [||]Prop { get { return this.Prop; } set { this.Prop = value; } }
+    public int M(int i) { return this.M(i); }
+    public event Action Ev { add { this.Ev += value; } remove { this.Ev -= value; } }
+}",
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
+    int IGoo.M(int i) { return ((IGoo)this).M(i); }
+    event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUpdateReferences_InsideDeclarations_Implicit()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    public int [||]Prop { get { return Prop; } set { Prop = value; } }
+    public int M(int i) { return M(i); }
+    public event Action Ev { add { Ev += value; } remove { Ev -= value; } }
+}",
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
+    int IGoo.M(int i) { return ((IGoo)this).M(i); }
+    event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUpdateReferences_InternalImplicit()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    public int [||]Prop { get { } set { } }
+    public int M(int i) { }
+    public event Action Ev { add { } remove { } }
+
+    void InternalImplicit()
+    {
+        var v = Prop;
+        Prop = 1;
+        Prop++;
+        ++Prop;
+
+        M(0);
+        M(M(0));
+
+        Ev += () => {};
+
+        var v1 = nameof(Prop);
+    }
+}",
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    int IGoo.Prop { get { } set { } }
+    int IGoo.M(int i) { }
+    event Action IGoo.Ev { add { } remove { } }
+
+    void InternalImplicit()
+    {
+        var v = ((IGoo)this).Prop;
+        ((IGoo)this).Prop = 1;
+        ((IGoo)this).Prop++;
+        ++((IGoo)this).Prop;
+
+        ((IGoo)this).M(0);
+        ((IGoo)this).M(((IGoo)this).M(0));
+
+        ((IGoo)this).Ev += () => {};
+
+        var v1 = nameof(((IGoo)this).Prop);
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUpdateReferences_InternalExplicit()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    public int [||]Prop { get { } set { } }
+    public int M(int i) { }
+    public event Action Ev { add { } remove { } }
+
+    void InternalExplicit()
+    {
+        var v = this.Prop;
+        this.Prop = 1;
+        this.Prop++;
+        ++this.Prop;
+
+        this.M(0);
+        this.M(this.M(0));
+
+        this.Ev += () => {};
+
+        var v1 = nameof(this.Prop);
+    }
+}",
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    int IGoo.Prop { get { } set { } }
+    int IGoo.M(int i) { }
+    event Action IGoo.Ev { add { } remove { } }
+
+    void InternalExplicit()
+    {
+        var v = ((IGoo)this).Prop;
+        ((IGoo)this).Prop = 1;
+        ((IGoo)this).Prop++;
+        ++((IGoo)this).Prop;
+
+        ((IGoo)this).M(0);
+        ((IGoo)this).M(((IGoo)this).M(0));
+
+        ((IGoo)this).Ev += () => {};
+
+        var v1 = nameof(((IGoo)this).Prop);
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUpdateReferences_External()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    public int [||]Prop { get { } set { } }
+    public int M(int i) { }
+    public event Action Ev { add { } remove { } }
+}
+
+class T
+{
+    void External(C c)
+    {
+        var v = c.Prop;
+        c.Prop = 1;
+        c.Prop++;
+        ++c.Prop;
+
+        c.M(0);
+        c.M(c.M(0));
+
+        c.Ev += () => {};
+
+        new C
+        {
+            Prop = 1
+        };
+
+        var v1 = nameof(C.Prop);
+    }
+}",
+@"
+using System;
+interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+class C : IGoo
+{
+    int IGoo.Prop { get { } set { } }
+    int IGoo.M(int i) { }
+    event Action IGoo.Ev { add { } remove { } }
+}
+
+class T
+{
+    void External(C c)
+    {
+        var v = ((IGoo)c).Prop;
+        ((IGoo)c).Prop = 1;
+        ((IGoo)c).Prop++;
+        ++((IGoo)c).Prop;
+
+        ((IGoo)c).M(0);
+        ((IGoo)c).M(((IGoo)c).M(0));
+
+        ((IGoo)c).Ev += () => {};
+
+        new C
+        {
+            Prop = 1
+        };
+
+        var v1 = nameof(((IGoo)c).Prop);
+    }
+}", index: 1);
+        }
     }
 }

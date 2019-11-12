@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -164,9 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var currentSolution = solution;
             foreach (var (document, declsAndSymbol) in documentToImplDeclarations)
             {
-                var editor = documentToEditor.TryGetValue(document, out var ed)
-                    ? ed
-                    : new SyntaxEditor(await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false), solution.Workspace);
+                var editor = await GetEditor(documentToEditor, document, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (decl, symbols) in declsAndSymbol)
                 {
@@ -203,6 +200,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return currentSolution;
         }
 
+        private static async Task<SyntaxEditor> GetEditor(
+            Dictionary<Document, SyntaxEditor> documentToEditor, Document document, CancellationToken cancellationToken)
+        {
+            if (!documentToEditor.TryGetValue(document, out var editor))
+            {
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+                documentToEditor.Add(document, editor);
+            }
+
+            return editor;
+        }
+
         private async Task UpdateReferencesAsync(
             Project project, Dictionary<Document, SyntaxEditor> documentToEditor,
             ISymbol implMember, INamedTypeSymbol interfaceType, CancellationToken cancellationToken)
@@ -225,8 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(root, solution.Workspace);
-                documentToEditor.Add(document, editor);
+                var editor = await GetEditor(documentToEditor, document, cancellationToken).ConfigureAwait(false);
 
                 foreach (var refLocation in group)
                 {
@@ -255,8 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             {
                 // We have something like `expr.Goo` replace it with `((IGoo)expr).Goo`
                 var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(parent);
-                editor.ReplaceNode(
-                    expr, (current, g) => g.AddParentheses(g.CastExpression(interfaceType, current)));
+                editor.ReplaceNode(expr, (current, g) => AddCast(interfaceType, current, g));
                 return;
             }
 
@@ -264,9 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             {
                 // We have something like `expr?.Goo` replace it with `((IGoo)expr)?.Goo`
                 var expr = syntaxFacts.GetTargetOfMemberBinding(parent);
-                editor.ReplaceNode(
-                    expr, (current, g) => g.AddParentheses(g.CastExpression(interfaceType, current)));
-
+                editor.ReplaceNode(expr, (current, g) => AddCast(interfaceType, current, g));
                 return;
             }
 
@@ -280,7 +286,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                         generator.CastExpression(
                             interfaceType,
                             generator.ThisExpression())),
-                    identifierName));
+                    identifierName.WithoutTrivia()).WithTriviaFrom(identifierName));
+        }
+
+        private static SyntaxNode AddCast(INamedTypeSymbol interfaceType, SyntaxNode current, SyntaxGenerator g)
+        {
+            return g.AddParentheses(
+                                        g.CastExpression(interfaceType, current.WithoutTrivia())).WithTriviaFrom(current);
         }
 
         private SyntaxNode ImplementExplicitly(SyntaxGenerator generator, SyntaxNode decl, ISymbol interfaceMember)
