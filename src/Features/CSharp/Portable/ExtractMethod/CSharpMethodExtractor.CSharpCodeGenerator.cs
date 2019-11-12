@@ -786,6 +786,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return originalDocument.Document.WithSyntaxRoot(newRoot);
                 }
             }
+
+            protected ImmutableHashSet<string> GetLocalFunctionNamesIfScopeIsMethod(SyntaxNode scope)
+            {
+                var localFunctionNames = new HashSet<string>();
+                var localFunctions = Enumerable.Empty<StatementSyntax>();
+
+                if (scope is MethodDeclarationSyntax method)
+                {
+                    localFunctions = method.Body.Statements.Where(s => s.IsKind(SyntaxKind.LocalFunctionStatement));
+                }
+                else if (scope is LocalFunctionStatementSyntax localMethod)
+                {
+                    localFunctions = localMethod.Body.Statements.Where(s => s.IsKind(SyntaxKind.LocalFunctionStatement));
+                }
+
+                foreach (LocalFunctionStatementSyntax localFunction in localFunctions)
+                {
+                    localFunctionNames.Add(localFunction.Identifier.Text);
+                }
+
+                return localFunctionNames.ToImmutableHashSet();
+            }
         }
     }
 }

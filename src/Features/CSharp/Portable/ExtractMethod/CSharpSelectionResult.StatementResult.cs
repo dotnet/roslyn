@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var firstToken = this.GetFirstTokenInSelection();
                 return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
                 {
-                    return n is BaseMethodDeclarationSyntax ||
+                    return n is LocalFunctionStatementSyntax ||
+                           n is BaseMethodDeclarationSyntax ||
                            n is AccessorDeclarationSyntax ||
                            n is ParenthesizedLambdaExpressionSyntax ||
                            n is SimpleLambdaExpressionSyntax ||

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     var semanticModel = this.SemanticDocument.SemanticModel;
                     var nameGenerator = new UniqueNameGenerator(semanticModel);
-                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
+                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName, GetLocalFunctionNamesIfScopeIsMethod(containingScope)));
                 }
 
                 private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)

@@ -3023,5 +3023,83 @@ class C
         }
     }
 }");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        public async Task TestExtractLocalMethod_EnsureUniqueMethodName()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        [|var test = 1;|]
+
+        static void NewMethod()
+        {
+            var test = 1;
+        }
+    }
+}",
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        {|Rename:NewMethod1|}();
+
+        static void NewMethod()
+        {
+            var test = 1;
+        }
+
+        static void NewMethod1()
+        {
+            var test = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        public async Task TestExtractLocalMethodWithinLocalMethod_EnsureUniqueMethodName()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        static void NewMethod()
+        {
+            var NewMethod2 = 0;
+            [|var test = 1;|]
+
+            static void NewMethod1()
+            {
+                var test = 1;
+            }
+        }
+    }
+}",
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        static void NewMethod()
+        {
+            var NewMethod2 = 0;
+            {|Rename:NewMethod2|}();
+
+            static void NewMethod1()
+            {
+                var test = 1;
+            }
+
+            static void NewMethod2()
+            {
+                var test = 1;
+            }
+        }
+    }
+}");
+        }
     }
 }

@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 else
                 {
                     // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
-                    destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
+                    destination = previousMemberNode.Parent ?? previousMemberNode;
                 }
 
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
