@@ -209,10 +209,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)
             {
                 IAsyncToken asyncToken;
-                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(_registration.Workspace.Options) == BackgroundAnalysisScope.ActiveFile &&
+                var solution = _registration.Workspace.CurrentSolution;
+                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Options) == BackgroundAnalysisScope.ActiveFile &&
                     activeDocumentId != null)
                 {
-                    var activeDocument = _registration.Workspace.CurrentSolution.GetDocument(activeDocumentId);
+                    var activeDocument = solution.GetDocument(activeDocumentId);
                     if (activeDocument != null)
                     {
                         lock (_gate)
@@ -226,8 +227,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             _lastActiveDocument = activeDocument;
                         }
 
-                        asyncToken = _listener.BeginAsyncOperation("OnDocumentChanged");
-                        EnqueueEvent(activeDocument.Project.Solution, activeDocument.Id, InvocationReasons.DocumentChanged, asyncToken);
+                        asyncToken = _listener.BeginAsyncOperation("OnDocumentOpened");
+                        EnqueueEvent(activeDocument.Project.Solution, activeDocument.Id, InvocationReasons.DocumentOpened, asyncToken);
                     }
                 }
             }
