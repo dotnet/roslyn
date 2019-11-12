@@ -153,6 +153,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
         }
 
+        protected FileSet GetNetCoreMultiTFMFiles_ExtensionWithConditionOnTFM()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ExtensionWithConditionOnTFM_Project),
+                (@"obj\Project.csproj.test.props", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ExtensionWithConditionOnTFM_ProjectTestProps));
+        }
+
         protected FileSet GetNetCoreMultiTFMFiles_ProjectReference()
         {
             return new FileSet(
