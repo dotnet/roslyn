@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">Aggiungi controlli Null per tutti i parametri</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Evitare parametri inutilizzati nel codice. Se non è possibile rimuovere il parametro, modificarne il nome in modo che inizi con un carattere di sottolineatura e, facoltativamente, sia seguito da un numero intero, ad esempio '_', '_1', '_2' e così via. Questi vengono considerati come nomi di simboli speciali di rimozione.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">Il contenuto corrente del file di origine '{0}' non corrisponde all'origine compilata. La sessione di debug non può continuare finché non viene ripristinato il contenuto del file di origine.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -499,12 +499,12 @@
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
-        <target state="translated">Annulla ritorno a capo per tutti gli argomenti</target>
+        <target state="translated">Annulla il ritorno a capo per tutti gli argomenti</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
-        <target state="translated">Annulla ritorno a capo per tutti i parametri</target>
+        <target state="translated">Annulla il ritorno a capo per tutti i parametri</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_arguments">
@@ -514,27 +514,27 @@
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
-        <target state="translated">Annulla ritorno a capo e imposta rientro per tutti i parametri</target>
+        <target state="translated">Annulla il ritorno a capo e imposta rientro per tutti i parametri</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_argument_list">
         <source>Unwrap argument list</source>
-        <target state="translated">Annulla ritorno a capo per l'elenco di argomenti</target>
+        <target state="translated">Annulla il ritorno a capo per l'elenco di argomenti</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="translated">Annulla ritorno a capo per la catena di chiamate</target>
+        <target state="translated">Annulla il ritorno a capo per la catena di chiamate</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
-        <target state="translated">Annulla ritorno a capo per l'espressione</target>
+        <target state="translated">Annulla il ritorno a capo per l'espressione</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
-        <target state="translated">Annulla ritorno a capo per elenco di parametri</target>
+        <target state="translated">Annulla il ritorno a capo per l'elenco di parametri</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'.</target>
+        <target state="translated">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -624,52 +624,52 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_call_chain">
         <source>Wrap and align call chain</source>
-        <target state="translated">Applica ritorno a capo e allinea la catena di chiamate</target>
+        <target state="translated">Imposta il ritorno a capo e allinea la catena di chiamate</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="translated">Applica ritorno a capo e allinea l'espressione</target>
+        <target state="translated">Imposta il ritorno a capo e allinea l'espressione</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="translated">Applica ritorno a capo e allinea la catena di chiamate lunga</target>
+        <target state="translated">Imposta il ritorno a capo e allinea la catena di chiamate lunga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="translated">Applica ritorno a capo alla catena di chiamate</target>
+        <target state="translated">Imposta il ritorno a capo alla catena di chiamate</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
-        <target state="translated">Imposta ritorno a capo per ogni argomento</target>
+        <target state="translated">Imposta il ritorno a capo a ogni argomento</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
-        <target state="translated">Imposta ritorno a capo per ogni parametro</target>
+        <target state="translated">Imposta il ritorno a capo a ogni parametro</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_expression">
         <source>Wrap expression</source>
-        <target state="translated">Imposta ritorno a capo per l'espressione</target>
+        <target state="translated">Imposta il ritorno a capo all'espressione</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
-        <target state="translated">Imposta ritorno a capo per elenco di argomenti lungo</target>
+        <target state="translated">Imposta il ritorno a capo all'elenco di argomenti lungo</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="translated">Applica ritorno a capo alla catena di chiamate lunga</target>
+        <target state="translated">Imposta il ritorno a capo alla catena di chiamate lunga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
-        <target state="translated">Imposta ritorno a capo per elenco di parametri lungo</target>
+        <target state="translated">Imposta il ritorno a capo all'elenco di parametri lungo</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping">
@@ -1997,7 +1997,7 @@ Questa versione è usata {2}</target>
       </trans-unit>
       <trans-unit id="Property_cannot_safely_be_replaced_with_a_method_call">
         <source>Property cannot safely be replaced with a method call</source>
-        <target state="translated">Non è possibile sostituire in modo sicuro la proprietà con una chiamata al metodo</target>
+        <target state="translated">Non è possibile sostituire in modo sicuro la proprietà con una chiamata a un metodo</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_interpolated_string">
@@ -2197,7 +2197,7 @@ Questa versione è usata {2}</target>
       </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
-        <target state="translated">Usa la propagazione Null</target>
+        <target state="translated">Usa la propagazione di valori Null</target>
         <note />
       </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">

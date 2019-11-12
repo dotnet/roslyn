@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
-        <target state="translated">Ausdrucks-/Blocktexteinstellungen anwenden</target>
+        <target state="translated">Ausdrucks-/Blocktextkörpereinstellungen anwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="new">Assign 'out' parameters</target>
+        <target state="translated">out-Parameter zuweisen</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="new">Assign 'out' parameters (at start)</target>
+        <target state="translated">out-Parameter zuweisen (beim Start)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">Erfasste Variablen als Argumente übergeben</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -159,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
-        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <target state="translated">Warnung: temporäres Inlining in bedingtem Methodenaufruf.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">Warnung: Das Hinzufügen von Parametern zur Deklaration einer lokalen Funktion kann zu ungültigem Code führen.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_lambda_declaration">
         <source>Autoselect disabled due to potential lambda declaration.</source>
-        <target state="translated">Automatische Auswahl aufgrund einer potenziellen Lambdadeklaration deaktiviert.</target>
+        <target state="translated">Automatische Auswahl aufgrund einer potenziellen Lambdafunktionsdeklaration deaktiviert.</target>
         <note />
       </trans-unit>
       <trans-unit id="local_variable_declaration">
@@ -494,7 +494,7 @@
       </trans-unit>
       <trans-unit id="lambda">
         <source>lambda</source>
-        <target state="translated">Lambda</target>
+        <target state="translated">Lambdafunktion</target>
         <note />
       </trans-unit>
       <trans-unit id="anonymous_method">

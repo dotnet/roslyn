@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">Non esiste alcun tipo di destinazione per il valore letterale predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">Si è verificato un errore interno nel compilatore C#.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto. Si intendeva 'using' invece di 'await using'?</target>
+        <target state="translated">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto. Si intendeva 'using' invece di 'await using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
         <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">Un parametro di tipo nullable deve essere noto per essere un tipo valore o un tipo riferimento non nullable. Provare ad aggiungere un vincolo di tipo, 'class' o 'struct'.</target>
+        <target state="translated">Un parametro di tipo che ammette i valori Null deve essere noto per essere un tipo valore o un tipo riferimento che non ammette i valori Null. Provare ad aggiungere un vincolo di tipo, 'class' o 'struct'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -339,7 +339,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
-        <target state="translated">Il metodo '{0}' specifica un vincolo 'struct' per il parametro di tipo '{1}', ma il parametro di tipo corrispondente '{2}' del metodo '{3}' sottoposto a override o implementato in modo esplicito non è un tipo valore non nullable.</target>
+        <target state="translated">Il metodo '{0}' specifica un vincolo 'struct' per il parametro di tipo '{1}', ma il parametro di tipo corrispondente '{2}' del metodo '{3}' sottoposto a override o implementato in modo esplicito non è un tipo valore che non ammette i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene una nuova astrazione di un membro dell'interfaccia di base. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">Il tipo '{2}' deve essere un tipo valore non nullable, unitamente a tutti i campi a ogni livello di annidamento, per poter essere usato come parametro '{1}' nel tipo o metodo generico '{0}'</target>
+        <target state="translated">Il tipo '{2}' deve essere un tipo valore che non ammette i valori Null, unitamente a tutti i campi a ogni livello di annidamento, per poter essere usato come parametro '{1}' nel tipo o metodo generico '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -634,7 +634,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opzioni del compilatore Visual C#
 
                        - FILE DI OUTPUT -
@@ -653,40 +653,40 @@
                               usato da WinMDExp. Forma breve: -t:winmdobj
 -doc:&lt;file&gt;                   File di documentazione XML da generare
 -refout:&lt;file&gt;                Output dell'assembly di riferimento da generare
--platform:&lt;string&gt;            Limita le piattaforme in cui è possibile eseguire il codice: x86,
+-platform:&lt;stringa&gt;            Limita le piattaforme in cui è possibile eseguire il codice: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred o
                               anycpu. Il valore predefinito è anycpu.
 
                        - FILE DI INPUT -
--recurse:&lt;wildcard&gt;           Include tutti i file presenti nella directory corrente e
+-recurse:&lt;caratteri_jolly&gt;           Include tutti i file presenti nella directory corrente e
                               nelle relative sottodirectory in base
                               ai caratteri jolly specificati
 -reference:&lt;alias&gt;=&lt;file&gt;     Crea un riferimento ai metadati dal file di assembly specificato
                               usando l'alias indicato. Forma breve: -r
--reference:&lt;file list&gt;        Crea un riferimento ai metadati dai file di assembly 
+-reference:&lt;elenco file&gt;        Crea un riferimento ai metadati dai file di assembly 
                               specificati. Forma breve: -r
--addmodule:&lt;file list&gt;        Collega i moduli specificati in questo assembly
--link:&lt;file list&gt;             Incorpora metadati dai file di assembly di
+-addmodule:&lt;elenco file&gt;        Collega i moduli specificati in questo assembly
+-link:&lt;elenco file&gt;             Incorpora metadati dai file di assembly di
                               interoperabilità specificati. Forma breve: -l
--analyzer:&lt;file list&gt;             Esegue gli analizzatori dall'assembly.
+-analyzer:&lt;elenco file&gt;             Esegue gli analizzatori dall'assembly.
                               Forma breve: -a
--additionalfile:&lt;file list&gt;       File aggiuntivi che non influiscono
+-additionalfile:&lt;elenco file&gt;       File aggiuntivi che non influiscono
                               direttamente sulla generazione del codice ma possono essere usati
                               dagli analizzatori per produrre errori o avvisi.
 -embed                        Incorpora tutti i file di origine nel file PDB.
--embed:&lt;file list&gt;            Incorpora file specifici nel file PDB.
+-embed:&lt;elenco file&gt;            Incorpora file specifici nel file PDB.
 
                        - RISORSE -
 -win32res:&lt;file&gt;              Consente di specificare un file di risorse Win32 (.res)
 -win32icon:&lt;file&gt;             Usa questa icona per l'output
 -win32manifest:&lt;file&gt;         Consente di specificare un file manifesto Win32 (.xml)
 -nowin32manifest              Non include il manifesto Win32 predefinito
--resource:&lt;resinfo&gt;           Incorpora la risorsa specificata. Forma breve: -res
--linkresource:&lt;resinfo&gt;       Collega la risorsa specificata all'assembly.
+-resource:&lt;info_risorsa&gt;           Incorpora la risorsa specificata. Forma breve: -res
+-linkresource:&lt;info_risorsa&gt;       Collega la risorsa specificata all'assembly.
                               Forma breve: -linkres. Il formato di info_risorsa
-                              è &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                              è &lt;file&gt;[,&lt;nome stringa&gt;[,public|private]]
 
-                       - GENERAZIONE DEL CODICE -
+                       - GENERAZIONE CODICE -
 -debug[+|-]                   Crea le informazioni di debug
 -debug:{full|pdbonly|portable|embedded}
                               Specifica il tipo di debug ('full' è l'impostazione predefinita,
@@ -703,23 +703,26 @@
 
                        - ERRORI E AVVISI -
 -warnaserror[+|-]             Segnala tutti gli avvisi come errori
--warnaserror[+|-]:&lt;warn list&gt; Segnala determinati avvisi come errori
+-warnaserror[+|-]:&lt;elenco avvisi&gt; Segnala determinati avvisi come errori
 -warn:&lt;n&gt;                     Imposta il livello di avviso (0-4). Forma breve: -w
--nowarn:&lt;warn list&gt;           Disabilita messaggi di avviso specifici
+-nowarn:&lt;elenco avvisi&gt;           Disabilita messaggi di avviso specifici
 -ruleset:&lt;file&gt;               Consente di specificare un file di set di regole che disabilita
                               diagnostica specifica.
--errorlog:&lt;file&gt;              Consente di specificare un file in cui registrare tutte le diagnostiche del
+-errorlog:&lt;file&gt;[,version=&lt;versione _SARIF&gt;]
+                              -errorlog:&lt;file&gt;              Consente di specificare un file in cui registrare tutte le diagnostiche del
                               compilatore e dell'analizzatore.
+                              versione_SARIF:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
+                              si riferiscono entrambi a SARIF versione 2.1.0.
 -reportanalyzer               Restituisce informazioni aggiuntive dell'analizzatore, ad
                               esempio il tempo di esecuzione.
 
                        - LINGUAGGIO -
 -checked[+|-]                 Genera controlli dell'overflow
 -unsafe[+|-]                  Consente codice 'unsafe'
--define:&lt;symbol list&gt;         Consente di definire simboli di compilazione condizionale. Forma
+-define:&lt;elenco simboli&gt;         Consente di definire simboli di compilazione condizionale. Forma
                               breve: -d
 -langversion:?                Visualizza i valori consentiti per la versione del linguaggio
--langversion:&lt;string&gt;         Consente di specificare la versione del linguaggio, ad esempio
+-langversion:&lt;stringa&gt;         Consente di specificare la versione del linguaggio, ad esempio
                               `latest` (ultima versione che include versioni secondarie),
                               `default` (uguale a `latest`),
                               `latestmajor` (ultima versione, escluse le versioni secondarie),
@@ -727,7 +730,7 @@
                               o versioni specifiche come `6` o `7.1`
 -nullable[+|-]                Consente di specificare l'opzione di contesto nullable enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Consente di specificare l'opzione di contesto nullable  enable|disable|warnings|annotations.
+                              Consente di specificare l'opzione di contesto nullable enable|disable|warnings|annotations.
 
                        - SICUREZZA -
 -delaysign[+|-]               Ritarda la firma dell'assembly usando solo la parte pubblica della
@@ -735,7 +738,7 @@
 -publicsign[+|-]              Firma pubblicamente l'assembly usando solo la parte pubblica
                               della chiave con nome sicuro
 -keyfile:&lt;file&gt;               Consente di specificare un file di chiave con nome sicuro
--keycontainer:&lt;string&gt;        Consente di specificare un contenitore di chiavi con nome sicuro
+-keycontainer:&lt;stringa&gt;        Consente di specificare un contenitore di chiavi con nome sicuro
 -highentropyva[+|-]               Abilita ASLR a entropia elevata
 
                        - VARIE -
@@ -748,13 +751,13 @@
 
                        - AVANZATE -
 -baseaddress:&lt;indirizzo&gt;        Indirizzo di base della libreria da compilare
--checksumalgorithm:&lt;alg&gt;      Consente di specificare l'algoritmo per calcolare il checksum
+-checksumalgorithm:&lt;alg&gt;      Consente di specificare l'algoritmo per calcolare il checksum 
                               del file di origine archiviato nel file PDB. I valori supportati sono:
-                              SHA1 o SHA256 (predefinito).
+                              SHA1 o SHA256 (impostazione predefinita).
 -codepage:&lt;n&gt;                 Consente di specificare la tabella codici da usare all'apertura dei file
                               di origine
 -utf8output                   Restituisce i messaggi del compilatore usando la codifica UTF-8
--main:&lt;type&gt;                  Consente di specificare il tipo che contiene il punto di ingresso,
+-main:&lt;tipo&gt;                  Consente di specificare il tipo che contiene il punto di ingresso,
                               ignorando tutti gli altri punti di ingresso possibili. Forma
                               breve: -m
 -fullpaths                    Il compilatore genera percorsi completi
@@ -770,17 +773,17 @@
 -preferreduilang              Consente di specificare il nome del linguaggio di output preferito.
 -nosdkpath                    Disabilita la ricerca di assembly di librerie standard nel percorso predefinito dell'SDK.
 -nostdlib[+|-]                Omette i riferimenti alla libreria standard (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Consente di specificare la versione del sottosistema di questo assembly
--lib:&lt;file list&gt;              Consente di specificare le directory aggiuntive in cui cercare i
+-subsystemversion:&lt;stringa&gt;    Consente di specificare la versione del sottosistema di questo assembly
+-lib:&lt;elenco file&gt;              Consente di specificare le directory aggiuntive in cui cercare i
                               riferimenti
--errorreport:&lt;string&gt;         Consente di specificare la modalità di gestione degli errori interni del compilatore:
-                              prompt, send, queue o none. L'impostazione predefinita è
-                              queue.
+-errorreport:&lt;stringa&gt;         Consente di specificare come gestire gli errori interni del compilatore:
+                              prompt, send, queue o none. L'impostazione predefinita
+                              è queue.
 -appconfig:&lt;file&gt;             Consente di specificare un file di configurazione dell'applicazione
                               contenente le impostazioni di binding dell'assembly
--moduleassemblyname:&lt;string&gt;  Nome dell'assembly di cui farà parte
+-moduleassemblyname:&lt;stringa&gt;  Nome dell'assembly di cui farà parte
                               questo modulo
--modulename:&lt;string&gt;          Consente di specificare il nome del modulo di origine
+-modulename:&lt;stringa&gt;          Consente di specificare il nome del modulo di origine
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -801,7 +804,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">using asincrono</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -1361,12 +1364,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Conversione del valore letterale Null o di un possibile valore Null in tipo non nullable.</target>
+        <target state="translated">Conversione del valore letterale Null o di un possibile valore Null in un tipo che non ammette i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Conversione del valore letterale Null o di un possibile valore Null in tipo non nullable.</target>
+        <target state="translated">Conversione del valore letterale Null o di un possibile valore Null in un tipo che non ammette i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
@@ -1381,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Un possibile valore Null non può essere passato a una destinazione contrassegnata con l'attributo [DisallowNull]</target>
+        <target state="translated">Un possibile valore Null non può essere assegnato a una destinazione contrassegnata con l'attributo [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Un possibile valore Null non può essere passato a una destinazione contrassegnata con l'attributo [DisallowNull]</target>
+        <target state="translated">Un possibile valore Null non può essere assegnato a una destinazione contrassegnata con l'attributo [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1401,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT">
         <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">Un membro che restituisce un valore [MaybeNull] introduce un valore Null quando '{0}' è un tipo riferimento che non ammette i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
         <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
+        <target state="translated">Un membro che restituisce un valore [MaybeNull] introduce un valore Null per un parametro di tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1456,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">L'annotazione per i tipi riferimento che ammettono i valori Null deve essere usata solo nel codice all'interno di un contesto di annotazioni '#nullable'. Il codice generato automaticamente richiede una direttiva '#nullable' esplicita nell'origine.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">L'annotazione per i tipi riferimento che ammettono i valori Null deve essere usata solo nel codice all'interno di un contesto di annotazioni '#nullable'. Il codice generato automaticamente richiede una direttiva '#nullable' esplicita nell'origine.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1511,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">L'inizializzatore di oggetto o di raccolta dereferenzia in modo implicito il membro Null '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">L'inizializzatore di oggetto o di raccolta dereferenzia in modo implicito il membro Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1781,7 +1784,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">L'espressione switch non gestisce tutti gli input possibili (non è esaustiva).</target>
+        <target state="translated">L'espressione switch non gestisce tutti i possibili valori del relativo tipo di input (non è esaustiva).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1796,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">L'espressione switch non gestisce tutti gli input possibili (non è esaustiva).</target>
+        <target state="translated">L'espressione switch non gestisce tutti i possibili valori del relativo tipo di input (non è esaustiva).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1861,12 +1864,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">L'elemento {0} '{1}' non nullable non è inizializzato. Provare a dichiarare {0} come nullable.</target>
+        <target state="translated">L'elemento {0} '{1}' che non ammette i valori Null non è inizializzato. Provare a dichiarare {0} in modo che ammetta i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Il campo non nullable non è inizializzato. Provare a dichiararlo come nullable.</target>
+        <target state="translated">Il campo che non ammette i valori Null non è inizializzato. Provare a dichiararlo in modo che ammetta i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2091,7 +2094,7 @@
       </trans-unit>
       <trans-unit id="ERR_ValueCantBeNull">
         <source>Cannot convert null to '{0}' because it is a non-nullable value type</source>
-        <target state="translated">Non è possibile convertire Null in '{0}' perché è un tipo di valore non nullable</target>
+        <target state="translated">Non è possibile convertire Null in '{0}' perché è un tipo valore che non ammette i valori Null</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoExplicitBuiltinConv">
@@ -2226,7 +2229,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsMustHaveReferenceType">
         <source>The as operator must be used with a reference type or nullable type ('{0}' is a non-nullable value type)</source>
-        <target state="translated">L'operatore as deve essere usato con un tipo riferimento o con un tipo nullable ('{0}' è un tipo di valore non nullable)</target>
+        <target state="translated">L'operatore as deve essere usato con un tipo riferimento o con un tipo che ammette i valori Null ('{0}' è un tipo valore che non ammette i valori Null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowercaseEllSuffix">
@@ -2751,7 +2754,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
         <source>The __arglist construct is valid only within a variable argument method</source>
-        <target state="translated">Il costrutto __arglist è valido solo all'interno di un metodo con argomenti delle variabili</target>
+        <target state="translated">Il costrutto __arglist è valido solo all'interno di un metodo con argomenti variabili</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PtrExpected">
@@ -3116,7 +3119,7 @@
       </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
-        <target state="translated">'{0}': i modificatori di accessibilità per le funzioni di accesso possono essere usati solo se la proprietà o l'indicizzatore ha entrambe le funzioni di accesso get e set.</target>
+        <target state="translated">'{0}': i modificatori di accessibilità per le funzioni di accesso possono essere usati solo se la proprietà o l'indicizzatore ha entrambe le funzioni di accesso get e set</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedInterfaceAccessor">
@@ -3261,7 +3264,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeVarCantBeNull">
         <source>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</source>
-        <target state="translated">Non è possibile convertire il valore Null nel parametro di tipo '{0}' perché potrebbe essere un tipo di valore non nullable. Provare a usare 'default({0})'.</target>
+        <target state="translated">Non è possibile convertire il valore Null nel parametro di tipo '{0}' perché potrebbe essere un tipo valore che non ammette i valori Null. Provare a usare 'default({0})'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
@@ -3521,7 +3524,7 @@
       </trans-unit>
       <trans-unit id="ERR_ValConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">Il tipo '{2}' deve essere un tipo di valore non nullable per poter essere usato come parametro '{1}' nel metodo o nel tipo generico '{0}'</target>
+        <target state="translated">Il tipo '{2}' deve essere un tipo valore che non ammette i valori Null per poter essere usato come parametro '{1}' nel metodo o nel tipo generico '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularConstraint">
@@ -4265,7 +4268,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_CStyleArray">
         <source>Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.</source>
-        <target state="translated">La dichiarazione di matrice è errata. Per dichiarare una matrice gestita, l'identificatore del numero di dimensioni deve precedere l'identificatore della variabile. Per dichiarare un campo buffer a dimensione fissa, usare la parola chiave fixed prima del tipo di campo.</target>
+        <target state="translated">Il dichiaratore di matrice è errato: per dichiarare una matrice gestita, l'identificatore del numero di dimensioni deve precedere l'identificatore della variabile. Per dichiarare un campo buffer a dimensione fissa, usare la parola chiave fixed prima del tipo di campo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VacuousIntegralComp">
@@ -4840,7 +4843,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableMultipleDeclarator">
         <source>Implicitly-typed variables cannot have multiple declarators</source>
-        <target state="translated">Le variabili locali tipizzate in modo implicito non possono avere più dichiaratori</target>
+        <target state="translated">Le variabili tipizzate in modo implicito non possono avere più dichiaratori</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableAssignedArrayInitializer">
@@ -5075,7 +5078,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_EndOfPPLineExpected">
         <source>Single-line comment or end-of-line expected</source>
-        <target state="translated">È previsto un commento su una sola riga o la fine della riga</target>
+        <target state="translated">È previsto un commento su una sola riga o la fine riga</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseParenExpected">
@@ -5200,7 +5203,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch">
         <source>A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.</source>
-        <target state="translated">Una clausola catch precedente rileva già tutte le eccezioni. Tutti gli oggetti generati diversi da un'eccezione verranno incapsulati in System.Runtime.CompilerServices.RuntimeWrappedException.</target>
+        <target state="translated">Una clausola catch precedente rileva già tutte le eccezioni. Verrà eseguito il wrapping di tutti gli oggetti generati diversi da un'eccezione in System.Runtime.CompilerServices.RuntimeWrappedException.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch_Title">
@@ -5214,7 +5217,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
 A catch() block after a catch (System.Exception e) block can catch non-CLS exceptions if the RuntimeCompatibilityAttribute is set to false in the AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. If this attribute is not set explicitly to false, all thrown non-CLS exceptions are wrapped as Exceptions and the catch (System.Exception e) block catches them.</source>
         <target state="translated">Questo avviso viene visualizzato quando per un blocco catch() non è stato specificato un tipo di eccezione dopo un blocco catch (System.Exception e). L'avviso indica che il blocco catch() non rileverà alcuna eccezione.
 
-Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilevare eccezioni non CLS se RuntimeCompatibilityAttribute è impostato su false nel file AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. Se questo attributo non è impostato in modo esplicito su false, verrà eseguito il wrapping di tutte le eccezioni non CLS rilevate come Exception per consentire al blocco catch (System.Exception e) di rilevarle.</target>
+Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezioni non CLS se RuntimeCompatibilityAttribute è impostato su false nel file AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. Se questo attributo non è impostato in modo esplicito su false, verrà eseguito il wrapping di tutte le eccezioni non CLS rilevate come Exception per consentire al blocco catch (System.Exception e) di rilevarle.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IncrementLvalueExpected">
@@ -5414,7 +5417,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_BadVarDecl">
         <source>Expected ; or = (cannot specify constructor arguments in declaration)</source>
-        <target state="translated">È previsto il segno ; oppure = (impossibile specificare gli argomenti del costruttore nella dichiarazione)</target>
+        <target state="translated">È previsto il segno ; oppure = (non è possibile specificare gli argomenti del costruttore nella dichiarazione)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingAfterElements">
@@ -5599,7 +5602,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_MissingPPFile">
         <source>Quoted file name, single-line comment or end-of-line expected</source>
-        <target state="translated">È previsto un nome file tra virgolette, un commento su una sola riga o la fine della riga</target>
+        <target state="translated">È previsto un nome file tra virgolette, un commento su una sola riga o la fine riga</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedPPFile">
@@ -5759,7 +5762,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_NoModifiersOnAccessor">
         <source>Modifiers cannot be placed on event accessor declarations</source>
-        <target state="translated">Impossibile inserire modificatori nelle dichiarazioni delle funzioni di accesso agli eventi</target>
+        <target state="translated">Non è possibile inserire modificatori nelle dichiarazioni delle funzioni di accesso agli eventi</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCantBeWithModifier">
@@ -5829,7 +5832,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_ReturnInIterator">
         <source>Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.</source>
-        <target state="translated">Impossibile restituire un valore da un iteratore. Utilizzare l'istruzione yield return per restituire un valore o l'istruzione yield break per terminare l'iterazione.</target>
+        <target state="translated">Non è possibile restituire un valore da un iteratore. Usare l'istruzione yield return per restituire un valore o l'istruzione yield break per terminare l'iterazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
@@ -5924,7 +5927,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_MultipleIEnumOfT">
         <source>foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">L'istruzione foreach non può funzionare con variabili di tipo '{0}' perché implementa più creazioni di istanza di '{1}'. Provare a eseguire il cast su una creazione di istanza di interfaccia specifica</target>
+        <target state="translated">L'istruzione foreach non può funzionare con variabili di tipo '{0}' perché implementa più creazioni di un'istanza di '{1}'. Provare a eseguire il cast su una creazione di un'istanza di interfaccia specifica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedDimsRequired">
@@ -6234,7 +6237,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Description">
         <source>This warning occurs when you try to call a method, property, or indexer on a member of a class that derives from MarshalByRefObject, and the member is a value type. Objects that inherit from MarshalByRefObject are typically intended to be marshaled by reference across an application domain. If any code ever attempts to directly access the value-type member of such an object across an application domain, a runtime exception will occur. To resolve the warning, first copy the member into a local variable and call the method on that variable.</source>
-        <target state="translated">Questo avviso viene visualizzato quando si tenta di chiamare un metodo, una proprietà o un indicizzatore su un membro di una classe derivante da MarshalByRefObject e tale membro è un tipo di valore. Degli oggetti che ereditano da MarshalByRefObject viene in genere effettuato il marshalling dal riferimento in un dominio applicazione. Qualora un codice tenti di accedere direttamente al membro di tipo di valore di tale oggetto in un dominio applicazione, si verificherà un'eccezione in fase di esecuzione. Per risolvere il problema, copiare innanzitutto il membro in una variabile locale e chiamare il metodo su tale variabile.</target>
+        <target state="translated">Questo avviso viene visualizzato quando prova a chiamare un metodo, una proprietà o un indicizzatore su un membro di una classe derivante da MarshalByRefObject e tale membro è un tipo valore. Il marshalling degli oggetti che ereditano da MarshalByRefObject viene in genere effettuato per riferimento in un dominio applicazione. Qualora un codice provi ad accedere direttamente al membro di tipo valore di tale oggetto in un dominio applicazione, si verificherà un'eccezione in fase di esecuzione. Per risolvere il problema, copiare innanzitutto il membro in una variabile locale e chiamare il metodo su tale variabile.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
@@ -6284,12 +6287,12 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="WRN_EndOfPPLineExpected">
         <source>Single-line comment or end-of-line expected</source>
-        <target state="translated">È previsto un commento su una sola riga o la fine della riga</target>
+        <target state="translated">È previsto un commento su una sola riga o la fine riga</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EndOfPPLineExpected_Title">
         <source>Single-line comment or end-of-line expected after #pragma directive</source>
-        <target state="translated">Dopo la direttiva #pragma è previsto un commento su una sola riga o la fine del file</target>
+        <target state="translated">Dopo la direttiva #pragma è previsto un commento su una sola riga o la fine riga</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConflictingChecksum">
@@ -6932,12 +6935,12 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="WRN_CLS_NoVarArgs">
         <source>Methods with variable arguments are not CLS-compliant</source>
-        <target state="translated">I metodi con argomenti variabili non sono conformi a CLS</target>
+        <target state="translated">I metodi con argomenti variabili non sono conformi alle specifiche CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_NoVarArgs_Title">
         <source>Methods with variable arguments are not CLS-compliant</source>
-        <target state="translated">I metodi con argomenti variabili non sono conformi a CLS</target>
+        <target state="translated">I metodi con argomenti variabili non sono conformi alle specifiche CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadArgType">
@@ -7097,12 +7100,12 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="WRN_CLS_ArrayArgumentToAttribute">
         <source>Arrays as attribute arguments is not CLS-compliant</source>
-        <target state="translated">L'utilizzo di matrici come argomenti di attributi non è conforme a CLS</target>
+        <target state="translated">L'utilizzo di matrici come argomenti di attributi non è conforme alle specifiche CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_ArrayArgumentToAttribute_Title">
         <source>Arrays as attribute arguments is not CLS-compliant</source>
-        <target state="translated">L'utilizzo di matrici come argomenti di attributi non è conforme a CLS</target>
+        <target state="translated">L'utilizzo di matrici come argomenti di attributi non è conforme alle specifiche CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_NotOnModules2">
@@ -7484,7 +7487,7 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
       </trans-unit>
       <trans-unit id="ERR_GlobalStatement">
         <source>Expressions and statements can only occur in a method body</source>
-        <target state="translated">Espressioni e istruzioni possono essere usate solo nel corpo di un metodo</target>
+        <target state="translated">Espressioni e istruzioni possono essere usate solo in un corpo del metodo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgumentForArray">
@@ -8952,7 +8955,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">La lunghezza della costante di stringa supera il limite di memoria corrente. Provare a dividere la stringa in più costanti.</target>
+        <target state="translated">La lunghezza della costante di stringa risultante dalla concatenazione supera il valore di System.Int32.MaxValue. Provare a dividere la stringa in più costanti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9732,7 +9735,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto.</target>
+        <target state="translated">'{0}': il tipo usato in un'istruzione using asincrona deve essere convertibile in modo implicito in 'System.IAsyncDisposable' o implementare un metodo 'DisposeAsync' adatto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
@@ -9742,7 +9745,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">L'istruzione foreach asincrona non può funzionare con variabili di tipo '{0}' perché implementa più creazioni di istanza di '{1}'. Provare a eseguire il cast su una creazione di istanza di interfaccia specifica</target>
+        <target state="translated">L'istruzione foreach asincrona non può funzionare con variabili di tipo '{0}' perché implementa più creazioni di un'istanza di '{1}'. Provare a eseguire il cast su una creazione di un'istanza di interfaccia specifica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">

@@ -1347,7 +1347,7 @@ Return -or- Return &lt;expression&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">Quando definido como Ativado, restringe conversões de tipo de dados implícitos para somente conversões de ampliação.
+        <target state="translated">Quando definido como Ativado, restringe conversões de tipo de dados implícitos para somente conversões de expansão.
 Opção Strict {On | Off}</target>
         <note />
       </trans-unit>
@@ -1504,7 +1504,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Gerar conversão redutora no '{0}'</target>
+        <target state="translated">Gerar conversão de restrição no '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">

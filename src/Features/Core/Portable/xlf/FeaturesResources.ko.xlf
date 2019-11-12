@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">모든 매개 변수에 대한 null 검사 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
         <source>Align wrapped arguments</source>
-        <target state="translated">줄 바꿈 된 인수 맞춤</target>
+        <target state="translated">래핑된 인수 맞춤</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_parameters">
         <source>Align wrapped parameters</source>
-        <target state="translated">줄 바꿈 된 매개 변수 맞춤</target>
+        <target state="translated">래핑된 매개 변수 맞춤</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">코드에 사용되지 않는 매개 변수를 사용하지 않도록 합니다. 매개 변수를 제거할 수 없는 경우 이름을 변경하여 밑줄로 시작하고 필요에 따라 뒤에 정수가 있도록 합니다(예: '_', '_1', '_2' 등). 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">소스 파일 '{0}'의 현재 콘텐츠가 빌드된 소스와 일치하지 않습니다. 소스 파일의 콘텐츠가 복원될 때까지 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -259,12 +259,12 @@
       </trans-unit>
       <trans-unit id="Indent_wrapped_arguments">
         <source>Indent wrapped arguments</source>
-        <target state="translated">줄 바꿈 된 인수 들여쓰기</target>
+        <target state="translated">래핑된 인수 들여쓰기</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
-        <target state="translated">줄 바꿈 된 매개 변수 들여쓰기</target>
+        <target state="translated">래핑된 매개 변수 들여쓰기</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -499,27 +499,27 @@
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
-        <target state="translated">모든 인수 줄 바꿈 조정</target>
+        <target state="translated">모든 인수 래핑 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
-        <target state="translated">모든 매개 변수 줄 바꿈 조정</target>
+        <target state="translated">모든 매개 변수 래핑 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
-        <target state="translated">모든 인수 줄 바꿈 조정 및 들여쓰기</target>
+        <target state="translated">모든 인수 래핑 해제 및 들여쓰기</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
-        <target state="translated">모든 매개 변수 줄 바꿈 조정 및 들여쓰기</target>
+        <target state="translated">모든 매개 변수 래핑 해제 및 들여쓰기</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_argument_list">
         <source>Unwrap argument list</source>
-        <target state="translated">인수 목록 줄 바꿈 조정</target>
+        <target state="translated">인수 목록 래핑 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
@@ -529,12 +529,12 @@
       </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
-        <target state="translated">식 줄 바꿈 조정</target>
+        <target state="translated">식 래핑 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
-        <target state="translated">매개 변수 목록 줄 바꿈 조정</target>
+        <target state="translated">매개 변수 목록 래핑 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">권장 dispose 패턴을 사용하여 로컬로 범위가 지정된 삭제 가능한 개체가 모든 경로에서 삭제되도록 합니다. 가능한 경우 'using' 문이나 'using' 선언 내에서 생성을 래핑합니다. 그러지 않으면 try 영역 앞에 선언된 전용 지역 변수 및 'finally' 영역에 있는 null이 아닌 값의 비조건부 Dispose 호출('x?.Dispose()')과 함께 try-finally 패턴을 사용하세요. 개체가 try 영역 내에서 명시적으로 삭제되거나 삭제 소유권이 다른 개체나 메서드로 이전되면 해당 작업 바로 뒤의 지역 변수에 'null'을 할당하여 'finally'에서 이중 삭제를 방지하세요.</target>
+        <target state="translated">권장 dispose 패턴을 사용하여 로컬로 범위가 지정된 삭제 가능한 개체가 모든 경로에서 삭제되도록 합니다. 가능한 경우 'using' 문이나 'using' 선언 내에서 생성을 래핑합니다. 그러지 않으면 try 영역 앞에 선언된 전용 지역 변수 및 'finally' 영역에 있는 null이 아닌 값의 비조건부 Dispose 호출('x?.Dispose()')과 함께 try-finally 패턴을 사용하세요. 개체가 try 영역 내에서 명시적으로 삭제되거나 삭제 소유권이 다른 개체나 메서드로 이전되면 해당 작업 바로 뒤의 지역 변수에 'null'을 할당하여 'finally'에서 이중 삭제를 방지하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -644,22 +644,22 @@
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
-        <target state="translated">모든 인수 줄 바꿈</target>
+        <target state="translated">모든 인수 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
-        <target state="translated">모든 매개 변수 줄 바꿈</target>
+        <target state="translated">모든 매개 변수 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_expression">
         <source>Wrap expression</source>
-        <target state="translated">식 줄 바꿈</target>
+        <target state="translated">식 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
-        <target state="translated">긴 인수 목록 줄 바꿈</target>
+        <target state="translated">긴 인수 목록 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
@@ -669,12 +669,12 @@
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
-        <target state="translated">긴 매개 변수 목록 줄 바꿈</target>
+        <target state="translated">긴 매개 변수 목록 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
-        <target state="translated">줄 바꿈</target>
+        <target state="translated">래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">

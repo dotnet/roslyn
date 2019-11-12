@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">ドキュメントでは構文ツリーがサポートされません</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="translated">命名規則</target>
+        <target state="translated">名前付けルール</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_styles">
@@ -426,7 +426,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="translated">このグループ化コンストラクトは、部分式内の指定されたオプションを適用するか無効にします。有効にするオプションは疑問符の後に指定し、無効にするオプションはマイナス記号の後に指定します。許可されているオプションは次のとおりです。
+        <target state="translated">このグループ化構成体は、部分式内の指定されたオプションを適用するか無効にします。有効にするオプションは疑問符の後に指定し、無効にするオプションはマイナス記号の後に指定します。許可されているオプションは次のとおりです。
 
     i	大文字と小文字を区別しない一致を使用します。
     m	^ と $ は、(入力文字列の先頭および末尾ではなく)
@@ -451,7 +451,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">16 進数のエスケープ</target>
+        <target state="translated">16 進数のエスケープ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -501,7 +501,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_letter_modifier">
         <source>letter, modifier</source>
-        <target state="translated">文字、修飾</target>
+        <target state="translated">文字、修飾子</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_other">
@@ -656,7 +656,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="translated">このグループ化コンストラクトは、一致した 'subexpression' をキャプチャします。ここで、'subexpression' は任意の有効な正規表現パターンです。かっこを使用するキャプチャでは、正規表現の左かっこの順序に従って、左から右へ自動的に 1 から番号が付けられます。番号が 0 のキャプチャは、正規表現パターン全体に一致するテキストです。</target>
+        <target state="translated">このグループ化構成体は、一致した 'subexpression' をキャプチャします。ここで、'subexpression' は任意の有効な正規表現パターンです。かっこを使用するキャプチャでは、正規表現の左かっこの順序に従って、左から右へ自動的に 1 から番号が付けられます。番号が 0 のキャプチャは、正規表現パターン全体に一致するテキストです。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
@@ -826,7 +826,7 @@ If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]
     Lu	文字、大文字
     Lt	文字、タイトル文字
     Lo	文字、その他
-    Lm	文字、修飾
+    Lm	文字、修飾子
     Mn	結合文字、幅なし
     Nd	数字、10 進数字
     Pc	句読点、接続
@@ -863,7 +863,7 @@ If a regular expression includes nested grouping constructs, an outer noncapturi
 
 非キャプチャ グループのコンストラクトは通常、量指定子がグループに適用されても、グループによってキャプチャされた部分文字列が対象にならない場合に使用されます。
 
-正規表現に、入れ子になったグループ化コンストラクトが含まれている場合、外部の非キャプチャ グループ コンストラクトは内部の入れ子になったグループ コンストラクトに適用されません。</target>
+正規表現に、入れ子になったグループ化構成体が含まれている場合、外部の非キャプチャ グループ コンストラクトは内部の入れ子になったグループ コンストラクトに適用されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
@@ -1032,7 +1032,7 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
       </trans-unit>
       <trans-unit id="Regex_symbol_modifier">
         <source>symbol, modifier</source>
-        <target state="translated">記号、修飾</target>
+        <target state="translated">記号、修飾子</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_other">
@@ -1148,7 +1148,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
     Lu	文字、大文字
     Lt	文字、タイトル文字
     Lo	文字、その他
-    Lm	文字、修飾
+    Lm	文字、修飾子
     Mn	結合文字、幅なし
     Nd	数字、10 進数字
     Pc	句読点、接続
@@ -1319,7 +1319,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">インポートを追加すると、'{0}' と同じ名前の拡張メソッドがスコープに取り込まれます</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

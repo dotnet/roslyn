@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">文档不支持语法树</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -451,7 +451,7 @@ $ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 C
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">十六进制转义符</target>
+        <target state="translated">十六进制转义符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -688,14 +688,14 @@ $ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 C
         <source>A named or numbered backreference.
 
 'name' is the name of a capturing group defined in the regular expression pattern.</source>
-        <target state="translated">已命名或已编号的后向引用。
+        <target state="translated">已命名或已编号的向后引用。
 
 "name" 是在正则表达式模式中定义的捕获组的名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_short">
         <source>named backreference</source>
-        <target state="translated">已命名的后向引用</target>
+        <target state="translated">已命名的向后引用</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_long">
@@ -890,14 +890,14 @@ If a regular expression includes nested grouping constructs, an outer noncapturi
         <source>A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
 
 There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</source>
-        <target state="translated">一个带编号的后向引用，其中 "number" 是正则表达式中捕获组的序号位置。例如，\4 与第四个捕获组的内容匹配。
+        <target state="translated">一个带编号的向后引用，其中 "number" 是正则表达式中捕获组的序号位置。例如，\4 与第四个捕获组的内容匹配。
 
-八进制转义码(例如 \16) 和使用相同表示法的 \number 后向引用之间存在二义性。如果多义性是一个问题，则可以使用 \k&lt;name&gt; 表示法，该符号是明确的，不能与八进制字符代码混淆。同样，十六进制代码(如 \xdd)是明确的，不能与后向引用混淆。</target>
+八进制转义码(例如 \16) 和使用相同表示法的 \number 向后引用之间存在二义性。如果多义性是一个问题，则可以使用 \k&lt;name&gt; 表示法，该符号是明确的，不能与八进制字符代码混淆。同样，十六进制代码(如 \xdd)是明确的，不能与向后引用混淆。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_short">
         <source>numbered backreference</source>
-        <target state="translated">带编号的后向引用</target>
+        <target state="translated">带编号的向后引用</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_control">
@@ -1319,7 +1319,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">添加导入将使扩展方法与 "{0}" 具有相同名称的作用域</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

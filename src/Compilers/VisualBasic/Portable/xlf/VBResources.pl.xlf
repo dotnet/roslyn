@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Błąd składni wiersza polecenia: „{0}” nie jest prawidłową wartością dla opcji „{1}”. Wartość musi mieć postać „{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Nie można osadzić typu „{0}”, ponieważ ma nieabstrakcyjną składową. Rozważ ustawienie wartości false dla właściwości „Osadź typy międzyoperacyjne”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Nie można osadzić typu „{0}”, ponieważ zawiera ponowną abstrakcję składowej z interfejsu podstawowego. Rozważ ustawienie właściwości „Osadź typy międzyoperacyjne” na wartość false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje domyślnej implementacji interfejsu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
+        <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje poziomu dostępu „Protected”, „Protected Friend” ani „Private Protected” dla składowej interfejsu.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -211,104 +211,107 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
+        <target state="translated">                  Opcje kompilatora Visual Basic
 
                                   - PLIK WYJŚCIOWY -
 -out:&lt;plik&gt;                       Określa nazwę pliku wyjściowego.
 -target:exe                       Utwórz aplikację konsolową (domyślnie).
-                                  (krótka wersja: -t)
--target:winexe                    Utwórz aplikację systemu Windows.
+                                  (Krótka wersja: -t)
+-target:winexe                    Utwórz aplikację systemu Windows
 -target:library                   Utwórz zestaw biblioteki.
 -target:module                    Utwórz moduł, który można dodać do
-                                  zestawu.
+                                  zestawu
 -target:appcontainerexe           Utwórz aplikację systemu Windows uruchamianą w
                                   kontenerze aplikacji.
 -target:winmdobj                  Utwórz plik pośredni metadanych systemu Windows
 -doc[+|-]                         Generuje plik dokumentacji XML.
--doc:&lt;plik&gt;                       Generuje plik dokumentacji XML w pliku &lt;plik&gt;.
+-doc:&lt;file&gt;                       Generuje plik dokumentacji XML w pliku &lt;plik&gt;.
 -refout:&lt;plik&gt;                    Dane wyjściowe zestawu odwołania do wygenerowania
 
                                   - PLIKI WEJŚCIOWE -
--addmodule:&lt;lista_plików&gt;         Odwołuj się do metadanych z określonych modułów
--link:&lt;lista_plików&gt;              Osadź metadane z określonego
-                                  zestawu międzyoperacyjnego. (krótka wersja: -l)
--recurse:&lt;symbol wieloznaczny&gt;    Dołącz wszystkie pliki zawarte w bieżącym katalogu
+-addmodule:&lt;lista_plików&gt;            Odwołuj się do metadanych z określonych modułów
+-link:&lt;lista_plików&gt;                Osadź metadane z określonego
+                                  zestawu międzyoperacyjnego. (Krótka wersja: -l)
+-recurse:&lt;symbol wieloznaczny&gt;               Dołącz wszystkie pliki zawarte w bieżącym katalogu
                                   i jego podkatalogach zgodnie ze
                                   specyfikacją określoną przy użyciu symboli wieloznacznych.
--reference:&lt;lista_plików&gt;         Odwołuj się do metadanych z określonego
-                                  zestawu. (krótka wersja: -r)
--analyzer:&lt;lista_plików&gt;          Uruchom analizatory z tego zestawu
-                                  (krótka wersja: -a)
--additionalfile:&lt;lista plików&gt;    Dodatkowe pliki, które nie mają bezpośredniego wpływu
+-reference:&lt;lista_plików&gt;            Odwołuj się do metadanych z określonego
+                                  zestawu. (Krótka wersja: -r)
+-analyzer:&lt;lista_plików&gt;             Uruchom analizatory z tego zestawu
+                                  (Krótka wersja: -a)
+-additionalfile:&lt;lista_plików&gt;       Dodatkowe pliki, które nie mają bezpośredniego wpływu
                                   na generowanie kodu, ale mogą być używane przez analizatory w celu tworzenia
                                   komunikatów o błędach lub ostrzeżeń.
 
                                   - ZASOBY -
--linkresource:&lt;informacje o zasobie&gt;           Łączy określony plik jako
+-linkresource:&lt;informacje_o_zasobie&gt;           Łączy określony plik jako
                                   zasób zewnętrzny zestawu.
-                                  resinfo:&lt;plik&gt;[,&lt;nazwa&gt;[,public|private]]
-                                  (krótka wersja: -linkres)
+                                  informacje_o_zasobie:&lt;plik&gt;[,&lt;nazwa&gt;[,public|private]]
+                                  (Krótka wersja: -linkres)
 -nowin32manifest                  Manifest domyślny nie powinien być osadzony
                                   w sekcji manifestu w wyjściowym środowisku PE.
--resource:&lt;informacje o zasobie&gt; Dodaje określony plik jako osadzony
+-resource:&lt;informacje_o_zasobie&gt;               Dodaje określony plik jako osadzony
                                   zasób zestawu.
-                                  resinfo:&lt;plik&gt;[,&lt;nazwa&gt;[,public|private]]
-                                  (krótka wersja: -res)
--win32icon:&lt;plik&gt;                 Określa plik ikony środowiska Win32 (ico) dla
+                                  informacje_o_zasobie:&lt;plik&gt;[,&lt;nazwa&gt;[,public|private]]
+                                  (Krótka wersja: -res)
+-win32icon:&lt;p&gt;                 Określa plik ikony środowiska Win32 (ico) dla
                                   domyślnych zasobów środowiska Win32.
 -win32manifest:&lt;plik&gt;             Podany plik zostanie osadzony w
                                   sekcji manifestu wyjściowego środowiska PE.
 -win32resource:&lt;plik&gt;             Określa plik zasobów środowiska Win32 (res).
 
-                                  - GENEROWANIE KODU -
+                                  - GEEROWANIE KODU -
 -optimize[+|-]                    Włącz optymalizacje.
 -removeintchecks[+|-]             Usuń kontrole liczb całkowitych. Domyślnie wyłączone.
 -debug[+|-]                       Emituj informacje o debugowaniu.
 -debug:full                       Emituj pełne informacje o debugowaniu (domyślnie).
--debug:pdbonly                                       Emituj pełne informacje o emitowaniu.
+-debug:pdbonly                    Emituj pełne informacje o debugowaniu.
 -debug:portable                   Emituj informacje o debugowaniu międzyplatformowym.
--debug:embedded                                       Emituj informacje o debugowaniu międzyplatformowym do
+-debug:embedded                   Emituj informacje o debugowaniu międzyplatformowym do
                                   docelowego pliku DLL lub EXE.
 -deterministic                    Utwórz zestaw deterministyczny
                                   (w tym sygnaturę czasową i identyfikator GUID wersji modułu)
 -refonly                          Utwórz zestaw odwołania zamiast głównych danych wyjściowych
 -instrument:TestCoverage          Utwórz zestaw instrumentowany w celu gromadzenia
-                               informacji o pokryciu
--sourcelink:&lt;file&gt;                Informacje o linku źródłowym do wbudowania w pliku PDB.
+                                  informacji o pokryciu
+-sourcelink:&lt;plik&gt;                Informacje o linku źródłowym do wbudowania w pliku PDB.
 
                                   - BŁĘDY I OSTRZEŻENIA -
 -nowarn                           Wyłącz wszystkie ostrzeżenia.
--nowarn:&lt;lista_numerów&gt;           Wyłącz listę poszczególnych ostrzeżeń.
+-nowarn:&lt;lista_numerów&gt;             Wyłącz listę poszczególnych ostrzeżeń.
 -warnaserror[+|-]                 Traktuj wszystkie ostrzeżenia jako błędy.
--warnaserror[+|-]:&lt;lista_numerów&gt; Traktuj ostrzeżenia z listy jako błędy.
+-warnaserror[+|-]:&lt;lista_numerów&gt;   Traktuj ostrzeżenia z listy jako błędy.
 -ruleset:&lt;plik&gt;                   Określ plik zestawu reguł, który wyłącza określone
                                   opcje diagnostyczne.
--errorlog:&lt;plik&gt;                  Określ plik, w którym mają zostać zarejestrowane dane diagnostyczne
-                                  wszystkich kompilatorów i analizatorów.
+-errorlog:&lt;plik&gt;[,version=&lt;wersja_sarif&gt;]         
+                                  Określ plik, w którym mają zostać zarejestrowane dane diagnostyczne
+                                  w formacie SARIF.
+                                  sarif_version:{1|2|2.1} Domyślne wartości 1. 2 i 2.1
+                                  oznaczają format SARIF w wersji 2.1.0.
 -reportanalyzer                   Zgłoś dodatkowe informacje analizatora, takie jak
                                   czas wykonywania.
 
                                   - JĘZYK -
--define:&lt;lista_symboli&gt;           Zadeklaruj globalne symbole
+-define:&lt;lista_symboli&gt;             Zadeklaruj globalne symbole
                                   kompilacji warunkowej. symbol_list:nazwa=wartość,...
-                                  (krótka wersja: -d)
--imports:&lt;lista_importów&gt;         Zadeklaruj globalne importy dla przestrzeni nazw w
+                                  (Krótka wersja: -d)
+-imports:&lt;lista_importów&gt;            Zadeklaruj globalne importy dla przestrzeni nazw w
                                   przywoływanych plikach metadanych.
                                   import_list:przestrzeń_nazw, ,...
 -langversion:?                    Wyświetl dozwolone wartości dla wersji języka
--langversion:&lt;ciąg&gt;              Określ wersję języka, taką jak
-                                  „domyślna” (najnowsza wersja główna), lub
+-langversion:&lt;ciąg&gt;             Określ wersję języka, taką jak
+                                  „domyślna” (najnowsza wersja główna) lub
                                   „najnowsza” (najnowsza wersja, z uwzględnieniem wersji pomocniczych)
-                                  lub konkretna wersja, na przykład „14” lub „15.3”
+                                  albo konkretna wersja, na przykład „14” lub „15.3”
 -optionexplicit[+|-]              Wymagaj jawnej deklaracji zmiennych.
 -optioninfer[+|-]                 Zezwalaj na wnioskowanie o typie zmiennych.
--rootnamespace:&lt;ciąg&gt;             Określa główną przestrzeń nazw dla wszystkich
-                                  deklaracji typów.
+-rootnamespace:&lt;ciąg&gt;           Określa główną przestrzeń nazw dla wszystkich
+                                  deklaracji typów..
 -optionstrict[+|-]                Wymuszaj ścisłą semantykę języka.
 -optionstrict:custom              Ostrzegaj, gdy ścisła semantyka języka nie jest
                                   przestrzegana.
--optioncompare:binary             Określa binarne porównywanie ciągów.
-                                  Jest ono domyślne.
+-optioncompare:binary             Określa binrane porównywanie ciągów.
+                                  Jest to opcja domyślna.
 -optioncompare:text               Określa tekstowe porównywanie ciągów.
 
                                   - RÓŻNE -
@@ -316,37 +319,37 @@
 -noconfig                         Nie dołączaj automatycznie pliku VBC.RSP.
 -nologo                           Nie wyświetlaj transparentu kompilatora z informacjami o prawach autorskich.
 -quiet                            Cichy tryb wyjściowy.
--verbose                          Wyświetl pełne komunikaty.
+-verbose                          Wyświetl pełne komunikaty
 -parallel[+|-]                    Współbieżna kompilacja.
 -version                          Wyświetl numer wersji kompilatora i wyjdź.
 
                                   - ZAAWANSOWANE -
--baseaddress:&lt;numer&gt;              Podstawowy adres biblioteki lub modułu
+-baseaddress:&lt;numer&gt;             Podstawowy adres biblioteki lub modułu
                                   (szesnastkowy).
--checksumalgorithm:&lt;algorytm&gt;     Określ algorytm obliczania sumy kontrolnej
+-checksumalgorithm:&lt;algorytm&gt;          Określ algorytm obliczania sumy kontrolnej
                                   pliku źródłowego przechowywanej w pliku PDB. Obsługiwane wartości:
                                   SHA1 lub SHA256 (domyślnie).
--codepage:&lt;numer&gt;                 Określa stronę kodową do użycia podczas otwierania
+-codepage:&lt;numer&gt;                Określa stronę kodową do użycia podczas otwierania
                                   plików źródłowych.
 -delaysign[+|-]                   Podpisz z opóźnieniem zestaw, używając tylko części publicznej
                                   klucza o silnej nazwie.
 -publicsign[+|-]                  Podpisz publicznie zestaw, używając tylko części publicznej
                                   klucza o silnej nazwie.
--errorreport:&lt;ciąg&gt;               Określa, w jaki sposób obsługiwać wewnętrzne
+-errorreport:&lt;ciąg&gt;             Określa, w jaki sposób obsługiwać wewnętrzne
                                   błędy kompilatora: musi mieć wartość prompt, send, none lub queue
                                   (wartość domyślna).
--filealign:&lt;numer&gt;                Określ wyrównanie stosowane dla sekcji
+-filealign:&lt;numer&gt;               Określ wyrównanie stosowane dla sekcji
                                   plików wyjściowych.
 -highentropyva[+|-]               Włącz losowe generowanie układu przestrzeni adresowej o wysokiej entropii.
--keycontainer:&lt;ciąg&gt;              Określa kontener klucza o silnej nazwie.
+-keycontainer:&lt;ciąg&gt;            Określa kontener klucza o silnej nazwie.
 -keyfile:&lt;plik&gt;                   Określa plik klucza o silnej nazwie.
--libpath:&lt;lista_ścieżek&gt;          Lista katalogów, w których mają zostać wyszukane
+-libpath:&lt;lista_ścieżek&gt;              Lista katalogów, w których mają zostać wyszukane
                                   odwołania do metadanych (lista wartości oddzielonych średnikami).
 -main:&lt;klasa&gt;                     Określa klasę lub moduł zawierające
                                   element Sub Main. Może to również być klasa
                                   dziedzicząca po elemencie System.Windows.Forms.Form.
                                   (krótka wersja: -m)
--moduleassemblyname:&lt;ciąg&gt;        Nazwa zestawu, do którego będzie należeć
+-moduleassemblyname:&lt;ciąg&gt;      Nazwa zestawu, do którego będzie należeć
                                   ten moduł.
 -netcf                            Ustaw program .NET Compact Framework jako element docelowy.
 -nostdlib                         Nie odwołuj się do bibliotek standardowych
@@ -354,16 +357,16 @@
 -pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,...
                                   Określ mapowanie nazw ścieżek źródłowych wyprowadzanych
                                   przez kompilator.
--platform:&lt;ciąg&gt;                  Ogranicz platformy, na jakich można uruchomić ten kod;
+-platform:&lt;ciąg&gt;                Ogranicz platformy, na jakich można uruchomić ten kod;
                                   dozwolone wartości: x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred lub anycpu (wartość domyślna).
 -preferreduilang                  Określ nazwę preferowanego języka wyjściowego.
 -nosdkpath                        Wyłącz wyszukiwanie ścieżki domyślnego zestawu SDK dla standardowych zestawów bibliotecznych.
--sdkpath:&lt;ścieżka&gt;                Lokalizacja katalogu zestawu .NET Framework SDK
+-sdkpath:&lt;ścieżka&gt;                    Lokalizacja katalogu zestawu .NET Framework SDK
                                   (mscorlib.dll).
--subsystemversion:&lt;wersja&gt;        Określ wersję podsystemu wyjściowego środowiska PE.
+-subsystemversion:&lt;wersja&gt;       Określ wersję podsystemu wyjściowego środowiska PE.
                                   version:&lt;numer&gt;[.&lt;numer&gt;]
--utf8output[+|-]                  Emituj dane wyjściowe kompilatora przy użyciu
+-utf8output[+|-]                 Emituj dane wyjściowe kompilatora przy użyciu
                                   kodowania znaków UTF8.
 @&lt;plik&gt;                           Wstaw ustawienia wiersza polecenia z pliku tekstowego
 -vbruntime[+|-|*]                 Wykonaj kompilację przy użyciu-bez użycia domyślnego
@@ -2118,7 +2121,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
         <source>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</source>
-        <target state="translated">Argument odpowiadający parametrowi „{0}” zawęża element „{1}” do „{2}”.</target>
+        <target state="translated">Dopasowywanie argumentu dla parametru „{0}” powoduje zawężenie typu „{1}” do typu „{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMostSpecificOverload2">
@@ -4373,7 +4376,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyNameInvalid">
         <source>Friend declaration '{0}' is invalid and cannot be resolved.</source>
-        <target state="translated">Deklaracja Friend „{0}” jest nieprawidłowa i nie można jej rozpoznać.</target>
+        <target state="translated">Deklaracja elementu zaprzyjaźnionego „{0}” jest nieprawidłowa i nie można jej rozpoznać.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyBadAccessOverride2">
@@ -4850,7 +4853,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDisallowedForStructConstr1">
         <source>'System.Nullable' does not satisfy the 'Structure' constraint for type parameter '{0}'. Only non-nullable 'Structure' types are allowed.</source>
-        <target state="translated">'Element „System.Nullable” nie spełnia warunków ograniczenia „Structure” dla parametru typu „{0}”. Dozwolone są tylko typy „Structure” niedopuszczające wartości null.</target>
+        <target state="translated">Element „System.Nullable” nie spełnia warunków ograniczenia „Structure” dla parametru typu „{0}”. Dozwolone są tylko nienullowalne typy „Structure”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingDirectConstraints3">
@@ -5904,7 +5907,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing2">
         <source>Argument matching parameter '{0}' narrows to '{1}'.</source>
-        <target state="translated">Parametr pasujący do argumentu „{0}” zawęża element do „{1}”.</target>
+        <target state="translated">Dopasowywanie argumentu dla parametru „{0}” powoduje zawężenie do typu „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadCandidate1">
@@ -6686,12 +6689,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime.</source>
-        <target state="translated">Zmienna „{0}” jest przekazywana przez odwołanie, zanim zostanie do niej przypisana wartość. W czasie wykonania może wystąpić wyjątek pustej referencji.</target>
+        <target state="translated">Zmienna „{0}” jest przekazywana przez referencję, zanim zostanie do niej przypisana wartość. W czasie wykonania może wystąpić wyjątek referencji o wartości null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">Zmienna została przekazana przez odwołanie przed przypisaniem do niej wartości</target>
+        <target state="translated">Zmienna została przekazana przez referencję przed przypisaniem do niej wartości</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateCatch">
@@ -6816,42 +6819,42 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncRef1">
         <source>Function '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">Funkcja „{0}” nie zwraca wartości na wszystkich ścieżkach kodu. Podczas wykonywania może wystąpić wyjątek pustej referencji, gdy zostanie użyty wynik.</target>
+        <target state="translated">Funkcja „{0}” nie zwraca wartości na wszystkich ścieżkach w kodzie. Podczas wykonywania może wystąpić wyjątek pustej referencji, gdy zostanie użyty wynik.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncRef1_Title">
         <source>Function doesn't return a value on all code paths</source>
-        <target state="translated">Funkcja nie zwraca wartości we wszystkich ścieżkach kodu</target>
+        <target state="translated">Funkcja nie zwraca wartości na wszystkich ścieżkach w kodzie</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpRef1">
         <source>Operator '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">Operator „{0}” nie zwraca wartości na wszystkich ścieżkach kodu. Podczas wykonywania może wystąpić wyjątek pustej referencji, gdy zostanie użyty wynik.</target>
+        <target state="translated">Operator „{0}” nie zwraca wartości na wszystkich ścieżkach w kodzie. Podczas wykonywania może wystąpić wyjątek pustej referencji, gdy zostanie użyty wynik.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpRef1_Title">
         <source>Operator doesn't return a value on all code paths</source>
-        <target state="translated">Operator nie zwraca wartości we wszystkich ścieżkach kodu</target>
+        <target state="translated">Operator nie zwraca wartości na wszystkich ścieżkach w kodzie</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropRef1">
         <source>Property '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">Właściwość „{0}” nie zwraca wartości na wszystkich ścieżkach kodu. Podczas wykonywania może wystąpić wyjątek pustej referencji, gdy zostanie użyty wynik.</target>
+        <target state="translated">Właściwość „{0}” nie zwraca wartości na wszystkich ścieżkach w kodzie. Podczas wykonywania może wystąpić wyjątek pustej referencji, gdy zostanie użyty wynik.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropRef1_Title">
         <source>Property doesn't return a value on all code paths</source>
-        <target state="translated">Właściwość nie zwraca wartości we wszystkich ścieżkach kodu</target>
+        <target state="translated">Właściwość nie zwraca wartości na wszystkich ścieżkach w kodzie</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use</source>
-        <target state="translated">Zmienna „{0}” jest przekazywana przez odwołanie, zanim zostanie do niej przypisana wartość. Podczas wykonywania może wystąpić wyjątek pustej referencji. Upewnij się, że struktura lub wszystkie składowe odwołania są zainicjowane przed użyciem</target>
+        <target state="translated">Zmienna „{0}” jest przekazywana przez referencję, zanim zostanie do niej przypisana wartość. Podczas wykonywania może wystąpić wyjątek referencji o wartości null. Upewnij się, że struktura lub wszystkie składowe odwołania są zainicjowane przed użyciem</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">Zmienna została przekazana przez odwołanie przed przypisaniem do niej wartości</target>
+        <target state="translated">Zmienna została przekazana przez referencję przed przypisaniem do niej wartości</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefStr">
@@ -7306,32 +7309,32 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncVal1">
         <source>Function '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Funkcja „{0}” nie zwraca wartości na wszystkich ścieżkach kodu. Czy nie brakuje instrukcji „Return”?</target>
+        <target state="translated">Funkcja „{0}” nie zwraca wartości na wszystkich ścieżkach w kodzie. Czy nie brakuje instrukcji „Return”?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncVal1_Title">
         <source>Function doesn't return a value on all code paths</source>
-        <target state="translated">Funkcja nie zwraca wartości we wszystkich ścieżkach kodu</target>
+        <target state="translated">Funkcja nie zwraca wartości na wszystkich ścieżkach w kodzie</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpVal1">
         <source>Operator '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Operator „{0}” nie zwraca wartości na wszystkich ścieżkach kodu. Czy nie brakuje instrukcji „Return”?</target>
+        <target state="translated">Operator „{0}” nie zwraca wartości na wszystkich ścieżkach w kodzie. Czy nie brakuje instrukcji „Return”?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpVal1_Title">
         <source>Operator doesn't return a value on all code paths</source>
-        <target state="translated">Operator nie zwraca wartości we wszystkich ścieżkach kodu</target>
+        <target state="translated">Operator nie zwraca wartości na wszystkich ścieżkach w kodzie</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropVal1">
         <source>Property '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Właściwość „{0}” nie zwraca wartości na wszystkich ścieżkach kodu. Czy nie brakuje instrukcji „Return”?</target>
+        <target state="translated">Właściwość „{0}” nie zwraca wartości na wszystkich ścieżkach w kodzie. Czy nie brakuje instrukcji „Return”?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropVal1_Title">
         <source>Property doesn't return a value on all code paths</source>
-        <target state="translated">Właściwość nie zwraca wartości we wszystkich ścieżkach kodu</target>
+        <target state="translated">Właściwość nie zwraca wartości na wszystkich ścieżkach w kodzie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NestedGlobalNamespace">
@@ -8238,12 +8241,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1">
         <source>The AddHandler for Windows Runtime event '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Element AddHandler dla zdarzenia środowiska uruchomieniowego systemu Windows „{0}” nie zwraca wartości na wszystkich ścieżkach kodu. Czy nie brakuje instrukcji „Return”?</target>
+        <target state="translated">Element AddHandler dla zdarzenia środowiska uruchomieniowego systemu Windows „{0}” nie zwraca wartości na wszystkich ścieżkach w kodzie. Czy nie brakuje instrukcji „Return”?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1_Title">
         <source>The AddHandler for Windows Runtime event doesn't return a value on all code paths</source>
-        <target state="translated">Element AddHandler dla zdarzenia środowiska uruchomieniowego systemu Windows nie zwraca wartości we wszystkich ścieżkach kodu</target>
+        <target state="translated">Element AddHandler dla zdarzenia środowiska uruchomieniowego systemu Windows nie zwraca wartości na wszystkich ścieżkach w kodzie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodDefaultParameterValueMismatch2">
@@ -8788,7 +8791,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
+        <target state="translated">Długość stałej typu String w wyniku łączenia przekracza wartość System.Int32.MaxValue. Spróbuj podzielić ciąg na wiele stałych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9013,7 +9016,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallInExpressionTree">
         <source>An expression tree may not contain a call to a method or property that returns by reference.</source>
-        <target state="translated">Drzewo wyrażenia nie może zawierać wywołania metody lub właściwości zwracanego przez odwołanie.</target>
+        <target state="translated">Drzewo wyrażenia nie może zawierać wywołania metody lub właściwości zwracanego przez referencję.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotEmbedWithoutPdb">

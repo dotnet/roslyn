@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">O documento não dá suporte a árvores de sintaxe</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -343,7 +343,7 @@ Se o comportamento em conformidade com o ECMAScript for especificado, \d será e
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_short">
         <source>end-of-line comment</source>
-        <target state="translated">comentário de fim de linha</target>
+        <target state="translated">comentário de fim da linha</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_long">
@@ -451,7 +451,7 @@ A âncora $ corresponde a \n, mas não corresponde a \r\n (a combinação dos ca
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">escape hexadecimal</target>
+        <target state="translated">escape hexadecimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -843,14 +843,14 @@ Se o comportamento em conformidade com o ECMAScript for especificado, \W será e
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="translated">Este constructo desabilita o retrocesso. O mecanismo de expressão regular corresponderá ao máximo de caracteres da cadeia de caracteres de entrada que puder. Quando não for possível mais nenhuma correspondência, ele não retrocederá para tentar correspondências de padrões alternativas. (Ou seja, a subexpressão corresponderá somente às cadeias de caracteres que seriam correspondidas pela subexpressão sozinha. Ele não tentará corresponder a uma cadeia de caracteres com base na subexpressão e nas subexpressãos seguintes.)
+        <target state="translated">Este constructo desabilita o rastreamento inverso. O mecanismo de expressão regular corresponderá ao máximo de caracteres da cadeia de caracteres de entrada que puder. Quando não for possível mais nenhuma correspondência, ele não retrocederá para tentar correspondências de padrões alternativas. (Ou seja, a subexpressão corresponderá somente às cadeias de caracteres que seriam correspondidas pela subexpressão sozinha. Ele não tentará corresponder a uma cadeia de caracteres com base na subexpressão e nas subexpressãos seguintes.)
 
-Essa opção é recomendada quando você sabe que o retrocesso não será bem-sucedido. É possível melhorar o desempenho impedindo que o mecanismo de expressão regular execute pesquisas desnecessárias.</target>
+Essa opção é recomendada quando você sabe que o rastreamento inverso não será bem-sucedido. É possível melhorar o desempenho impedindo que o mecanismo de expressão regular execute pesquisas desnecessárias.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
         <source>nonbacktracking subexpression</source>
-        <target state="translated">subexpressão que não retrocede</target>
+        <target state="translated">subexpressão sem rastreamento inverso</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
@@ -1170,56 +1170,56 @@ Se o comportamento em conformidade com o ECMAScript for especificado, \w será e
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="translated">Uma declaração de lookahead negativa de largura zero, em que, para que a correspondência seja bem-sucedida, a cadeia de caracteres de entrada não pode corresponder ao padrão de expressão regular na subexpressão. A cadeia de caracteres correspondente não está incluída no resultado correspondente.
+        <target state="translated">Uma asserção lookahead negativa de largura zero, em que, para que a correspondência seja bem-sucedida, a cadeia de caracteres de entrada não pode corresponder ao padrão de expressão regular na subexpressão. A cadeia de caracteres correspondente não está incluída no resultado correspondente.
 
-Uma declaração de lookahead negativa de largura zero normalmente é usada no início ou no final de uma expressão regular. No início de uma expressão regular, ela pode definir um padrão específico que não deve ser correspondido quando o início da expressão regular define um padrão semelhante, mas mais geral, a ser correspondido. Nesse caso, ela geralmente é usada para limitar o retrocesso. No final de uma expressão regular, ela pode definir uma subexpressão que não pode ocorrer no final de uma correspondência.</target>
+Uma asserção lookahead negativa de largura zero normalmente é usada no início ou no final de uma expressão regular. No início de uma expressão regular, ela pode definir um padrão específico que não deve ser correspondido quando o início da expressão regular define um padrão semelhante, mas mais geral, a ser correspondido. Nesse caso, ela geralmente é usada para limitar o rastreamento inverso. No final de uma expressão regular, ela pode definir uma subexpressão que não pode ocorrer no final de uma correspondência.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="translated">declaração de lookahead negativa de largura zero</target>
+        <target state="translated">asserção lookahead negativa de largura zero</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="translated">Uma declaração de lookbehind negativa de largura zero, em que, para que uma correspondência seja bem-sucedida, a 'subexpression' não pode ocorrer na cadeia de caracteres de entrada à esquerda da posição atual. As substrings que não corresponderem à 'subexpression' não serão incluídas no resultado correspondente.
+        <target state="translated">Uma asserção lookbehind negativa de largura zero, em que, para que uma correspondência seja bem-sucedida, a 'subexpression' não pode ocorrer na cadeia de caracteres de entrada à esquerda da posição atual. As substrings que não corresponderem à 'subexpression' não serão incluídas no resultado correspondente.
 
-As declarações de lookbehind negativas de largura zero normalmente são usadas no início de expressões regulares. O padrão que elas definem impede uma correspondência na cadeia de caracteres seguinte. Elas também são usadas para limitar o retrocesso quando o último caractere ou caracteres em um grupo capturado não pode ser um ou mais dos caracteres que correspondem ao padrão dessa expressão regular do grupo.</target>
+As declarações de lookbehind negativas de largura zero normalmente são usadas no início de expressões regulares. O padrão que elas definem impede uma correspondência na cadeia de caracteres seguinte. Elas também são usadas para limitar o rastreamento inverso quando o último caractere ou caracteres em um grupo capturado não pode ser um ou mais dos caracteres que correspondem ao padrão dessa expressão regular do grupo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="translated">declaração de lookbehind negativa de largura zero</target>
+        <target state="translated">asserção lookbehind negativa de largura zero</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="translated">Uma declaração de lookahead positiva de largura zero, em que para que uma correspondência seja bem-sucedida, a cadeia de caracteres de entrada precisa corresponder ao padrão de expressão regular na 'subexpression'. A substring correspondente não é incluída no resultado correspondente. Uma declaração de lookahead positiva de largura zero não retrocede.
+        <target state="translated">Uma asserção lookahead positiva de largura zero, em que para que uma correspondência seja bem-sucedida, a cadeia de caracteres de entrada precisa corresponder ao padrão de expressão regular na 'subexpression'. A substring correspondente não é incluída no resultado correspondente. Uma asserção lookahead positiva de largura zero não retrocede.
 
-Normalmente, uma declaração de lookahead positiva de largura zero é encontrada no final de um padrão de expressão regular. Ela define uma substring que precisa ser encontrada no final de uma cadeia de caracteres para que uma correspondência ocorra, mas que não deve ser incluída na correspondência. Ela também é útil para impedir o retrocesso excessivo. Você pode usar uma declaração de lookahead positiva de largura zero para garantir que um determinado grupo capturado comece com um texto que corresponda a um subconjunto do padrão definido para esse grupo capturado.</target>
+Normalmente, uma asserção lookahead positiva de largura zero é encontrada no final de um padrão de expressão regular. Ela define uma substring que precisa ser encontrada no final de uma cadeia de caracteres para que uma correspondência ocorra, mas que não deve ser incluída na correspondência. Ela também é útil para impedir o rastreamento inverso excessivo. Você pode usar uma asserção lookahead positiva de largura zero para garantir que um determinado grupo capturado comece com um texto que corresponda a um subconjunto do padrão definido para esse grupo capturado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="translated">declaração de lookahead positiva de largura zero</target>
+        <target state="translated">asserção lookahead positiva de largura zero</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="translated">Uma declaração de lookbehind positiva de largura zero, em que, para que uma correspondência seja bem-sucedida, a 'subexpression' precisa ocorrer na cadeia de caracteres de entrada à esquerda da posição atual. A 'subexpression' não é incluída no resultado correspondente. Uma declaração de lookbehind positiva de largura zero não retrocede.
+        <target state="translated">Uma asserção lookbehind positiva de largura zero, em que, para que uma correspondência seja bem-sucedida, a 'subexpression' precisa ocorrer na cadeia de caracteres de entrada à esquerda da posição atual. A 'subexpression' não é incluída no resultado correspondente. Uma asserção lookbehind positiva de largura zero não retrocede.
 
 As declarações de lookbehind positivas de largura zero normalmente são usadas no início de expressões regulares. O padrão que elas definem é uma pré-condição para uma correspondência, apesar de não fazer parte do resultado correspondente.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="translated">declaração de lookbehind positiva de largura zero</target>
+        <target state="translated">asserção lookbehind positiva de largura zero</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1319,7 +1319,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">A adição de importações inserirá um método de extensão ao escopo com o mesmo nome de '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

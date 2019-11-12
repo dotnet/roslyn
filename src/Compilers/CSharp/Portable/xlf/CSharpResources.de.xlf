@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Fehler in der Befehlszeilensyntax: "{0}" ist kein gültiger Wert für die Option "{1}". Der Wert muss im Format "{2}" vorliegen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">Für das Standardliteral ist kein Zieltyp vorhanden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
-        <target state="translated">Argumente mit dem Modifizierer "in" können nicht in dynamisch verteilten Ausdrücken verwendet werden.</target>
+        <target state="translated">Argumente mit dem Modifizierer "in" können nicht in dynamisch gebundenen Ausdrücken verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">Interner Fehler im C#-Compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren. Meinten Sie "using" anstelle von "await using"?</target>
+        <target state="translated">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren. Meinten Sie "using" anstelle von "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
         <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">Ein Nullable-Typparameter muss als Werttyp oder als Nicht-Nullable-Verweistyp bekannt sein. Sie sollten eine class-, struct- oder eine Typeinschränkung hinzufügen.</target>
+        <target state="translated">Ein Nullable-Typparameter muss als Werttyp oder als Non-Nullable-Verweistyp bekannt sein. Sie sollten eine class-, struct- oder eine Typeinschränkung hinzufügen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -339,7 +339,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
-        <target state="translated">Die Methode "{0}" gibt eine struct-Einschränkung für den Typparameter "{1}" an, aber der zugehörige Typparameter "{2}" der außer Kraft gesetzten oder explizit implementierten Methode "{3}" ist kein Werttyp, der keine Nullwerte zulässt.</target>
+        <target state="translated">Die Methode "{0}" gibt eine struct-Einschränkung für den Typparameter "{1}" an, aber der zugehörige Typparameter "{2}" der außer Kraft gesetzten oder explizit implementierten Methode "{3}" ist kein Non-Nullable-Werttyp.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Der Typ "{0}" kann nicht eingebettet werden, weil er eine Neuabstraktion eines Members aus der Basisschnittstelle aufweist. Legen Sie die Eigenschaft "Interoptypen einbetten" ggf. auf FALSE fest.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">Der Typ "{2}" darf, ebenso wie sämtliche Felder auf jeder Schachtelungsebene, keine NULL-Werte zulassen, wenn er als {1}-Parameter im generischen Typ oder in der generischen Methode "{0}" verwendet werden soll.</target>
+        <target state="translated">Der Typ "{2}" muss, ebenso wie sämtliche Felder auf jeder Schachtelungsebene, ein Non-Nullable-Typ sein, wenn er als {1}-Parameter im generischen Typ oder in der generischen Methode "{0}" verwendet werden soll.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -634,8 +634,8 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                             Visual C#-Compileroptionen 
+        <target state="translated">
+                             Visual C#-Compileroptionen
 
                        – AUSGABEDATEIEN –
 -out:&lt;Datei&gt;                   Gibt den Namen der Ausgabedatei an (Standardeinstellung: Basisname der
@@ -652,7 +652,7 @@
 -target:winmdobj              Erstellt eine Windows-Runtime-Zwischendatei, die
                               von WinMDExp verwendet wird (Kurzform: -t:winmdobj).
 -doc:&lt;Datei&gt;                   Die zu generierende XML-Dokumentationsdatei.
--refout:&lt;Datei&gt;                Die zu generierende Verweisassemblyausgabe.
+-refout:&lt;Datei&gt;                Die zu generierende Referenzassemblyausgabe.
 -platform:&lt;Zeichenfolge&gt;            Schränkt ein, auf welchen Plattformen dieser Code ausgeführt werden kann: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred oder
                               anycpu. Die Standardeinstellung ist "anycpu".
@@ -708,8 +708,11 @@
 -nowarn:&lt;Warnungsliste&gt;           Deaktiviert bestimmte Warnmeldungen.
 -ruleset:&lt;Datei&gt;               Gibt eine Regelsatzdatei an, die bestimmte Diagnosevorgänge
                               deaktiviert.
--errorlog:&lt;Datei&gt;              Gibt eine Datei zur Protokollierung aller Diagnosevorgänge von Compiler und
+-errorlog:&lt;Datei&gt;[,version=&lt;sarif_version&gt;]
+                              Gibt eine Datei zur Protokollierung aller Diagnosevorgänge von Compiler und
                               Analyzer an.
+                              sarif_version:{1|2|2.1} Standardwerte sind 1. 2 und 2.1,
+                              beide beziehen sich auf SARIF-Version 2.1.0.
 -reportanalyzer               Meldet zusätzliche Analyseinformationen wie etwa die
                               Ausführungszeit.
 
@@ -801,7 +804,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">asynchrone using-Anweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -1331,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Der as-Operator kann einen NULL-Wert generieren, wenn "{0}" ein Verweistyp ist, der keine NULL-Werte zulässt.</target>
+        <target state="translated">Der as-Operator kann einen NULL-Wert generieren, wenn "{0}" ein Non-Nullable-Verweistyp ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
@@ -1351,7 +1354,7 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Der bedingte Zugriff generiert möglicherweise einen NULL-Wert, wenn "{0}" ein Verweistyp ist, der keine NULL-Werte zulässt.</target>
+        <target state="translated">Der bedingte Zugriff generiert möglicherweise einen Nullwert, wenn "{0}" ein Non-Nullable-Verweistyp ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
@@ -1361,17 +1364,17 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Nicht-Nullable-Typ konvertiert.</target>
+        <target state="translated">Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Non-Nullable-Typ konvertiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Nicht-Nullable-Typ konvertiert.</target>
+        <target state="translated">Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Non-Nullable-Typ konvertiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Ein Standardausdruck führt einen NULL-Wert ein, wenn "{0}" ein Verweistyp ist, der keine NULL-Werte zulässt.</target>
+        <target state="translated">Ein Standardausdruck führt einen Nullwert ein, wenn "{0}" ein Non-Nullable-Verweistyp ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
@@ -1381,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
+        <target state="translated">Ein möglicher NULL-Wert darf keinem Ziel zugewiesen werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
-        <target state="needs-review-translation">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
+        <target state="translated">Ein möglicher NULL-Wert darf keinem Ziel zugewiesen werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1401,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT">
         <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">Ein Member, der einen [MaybeNull]-Wert zurückgibt, führt einen Nullwert ein, wenn "{0}" ein Non-Nullable-Verweistyp ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
         <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
+        <target state="translated">Ein Member, der einen [MaybeNull]-Wert zurückgibt, führt einen Nullwert für einen Typparameter ein.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1456,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Anmerkungskontexts verwendet werden. Für automatisch generierten Code ist eine explizite #nullable-Anweisung in der Quelle erforderlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Anmerkungskontexts verwendet werden. Für automatisch generierten Code ist eine explizite #nullable-Anweisung in der Quelle erforderlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1471,17 +1474,17 @@
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Ein NULL-Literal kann nicht in einen Verweistyp konvertiert werden, der keine NULL-Werte zulässt.</target>
+        <target state="translated">Ein NULL-Literal kann nicht in einen Non-Nullable-Verweistyp konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Ein NULL-Literal kann nicht in einen Verweistyp konvertiert werden, der keine NULL-Werte zulässt.</target>
+        <target state="translated">Ein NULL-Literal kann nicht in einen Non-Nullable-Verweistyp konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Ein NULL-Literal führt einen NULL-Wert ein, wenn "{0}" ein Verweistyp ist, der keine NULL-Werte zulässt.</target>
+        <target state="translated">Ein NULL-Literal führt einen Nullwert ein, wenn "{0}" ein Non-Nullable-Verweistyp ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
@@ -1511,12 +1514,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">Der Objekt- oder Sammlungsinitialisierer dereferenziert implizit den Member "{0}", der möglicherweise NULL ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">Der Objekt- oder Sammlungsinitialisierer dereferenziert implizit einen Member, der möglicherweise NULL ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1781,7 +1784,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Der switch-Ausdruck verarbeitet nicht alle möglichen Eingaben (nicht umfassend).</target>
+        <target state="translated">Der switch-Ausdruck verarbeitet nicht alle möglichen Werte des zugehörigen Eingabetyps (nicht umfassend).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1796,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Der switch-Ausdruck verarbeitet nicht alle möglichen Eingaben (nicht umfassend).</target>
+        <target state="translated">Der switch-Ausdruck verarbeitet nicht alle möglichen Werte des zugehörigen Eingabetyps (nicht umfassend).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1861,12 +1864,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Das {0} "{1}" lässt keine NULL-Werte zu und ist nicht initialisiert. Deklarieren Sie das {0} ggf. als "Nullable".</target>
+        <target state="translated">{0} "{1}" lässt keine NULL-Werte zu und ist nicht initialisiert. {0} sollte als "Nullable" deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Das Feld lässt keine NULL-Werte zu und ist nicht initialisiert. Deklarieren Sie das Feld ggf. als "Nullable".</target>
+        <target state="translated">Das Non-Nullable-Feld ist nicht initialisiert. Deklarieren Sie das Feld ggf. als "Nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2091,12 +2094,12 @@
       </trans-unit>
       <trans-unit id="ERR_ValueCantBeNull">
         <source>Cannot convert null to '{0}' because it is a non-nullable value type</source>
-        <target state="translated">NULL kann nicht in {0} konvertiert werden, da dieser Werttyp nicht auf NULL festgelegt werden kann.</target>
+        <target state="translated">NULL kann nicht in {0} konvertiert werden, weil es sich um einen Non-Nullable-Werttyp handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoExplicitBuiltinConv">
         <source>Cannot convert type '{0}' to '{1}' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion</source>
-        <target state="translated">Der Typ "{0}" kann nicht mit einer Verweiskonvertierung, einer Boxing-Konvertierung, einer Unboxing-Konvertierung, einer Wrapping-Konvertierung oder einer NULL-Typkonvertierung in "{1}" konvertiert werden.</target>
+        <target state="translated">Der Typ "{0}" kann nicht mit einer Verweiskonvertierung, einer Boxing-Konvertierung, einer Unboxing-Konvertierung, einer Umbruchkonvertierung oder einer NULL-Typkonvertierung in "{1}" konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_DebugEmitFailure">
@@ -2226,7 +2229,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsMustHaveReferenceType">
         <source>The as operator must be used with a reference type or nullable type ('{0}' is a non-nullable value type)</source>
-        <target state="translated">Der as-Operator muss mit einem Referenztyp oder einem Typ, der NULL-Werte zulässt, verwendet werden. ("{0}" ist ein Werttyp, der keine NULL-Werte zulässt.)</target>
+        <target state="translated">Der as-Operator muss mit einem Referenztyp oder einem Non-Nullable-Typ verwendet werden ("{0}" ist ein Non-Nullable-Werttyp).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowercaseEllSuffix">
@@ -2766,12 +2769,12 @@
       </trans-unit>
       <trans-unit id="WRN_ByRefNonAgileField">
         <source>Using '{0}' as a ref or out value or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class</source>
-        <target state="translated">Das Verwenden von "{0}" als ref- oder out-Wert bzw. das Annehmen der Adresse kann zu einer Laufzeitausnahme führen, weil es sich hierbei um ein Feld einer Marshal-by-reference-Klasse handelt.</target>
+        <target state="translated">Das Verwenden von "{0}" als ref- oder out-Wert bzw. das Annehmen der Adresse kann zu einer Laufzeitausnahme führen, weil es sich hierbei um ein Feld einer "Marshal by Reference"-Klasse handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByRefNonAgileField_Title">
         <source>Using a field of a marshal-by-reference class as a ref or out value or taking its address may cause a runtime exception</source>
-        <target state="translated">Das Verwenden eines Felds einer Marshal-by-reference-Klasse als ref- oder out-Wert bzw. das Annehmen seiner Adresse kann zu einer Laufzeitausnahme führen</target>
+        <target state="translated">Das Verwenden eines Felds einer "Marshal by Reference"-Klasse als ref- oder out-Wert bzw. das Annehmen seiner Adresse kann zu einer Laufzeitausnahme führen</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyStatic">
@@ -3261,7 +3264,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeVarCantBeNull">
         <source>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</source>
-        <target state="translated">NULL kann nicht in den {0}-Typparameter konvertiert werden, da dieser Werttyp möglicherweise nicht auf NULL festgelegt werden kann. Verwenden Sie stattdessen ggf. default({0}).</target>
+        <target state="translated">NULL kann nicht in den {0}-Typparameter konvertiert werden, weil es sich möglicherweise um einen Non-Nullable-Werttyp handelt. Verwenden Sie stattdessen ggf. default({0}).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
@@ -3521,7 +3524,7 @@
       </trans-unit>
       <trans-unit id="ERR_ValConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">Der Typ "{2}" darf keine NULL-Werte zulassen, wenn er als {1}-Parameter im generischen Typ oder in der generischen Methode "{0}" verwendet werden soll.</target>
+        <target state="translated">Der Typ "{2}" muss ein Non-Nullable-Werttyp sein, wenn er als {1}-Parameter im generischen Typ oder in der generischen Methode "{0}" verwendet werden soll.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularConstraint">
@@ -4265,7 +4268,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_CStyleArray">
         <source>Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.</source>
-        <target state="translated">Fehlerhafte Arraydeklaration: Beim Deklarieren eines verwalteten Arrays steht der Rangspezifizierer vor dem Variablenbezeichner. Zum Deklarieren eines Pufferfelds fester Größe verwenden Sie vor dem Feldtyp das fixed-Schlüsselwort.</target>
+        <target state="translated">Fehlerhafter Arraydeklarator: Beim Deklarieren eines verwalteten Arrays steht der Rangspezifizierer vor dem Variablenbezeichner. Zum Deklarieren eines Pufferfelds fester Größe verwenden Sie vor dem Feldtyp das fixed-Schlüsselwort.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VacuousIntegralComp">
@@ -4715,12 +4718,12 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_InvalidAnonymousTypeMemberDeclarator">
         <source>Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.</source>
-        <target state="translated">Ungültige Deklaration eines anonymen Typmembers. Anonyme Typmember müssen mit einer Memberzuweisung, einem einfachen Namen oder einem Memberzugriff deklariert werden.</target>
+        <target state="translated">Ungültiger Deklarator eines anonymen Typmembers. Anonyme Typmember müssen mit einer Memberzuweisung, einem einfachen Namen oder einem Memberzugriff deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInitializerElementInitializer">
         <source>Invalid initializer member declarator</source>
-        <target state="translated">Ungültige Deklaration des Initialisierermembers.</target>
+        <target state="translated">Ungültiger Deklarator des Initialisierermembers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InconsistentLambdaParameterUsage">
@@ -4840,7 +4843,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableMultipleDeclarator">
         <source>Implicitly-typed variables cannot have multiple declarators</source>
-        <target state="translated">Implizit typisierte Variablen dürfen nicht über mehrere Deklarationen verfügen.</target>
+        <target state="translated">Implizit typisierte Variablen dürfen nicht mehrere Deklaratoren aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableAssignedArrayInitializer">
@@ -4905,7 +4908,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeMustHaveDelegate">
         <source>Cannot convert lambda to an expression tree whose type argument '{0}' is not a delegate type</source>
-        <target state="translated">Lambda kann nur dann in einen Ausdrucksbaum konvertiert werden, wenn das Typargument "{0}" ein Delegattyp ist.</target>
+        <target state="translated">Eine Lambdafunktion kann nur dann in einen Ausdrucksbaum konvertiert werden, wenn das Typargument "{0}" ein Delegattyp ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeNotAvailable">
@@ -5289,7 +5292,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseCtor">
         <source>The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.</source>
-        <target state="translated">Der Konstruktoraufruf muss dynamisch verteilt werden. Dies ist aber nicht möglich, da er Teil eines Konstruktorinitialisierers ist. Wandeln Sie die dynamischen Argumente um.</target>
+        <target state="translated">Der Konstruktoraufruf muss dynamisch gebunden werden. Dies ist aber nicht möglich, da er Teil eines Konstruktorinitialisierers ist. Wandeln Sie die dynamischen Argumente um.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueTypeExtDelegate">
@@ -6224,12 +6227,12 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField">
         <source>Accessing a member on '{0}' may cause a runtime exception because it is a field of a marshal-by-reference class</source>
-        <target state="translated">Das Zugreifen auf einen Member auf "{0}" kann zu einer Laufzeitausnahme führen, da es sich hierbei um ein Feld einer Marshal-by-reference-Klasse handelt.</target>
+        <target state="translated">Das Zugreifen auf einen Member auf "{0}" kann zu einer Laufzeitausnahme führen, da es sich hierbei um ein Feld einer "Marshal by Reference"-Klasse handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Title">
         <source>Accessing a member on a field of a marshal-by-reference class may cause a runtime exception</source>
-        <target state="translated">Beim Zugriff auf ein Element zu einem Feld einer Marshal-by-reference-Klasse kann eine Laufzeitausnahme ausgelöst werden</target>
+        <target state="translated">Beim Zugriff auf ein Element zu einem Feld einer "Marshal by Reference"-Klasse kann eine Laufzeitausnahme ausgelöst werden</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Description">
@@ -6574,7 +6577,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasWrongSignature">
         <source>The best overloaded method match for '{0}' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.</source>
-        <target state="translated">Die beste Übereinstimmung für die überladene "{0}"-Methode hat eine falsche Signatur für das Initialisiererelement. Das initialisierbare "Add" muss eine Instanzenmethode sein, auf die zugegriffen werden kann.</target>
+        <target state="translated">Die beste Übereinstimmung für die überladene "{0}"-Methode hat eine falsche Signatur für das Initialisiererelement. Das initialisierbare "Add" muss eine Instanzmethode sein, auf die zugegriffen werden kann.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionInitRequiresIEnumerable">
@@ -7267,7 +7270,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
         <source>The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier</source>
-        <target state="translated">Der "await"-Operator kann nur verwendet werden, wenn er in einer Methode oder einem Lambdaausdruck enthalten ist, die bzw. der mit dem "async"-Modifizierer markiert ist.</target>
+        <target state="translated">Der await-Operator kann nur verwendet werden, wenn er in einer Methode oder einem Lambdaausdruck enthalten ist, die bzw. der mit dem async-Modifizierer markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsyncLambda">
@@ -7484,7 +7487,7 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
       </trans-unit>
       <trans-unit id="ERR_GlobalStatement">
         <source>Expressions and statements can only occur in a method body</source>
-        <target state="translated">Ausdrücke und Anweisungen können nur in einer Methode verwendet werden.</target>
+        <target state="translated">Ausdrücke und Anweisungen können nur in einem Methodenkörper verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgumentForArray">
@@ -7954,22 +7957,22 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArg">
         <source>Cannot use an expression of type '{0}' as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Ein Ausdruck vom Typ "{0}" kann nicht als Argument für einen dynamisch verteilten Vorgang verwendet werden.</target>
+        <target state="translated">Ein Ausdruck vom Typ "{0}" kann nicht als Argument für einen dynamisch gebundenen Vorgang verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgLambda">
         <source>Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.</source>
-        <target state="translated">Ein Lambdaausdruck kann nicht als Argument für einen dynamisch verteilten Vorgang verwendet werden, ohne ihn zunächst in einen Delegat- oder Ausdrucksbaumtyp umzuwandeln.</target>
+        <target state="translated">Ein Lambdaausdruck kann nicht als Argument für einen dynamisch gebundenen Vorgang verwendet werden, ohne ihn zunächst in einen Delegat- oder Ausdrucksbaumtyp umzuwandeln.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgMemgrp">
         <source>Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?</source>
-        <target state="translated">Eine Methodengruppe kann nicht als Argument eines dynamisch verteilten Vorgangs verwendet werden. Wollten Sie die Methode aufrufen?</target>
+        <target state="translated">Eine Methodengruppe kann nicht als Argument eines dynamisch gebundenen Vorgangs verwendet werden. Wollten Sie die Methode aufrufen?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBase">
         <source>The call to method '{0}' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">Der Aufruf von Methode "{0}" muss dynamisch verteilt werden, was jedoch nicht möglich ist, da die Methode Teil eines Basiszugriffsausdrucks ist. Wandeln Sie ggf. die dynamischen Argumente um, oder löschen Sie den Basiszugriff.</target>
+        <target state="translated">Der Aufruf von Methode "{0}" muss dynamisch gebunden werden, was jedoch nicht möglich ist, da die Methode Teil eines Basiszugriffsausdrucks ist. Wandeln Sie ggf. die dynamischen Argumente um, oder löschen Sie den Basiszugriff.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicQuery">
@@ -7979,22 +7982,22 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseIndexer">
         <source>The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">Der Indexerzugriff muss dynamisch verteilt werden. Dies ist aber nicht möglich, da er Teil eines Basiszugriffsausdrucks ist. Wandeln Sie die dynamischen Argumente um, oder löschen Sie den Basiszugriff.</target>
+        <target state="translated">Der Indexerzugriff muss dynamisch gebunden werden. Dies ist aber nicht möglich, da er Teil eines Basiszugriffsausdrucks ist. Wandeln Sie die dynamischen Argumente um, oder löschen Sie den Basiszugriff.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod">
         <source>The dynamically dispatched call to method '{0}' may fail at runtime because one or more applicable overloads are conditional methods.</source>
-        <target state="translated">Der dynamisch verteilte Aufruf von Methode "{0}" schlägt möglicherweise zur Laufzeit fehl, da es sich bei mindestens einer geltenden Überladung um eine bedingte Methode handelt.</target>
+        <target state="translated">Der dynamisch gebundene Aufruf von Methode "{0}" verursacht möglicherweise einen Fehler zur Laufzeit, weil es sich bei mindestens einer geltenden Überladung um eine bedingte Methode handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod_Title">
         <source>Dynamically dispatched call may fail at runtime because one or more applicable overloads are conditional methods</source>
-        <target state="translated">Ein dynamisch versendeter Aufruf verursacht möglicherweise einen Fehler zur Laufzeit, da mindestens eine anwendbare Überladung eine bedingte Methode ist.</target>
+        <target state="translated">Ein dynamisch gebundener Aufruf verursacht möglicherweise einen Fehler zur Laufzeit, da mindestens eine anwendbare Überladung eine bedingte Methode ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgTypeDynamicExtension">
         <source>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</source>
-        <target state="translated">'"{0}" weist keine gültige Methode namens "{1}" auf, scheint aber über eine Erweiterungsmethode mit dem Namen zu verfügen. Erweiterungsmethoden können nicht dynamisch verteilt werden. Wandeln Sie die dynamischen Argumente um, oder rufen Sie die Erweiterungsmethode ohne die Syntax von Erweiterungsmethoden auf.</target>
+        <target state="translated">'"{0}" weist keine gültige Methode namens "{1}" auf, verfügt aber offenbar über eine Erweiterungsmethode mit diesem Namen. Erweiterungsmethoden können nicht dynamisch gebunden werden. Wandeln Sie die dynamischen Argumente um, oder rufen Sie die Erweiterungsmethode ohne die Syntax von Erweiterungsmethoden auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerMemberName">
@@ -8952,7 +8955,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">Die Länge der Zeichenfolgenkonstante überschreitet das aktuelle Speicherlimit. Versuchen Sie, die Zeichenfolge in mehrere Konstanten aufzuteilen.</target>
+        <target state="translated">Die Länge der aus der Verkettung resultierenden Zeichenfolgenkonstante überschreitet System.Int32.MaxValue. Teilen Sie die Zeichenfolge in mehrere Konstanten auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9732,7 +9735,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren.</target>
+        <target state="translated">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">文件不支援語法樹</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences">
         <source>Modifier preferences</source>
-        <target state="translated">修飾詞喜好設定</target>
+        <target state="translated">修飾元喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_rules">
@@ -426,7 +426,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="translated">這個群組建構會在子運算式內套用或停用指定的選項。要啟用的選項會在問號後指定，要停用的選項則在減號後。允許的選項為:
+        <target state="translated">這個分組建構會在子運算式內套用或停用指定的選項。要啟用的選項會在問號後指定，要停用的選項則在減號後。允許的選項為:
 
     i	使用不區分大小寫的比對。
     m	使用多行模式，其中 ^ 和 $ 會比對各行的結尾
@@ -451,7 +451,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">十六進位逸出</target>
+        <target state="translated">十六進位逸出</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -501,7 +501,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_letter_modifier">
         <source>letter, modifier</source>
-        <target state="translated">字母，修飾字元</target>
+        <target state="translated">字母，修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_other">
@@ -536,7 +536,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_long">
         <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
-        <target state="translated">{n,}? 數量詞會比對前置元素至少 n 次，其中 n 為任何整數，但盡可能壓低次數。這是與多數優先數量詞 {n,} 相對的少數優先概念</target>
+        <target state="translated">{n,}? 數量詞會比對前置元素至少 n 次，其中 n 為任何整數，但盡可能壓低次數。這是與窮盡數量詞 {n,} 相對的少數優先概念</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_short">
@@ -546,7 +546,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_long">
         <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
-        <target state="translated">{n,} 數量詞會比對前置元素至少 n 次，其中 n 為任何整數。{n,} 是多數優先的數量詞，其少數優先的相對概念為 {n,}?</target>
+        <target state="translated">{n,} 數量詞會比對前置元素至少 n 次，其中 n 為任何整數。{n,} 是窮盡數量詞，其少數優先的相對概念為 {n,}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_short">
@@ -556,7 +556,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
         <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
-        <target state="translated">{n,m}? 數量詞會比對前置元素 n 到 m 次，其中 n 和 m 為整數，但盡可能壓低次數。這是與多數優先數量詞 {n,m} 相對的少數優先概念</target>
+        <target state="translated">{n,m}? 數量詞會比對前置元素 n 到 m 次，其中 n 和 m 為整數，但盡可能壓低次數。這是與窮盡數量詞 {n,m} 相對的少數優先概念</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
@@ -566,7 +566,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_long">
         <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
-        <target state="translated">{n,m} 數量詞會比對前置元素至少 n 次，但不超過 m 次，其中 n 和 m 為整數。{n,m} 是多數優先的數量詞，其少數優先的相對概念為 {n,m}?</target>
+        <target state="translated">{n,m} 數量詞會比對前置元素至少 n 次，但不超過 m 次，其中 n 和 m 為整數。{n,m} 是窮盡數量詞，其少數優先的相對概念為 {n,m}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_short">
@@ -576,7 +576,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_long">
         <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
-        <target state="translated">{n}? 數量詞會比對前置元素正好 n 次，其中 n 為任何整數。這是與多數優先數量詞 {n}+ 相對的少數優先概念</target>
+        <target state="translated">{n}? 數量詞會比對前置元素正好 n 次，其中 n 為任何整數。這是與窮盡數量詞 {n}+ 相對的少數優先概念</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_short">
@@ -586,7 +586,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_long">
         <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
-        <target state="translated">{n} 數量詞會比對前置元素至少 n 次，其中 n 為任何整數。{n} 是多數優先的數量詞，其少數優先的相對概念為 {n}?</target>
+        <target state="translated">{n} 數量詞會比對前置元素至少 n 次，其中 n 為任何整數。{n} 是窮盡數量詞，其少數優先的相對概念為 {n}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_short">
@@ -596,7 +596,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_long">
         <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
-        <target state="translated">+? 數量詞會比對前置元素一或多次，但盡可能壓低次數。這是與多數優先數量詞 + 相對的少數優先概念</target>
+        <target state="translated">+? 數量詞會比對前置元素一或多次，但盡可能壓低次數。這是與窮盡數量詞 + 相對的少數優先概念</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
@@ -606,7 +606,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_long">
         <source>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</source>
-        <target state="translated">+ 數量詞會比對前置元素一或多次，等同於 {1,} 數量詞。+ 是多數優先的數量詞，其少數優先的相對概念為 +?。</target>
+        <target state="translated">+ 數量詞會比對前置元素一或多次，等同於 {1,} 數量詞。+ 是窮盡數量詞，其少數優先的相對概念為 +?。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_short">
@@ -616,7 +616,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="translated">*? 數量詞會比對前置元素零或多次，但盡可能壓低次數。這是與多數優先數量詞 * 相對的少數優先概念</target>
+        <target state="translated">*? 數量詞會比對前置元素零或多次，但盡可能壓低次數。這是與窮盡數量詞 * 相對的少數優先概念</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
@@ -626,7 +626,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_long">
         <source>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</source>
-        <target state="translated">* 數量詞會比對前置元素零或多次，相當於 {0,} 數量詞。* 是多數優先的數量詞，其少數優先的相對概念為 *?。</target>
+        <target state="translated">* 數量詞會比對前置元素零或多次，相當於 {0,} 數量詞。* 是窮盡數量詞，其少數優先的相對概念為 *?。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_short">
@@ -636,7 +636,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
         <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
-        <target state="translated">?? 數量詞會比對前置元素零或一次，但盡可能壓低次數。這是與多數優先數量詞 ? 相對的少數優先概念</target>
+        <target state="translated">?? 數量詞會比對前置元素零或一次，但盡可能壓低次數。這是與窮盡數量詞 ? 相對的少數優先概念</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
@@ -646,7 +646,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="translated">? 數量詞會比對前置元素零或一次，相當於 {0,1} 數量詞。? 是多數優先的數量詞，其少數優先的相對概念為 ??。</target>
+        <target state="translated">? 數量詞會比對前置元素零或一次，相當於 {0,1} 數量詞。? 是窮盡數量詞，其少數優先的相對概念為 ??。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
@@ -656,7 +656,7 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="translated">這個群組建構會擷取相符的 'subexpression'，其中 'subexpression' 是任何有效的規則運算式模式。使用了括弧的擷取會自動根據規則運算式中的左括弧順序，從第一個開始從左到右加上編號。編號為零的擷取，是與整個規則運算式模式相符的文字。</target>
+        <target state="translated">這個分組建構會擷取相符的 'subexpression'，其中 'subexpression' 是任何有效的規則運算式模式。使用了括弧的擷取會自動根據規則運算式中的左括弧順序，從第一個開始從左到右加上編號。編號為零的擷取，是與整個規則運算式模式相符的文字。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
@@ -826,7 +826,7 @@ If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]
     Lu	字母，大寫
     Lt	字母，字首大寫
     Lo	字母，其他
-    Lm	字母，修飾詞
+    Lm	字母，修飾元
     Mn	標記，非空格
     Nd	數字，十進位數字
     Pc	標點符號，接頭
@@ -1032,7 +1032,7 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
       </trans-unit>
       <trans-unit id="Regex_symbol_modifier">
         <source>symbol, modifier</source>
-        <target state="translated">符號，修飾字元</target>
+        <target state="translated">符號，修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_other">
@@ -1148,7 +1148,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
     Lu	字母，大寫
     Lt	字母，字首大寫
     Lo	字母，其他
-    Lm	字母，修飾詞
+    Lm	字母，修飾元
     Mn	標記，非空格
     Nd	數字，十進位數字
     Pc	標點符號，接頭
@@ -1170,56 +1170,56 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="translated">零寬度負 lookahead 判斷提示，如果要使比對成功，則輸入字串不得符合子運算式中的規則運算式模式。符合的字串不會包含在比對結果內。
+        <target state="translated">零寬負右合樣判斷提示，如果要使比對成功，則輸入字串不得符合子運算式中的規則運算式模式。符合的字串不會包含在比對結果內。
 
 零寬度 lookahead 判斷提示通常會用在規則運算式的開頭或結尾。在規則運算式的開頭，其可定義應符合的特定模式 (當規則運算式的開頭定義相似但更普通的應符合模式時)。在這種情況下，其常會用來限制回溯。在規則運算式的結尾，其可定義不會在比對結束時發生的子運算式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="translated">零寬度負值 lookahead 判斷提示</target>
+        <target state="translated">零寬負值右合樣判斷提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="translated">零寬度負 lookbehind 判斷提示，如果要使比對成功，則 'subexpression' 不得發生在目前位置左側的輸入字串。所有不符合 'subexpression' 的子字串都不會包含在比對結果內。
+        <target state="translated">零寬負左合樣判斷提示，如果要使比對成功，則 'subexpression' 不得發生在目前位置左側的輸入字串。所有不符合 'subexpression' 的子字串都不會包含在比對結果內。
 
 零寬度負 lookbehind 判斷提示通常會用在規則運算式的開頭。其定義的模式會排除下一個字串中的相符項。其也常用於限制回溯 (當最後一個字元或已擷取群組中的字元不得為符合群組規則運算式模式的一或多個字元時)。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="translated">零寬度負值 lookbehind 判斷提示</target>
+        <target state="translated">零寬負值左合樣判斷提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="translated">零寬度正 lookahead 判斷提示，如果要使比對成功，則輸入字串必須符合 'subexpression' 中的規則運算式模式。符合的子字串不會包含在比對結果內。零寬度正 lookahead 判斷提示不會回溯。
+        <target state="translated">零寬正右合樣判斷提示，如果要使比對成功，則輸入字串必須符合 'subexpression' 中的規則運算式模式。符合的子字串不會包含在比對結果內。零寬度正 lookahead 判斷提示不會回溯。
 
 一般來說，零寬度正 lookahead 判斷提示會出現在規則運算式模式的結尾。其會定義應出現在字串結尾以使比對發生，但不應包含在比對內的子字串。對於防止過度回溯來說，其也相當實用。您可以使用零寬度正 lookahead 判斷提示來確保特定已擷取群組會以符合為該已擷取群組定義之模式的子集開頭。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="translated">零寬度正值 lookahead 判斷提示</target>
+        <target state="translated">零寬正值右合樣判斷提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="translated">零寬度正 lookbehind 判斷提示，如果要使比對成功，則 'subexpression' 必須於目前位置左側的輸入字串發生。'subexpression' 不會包含在比對結果內。零寬度正 lookbehind 判斷提示不會回溯。
+        <target state="translated">零寬正左合樣判斷提示，如果要使比對成功，則 'subexpression' 必須於目前位置左側的輸入字串發生。'subexpression' 不會包含在比對結果內。零寬度正 lookbehind 判斷提示不會回溯。
 
 零寬度正 lookbehind 判斷提示通常會用在規則運算式的開頭。其定義的模式是比對的前置條件，但不是比對結果的一部份。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="translated">零寬度正值 lookbehind 判斷提示</target>
+        <target state="translated">零寬正值左合樣判斷提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1319,7 +1319,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">新增匯入會讓擴充方法變成名稱與 '{0}' 相同的範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -2174,7 +2174,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unrecognized_grouping_construct">
         <source>Unrecognized grouping construct</source>
-        <target state="translated">無法識別的群組建構</target>
+        <target state="translated">無法識別的分組建構</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;</note>
       </trans-unit>
       <trans-unit id="Unterminated_character_class_set">

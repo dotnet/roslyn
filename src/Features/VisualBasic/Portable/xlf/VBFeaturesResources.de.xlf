@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="next_statement_control_variable_doesn_t_have_matching_declaration_statement">
         <source>next statement control variable doesn't have matching declaration statement</source>
-        <target state="translated">Die Variable zur Steuerung der next-Anweisung besitzt keine übereinstimmende Deklarationsanweisung.</target>
+        <target state="translated">Die Steuervariable der next-Anweisung besitzt keine übereinstimmende Deklarationsanweisung.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
@@ -1494,7 +1494,7 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
-        <target state="translated">Richtige Steuerungsvariable verwenden</target>
+        <target state="translated">Richtige Steuervariable verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="NameOf_function">
@@ -1619,7 +1619,7 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       </trans-unit>
       <trans-unit id="Lambda">
         <source>Lambda</source>
-        <target state="translated">Lambda</target>
+        <target state="translated">Lambdafunktion</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_clause">

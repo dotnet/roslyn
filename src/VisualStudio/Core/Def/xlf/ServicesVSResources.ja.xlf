@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">新しい .editorconfig ファイルがソリューションのルートで検出されました。ソリューション項目にしますか?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_value_assignments">
         <source>Avoid unused value assignments</source>
-        <target state="translated">使用されない値割り当てを指定しないでください</target>
+        <target state="translated">使用されない値の代入を指定しないでください</target>
         <note />
       </trans-unit>
       <trans-unit id="Back">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">含んでいるメンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">含んでいる型</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -329,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">名前付けルール</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
-        <target state="translated">複合割り当てを優先</target>
+        <target state="translated">複合代入を優先</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_index_operator">
@@ -489,7 +489,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">重要度を更新しています</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1211,7 +1211,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Rule">
         <source>Enter a title for this Naming Rule.</source>
-        <target state="translated">この名前付け規則のタイトルを入力してください。</target>
+        <target state="translated">この名前付けルールのタイトルを入力してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
@@ -1276,7 +1276,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Naming_Rule">
         <source>Naming Rule</source>
-        <target state="translated">名前付け規則</target>
+        <target state="translated">名前付けルール</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Style">
@@ -1291,12 +1291,12 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
         <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
-        <target state="translated">名前付け規則を使用すると、特定のシンボル セットの名前付け方法と、正しく名前付けされていないシンボルの処理方法を定義できます。</target>
+        <target state="translated">名前付けルールを使用すると、特定のシンボル セットの名前付け方法と、正しく名前付けされていないシンボルの処理方法を定義できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
         <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
-        <target state="translated">シンボルに名前を付けるときには、最初に一致するトップレベルの名前付け規則が既定で使用されますが、特殊なケースの場合は一致する子規則によって処理されます。</target>
+        <target state="translated">シンボルに名前を付けるときには、最初に一致するトップレベルの名前付けルールが既定で使用されますが、特殊なケースの場合は一致する子ルールによって処理されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Style_Title_colon">
@@ -1605,7 +1605,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Some_naming_rules_are_incomplete_Please_complete_or_remove_them">
         <source>Some naming rules are incomplete. Please complete or remove them.</source>
-        <target state="translated">一部の名前付け規則が不完全です。不完全な規則を完成させるか削除してください。</target>
+        <target state="translated">一部の名前付けルールが不完全です。不完全なルールを完成させるか削除してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_specifications">
@@ -1635,7 +1635,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule">
         <source>This item cannot be deleted because it is used by an existing Naming Rule.</source>
-        <target state="translated">このアイテムは既存の名前付け規則で使用されているため、削除できませんでした。</target>
+        <target state="translated">このアイテムは既存の名前付けルールで使用されているため、削除できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_collection_initializer">
@@ -1795,12 +1795,12 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Add_a_naming_rule">
         <source>Add a naming rule</source>
-        <target state="translated">名前付け規則の追加</target>
+        <target state="translated">名前付けルールの追加</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_naming_rule">
         <source>Remove naming rule</source>
-        <target state="translated">名前付け規則の削除</target>
+        <target state="translated">名前付けルールの削除</target>
         <note />
       </trans-unit>
       <trans-unit id="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread">
@@ -1961,7 +1961,7 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="translated">割り当てのある 'if' より条件式を優先する</target>
+        <target state="translated">代入のある 'if' より条件式を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">

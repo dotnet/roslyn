@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="translated">Předvolby obálek</target>
+        <target state="translated">Předvolby zalamování</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Fehler in der Befehlszeilensyntax: "{0}" ist kein gültiger Wert für die Option "{1}". Der Wert muss im Format "{2}" vorliegen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Der Typ "{0}" kann nicht eingebettet werden, weil er einen nicht abstrakten Member aufweist. Legen Sie die Eigenschaft "Interoptypen einbetten" ggf. auf FALSE fest.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Der Typ "{0}" kann nicht eingebettet werden, weil er eine Neuabstraktion eines Members aus der Basisschnittstelle aufweist. Legen Sie die Eigenschaft "Interoptypen einbetten" ggf. auf FALSE fest.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">Die Standardschnittstellenimplementierung wird von der Zielruntime nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
+        <target state="translated">Die Zielruntime bietet keine Unterstützung für die Zugriffsmöglichkeiten "Protected", "Protected Friend" oder "Private Protected" für einen Member einer Schnittstelle.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -211,7 +211,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic-Compileroptionen
+        <target state="translated">                  Visual Basic-Compileroptionen
 
                                   - AUSGABEDATEI -
 -out:&lt;Datei&gt;                       Gibt den Ausgabedateinamen an.
@@ -283,8 +283,11 @@
 -warnaserror[+|-]:&lt;Zahlenliste&gt;   Behandelt eine Liste von Warnungen als Fehler.
 -ruleset:&lt;Datei&gt;                   Gibt eine Regelsatzdatei an, die bestimmte
                                   Diagnosefunktionen deaktiviert.
--errorlog:&lt;Datei&gt;                  Gibt eine Datei an, in der alle Compiler- und Analyzer-
-                                  diagnosedaten protokolliert werden.
+-errorlog:&lt;Datei&gt;[,version=&lt;sarif_version&gt;]         
+                                  Gibt eine Datei an, in der alle Compiler- und Analyzer-
+                                  diagnosedaten im SARIF-Format protokolliert werden.
+                                  sarif_version:{1|2|2.1} Standardwerte sind 1. 2 und 2.1,
+                                  beide beziehen sich auf SARIF-Version 2.1.0.
 -reportanalyzer                   Meldet zusätzliche Analyzerinformationen, z. B.
                                   die Ausführungszeit.
 
@@ -780,12 +783,12 @@
       </trans-unit>
       <trans-unit id="ERR_LoopControlMustNotBeProperty">
         <source>Loop control variable cannot be a property or a late-bound indexed array.</source>
-        <target state="translated">Eine Schleifensteuerungsvariable kann keine Eigenschaft und kein spät gebundenes indiziertes Array sein.</target>
+        <target state="translated">Eine Schleifensteuervariable kann keine Eigenschaft und kein spät gebundenes indiziertes Array sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodBodyNotAtLineStart">
         <source>First statement of a method body cannot be on the same line as the method declaration.</source>
-        <target state="translated">Die erste Anweisung eines Methodentexts darf sich nicht in derselben Zeile wie die Methodendeklaration befinden.</target>
+        <target state="translated">Die erste Anweisung eines Methodenkörpers darf sich nicht in derselben Zeile wie die Methodendeklaration befinden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MaximumNumberOfErrors">
@@ -795,7 +798,7 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordNotInInstanceMethod1">
         <source>'{0}' is valid only within an instance method.</source>
-        <target state="translated">'"{0}" ist nur innerhalb einer Instanzenmethode gültig.</target>
+        <target state="translated">'"{0}" ist nur innerhalb einer Instanzmethode gültig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromStructure1">
@@ -890,7 +893,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForIndexInUse1">
         <source>For loop control variable '{0}' already in use by an enclosing For loop.</source>
-        <target state="translated">Die For-Schleifensteuerungsvariable "{0}" wird bereits von einer einschließenden For-Schleife verwendet.</target>
+        <target state="translated">Die For-Schleifensteuervariable "{0}" wird bereits von einer einschließenden For-Schleife verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NextForMismatch1">
@@ -1559,7 +1562,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsProc">
         <source>Statement cannot appear within a method body. End of method assumed.</source>
-        <target state="translated">Eine Anweisung kann nicht innerhalb eines Methodentexts verwendet werden. Das Ende der Methode wird angenommen.</target>
+        <target state="translated">Eine Anweisung kann nicht innerhalb eines Methodenkörpers verwendet werden. Das Ende der Methode wird angenommen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameAsFunc">
@@ -1668,7 +1671,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForLoopType1">
         <source>'For' loop control variable cannot be of type '{0}' because the type does not support the required operators.</source>
-        <target state="translated">'Die For-Schleifensteuerungsvariable darf nicht vom Typ "{0}" sein, da der Typ die erforderlichen Operatoren nicht unterstützt.</target>
+        <target state="translated">'Die For-Schleifensteuervariable darf nicht vom Typ "{0}" sein, da der Typ die erforderlichen Operatoren nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithByref2">
@@ -2118,7 +2121,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
         <source>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</source>
-        <target state="translated">Der mit dem Argument übereinstimmende {0}-Parameter wird von "{1}" auf "{2}" eingeschränkt.</target>
+        <target state="translated">Der Parameter "{0}" für den Argumentabgleich wird von "{1}" auf "{2}" eingeschränkt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMostSpecificOverload2">
@@ -2747,7 +2750,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExecutableAsDeclaration">
         <source>Statement cannot appear outside of a method body.</source>
-        <target state="translated">Anweisung darf nicht außerhalb eines Methodenrumpfs verwendet werden.</target>
+        <target state="translated">Die Anweisung darf nicht außerhalb eines Methodenkörpers verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNoDefault1">
@@ -4348,7 +4351,7 @@
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInstanceMethod">
         <source>'System.Runtime.InteropServices.DllImportAttribute' cannot be applied to instance method.</source>
-        <target state="translated">'System.Runtime.InteropServices.DllImportAttribute kann nicht auf eine Instanzenmethode angewendet werden.</target>
+        <target state="translated">'System.Runtime.InteropServices.DllImportAttribute kann nicht auf eine Instanzmethode angewendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInterfaceMethod">
@@ -4373,7 +4376,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyNameInvalid">
         <source>Friend declaration '{0}' is invalid and cannot be resolved.</source>
-        <target state="translated">Die Friend-Deklaration "{0}" ist ungültig und kann nicht aufgelöst werden.</target>
+        <target state="translated">Die Frienddeklaration "{0}" ist ungültig und kann nicht aufgelöst werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyBadAccessOverride2">
@@ -4518,7 +4521,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForCtlVarArraySizesSpecified">
         <source>Array declared as for loop control variable cannot be declared with an initial size.</source>
-        <target state="translated">Ein Array, das als For-Schleifensteuerungsvariable deklariert ist, kann nicht mit einer vorgegebenen Größe deklariert werden.</target>
+        <target state="translated">Ein Array, das als For-Schleifensteuervariable deklariert ist, kann nicht mit einer vorgegebenen Größe deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnNewOverloads">
@@ -4850,7 +4853,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDisallowedForStructConstr1">
         <source>'System.Nullable' does not satisfy the 'Structure' constraint for type parameter '{0}'. Only non-nullable 'Structure' types are allowed.</source>
-        <target state="translated">'System.Nullable erfüllt die Structure-Einschränkung für den {0}-Typparameter nicht. Es sind nur Structure-Typen zulässig, die nicht auf Null festgelegt werden können.</target>
+        <target state="translated">System.Nullable erfüllt die Structure-Einschränkung für den {0}-Typparameter nicht. Es sind nur Non-Nullable-Structure-Typen zulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingDirectConstraints3">
@@ -5220,7 +5223,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion">
         <source>Cannot infer a common type for the second and third operands of the 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Es kann kein gemeinsamer Typ für den zweiten und dritten Operanden des If-Operators abgeleitet werden. Für einen muss eine Widening-Konvertierung in den anderen durchgeführt werden.</target>
+        <target state="translated">Es kann kein gemeinsamer Typ für den zweiten und dritten Operanden des If-Operators abgeleitet werden. Es muss eine erweiternde Konvertierung von einem Typ in den anderen durchgeführt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
@@ -5240,7 +5243,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion2">
         <source>Cannot infer a common type for the first and second operands of the binary 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Es kann kein gemeinsamer Typ für den ersten und zweiten Operanden des binären If-Operators abgeleitet werden. Für einen muss eine Widening-Konvertierung in den anderen durchgeführt werden.</target>
+        <target state="translated">Es kann kein gemeinsamer Typ für den ersten und zweiten Operanden des binären If-Operators abgeleitet werden. Es muss eine erweiternde Konvertierung von einem Typ in den anderen durchgeführt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullTypeInCCExpression">
@@ -5589,7 +5592,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotGotoNonScopeBlocksWithClosure">
         <source>'{0}{1}' is not valid because '{2}' is inside a scope that defines a variable that is used in a lambda or query expression.</source>
-        <target state="translated">'"{0}{1}" ist ungültig, da sich "{2}" in einem Bereich befindet, der eine Variable definiert, die in einem Lambda-Ausdruck oder einem Abfrageausdruck verwendet wird.</target>
+        <target state="translated">'"{0}{1}" ist ungültig, weil sich "{2}" in einem Bereich befindet, der eine Variable definiert, die in einem Lambdaausdruck oder einem Abfrageausdruck verwendet wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLiftRestrictedTypeQuery">
@@ -5614,7 +5617,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyInClosure">
         <source>'ReadOnly' variable cannot be the target of an assignment in a lambda expression inside a constructor.</source>
-        <target state="translated">'Die ReadOnly-Variable kann nicht das Ziel einer Zuweisung in einem Lambdaausdruck innerhalb eines Konstruktors sein.</target>
+        <target state="translated">Die ReadOnly-Variable kann nicht das Ziel einer Zuweisung in einem Lambdaausdruck innerhalb eines Konstruktors sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprTreeNoMultiDimArrayCreation">
@@ -5769,7 +5772,7 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaParamShadowLocal1">
         <source>Lambda parameter '{0}' hides a variable in an enclosing block, a previously defined range variable, or an implicitly declared variable in a query expression.</source>
-        <target state="translated">Der Lambda-Parameter "{0}" verbirgt eine Variable in einem einschließenden Block, eine zuvor definierte Bereichsvariable oder eine implizit im Abfrageausdruck deklarierte Variable.</target>
+        <target state="translated">Der Lambdaparameter "{0}" verbirgt eine Variable in einem einschließenden Block, eine zuvor definierte Bereichsvariable oder eine implizit im Abfrageausdruck deklarierte Variable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowImplicitObjectLambda">
@@ -5904,7 +5907,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing2">
         <source>Argument matching parameter '{0}' narrows to '{1}'.</source>
-        <target state="translated">Der mit dem Argument übereinstimmende {0}-Parameter wird auf "{1}" eingeschränkt.</target>
+        <target state="translated">Der Parameter "{0}" für den Argumentabgleich wird auf "{1}" eingeschränkt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadCandidate1">
@@ -6756,7 +6759,7 @@
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is null consider using 'Is Nothing'.</source>
-        <target state="translated">Dieser Ausdruck ergibt immer "Nothing" (aufgrund der NULL-Verteilung vom Equals-Operator). Verwenden Sie ggf. "Is Nothing", um zu überprüfen, ob der Wert NULL ist.</target>
+        <target state="translated">Dieser Ausdruck ergibt immer "Nothing" (aufgrund der NULL-Weitergabe des Equals-Operators). Verwenden Sie ggf. "Is Nothing", um zu überprüfen, ob der Wert NULL ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing_Title">
@@ -6766,7 +6769,7 @@
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is not null consider using 'IsNot Nothing'.</source>
-        <target state="translated">Dieser Ausdruck ergibt immer "Nothing" (aufgrund der NULL-Verteilung vom Equals-Operator). Verwenden Sie ggf. "IsNot Nothing", um zu überprüfen, ob der Wert nicht NULL ist.</target>
+        <target state="translated">Dieser Ausdruck ergibt immer "Nothing" (aufgrund der NULL-Weitergabe des Equals-Operators). Verwenden Sie ggf. "IsNot Nothing", um zu überprüfen, ob der Wert nicht NULL ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing_Title">
@@ -7181,27 +7184,27 @@
       </trans-unit>
       <trans-unit id="ERR_SubDisallowsStatement">
         <source>Statement is not valid inside a single-line statement lambda.</source>
-        <target state="translated">Die Anweisung ist in einem einzeiligen Anweisungslambda nicht gültig.</target>
+        <target state="translated">Die Anweisung ist in einer einzeiligen Anweisungslambdafunktion nicht gültig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SubRequiresParenthesesBang">
         <source>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;)!key</source>
-        <target state="translated">Dieses einzeilige Anweisungslambda muss in Klammern eingeschlossen sein. Beispiel: (Sub() &lt;Anweisung&gt;)!key</target>
+        <target state="translated">Diese einzeilige Anweisungslambdafunktion muss in Klammern eingeschlossen sein. Beispiel: (Sub() &lt;Anweisung&gt;)!key</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SubRequiresParenthesesDot">
         <source>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;).Invoke()</source>
-        <target state="translated">Dieses einzeilige Anweisungslambda muss in Klammern eingeschlossen sein. Beispiel: (Sub() &lt;Anweisung&gt;).Invoke()</target>
+        <target state="translated">Diese einzeilige Anweisungslambdafunktion muss in Klammern eingeschlossen sein. Beispiel: (Sub() &lt;Anweisung&gt;).Invoke()</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SubRequiresParenthesesLParen">
         <source>This single-line statement lambda must be enclosed in parentheses. For example: Call (Sub() &lt;statement&gt;) ()</source>
-        <target state="translated">Dieses einzeilige Anweisungslambda muss in Klammern eingeschlossen sein. Beispiel: Call (Sub() &lt;Anweisung&gt;) ()</target>
+        <target state="translated">Diese einzeilige Anweisungslambdafunktion muss in Klammern eingeschlossen sein. Beispiel: Call (Sub() &lt;Anweisung&gt;) ()</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SubRequiresSingleStatement">
         <source>Single-line statement lambdas must include exactly one statement.</source>
-        <target state="translated">Einzeilige Anweisungslambdas müssen eine einzelne Anweisung enthalten.</target>
+        <target state="translated">Einzeilige Anweisungslambdafunktionen müssen eine einzelne Anweisung enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInLambda">
@@ -8023,7 +8026,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidLambdaModifier">
         <source>'Only the 'Async' or 'Iterator' modifier is valid on a lambda.</source>
-        <target state="translated">'In einem Lambda-Ausdruck ist nur der Async- oder Iterator-Modifizierer gütig.</target>
+        <target state="translated">In einem Lambdaausdruck ist nur der Async- oder Iterator-Modifizierer gültig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncMethod">
@@ -8048,7 +8051,7 @@
       </trans-unit>
       <trans-unit id="ERR_StatementLambdaInExpressionTree">
         <source>Statement lambdas cannot be converted to expression trees.</source>
-        <target state="translated">Anweisungslambdas können nicht in Ausdrucksbäume konvertiert werden.</target>
+        <target state="translated">Anweisungslambdafunktionen können nicht in Ausdrucksbäume konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">
@@ -8063,7 +8066,7 @@
       </trans-unit>
       <trans-unit id="ERR_LoopControlMustNotAwait">
         <source>Loop control variable cannot include an 'Await'.</source>
-        <target state="translated">Eine Schleifensteuerungsvariable kann kein "Await" enthalten.</target>
+        <target state="translated">Eine Schleifensteuervariable kann kein "Await" enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticInitializerInResumable">
@@ -8093,7 +8096,7 @@
       </trans-unit>
       <trans-unit id="ERR_ResumableLambdaInExpressionTree">
         <source>Lambdas with the 'Async' or 'Iterator' modifiers cannot be converted to expression trees.</source>
-        <target state="translated">Lambdas mit dem Async- oder Iterator-Modifizierer können nicht in Ausdrucksbäume konvertiert werden.</target>
+        <target state="translated">Lambdafunktionen mit dem Async- oder Iterator-Modifizierer können nicht in Ausdrucksbäume konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLiftRestrictedTypeResumable1">
@@ -8213,7 +8216,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadIteratorExpressionLambda">
         <source>Single-line lambdas cannot have the 'Iterator' modifier. Use a multiline lambda instead.</source>
-        <target state="translated">Einzeilige Lambdas können nicht über einen Iterator-Modifizierer verfügen. Verwenden Sie stattdessen ein mehrzeiliges Lambda.</target>
+        <target state="translated">Einzeilige Lambdafunktionen können nicht über einen Iterator-Modifizierer verfügen. Verwenden Sie stattdessen eine mehrzeilige Lambdafunktion.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -8788,7 +8791,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">Die Länge der Zeichenfolgenkonstante überschreitet das aktuelle Speicherlimit. Versuchen Sie, die Zeichenfolge in mehrere Konstanten aufzuteilen.</target>
+        <target state="translated">Die Länge der aus der Verkettung resultierenden Zeichenfolgenkonstante überschreitet System.Int32.MaxValue. Teilen Sie die Zeichenfolge in mehrere Konstanten auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -8808,7 +8811,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_AsyncExpressions">
         <source>async methods or lambdas</source>
-        <target state="translated">Async-Methoden oder Lambdas</target>
+        <target state="translated">Async-Methoden oder Lambdafunktionen</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_AutoProperties">
@@ -8853,7 +8856,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_SubLambdas">
         <source>'Sub' lambda expressions</source>
-        <target state="translated">'Sub-Lambdaausdrücke</target>
+        <target state="translated">Sub-Lambdaausdrücke</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_NullPropagatingOperator">
