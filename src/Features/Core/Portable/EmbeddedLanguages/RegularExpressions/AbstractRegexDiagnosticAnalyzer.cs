@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var cancellationToken = context.CancellationToken;
 
             var options = context.Options;
-            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var option = optionSet.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
+            var option = options.GetOptionAsync(
+                RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option)
             {
                 return;

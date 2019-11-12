@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             var syntaxTree = conditionalExpression.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
+            var option = context.Options.GetOptionAsync(
+                CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option.Value)
             {
                 return;

@@ -49,9 +49,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = context.SemanticModel;
 
             // Don't even bother doing the analysis if the user doesn't even want auto-props.
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(
-                semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, semanticModel.Language);
+            var option = context.Options.GetOptionAsync(
+                CodeStyleOptions.PreferAutoProperties, semanticModel.Language, semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option.Value)
             {
                 return;
@@ -298,16 +297,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(
-                result.FieldDeclaration.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-
             // Now add diagnostics to both the field and the property saying we can convert it to 
             // an auto property.  For each diagnostic store both location so we can easily retrieve
             // them when performing the code fix.
             var additionalLocations = ImmutableArray.Create(
                 propertyDeclaration.GetLocation(), variableDeclarator.GetLocation());
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language);
+            var option = context.Options.GetOptionAsync(
+                CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language, result.FieldDeclaration.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (option.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden

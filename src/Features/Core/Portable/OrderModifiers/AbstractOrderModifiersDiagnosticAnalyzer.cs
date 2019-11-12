@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             var syntaxTree = context.Tree;
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var option = optionSet.GetOption(_option);
+            var option = context.Options.GetOptionAsync(_option, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;

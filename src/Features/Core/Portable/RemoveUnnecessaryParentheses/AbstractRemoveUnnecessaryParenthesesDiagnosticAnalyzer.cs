@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
             var syntaxTree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
@@ -97,7 +96,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             }
 
             var option = GetLanguageOption(precedence);
-            var preference = optionSet.GetOption(option, parenthesizedExpression.Language);
+            var preference = context.Options.GetOptionAsync(
+                option, parenthesizedExpression.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {

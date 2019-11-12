@@ -49,13 +49,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var syntaxTree = ifStatement.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(_option, language);
+            var option = context.Options.GetOptionAsync(
+                _option, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option.Value)
             {
                 return;

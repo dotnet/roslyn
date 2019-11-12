@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var statement = context.Node;
             var cancellationToken = context.CancellationToken;
 
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(statement.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferBraces);
+            var option = context.Options.GetOptionAsync(
+                CSharpCodeStyleOptions.PreferBraces, statement.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (option.Value == PreferBracesPreference.None)
             {
                 return;

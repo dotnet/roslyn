@@ -162,8 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var optionSet = await options.GetAnalyzerOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
-            return optionSet.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
+            return await options.GetOptionAsync(SimplificationOptions.NamingPreferences, compilation.Language, sourceTree, cancellationToken).ConfigureAwait(false);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption<TOptionKind>> analyze,
                 AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             {
-                var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-                var optionValue = optionSet.GetOption(provider._option);
+                var optionValue = options.GetOptionAsync(
+                    provider._option, syntaxTree, cancellationToken).GetAwaiter().GetResult();
                 var severity = GetOptionSeverity(optionValue);
                 switch (severity)
                 {

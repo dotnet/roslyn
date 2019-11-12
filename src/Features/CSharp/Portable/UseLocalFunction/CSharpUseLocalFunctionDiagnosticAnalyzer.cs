@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var syntaxTree = syntaxContext.Node.SyntaxTree;
             var cancellationToken = syntaxContext.CancellationToken;
 
-            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction);
+            var styleOption = options.GetOptionAsync(
+                CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.

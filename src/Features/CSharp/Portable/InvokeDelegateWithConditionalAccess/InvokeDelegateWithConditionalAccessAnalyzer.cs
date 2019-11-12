@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var syntaxTree = syntaxContext.Node.SyntaxTree;
             var cancellationToken = syntaxContext.CancellationToken;
 
-            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall);
+            var styleOption = options.GetOptionAsync(
+                CSharpCodeStyleOptions.PreferConditionalDelegateCall, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.

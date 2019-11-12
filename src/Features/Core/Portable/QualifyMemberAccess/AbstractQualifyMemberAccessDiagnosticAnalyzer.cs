@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             var syntaxTree = context.Operation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
-            var optionValue = optionSet.GetOption(applicableOption, context.Operation.Syntax.Language);
+            var optionValue = context.Options.GetOptionAsync(
+                applicableOption, context.Operation.Syntax.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;

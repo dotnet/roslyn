@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         {
             var syntaxTree = context.Operation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
             // We only create a diagnostic if the option's value is set to true.
-            var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
+            var option = context.Options.GetOptionAsync(
+                CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option.Value)
             {
                 return;

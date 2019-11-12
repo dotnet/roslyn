@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             var assignment = (TAssignmentSyntax)context.Node;
 
             var syntaxTree = assignment.SyntaxTree;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
+            var option = context.Options.GetOptionAsync(
+                CodeStyleOptions.PreferCompoundAssignment, assignment.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option.Value)
             {
                 // Bail immediately if the user has disabled this feature.

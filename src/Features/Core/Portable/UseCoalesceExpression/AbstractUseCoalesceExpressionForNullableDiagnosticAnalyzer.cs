@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.Options.GetOptionAsync(
+                CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option.Value)
             {
                 return;

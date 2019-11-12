@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement);
+            var option = context.Options.GetOptionAsync(
+                CSharpCodeStyleOptions.PreferSimpleUsingStatement, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (!option.Value)
             {
                 return;

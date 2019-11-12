@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         {
             var syntaxTree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
             var parent = TryGetParentExpression(binaryLike);
@@ -103,7 +102,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var preference = optionSet.GetOption(parentPrecedence, binaryLike.Language);
+            var preference = context.Options.GetOptionAsync(
+                parentPrecedence, context.Compilation.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;

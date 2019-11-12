@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                 return;
             }
 
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             var language = syntaxTree.Options.Language;
-            var option = optionSet.GetOption(CodeStyleOptions.RequireAccessibilityModifiers, language);
+            var option = context.Options.GetOptionAsync(
+                CodeStyleOptions.RequireAccessibilityModifiers, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (option.Value == AccessibilityModifiersRequired.Never)
             {
                 return;
