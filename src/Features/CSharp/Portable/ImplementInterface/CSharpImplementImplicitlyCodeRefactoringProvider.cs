@@ -5,138 +5,38 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    using static Helpers;
-
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpImplementImplicitlyCodeRefactoringProvider : CodeRefactoringProvider
+    internal class CSharpImplementImplicitlyCodeRefactoringProvider :
+        AbstractChangeImplementionCodeRefactoringProvider
     {
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var (document, _, cancellationToken) = context;
+        protected override string Implement_0 => FeaturesResources.Implement_0_implicitly;
+        protected override string Implement_all_interfaces => FeaturesResources.Implement_all_interfaces_implicitly;
+        protected override string Implement => FeaturesResources.Implement_implicitly;
 
-            var (container, explicitName, name) = await GetContainerAsync(context).ConfigureAwait(false);
-            if (explicitName == null)
-                return;
+        // We need to be an explicit impl in order to convert to implicit.
+        protected override bool CheckExplicitName(ExplicitInterfaceSpecifierSyntax? explicitName)
+            => explicitName != null;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var member = semanticModel.GetDeclaredSymbol(container, cancellationToken) ??
-                throw new InvalidOperationException();
+        // If we don't implement any interface members explicitly we can't convert this to be
+        // implicit.
+        protected override bool CheckMember(ISymbol member)
+            => member.ExplicitInterfaceImplementations().Length > 0;
 
-            if (member.ExplicitInterfaceImplementations().Length != 1)
-                return;
+        // When converting to implicit, we don't need to update any references.
+        protected override Task UpdateReferencesAsync(Project project, Dictionary<Document, SyntaxEditor> documentToEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)
+            => Task.CompletedTask;
 
-            var solution = document.Project.Solution;
-
-            var interfaceMember = member.ExplicitInterfaceImplementations().Single();
-            var directImplementions = new HashSet<ISymbol> { member };
-            var codeAction = new MyCodeAction(
-                string.Format(FeaturesResources.Implement_0_implicitly, interfaceMember.Name),
-                c => ImplementImplicitlyAsync(solution, directImplementions, c));
-
-            var containingType = member.ContainingType;
-            var interfaceType = member.ExplicitInterfaceImplementations().Single().ContainingType;
-
-            var implementationsFromSameInterface = GetExplicitlyImplementedMembers(containingType, interfaceType).ToSet();
-            var implementationsFromAllInterfaces = containingType.AllInterfaces.SelectMany(
-                i => GetExplicitlyImplementedMembers(containingType, i)).ToSet();
-
-            var offerForSameInterface = implementationsFromSameInterface.Count > directImplementions.Count;
-            var offerForAllInterfaces = implementationsFromAllInterfaces.Count > implementationsFromSameInterface.Count;
-
-            // There was only one member in the interface that we implement.  Only need to show
-            // the single action.
-            if (!offerForSameInterface && !offerForAllInterfaces)
-            {
-                context.RegisterRefactoring(codeAction);
-                return;
-            }
-
-            var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-            nestedActions.Add(codeAction);
-
-            if (offerForSameInterface)
-            {
-                nestedActions.Add(new MyCodeAction(
-                    string.Format(
-                        FeaturesResources.Implement_0_implicitly,
-                        interfaceType.ToDisplayString(NameAndTypeParametersFormat)),
-                    c => ImplementImplicitlyAsync(solution, implementationsFromSameInterface, c)));
-            }
-
-            if (offerForAllInterfaces)
-            {
-                nestedActions.Add(new MyCodeAction(
-                    FeaturesResources.Implement_all_interfaces_implicitly,
-                    c => ImplementImplicitlyAsync(solution, implementationsFromAllInterfaces, c)));
-            }
-
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
-                FeaturesResources.Implement_implicitly, nestedActions.ToImmutableAndFree(), isInlinable: true));
-        }
-
-        private IEnumerable<ISymbol> GetExplicitlyImplementedMembers(INamedTypeSymbol containingType, INamedTypeSymbol interfaceType)
-            => from interfaceMember in interfaceType.GetMembers()
-               let impl = containingType.FindImplementationForInterfaceMember(interfaceMember)
-               where impl != null
-               where containingType.Equals(impl.ContainingType)
-               where impl.ExplicitInterfaceImplementations().Length > 0
-               select impl;
-
-        private async Task<Solution> ImplementImplicitlyAsync(
-            Solution solution, ISet<ISymbol> implementations, CancellationToken cancellationToken)
-        {
-            // First, bucket all the implemented members by which document they appear in.
-            // That way, we can update all the members in a specific document in bulk.
-            var documentToImplDeclarations = new MultiDictionary<Document, SyntaxNode>();
-            foreach (var impl in implementations)
-            {
-                foreach (var syntaxRef in impl.DeclaringSyntaxReferences)
-                {
-                    var doc = solution.GetDocument(syntaxRef.SyntaxTree);
-                    if (doc != null)
-                    {
-                        var decl = await syntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                        if (decl != null)
-                            documentToImplDeclarations.Add(doc, decl);
-                    }
-                }
-            }
-
-            var currentSolution = solution;
-            foreach (var (document, decls) in documentToImplDeclarations)
-            {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(root, solution.Workspace);
-
-                foreach (var decl in decls)
-                {
-                    var updatedDecl = ImplementImplicitly(editor.Generator, decl);
-                    if (updatedDecl != null)
-                        editor.ReplaceNode(decl, updatedDecl);
-                }
-
-                currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                    document.Id, editor.GetChangedRoot());
-            }
-
-            return currentSolution;
-        }
-
-        private SyntaxNode ImplementImplicitly(SyntaxGenerator generator, SyntaxNode decl)
+        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _)
             => generator.WithAccessibility(WithoutExplicitImpl(decl), Accessibility.Public);
 
         private SyntaxNode? WithoutExplicitImpl(SyntaxNode decl)
