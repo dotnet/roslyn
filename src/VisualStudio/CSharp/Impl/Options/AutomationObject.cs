@@ -80,14 +80,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value); }
         }
 
-        [Obsolete("This SettingStore option has now been deprecated")]
+        [Obsolete("ClosedFileDiagnostics has been deprecated")]
         public int ClosedFileDiagnostics
         {
             get { return 0; }
             set { }
         }
 
-        [Obsolete("This SettingStore option has now been deprecated")]
+        [Obsolete("CSharpClosedFileDiagnostics has been deprecated")]
         public int CSharpClosedFileDiagnostics
         {
             get { return 0; }

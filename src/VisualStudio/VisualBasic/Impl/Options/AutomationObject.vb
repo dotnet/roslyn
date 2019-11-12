@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        <Obsolete("This SettingStore option has now been deprecated")>
+        <Obsolete("ClosedFileDiagnostics has been deprecated")>
         Public Property ClosedFileDiagnostics As Boolean
             Get
                 Return False
@@ -58,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        <Obsolete("This SettingStore option has now been deprecated")>
+        <Obsolete("BasicClosedFileDiagnostics has been deprecated")>
         Public Property BasicClosedFileDiagnostics As Integer
             Get
                 Return 0
