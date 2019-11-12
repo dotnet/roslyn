@@ -86,34 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static bool SpanInvolvesLocalFunction(TextSpan finalSpan, SemanticModel model, SyntaxNode root)
-        {
-            var nodes = root.DescendantNodes(finalSpan).Where(n => finalSpan.Contains(n.Span));
-            foreach (var node in nodes)
-            {
-                if (node.IsKind(SyntaxKind.LocalFunctionStatement))
-                {
-                    return true;
-                }
-
-                if (node is IdentifierNameSyntax id)
-                {
-                    var symbolInfo = model.GetSymbolInfo(id);
-                    if (symbolInfo.Symbol is IMethodSymbol method &&
-                        method.MethodKind == MethodKind.LocalFunction)
-                    {
-                        return true;
-                    }
-                }
-
-                if (node.HasAncestor<LocalFunctionStatementSyntax>())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, CancellationToken cancellationToken)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion() || !selectionInfo.SelectionInExpression)
