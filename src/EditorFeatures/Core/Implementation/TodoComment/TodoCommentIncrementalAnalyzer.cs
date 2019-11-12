@@ -57,9 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return;
             }
 
+            // Compute and persist the TODO comments for this document.
             var (existingData, newData) = await ComputeAndPersistTodoCommentsAsync(document, _state, _todoCommentTokens, cancellationToken).ConfigureAwait(false);
 
-            // * NOTE * cancellation can't throw after this point.
+            // Now update the task list if there are any changes from the previously computed TODO comments, if any.
+            // NOTE: We don't check for cancellation here to ensure the task list view and our latest
+            // computed state are identical.
             if (existingData == null || existingData.Items.Length != newData.Items.Length)
             {
                 Debug.Assert(_workspace == document.Project.Solution.Workspace);
