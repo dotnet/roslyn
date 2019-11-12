@@ -258,20 +258,6 @@ namespace Roslyn.Utilities
             return true;
         }
 
-        public bool AddRange(K k, IEnumerable<V> values)
-        {
-            var result = false;
-            foreach (var v in values)
-            {
-                if (Add(k, v))
-                {
-                    result = true;
-                }
-            }
-
-            return result;
-        }
-
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
