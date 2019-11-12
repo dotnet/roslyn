@@ -6918,13 +6918,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
                         {
-                            result = sourceState;
+                            // foreach (var variable in collection)
                             _variableTypes[iterationVariable] = sourceState.ToTypeWithAnnotations();
                         }
                         else
                         {
                             // foreach (DestinationType variable in collection)
-                            // foreach (var variable in collection)
                             // and asynchronous variants
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
