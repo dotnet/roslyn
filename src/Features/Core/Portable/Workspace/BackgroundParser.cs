@@ -160,15 +160,20 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (document != null)
             {
-                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile &&
-                    _documentTrackingService?.TryGetActiveDocument() != document.Id)
-                {
-                    return;
-                }
-
                 lock (_parseGate)
                 {
                     CancelParse(document.Id);
+
+                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile &&
+                        _documentTrackingService?.TryGetActiveDocument() != document.Id)
+                    {
+                        // Avoid performing any background parsing for non-active files
+                        // if the user has explicitly set the background analysis scope
+                        // to only analyze active files.
+                        // Note that we bail out after executing CancelParse to ensure
+                        // all the current background parsing tasks are cancelled.
+                        return;
+                    }
 
                     if (IsStarted)
                     {
