@@ -85,8 +85,7 @@ namespace Microsoft.CodeAnalysis.Host
                     // this consumed around 2%-3% of the trace after some other optimizations I did. Most of that
                     // was actually walking the documents list since this was causing all the Documents to be realized.
                     // Since this is on the UI thread, it's best just to not do the work if we don't need it.
-                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(newProject) != BackgroundAnalysisScope.ActiveFile &&
-                        oldProject.SupportsCompilation &&
+                    if (oldProject.SupportsCompilation &&
                         !object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                     {
                         foreach (var doc in newProject.Documents)
