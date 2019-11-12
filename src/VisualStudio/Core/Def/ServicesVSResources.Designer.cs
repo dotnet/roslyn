@@ -163,15 +163,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Active.
-        /// </summary>
-        internal static string Active {
-            get {
-                return ResourceManager.GetString("Active", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to _Add.
         /// </summary>
         internal static string Add {
@@ -213,6 +204,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Add_item {
             get {
                 return ResourceManager.GetString("Add_item", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add Parameter.
+        /// </summary>
+        internal static string Add_Parameter {
+            get {
+                return ResourceManager.GetString("Add_Parameter", resourceCulture);
             }
         }
         
@@ -530,6 +530,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Callsite {
             get {
                 return ResourceManager.GetString("Callsite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Callsite Value.
+        /// </summary>
+        internal static string Callsite_Value {
+            get {
+                return ResourceManager.GetString("Callsite_Value", resourceCulture);
             }
         }
         
@@ -901,6 +910,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string DocumentPath_is_illegal {
             get {
                 return ResourceManager.GetString("DocumentPath_is_illegal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Edit.
+        /// </summary>
+        internal static string Edit {
+            get {
+                return ResourceManager.GetString("Edit", resourceCulture);
             }
         }
         
@@ -2236,6 +2254,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter Name.
+        /// </summary>
+        internal static string Parameter_Name {
+            get {
+                return ResourceManager.GetString("Parameter_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter preferences:.
         /// </summary>
         internal static string Parameter_preferences_colon {
@@ -3347,6 +3374,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string type_is_apparent_from_assignment_expression {
             get {
                 return ResourceManager.GetString("type_is_apparent_from_assignment_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Name.
+        /// </summary>
+        internal static string Type_Name {
+            get {
+                return ResourceManager.GetString("Type_Name", resourceCulture);
             }
         }
         

@@ -12,8 +12,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using ImportingConstructorAttribute = System.Composition.ImportingConstructorAttribute;
@@ -26,11 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService;
         private readonly IServiceProvider _originalServiceProvider;
         private readonly IContentType _contentType;
         private readonly OLE.Interop.IServiceProvider _serviceProvider;
+        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,18 +44,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ClassificationTypeMap classificationTypeMap,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
-            IVsEditorAdaptersFactoryService vsEditorAdaptersFactoryService,
+            IEditorOperationsFactoryService editorOperationsFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
+            ITextBufferFactoryService textBufferFactoryService,
+            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             SVsServiceProvider services)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
-            _vsEditorAdaptersFactoryService = vsEditorAdaptersFactoryService;
+            _editorOperationsFactoryService = editorOperationsFactoryService;
             _contentType = contentTypeRegistryService.GetContentType(ContentTypeNames.CSharpContentType);
             _originalServiceProvider = services;
+            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             _serviceProvider = (OLE.Interop.IServiceProvider)services.GetService(typeof(OLE.Interop.IServiceProvider));
+            _textBufferFactoryService = textBufferFactoryService;
         }
 
         public ChangeSignatureOptionsResult GetChangeSignatureOptions(
@@ -83,17 +92,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddedParameterResult GetAddedParameter(Document document)
         {
             // TODO async?
-            var vsTextView = GetTextViewAsync(document, CancellationToken.None).Result.Item1;
-            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
-            var parameterTypeEditorControl = new ParameterTypeEditorControl(
-                wpfTextView,
-                _editorAdaptersFactoryService,
-                _originalServiceProvider);
+            var tuple = GetTextViewAsync(document, CancellationToken.None).Result;
+            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(tuple.Item1);
+            var viewModel = new AddParameterDialogViewModel();
+            var dialog = new AddParameterDialog(
+                viewModel,
+                _textEditorFactoryService,
+                _textBufferFactoryService,
+                _editorCommandHandlerServiceFactory,
+                _editorOperationsFactoryService,
+                _contentType);
 
-            parameterTypeEditorControl.AttachToVsTextView();
-
-            var viewModel = new AddParameterDialogViewModel(parameterTypeEditorControl);
-            var dialog = new AddParameterDialog(viewModel);
             var result = dialog.ShowModal();
 
             if (result.HasValue && result.Value)
@@ -102,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 {
                     IsCancelled = false,
                     AddedParameter = new AddedParameter(
-                        viewModel.TypeNameEditorControl.GetText(),
+                        viewModel.TypeName,
                         viewModel.ParameterName,
                         viewModel.CallsiteValue)
                 };
@@ -130,8 +139,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 PredefinedTextViewRoles.Editable,
                 PredefinedTextViewRoles.Interactive);
 
-            var textViewAdapter = _vsEditorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
-            var bufferAdapter = _vsEditorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, _contentType);
+            var textViewAdapter = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
+            var bufferAdapter = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, _contentType);
             bufferAdapter.InitializeContent(documentText, documentText.Length);
 
             //     var textBuffer = _vsEditorAdaptersFactoryService.GetDataBuffer(bufferAdapter);
@@ -153,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 (uint)TextViewInitFlags3.VIF_NO_HWND_SUPPORT,
                 initView);
 
-            var textViewHost = _vsEditorAdaptersFactoryService.GetWpfTextViewHost(textViewAdapter);
+            var textViewHost = _editorAdaptersFactoryService.GetWpfTextViewHost(textViewAdapter);
 
             return (textViewAdapter, textViewHost);
         }

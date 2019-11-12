@@ -1373,4 +1373,16 @@ I agree to all of the foregoing:</value>
   <data name="Callsite" xml:space="preserve">
     <value>Callsite</value>
   </data>
+  <data name="Add_Parameter" xml:space="preserve">
+    <value>Add Parameter</value>
+  </data>
+  <data name="Callsite_Value" xml:space="preserve">
+    <value>Callsite Value</value>
+  </data>
+  <data name="Parameter_Name" xml:space="preserve">
+    <value>Parameter Name</value>
+  </data>
+  <data name="Type_Name" xml:space="preserve">
+    <value>Type Name</value>
+  </data>
 </root>

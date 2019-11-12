@@ -17,6 +17,11 @@
         <target state="new">_Add</target>
         <note>Adding an element to a list</note>
       </trans-unit>
+      <trans-unit id="Add_Parameter">
+        <source>Add Parameter</source>
+        <target state="new">Add Parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">Aggiungi al file _corrente</target>
@@ -90,6 +95,11 @@
       <trans-unit id="Callsite">
         <source>Callsite</source>
         <target state="new">Callsite</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Callsite_Value">
+        <source>Callsite Value</source>
+        <target state="new">Callsite Value</target>
         <note />
       </trans-unit>
       <trans-unit id="Classifications">
@@ -397,6 +407,11 @@
         <target state="new">Parameter Details</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_Name">
+        <source>Parameter Name</source>
+        <target state="new">Parameter Name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
         <target state="translated">Preferenze per parametri:</target>
@@ -555,6 +570,11 @@
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
         <target state="translated">Questo è uno spazio dei nomi non valido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Name">
+        <source>Type Name</source>
+        <target state="new">Type Name</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
