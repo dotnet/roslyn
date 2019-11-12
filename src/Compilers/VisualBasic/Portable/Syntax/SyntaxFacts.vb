@@ -91,6 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return True  ' all non-token children are types
                     Case SyntaxKind.TypeConstraint
                         Return True ' all non-token children are types
+                    Case SyntaxKind.CrefSignaturePart
+                        Return True ' all non-token children are types
                     Case SyntaxKind.Attribute
                         Return DirectCast(parent, AttributeSyntax).Name Is node
                     Case SyntaxKind.ObjectCreationExpression

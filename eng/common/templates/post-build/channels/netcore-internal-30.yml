@@ -2,6 +2,7 @@ parameters:
   artifactsPublishingAdditionalParameters: ''
   dependsOn:
   - Validate
+  publishInstallersAndChecksums: false
   symbolPublishingAdditionalParameters: ''
 
 stages:
