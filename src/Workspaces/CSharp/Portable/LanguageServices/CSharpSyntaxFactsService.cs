@@ -200,6 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((UsingDirectiveSyntax)node.Parent).Name == node;
         }
 
+        public bool IsUsingAliasDirective(SyntaxNode node)
+            => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
+
         public bool IsForEachStatement(SyntaxNode node)
             => node is ForEachStatementSyntax;
 
@@ -1262,6 +1265,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (node as QualifiedNameSyntax)?.Right ??
                 (node as MemberAccessExpressionSyntax)?.Name;
+        }
+
+        public SyntaxNode GetLeftSideOfDot(SyntaxNode node, bool allowImplicitTarget)
+        {
+            return (node as QualifiedNameSyntax)?.Left ??
+                (node as MemberAccessExpressionSyntax)?.Expression;
         }
 
         public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)

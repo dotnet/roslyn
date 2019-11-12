@@ -16,9 +16,6 @@
       A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
-
-    <!-- SQLLite package imports content files. Do not include these in the package. -->
-    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -290,6 +287,7 @@
     <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Mac.LanguageServices.Razor" Key="$(RazorKey)" LoadsWithinVisualStudio="false" />
     <!-- this is currently built externally, as part of the MonoDevelop build -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa.UnitTests" LoadsWithinVisualStudio="false" />

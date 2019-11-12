@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
@@ -1441,6 +1442,80 @@ End Class", safe:=True, useSymbolAnnotations)
             Assert.Equal("42.M" & vbCrLf, nodeWithWarning.ToFullString())
             Dim warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single()
             Assert.Equal("Adding imports will bring an extension method into scope with the same name as 'M'", WarningAnnotation.GetDescription(warning))
+        End Function
+
+        <WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        <Theory, InlineData(True), InlineData(False)>
+        Public Async Function TestCanExpandCrefSignaturePart(useSymbolAnnotations As Boolean) As Task
+            Await TestAsync(
+"Imports B
+
+Namespace A
+    Class C1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+    End Class
+End Namespace
+
+Class C
+    ''' <see cref=""M(C1)""/>
+    Private Sub M(ByVal c2 As A.C2)
+    End Sub
+    Private Sub M(ByVal c1 As C1)
+    End Sub
+End Class",
+"Imports A
+Imports B
+
+Namespace A
+    Class C1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+    End Class
+End Namespace
+
+Class C
+    ''' <see cref=""M(Global.B.C1)""/>
+    Private Sub M(ByVal c2 As A.C2)
+    End Sub
+    Private Sub M(ByVal c1 As Global.B.C1)
+    End Sub
+End Class",
+"Imports A
+Imports B
+
+Namespace A
+    Class C1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+    End Class
+End Namespace
+
+Class C
+    ''' <see cref=""M(B.C1)""/>
+    Private Sub M(ByVal c2 As C2)
+    End Sub
+    Private Sub M(ByVal c1 As B.C1)
+    End Sub
+End Class", safe:=True, useSymbolAnnotations)
         End Function
 
 #End Region

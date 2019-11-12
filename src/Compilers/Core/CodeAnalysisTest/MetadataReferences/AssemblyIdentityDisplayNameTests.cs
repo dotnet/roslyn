@@ -397,6 +397,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseDisplayName("goo, Culture=neutral, Version=1.0.0.0, Culture=en-US", null);
         }
 
+        [Fact]
+        [WorkItem(39647, "https://github.com/dotnet/roslyn/issues/39647")]
+        public void AssemblyIdentity_EmptyName()
+        {
+            var identity = new AssemblyIdentity(noThrow: true, name: "");
+            var name = identity.GetDisplayName();
+            Assert.Equal(", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", name);
+            Assert.False(AssemblyIdentity.TryParseDisplayName(name, out _));
+        }
+
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName_Version()
         {

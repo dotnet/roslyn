@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 {
     [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
     internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);

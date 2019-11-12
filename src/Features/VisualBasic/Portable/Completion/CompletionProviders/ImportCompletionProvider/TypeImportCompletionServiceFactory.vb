@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportLanguageServiceFactory(GetType(ITypeImportCompletionService), LanguageNames.VisualBasic), [Shared]>
-    Friend NotInheritable Class BasicTypeImportCompletionServiceFactory
+    Friend NotInheritable Class TypeImportCompletionServiceFactory
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>

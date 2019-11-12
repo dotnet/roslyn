@@ -6678,5 +6678,55 @@ void M(string[] a)
             await TestInClassAsync(code,
                 MainDescription($"({FeaturesResources.range_variable}) IGrouping<int, string> g"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")]
+        public async Task QuickInfoOnIndexerCloseBracket()
+        {
+            await TestAsync(@"
+class C
+{
+    public int this[int x] { get { return 1; } }
+
+    void M()
+    {
+        var x = new C()[5$$];
+    }
+}",
+            MainDescription("int C.this[int x] { get; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")]
+        public async Task QuickInfoOnIndexerOpenBracket()
+        {
+            await TestAsync(@"
+class C
+{
+    public int this[int x] { get { return 1; } }
+
+    void M()
+    {
+        var x = new C()$$[5];
+    }
+}",
+            MainDescription("int C.this[int x] { get; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")]
+        public async Task QuickInfoOnIndexer_NotOnArrayAccess()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        int[] x = new int[4];
+        int y = x[3$$];
+    }
+}",
+                MainDescription("struct System.Int32"));
+        }
     }
 }
