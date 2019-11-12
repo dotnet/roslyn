@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private partial class WorkCoordinator
         {
             private readonly Registration _registration;
+            private readonly object _gate;
 
             private readonly LogAggregator _logAggregator;
             private readonly IAsynchronousOperationListener _listener;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _logAggregator = new LogAggregator();
 
                 _registration = registration;
+                _gate = new object();
 
                 _listener = listener;
                 _optionService = _registration.GetService<IOptionService>();
@@ -213,11 +215,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var activeDocument = _registration.Workspace.CurrentSolution.GetDocument(activeDocumentId);
                     if (activeDocument != null)
                     {
-                        var lastActiveDocument = Interlocked.Exchange(ref _lastActiveDocument, activeDocument);
-                        if (lastActiveDocument != null)
+                        lock (_gate)
                         {
-                            asyncToken = _listener.BeginAsyncOperation("OnDocumentClosed");
-                            EnqueueEvent(lastActiveDocument.Project.Solution, lastActiveDocument.Id, InvocationReasons.DocumentClosed, asyncToken);
+                            if (_lastActiveDocument != null)
+                            {
+                                asyncToken = _listener.BeginAsyncOperation("OnDocumentClosed");
+                                EnqueueEvent(_lastActiveDocument.Project.Solution, _lastActiveDocument.Id, InvocationReasons.DocumentClosed, asyncToken);
+                            }
+
+                            _lastActiveDocument = activeDocument;
                         }
 
                         asyncToken = _listener.BeginAsyncOperation("OnDocumentChanged");
