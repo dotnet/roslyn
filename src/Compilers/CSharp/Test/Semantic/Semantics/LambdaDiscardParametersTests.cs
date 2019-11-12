@@ -563,9 +563,9 @@ public class C
 }");
 
             comp.VerifyDiagnostics(
-                // (15,14): error CS0103: The name '_' does not exist in the current context
-                //              _.ToString(); // error
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(15, 14)
+                // (15,13): error CS0103: The name '_' does not exist in the current context
+                //             _.ToString(); // error
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(15, 13)
                 );
         }
     }
