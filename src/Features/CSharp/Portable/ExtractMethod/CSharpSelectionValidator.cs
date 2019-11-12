@@ -74,26 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
             }
 
-            // Warn if local functions are in selection since data flow analysis
-            // cannot correctly analyze them
-            // https://github.com/dotnet/roslyn/issues/14214
-            if (SpanInvolvesLocalFunction(selectionInfo.FinalSpan, model, root))
-            {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(
-                    OperationStatusFlag.Succeeded | OperationStatusFlag.BestEffort,
-                    CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
-                var commonRoot = selectionInfo.CommonRootFromOriginalSpan;
-                var annotated = commonRoot.WithAdditionalAnnotations(
-                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
-                doc = await doc.WithSyntaxRootAsync(
-                    root.ReplaceNode(commonRoot, annotated),
-                    cancellationToken).ConfigureAwait(false);
-                selectionInfo.FirstTokenInOriginalSpan = doc.Root.FindToken(selectionInfo.FirstTokenInOriginalSpan.SpanStart);
-                selectionInfo.LastTokenInOriginalSpan = doc.Root.FindToken(selectionInfo.LastTokenInOriginalSpan.SpanStart);
-                selectionInfo.FirstTokenInFinalSpan = doc.Root.FindToken(selectionInfo.FirstTokenInFinalSpan.SpanStart);
-                selectionInfo.LastTokenInFinalSpan = doc.Root.FindToken(selectionInfo.LastTokenInFinalSpan.SpanStart);
-            }
-
             return await CSharpSelectionResult.CreateAsync(
                 selectionInfo.Status,
                 selectionInfo.OriginalSpan,

@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var semanticModel = this.SemanticDocument.SemanticModel;
                     var nameGenerator = new UniqueNameGenerator(semanticModel);
                     var scope = this.CSharpSelectionResult.GetContainingScope();
-
                     return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod", GetLocalFunctionNamesIfScopeIsMethod(scope)));
                 }
 
