@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 /// Otherwise, returns <paramref name="allAnalyzers"/>.
                 /// </summary>
                 public IEnumerable<IIncrementalAnalyzer> GetApplicableAnalyzers(ImmutableArray<IIncrementalAnalyzer> allAnalyzers)
-                    => SpecificAnalyzers.Count > 0 ? SpecificAnalyzers.Where(allAnalyzers.Contains) : allAnalyzers;
+                    => SpecificAnalyzers?.Count > 0 ? SpecificAnalyzers.Where(allAnalyzers.Contains) : allAnalyzers;
 
                 // retry
                 public readonly bool IsRetry;

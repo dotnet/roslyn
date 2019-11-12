@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -41,6 +40,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
                 private readonly LowPriorityProcessor _lowPriorityProcessor;
 
+                // NOTE: IDiagnosticAnalyzerService can be null in test environment.
                 private readonly Lazy<IDiagnosticAnalyzerService?> _lazyDiagnosticAnalyzerService;
 
                 private LogAggregator _logAggregator;
@@ -116,19 +116,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     else
                     {
-                        if (ShouldEnqueueReducedWorkItem(item, _highPriorityProcessor.Analyzers, options, analysisScope, out var reducedWorkItem))
+                        if (TryGetItemWithOverriddenAnalysisScope(item, _highPriorityProcessor.Analyzers, options, analysisScope, out var newWorkItem))
                         {
-                            _highPriorityProcessor.Enqueue(reducedWorkItem.Value);
+                            _highPriorityProcessor.Enqueue(newWorkItem.Value);
                         }
 
-                        if (ShouldEnqueueReducedWorkItem(item, _normalPriorityProcessor.Analyzers, options, analysisScope, out reducedWorkItem))
+                        if (TryGetItemWithOverriddenAnalysisScope(item, _normalPriorityProcessor.Analyzers, options, analysisScope, out newWorkItem))
                         {
-                            _normalPriorityProcessor.Enqueue(reducedWorkItem.Value);
+                            _normalPriorityProcessor.Enqueue(newWorkItem.Value);
                         }
 
-                        if (ShouldEnqueueReducedWorkItem(item, _lowPriorityProcessor.Analyzers, options, analysisScope, out reducedWorkItem))
+                        if (TryGetItemWithOverriddenAnalysisScope(item, _lowPriorityProcessor.Analyzers, options, analysisScope, out newWorkItem))
                         {
-                            _lowPriorityProcessor.Enqueue(reducedWorkItem.Value);
+                            _lowPriorityProcessor.Enqueue(newWorkItem.Value);
                         }
                     }
 
@@ -139,11 +139,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     bool ShouldEnqueueForAllQueues(WorkItem item, BackgroundAnalysisScope analysisScope)
                     {
                         var reasons = item.InvocationReasons;
+
+                        // For active file analysis scope we only process following:
+                        //   1. Active documents
+                        //   2. Closed and removed documents to ensure that data for removed and closed documents
+                        //      is no longer held in memory and removed from any user visible components.
+                        //      For example, this ensures that diagnostics for closed/removed documents are removed from error list.
+                        // Note that we don't need to specially handle "Project removed" or "Project closed" case, as the solution crawler
+                        // enqueues individual "DocumentRemoved" work items for each document in the removed project.
                         if (analysisScope == BackgroundAnalysisScope.ActiveFile &&
                             !reasons.Contains(PredefinedInvocationReasons.DocumentClosed) &&
                             !reasons.Contains(PredefinedInvocationReasons.DocumentRemoved))
                         {
-                            // Only process active/closed/removed documents for active file analysis.
                             return item.DocumentId == _documentTracker.TryGetActiveDocument();
                         }
 
@@ -151,7 +158,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private static bool ShouldEnqueueReducedWorkItem(
+                private static bool TryGetItemWithOverriddenAnalysisScope(
                     WorkItem item,
                     ImmutableArray<IIncrementalAnalyzer> allAnalyzers,
                     OptionSet options,
@@ -254,7 +261,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private async Task RunAnalyzersAsync<T>(
                     ImmutableArray<IIncrementalAnalyzer> analyzers,
                     T value,
-                    WorkItem? workItem,
+                    WorkItem workItem,
                     Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
                     CancellationToken cancellationToken)
                 {
@@ -263,7 +270,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ReportPendingWorkItemCount();
 
                     // Check if the work item is specific to some incremental analyzer(s).
-                    var analyzersToExecute = workItem?.GetApplicableAnalyzers(analyzers) ?? analyzers;
+                    var analyzersToExecute = workItem.GetApplicableAnalyzers(analyzers) ?? analyzers;
                     foreach (var analyzer in analyzersToExecute)
                     {
                         if (cancellationToken.IsCancellationRequested)

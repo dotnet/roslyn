@@ -335,8 +335,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var document = solution.GetDocument(documentId);
 
-                                if (document != null &&
-                                    !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentRemoved))
+                                if (document != null)
                                 {
                                     // if we are called because a document is opened, we invalidate the document so that
                                     // it can be re-analyzed. otherwise, since newly opened document has same version as before
@@ -472,7 +471,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return;
                             }
 
-                            await Processor.RunAnalyzersAsync(Analyzers, Processor.CurrentSolution, workItem: null, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
+                            await Processor.RunAnalyzersAsync(Analyzers, Processor.CurrentSolution, workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in Processor.GetOpenDocumentIds())
                             {
