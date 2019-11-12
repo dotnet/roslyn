@@ -1204,7 +1204,7 @@ public readonly struct S2
             Assert.True(getEvent(s1, "E").AddMethod.IsReadOnly);
             Assert.True(getEvent(s1, "E").RemoveMethod.IsReadOnly);
 
-            var s2 = comp.GetMember<NamedTypeSymbol>("S2");
+            var s2 = comp.GetMember<INamedTypeSymbol>("S2");
             Assert.True(getMethod(s2, "M1").IsReadOnly);
             Assert.False(getMethod(s2, "M2").IsReadOnly);
 
@@ -1257,7 +1257,7 @@ public static class C
 ";
             Compilation comp = CreateCompilation(csharp);
 
-            var c = comp.GetMember<MethodSymbol>("C.Test");
+            var c = comp.GetMember<IMethodSymbol>("C.Test");
             var testMethodSyntax = (MethodDeclarationSyntax)c.DeclaringSyntaxReferences.Single().GetSyntax();
 
             var semanticModel = comp.GetSemanticModel(testMethodSyntax.SyntaxTree);
@@ -1276,15 +1276,15 @@ public static class C
                 var expressionStatement = (ExpressionStatementSyntax)statementSyntax;
                 var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
 
-                var symbol = (MethodSymbol)semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol;
+                var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol;
                 var reducedFrom = symbol.ReducedFrom;
 
-                Assert.Equal(isEffectivelyReadOnly, symbol.IsEffectivelyReadOnly);
-                Assert.Equal(isEffectivelyReadOnly, ((IMethodSymbol)symbol).IsReadOnly);
+                Assert.Equal(isEffectivelyReadOnly, symbol.GetSymbol().IsEffectivelyReadOnly);
+                Assert.Equal(isEffectivelyReadOnly, symbol.IsReadOnly);
 
-                Assert.False(symbol.IsDeclaredReadOnly);
-                Assert.False(reducedFrom.IsDeclaredReadOnly);
-                Assert.False(reducedFrom.IsEffectivelyReadOnly);
+                Assert.False(symbol.GetSymbol().IsDeclaredReadOnly);
+                Assert.False(reducedFrom.GetSymbol().IsDeclaredReadOnly);
+                Assert.False(reducedFrom.GetSymbol().IsEffectivelyReadOnly);
                 Assert.False(((IMethodSymbol)reducedFrom).IsReadOnly);
             }
         }
@@ -1320,7 +1320,7 @@ public struct S1
                 Assert.True(property.IsReadOnly);
                 Assert.Equal(isReadOnly, property.GetMethod.IsDeclaredReadOnly);
                 Assert.Equal(isReadOnly, property.GetMethod.IsEffectivelyReadOnly);
-                Assert.Equal(isReadOnly, ((IMethodSymbol)property.GetMethod).IsReadOnly);
+                Assert.Equal(isReadOnly, property.GetMethod.GetPublicSymbol().IsReadOnly);
             }
         }
 
@@ -1910,7 +1910,7 @@ public struct S2
         {
             // 'using' results in a boxing conversion when the struct implements 'IDisposable'.
             // Boxing conversions are out of scope of the implicit copy warning.
-            // 'await using' can't be used with ref structs, so implicity copy warnings can't be produced in that scenario.
+            // 'await using' can't be used with ref structs, so implicitly copy warnings can't be produced in that scenario.
             var csharp = @"
 public ref struct S1
 {

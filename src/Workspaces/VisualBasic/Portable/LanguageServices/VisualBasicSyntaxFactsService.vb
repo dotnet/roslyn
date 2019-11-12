@@ -982,6 +982,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(namespaceDeclaration, NamespaceBlockSyntax).Members
         End Function
 
+        Public Function GetMembersOfCompilationUnit(compilationUnit As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetMembersOfCompilationUnit
+            Return DirectCast(compilationUnit, CompilationUnitSyntax).Members
+        End Function
+
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTopLevelNodeWithMembers
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse
@@ -1306,6 +1310,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightSideOfDot
             Return If(TryCast(node, QualifiedNameSyntax)?.Right,
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
+        End Function
+
+        Public Function GetLeftSideOfDot(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.GetLeftSideOfDot
+            Return If(TryCast(node, QualifiedNameSyntax)?.Left,
+                      TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget))
         End Function
 
         Public Function IsLeftSideOfExplicitInterfaceSpecifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfExplicitInterfaceSpecifier
@@ -2057,6 +2066,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement
             Return MyBase.IsExpressionStatement(node)
+        End Function
+
+        Public Function IsUsingAliasDirective(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingAliasDirective
+            Dim importStatement = TryCast(node, ImportsStatementSyntax)
+
+            If (importStatement IsNot Nothing) Then
+                For Each importsClause In importStatement.ImportsClauses
+
+                    If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
+                        Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
+
+                        If simpleImportsClause.Alias IsNot Nothing Then
+                            Return True
+                        End If
+                    End If
+                Next
+            End If
+
+            Return False
         End Function
     End Class
 End Namespace

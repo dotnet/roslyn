@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var syntaxTree = context.Node.SyntaxTree;
-            var options = (CSharpParseOptions)syntaxTree.Options;
-            if (options.LanguageVersion < LanguageVersion.CSharp8)
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(syntaxTree))
             {
                 return;
             }
@@ -50,9 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var semanticModel = context.SemanticModel;
-            var analysis = semanticModel.AnalyzeDataFlow(localFunction);
-            var captures = analysis.CapturedInside;
-            if (analysis.Succeeded && captures.Length == 0)
+            if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) && captures.Length == 0)
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,

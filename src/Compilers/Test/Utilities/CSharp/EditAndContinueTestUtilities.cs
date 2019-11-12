@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => debugInfo.Closures.IsDefault ? null :
                debugInfo.Closures.Select(c => $"Offset={c.SyntaxOffset} Id={c.ClosureId.Generation}#{c.ClosureId.Ordinal}");
 
+        public static EmitBaseline GetInitialEmitBaseline(this EmitBaseline baseline)
+            => baseline.InitialBaseline;
+
         #endregion
     }
 }

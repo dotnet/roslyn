@@ -2,13 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -32,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
             var registrationService = new SolutionCrawlerRegistrationService(
-SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
-AsynchronousOperationListenerProvider.NullProvider);
+                SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
+                AsynchronousOperationListenerProvider.NullProvider);
 
             // register and unregister workspace to the service
             registrationService.Register(workspace);
@@ -839,7 +837,7 @@ End Class";
                 {
                     started = true;
                 }
-                else if (s.Status == ProgressStatus.Stoped)
+                else if (s.Status == ProgressStatus.Stopped)
                 {
                     stopped = true;
                 }
@@ -964,6 +962,8 @@ End Class";
             using var workspace = TestWorkspace.Create(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: EditorServicesUtil.ExportProvider);
             SetOptions(workspace);
+            var testDocument = workspace.Documents.First();
+            var textBuffer = testDocument.GetTextBuffer();
 
             var analyzer = new Analyzer();
             var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
@@ -971,10 +971,7 @@ End Class";
 
             service.Register(workspace);
 
-            var testDocument = workspace.Documents.First();
-
             var insertPosition = testDocument.CursorPosition;
-            var textBuffer = testDocument.GetTextBuffer();
 
             using (var edit = textBuffer.CreateEdit())
             {

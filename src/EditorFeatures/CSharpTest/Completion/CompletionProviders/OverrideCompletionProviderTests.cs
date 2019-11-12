@@ -2972,7 +2972,7 @@ public class SomeClass : Base
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = workspace.Documents.Single().TextBuffer;
+            var textBuffer = workspace.Documents.Single().GetTextBuffer();
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
 
             Assert.Equal(after, actualCodeAfterCommit);

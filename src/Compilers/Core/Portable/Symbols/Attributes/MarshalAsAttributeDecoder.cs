@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            ITypeSymbol typeSymbol = null;
+            ITypeSymbolInternal typeSymbol = null;
             string typeName = null;
             string cookie = null;
             bool hasTypeName = false;
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     case "MarshalTypeRef":
-                        typeSymbol = namedArg.Value.DecodeValue<ITypeSymbol>(SpecialType.None);
+                        typeSymbol = namedArg.Value.DecodeValue<ITypeSymbolInternal>(SpecialType.None);
                         hasTypeSymbol = true; // even if MarshalTypeRef == null
                         break;
 
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             Cci.VarEnum? elementTypeVariant = null;
-            ITypeSymbol elementTypeSymbol = null;
+            ITypeSymbolInternal elementTypeSymbol = null;
             int symbolIndex = -1;
             bool hasErrors = false;
 
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     case "SafeArrayUserDefinedSubType":
-                        elementTypeSymbol = namedArg.Value.DecodeValue<ITypeSymbol>(SpecialType.None);
+                        elementTypeSymbol = namedArg.Value.DecodeValue<ITypeSymbolInternal>(SpecialType.None);
                         symbolIndex = position;
                         break;
 

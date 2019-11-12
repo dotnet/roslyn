@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             If modifiers.Count >= 2 Then
                 ' We'll see modifiers twice in some circumstances.  First, on a VB block
                 ' construct, and then on the VB begin statement for that block.  In order
-                ' to not double report, only check the statement that teh modifier actually
+                ' to not double report, only check the statement that the modifier actually
                 ' belongs to.
                 Return modifiers.First().Parent Is statement
             End If

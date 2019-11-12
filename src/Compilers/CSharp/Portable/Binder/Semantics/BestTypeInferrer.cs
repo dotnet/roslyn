@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    If no such S exists, the expressions have no best common type.
 
             // All non-null types are candidates for best type inference.
-            IEqualityComparer<TypeSymbol> comparer = conversions.IncludeNullability ? TypeSymbol.EqualsConsiderEverything : TypeSymbol.EqualsIgnoringNullableComparer;
+            IEqualityComparer<TypeSymbol> comparer = conversions.IncludeNullability ? Symbols.SymbolEqualityComparer.ConsiderEverything : Symbols.SymbolEqualityComparer.IgnoringNullable;
             HashSet<TypeSymbol> candidateTypes = new HashSet<TypeSymbol>(comparer);
             foreach (BoundExpression expr in exprs)
             {
@@ -238,23 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (t1tot2 && t2tot1)
             {
-                if (type1.IsDynamic())
-                {
-                    return type1;
-                }
-
-                if (type2.IsDynamic())
-                {
-                    return type2;
-                }
-
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
-                    return MethodTypeInferrer.Merge(
-                        TypeWithAnnotations.Create(type1),
-                        TypeWithAnnotations.Create(type2),
-                        VarianceKind.Out,
-                        conversions).Type;
+                    return type1.MergeEquivalentTypes(type2, VarianceKind.Out);
                 }
 
                 return null;

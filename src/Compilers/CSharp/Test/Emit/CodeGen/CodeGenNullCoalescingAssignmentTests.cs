@@ -1269,22 +1269,12 @@ class C
 }";
 
             CreateCompilation(source2).VerifyDiagnostics(
-
                 // (9,16): error CS1525: Invalid expression term 'ref'
                 //         o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(9, 16),
-                // (9,16): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref o2").WithArguments("ref").WithLocation(9, 16),
+                // (9,16): error CS1073: Unexpected token 'ref'
                 //         o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(9, 16),
-                // (9,20): error CS0118: 'o2' is a variable but is used like a type
-                //         o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "o2").WithArguments("o2", "variable", "type").WithLocation(9, 20),
-                // (9,22): error CS1001: Identifier expected
-                //         o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(9, 22),
-                // (9,22): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(9, 22),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 16),
                 // (10,13): error CS0118: 'o1' is a variable but is used like a type
                 //         ref o1 ??= ref o2;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "o1").WithArguments("o1", "variable", "type").WithLocation(10, 13),
@@ -1302,20 +1292,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(10, 16),
                 // (10,20): error CS1525: Invalid expression term 'ref'
                 //         ref o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 20),
-                // (10,20): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref o2").WithArguments("ref").WithLocation(10, 20),
+                // (10,20): error CS1073: Unexpected token 'ref'
                 //         ref o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(10, 20),
-                // (10,24): error CS0118: 'o2' is a variable but is used like a type
-                //         ref o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "o2").WithArguments("o2", "variable", "type").WithLocation(10, 24),
-                // (10,26): error CS1001: Identifier expected
-                //         ref o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(10, 26),
-                // (10,26): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         ref o1 ??= ref o2;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(10, 26)
-            );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(10, 20));
         }
 
         [Fact]

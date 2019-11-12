@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Immutable;
@@ -30,15 +33,15 @@ namespace Microsoft.Cci
         public DebugSourceInfo(
             ImmutableArray<byte> checksum,
             SourceHashAlgorithm checksumAlgorithm,
-            ImmutableArray<byte> embeddedTextBlob = default(ImmutableArray<byte>))
-            : this(checksum, DebugSourceDocument.GetAlgorithmGuid(checksumAlgorithm), embeddedTextBlob)
+            ImmutableArray<byte> embeddedTextBlob = default)
+            : this(checksum, SourceHashAlgorithms.GetAlgorithmGuid(checksumAlgorithm), embeddedTextBlob)
         {
         }
 
         public DebugSourceInfo(
             ImmutableArray<byte> checksum,
             Guid checksumAlgorithmId,
-            ImmutableArray<byte> embeddedTextBlob = default(ImmutableArray<byte>))
+            ImmutableArray<byte> embeddedTextBlob = default)
         {
             ChecksumAlgorithmId = checksumAlgorithmId;
             Checksum = checksum;

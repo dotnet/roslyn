@@ -6,6 +6,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
-                   CodeStyleOptions.PreferDeconstructedVariableDeclaration,
+                   CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(FeaturesResources.Deconstruct_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_deconstructed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(context.Node.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var option = optionSet.GetOption(CodeStyleOptions.PreferDeconstructedVariableDeclaration, context.Node.Language);
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration);
             if (!option.Value)
             {
                 return;

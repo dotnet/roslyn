@@ -646,9 +646,6 @@ Do you want to continue?</value>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
   </data>
-  <data name="Edit_and_Continue1" xml:space="preserve">
-    <value>Edit and Continue</value>
-  </data>
   <data name="This_signature_does_not_contain_parameters_that_can_be_changed" xml:space="preserve">
     <value>This signature does not contain parameters that can be changed.</value>
   </data>
@@ -706,9 +703,6 @@ Do you want to continue?</value>
   <data name="Compiler1" xml:space="preserve">
     <value>Compiler</value>
   </data>
-  <data name="Edit_and_Continue2" xml:space="preserve">
-    <value>Edit and Continue</value>
-  </data>
   <data name="Style" xml:space="preserve">
     <value>Style</value>
   </data>
@@ -757,8 +751,8 @@ Do you want to continue?</value>
   <data name="Compiler2" xml:space="preserve">
     <value>Compiler</value>
   </data>
-  <data name="Edit_And_Continue" xml:space="preserve">
-    <value>Edit And Continue</value>
+  <data name="EditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
   </data>
   <data name="Live" xml:space="preserve">
     <value>Live</value>
@@ -1659,6 +1653,30 @@ This version used in: {2}</value>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
   </data>
+  <data name="RudeEdit" xml:space="preserve">
+    <value>Rude edit</value>
+  </data>
+  <data name="EditAndContinueDisallowedByModule" xml:space="preserve">
+    <value>Edit and Continue disallowed by module</value>
+  </data>
+  <data name="CannotApplyChangesUnexpectedError" xml:space="preserve">
+    <value>Cannot apply changes -- unexpected error: '{0}'</value>
+  </data>
+  <data name="ErrorReadingFile" xml:space="preserve">
+    <value>Error while reading file '{0}': {1}</value>
+  </data>
+  <data name="EditAndContinueDisallowedByProject" xml:space="preserve">
+    <value>Changes made in project '{0}' will prevent the debug session from continuing: {1}</value>
+  </data>
+  <data name="ChangesNotAppliedWhileRunning" xml:space="preserve">
+    <value>Changes made in project '{0}' will not be applied while the application is running</value>
+  </data>
+  <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
+    <value>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</value>
+  </data>
+  <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
+    <value>Changes are not allowed while stopped at exception</value>
+  </data>
   <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
     <value>Dispose objects before losing scope</value>
   </data>
@@ -1673,7 +1691,7 @@ This version used in: {2}</value>
     <comment>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</comment>
   </data>
   <data name="UseRecommendedDisposePatternDescription" xml:space="preserve">
-    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
+    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
   </data>
   <data name="Disposable_fields_should_be_disposed" xml:space="preserve">
     <value>Disposable fields should be disposed</value>
@@ -1695,5 +1713,11 @@ This version used in: {2}</value>
   </data>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
+  </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
   </data>
 </root>

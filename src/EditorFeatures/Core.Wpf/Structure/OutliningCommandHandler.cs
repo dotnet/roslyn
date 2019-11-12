@@ -5,14 +5,13 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name("Outlining Command Handler")]
-    internal sealed class OutliningCommandHandler : VSCommanding.ICommandHandler<StartAutomaticOutliningCommandArgs>
+    internal sealed class OutliningCommandHandler : ICommandHandler<StartAutomaticOutliningCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
 
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             return false;
         }
 
-        public VSCommanding.CommandState GetCommandState(StartAutomaticOutliningCommandArgs args)
+        public CommandState GetCommandState(StartAutomaticOutliningCommandArgs args)
         {
             var outliningManager = _outliningManagerService.GetOutliningManager(args.TextView);
             var enabled = false;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 enabled = outliningManager.Enabled;
             }
 
-            return new VSCommanding.CommandState(isAvailable: !enabled);
+            return new CommandState(isAvailable: !enabled);
         }
     }
 }

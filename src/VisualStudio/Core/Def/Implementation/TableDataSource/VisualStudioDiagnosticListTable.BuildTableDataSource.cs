@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -154,13 +156,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCodeToolTip:
-                                content = GetHelpLinkToolTipText(item.Workspace, data);
+                                content = BrowserHelper.GetHelpLinkToolTip(data);
                                 return content != null;
                             case StandardTableKeyNames.HelpKeyword:
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
-                                content = GetHelpLink(item.Workspace, data);
+                                content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCategory:
                                 content = data.Category;
@@ -197,10 +199,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 var guids = item.ProjectGuids;
                                 content = guids;
                                 return guids.Length > 0;
-                            case SuppressionStateColumnDefinition.ColumnName:
+                            case StandardTableKeyNames.SuppressionState:
                                 // Build doesn't support suppression.
                                 Contract.ThrowIfTrue(data.IsSuppressed);
-                                content = ServicesVSResources.NotApplicable;
+                                content = SuppressionState.NotApplicable;
                                 return true;
                             default:
                                 content = null;

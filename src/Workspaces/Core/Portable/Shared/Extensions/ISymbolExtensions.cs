@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ITypeSymbol ConvertToType(
-            this ISymbol symbol,
+            this ISymbol? symbol,
             Compilation compilation,
             bool extensionUsedAsInstance = false)
         {
@@ -748,7 +748,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     attribute.ConstructorArguments.Length == 1 &&
                     attribute.ConstructorArguments.First().Value is int)
                 {
+#nullable disable // Should use unboxed value from previous 'is int' https://github.com/dotnet/roslyn/issues/39166
                     var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
+#nullable enable
 
                     if (EditorBrowsableState.Never == state ||
                         (hideAdvancedMembers && EditorBrowsableState.Advanced == state))
@@ -1100,7 +1102,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor)
                     {
                         var baseType = memberSymbol.ContainingType.BaseType;
+#nullable disable // Can 'baseType' be null here? https://github.com/dotnet/roslyn/issues/39166
                         return baseType.Constructors.Where(c => IsSameSignature(methodSymbol, c)).FirstOrDefault();
+#nullable enable
                     }
                     else
                     {

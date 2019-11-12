@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var typeInference = this.Document.Document.GetLanguageService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
                     this.Document.SemanticModel, _invocationExpression, objectAsDefault: true,
-                    nameOpt: this.State.IdentifierToken.ValueText, cancellationToken: cancellationToken);
+                    name: this.State.IdentifierToken.ValueText, cancellationToken: cancellationToken);
                 return inferredType;
             }
 

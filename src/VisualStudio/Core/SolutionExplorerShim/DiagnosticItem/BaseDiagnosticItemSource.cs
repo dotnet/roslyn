@@ -8,37 +8,37 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract partial class BaseDiagnosticItemSource : IAttachedCollectionSource
     {
-        protected static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
+        private static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
 
-        protected readonly Workspace _workspace;
-        protected readonly ProjectId _projectId;
-        protected readonly IAnalyzersCommandHandler _commandHandler;
-        protected readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        protected BulkObservableCollection<BaseDiagnosticItem> _diagnosticItems;
-
-        protected ReportDiagnostic _generalDiagnosticOption;
-        protected ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
+        private BulkObservableCollection<BaseDiagnosticItem> _diagnosticItems;
+        private ReportDiagnostic _generalDiagnosticOption;
+        private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
+        private ImmutableDictionary<string, ReportDiagnostic> _analyzerConfigSpecificDiagnosticOptions;
 
         public BaseDiagnosticItemSource(Workspace workspace, ProjectId projectId, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
-            _workspace = workspace;
-            _projectId = projectId;
-            _commandHandler = commandHandler;
+            Workspace = workspace;
+            ProjectId = projectId;
+            CommandHandler = commandHandler;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
+        public Workspace Workspace { get; }
+        public ProjectId ProjectId { get; }
+        protected IAnalyzersCommandHandler CommandHandler { get; }
+
         public abstract AnalyzerReference AnalyzerReference { get; }
-        protected abstract BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity);
+        protected abstract BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language);
 
         public abstract object SourceItem { get; }
 
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     return false;
                 }
 
-                var project = _workspace.CurrentSolution.GetProject(_projectId);
+                var project = Workspace.CurrentSolution.GetProject(ProjectId);
                 return AnalyzerReference.GetAnalyzers(project.Language).Length > 0;
             }
         }
@@ -67,14 +67,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (_diagnosticItems == null)
                 {
-                    var project = _workspace.CurrentSolution.GetProject(_projectId);
+                    var project = Workspace.CurrentSolution.GetProject(ProjectId);
                     _generalDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
                     _specificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
+                    _analyzerConfigSpecificDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
 
                     _diagnosticItems = new BulkObservableCollection<BaseDiagnosticItem>();
-                    _diagnosticItems.AddRange(GetDiagnosticItems(project.Language, project.CompilationOptions));
+                    _diagnosticItems.AddRange(GetDiagnosticItems(project.Language, project.CompilationOptions, _analyzerConfigSpecificDiagnosticOptions));
 
-                    _workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
+                    Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
                 }
 
                 Logger.Log(
@@ -85,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private IEnumerable<BaseDiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options)
+        private IEnumerable<BaseDiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options, ImmutableDictionary<string, ReportDiagnostic> analyzerConfigSpecificDiagnosticOptions)
         {
             // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
             // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
@@ -103,8 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 .Select(g =>
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options);
-                    return CreateItem(selectedDiagnostic, effectiveSeverity);
+                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigSpecificDiagnosticOptions);
+                    return CreateItem(selectedDiagnostic, effectiveSeverity, language);
                 });
         }
 
@@ -114,35 +115,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 e.Kind == WorkspaceChangeKind.SolutionReloaded ||
                 e.Kind == WorkspaceChangeKind.SolutionRemoved)
             {
-                _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
+                Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
             }
-            else if (e.ProjectId == _projectId)
+            else if (e.ProjectId == ProjectId)
             {
                 if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
                 {
-                    _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
+                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
                 }
                 else if (e.Kind == WorkspaceChangeKind.ProjectChanged)
                 {
-                    var project = e.NewSolution.GetProject(_projectId);
-                    var newGeneralDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
-                    var newSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
-
-                    if (newGeneralDiagnosticOption != _generalDiagnosticOption ||
-                        !object.ReferenceEquals(newSpecificDiagnosticOptions, _specificDiagnosticOptions))
+                    OnProjectConfigurationChanged();
+                }
+                else if (e.DocumentId != null)
+                {
+                    switch (e.Kind)
                     {
-                        _generalDiagnosticOption = newGeneralDiagnosticOption;
-                        _specificDiagnosticOptions = newSpecificDiagnosticOptions;
+                        case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                        case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                        case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+                        case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                            OnProjectConfigurationChanged();
+                            break;
+                    }
+                }
+            }
 
-                        foreach (var item in _diagnosticItems)
-                        {
-                            var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions);
-                            item.UpdateEffectiveSeverity(effectiveSeverity);
-                        }
+            return;
+
+            // Local functions.
+            void OnProjectConfigurationChanged()
+            {
+                var project = e.NewSolution.GetProject(ProjectId);
+                var newGeneralDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
+                var newSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
+                var newAnalyzerConfigSpecificDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
+
+                if (newGeneralDiagnosticOption != _generalDiagnosticOption ||
+                    !object.ReferenceEquals(newSpecificDiagnosticOptions, _specificDiagnosticOptions) ||
+                    !object.ReferenceEquals(newAnalyzerConfigSpecificDiagnosticOptions, _analyzerConfigSpecificDiagnosticOptions))
+                {
+                    _generalDiagnosticOption = newGeneralDiagnosticOption;
+                    _specificDiagnosticOptions = newSpecificDiagnosticOptions;
+                    _analyzerConfigSpecificDiagnosticOptions = newAnalyzerConfigSpecificDiagnosticOptions;
+
+                    foreach (var item in _diagnosticItems)
+                    {
+                        var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigSpecificDiagnosticOptions);
+                        item.UpdateEffectiveSeverity(effectiveSeverity);
                     }
                 }
             }
         }
-
     }
 }

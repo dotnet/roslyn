@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.InternalKeyword,
             SyntaxKind.PublicKeyword,
             SyntaxKind.ProtectedKeyword,
+            SyntaxKind.PrivateKeyword,
             SyntaxKind.UnsafeKeyword,
             SyntaxKind.SealedKeyword,
             SyntaxKind.AbstractKeyword,
@@ -27,11 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            return context.IsMemberDeclarationContext(
+            if (!context.IsMemberDeclarationContext(
                 validModifiers: s_validMemberModifiers,
                 validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
                 canBePartial: false,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken))
+            {
+                return false;
+            }
+
+            var modifiers = context.PrecedingModifiers;
+            return !modifiers.Contains(SyntaxKind.PrivateKeyword) || modifiers.Contains(SyntaxKind.ProtectedKeyword);
         }
     }
 }

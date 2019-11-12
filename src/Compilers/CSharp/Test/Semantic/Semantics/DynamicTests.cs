@@ -612,6 +612,7 @@ class C
     static async Task<int> M()
     {
         return await d;     //-fieldAccess: dynamic
+                            //-awaitableValuePlaceholder: dynamic
                             //-awaitExpression: dynamic
                             //-conversion: int
     }
@@ -635,7 +636,9 @@ class C
 	{
 		var x = await await d; //-typeExpression: dynamic
                                //-fieldAccess: dynamic
+                               //-awaitableValuePlaceholder: dynamic
                                //-awaitExpression: dynamic
+                               //-awaitableValuePlaceholder: dynamic
                                //-awaitExpression: dynamic
 	}
 }";
@@ -2608,10 +2611,13 @@ class C
     static void M()
     {
         var x = new C          //-typeExpression: C
+                               //-objectOrCollectionValuePlaceholder: C
         {
             A =                //-objectInitializerMember: dynamic 
+                               //-objectOrCollectionValuePlaceholder: dynamic
             {                  
                 B =            //-dynamicObjectInitializerMember: dynamic 
+                               //-objectOrCollectionValuePlaceholder: dynamic
                 {              
                     C = 3      //-dynamicObjectInitializerMember: dynamic
                                //-literal: int
@@ -2650,11 +2656,12 @@ class C : List<int>
     {	
 		var z = new C()         //-typeExpression: C
 		{
-			{ d },              //-implicitReceiver: C
+			{ d },              //-objectOrCollectionValuePlaceholder: C
+                                //-objectOrCollectionValuePlaceholder: C
                                 //-fieldAccess: dynamic
                                 //-dynamicCollectionElementInitializer: dynamic
 
-			{ d, d, d },        //-implicitReceiver: C
+			{ d, d, d },        //-objectOrCollectionValuePlaceholder: C
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic

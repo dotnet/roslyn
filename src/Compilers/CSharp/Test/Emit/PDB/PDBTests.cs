@@ -492,9 +492,9 @@ public class C
   </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
-</symbols>", debugEntryPoint: f, options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
+</symbols>", debugEntryPoint: f.GetPublicSymbol(), options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
 
-            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f.GetPublicSymbol()));
             int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
 
             Assert.Equal(0, peEntryPointToken);
@@ -515,9 +515,9 @@ public class C
   </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
-</symbols>", debugEntryPoint: f, options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
+</symbols>", debugEntryPoint: f.GetPublicSymbol(), options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
 
-            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f.GetPublicSymbol()));
             int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
 
             var mdReader = peReader.GetMetadataReader();
@@ -549,22 +549,22 @@ public class C
             var d_int_g = d_int.GetMember<MethodSymbol>("G");
             var d_int_g_int = d_int_g.Construct(stInt);
 
-            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2);
+            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
 
-            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int);
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
 
-            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g);
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
 
-            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g_int);
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g_int.GetPublicSymbol());
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
@@ -2754,7 +2754,7 @@ class C
   IL_0003:  ldc.i4.2
   IL_0004:  newobj     ""int[*,*,*]..ctor""
   IL_0009:  dup
-  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.EB196F988F4F427D318CA25B68671CF3A4510012""
+  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.8B4B2444E57AED8C2D05A1293255DA1B048C63224317D4666230760935FA4A18""
   IL_000f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0014:  stloc.0
  -IL_0015:  nop
@@ -10449,7 +10449,7 @@ class C
         }
 
         [Fact]
-        public void SyntaxOffset_OutVarInSwitchExpresison()
+        public void SyntaxOffset_OutVarInSwitchExpression()
         {
             var source = @"class C { static object G() => N(out var x) switch { null => x switch {1 =>  1, _ => 2 }, _ => 1 }; static object N(out int x) { x = 1; return null; } }";
 
@@ -10511,6 +10511,7 @@ public class C
 @"<symbols>
   <files>
     <file id=""1"" name=""C:\Async.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""DB-EB-2A-06-7B-2F-0E-0D-67-8A-00-2C-58-7A-28-06-05-6C-3D-CE"" />
+    <file id=""2"" name=""HIDDEN.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8A-92-EE-2F-D6-6F-C0-69-F4-A8-54-CB-11-BE-A3-06-76-2C-9C-98"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M1"">
@@ -10577,6 +10578,7 @@ partial class C
 <symbols>
   <files>
     <file id=""1"" name=""constructor.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""EA-D6-0A-16-6C-6A-BC-C1-5D-98-0F-B7-4B-78-13-93-FB-C7-C2-5A"" />
+    <file id=""2"" name=""initializer.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""84-32-24-D7-FE-32-63-BA-41-D5-17-A2-D5-90-23-B8-12-3C-AF-D5"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -11036,6 +11038,77 @@ class Program
                     // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                     Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
             }
+        }
+
+        [Fact]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
+        public void FilesOneWithNoMethodBody()
+        {
+            string source1 = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+");
+            string source2 = WithWindowsLineBreaks(@"
+// no code
+");
+
+            var tree1 = Parse(source1, "f:/build/goo.cs");
+            var tree2 = Parse(source2, "f:/build/nocode.cs");
+            var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" />
+    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
+        public void SingleFileWithNoMethodBody()
+        {
+            string source = WithWindowsLineBreaks(@"
+// no code
+");
+
+            var tree = Parse(source, "f:/build/nocode.cs");
+            var c = CreateCompilation(new[] { tree }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" />
+  </files>
+  <methods />
+</symbols>
+");
         }
     }
 }

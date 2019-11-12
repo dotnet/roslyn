@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="AsyncVoidMethodBuilder"/>, <see cref="AsyncTaskMethodBuilder"/>, or <see cref="AsyncTaskMethodBuilder{TResult}"/> depending on the
         /// return type of the async method.
         /// </summary>
-        private readonly FieldSymbol _asyncMethodBuilderField;
+        protected readonly FieldSymbol _asyncMethodBuilderField;
 
         /// <summary>
         /// A collection of well-known members for the current async method builder.
         /// </summary>
-        private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
+        protected readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
 
         /// <summary>
         /// The exprReturnLabel is used to label the return handling code at the end of the async state-machine
@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly Dictionary<TypeSymbol, FieldSymbol> _awaiterFields;
         private int _nextAwaiterId;
+
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
 
         internal AsyncMethodToStateMachineRewriter(
             MethodSymbol method,
@@ -84,8 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
+
+            _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
 
         private FieldSymbol GetAwaiterField(TypeSymbol awaiterType)
@@ -288,22 +292,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
             var expression = (BoundExpression)Visit(node.Expression);
+            var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
+
+            if (awaitablePlaceholder != null)
+            {
+                _placeholderMap.Add(awaitablePlaceholder, expression);
+            }
+
+            var getAwaiter = node.AwaitableInfo.IsDynamic ?
+                MakeCallMaybeDynamic(expression, null, WellKnownMemberNames.GetAwaiter) :
+                (BoundExpression)Visit(node.AwaitableInfo.GetAwaiter);
+
             resultPlace = (BoundExpression)Visit(resultPlace);
-            MethodSymbol getAwaiter = VisitMethodSymbol(node.AwaitableInfo.GetAwaiter);
             MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.GetResult);
             MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
+            if (awaitablePlaceholder != null)
+            {
+                _placeholderMap.Remove(awaitablePlaceholder);
+            }
+
             // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
             // It transfers the awaiter objects from the old version of the MoveNext method to the new one.
             Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression) || node.WasCompilerGenerated);
-            TypeSymbol awaiterType = node.AwaitableInfo.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
-            var awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
+
+            var awaiterTemp = F.SynthesizedLocal(getAwaiter.Type, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
             var awaitIfIncomplete = F.Block(
                     // temp $awaiterTemp = <expr>.GetAwaiter();
                     F.Assignment(
                         F.Local(awaiterTemp),
-                        MakeCallMaybeDynamic(expression, getAwaiter, WellKnownMemberNames.GetAwaiter)),
+                        getAwaiter),
 
                     // hidden sequence point facilitates EnC method remapping, see explanation on SynthesizedLocalKind.Awaiter:
                     F.HiddenSequencePoint(),
@@ -327,6 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(awaiterTemp),
                 awaitIfIncomplete,
                 getResultStatement);
+        }
+
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return _placeholderMap[node];
         }
 
         private BoundExpression MakeCallMaybeDynamic(

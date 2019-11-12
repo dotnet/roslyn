@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Request new remote host. 
         /// 
-        /// this is designed to be not disruptive to existing callers and to support scenarioes where
+        /// this is designed to be not disruptive to existing callers and to support scenarios where
         /// features required to reload user extension dlls without re-launching VS.
         /// 
         /// if someone requests new remote host, all new callers for <see cref="TryGetRemoteHostClientAsync(CancellationToken)"/> will

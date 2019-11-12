@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override AssemblyData CreateAssemblyDataForFile(
                 PEAssembly assembly,
-                WeakList<IAssemblySymbol> cachedSymbols,
+                WeakList<IAssemblySymbolInternal> cachedSymbols,
                 DocumentationProvider documentationProvider,
                 string sourceAssemblySimpleName,
                 MetadataImportOptions importOptions,
@@ -372,6 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap;
                     ImmutableArray<AssemblyData> allAssemblyData;
 
+                    // Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
+                    // which would not match the previously created ones. As a result we would get duplicate PE types and conversion errors.
+                    var implicitReferenceResolutions = compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions ??
+                        ImmutableDictionary<AssemblyIdentity, PortableExecutableReference>.Empty;
+
                     BoundInputAssembly[] bindingResult = Bind(
                         compilation,
                         explicitAssemblyData,
@@ -385,6 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out allAssemblyData,
                         out implicitlyResolvedReferences,
                         out implicitlyResolvedReferenceMap,
+                        ref implicitReferenceResolutions,
                         resolutionDiagnostics,
                         out hasCircularReference,
                         out corLibraryIndex);
@@ -492,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
                                     explicitReferences,
-                                    implicitlyResolvedReferences,
+                                    implicitReferenceResolutions,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
@@ -914,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 /// </summary>
-                public readonly WeakList<IAssemblySymbol> CachedSymbols;
+                public readonly WeakList<IAssemblySymbolInternal> CachedSymbols;
 
                 public readonly DocumentationProvider DocumentationProvider;
 
@@ -934,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public AssemblyDataForFile(
                     PEAssembly assembly,
-                    WeakList<IAssemblySymbol> cachedSymbols,
+                    WeakList<IAssemblySymbolInternal> cachedSymbols,
                     bool embedInteropTypes,
                     DocumentationProvider documentationProvider,
                     string sourceAssemblySimpleName,

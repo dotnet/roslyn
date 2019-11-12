@@ -18,17 +18,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 
-            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory>();
+            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
-            foreach (var factory in documentOptionsProviderFactories)
-            {
-                var documentOptionsProvider = factory.Value.TryCreate(this);
-
-                if (documentOptionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(documentOptionsProvider);
-                }
-            }
+            RegisterDocumentOptionProviders(documentOptionsProviderFactories);
         }
 
         public TemporaryWorkspace(Solution solution) : this()
@@ -42,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         // for now, temproary workspace is not mutable. consumer can still freely fork solution as they wish
-        // they just can't apply thsoe changes back to the workspace.
+        // they just can't apply those changes back to the workspace.
         public override bool CanApplyChange(ApplyChangesKind feature) => false;
 
         public override bool CanOpenDocuments => false;

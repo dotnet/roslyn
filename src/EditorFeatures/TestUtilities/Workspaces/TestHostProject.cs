@@ -7,8 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -363,7 +361,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
                 this.IsSubmission,
                 this.HostObjectType,
-                hasAllInformation: true)
+                hasAllInformation: true,
+                runAnalyzers: true)
                 .WithDefaultNamespace(this.DefaultNamespace);
         }
 

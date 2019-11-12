@@ -18,9 +18,14 @@ namespace Microsoft.CodeAnalysis
             // right now, it doesn't implement much services but we expect it to implements all 
             // document services in future so that we can remove all if branches in feature code
             // but just delegate work to default document services.
-            if (DocumentOperationService.Instance is TService service)
+            if (DocumentOperationService.Instance is TService documentOperationService)
             {
-                return service;
+                return documentOperationService;
+            }
+
+            if (DocumentPropertiesService.Default is TService documentPropertiesService)
+            {
+                return documentPropertiesService;
             }
 
             return default;

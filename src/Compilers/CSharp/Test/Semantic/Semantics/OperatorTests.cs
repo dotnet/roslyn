@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var orNodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
-            Assert.Equal(orNodes.Length, 2);
+            Assert.Equal(2, orNodes.Length);
 
             var insideEnumDefinition = semanticModel.GetSymbolInfo(orNodes[0]);
             var insideMethodBody = semanticModel.GetSymbolInfo(orNodes[1]);
@@ -51,10 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotEqual(insideEnumDefinition, insideMethodBody);
 
-            Assert.Equal(insideEnumDefinition.Symbol.ToTestDisplayString(),
-                "System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)");
-            Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(),
-                "TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)");
+            Assert.Equal("System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)", insideEnumDefinition.Symbol.ToTestDisplayString());
+            Assert.Equal("TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)", insideMethodBody.Symbol.ToTestDisplayString());
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2858,19 +2856,19 @@ class C
 
             var negOne = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("!1", negOne.ToString());
-            var type1 = (TypeSymbol)model.GetTypeInfo(negOne).Type;
+            var type1 = model.GetTypeInfo(negOne).Type;
             Assert.Equal("?", type1.ToTestDisplayString());
             Assert.True(type1.IsErrorType());
 
             var boolPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(0);
             Assert.Equal("b++", boolPlusPlus.ToString());
-            var type2 = (TypeSymbol)model.GetTypeInfo(boolPlusPlus).Type;
+            var type2 = model.GetTypeInfo(boolPlusPlus).Type;
             Assert.Equal("?", type2.ToTestDisplayString());
             Assert.True(type2.IsErrorType());
 
             var errorPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(1);
             Assert.Equal("error++", errorPlusPlus.ToString());
-            var type3 = (TypeSymbol)model.GetTypeInfo(errorPlusPlus).Type;
+            var type3 = model.GetTypeInfo(errorPlusPlus).Type;
             Assert.Equal("?", type3.ToTestDisplayString());
             Assert.True(type3.IsErrorType());
         }
@@ -6612,7 +6610,7 @@ class Program
             var syntax = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
             var info = model.GetSymbolInfo(syntax);
-            Assert.Equal(expectedOperator, info.Symbol);
+            Assert.Equal(expectedOperator.GetPublicSymbol(), info.Symbol);
         }
 
         [WorkItem(631414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
@@ -6730,8 +6728,8 @@ class Program
             Assert.Equal("i2", syntax.Identifier.ValueText);
 
             var info = model.GetTypeInfo(syntax);
-            Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("InputParameter"), info.Type);
-            Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType);
+            Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("InputParameter"), info.Type.GetSymbol());
+            Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType.GetSymbol());
         }
 
         [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
@@ -6885,8 +6883,8 @@ class Program
             Assert.Equal("i2", syntax.Identifier.ValueText);
 
             var info = model.GetTypeInfo(syntax);
-            Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("InputParameter"), info.Type);
-            Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType);
+            Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("InputParameter").GetPublicSymbol(), info.Type);
+            Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean).GetPublicSymbol(), info.ConvertedType);
         }
 
         [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
@@ -7097,9 +7095,9 @@ public class RubyTime
             Assert.Equal(type.IsDynamic() ? CandidateReason.LateBound : CandidateReason.None, info1.CandidateReason);
             Assert.Equal(0, info1.CandidateSymbols.Length);
 
-            var symbol1 = (MethodSymbol)info1.Symbol;
+            var symbol1 = (IMethodSymbol)info1.Symbol;
             var symbol2 = semanticModel.GetSymbolInfo(node2).Symbol;
-            var symbol3 = (MethodSymbol)semanticModel.GetSymbolInfo(node3).Symbol;
+            var symbol3 = (IMethodSymbol)semanticModel.GetSymbolInfo(node3).Symbol;
             var symbol4 = semanticModel.GetSymbolInfo(node4).Symbol;
 
             Assert.Equal(symbol1, symbol3);
@@ -7121,7 +7119,7 @@ public class RubyTime
                 op == UnaryOperatorKind.PrefixDecrement || op == UnaryOperatorKind.PrefixIncrement ||
                 op == UnaryOperatorKind.PostfixDecrement || op == UnaryOperatorKind.PostfixIncrement)
             {
-                underlying = type.EnumUnderlyingType();
+                underlying = type.EnumUnderlyingTypeOrSelf();
             }
 
             UnaryOperatorKind result = OverloadResolution.UnopEasyOut.OpKind(op, underlying);
@@ -7186,7 +7184,7 @@ public class RubyTime
             switch (op)
             {
                 case UnaryOperatorKind.UnaryMinus:
-                    expectChecked = (type.IsDynamic() || symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType());
+                    expectChecked = (type.IsDynamic() || symbol1.ContainingType.EnumUnderlyingTypeOrSelf().SpecialType.IsIntegralType());
                     break;
 
                 case UnaryOperatorKind.PrefixDecrement:
@@ -7194,7 +7192,7 @@ public class RubyTime
                 case UnaryOperatorKind.PostfixDecrement:
                 case UnaryOperatorKind.PostfixIncrement:
                     expectChecked = (type.IsDynamic() || type.IsPointerType() ||
-                                     symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType() ||
+                                     symbol1.ContainingType.EnumUnderlyingTypeOrSelf().SpecialType.IsIntegralType() ||
                                      symbol1.ContainingType.SpecialType == SpecialType.System_Char);
                     break;
 
@@ -7209,14 +7207,14 @@ public class RubyTime
             Assert.False(symbol1.IsExtensionMethod);
             Assert.False(symbol1.IsExtern);
             Assert.False(symbol1.CanBeReferencedByName);
-            Assert.Null(symbol1.DeclaringCompilation);
+            Assert.Null(symbol1.GetSymbol().DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
             Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type);
             Assert.Equal(0, symbol1.Locations.Length);
             Assert.Null(symbol1.GetDocumentationCommentId());
             Assert.Equal("", symbol1.GetDocumentationCommentXml());
 
-            Assert.True(symbol1.HasSpecialName);
+            Assert.True(symbol1.GetSymbol().HasSpecialName);
             Assert.True(symbol1.IsStatic);
             Assert.Equal(Accessibility.Public, symbol1.DeclaredAccessibility);
             Assert.False(symbol1.HidesBaseMethodsByName);
@@ -7224,10 +7222,10 @@ public class RubyTime
             Assert.False(symbol1.IsVirtual);
             Assert.False(symbol1.IsAbstract);
             Assert.False(symbol1.IsSealed);
-            Assert.Equal(1, symbol1.ParameterCount);
+            Assert.Equal(1, symbol1.GetSymbol().ParameterCount);
             Assert.Equal(0, symbol1.Parameters[0].Ordinal);
 
-            var otherSymbol = (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol;
+            var otherSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol;
             Assert.Equal(symbol1, otherSymbol);
 
             if (type.IsValueType && !type.IsPointerType())
@@ -7264,7 +7262,7 @@ class Module1
 
             Assert.Equal(2, nodes.Length);
 
-            var symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            var symbols1 = (from node1 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
             foreach (var symbol1 in symbols1)
             {
                 Assert.False(symbol1.IsCheckedBuiltin);
@@ -7273,7 +7271,7 @@ class Module1
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
-            var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            var symbols2 = (from node2 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
             foreach (var symbol2 in symbols2)
             {
                 Assert.True(symbol2.IsCheckedBuiltin);
@@ -7662,11 +7660,11 @@ class Module1
                 Assert.Equal(0, info1.CandidateSymbols.Length);
             }
 
-            var symbol1 = (MethodSymbol)info1.Symbol;
+            var symbol1 = (IMethodSymbol)info1.Symbol;
             var symbol2 = semanticModel.GetSymbolInfo(node2).Symbol;
             var symbol3 = semanticModel.GetSymbolInfo(node3).Symbol;
             var symbol4 = semanticModel.GetSymbolInfo(node4).Symbol;
-            var symbol5 = (MethodSymbol)semanticModel.GetSymbolInfo(node5).Symbol;
+            var symbol5 = (IMethodSymbol)semanticModel.GetSymbolInfo(node5).Symbol;
             var symbol6 = semanticModel.GetSymbolInfo(node6).Symbol;
             var symbol7 = semanticModel.GetSymbolInfo(node7).Symbol;
             var symbol8 = semanticModel.GetSymbolInfo(node8).Symbol;
@@ -7761,20 +7759,20 @@ class Module1
                 {
                     if (leftType.IsPointerType())
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type, leftType);
-                        Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type.GetSymbol(), leftType);
+                        Assert.True(symbol1.Parameters[1].Type.GetSymbol().IsIntegralType());
                     }
                     else
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type, rightType, rightType);
-                        Assert.True(symbol1.Parameters[0].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type.GetSymbol(), rightType, rightType);
+                        Assert.True(symbol1.Parameters[0].Type.GetSymbol().IsIntegralType());
                     }
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
                     (leftType.IsPointerType() && (rightType.IsIntegralType() || rightType.IsCharType())))
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type, leftType);
-                    Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type.GetSymbol(), leftType);
+                    Assert.True(symbol1.Parameters[1].Type.GetSymbol().IsIntegralType());
                 }
                 else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
@@ -7782,22 +7780,22 @@ class Module1
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     leftType.IsEnumType() && (rightType.IsIntegralType() || rightType.IsCharType()) &&
-                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingType(), rightType)) != BinaryOperatorKind.Error &&
-                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingType(), TypeCompareKind.ConsiderEverything2))
+                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingTypeOrSelf(), rightType)) != BinaryOperatorKind.Error &&
+                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, leftType, signature.RightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     rightType.IsEnumType() && (leftType.IsIntegralType() || leftType.IsCharType()) &&
-                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingType())) != BinaryOperatorKind.Error &&
-                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingType(), TypeCompareKind.ConsiderEverything2))
+                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingTypeOrSelf())) != BinaryOperatorKind.Error &&
+                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, signature.LeftType, rightType, rightType);
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
                     leftType.IsEnumType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, leftType.EnumUnderlyingType());
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, leftType.EnumUnderlyingTypeOrSelf());
                 }
                 else if ((op == BinaryOperatorKind.Equal ||
                           op == BinaryOperatorKind.NotEqual ||
@@ -7963,7 +7961,7 @@ class Module1
                 case BinaryOperatorKind.Addition:
                 case BinaryOperatorKind.Subtraction:
                 case BinaryOperatorKind.Division:
-                    isChecked = isDynamic || symbol1.ContainingSymbol.Kind == SymbolKind.PointerType || symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType();
+                    isChecked = isDynamic || symbol1.ContainingSymbol.Kind == SymbolKind.PointerType || symbol1.ContainingType.EnumUnderlyingTypeOrSelf().SpecialType.IsIntegralType();
                     break;
 
                 default:
@@ -7977,24 +7975,24 @@ class Module1
             Assert.False(symbol1.IsExtensionMethod);
             Assert.False(symbol1.IsExtern);
             Assert.False(symbol1.CanBeReferencedByName);
-            Assert.Null(symbol1.DeclaringCompilation);
+            Assert.Null(symbol1.GetSymbol().DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type, TypeCompareKind.ConsiderEverything2) ||
-                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type, TypeCompareKind.ConsiderEverything2));
+            Assert.True(SymbolEqualityComparer.ConsiderEverything.Equals(symbol1.ContainingSymbol, symbol1.Parameters[0].Type) ||
+                SymbolEqualityComparer.ConsiderEverything.Equals(symbol1.ContainingSymbol, symbol1.Parameters[1].Type));
 
             int match = 0;
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnType, TypeCompareKind.ConsiderEverything2))
+            if (SymbolEqualityComparer.ConsiderEverything.Equals(symbol1.ContainingSymbol, symbol1.ReturnType))
             {
                 match++;
             }
 
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type, TypeCompareKind.ConsiderEverything2))
+            if (SymbolEqualityComparer.ConsiderEverything.Equals(symbol1.ContainingSymbol, symbol1.Parameters[0].Type))
             {
                 match++;
             }
 
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type, TypeCompareKind.ConsiderEverything2))
+            if (SymbolEqualityComparer.ConsiderEverything.Equals(symbol1.ContainingSymbol, symbol1.Parameters[1].Type))
             {
                 match++;
             }
@@ -8005,7 +8003,7 @@ class Module1
             Assert.Null(symbol1.GetDocumentationCommentId());
             Assert.Equal("", symbol1.GetDocumentationCommentXml());
 
-            Assert.True(symbol1.HasSpecialName);
+            Assert.True(symbol1.GetSymbol().HasSpecialName);
             Assert.True(symbol1.IsStatic);
             Assert.Equal(Accessibility.Public, symbol1.DeclaredAccessibility);
             Assert.False(symbol1.HidesBaseMethodsByName);
@@ -8013,11 +8011,11 @@ class Module1
             Assert.False(symbol1.IsVirtual);
             Assert.False(symbol1.IsAbstract);
             Assert.False(symbol1.IsSealed);
-            Assert.Equal(2, symbol1.ParameterCount);
+            Assert.Equal(2, symbol1.Parameters.Length);
             Assert.Equal(0, symbol1.Parameters[0].Ordinal);
             Assert.Equal(1, symbol1.Parameters[1].Ordinal);
 
-            var otherSymbol = (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol;
+            var otherSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol;
             Assert.Equal(symbol1, otherSymbol);
 
             if (leftType.IsValueType && !leftType.IsPointerType())
@@ -8142,7 +8140,7 @@ class Module1
 
             Assert.Equal(2, nodes.Length);
 
-            var symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            var symbols1 = (from node1 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
             foreach (var symbol1 in symbols1)
             {
                 Assert.False(symbol1.IsCheckedBuiltin);
@@ -8151,7 +8149,7 @@ class Module1
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
-            var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            var symbols2 = (from node2 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
             foreach (var symbol2 in symbols2)
             {
                 Assert.True(symbol2.IsCheckedBuiltin);
@@ -8188,22 +8186,22 @@ class Module1
 
             Assert.Equal(2, nodes.Length);
 
-            var symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            var symbols1 = (from node1 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
             foreach (var symbol1 in symbols1)
             {
                 Assert.False(symbol1.IsCheckedBuiltin);
-                Assert.True(((TypeSymbol)symbol1.ContainingSymbol).IsDynamic());
+                Assert.True(((ITypeSymbol)symbol1.ContainingSymbol).IsDynamic());
                 Assert.Null(symbol1.ContainingType);
             }
 
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
-            var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            var symbols2 = (from node2 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
             foreach (var symbol2 in symbols2)
             {
                 Assert.True(symbol2.IsCheckedBuiltin);
-                Assert.True(((TypeSymbol)symbol2.ContainingSymbol).IsDynamic());
+                Assert.True(((ITypeSymbol)symbol2.ContainingSymbol).IsDynamic());
                 Assert.Null(symbol2.ContainingType);
             }
 
@@ -10839,7 +10837,7 @@ public class C {
             var negNode = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("!invalidExpression", negNode.ToString());
 
-            var type = (TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(negNode).Type;
+            var type = (ITypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(negNode).Type;
             Assert.Equal("?", type.ToTestDisplayString());
             Assert.True(type.IsErrorType());
         }

@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         // https://github.com/dotnet/roslyn/issues/26642
         private static readonly Guid ImageCatalogGuid = Guid.Parse("ae27a6b0-e345-4288-96df-5eaf394ee369");
 
+        public static ImageId GetImageCatalogImageId(int imageId)
+            => new ImageId(ImageCatalogGuid, imageId);
+
         public static ImageId GetImageId(this Glyph glyph)
         {
             // VS for mac cannot refer to ImageMoniker
@@ -208,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     return new ImageId(ImageCatalogGuid, KnownImageIds.NuGet);
 
                 case Glyph.TargetTypeMatch:
-                    return new ImageId(ImageCatalogGuid, KnownImageIds.CorrelationScope);
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.MatchType);
 
                 default:
                     throw new ArgumentException(nameof(glyph));

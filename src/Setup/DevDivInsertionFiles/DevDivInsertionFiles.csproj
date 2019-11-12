@@ -46,7 +46,7 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
-    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" OptimizeAssemblies="lib/netstandard1.3/Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.AnalyzerUtilities" OptimizeAssemblies="lib/netstandard2.0/Microsoft.CodeAnalysis.AnalyzerUtilities.dll"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
@@ -118,6 +118,9 @@
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
+      <_Dependency Remove="Microsoft.Win32.Registry"/>
+      <_Dependency Remove="System.Security.AccessControl"/>
+      <_Dependency Remove="System.Security.Principal.Windows"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->

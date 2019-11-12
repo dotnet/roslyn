@@ -528,14 +528,14 @@ Test2
             var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
 
             var m2 = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("M2");
-            var szArray = (IArrayTypeSymbol)m2.Parameters.First().Type;
+            var szArray = (ArrayTypeSymbol)m2.Parameters.First().Type;
             Assert.Equal("T[]", szArray.ToTestDisplayString());
             Assert.True(szArray.IsSZArray);
             Assert.Equal(1, szArray.Rank);
             Assert.True(szArray.Sizes.IsEmpty);
             Assert.True(szArray.LowerBounds.IsDefault);
 
-            var mdArray = (IArrayTypeSymbol)m2.Parameters.Last().Type;
+            var mdArray = (ArrayTypeSymbol)m2.Parameters.Last().Type;
             Assert.Equal("T[*]", mdArray.ToTestDisplayString());
             Assert.False(mdArray.IsSZArray);
             Assert.Equal(1, mdArray.Rank);
@@ -1003,82 +1003,82 @@ System.Double
 
     public override double[,] Test1()
     {
-        System.Console.WriteLine(""Overriden 1"");
+        System.Console.WriteLine(""Overridden 1"");
         return null;
     }
     public override double[,] Test2()
     {
-        System.Console.WriteLine(""Overriden 2"");
+        System.Console.WriteLine(""Overridden 2"");
         return null;
     }
     public override double[,] Test3()
     {
-        System.Console.WriteLine(""Overriden 3"");
+        System.Console.WriteLine(""Overridden 3"");
         return null;
     }
     public override double[,] Test4()
     {
-        System.Console.WriteLine(""Overriden 4"");
+        System.Console.WriteLine(""Overridden 4"");
         return null;
     }
     public override double[,] Test5()
     {
-        System.Console.WriteLine(""Overriden 5"");
+        System.Console.WriteLine(""Overridden 5"");
         return null;
     }
     public override double[,] Test6()
     {
-        System.Console.WriteLine(""Overriden 6"");
+        System.Console.WriteLine(""Overridden 6"");
         return null;
     }
     public override double[,] Test7()
     {
-        System.Console.WriteLine(""Overriden 7"");
+        System.Console.WriteLine(""Overridden 7"");
         return null;
     }
     public override double[,] Test8()
     {
-        System.Console.WriteLine(""Overriden 8"");
+        System.Console.WriteLine(""Overridden 8"");
         return null;
     }
     public override double[,] Test9()
     {
-        System.Console.WriteLine(""Overriden 9"");
+        System.Console.WriteLine(""Overridden 9"");
         return null;
     }
     public override double[,] Test10()
     {
-        System.Console.WriteLine(""Overriden 10"");
+        System.Console.WriteLine(""Overridden 10"");
         return null;
     }
     public override double[,] Test11()
     {
-        System.Console.WriteLine(""Overriden 11"");
+        System.Console.WriteLine(""Overridden 11"");
         return null;
     }
     public override double[,] Test12()
     {
-        System.Console.WriteLine(""Overriden 12"");
+        System.Console.WriteLine(""Overridden 12"");
         return null;
     }
     public override double[,] Test13()
     {
-        System.Console.WriteLine(""Overriden 13"");
+        System.Console.WriteLine(""Overridden 13"");
         return null;
     }
     public override double[,] Test14()
     {
-        System.Console.WriteLine(""Overriden 14"");
+        System.Console.WriteLine(""Overridden 14"");
         return null;
     }
     public override double[,] Test15()
     {
-        System.Console.WriteLine(""Overriden 15"");
+        System.Console.WriteLine(""Overridden 15"");
         return null;
     }
     public override double[,] Test16()
     {
-        System.Console.WriteLine(""Overriden 16"");
+        System.Console.WriteLine(""Overridden 16"");
         return null;
     }
 }
@@ -1086,119 +1086,119 @@ System.Double
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var test = compilation.GetTypeByMetadataName("Test");
-            var array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType;
+            var array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test2").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test2").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test3").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test3").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test4").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test4").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test5").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test5").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test6").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test6").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 5 }, array.Sizes);
             Assert.True(array.LowerBounds.IsDefault);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test7").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test7").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test8").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test8").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 7 }, array.Sizes);
             Assert.Equal(new[] { 0, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test9").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test9").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test10").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test10").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test11").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test11").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 5 }, array.Sizes);
             Assert.Equal(new[] { 1, 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test12").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test12").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test13").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test13").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 7 }, array.Sizes);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test14").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test14").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test15").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test15").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test16").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test16").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test17").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test17").ReturnType;
             Assert.Equal("System.Double[*]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(1, array.Rank);
@@ -1222,22 +1222,22 @@ Test13
 Test14
 Test15
 Test16
-Overriden 1
-Overriden 2
-Overriden 3
-Overriden 4
-Overriden 5
-Overriden 6
-Overriden 7
-Overriden 8
-Overriden 9
-Overriden 10
-Overriden 11
-Overriden 12
-Overriden 13
-Overriden 14
-Overriden 15
-Overriden 16
+Overridden 1
+Overridden 2
+Overridden 3
+Overridden 4
+Overridden 5
+Overridden 6
+Overridden 7
+Overridden 8
+Overridden 9
+Overridden 10
+Overridden 11
+Overridden 12
+Overridden 13
+Overridden 14
+Overridden 15
+Overridden 16
 ");
         }
 
@@ -1467,67 +1467,67 @@ Overriden 16
 
     public override void Test1(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 1"");
+        System.Console.WriteLine(""Overridden 1"");
     }
     public override void Test2(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 2"");
+        System.Console.WriteLine(""Overridden 2"");
     }
     public override void Test3(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 3"");
+        System.Console.WriteLine(""Overridden 3"");
     }
     public override void Test4(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 4"");
+        System.Console.WriteLine(""Overridden 4"");
     }
     public override void Test5(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 5"");
+        System.Console.WriteLine(""Overridden 5"");
     }
     public override void Test6(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 6"");
+        System.Console.WriteLine(""Overridden 6"");
     }
     public override void Test7(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 7"");
+        System.Console.WriteLine(""Overridden 7"");
     }
     public override void Test8(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 8"");
+        System.Console.WriteLine(""Overridden 8"");
     }
     public override void Test9(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 9"");
+        System.Console.WriteLine(""Overridden 9"");
     }
     public override void Test10(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 10"");
+        System.Console.WriteLine(""Overridden 10"");
     }
     public override void Test11(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 11"");
+        System.Console.WriteLine(""Overridden 11"");
     }
     public override void Test12(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 12"");
+        System.Console.WriteLine(""Overridden 12"");
     }
     public override void Test13(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 13"");
+        System.Console.WriteLine(""Overridden 13"");
     }
     public override void Test14(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 14"");
+        System.Console.WriteLine(""Overridden 14"");
     }
     public override void Test15(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 15"");
+        System.Console.WriteLine(""Overridden 15"");
     }
     public override void Test16(double[,] x)
     {
-        System.Console.WriteLine(""Overriden 16"");
+        System.Console.WriteLine(""Overridden 16"");
     }
 }
 ";
@@ -1549,22 +1549,22 @@ Test13
 Test14
 Test15
 Test16
-Overriden 1
-Overriden 2
-Overriden 3
-Overriden 4
-Overriden 5
-Overriden 6
-Overriden 7
-Overriden 8
-Overriden 9
-Overriden 10
-Overriden 11
-Overriden 12
-Overriden 13
-Overriden 14
-Overriden 15
-Overriden 16
+Overridden 1
+Overridden 2
+Overridden 3
+Overridden 4
+Overridden 5
+Overridden 6
+Overridden 7
+Overridden 8
+Overridden 9
+Overridden 10
+Overridden 11
+Overridden 12
+Overridden 13
+Overridden 14
+Overridden 15
+Overridden 16
 ");
         }
 
@@ -1684,8 +1684,8 @@ class C
             Assert.Equal(1, a2.Rank);
             Assert.False(a2.IsSZArray);
 
-            Assert.True(((TypeSymbol)p.GetMember<MethodSymbol>("Test3").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
-            Assert.True(((TypeSymbol)p.GetMember<MethodSymbol>("Test4").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
+            Assert.True(((ITypeSymbol)p.GetMember<MethodSymbol>("Test3").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
+            Assert.True(((ITypeSymbol)p.GetMember<MethodSymbol>("Test4").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
 
             CompileAndVerify(compilation, expectedOutput:
 @"System.Int32[]

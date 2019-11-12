@@ -7711,11 +7711,11 @@ public class IA
             var compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics();
             var assembly = compilation.Assembly;
-            Assert.Equal(assembly.GetAttributes().Length, 0);
+            Assert.Equal(0, assembly.GetAttributes().Length);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 0);
+            Assert.Equal(0, type.GetAttributes().Length);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 0);
+            Assert.Equal(0, method.GetAttributes().Length);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
             Assert.True(method.IsExtensionMethod);
@@ -7754,11 +7754,11 @@ public class IA
             compilation.VerifyDiagnostics(); // we now recognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
-            Assert.Equal(assembly.GetAttributes().Length, 0);
+            Assert.Equal(0, assembly.GetAttributes().Length);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 0);
+            Assert.Equal(0, type.GetAttributes().Length);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 0);
+            Assert.Equal(0, method.GetAttributes().Length);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
             Assert.True(method.IsExtensionMethod);
@@ -8793,9 +8793,9 @@ class Target<T>
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
 
-            var typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            var typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
 
             var comp2 = CreateCompilation("", new[] { comp.EmitToImageReference() });
@@ -8803,9 +8803,9 @@ class Target<T>
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(type);
 
-            typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
         }
 

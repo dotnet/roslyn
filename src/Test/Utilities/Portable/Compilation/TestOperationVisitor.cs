@@ -1467,5 +1467,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.ReDimClause, operation.Kind);
             AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.Children);
         }
+
+        public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
+        {
+            Assert.NotNull(operation.DeclarationGroup);
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.DeclarationGroup), operation.Children);
+            Assert.True(operation.DeclarationGroup.IsImplicit);
+            Assert.Null(operation.Type);
+            Assert.False(operation.ConstantValue.HasValue);
+            _ = operation.IsAsynchronous;
+            _ = operation.IsImplicit;
+        }
     }
 }

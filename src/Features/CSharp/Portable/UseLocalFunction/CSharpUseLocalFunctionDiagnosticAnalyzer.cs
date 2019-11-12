@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;

@@ -94,7 +94,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -105,7 +105,7 @@ dotnet_style_object_initializer = true:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_RuleExists_True()
             {
                 var input = @"
@@ -243,7 +243,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = false:suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -254,7 +254,7 @@ dotnet_style_object_initializer = true:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_MaintainSeverity_True()
             {
                 var input = @"
@@ -467,7 +467,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion
@@ -616,7 +616,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion

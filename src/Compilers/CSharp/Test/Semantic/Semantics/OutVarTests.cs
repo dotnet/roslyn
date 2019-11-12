@@ -970,7 +970,7 @@ public class Cls
             Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(expectedLocalKind, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(expectedLocalKind, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
             Assert.False(((ILocalSymbol)symbol).IsFixed);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
@@ -986,7 +986,7 @@ public class Cls
 
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
-            var local = (SourceLocalSymbol)symbol;
+            var local = (ILocalSymbol)symbol;
 
             AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
 
@@ -1007,8 +1007,8 @@ public class Cls
         private static void AssertInfoForDeclarationExpressionSyntax(
             SemanticModel model,
             DeclarationExpressionSyntax decl,
-            Symbol expectedSymbol = null,
-            TypeSymbol expectedType = null
+            ISymbol expectedSymbol = null,
+            ITypeSymbol expectedType = null
             )
         {
             var symbolInfo = model.GetSymbolInfo(decl);
@@ -1042,7 +1042,7 @@ public class Cls
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType().Type;
+            ITypeSymbol expected = expectedSymbol?.GetTypeOrReturnType();
 
             if (expected?.IsErrorType() != false)
             {
@@ -1072,7 +1072,7 @@ public class Cls
             Assert.Null(model.GetDeclaredSymbol(decl));
         }
 
-        private static void AssertTypeFromOperation(SemanticModel model, TypeSymbol expectedType, DeclarationExpressionSyntax decl)
+        private static void AssertTypeFromOperation(SemanticModel model, ITypeSymbol expectedType, DeclarationExpressionSyntax decl)
         {
             // see https://github.com/dotnet/roslyn/issues/23006 and https://github.com/dotnet/roslyn/issues/23007 for more detail
 
@@ -1140,12 +1140,12 @@ public class Cls
             var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.OutVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.OutVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
-            var local = (SourceLocalSymbol)symbol;
+            var local = (ILocalSymbol)symbol;
 
             AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type);
         }
@@ -1173,7 +1173,7 @@ public class Cls
 
             if (symbol.Kind == SymbolKind.Local)
             {
-                var local = (SourceLocalSymbol)symbol;
+                var local = symbol.GetSymbol<SourceLocalSymbol>();
                 var parent = local.IdentifierToken.Parent;
 
                 Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => e.IsOutVarDeclaration()));
@@ -5719,7 +5719,7 @@ public class X
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -12853,7 +12853,7 @@ public class X
                 var yRef = GetReferences(tree, id).Single();
                 VerifyModelForOutVar(model, yDecl, yRef);
 
-                Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(yDecl))).TypeWithAnnotations.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(yDecl))).Type.ToTestDisplayString());
             }
         }
 
@@ -18020,7 +18020,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("Cls.var", ((ILocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -18420,7 +18420,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
 
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (25,26): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
@@ -18484,7 +18484,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
 
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (29,26): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
@@ -18533,7 +18533,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -18578,7 +18578,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -20197,7 +20197,7 @@ public class Cls
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
+            var x1 = (ILocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
             Assert.True(x1.Type.IsErrorType());
             VerifyModelForOutVar(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
 
@@ -20226,8 +20226,8 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
-            var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
-            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (ILocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
             compilation.VerifyDiagnostics();
         }
 
@@ -21283,7 +21283,7 @@ var y, y1(Dummy(TakeOutParam(true, out var x1), x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
+            Assert.True(((ILocalSymbol)y1).Type.IsErrorType());
         }
 
         [Fact]
@@ -21341,7 +21341,7 @@ public class X
             VerifyNotInScope(model, x1Ref[1]);
 
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
             Assert.True(symbol.Type.IsErrorType());
         }
@@ -21391,7 +21391,7 @@ public class X
 
             model = compilation.GetSemanticModel(tree);
             var zRef = GetReference(tree, "z1");
-            Assert.True(((TypeSymbol)model.GetTypeInfo(zRef).Type).IsErrorType());
+            Assert.True(((ITypeSymbol)model.GetTypeInfo(zRef).Type).IsErrorType());
         }
 
         [Fact]
@@ -22646,7 +22646,7 @@ public class X
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
                 Assert.False(model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Any());
                 Assert.DoesNotContain(reference.Identifier.ValueText, model.LookupNames(reference.SpanStart));
-                Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
+                Assert.True(((ITypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
             }
         }
 
@@ -25725,7 +25725,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
-                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).TypeWithAnnotations.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((IFieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
@@ -26261,7 +26261,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
-                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).TypeWithAnnotations.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((IFieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
@@ -31090,8 +31090,8 @@ class H
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
-            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
         }
 
@@ -31120,7 +31120,7 @@ class H
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            var b = (IFieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
             Assert.True(b.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
@@ -31131,8 +31131,8 @@ class H
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
-            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -31160,7 +31160,7 @@ class H
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            var b = (IFieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
             Assert.True(b.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
@@ -31171,8 +31171,8 @@ class H
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
-            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -31200,7 +31200,7 @@ class H
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
+            var a = (IFieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
             Assert.True(a.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
@@ -31211,16 +31211,16 @@ class H
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
-            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
 
             compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
             x1Decl = GetOutVarDeclarations(tree, "x1").Single();
 
-            x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
@@ -31257,8 +31257,8 @@ class H
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
-            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
@@ -31274,11 +31274,11 @@ class H
             x1Decl = GetOutVarDeclarations(tree, "x1").Single();
 
             var bDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single();
-            var b = (FieldSymbol)model.GetDeclaredSymbol(bDecl);
+            var b = (IFieldSymbol)model.GetDeclaredSymbol(bDecl);
             Assert.True(b.Type.IsErrorType());
 
-            x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
+            x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
             Assert.False(x1.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
@@ -31326,8 +31326,8 @@ class H
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
-            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
         }
 
@@ -31376,8 +31376,8 @@ class H
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
-            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (IFieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
         }
 
@@ -31645,7 +31645,7 @@ class Program
 
             Assert.Contains(decl.Identifier().ValueText, names);
 
-            var local = (FieldSymbol)symbol;
+            var local = (IFieldSymbol)symbol;
 
             var declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&

@@ -52,6 +52,16 @@
         <target state="translated">Předvolby porovnávání vzorů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Usings">
+        <source>R&amp;emove and Sort Usings</source>
+        <target state="translated">Od&amp;ebrat a seřadit direktivy Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="translated">&amp;Seřadit direktivy using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
         <target state="translated">Předvolby mezer</target>

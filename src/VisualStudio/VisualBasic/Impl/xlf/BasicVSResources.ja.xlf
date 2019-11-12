@@ -277,6 +277,11 @@
         <target state="translated">VB コーディング規約</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Basic_language_server_client">
+        <source>Visual Basic Language Server Client</source>
+        <target state="translated">Visual Basic 言語サーバー クライアント</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' のチェック中:</target>

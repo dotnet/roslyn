@@ -2,7 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Tree Root="IOperation">
 
-
   <!--
       To regenerate the operation nodes, run eng/generate-compiler-code.cmd
 
@@ -64,8 +63,9 @@
           (1) C# local declaration statement
           (2) C# fixed statement
           (3) C# using statement
-          (4) VB Dim statement
-          (5) VB Using statement
+          (4) C# using declaration
+          (5) VB Dim statement
+          (6) VB Using statement
       </para>
     </Comments>
     <Property Name="Declarations" Type="ImmutableArray&lt;IVariableDeclarationOperation&gt;">
@@ -2002,9 +2002,8 @@
         Current Usage:
           (1) C# VariableDeclaration
           (2) C# fixed declarations
-          (3) C# using declarations
-          (4) VB Dim statement declaration groups
-          (5) VB Using statement variable declarations
+          (3) VB Dim statement declaration groups
+          (4) VB Using statement variable declarations
       </para>
       <remarks>
         The initializer of this node is applied to all individual declarations in <see cref="Declarators" />. There cannot
@@ -2896,6 +2895,28 @@
     <Property Name="Value" Type="IOperation">
       <Comments>
         <summary>Value to whose members leading-dot-qualified references within the with body bind.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IUsingDeclarationOperation" Base="IOperation">
+    <Comments>
+      <summary>
+        Represents using variable declaration, with scope spanning across the parent <see cref="IBlockOperation"/>.
+        <para>
+        Current Usage:
+         (1) C# using declaration
+         (1) C# asynchronous using declaration
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="DeclarationGroup" Type="IVariableDeclarationGroupOperation">
+      <Comments>
+        <summary>The variables declared by this using declaration.</summary>
+      </Comments>
+    </Property>
+    <Property Name="IsAsynchronous" Type="bool">
+      <Comments>
+        <summary>True if this is an asynchronous using declaration.</summary>
       </Comments>
     </Property>
   </Node>

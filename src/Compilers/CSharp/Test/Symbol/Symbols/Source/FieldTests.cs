@@ -260,7 +260,7 @@ class C
             Assert.Equal("x", mem.Name);
             Assert.True(mem.IsConst);
             Assert.False(mem.HasConstantValue);
-            Assert.Equal(null, mem.ConstantValue);
+            Assert.Null(mem.ConstantValue);
         }
 
         [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]

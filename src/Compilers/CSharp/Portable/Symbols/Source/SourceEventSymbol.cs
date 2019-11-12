@@ -674,9 +674,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (Symbol interfaceMember in @interface.GetMembers(this.Name))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (interfaceMember.Kind == SymbolKind.Event && //quick check (necessary, not sufficient)
-                        this == this.containingType.FindImplementationForInterfaceMember(interfaceMember, ref useSiteDiagnostics)) //slow check (necessary and sufficient)
+                        interfaceMember.IsImplementableInterfaceMember() &&
+                        // We are passing ignoreImplementationInInterfacesIfResultIsNotReady: true to avoid a cycle. If false is passed, FindImplementationForInterfaceMemberInNonInterface
+                        // will look how event accessors are implemented and we end up here again since we will need to know their signature for that.
+                        this == this.containingType.FindImplementationForInterfaceMemberInNonInterface(interfaceMember, ignoreImplementationInInterfacesIfResultIsNotReady: true)) //slow check (necessary and sufficient)
                     {
                         sawImplicitImplementation = true;
 

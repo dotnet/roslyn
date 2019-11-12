@@ -28,21 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return triviaList
                 .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
-                .FirstOrNullable();
+                .FirstOrNull();
         }
 
         public static SyntaxTrivia? GetLastComment(this SyntaxTriviaList triviaList)
         {
             return triviaList
                 .Where(t => t.IsRegularComment())
-                .LastOrNullable();
+                .LastOrNull();
         }
 
         public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
         {
             return triviaList
                 .Where(t => t.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia, SyntaxKind.WhitespaceTrivia))
-                .LastOrNullable();
+                .LastOrNull();
         }
 
         public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)

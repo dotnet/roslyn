@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 expr: "this.get_P()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0571: 'C.P.get': cannot explicitly call operator or accessor");
+            Assert.Equal("error CS0571: 'C.P.get': cannot explicitly call operator or accessor", error);
         }
 
         [Fact]

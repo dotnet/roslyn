@@ -9,6 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
+        // Name of the key used to retireve the whole entry object.
+        internal const string SelfKeyName = "self";
+
         private class TableEntriesSnapshot : WpfTableEntriesSnapshotBase
         {
             private readonly int _versionNumber;
@@ -34,6 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public override bool TryGetValue(int index, string keyName, out object content)
             {
+                // TableControlEventProcessor.PreprocessNavigate needs to get an entry 
+                // to call TryNavigateTo on it.
+                if (keyName == SelfKeyName)
+                {
+                    content = _entries[index];
+                    return true;
+                }
+
                 return _entries[index].TryGetValue(keyName, out content);
             }
 

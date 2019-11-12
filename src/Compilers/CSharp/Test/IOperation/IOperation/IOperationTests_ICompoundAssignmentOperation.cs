@@ -77,7 +77,7 @@ class C
             (IOperation operation, SyntaxNode node) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
             var compoundAssignment = (ICompoundAssignmentOperation)operation;
 
-            var typeSymbol = (TypeSymbol)compilation.GetSymbolsWithName(sym => sym == "C", SymbolFilter.All).Single();
+            var typeSymbol = compilation.GetTypeByMetadataName("C");
             var implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
             var inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
             var outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();

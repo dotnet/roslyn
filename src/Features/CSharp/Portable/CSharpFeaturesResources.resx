@@ -246,9 +246,6 @@
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Usings</value>
   </data>
-  <data name="Remove_and_Sort_Usings" xml:space="preserve">
-    <value>R&amp;emove and Sort Usings</value>
-  </data>
   <data name="Insert_await" xml:space="preserve">
     <value>Insert 'await'.</value>
   </data>
@@ -520,8 +517,11 @@
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
   </data>
-  <data name="Convert_to_switch" xml:space="preserve">
-    <value>Convert to 'switch'</value>
+  <data name="Convert_to_switch_statement" xml:space="preserve">
+    <value>Convert to 'switch' statement</value>
+  </data>
+  <data name="Convert_to_switch_expression" xml:space="preserve">
+    <value>Convert to 'switch' expression</value>
   </data>
   <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Extracting a local function reference may produce invalid code</value>
@@ -616,9 +616,6 @@
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
   </data>
-  <data name="Sort_Usings" xml:space="preserve">
-    <value>&amp;Sort Usings</value>
-  </data>
   <data name="Convert_switch_statement_to_expression" xml:space="preserve">
     <value>Convert switch statement to expression</value>
   </data>
@@ -668,5 +665,11 @@
   <data name="switch_statement_case_clause" xml:space="preserve">
     <value>switch statement case clause</value>
     <comment>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code" xml:space="preserve">
+    <value>Warning: Adding parameters to local function declaration may produce invalid code.</value>
+  </data>
+  <data name="Pass_in_captured_variables_as_arguments" xml:space="preserve">
+    <value>Pass in captured variables as arguments</value>
   </data>
 </root>

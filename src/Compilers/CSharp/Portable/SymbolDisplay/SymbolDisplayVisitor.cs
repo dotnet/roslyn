@@ -92,23 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : $"@{identifier}";
         }
 
-        public void VisitWithNullability(TypeSymbol symbol, NullableFlowState topLevelNullability)
-        {
-            VisitWithAnnotation(TypeWithState.Create(symbol, topLevelNullability).ToTypeWithAnnotations());
-        }
-
-        public void VisitWithNullableAnnotation(TypeSymbol symbol, NullableAnnotation topLevelAnnotation)
-        {
-            VisitWithAnnotation(TypeWithAnnotations.Create(symbol, topLevelAnnotation));
-        }
-
-        private void VisitWithAnnotation(TypeWithAnnotations type)
-        {
-            Debug.Assert(type.Type is object);
-            Visit(type.Type);
-            AddNullableAnnotations(type);
-        }
-
         public override void VisitAssembly(IAssemblySymbol symbol)
         {
             var text = format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameOnly
@@ -214,15 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                var local = symbol as LocalSymbol;
-                if ((object)local != null)
-                {
-                    VisitTypeWithAnnotations(local.TypeWithAnnotations);
-                }
-                else
-                {
-                    symbol.Type.Accept(this.NotFirstVisitor);
-                }
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
             }
 
@@ -252,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                VisitTypeWithAnnotations(TypeWithAnnotations.Create((TypeSymbol)symbol.Type, symbol.NullableAnnotation.ToInternalAnnotation()));
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
             }
 

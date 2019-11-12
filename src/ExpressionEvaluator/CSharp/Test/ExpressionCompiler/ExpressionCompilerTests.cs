@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string error;
                 var result = context.CompileExpression("M(", out error);
                 Assert.Null(result);
-                Assert.Equal(error, "error CS1026: ) expected");
+                Assert.Equal("error CS1026: ) expected", error);
             });
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         preferredUICulture: null,
                         testData: null);
                     Assert.Null(result);
-                    Assert.Equal(error, "LCID=1031, Code=1026");
+                    Assert.Equal("LCID=1031, Code=1026", error);
                     Assert.Empty(missingAssemblyIdentities);
                 });
             }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 expr: "y ?? x",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0103: The name 'x' does not exist in the current context");
+            Assert.Equal("error CS0103: The name 'x' does not exist in the current context", error);
         }
 
         [Fact]
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             string error;
             var testData = new CompilationTestData();
             var result = context.CompileExpression("F(y)", out error, testData);
-            Assert.Equal(error, "error CS0103: The name 'y' does not exist in the current context");
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
             // No local reference.
             testData = new CompilationTestData();
             result = context.CompileExpression("F(x)", out error, testData);
@@ -461,10 +461,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
                 // Multiple semicolons: not supported.
                 result = context.CompileExpression("x;;", out error);
-                Assert.Equal(error, "error CS1073: Unexpected token ';'");
+                Assert.Equal("error CS1073: Unexpected token ';'", error);
                 // // comments.
                 result = context.CompileExpression("x;//", out error);
-                Assert.Equal(error, "error CS0726: ';//' is not a valid format specifier");
+                Assert.Equal("error CS0726: ';//' is not a valid format specifier", error);
                 result = context.CompileExpression("x//;", out error);
                 Assert.Null(error);
                 // /*...*/ comments.
@@ -473,12 +473,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 result = context.CompileExpression("x/*;*/", out error);
                 Assert.Null(error);
                 result = context.CompileExpression("x;/*...*/", out error);
-                Assert.Equal(error, "error CS0726: ';/*...*/' is not a valid format specifier");
+                Assert.Equal("error CS0726: ';/*...*/' is not a valid format specifier", error);
                 result = context.CompileExpression("x/*...*/;", out error);
                 Assert.Null(error);
                 // Trailing semicolon, no expression.
                 result = context.CompileExpression(" ; ", out error);
-                Assert.Equal(error, "error CS1733: Expected expression");
+                Assert.Equal("error CS1733: Expected expression", error);
             });
         }
 
@@ -503,27 +503,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 CheckFormatSpecifiers(result);
                 // Format specifiers on expression.
                 result = context.CompileExpression("x,", out error);
-                Assert.Equal(error, "error CS0726: ',' is not a valid format specifier");
+                Assert.Equal("error CS0726: ',' is not a valid format specifier", error);
                 result = context.CompileExpression("x,,", out error);
-                Assert.Equal(error, "error CS0726: ',' is not a valid format specifier");
+                Assert.Equal("error CS0726: ',' is not a valid format specifier", error);
                 result = context.CompileExpression("x y", out error);
-                Assert.Equal(error, "error CS0726: 'y' is not a valid format specifier");
+                Assert.Equal("error CS0726: 'y' is not a valid format specifier", error);
                 result = context.CompileExpression("x yy zz", out error);
-                Assert.Equal(error, "error CS0726: 'yy' is not a valid format specifier");
+                Assert.Equal("error CS0726: 'yy' is not a valid format specifier", error);
                 result = context.CompileExpression("x,,y", out error);
-                Assert.Equal(error, "error CS0726: ',' is not a valid format specifier");
+                Assert.Equal("error CS0726: ',' is not a valid format specifier", error);
                 result = context.CompileExpression("x,yy,zz,ww", out error);
                 CheckFormatSpecifiers(result, "yy", "zz", "ww");
                 result = context.CompileExpression("x, y z", out error);
-                Assert.Equal(error, "error CS0726: 'z' is not a valid format specifier");
+                Assert.Equal("error CS0726: 'z' is not a valid format specifier", error);
                 result = context.CompileExpression("x, y  ,  z  ", out error);
                 CheckFormatSpecifiers(result, "y", "z");
                 result = context.CompileExpression("x, y, z,", out error);
-                Assert.Equal(error, "error CS0726: ',' is not a valid format specifier");
+                Assert.Equal("error CS0726: ',' is not a valid format specifier", error);
                 result = context.CompileExpression("x,y,z;w", out error);
-                Assert.Equal(error, "error CS0726: 'z;w' is not a valid format specifier");
+                Assert.Equal("error CS0726: 'z;w' is not a valid format specifier", error);
                 result = context.CompileExpression("x, y;, z", out error);
-                Assert.Equal(error, "error CS0726: 'y;' is not a valid format specifier");
+                Assert.Equal("error CS0726: 'y;' is not a valid format specifier", error);
                 // Format specifiers after // comment: ignored.
                 result = context.CompileExpression("x // ,f", out error);
                 CheckFormatSpecifiers(result);
@@ -533,21 +533,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 // Format specifiers on assignment value.
                 result = context.CompileAssignment("x", "null, y", out error);
                 Assert.Null(result);
-                Assert.Equal(error, "error CS1073: Unexpected token ','");
+                Assert.Equal("error CS1073: Unexpected token ','", error);
                 // Trailing semicolon, no format specifiers.
                 result = context.CompileExpression("x; ", out error);
                 CheckFormatSpecifiers(result);
                 // Format specifiers, no expression.
                 result = context.CompileExpression(",f", out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term ','");
+                Assert.Equal("error CS1525: Invalid expression term ','", error);
                 // Format specifiers before semicolon: not supported.
                 result = context.CompileExpression("x,f;\t", out error);
-                Assert.Equal(error, "error CS1073: Unexpected token ','");
+                Assert.Equal("error CS1073: Unexpected token ','", error);
                 // Format specifiers after semicolon: not supported.
                 result = context.CompileExpression("x;,f", out error);
-                Assert.Equal(error, "error CS0726: ';' is not a valid format specifier");
+                Assert.Equal("error CS0726: ';' is not a valid format specifier", error);
                 result = context.CompileExpression("x; f, g", out error);
-                Assert.Equal(error, "error CS0726: ';' is not a valid format specifier");
+                Assert.Equal("error CS0726: ';' is not a valid format specifier", error);
             });
         }
 
@@ -783,7 +783,7 @@ class B : A
                 expr: "F(this, this.x)");
             var methodData = testData.GetMethodData("<>x.<>m0(ref S)");
             var parameter = ((MethodSymbol)methodData.Method).Parameters[0];
-            Assert.Equal(parameter.RefKind, RefKind.Ref);
+            Assert.Equal(RefKind.Ref, parameter.RefKind);
             methodData.VerifyIL(
 @"{
   // Code size       23 (0x17)
@@ -1031,7 +1031,7 @@ class B : A
                 expr: "M(out y)");
             var methodData = testData.GetMethodData("<>x.<>m0(out object)");
             var parameter = ((MethodSymbol)methodData.Method).Parameters[0];
-            Assert.Equal(parameter.RefKind, RefKind.Out);
+            Assert.Equal(RefKind.Out, parameter.RefKind);
             methodData.VerifyIL(
 @"{
   // Code size        8 (0x8)
@@ -1118,8 +1118,8 @@ class B : A
             var methodData = testData.GetMethodData("<>x.<>m0");
             var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
             var local = locals[0];
-            Assert.Equal(local.Type.ToString(), "C");
-            Assert.Equal(local.CustomModifiers.Length, 0); // Custom modifiers are not copied.
+            Assert.Equal("C", local.Type.ToString());
+            Assert.Equal(0, local.CustomModifiers.Length); // Custom modifiers are not copied.
             methodData.VerifyIL(
 @"{
   // Code size        7 (0x7)
@@ -1399,10 +1399,10 @@ class B : A
                 expr: "null",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.ReadOnlyResult);
+            Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
-            Assert.Equal(method.ReturnType.SpecialType, SpecialType.System_Object);
+            Assert.Equal(SpecialType.System_Object, method.ReturnType.SpecialType);
             Assert.False(method.ReturnsVoid);
             methodData.VerifyIL(
 @"{
@@ -1600,13 +1600,13 @@ class C
                 ResultProperties resultProperties;
                 string error;
                 context.CompileExpression("x", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult);
+                Assert.Equal(DkmClrCompilationResultFlags.BoolResult, resultProperties.Flags);
                 context.CompileExpression("y", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.None);
+                Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
                 context.CompileExpression("(bool)y", out resultProperties, out error);
                 Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
                 context.CompileExpression("!y", out resultProperties, out error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 context.CompileExpression("false", out resultProperties, out error);
                 Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult | DkmClrCompilationResultFlags.ReadOnlyResult);
                 context.CompileExpression("F()", out resultProperties, out error);
@@ -1637,7 +1637,7 @@ class C
                 expr: "P",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor");
+            Assert.Equal("error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor", error);
         }
 
         /// <summary>
@@ -1665,7 +1665,7 @@ class C
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
-            Assert.Equal(method.ReturnType.SpecialType, SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_Void, method.ReturnType.SpecialType);
             Assert.True(method.ReturnsVoid);
 
             methodData.VerifyIL(
@@ -1697,7 +1697,7 @@ class C
                 expr: "this.M",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?");
+            Assert.Equal("error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?", error);
         }
 
         [Fact]
@@ -1724,7 +1724,7 @@ class C
                     expr: "M",
                     error: out error,
                     testData: testData);
-                Assert.Equal(error, "error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?");
+                Assert.Equal("error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?", error);
             });
         }
 
@@ -1783,7 +1783,7 @@ class C
                     expr: "2",
                     error: out error,
                     testData: testData);
-                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+                Assert.Equal("error CS0131: The left-hand side of an assignment must be a variable, property or indexer", error);
             });
         }
 
@@ -1849,7 +1849,7 @@ class C
                     expr: "F(() => y)",
                     error: out error,
                     testData: testData);
-                Assert.Equal(error, "error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function");
+                Assert.Equal("error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function", error);
             });
         }
 
@@ -1876,7 +1876,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
             // Note: The native EE reports "CS0119: 'N' is a namespace, which is not valid in the given context"
-            Assert.Equal(error, "error CS0118: 'N' is a namespace but is used like a variable");
+            Assert.Equal("error CS0118: 'N' is a namespace but is used like a variable", error);
         }
 
         [Fact]
@@ -1902,7 +1902,7 @@ class C
             // that the user can expand to see the base type. To enable similar
             // behavior, the expression compiler would probably return something
             // other than IL. Instead, we disallow this scenario.
-            Assert.Equal(error, "error CS0119: 'C' is a type, which is not valid in the given context");
+            Assert.Equal("error CS0119: 'C' is a type, which is not valid in the given context", error);
         }
 
         [Fact]
@@ -1928,7 +1928,7 @@ class C
                     out error,
                     testData);
                 Assert.Null(error);
-                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       61 (0x3d)
@@ -1961,7 +1961,7 @@ class C
                 context.CompileExpression(
                     "@0xffff0000ffff0000ffff0000",
                     out error, testData);
-                Assert.Equal(error, "error CS1021: Integral constant is too large");
+                Assert.Equal("error CS1021: Integral constant is too large", error);
             });
         }
 
@@ -2079,12 +2079,12 @@ class C<T>
                 var methodData = testData.GetMethodData("<>x.<>m0<T>()");
                 var method = (MethodSymbol)methodData.Method;
                 var returnType = method.ReturnTypeWithAnnotations;
-                Assert.Equal(returnType.TypeKind, TypeKind.TypeParameter);
+                Assert.Equal(TypeKind.TypeParameter, returnType.TypeKind);
                 Assert.Equal(returnType.Type.ContainingSymbol, method);
 
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
                 // The original local of type T from <>m0<T>.
-                Assert.Equal(locals.Length, 1);
+                Assert.Equal(1, locals.Length);
                 foreach (var local in locals)
                 {
                     var localType = (TypeSymbol)local.Type;
@@ -2134,7 +2134,7 @@ class C
                     testData: testData);
 
                 var methodData = testData.GetMethodData("<>x.<>m0<T>(T)");
-                var method = methodData.Method;
+                var method = (MethodSymbol)methodData.Method;
                 Assert.Equal(1, method.Parameters.Length);
                 var eeTypeParameterSymbol = (EETypeParameterSymbol)method.Parameters[0].Type;
                 Assert.Equal(1, eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics.Length);
@@ -2203,7 +2203,7 @@ class C
                     expr: "M()",
                     error: out error,
                     testData: testData);
-                Assert.Equal(error, "error CS0029: Cannot implicitly convert type 'void' to 'object'");
+                Assert.Equal("error CS0029: Cannot implicitly convert type 'void' to 'object'", error);
             });
         }
 
@@ -2355,7 +2355,7 @@ class C
 }))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0165: Use of unassigned local variable 'o'");
+            Assert.Equal("error CS0165: Use of unassigned local variable 'o'", error);
         }
 
         /// <summary>
@@ -2475,7 +2475,7 @@ class C
   IL_002c:  ret
 }");
                 // Verify generated type and method are generic.
-                Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, Cci.CallingConvention.Generic);
+                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
                 var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(result.Assembly));
                 var reader = metadata.MetadataReader;
                 var typeDef = reader.GetTypeDef(result.TypeName);
@@ -2489,7 +2489,7 @@ class C
                 testData = new CompilationTestData();
                 context.CompileExpression("(object)t ?? typeof(T) ?? typeof(U)", out error, testData);
                 methodData = testData.GetMethodData("<>x<T, U, V>.<>m0");
-                Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, Cci.CallingConvention.Default);
+                Assert.Equal(Cci.CallingConvention.Default, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
             });
         }
 
@@ -2534,7 +2534,7 @@ class C<T>
   IL_001e:  call       ""U C<T>.F<U>(System.Func<U>)""
   IL_0023:  ret
 }");
-                Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, Cci.CallingConvention.Generic);
+                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
             });
         }
 
@@ -2565,7 +2565,7 @@ class C<T>
   IL_0002:  newobj     ""System.ArgIterator..ctor(System.RuntimeArgumentHandle)""
   IL_0007:  ret
 }");
-                Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, Cci.CallingConvention.ExtraArguments);
+                Assert.Equal(Cci.CallingConvention.ExtraArguments, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
             });
         }
 
@@ -3438,7 +3438,7 @@ class B : A
                 var testData = new CompilationTestData();
                 context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "int[]");
+                Assert.Equal("int[]", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
                 methodData.VerifyIL(
     @"{
   // Code size       18 (0x12)
@@ -3446,7 +3446,7 @@ class B : A
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }");
@@ -3597,7 +3597,7 @@ class C
                 string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression("F(() => null ?? new object())", out error, testData);
-                Assert.Equal(error, "error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side");
+                Assert.Equal("error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side", error);
             });
         }
 
@@ -3669,7 +3669,7 @@ class C
                     out missingAssemblyIdentities,
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData: null);
-                Assert.Equal(error, "error CS1061: 'object[]' does not contain a definition for 'First' and no accessible extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS1061: 'object[]' does not contain a definition for 'First' and no accessible extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)", error);
                 AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
             });
         }
@@ -3913,7 +3913,7 @@ class C
                 expr: "sizeof(C)",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')");
+            Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')", error);
         }
 
         [Fact]
@@ -4102,7 +4102,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
             // Should delegates to [Conditional] methods be supported?
-            Assert.Equal(error, "error CS1618: Cannot create delegate with 'C.F()' because it or a method it overrides has a Conditional attribute");
+            Assert.Equal("error CS1618: Cannot create delegate with 'C.F()' because it or a method it overrides has a Conditional attribute", error);
         }
 
         [Fact]
@@ -4611,7 +4611,7 @@ struct S
                 var testData = new CompilationTestData();
                 context.CompileExpression("x", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((MethodSymbol)methodData.Method).ReturnType.SpecialType);
                 methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -4648,7 +4648,7 @@ struct S
                 var testData = new CompilationTestData();
                 context.CompileExpression("t", out error, testData);
                 var methodData = testData.GetMethodData("<>x<T>.<>m0");
-                Assert.Equal("T", methodData.Method.ReturnType.Name);
+                Assert.Equal("T", ((MethodSymbol)methodData.Method).ReturnType.Name);
                 methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -4745,7 +4745,7 @@ struct S
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("this?.F()", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString(), "int?");
+                Assert.Equal("int?", ((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString());
                 methodData.VerifyIL(
     @"{
   // Code size       25 (0x19)
@@ -4766,7 +4766,7 @@ struct S
                 testData = new CompilationTestData();
                 result = context.CompileExpression("(new C())?.G()?.F()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString(), "int?");
+                Assert.Equal("int?", ((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString());
 
                 testData = new CompilationTestData();
                 result = context.CompileExpression("G()?.M()", out error, testData);
@@ -5036,7 +5036,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(actionType, methodData.Method.ReturnType);
+                Assert.Equal(actionType, ((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -5053,7 +5053,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.True(methodData.Method.ReturnsVoid);
+                Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
                 methodData.VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -5071,7 +5071,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(actionType, methodData.Method.ReturnType);
+                Assert.Equal(actionType, ((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size       11 (0xb)
@@ -5093,7 +5093,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.True(methodData.Method.ReturnsVoid);
+                Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
                 methodData.VerifyIL(@"
 {
   // Code size        8 (0x8)
@@ -5170,7 +5170,7 @@ class C
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.Equal(actionType, methodData.Method.ReturnType);
+            Assert.Equal(actionType, ((MethodSymbol)methodData.Method).ReturnType);
             methodData.VerifyIL(@"
 {
   // Code size       17 (0x11)
@@ -5189,7 +5189,7 @@ class C
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(@"
 {
   // Code size       22 (0x16)
@@ -5208,7 +5208,7 @@ class C
             result = context.CompileExpression("E = null", out resultProperties, out error, testData);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(@"
 {
   // Code size       48 (0x30)
@@ -5235,7 +5235,7 @@ class C
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(@"
 {
   // Code size       31 (0x1f)
@@ -5284,7 +5284,7 @@ class C
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData);
                 Assert.Equal(new AssemblyIdentity("System.Core"), missingAssemblyIdentities.Single());
-                Assert.Equal(error, "error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?");
+                Assert.Equal("error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?", error);
             });
         }
 
@@ -5321,7 +5321,7 @@ class C
 }");
                 testData = new CompilationTestData();
                 context.CompileExpression("y", out error, testData);
-                Assert.Equal(error, "error CS0103: The name 'y' does not exist in the current context");
+                Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
             });
         }
 
@@ -6126,7 +6126,7 @@ class C
 }";
             var testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "false ? new { P = 1 } : null");
             var methodData = testData.GetMethodData("<>x.<>m0");
-            var returnType = (NamedTypeSymbol)methodData.Method.ReturnType;
+            var returnType = (NamedTypeSymbol)((MethodSymbol)methodData.Method).ReturnType;
             Assert.True(returnType.IsAnonymousType);
             methodData.VerifyIL(
 @"{

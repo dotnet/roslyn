@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         public static unsafe void SetOption(this CSharpProjectShim csharpProject, CompilerOptions optionID, object value)
         {
-            Assert.Equal(8 + 2 * IntPtr.Size, sizeof(HACK_VariantStructure));
+            Assert.Equal(sizeof(HACK_VariantStructure), 8 + 2 * IntPtr.Size);
             Assert.Equal(8, (int)Marshal.OffsetOf<HACK_VariantStructure>("_booleanValue"));
 
             HACK_VariantStructure variant = default;

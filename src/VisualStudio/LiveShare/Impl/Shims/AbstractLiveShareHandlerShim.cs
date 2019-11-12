@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         /// <summary>
         /// Certain implementations require that the processing be done on the UI thread.
-        /// So allow the handler to specifiy that the thread context should be preserved.
+        /// So allow the handler to specify that the thread context should be preserved.
         /// </summary>
         private Task<ResponseType> HandleAsyncPreserveThreadContext(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {

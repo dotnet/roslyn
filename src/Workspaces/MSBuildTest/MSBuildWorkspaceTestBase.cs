@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 {
                     var c1 = await p1.GetCompilationAsync();
                     var result = c1.Emit(p1.OutputFilePath);
-                    Assert.Equal(true, result.Success);
+                    Assert.True(result.Success);
                 }
             }
         }

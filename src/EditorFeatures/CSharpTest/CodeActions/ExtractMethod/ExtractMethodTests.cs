@@ -1982,7 +1982,12 @@ class Program
     {
         System.Console.WriteLine([|^1|]);
     }
-}", TestSources.Index + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+@"
 class Program
 {
     static void Main(string[] args)
@@ -1990,7 +1995,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Index NewMethod()
+    private static Index NewMethod()
     {
         return ^1;
     }
@@ -2007,7 +2012,12 @@ class Program
     {
         System.Console.WriteLine([|..|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2015,7 +2025,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return ..;
     }
@@ -2032,7 +2042,12 @@ class Program
     {
         System.Console.WriteLine([|..1|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2040,7 +2055,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return ..1;
     }
@@ -2057,7 +2072,12 @@ class Program
     {
         System.Console.WriteLine([|1..|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2065,7 +2085,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return 1..;
     }
@@ -2082,7 +2102,12 @@ class Program
     {
         System.Console.WriteLine([|1..2|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2090,7 +2115,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return 1..2;
     }
@@ -2790,5 +2815,313 @@ class C
     }
 }");
         }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableObjectWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = (string?)[|o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = (string?){|Rename:GetO|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static object? GetO(object? o)
+    {
+        return o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNotNullableObjectWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = (string)[|o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = (string){|Rename:GetO|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static object GetO(object o)
+    {
+        return o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNotNullableWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = new B();
+        var s = (A)[|b|];
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = new B();
+        var s = (A){|Rename:GetB|}(b);
+    }
+
+    private static B GetB(B b)
+    {
+        return b;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = null;
+        var s = (A)[|b|];
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = null;
+        var s = (A){|Rename:GetB|}(b);
+    }
+
+    private static B? GetB(B? b)
+    {
+        return b;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNotNullableWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = [|(string)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string GetS(object o)
+    {
+        return (string)o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = [|(string?)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object? o)
+    {
+        return (string?)o;
+    }
+}");
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = [|(string?)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object o)
+    {
+        return (string?)o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = [|(string)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object? o)
+    {
+        return (string)o;
+    }
+}");
     }
 }

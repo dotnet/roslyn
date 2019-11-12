@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
 
             var buffer = hostDocument.GetTextBuffer();
-            var startPosition = buffer.CurrentSnapshot.GetLineFromLineNumber(0).Start.Position;
+            var startingSnapshotVersion = buffer.CurrentSnapshot.Version;
             var text = buffer.CurrentSnapshot.AsText();
             var container = buffer.AsTextContainer();
             Assert.Same(text.Container, container);
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 edit.Apply();
             }
 
-            Assert.True(buffer.CurrentSnapshot.Version.VersionNumber == 2);
-            Assert.True(buffer.CurrentSnapshot.Version.ReiteratedVersionNumber == 1);
+            Assert.Equal(startingSnapshotVersion.VersionNumber + 1, buffer.CurrentSnapshot.Version.VersionNumber);
+            Assert.Equal(startingSnapshotVersion.VersionNumber, buffer.CurrentSnapshot.Version.ReiteratedVersionNumber);
 
             var newText = buffer.CurrentSnapshot.AsText();
 

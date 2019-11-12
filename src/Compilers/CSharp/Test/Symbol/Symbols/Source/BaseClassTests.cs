@@ -254,7 +254,7 @@ class C : A {
 }
 
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = (Compilation)CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -262,7 +262,7 @@ class C : A {
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var someMemberInA = classA.Members[0];
@@ -270,7 +270,7 @@ class C : A {
 
             var members = model.LookupSymbols(positionInA, a, "Z");
             Assert.Equal(1, members.Length);
-            Assert.False(((TypeSymbol)members[0]).IsErrorType());
+            Assert.False(((ITypeSymbol)members[0]).IsErrorType());
             Assert.Equal("C.Z", members[0].ToTestDisplayString());
 
             var members2 = model.LookupSymbols(positionInA, a, "Q");
@@ -291,7 +291,7 @@ class B<T> : A {
   public class Y {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = (Compilation)CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -299,7 +299,7 @@ class B<T> : A {
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var someMemberInA = classA.Members[0];
@@ -1036,7 +1036,7 @@ public class ClassC : ClassB {}
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
             Assert.Same(C.BaseType(), B2);
-            Assert.False(((INamedTypeSymbol)B2).IsSerializable);
+            Assert.False(B2.IsSerializable);
 
             var errorBase = B2.BaseType() as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;

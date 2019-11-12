@@ -7149,5 +7149,95 @@ public class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TupleMember_UsedAfterContinueBranch()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    void M(List<(int, int)> list)
+    {
+        foreach (var (x, [|y|]) in list)
+        {
+            if (x != 0)
+            {
+                continue;
+            }
+
+            Console.Write(y);
+        }
+    }
+}");
+        }
+
+        [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchExpressionArm_UsedLocal()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int [|p2|] => p2.ToString(),
+            _ => ""NoMatch""
+        };
+    }
+}", new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferUnusedLocal()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int [|p2|] => ""Int"",
+            _ => ""NoMatch""
+        };
+    }
+}", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int [|p2|] => ""Int"",
+            _ => ""NoMatch""
+        };
+    }
+}",
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int _ => ""Int"",
+            _ => ""NoMatch""
+        };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
     }
 }
