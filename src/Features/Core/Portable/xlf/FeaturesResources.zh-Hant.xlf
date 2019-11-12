@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">為所有參數新增 null 檢查</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">請避免在您的程式碼中使用參數。如果無法移除參數，請變更其名稱，使其以底線開頭，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">來源檔案 '{0}' 的目前內容與建立的來源不符。在還原來源檔案的內容之前，無法繼續進行偵錯工作階段。</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -529,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="translated">將呼叫鏈結取消包裝</target>
+        <target state="translated">將呼叫鏈取消包裝</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">請使用建議的處置模式，確保區域範圍的可處置物件在所有路徑上均會經過處置。在可能的情況下，請將建立包在 'using' 陳述式或 'using' 宣告內。否則，請使用 try-finally 模式，同時在 try 區域之前先宣告專用的區域變數，並在 'finally' 區域中的非 null 值上，設定無條件 Dispose 引動過程，比如 'x?.Dispose()'。如果 try 區域內已明確地處置了該物件，或是處置擁有權已轉移到另一個物件或方法，則請在這類作業之後，對區域變數指派 'null'，以避免在 'finally' 中發生雙重處置</target>
+        <target state="translated">請使用建議的處置模式，確保區域範圍的可處置物件在所有路徑上均會經過處置。在可能的情況下，請將建立包在 'using' 陳述式或 'using' 宣告內。否則，請使用 try-finally 模式，同時在 try 區域之前先宣告專用的區域變數，並在 'finally' 區域中的非 null 值上，設定無條件 Dispose 引動過程，比如 'x?.Dispose()'。如果 try 區域內已明確地處置了該物件，或是處置擁有權已轉移到另一個物件或方法，則請在這類作業之後，對區域變數指派 'null'，以避免在 'finally' 中發生雙重處置</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
@@ -559,7 +559,7 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="translated">使用 Lambda 運算式的區體主體</target>
+        <target state="translated">使用 Lambda 運算式的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_call_chain">
         <source>Wrap and align call chain</source>
-        <target state="translated">包裝並對齊呼叫鏈結</target>
+        <target state="translated">包裝並對齊呼叫鏈</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
@@ -644,12 +644,12 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="translated">包裝並對齊長呼叫鏈結</target>
+        <target state="translated">包裝並對齊長呼叫鏈</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="translated">包裝呼叫鏈結</target>
+        <target state="translated">包裝呼叫鏈</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -674,7 +674,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="translated">包裝長呼叫鏈結</target>
+        <target state="translated">包裝長呼叫鏈</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新 '{0}' 的修飾詞，會造成偵錯工作階段無法繼續。</target>
+        <target state="translated">更新 '{0}' 的修飾元，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
@@ -1314,7 +1314,7 @@
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新作用中陳述式前後的 async 或 iterator 修飾詞，會造成偵錯工作階段無法繼續。</target>
+        <target state="translated">更新作用中陳述式前後的 async 或 iterator 修飾元，會造成偵錯工作階段無法繼續。</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
@@ -2012,7 +2012,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Convert_to_interpolated_string">
         <source>Convert to interpolated string</source>
-        <target state="translated">轉換為插入字串</target>
+        <target state="translated">轉換為差補字串</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_type_to_0">
@@ -2212,7 +2212,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
-        <target state="translated">變數宣告可內嵌</target>
+        <target state="translated">變數宣告可內置</target>
         <note />
       </trans-unit>
       <trans-unit id="Null_check_can_be_simplified">
@@ -2452,12 +2452,12 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
-        <target state="translated">修飾詞未排序</target>
+        <target state="translated">修飾元未排序</target>
         <note />
       </trans-unit>
       <trans-unit id="Order_modifiers">
         <source>Order modifiers</source>
-        <target state="translated">為修飾詞排序</target>
+        <target state="translated">為修飾元排序</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">
@@ -2467,12 +2467,12 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_required">
         <source>Accessibility modifiers required</source>
-        <target state="translated">協助工具修飾詞為必要項</target>
+        <target state="translated">協助工具修飾元為必要項</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">新增協助工具修飾詞</target>
+        <target state="translated">新增協助工具修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">
@@ -2587,7 +2587,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
-        <target state="translated">新增唯讀修飾詞</target>
+        <target state="translated">新增唯讀修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">在您的解決方案根目錄偵測到新的 .editorconfig 檔案。要將其設為解決方案項目嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">包含的成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">包含的類型</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="translated">修飾詞喜好設定:</target>
+        <target state="translated">修飾元喜好設定:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">命名規則</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">正在更新嚴重性</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -986,7 +986,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Modifier">
         <source>Modifier</source>
-        <target state="translated">修飾詞</target>
+        <target state="translated">修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_colon1">
@@ -1296,7 +1296,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Modifiers_must_match_all">
         <source>Modifiers (must match all)</source>
-        <target state="translated">修飾詞 (必須符合所有項目)</target>
+        <target state="translated">修飾元 (必須符合所有項目)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_colon2">
@@ -1595,7 +1595,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Prefer_inlined_variable_declaration">
         <source>Prefer inlined variable declaration</source>
-        <target state="translated">偏好內嵌變數宣告</target>
+        <target state="translated">偏好內置變數宣告</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_methods">

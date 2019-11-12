@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Ошибка в синтаксисе командной строки: "{0}" не является допустимым значением для параметра "{1}". Значение должно иметь форму "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Не удается внедрить тип "{0}", так как он имеет неабстрактный член. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Невозможно внедрить тип "{0}", так как он переопределяет абстракцию элемента базового интерфейса. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false (ложь).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">Целевая среда выполнения не поддерживает реализацию интерфейса по умолчанию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
+        <target state="translated">Целевая среда выполнения не поддерживает доступ "Protected", "Protected Friend" или "Private Protected" для элемента интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -211,10 +211,10 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Параметры компилятора Visual Basic
+        <target state="translated">                  Параметры компилятора Visual Basic
 
                                   - ВЫХОДНОЙ ФАЙЛ -
--out:&lt;файл&gt;                       Задает имя выходного файла.
+-out:&lt;file&gt;                       Задает имя выходного файла.
 -target:exe                       Создать консольное приложение (по умолчанию).
                                   (Краткая форма: -t)
 -target:winexe                    Создать Windows-приложение.
@@ -225,84 +225,87 @@
                                   AppContainer.
 -target:winmdobj                  Создать промежуточный файл метаданных Windows
 -doc[+|-]                         Создает XML-файл документации.
--doc:&lt;файл&gt;                       Создает XML-файл документации &lt;файл&gt;.
--refout:&lt;файл&gt;                    Выходные данные создаваемой базовой сборки
+-doc:&lt;file&gt;                       Создает XML-файл документации &lt;file&gt;.
+-refout:&lt;file&gt;                    Выходные данные создаваемой базовой сборки
 
                                   - ВХОДНЫЕ ФАЙЛЫ -
--addmodule:&lt;список файлов&gt;                Ссылка на метаданные из заданного модуля
--link:&lt;список файлов&gt;                     Внедрять метаданные из указанной сборки
+-addmodule:&lt;file_list&gt;            Ссылка на метаданные из заданных модулей
+-link:&lt;file_list&gt;                 Внедрить метаданные из указанной сборки
                                   взаимодействия. (Краткая форма: -l)
--recurse:&lt;подстановочный знак&gt;            Включить все файлы в текущем каталоге
+-recurse:&lt;wildcard&gt;               Включить все файлы в текущем каталоге
                                   и подкаталогах в соответствии с
                                   заданным шаблоном.
--reference:&lt;список файлов&gt;                Указывать метаданные из заданной
+-reference:&lt;file_list&gt;            Ссылка на метаданные из заданной
                                   сборки. (Краткая форма: -r)
--analyzer:&lt;список файлов&gt;                 Запускать анализаторы из этой сборки
+-analyzer:&lt;file_list&gt;             Запускать анализаторы из этой сборки
                                   (Краткая форма: -a)
--additionalfile:&lt;список файлов&gt;           Дополнительные файлы, которые не оказывают прямого влияния на создание
+-additionalfile:&lt;file list&gt;       Дополнительные файлы, которые не оказывают прямого влияния на создание
                                   кода, но могут использоваться анализаторами для вывода
                                   ошибок или предупреждений.
 
                                   - РЕСУРСЫ -
--linkresource:&lt;данные_о_ресурсе&gt;            Привязывает указанный файл в качестве внешнего
+-linkresource:&lt;resinfo&gt;           Привязывает указанный файл в качестве внешнего
                                   ресурса сборки.
-                                  Данные о ресурсе: &lt;файл&gt;[,&lt;имя&gt;[,public|private]]
+                                  Данные о ресурсе:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Краткая форма: -linkres)
 -nowin32manifest                  Манифест по умолчанию не должен внедряться
                                   в раздел манифеста выходного PE.
--resource:&lt;данные_о_ресурсе&gt;                Добавляет указанный файл в качестве внедренного
+-resource:&lt;resinfo&gt;               Добавляет указанный файл в качестве внедренного
                                   ресурса сборки.
-                                  Данные о ресурсе: &lt;файл&gt;[,&lt;имя&gt;[,public|private]]
+                                  Данные о ресурсе:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Краткая форма: -res)
--win32icon:&lt;файл&gt;                 Задает файл значка Win32 (ICO-файл) для
+-win32icon:&lt;file&gt;                 Задает файл значка Win32 (ICO-файл) для
                                   ресурсов Win32 по умолчанию.
--win32manifest:&lt;файл&gt;             Предоставленный файл внедряется в
-                                  раздел манифеста выходного PE.
--win32resource:&lt;файл&gt;             Задает файл ресурсов Win32 (RES-файл).
+-win32manifest:&lt;file&gt;             Предоставленный файл внедряется в раздел
+                                  манифеста выходного PE.
+-win32resource:&lt;file&gt;             Задает файл ресурсов Win32 (RES-файл).
 
                                   - СОЗДАНИЕ КОДА -
 -optimize[+|-]                    Включить оптимизацию.
--removeintchecks[+|-]             Удалить проверки на целые числа. По умолчанию отключены.
--debug[+|-]                       Выдать отладочную информацию.
--debug:full                       Выдавать полные отладочные данные (по умолчанию).
--debug:pdbonly                    Выдавать полные отладочные данные.
--debug:portable                   Выдавать кроссплатформенные отладочные данные.
--debug:embedded                   Выдавать кроссплатформенные отладочные данные в
+-removeintchecks[+|-]             Удалить целочисленные проверки. По умолчанию отключены.
+-debug[+|-]                       Выдать отладочные данные.
+-debug:full                       Выдать полные отладочные данные (по умолчанию).
+-debug:pdbonly                    Выдать полные отладочные данные.
+-debug:portable                   Выдать кроссплатформенные отладочные данные.
+-debug:embedded                   Выдать кроссплатформенные отладочные данные в
                                   целевой DLL-файл или EXE-файл.
 -deterministic                    Создать детерминированную сборку
                                   (включая GUID версии модуля и метку времени)
 -refonly                          Создавать базовую сборку вместо основных выходных данных
 -instrument:TestCoverage          Создавать сборку, инструментированную для сбора
-                                  данных о покрытии
--sourcelink:&lt;файл&gt;                Данные о ссылке на исходные файлы для внедрения в PDB.
+                                  данных об объеме протестированного кода
+-sourcelink:&lt;file&gt;                Данные о ссылке на исходные файлы для внедрения в PDB.
 
                                   - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
 -nowarn                           Отключить все предупреждения.
--nowarn:&lt;список чисел&gt;                   Отключить отдельные предупреждения.
+-nowarn:&lt;number_list&gt;             Отключить отдельные предупреждения по списку.
 -warnaserror[+|-]                 Обрабатывать все предупреждения как ошибки.
--warnaserror[+|-]:&lt;список чисел&gt;         Обрабатывать список предупреждений как ошибки.
--ruleset:&lt;файл&gt;                   Указать файл набора правил, отключающий определенные
+-warnaserror[+|-]:&lt;number_list&gt;   Обрабатывать список предупреждений как ошибки.
+-ruleset:&lt;file&gt;                   Указать файл набора правил, отключающий определенные
                                   диагностические операции.
--errorlog:&lt;файл&gt;                  Указать файл для записи всех диагностических данных
-                                  компилятора и анализатора.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Указать файл для записи всех диагностических данных
+                                  компилятора и анализатора в формате SARIF.
+                                  sarif_version:{1|2|2.1} По умолчанию используются значения 1. 2 и 2.1,
+                                  обозначающие версию SARIF 2.1.0.
 -reportanalyzer                   Сообщить дополнительные сведения об анализаторе, например
                                   время выполнения.
-                                  - ЯЗЫК -
 
--define:&lt;список символов&gt;                 Объявить глобальные символы условной
-                                  компиляции. Список символов:имя=значение,...
+                                  - ЯЗЫК -
+-define:&lt;symbol_list&gt;             Объявить глобальные символы условной
+                                  компиляции. symbol_list:имя=значение,...
                                   (Краткая форма: -d)
--imports:&lt;список_импорта&gt;         Объявить глобальные импорты для пространств имен в
+-imports:&lt;import_list&gt;            Объявить глобальные импорты для пространств имен в
                                   указанных файлах метаданных.
-                                  список_импорта:пространство_имен,...
+                                  import_list:пространство_имен,...
 -langversion:?                    Отображать допустимые значения версии языка
 -langversion:&lt;string&gt;             Указать версию языка, например
-                                  "default" (последняя основная версия) или
-                                  "latest" (последняя версия, включая дополнительные),
+                                  "default" (последний основной номер версии) или
+                                  "latest" (последняя версия, включая дополнительные номера),
                                   или конкретные версии, например 14 или 15.3
 -optionexplicit[+|-]              Требовать явного объявления переменных.
 -optioninfer[+|-]                 Разрешить вывод для типов переменных.
--rootnamespace:&lt;строка&gt;           Задает корневое пространство имен для всех объявлений
+-rootnamespace:&lt;string&gt;           Задает корневое пространство имен для всех объявлений
                                   типов.
 -optionstrict[+|-]                Требовать строгой семантики языка.
 -optionstrict:custom              Предупреждать, когда не соблюдается строгая семантика
@@ -313,7 +316,7 @@
 
                                   - ПРОЧЕЕ -
 -help                             Отображать это сообщение об использовании. (Краткая форма: -?)
--noconfig                         Файл VBC.RSP не включается в состав автоматически.
+-noconfig                         Не включать файл VBC.RSP в состав автоматически.
 -nologo                           Не отображать заставку компилятора с информацией об авторских правах.
 -quiet                            Режим вывода без сообщений.
 -verbose                          Отображать подробные сообщения.
@@ -321,32 +324,32 @@
 -version                          Отображать номер версии компилятора и выполнять выход.
 
                                   - ДОПОЛНИТЕЛЬНО -
--baseaddress:&lt;число&gt;              Базовый адрес библиотеки или модуля
+-baseaddress:&lt;number&gt;             Базовый адрес библиотеки или модуля
                                   (шестнадцатеричный).
--checksumalgorithm:&lt;алгоритм&gt;     Задать алгоритм расчета контрольной суммы
+-checksumalgorithm:&lt;alg&gt;          Задать алгоритм расчета контрольной суммы
                                   исходного файла, хранимой в PDB. Поддерживаемые значения:
                                   SHA1 или SHA256 (по умолчанию).
--codepage:&lt;число&gt;                 Указывает кодовую страницу, используемую при открытии
+-codepage:&lt;number&gt;                Указывает кодовую страницу, используемую при открытии
                                   исходных файлов.
 -delaysign[+|-]                   Использовать отложенную подпись для сборки, применяя только
                                   открытую часть ключа строгого имени.
 -publicsign[+|-]                  Подписать сборку, используя только открытую
                                   часть ключа строгого имени.
--errorreport:&lt;строка&gt;             Указывает способ обработки внутренних ошибок
+-errorreport:&lt;string&gt;             Указывает способ обработки внутренних ошибок
                                   компилятора; принимает prompt, send, none или queue
                                   (по умолчанию).
--filealign:&lt;число&gt;                Задать выравнивание для разделов выходных
+-filealign:&lt;number&gt;               Задать выравнивание для разделов выходных
                                   файлов.
 -highentropyva[+|-]               Включить технологию ASLR с высокой энтропией.
--keycontainer:&lt;строка&gt;            Задает контейнер ключа для строгого имени.
--keyfile:&lt;файл&gt;                   Задает файл ключа для строгого имени.
--libpath:&lt;список_путей&gt;           Список каталогов для поиска ссылок на
-                                  метаданные. (разделитель — точка с запятой.)
--main:&lt;класс&gt;                     Задает класс или модуль, содержащий
+-keycontainer:&lt;string&gt;            Задает контейнер ключа строгого имени.
+-keyfile:&lt;file&gt;                   Задает файл ключа строгого имени.
+-libpath:&lt;path_list&gt;              Список каталогов для поиска ссылок на
+                                  метаданные. (Разделитель — точка с запятой.)
+-main:&lt;class&gt;                     Задает класс или модуль, содержащий
                                   Sub Main. Он может являться производным
                                   классом от System.Windows.Forms.Form.
                                   (Краткая форма: -m)
--moduleassemblyname:&lt;строка&gt;      Имя сборки, частью которой будет
+-moduleassemblyname:&lt;string&gt;      Имя сборки, частью которой будет
                                   данный модуль.
 -netcf                            Целевая версия .NET Compact Framework.
 -nostdlib                         Не обращаться к стандартным библиотекам
@@ -354,22 +357,22 @@
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Указать сопоставление для выходных данных имен исходного пути по
                                   компилятору.
--platform:&lt;строка&gt;                Ограничить платформы, на которых может выполняться этот код:
-                                  x86, x64, Itanium, arm, arm64,
+-platform:&lt;string&gt;                Ограничить платформы, на которых может выполняться этот код:
+                                  x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred или anycpu (по умолчанию).
 -preferreduilang                  Указать имя предпочтительного языка вывода.
--nosdkpath                        Отключение поиска пути пакета SDK по умолчанию для сборок стандартных библиотек.
--sdkpath:&lt;путь&gt;                   Расположение каталога пакета SDK .NET Framework
+-nosdkpath                        Отключить поиск пути пакета SDK по умолчанию для сборок стандартных библиотек.
+-sdkpath:&lt;path&gt;                   Расположение каталога пакета SDK .NET Framework
                                   (mscorlib.dll).
--subsystemversion:&lt;версия&gt;        Указать версию подсистемы выходного PE-файла.
-                                  version: &lt;номер&gt;[.&lt;номер&gt;]
+-subsystemversion:&lt;version&gt;       Указать версию подсистемы выходного PE-файла.
+                                  version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Выдавать выходные данные компилятора в кодировке
                                   UTF8.
-@&lt;файл&gt;                           Вставить параметры командной строки из текстового файла
+@&lt;file&gt;                           Вставить параметры командной строки из текстового файла
 -vbruntime[+|-|*]                 Скомпилировать с помощью или без использования стандартной среды выполнения
                                   Visual Basic.
--vbruntime:&lt;файл&gt;                 Скомпилировать с помощью альтернативной среды выполнения
-                                  Visual Basic в &lt;файле&gt;.
+-vbruntime:&lt;file&gt;                 Скомпилировать с помощью альтернативной среды выполнения
+                                  Visual Basic в &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -895,7 +898,7 @@
       </trans-unit>
       <trans-unit id="ERR_NextForMismatch1">
         <source>Next control variable does not match For loop control variable '{0}'.</source>
-        <target state="translated">Следующая переменная управления не соответствует переменной "{0}" цикла For.</target>
+        <target state="translated">Следующая переменная элемента управления не соответствует переменной "{0}" цикла For.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CaseElseNoSelect">
@@ -1005,7 +1008,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyProperty1">
         <source>'ReadOnly' property '{0}' cannot be the target of an assignment.</source>
-        <target state="translated">'Свойство "ReadOnly" "{0}" не может быть целевым объектом присваивания.</target>
+        <target state="translated">'Свойство "ReadOnly" "{0}" не может быть целевым объектом назначения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExitSelectNotWithinSelect">
@@ -2672,7 +2675,7 @@
       </trans-unit>
       <trans-unit id="ERR_RedimNoSizes">
         <source>'ReDim' statements require a parenthesized list of the new bounds of each dimension of the array.</source>
-        <target state="translated">'В операторе "ReDim" требуется задать в скобках список новых границ для каждого измерения массива.</target>
+        <target state="translated">В операторе "ReDim" требуется задать в круглых скобках список новых границ для каждого измерения массива.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitWithMultipleDeclarators">
@@ -2952,7 +2955,7 @@
       </trans-unit>
       <trans-unit id="ERR_ObsoleteLetSetNotNeeded">
         <source>'Let' and 'Set' assignment statements are no longer supported.</source>
-        <target state="translated">'Операторы присваивания "Let" и "Set" больше не поддерживаются.</target>
+        <target state="translated">'Операторы назначения "Let" и "Set" больше не поддерживаются.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObsoletePropertyGetLetSet">
@@ -4753,7 +4756,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForEachAmbiguousIEnumerable1">
         <source>'For Each' on type '{0}' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.</source>
-        <target state="translated">'Оператор "For Each" с типом "{0}" неоднозначен, поскольку этот тип реализует несколько экземпляров "System.Collections.Generic.IEnumerable(Of T)".</target>
+        <target state="translated">Оператор "For Each" с типом "{0}" неоднозначен, поскольку этот тип реализует создание множества экземпляров "System.Collections.Generic.IEnumerable(Of T)".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNotOperatorGenericParam1">
@@ -6816,32 +6819,32 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncRef1">
         <source>Function '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">Функция "{0}" не возвращает значение для всех ветвей кода. Во время выполнения при использовании результата может возникнуть пустая ссылка на исключение.</target>
+        <target state="translated">Функция "{0}" не возвращает значение для всех путей к коду. Во время выполнения при использовании результата может возникнуть пустая ссылка на исключение.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncRef1_Title">
         <source>Function doesn't return a value on all code paths</source>
-        <target state="translated">Функция не возвращает значение на всех путях кода</target>
+        <target state="translated">Функция не возвращает значение на всех путях к коду</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpRef1">
         <source>Operator '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">Оператор "{0}" не возвращает значение для всех ветвей кода. Во время выполнения при использовании результата может возникнуть пустая ссылка на исключение.</target>
+        <target state="translated">Оператор "{0}" не возвращает значение для всех путей к коду. Во время выполнения при использовании результата может возникнуть пустая ссылка на исключение.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpRef1_Title">
         <source>Operator doesn't return a value on all code paths</source>
-        <target state="translated">Оператор не возвращает значение на всех путях кода</target>
+        <target state="translated">Оператор не возвращает значение на всех путях к коду</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropRef1">
         <source>Property '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">Свойство "{0}" не возвращает значение для всех ветвей кода. Во время выполнения при использовании результата может возникнуть пустая ссылка на исключение.</target>
+        <target state="translated">Свойство "{0}" не возвращает значение для всех путей к коду. Во время выполнения при использовании результата может возникнуть пустая ссылка на исключение.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropRef1_Title">
         <source>Property doesn't return a value on all code paths</source>
-        <target state="translated">Свойство не возвращает значение на всех путях кода</target>
+        <target state="translated">Свойство не возвращает значение на всех путях к коду</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
@@ -7186,17 +7189,17 @@
       </trans-unit>
       <trans-unit id="ERR_SubRequiresParenthesesBang">
         <source>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;)!key</source>
-        <target state="translated">Эту лямбду однострочного оператора необходимо заключить в скобки. Например: (Sub() &lt;оператор&gt;)!key</target>
+        <target state="translated">Эту лямбду однострочного оператора необходимо заключить в круглые скобки. Например: (Sub() &lt;оператор&gt;)!key</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SubRequiresParenthesesDot">
         <source>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;).Invoke()</source>
-        <target state="translated">Эту лямбду однострочного оператора необходимо заключить в скобки. Например: (Sub() &lt;оператор&gt;).Invoke()</target>
+        <target state="translated">Эту лямбду однострочного оператора необходимо заключить в круглые скобки. Например: (Sub() &lt;оператор&gt;).Invoke()</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SubRequiresParenthesesLParen">
         <source>This single-line statement lambda must be enclosed in parentheses. For example: Call (Sub() &lt;statement&gt;) ()</source>
-        <target state="translated">Эту лямбду однострочного оператора необходимо заключить в скобки. Например: Call (Sub() &lt;оператор&gt;) ()</target>
+        <target state="translated">Эту лямбду однострочного оператора необходимо заключить в круглые скобки. Например: Call (Sub() &lt;оператор&gt;) ()</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SubRequiresSingleStatement">
@@ -7306,32 +7309,32 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncVal1">
         <source>Function '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Функция "{0}" не возвращает значение для всех ветвей кода. Возможно, отсутствует оператор "Return".</target>
+        <target state="translated">Функция "{0}" не возвращает значение для всех путей к коду. Возможно, отсутствует оператор "Return".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncVal1_Title">
         <source>Function doesn't return a value on all code paths</source>
-        <target state="translated">Функция не возвращает значение на всех путях кода</target>
+        <target state="translated">Функция не возвращает значение на всех путях к коду</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpVal1">
         <source>Operator '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Оператор "{0}" не возвращает значение для всех ветвей кода. Возможно, отсутствует оператор "Return".</target>
+        <target state="translated">Оператор "{0}" не возвращает значение для всех путей к коду. Возможно, отсутствует оператор "Return".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpVal1_Title">
         <source>Operator doesn't return a value on all code paths</source>
-        <target state="translated">Оператор не возвращает значение на всех путях кода</target>
+        <target state="translated">Оператор не возвращает значение на всех путях к коду</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropVal1">
         <source>Property '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">Свойство "{0}" не возвращает значение для всех ветвей кода. Возможно, отсутствует оператор "Return".</target>
+        <target state="translated">Свойство "{0}" не возвращает значение для всех путей к коду. Возможно, отсутствует оператор "Return".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropVal1_Title">
         <source>Property doesn't return a value on all code paths</source>
-        <target state="translated">Свойство не возвращает значение на всех путях кода</target>
+        <target state="translated">Свойство не возвращает значение на всех путях к коду</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NestedGlobalNamespace">
@@ -8238,12 +8241,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1">
         <source>The AddHandler for Windows Runtime event '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">AddHandler для события среды выполнения Windows "{0}" не возвращает значение для всех ветвей кода. Возможно, отсутствует оператор "Return".</target>
+        <target state="translated">AddHandler для события среды выполнения Windows "{0}" не возвращает значение для всех путей к коду. Возможно, отсутствует оператор "Return".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1_Title">
         <source>The AddHandler for Windows Runtime event doesn't return a value on all code paths</source>
-        <target state="translated">Атрибут AddHandler для события среды выполнения Windows не возвращает значение на всех путях кода</target>
+        <target state="translated">Атрибут AddHandler для события среды выполнения Windows не возвращает значение на всех путях к коду</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodDefaultParameterValueMismatch2">
@@ -8788,7 +8791,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">Длина строковой константы превышает текущий предельный объем памяти. Попробуйте разбить строку на несколько констант.</target>
+        <target state="translated">Длина строковой константы, полученной в результате объединения, превышает значение System.Int32.MaxValue. Попробуйте разделить строку на несколько констант.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9118,7 +9121,7 @@
       </trans-unit>
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
-        <target state="translated">{0} не является допустимой операцией составного присваивания Visual Basic</target>
+        <target state="translated">{0} не является допустимой операцией составного назначения Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">

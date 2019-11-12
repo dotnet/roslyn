@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
         <source>Fix interpolated verbatim string</source>
-        <target state="translated">Corrigir cadeia de caracteres textual interpolada</target>
+        <target state="translated">Corrigir cadeia de caracteres verbatim interpolada</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">すべてのパラメーターに対して null チェックを追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -74,12 +74,12 @@
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">コード内における不必要な値割り当ては、値計算が重複する原因になり得るため、避けてください。値計算が重複しておらず、割り当てを保持する場合は、割り当て先をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) のローカル変数に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
+        <target state="translated">コード内における不必要な値代入は、値計算が重複する原因になり得るため、避けてください。値計算が重複しておらず、代入を保持する場合は、代入先をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) のローカル変数に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">コードに未使用のパラメーターを指定しないでください。パラメーターを削除できない場合は、パラメーターの名前をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">ソース ファイル '{0}' の現在の内容はビルドされたソースと一致しません。ソース ファイルの内容が復元されるまで、デバッグ セッションを続行できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -494,12 +494,12 @@
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="translated">値の不必要な割り当て</target>
+        <target state="translated">値の不必要な代入</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="translated">値の '{0}' への不必要な割り当て</target>
+        <target state="translated">値の '{0}' への不必要な代入</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -529,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="translated">呼び出しチェーンのラップ解除</target>
+        <target state="translated">呼び出しチェーンの折り返し解除</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -539,7 +539,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
-        <target state="translated">パラメーター リストのラップを解除します</target>
+        <target state="translated">パラメーター リストの折り返しを解除します</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">推奨される dispose パターンを使用して、ローカル スコープの破棄可能なオブジェクトがすべてのパスで破棄されるようにします。可能なら、'using' ステートメントまたは 'using' 宣言内で作成をラップします。または、try-finally パターンを、try 領域の前で宣言された専用のローカル変数と、'finally' 領域の非 null 値での条件なしの Dispose の呼び出し (例: 'x?.Dispose()') とともに使用します。オブジェクトが try 領域内で明示的に破棄されるか、dispose の所有権が他のオブジェクトまたはメソッドに移される場合、その操作のすぐ後で 'null' をローカル変数に割り当てて、'finally' 内での dispose の重複を回避します</target>
+        <target state="translated">推奨される破棄パターンを使用して、ローカル スコープの破棄可能なオブジェクトがすべてのパスで破棄されるようにします。可能なら、'using' ステートメントまたは 'using' 宣言内で作成を折り返します。または、try-finally パターンを、try 領域の前で宣言された専用のローカル変数と、'finally' 領域の非 null 値での条件なしの Dispose の呼び出し (例: 'x?.Dispose()') とともに使用します。オブジェクトが try 領域内で明示的に破棄されるか、dispose の所有権が他のオブジェクトまたはメソッドに移される場合、その操作のすぐ後で 'null' をローカル変数に割り当てて、'finally' 内での dispose の重複を回避します</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
-        <target state="translated">複合割り当てを使用</target>
+        <target state="translated">複合代入を使用</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
@@ -599,7 +599,7 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="translated">挿入された verbatim 文字列を使用します</target>
+        <target state="translated">挿入された逐語的文字列を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
@@ -609,12 +609,12 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="translated">推奨される dispose パターンを使用する</target>
+        <target state="translated">推奨される破棄パターンを使用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">推奨された dispose パターンを使用して、'{0}' が作成したオブジェクトがすべてのパスで破棄されるようにします: using ステートメント/宣言または try/finally</target>
+        <target state="translated">推奨された破棄パターンを使用して、'{0}' が作成したオブジェクトがすべてのパスで破棄されるようにします: using ステートメント/宣言または try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_call_chain">
         <source>Wrap and align call chain</source>
-        <target state="translated">呼び出しチェーンのラップと配置</target>
+        <target state="translated">呼び出しチェーンの折り返しと配置</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
@@ -644,12 +644,12 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="translated">長い呼び出しチェーンのラップと配置</target>
+        <target state="translated">長い呼び出しチェーンの折り返しと配置</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="translated">呼び出しチェーンのラップ</target>
+        <target state="translated">呼び出しチェーンの折り返し</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -674,7 +674,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="translated">長い呼び出しチェーンのラップ</target>
+        <target state="translated">長い呼び出しチェーンの折り返し</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -1179,7 +1179,7 @@
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の分散を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">{0}' の変性を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
@@ -1299,7 +1299,7 @@
       </trans-unit>
       <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
         <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">メソッドの本体を追加すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">メソッド本体を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
@@ -1605,12 +1605,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
         <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Dispose パターンを使って明示的にインターフェイスを実装します</target>
+        <target state="translated">破棄パターンを使って明示的にインターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Dispose パターンを使ってインターフェイスを実装します</target>
+        <target state="translated">破棄パターンを使ってインターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler1">
@@ -1835,7 +1835,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Naming_rule_violation_0">
         <source>Naming rule violation: {0}</source>
-        <target state="translated">名前指定の規則違反: {0}</target>
+        <target state="translated">名前付けルール違反: {0}</target>
         <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
@@ -2012,7 +2012,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Convert_to_interpolated_string">
         <source>Convert to interpolated string</source>
-        <target state="translated">挿入文字列に変換する</target>
+        <target state="translated">補間された文字列に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_type_to_0">

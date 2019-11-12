@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">문서가 구문 트리를 지원하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -431,7 +431,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="translated">이 그룹화 구문은 하위 식 내에서 지정된 옵션을 적용하거나 사용하지 않도록 설정합니다. 사용하도록 설정하는 옵션은 물음표 뒤에 지정되며 사용하지 않도록 설정하는 옵션은 빼기 기호 뒤에 지정됩니다. 허용되는 옵션은 다음과 같습니다.
+        <target state="translated">이 그룹화 생성자는 하위 식 내에서 지정된 옵션을 적용하거나 사용하지 않도록 설정합니다. 사용하도록 설정하는 옵션은 물음표 뒤에 지정되며 사용하지 않도록 설정하는 옵션은 빼기 기호 뒤에 지정됩니다. 허용되는 옵션은 다음과 같습니다.
 
     i	대/소문자를 구분하지 않는 일치를 사용합니다.
     m	여러 줄 모드를 사용합니다. 여기서, ^ 및 $는 각 줄의 시작 및 끝과 일치시킵니다(입력
@@ -456,7 +456,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">16진수 이스케이프</target>
+        <target state="translated">16진수 이스케이프</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -541,7 +541,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_long">
         <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
-        <target state="translated">{n,}? 한정사는 n번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 여기서, n은 정수입니다. 최대 한정사 {n,}에 대응되는 지연 한정사입니다.</target>
+        <target state="translated">{n,}? 수량자는 n번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 여기서, n은 정수입니다. 탐욕적 수량자 {n,}에 대응되는 게으른 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_short">
@@ -551,7 +551,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_long">
         <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
-        <target state="translated">{n,} 한정사는 n번 이상 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. {n,}는 해당 지연 한정사가 {n,}?인 최대 한정사입니다.</target>
+        <target state="translated">{n,} 수량자는 n번 이상 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. {n,}는 해당 게으른 수량자가 {n,}?인 탐욕적 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_short">
@@ -561,7 +561,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
         <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
-        <target state="translated">{n,m}? 한정사는 n 및 m번 사이로 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 여기서, n 및 m은 정수입니다. 최대 한정사 {n,m}에 대응되는 지연 한정사입니다.</target>
+        <target state="translated">{n,m}? 수량자는 n 및 m번 사이로 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 여기서, n 및 m은 정수입니다. 탐욕적 수량자 {n,m}에 대응되는 게으른 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
@@ -571,7 +571,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_long">
         <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
-        <target state="translated">{n,m} 한정사는 n번 이상 m번 이하로 이전 요소와 일치시킵니다. 여기서, n 및 m은 정수입니다. {n,m}는 해당 지연 한정사가 {n,m}?인 최대 한정사입니다.</target>
+        <target state="translated">{n,m} 수량자는 n번 이상 m번 이하로 이전 요소와 일치시킵니다. 여기서, n 및 m은 정수입니다. {n,m}는 해당 게으른 수량자가 {n,m}?인 탐욕적 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_short">
@@ -581,7 +581,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_long">
         <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
-        <target state="translated">{n}? 한정사는 정확히 n번을 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. 최대 한정사 {n}+에 대응되는 지연 한정사입니다.</target>
+        <target state="translated">{n}? 수량자는 정확히 n번을 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. 탐욕적 수량자 {n}+에 대응되는 게으른 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_short">
@@ -591,7 +591,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_long">
         <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
-        <target state="translated">{n} 한정사는 정확히 n번을 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. {n}는 해당 지연 한정사가 {n}?인 최대 한정사입니다.</target>
+        <target state="translated">{n} 수량자는 정확히 n번을 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. {n}는 해당 게으른 수량자가 {n}?인 탐욕적 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_short">
@@ -601,7 +601,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_long">
         <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
-        <target state="translated">+? 한정사는 1번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 최대 한정사 +에 대응되는 지연 한정사입니다.</target>
+        <target state="translated">+? 수량자는 1번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 탐욕적 수량자 +에 대응되는 게으른 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
@@ -611,7 +611,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_long">
         <source>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</source>
-        <target state="translated">+ 한정사는 1번 이상 이전 요소와 일치시킵니다. {1,} 한정사와 같습니다. +는 해당 지연 한정사가 +?인 최대 한정사입니다.</target>
+        <target state="translated">+ 수량자는 1번 이상 이전 요소와 일치시킵니다. {1,} 수량자와 같습니다. +는 해당 게으른 수량자가 +?인 탐욕적 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_short">
@@ -621,7 +621,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="translated">*? 한정사는 0번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 최대 한정사 *에 대응되는 지연 한정사입니다.</target>
+        <target state="translated">*? 수량자는 0번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 탐욕적 수량자 *에 대응되는 게으른 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
@@ -631,7 +631,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_long">
         <source>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</source>
-        <target state="translated">* 한정사는 0번 이상 이전 요소와 일치시킵니다. {0,} 한정사와 같습니다. *는 해당 지연 한정사가 *?인 최대 한정사입니다.</target>
+        <target state="translated">* 수량자는 0번 이상 이전 요소와 일치시킵니다. {0,} 수량자와 같습니다. *는 해당 게으른 수량자가 *?인 탐욕적 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_short">
@@ -641,7 +641,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
         <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
-        <target state="translated">?? 한정사는 0번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 최대 한정사 ?에 대응되는 지연 한정사입니다.</target>
+        <target state="translated">?? 수량자는 0번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 탐욕적 수량자 ?에 대응되는 게으른 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
@@ -651,7 +651,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="translated">? 한정사는 0번 이상 이전 요소와 일치시킵니다. {0,1} 한정사와 같습니다. ?는 해당 지연 한정사가 ??인 최대 한정사입니다.</target>
+        <target state="translated">? 수량자는 0번 이상 이전 요소와 일치시킵니다. {0,1} 수량자와 같습니다. ?는 해당 게으른 수량자가 ??인 탐욕적 수량자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
@@ -661,7 +661,7 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="translated">이 그룹화 구문은 일치하는 'subexpression'을 캡처합니다. 여기서, 'subexpression'은 임의의 유효한 정규식 패턴입니다. 괄호를 사용하는 캡처는 정규식의 여는 괄호 순서를 기준으로 왼쪽에서 오른쪽으로 1부터 자동으로 번호가 매겨집니다. 0으로 번호가 매겨진 캡처는 전체 정규식 패턴과 일치하는 텍스트입니다.</target>
+        <target state="translated">이 그룹화 생성자는 일치하는 'subexpression'을 캡처합니다. 여기서, 'subexpression'은 임의의 유효한 정규식 패턴입니다. 괄호를 사용하는 캡처는 정규식의 여는 괄호 순서를 기준으로 왼쪽에서 오른쪽으로 1부터 자동으로 번호가 매겨집니다. 0으로 번호가 매겨진 캡처는 전체 정규식 패턴과 일치하는 텍스트입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
@@ -868,7 +868,7 @@ If a regular expression includes nested grouping constructs, an outer noncapturi
 
 한정사가 그룹에 적용되는 경우 일반적으로 비캡처링 그룹 구문이 사용되지만 그룹에서 캡처된 하위 문자열과는 관련이 없습니다.
 
-정규식에 중첩 그룹화 구문이 포함되는 경우 외부 비캡처링 그룹 구문은 내부 중첩 그룹 구문에 적용되지 않습니다.</target>
+정규식에 중첩 그룹화 생성자가 포함되는 경우 외부 비캡처링 그룹 구문은 내부 중첩 그룹 구문에 적용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
@@ -1329,7 +1329,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">가져오기를 추가하면 '{0}'과(와) 같은 이름으로 확장 메서드가 범위에 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">命令列語法錯誤: '{0}' 對 '{1}' 選項而言不是有效的值。此值的格式必須是 '{2}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">因為類型 '{0}' 有非抽象成員，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">因為類型 '{0}' 有重新抽象成員 (來自基底介面)，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">目標執行階段不支援預設介面實作。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
+        <target state="translated">目標執行階段不支援對介面成員的 'Protected'、'Protected Friend' 或 'Private Protected' 存取範圍。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -211,165 +211,167 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic 編譯器選項
+        <target state="translated">                  Visual Basic 編譯器選項
 
-                                  - 輸出檔 -
--out:&lt;檔案&gt;                       指定輸出檔名稱。
+                                  - 輸出檔案 -
+-out:&lt;檔案&gt;                       指定輸出檔案名稱。
 -target:exe                       建立主控台應用程式 (預設)。
                                   (簡短形式: -t)
 -target:winexe                    建立 Windows 應用程式。
 -target:library                   建立程式庫組件。
--target:module                    建立可新增至組件的
+-target:module                    建立可以新增到組件的
                                   模組。
--target:appcontainerexe           建立可在 AppContainer 中執行的
-                                  Windows 應用程式。
+-target:appcontainerexe           建立可以在 AppContainer 中執行的 Windows
+                                  應用程式。
 -target:winmdobj                  建立 Windows 中繼資料中繼檔案
 -doc[+|-]                         產生 XML 文件檔案。
--doc:&lt;檔案&gt;                       將產生的 XML 文件檔案儲存至 &lt;檔案&gt;。
--refout:&lt;檔案&gt;                    要產生的參考組件輸出
+-doc:&lt;檔案&gt;                       產生 XML 文件檔案並存入 &lt;檔案&gt;。
+-refout:&lt;檔案&gt;                    參考要產生的組件輸出
 
-                                  - 輸入檔 -
--addmodule:&lt;檔案清單&gt;            從指定的模組參考中繼資料
--link:&lt;檔案清單&gt;                 從指定的 Interop 組件內嵌
+                                  - INPUT FILES -
+-addmodule:&lt;檔案清單&gt;            參考指定模組中的中繼資料
+-link:&lt;檔案清單&gt;                 內嵌指定 Interop 組件中的
                                   中繼資料。(簡短形式: -l)
--recurse:&lt;萬用字元&gt;               依據萬用字元規格，
-                                  併入目前的目錄及
-                                  子目錄中的所有檔案。
--reference:&lt;檔案清單&gt;            從指定的組件參考
+-recurse:&lt;萬用字元&gt;               依據指定的萬用字元，
+                                  包含目前目錄與子目錄中的
+                                  所有檔案.
+-reference:&lt;檔案清單&gt;            參考指定組件中的
                                   中繼資料。(簡短形式: -r)
--analyzer:&lt;檔案清單&gt;             從此組件執行分析器
+-analyzer:&lt;檔案清單&gt;             執行此組件中的分析器
                                   (簡短形式: -a)
--additionalfile:&lt;檔案清單&gt;       不會直接影響程式碼產生，
-                                  但分析器可用以產生錯誤或警告的
-                                  其他檔案。
+-additionalfile:&lt;檔案清單&gt;       不直接影響程式碼產生，
+                                  但可能為分析器所用，
+                                  以產生錯誤或警告的額外檔案。
 
-                                  - 資源 -
--linkresource:&lt;資源資訊&gt;           連結指定的檔案作為外部
-                                  組件資源。
+                                  - RESOURCES -
+-linkresource:&lt;資源資訊&gt;           以外部組件資源的形式連結
+                                  指定的檔案。
                                   resinfo:&lt;檔案&gt;[,&lt;名稱&gt;[,public|private]]
                                   (簡短形式: -linkres)
--nowin32manifest                  預設資訊清單不應內嵌在輸出 PE 的
-                                  資訊清單區段中。
--resource:&lt;資源資訊&gt;               新增指定的檔案作為內嵌的
-                                  組件資源。
+-nowin32manifest                  預設的資訊清單不應內嵌在
+                                  輸出 PE 的資訊清單區段中。
+-resource:&lt;資源資訊&gt;               以內嵌組件資源的形式新增指定的
+                                  檔案。
                                   resinfo:&lt;檔案&gt;[,&lt;名稱&gt;[,public|private]]
                                   (簡短形式: -res)
--win32icon:&lt;檔案&gt;                 為預設的 Win32 資源，
-                                  指定 Win32 圖示檔 (.ico)。
--win32manifest:&lt;檔案&gt;             提供的檔案會內嵌在輸出 PE 的
-                                  資訊清單區段中。
--win32resource:&lt;檔案&gt;             指定 Win32 資源檔 (.res)。
+-win32icon:&lt;檔案&gt;                 指定 Win32 圖示檔案e (.ico) 供
+                                  預設 Win32 資源使用。
+-win32manifest:&lt;檔案&gt;             提供的檔案內嵌在
+                                  輸出 PE 的資訊清單區段中。
+-win32resource:&lt;檔案&gt;             指定 Win32 資源檔案 (.res)。
 
-                                  - 產生程式碼 -
+                                  - CODE GENERATION -
 -optimize[+|-]                    啟用最佳化。
 -removeintchecks[+|-]             移除整數檢查。預設為關閉。
 -debug[+|-]                       發出偵錯資訊。
--debug:full                       發出完整偵錯資訊 (預設)。
--debug:pdbonly                    發出完整偵錯資訊。
--debug:portable                   發出跨平台偵錯資訊。
--debug:embedded                   將跨平台偵錯資訊發到
-                                  目標 .dll 或 .exe 中。
+-debug:full                       發出完整的偵錯資訊 (預設)。
+-debug:pdbonly                    發出完整的偵錯資訊。
+-debug:portable                   發出跨平台的偵錯資訊。
+-debug:embedded                   對目標是 .dll 或 .exe 發出跨平台偵錯
+                                  資訊。
 -deterministic                    產生確定性組件
-                                  (包括模組版本 GUID 與時間戳記)
--refonly                          產生參考組件以代替主要輸出
--instrument:TestCoverage          產生檢測組件，以收集
-                                  涵蓋範圍資訊
--sourcelink:&lt;檔案&gt;                要內嵌至 PDB 中的來源連結資訊。
+                                  (含模組版本 GUID 與時間戳記)
+-refonly                          產生取代主要輸出之用的參考組件
+-instrument:TestCoverage          產生經過檢測的組件，以收集
+                                  覆蓋資訊
+-sourcelink:&lt;檔案&gt;                要嵌入 PDF 的來源連結資訊。
 
                                   - 錯誤與警告 -
 -nowarn                           停用所有警告。
--nowarn:&lt;編號清單&gt;             停用個別警告的清單。
+-nowarn:&lt;數字清單&gt;             停用列出個別警告。
 -warnaserror[+|-]                 將所有警告視為錯誤。
--warnaserror[+|-]:&lt;編號清單&gt;   將警告清單視為錯誤。
--ruleset:&lt;檔案&gt;                   指定會停用特定診斷的規則集
-                                  檔案。
--errorlog:&lt;檔案&gt;                  指定要記錄所有編譯器和分析器診斷的
-                                  檔案。
--reportanalyzer                   回報其他分析器資訊，例如
+-warnaserror[+|-]:&lt;數字清單&gt;   將列出的警告視為錯誤。
+-ruleset:&lt;檔案&gt;                   指定結果集檔案，以停用特定的
+                                  診斷。
+-errorlog:&lt;檔案&gt;[,version=&lt;sarif 版本&gt;]         
+                                  指定用以記錄所有編譯器及分析器診斷的 SARIF 格式檔案。
+                                  sarif 版本:{1|2|2.1} 預設為 1. 2 及 2.1
+                                  兩者皆表示 SARIF 2.1.0 版。
+-reportanalyzer                  回報額外的分析器資訊，例如
                                   執行時間。
 
-                                  - 語言 -
+                                  - LANGUAGE -
 -define:&lt;符號清單&gt;             宣告全域條件式編譯
                                   符號。 symbol_list:name=value,...
                                   (簡短形式: -d)
--imports:&lt;匯入清單&gt;            在參考的中繼資料檔中宣告命名空間的
+-imports:&lt;匯入清單&gt;            為參考之中繼資料檔案中的命名空間宣告
                                   全域匯入。
                                   import_list:namespace,...
--langversion:?                    顯示語言版本允許的值
+-langversion:?                    顯示允許的語言版本值
 -langversion:&lt;字串&gt;             指定語言版本，例如
-                                  `default` (最新的主要版本)、
-                                  `latest` (最新版本，包含次要版本)
-                                  或特定版本，例如 `14` 或 `15.3`
--optionexplicit[+|-]              必須明確宣告變數。
--optioninfer[+|-]                 允許變數的型別推斷。
--rootnamespace:&lt;字串&gt;           指定所有型別宣告的
+                                  `default` (最新的主要版本) 或
+                                  `latest` (最新版本，包括次要版本)，
+                                  或特定的版本，例如 `14` 或 `15.3`
+-optionexplicit[+|-]              需要明確宣告變數。
+-optioninfer[+|-]                 參許推斷變數類型。
+-rootnamespace:&lt;字串&gt;           指定所有類型宣告的
                                   根命名空間。
--optionstrict[+|-]                強制採用嚴格語意。
--optionstrict:custom              在未遵守嚴格的語意時
+-optionstrict[+|-]                施行嚴格的語言語意。
+-optionstrict:custom              當未遵守嚴格的語言語意時
                                   發出警告。
--optioncompare:binary             指定二進位樣式字串比較。
-                                  此為預設。
--optioncompare:text               指定文字樣式字串比較。
+-optioncompare:binary             指定二進位樣式的字串比較。
+                                  此為預設值。
+-optioncompare:text               指定文字樣式的字串比較。
 
-                                  - 其他 -
--help                             顯示此使用訊息。 (簡短形式: -?)
--noconfig                         不要自動包含 VBC.RSP 檔。
+                                  - MISCELLANEOUS -
+-help                             顯示用法訊息。(簡短形式: -?)
+-noconfig                         不自動包含 VBC.RSP 檔案。
 -nologo                           不顯示編譯器著作權橫幅。
--quiet                            無對話輸出模式。
--verbose                          顯示詳細資訊訊息。
--parallel[+|-]                    並行建置。
--version                          顯示編譯器的版本號碼並結束。
+-quiet                            無訊息輸出模式。
+-verbose                          顯示詳細訊息。
+-parallel[+|-]                    平行建置。
+-version                          顯示編譯器版本號碼後結束。
 
-                                  - 進階 -
--baseaddress:&lt;號碼&gt;             程式庫或模組的基底位址
-                                  (十六進位)。
--checksumalgorithm:&lt;演算法&gt;          為計算儲存在 PDB 中的來源檔案總和檢查碼
-                                  指定演算法。支援的值為:
+                                  - ADVANCED -
+-baseaddress:&lt;數字&gt;             程式庫或模組的
+                                  基底位址 (十六進位)。
+-checksumalgorithm:&lt;演算法&gt;          指定演算法，以計算儲存在 PDB 中的
+                                  來源檔案總和檢查碼。支援的值:
                                   SHA1 或 SHA256 (預設)。
--codepage:&lt;編號&gt;                指定開啟來源檔案時要使用的
+-codepage:&lt;數字&gt;                指定開啟來源檔案時所要使用的
                                   字碼頁。
--delaysign[+|-]                   只使用強式名稱金鑰的公開部分
-                                  延遲簽署組件。
--publicsign[+|-]                  只使用強式名稱金鑰的公開部分
+-delaysign[+|-]                   只使用強名稱金鑰的公開部分
+                                  延後簽署組件。
+-publicsign[+|-]                  只使用強名稱金鑰的公開部分
                                   公開簽署組件。
 -errorreport:&lt;字串&gt;             指定如何處理內部編譯器
                                   錯誤; 必須是 prompt、send、none 或 queue
                                   (預設)。
--filealign:&lt;數字&gt;               指定用於輸出檔區段的
-                                  對齊。
+-filealign:&lt;數字&gt;               指定輸出檔案
+                                  區段的對齊方式。
 -highentropyva[+|-]               啟用高熵 ASLR。
--keycontainer:&lt;字串&gt;            指定強式名稱金鑰容器。
--keyfile:&lt;檔案&gt;                   指定強勢名稱金鑰檔案。
--libpath:&lt;路徑清單&gt;              要在其中搜尋中繼資料參考的目錄清單
-                                  (以分號分隔)。
--main:&lt;類別&gt;                     指定包含 Sub Main 的類別或模組。
-                                  也可以是繼承自
-                                  System.Windows.Forms.Form 的類別。
+-keycontainer:&lt;字串&gt;            指定強名稱金鑰容器。
+-keyfile:&lt;檔案&gt;                   指定強名稱金鑰檔案。
+-libpath:&lt;路徑清單&gt;              目錄的清單，可從中搜尋中繼資料
+                                  參考 (分號分隔)。
+-main:&lt;類別&gt;                     指定包含 Sub Main 的 Class 或 Module。
+                                  其也可以是從 System.Windows.Forms.Form
+                                  繼承而來的 Class。
                                   (簡短形式: -m)
--moduleassemblyname:&lt;字串&gt;      此模組要加入其中的
-                                  組件名稱。
+-moduleassemblyname:&lt;字串&gt;      此模組即將歸入之組件的
+                                  名稱。
 -netcf                            以 .NET Compact Framework 為目標。
--nostdlib                         不要參考標準程式庫
-                                  (system.dll 和 VBC.RSP 檔)。
+-nostdlib                         不參考標準程式庫
+                                  (system.dll 及 VBC.RSP 檔案)。
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  為編譯器輸出的來源路徑名稱
-                                  指定對應。
--platform:&lt;字串&gt;                限制這個程式碼可以在哪些平台執行;
-                                  必須是 x86、x64、Itanium、arm、arm64、
+                                  指定編譯器輸出之來源路徑名稱的
+                                  對應。
+-platform:&lt;字串&gt;                限制能夠執行此程式碼的平台;
+                                  必須是 x86、x64、Itanium、arm、arm64
                                   AnyCPU32BitPreferred 或 anycpu (預設)。
 -preferreduilang                  指定慣用的輸出語言名稱。
--nosdkpath                        停用標準程式庫組件的搜尋預設 SDK 路徑。
--sdkpath:&lt;路徑&gt;                   .NET Framework SDK 目錄的位置
-                                  (mscorlib.dll)。
+-nosdkpath                        停用搜尋標準程式庫組件的預設 SDK 路徑。
+-sdkpath:&lt;路徑&gt;                   .NET Framework SDK 目錄
+                                  (mscorlib.dll) 的位置。
 -subsystemversion:&lt;版本&gt;       指定輸出 PE 的子系統版本。
                                   version:&lt;號碼&gt;[.&lt;號碼&gt;]
 -utf8output[+|-]                  以 UTF8 字元編碼發出編譯器
                                   輸出。
-@&lt;檔案&gt;                           從文字檔插入命令列設定
--vbruntime[+|-|*]                 使用 (或不使用) 預設 Visual Basic 執行階段
-                                  進行編譯。
--vbruntime:&lt;檔案&gt;                 使用 &lt;檔案&gt; 中的其他 Visual Basic 執行階段
-                                  進行編譯。
+@&lt;檔案&gt;                           插入文字檔案中的命令列設定
+-vbruntime[+|-|*]                 使用或不使用預設的 Visual Basic
+                                  執行階段進行編譯。
+-vbruntime:&lt;檔案&gt;                 使用 &lt;檔案&gt; 中的替代 Visual Basic
+                                  執行階段進行編譯。
 </target>
         <note />
       </trans-unit>
@@ -2672,7 +2674,7 @@
       </trans-unit>
       <trans-unit id="ERR_RedimNoSizes">
         <source>'ReDim' statements require a parenthesized list of the new bounds of each dimension of the array.</source>
-        <target state="translated">'ReDim' 陳述式需要每個陣列維度新界限的括號清單。</target>
+        <target state="translated">'ReDim' 陳述式需要每個陣列維度新界限的小括號內清單。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitWithMultipleDeclarators">
@@ -3533,7 +3535,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyArraysOnBoth">
         <source>Array modifiers cannot be specified on both a variable and its type.</source>
-        <target state="translated">無法同時在變數及其類型上指定陣列修飾詞。</target>
+        <target state="translated">無法同時在變數及其類型上指定陣列修飾元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableRequiresOverrides">
@@ -3678,12 +3680,12 @@
       </trans-unit>
       <trans-unit id="ERR_CustomEventInvInInterface">
         <source>'Custom' modifier is not valid on events declared in interfaces.</source>
-        <target state="translated">'Custom' 修飾詞在以介面宣告的事件中無效。</target>
+        <target state="translated">'Custom' 修飾元在以介面宣告的事件中無效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CustomEventRequiresAs">
         <source>'Custom' modifier is not valid on events declared without explicit delegate types.</source>
-        <target state="translated">'Custom' 修飾詞在沒有以明確委派類型宣告的事件中無效。</target>
+        <target state="translated">'Custom' 修飾元在沒有以明確委派類型宣告的事件中無效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidEndEvent">
@@ -3773,7 +3775,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidUseOfCustomModifier">
         <source>'Custom' modifier can only be used immediately before an 'Event' declaration.</source>
-        <target state="translated">'Custom' 修飾詞只能緊接地用於 'Event' 宣告的前面。</target>
+        <target state="translated">'Custom' 修飾元只能緊接地用於 'Event' 宣告的前面。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidOptionStrictCustom">
@@ -5195,17 +5197,17 @@
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyNullableOnBoth">
         <source>Nullable modifier cannot be specified on both a variable and its type.</source>
-        <target state="translated">無法同時在變數及其類型上指定可為 Null 的修飾詞。</target>
+        <target state="translated">無法同時在變數及其類型上指定可為 Null 的修飾元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeArgForStructConstraintNull">
         <source>Type '{0}' must be a value type or a type argument constrained to 'Structure' in order to be used with 'Nullable' or nullable modifier '?'.</source>
-        <target state="translated">類型 '{0}' 必須是實值類型或已限制為 'Structure' 的類型引數，才可與 'Nullable' 或可為 Null 的修飾詞 '?' 搭配使用。</target>
+        <target state="translated">類型 '{0}' 必須是實值類型或已限制為 'Structure' 的類型引數，才可與 'Nullable' 或可為 Null 的修飾元 '?' 搭配使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyArrayAndNullableOnBoth">
         <source>Nullable modifier '?' and array modifiers '(' and ')' cannot be specified on both a variable and its type.</source>
-        <target state="translated">無法同時在變數及其類型上指定可為 Null 的修飾詞 '?' 以及陣列修飾詞 '(' 和 ')'。</target>
+        <target state="translated">無法同時在變數及其類型上指定可為 Null 的修飾元 '?' 以及陣列修飾元 '(' 和 ')'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyTypeCharacterOnIIF">
@@ -5220,7 +5222,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion">
         <source>Cannot infer a common type for the second and third operands of the 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">無法推斷 'If' 運算子的第二個和第三個運算元之一般類型。一個運算元必須要能夠擴展轉換成另一個運算元。</target>
+        <target state="translated">無法推斷 'If' 運算子的第二個和第三個運算元之一般類型。一個運算元必須要能夠放大轉換成另一個運算元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
@@ -5235,12 +5237,12 @@
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyAsNewAndNullable">
         <source>Nullable modifier cannot be specified in variable declarations with 'As New'.</source>
-        <target state="translated">包含 'As New' 的變數宣告中不能指定可為 Null 的修飾詞。</target>
+        <target state="translated">包含 'As New' 的變數宣告中不能指定可為 Null 的修飾元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion2">
         <source>Cannot infer a common type for the first and second operands of the binary 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">無法推斷二元 'If' 運算子的第一個和第二個運算元之一般類型。一個運算元必須要能夠擴展轉換成另一個運算元。</target>
+        <target state="translated">無法推斷二元 'If' 運算子的第一個和第二個運算元之一般類型。一個運算元必須要能夠放大轉換成另一個運算元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullTypeInCCExpression">
@@ -5250,7 +5252,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableImplicit">
         <source>Nullable modifier cannot be used with a variable whose implicit type is 'Object'.</source>
-        <target state="translated">可為 Null 的修飾詞不能用於隱含類型為 'Object' 的變數。</target>
+        <target state="translated">可為 Null 的修飾元不能用於隱含類型為 'Object' 的變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingRuntimeHelper">
@@ -5779,7 +5781,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyParamsOnLambdaParamNoType">
         <source>Array modifiers cannot be specified on lambda expression parameter name. They must be specified on its type.</source>
-        <target state="translated">不能在 Lambda 運算式參數名稱上指定陣列修飾詞，而必須在其類型上指定。</target>
+        <target state="translated">不能在 Lambda 運算式參數名稱上指定陣列修飾元，而必須在其類型上指定。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailure1">
@@ -6686,12 +6688,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime.</source>
-        <target state="translated">為變數 '{0}' 指派值之前，已用參考方式傳遞該數數。可能會在執行階段產生 null 參考例外狀況。</target>
+        <target state="translated">為變數 '{0}' 指派值之前，已藉傳址方式傳遞該數數。可能會在執行階段產生 null 參考例外狀況。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">變數在獲派值之前就已用參考方式傳遞</target>
+        <target state="translated">變數在獲派值之前就已藉傳址方式傳遞</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateCatch">
@@ -6846,12 +6848,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use</source>
-        <target state="translated">為變數 '{0}' 指派值之前，已用參考方式傳遞該變數。可能會在執行階段產生 null 參考例外狀況。請確定結構或所有的參考成員，都在使用前進行過初始化。</target>
+        <target state="translated">為變數 '{0}' 指派值之前，已藉傳址方式傳遞該變數。可能會在執行階段產生 null 參考例外狀況。請確定結構或所有的參考成員，都在使用前進行過初始化。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">變數在獲派值之前就已用參考方式傳遞</target>
+        <target state="translated">變數在獲派值之前就已藉傳址方式傳遞</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefStr">
@@ -7993,7 +7995,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidAsyncIteratorModifiers">
         <source>'Async' and 'Iterator' modifiers cannot be used together.</source>
-        <target state="translated">'Async' 和 'Iterator' 修飾詞不可以同時使用。</target>
+        <target state="translated">'Async' 和 'Iterator' 修飾元不可以同時使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadResumableAccessReturnVariable">
@@ -8013,7 +8015,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
         <source>The 'Async' modifier can only be used on Subs, or on Functions that return Task or Task(Of T).</source>
-        <target state="translated">Async' 修飾詞只能用在傳回 Task 或 Task(Of T) 的子函數或函式上。</target>
+        <target state="translated">Async' 修飾元只能用在傳回 Task 或 Task(Of T) 的子函數或函式上。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantAwaitAsyncSub1">
@@ -8023,27 +8025,27 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidLambdaModifier">
         <source>'Only the 'Async' or 'Iterator' modifier is valid on a lambda.</source>
-        <target state="translated">'Lambda 上只有 'Async' 或 'Iterator' 修飾詞有效。</target>
+        <target state="translated">'Lambda 上只有 'Async' 或 'Iterator' 修飾元有效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncMethod">
         <source>'Await' can only be used within an Async method. Consider marking this method with the 'Async' modifier and changing its return type to 'Task(Of {0})'.</source>
-        <target state="translated">'Await' 只可用於 Async 方法中。請考慮以 'Async' 修飾詞標記此方法，並將其傳回類型變更為 'Task(Of {0})'。</target>
+        <target state="translated">'Await' 只可用於 Async 方法中。請考慮以 'Async' 修飾元標記此方法，並將其傳回類型變更為 'Task(Of {0})'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncVoidMethod">
         <source>'Await' can only be used within an Async method. Consider marking this method with the 'Async' modifier and changing its return type to 'Task'.</source>
-        <target state="translated">'Await' 只能在非同步方法使用。請考慮以 'Async' 修飾詞標記此方法，並將它的傳回類型變更為 'Task'。</target>
+        <target state="translated">'Await' 只能在非同步方法使用。請考慮以 'Async' 修飾元標記此方法，並將它的傳回類型變更為 'Task'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncLambda">
         <source>'Await' can only be used within an Async lambda expression. Consider marking this lambda expression with the 'Async' modifier.</source>
-        <target state="translated">'Await' 只能在非同步 Lambda 運算式使用。請考慮以 'Async' 修飾詞標記此 Lambda 運算式。</target>
+        <target state="translated">'Await' 只能在非同步 Lambda 運算式使用。請考慮以 'Async' 修飾元標記此 Lambda 運算式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitNotInAsyncMethodOrLambda">
         <source>'Await' can only be used when contained within a method or lambda expression marked with the 'Async' modifier.</source>
-        <target state="translated">'Await' 只有在包含於以 'Async' 修飾詞標記的方法或 Lambda 運算式時才能使用。</target>
+        <target state="translated">'Await' 只有在包含於以 'Async' 修飾元標記的方法或 Lambda 運算式時才能使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StatementLambdaInExpressionTree">
@@ -8078,12 +8080,12 @@
       </trans-unit>
       <trans-unit id="ERR_ConstructorAsync">
         <source>Constructor must not have the 'Async' modifier.</source>
-        <target state="translated">建構函式不可以有 'Async' 修飾詞。</target>
+        <target state="translated">建構函式不可以有 'Async' 修飾元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodsMustNotBeAsync1">
         <source>'{0}' cannot be declared 'Partial' because it has the 'Async' modifier.</source>
-        <target state="translated">'{0}' 不可宣告為 'Partial'，因為其具有 'Async' 修飾詞。</target>
+        <target state="translated">'{0}' 不可宣告為 'Partial'，因為其具有 'Async' 修飾元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ResumablesCannotContainOnError">
@@ -8093,7 +8095,7 @@
       </trans-unit>
       <trans-unit id="ERR_ResumableLambdaInExpressionTree">
         <source>Lambdas with the 'Async' or 'Iterator' modifiers cannot be converted to expression trees.</source>
-        <target state="translated">具有 'Async' 或 'Iterator' 修飾詞的 Lambda，無法轉換為運算式樹狀結構。</target>
+        <target state="translated">具有 'Async' 或 'Iterator' 修飾元的 Lambda，無法轉換為運算式樹狀結構。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLiftRestrictedTypeResumable1">
@@ -8213,7 +8215,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadIteratorExpressionLambda">
         <source>Single-line lambdas cannot have the 'Iterator' modifier. Use a multiline lambda instead.</source>
-        <target state="translated">單行 Lambda 不能有 'Iterator' 修飾詞。請改用多行 Lambda。</target>
+        <target state="translated">單行 Lambda 不能有 'Iterator' 修飾元。請改用多行 Lambda。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -8228,7 +8230,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadYieldInNonIteratorMethod">
         <source>'Yield' can only be used in a method marked with the 'Iterator' modifier.</source>
-        <target state="translated">'Yield' 只能用在標記為 'Iterator' 修飾詞的方法中。</target>
+        <target state="translated">'Yield' 只能用在標記為 'Iterator' 修飾元的方法中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInTryHandler">
@@ -8253,7 +8255,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodParamArrayMismatch2">
         <source>Parameter of a method '{0}' differs by ParamArray modifier from the corresponding parameter of the partial method '{1}'.</source>
-        <target state="translated">方法 '{0}' 的參數與部分方法 '{1}' 的對應參數間之差異，在於 ParamArray 的修飾詞不同。</target>
+        <target state="translated">方法 '{0}' 的參數與部分方法 '{1}' 的對應參數間之差異，在於 ParamArray 的修飾元不同。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
@@ -8788,7 +8790,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">字串常數的長度超過目前的記憶體限制。請嘗試將字串分割成多個常數。</target>
+        <target state="translated">從串連產生的字串常數長度超過 System.Int32.MaxValue。請嘗試將字串分割為多個常數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9013,7 +9015,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallInExpressionTree">
         <source>An expression tree may not contain a call to a method or property that returns by reference.</source>
-        <target state="translated">運算式樹狀架構不能包含依據參考所傳回的方法或屬性呼叫。</target>
+        <target state="translated">運算式樹狀架構不能包含藉傳址所傳回的方法或屬性呼叫。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotEmbedWithoutPdb">

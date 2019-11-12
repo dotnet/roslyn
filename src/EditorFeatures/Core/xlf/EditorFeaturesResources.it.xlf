@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
-        <target state="new">Go To Base</target>
+        <target state="translated">Vai a base</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
-        <target state="new">Locating bases...</target>
+        <target state="translated">Individuazione delle basi...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
-        <target state="translated">Modifica non applicabile</target>
+        <target state="translated">Modifica non applicabile al momento</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_will_update_1_reference_in_1_file">

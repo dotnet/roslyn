@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
-        <target state="new">Go To Base</target>
+        <target state="translated">Accéder à la base</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
-        <target state="new">Locating bases...</target>
+        <target state="translated">Localisation des bases...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">

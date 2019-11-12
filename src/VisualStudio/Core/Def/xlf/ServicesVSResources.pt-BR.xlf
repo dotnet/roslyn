@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">Um novo arquivo .editorconfig foi detectado na raiz da sua solução. Deseja torná-lo um item de solução?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">Contendo Membro</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">Contendo Tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Regras de nomenclatura</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">Atualizando a severidade</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1181,7 +1181,7 @@ Use a lista suspensa para exibir e mudar entre outros projetos aos quais este ar
       </trans-unit>
       <trans-unit id="This_workspace_only_supports_opening_documents_on_the_UI_thread">
         <source>This workspace only supports opening documents on the UI thread.</source>
-        <target state="translated">Este workspace só dá suporte à abertura de documentos no thread da interface do usuário.</target>
+        <target state="translated">Este workspace só dá suporte à abertura de documentos no thread da IU.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_parse_options">
@@ -1685,7 +1685,7 @@ Informações adicionais: {1}</target>
       </trans-unit>
       <trans-unit id="Prefer_null_propagation">
         <source>Prefer null propagation</source>
-        <target state="translated">Preferir propagação nula</target>
+        <target state="translated">Preferir tratamento simplificado de nulo</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicit_tuple_name">

@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">Не все ветви кода возвращают значения</target>
+        <target state="translated">Не все пути к коду возвращают значения</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -973,7 +973,7 @@ Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;com
       </trans-unit>
       <trans-unit id="Introduces_a_statement_block_to_be_run_if_the_specified_exception_occurs_inside_a_Try_block">
         <source>Introduces a statement block to be run if the specified exception occurs inside a Try block.</source>
-        <target state="translated">Вводит блок оператора, который будет запущен, если указанное исключение относится к блоку Try.</target>
+        <target state="translated">Вводит блок операторов, который будет запущен, если указанное исключение относится к блоку Try.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text">
@@ -1130,7 +1130,7 @@ Option Explicit {On | Off}</target>
       </trans-unit>
       <trans-unit id="Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure">
         <source>Introduces a statement block to be run before exiting a Try structure.</source>
-        <target state="translated">Вводит блок оператора, который будет запущен перед выходом из структуры Try.</target>
+        <target state="translated">Вводит блок операторов, который будет запущен перед выходом из структуры Try.</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection">
@@ -1494,7 +1494,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
-        <target state="translated">Используйте правильную переменную управления</target>
+        <target state="translated">Используйте правильную переменную элемента управления</target>
         <note />
       </trans-unit>
       <trans-unit id="NameOf_function">
@@ -1504,7 +1504,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Создайте сужающееся преобразование в "{0}"</target>
+        <target state="translated">Создайте сужающее преобразование в "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">

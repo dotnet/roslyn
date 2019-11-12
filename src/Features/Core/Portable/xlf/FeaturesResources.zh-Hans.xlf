@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">为所有参数添加 null 检查</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">请避免在代码中使用未使用的参数。如果无法删除该参数，请更改其名称，使其以下划线开头，也可在下划线后面跟一个整数(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">源文件 "{0}" 的当前内容与生成的源不匹配。除非还原源文件的内容，否则调试会话将无法继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -504,12 +504,12 @@
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
-        <target state="translated">解开所有参数</target>
+        <target state="translated">展开所有参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
-        <target state="translated">打开所有参数</target>
+        <target state="translated">展开打开所有参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_arguments">
@@ -529,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="translated">对调用链解包</target>
+        <target state="translated">展开调用链</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">使用推荐的 Dispose 模式以确保在所有路径中释放局部可释放对象。如果可能，请将创建包装在 "using" 语句或 "using" 声明中。否则，请使用 try-finally 模式，在 try 区域之前声明一个专用的局部变量，在 "finally" 区域中对非 null 值进行无条件 Dispose 调用，比如，"x?.Dispose()"。如果对象显式释放在 try 区域内或释放所有权转让给另一个对象或方法，则在这样的操作之后立即将 "null" 分配给局部变量，以防止在 "finally" 中进行双重释放。</target>
+        <target state="translated">使用推荐的释放模式以确保在所有路径中释放局部可释放对象。如果可能，请将创建包装在 "using" 语句或 "using" 声明中。否则，请使用 try-finally 模式，在 try 区域之前声明一个专用的局部变量，在 "finally" 区域中对非 null 值进行无条件 Dispose 调用，比如，"x?.Dispose()"。如果对象显式释放在 try 区域内或释放所有权转让给另一个对象或方法，则在这样的操作之后立即将 "null" 分配给局部变量，以防止在 "finally" 中进行双重释放。</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
@@ -559,12 +559,12 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="translated">对 lambda 表达式使用块正文</target>
+        <target state="translated">对 lambda 表达式使用块主体</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
         <source>Use block body for local functions</source>
-        <target state="translated">对本地函数使用块体</target>
+        <target state="translated">对本地函数使用块主体</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
@@ -599,7 +599,7 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="translated">使用内插的原义字符串</target>
+        <target state="translated">使用内插的逐字字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
@@ -609,12 +609,12 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="translated">使用建议的 dispose 模式</target>
+        <target state="translated">使用建议的释放模式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">使用建议的 dispose 模式以确保在所有路径上释放由 "{0}" 创建的对象: using 语句/声明或 try/finally</target>
+        <target state="translated">使用建议的释放模式以确保在所有路径上释放由 "{0}" 创建的对象: using 语句/声明或 try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -1179,7 +1179,7 @@
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的方差将阻止调试会话继续。</target>
+        <target state="translated">更新“{0}”的变型将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
@@ -1605,12 +1605,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
         <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">通过 Dispose 模式显式实现接口</target>
+        <target state="translated">通过释放模式显式实现接口</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
-        <target state="translated">通过 Dispose 模式实现接口</target>
+        <target state="translated">通过释放模式实现接口</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler1">
@@ -2012,7 +2012,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Convert_to_interpolated_string">
         <source>Convert to interpolated string</source>
-        <target state="translated">转换为插值字符串</target>
+        <target state="translated">转换为插补字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_type_to_0">

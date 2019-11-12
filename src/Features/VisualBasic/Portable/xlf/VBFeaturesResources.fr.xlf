@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">Tous les chemins de code n'ont pas été retournés</target>
+        <target state="translated">Tous les chemins du code n'ont pas été retournés</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">

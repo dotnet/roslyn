@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_calls">
         <source>Set spacing for method calls</source>
-        <target state="translated">メソッドの呼び出しのスペースを設定する</target>
+        <target state="translated">メソッド呼び出しのスペースを設定する</target>
         <note />
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_declarations">

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">В корневом узле вашего решения обнаружен новый файл EDITORCONFIG. Вы хотите сделать его элементом решения?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">Содержащий член</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">Содержащий тип</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Правила именования</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
-        <target state="translated">Предпочитать составные присваивания</target>
+        <target state="translated">Предпочитать составные назначения</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_index_operator">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">Обновление уровня серьезности</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1760,7 +1760,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
-        <target state="translated">тип предполагается из выражения присваивания</target>
+        <target state="translated">тип предполагается из выражения назначения</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
@@ -1991,7 +1991,7 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="translated">Предпочитать условное выражение оператору if в присваиваниях</target>
+        <target state="translated">Предпочитать условное выражение оператору if в назначениях</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">

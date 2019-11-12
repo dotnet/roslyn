@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="new">Assign 'out' parameters</target>
+        <target state="translated">Asignar parámetros "out"</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="new">Assign 'out' parameters (at start)</target>
+        <target state="translated">Asignar parámetros "out" (al inicio)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">Pasar variables capturadas como argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
-        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <target state="translated">Advertencia: Inserción de una llamada temporal en otra de método condicional.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">Advertencia: Agregar parámetros a la declaración de función local puede generar código no válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
