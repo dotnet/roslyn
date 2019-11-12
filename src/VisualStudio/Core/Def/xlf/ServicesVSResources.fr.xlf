@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">Un nouveau fichier .editorconfig a été détecté à la racine de votre solution. Voulez-vous en faire un élément de solution ?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_value_assignments">
         <source>Avoid unused value assignments</source>
-        <target state="translated">Éviter les affectations de valeurs inutilisées</target>
+        <target state="translated">Éviter les assignations de valeurs inutilisées</target>
         <note />
       </trans-unit>
       <trans-unit id="Back">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">Membre conteneur</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">Type conteneur</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Règles de nommage</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">Mise à jour de la gravité</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1595,7 +1595,7 @@ Informations supplémentaires : {1}</target>
       </trans-unit>
       <trans-unit id="Prefer_inlined_variable_declaration">
         <source>Prefer inlined variable declaration</source>
-        <target state="translated">Préférer la déclaration de variable inline</target>
+        <target state="translated">Préférer la déclaration de variable inlined</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_methods">
@@ -1685,7 +1685,7 @@ Informations supplémentaires : {1}</target>
       </trans-unit>
       <trans-unit id="Prefer_null_propagation">
         <source>Prefer null propagation</source>
-        <target state="translated">Préférer la propagation Null</target>
+        <target state="translated">Préférer la propagation nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicit_tuple_name">
@@ -1825,12 +1825,12 @@ Informations supplémentaires : {1}</target>
       </trans-unit>
       <trans-unit id="Add_a_naming_rule">
         <source>Add a naming rule</source>
-        <target state="translated">Ajouter une règle d'affectation de noms</target>
+        <target state="translated">Ajouter une règle de nommage</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_naming_rule">
         <source>Remove naming rule</source>
-        <target state="translated">Supprimer la règle d'affectation de noms</target>
+        <target state="translated">Supprimer la règle de nommage</target>
         <note />
       </trans-unit>
       <trans-unit id="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread">

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">모든 C# 서식 규칙 적용(들여쓰기, 줄 바꿈, 간격 조정)</target>
+        <target state="translated">모든 C# 서식 규칙 적용(들여쓰기, 래핑, 간격 조정)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">

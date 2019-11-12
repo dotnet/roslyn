@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">Dokument nie obsługuje drzew składni</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -218,11 +218,11 @@
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Definicja grupy zrównoważonej usuwa definicję uprzednio zdefiniowanej grupy i zapisuje w bieżącej grupie interwał między poprzednio zdefiniowaną grupą a bieżącą grupą.
+        <target state="translated">Definicja grupy dopasowywania usuwa definicję uprzednio zdefiniowanej grupy i zapisuje w bieżącej grupie interwał między poprzednio zdefiniowaną grupą a bieżącą grupą.
     
-„Nazwa1” to bieżąca grupa (opcjonalna), „nazwa2” to wcześniej zdefiniowana grupa, a element „podwyrażenie” to dowolny prawidłowy wzorzec wyrażenia regularnego. Definicja grupy zrównoważonej usuwa definicję elementu nazwa2 i zapisuje interwał między elementami nazwa2 i nazwa1 w elemencie nazwa1. Jeśli nie zdefiniowano grupy nazwa2, następuje cofanie dopasowywania. Ponieważ usunięcie ostatniej definicji elementu nazwa2 ujawnia jego poprzednią definicję, ta konstrukcja umożliwia użycie stosu przechwyceń dla grupy nazwa2 jako licznika służącego do śledzenia zagnieżdżonych konstrukcji, takich jak nawiasy lub otwierające i zamykające nawiasy klamrowe.
+„Nazwa1” to bieżąca grupa (opcjonalna), „nazwa2” to wcześniej zdefiniowana grupa, a element „podwyrażenie” to dowolny prawidłowy wzorzec wyrażenia regularnego. Definicja grupy dopasowywania usuwa definicję elementu nazwa2 i zapisuje interwał między elementami nazwa2 i nazwa1 w elemencie nazwa1. Jeśli nie zdefiniowano grupy nazwa2, następuje cofanie dopasowywania. Ponieważ usunięcie ostatniej definicji elementu nazwa2 ujawnia jego poprzednią definicję, ta konstrukcja umożliwia użycie stosu przechwyceń dla grupy nazwa2 jako licznika służącego do śledzenia zagnieżdżonych konstrukcji, takich jak nawiasy lub otwierające i zamykające nawiasy klamrowe.
 
-Definicja grupy zrównoważonej używa elementu „nazwa2” jako stosu. Początkowy znak każdej zagnieżdżonej konstrukcji jest umieszczany w grupie i w jej kolekcji Group.Captures. Po dopasowaniu znaku zamykającego odpowiadający mu znak otwierający jest usuwany z grupy, a kolekcja Captures jest zmniejszana o jeden. Po dopasowaniu otwierających i zamykających znaków wszystkich zagnieżdżonych konstrukcji element „nazwa1” jest pusty.</target>
+Definicja grupy dopasowywania używa elementu „nazwa2” jako stosu. Początkowy znak każdej zagnieżdżonej konstrukcji jest umieszczany w grupie i w jej kolekcji Group.Captures. Po dopasowaniu znaku zamykającego odpowiadający mu znak otwierający jest usuwany z grupy, a kolekcja Captures jest zmniejszana o jeden. Po dopasowaniu otwierających i zamykających znaków wszystkich zagnieżdżonych konstrukcji element „nazwa1” jest pusty.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -456,7 +456,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">znak ucieczki szesnastkowo</target>
+        <target state="translated">szesnastkowy znak kontrolny</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -541,7 +541,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_long">
         <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
-        <target state="translated">Kwantyfikator {n,}? dopasowuje poprzedzający element co najmniej n razy, gdzie n jest dowolną liczbą całkowitą, lecz najmniejszą możliwą liczbę razy. Jest to powściągliwy odpowiednik zachłannego kwantyfikatora {n,}.</target>
+        <target state="translated">Kwantyfikator {n,}? dopasowuje poprzedzający element co najmniej n razy, gdzie n jest dowolną liczbą całkowitą, lecz najmniejszą możliwą liczbę razy. Jest to powściągliwy odpowiednik kwantyfikatora zachłannego {n,}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_short">
@@ -561,7 +561,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
         <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
-        <target state="translated">Kwantyfikator {n,m}? dopasowuje poprzedzający element od n do m razy, gdzie n i m to dowolne liczby całkowite, lecz najmniejszą możliwą liczbę razy. Jest to powściągliwy odpowiednik zachłannego kwantyfikatora {n,m}.</target>
+        <target state="translated">Kwantyfikator {n,m}? dopasowuje poprzedzający element od n do m razy, gdzie n i m to dowolne liczby całkowite, lecz najmniejszą możliwą liczbę razy. Jest to powściągliwy odpowiednik kwantyfikatora zachłannego {n,m}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
@@ -581,7 +581,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_long">
         <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
-        <target state="translated">Kwantyfikator {n}? dopasowuje poprzedzający element dokładnie n razy, gdzie n jest dowolną liczbą całkowitą. Jest to powściągliwy odpowiednik zachłannego kwantyfikatora {n}+.</target>
+        <target state="translated">Kwantyfikator {n}? dopasowuje poprzedzający element dokładnie n razy, gdzie n jest dowolną liczbą całkowitą. Jest to powściągliwy odpowiednik kwantyfikatora zachłannego {n}+.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_short">
@@ -601,7 +601,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_long">
         <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
-        <target state="translated">Kwantyfikator +? dopasowuje poprzedzający element co najmniej raz, lecz możliwie jak najmniej razy. Jest to powściągliwy odpowiednik zachłannego kwantyfikatora +.</target>
+        <target state="translated">Kwantyfikator +? dopasowuje poprzedzający element co najmniej raz, lecz możliwie jak najmniej razy. Jest to powściągliwy odpowiednik kwantyfikatora zachłannego +.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
@@ -621,7 +621,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="translated">Kwantyfikator *? dopasowuje poprzedzający element zero lub więcej razy, lecz możliwie jak najmniej razy. Jest to powściągliwy odpowiednik zachłannego kwantyfikatora *.</target>
+        <target state="translated">Kwantyfikator *? dopasowuje poprzedzający element zero lub więcej razy, lecz możliwie jak najmniej razy. Jest to powściągliwy odpowiednik kwantyfikatora zachłannego *.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
@@ -641,7 +641,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
         <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
-        <target state="translated">Kwantyfikator ?? dopasowuje poprzedzający element zero lub więcej razy, lecz możliwie jak najmniej razy. Jest to powściągliwy odpowiednik zachłannego kwantyfikatora ?.</target>
+        <target state="translated">Kwantyfikator ?? dopasowuje poprzedzający element zero lub więcej razy, lecz możliwie jak najmniej razy. Jest to powściągliwy odpowiednik kwantyfikatora zachłannego ?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
@@ -848,9 +848,9 @@ Jeśli określono zachowanie zgodne ze standardem ECMAScript, element \W jest r�
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="translated">Ta konstrukcja wyłącza cofanie. Aparat wyrażeń regularnych będzie dopasowywał tyle znaków w ciągu wejściowym, ile to możliwe. Jeśli dalsze dopasowywanie nie będzie możliwe, nie nastąpi cofnięcie w celu podjęcia próby dopasowania alternatywnych wzorców. (To oznacza, że podwyrażenie pasuje tylko do ciągów, które zostałyby dopasowane przez samo podwyrażenie; nie jest podejmowana próba dopasowania ciągu na podstawie podwyrażenia i wszelkich podwyrażeń następujących po nim).
+        <target state="translated">Ta konstrukcja wyłącza cofanie się. Aparat wyrażeń regularnych będzie dopasowywał tyle znaków w ciągu wejściowym, ile to możliwe. Jeśli dalsze dopasowywanie nie będzie możliwe, nie nastąpi cofnięcie się w celu podjęcia próby dopasowania alternatywnych wzorców. (To oznacza, że podwyrażenie pasuje tylko do ciągów, które zostałyby dopasowane przez samo podwyrażenie; nie jest podejmowana próba dopasowania ciągu na podstawie podwyrażenia i wszelkich podwyrażeń następujących po nim).
 
-Ta opcja jest zalecana, jeśli wiesz, że cofanie nie powiedzie się. Zapobiega ona wykonywaniu niepotrzebnego przeszukiwania przez aparat wyrażeń regularnych, co poprawia wydajność.</target>
+Ta opcja jest zalecana, jeśli wiesz, że cofanie się nie powiedzie się. Zapobiega ona wykonywaniu niepotrzebnego przeszukiwania przez aparat wyrażeń regularnych, co poprawia wydajność.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
@@ -1177,7 +1177,7 @@ Jeśli określono zachowanie zgodne ze standardem ECMAScript, element \w jest r�
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
         <target state="translated">Negatywna asercja wyprzedzająca o zerowej szerokości, w przypadku której powodzenie dopasowania wymaga, aby ciąg wejściowy nie pasował do wzorca wyrażenia regularnego w podwyrażeniu. Dopasowany ciąg nie jest dołączany do wyniku dopasowania.
 
-Negatywna asercja wyprzedzająca o zerowej szerokości jest zwykle używana na początku lub na końcu wyrażenia regularnego. Na początku wyrażenia regularnego może definiować konkretny wzorzec, który nie powinien zostać dopasowany, jeśli początek wyrażenia regularnego definiuje podobny, ale bardziej ogólny wzorzec dopasowania. W takim przypadku jest często używana do ograniczenia cofania. Na końcu wyrażenia regularnego może definiować podwyrażenie, które nie może wystąpić na końcu dopasowania.</target>
+Negatywna asercja wyprzedzająca o zerowej szerokości jest zwykle używana na początku lub na końcu wyrażenia regularnego. Na początku wyrażenia regularnego może definiować konkretny wzorzec, który nie powinien zostać dopasowany, jeśli początek wyrażenia regularnego definiuje podobny, ale bardziej ogólny wzorzec dopasowania. W takim przypadku jest często używana do ograniczenia cofania się. Na końcu wyrażenia regularnego może definiować podwyrażenie, które nie może wystąpić na końcu dopasowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
@@ -1191,7 +1191,7 @@ Negatywna asercja wyprzedzająca o zerowej szerokości jest zwykle używana na p
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
         <target state="translated">Negatywna asercja wsteczna o zerowej szerokości, w przypadku której powodzenie dopasowania wymaga, aby „podwyrażenie” nie występowało w ciągu wejściowym po lewej stronie bieżącej pozycji. Dowolny podciąg niepasujący do „podwyrażenia” nie jest dołączany do wyniku dopasowania.
 
-Negatywne asercje wsteczne o zerowej szerokości są zwykle używane na początku wyrażeń regularnych. Definiowany przez nie wzorzec wyklucza dopasowanie w następującym ciągu. Są one także używane do ograniczenia cofania, jeśli ostatni znak lub znaki w przechwyconej grupie nie mogą być znakami pasującymi do wzorca wyrażenie regularnego tej grupy.</target>
+Negatywne asercje wsteczne o zerowej szerokości są zwykle używane na początku wyrażeń regularnych. Definiowany przez nie wzorzec wyklucza dopasowanie w następującym ciągu. Są one także używane do ograniczenia cofania się, jeśli ostatni znak lub znaki w przechwyconej grupie nie mogą być znakami pasującymi do wzorca wyrażenie regularnego tej grupy.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
@@ -1203,9 +1203,9 @@ Negatywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="translated">Pozytywna asercja wyprzedzająca o zerowej szerokości, w przypadku której powodzenie dopasowania wymaga, aby ciąg wejściowy pasował do wzorca wyrażenia regularnego w „podwyrażeniu”. Dopasowany podciąg nie jest dołączany do wyniku dopasowania. Pozytywna asercja wyprzedzająca o zerowej szerokości nie wykonuje cofania.
+        <target state="translated">Pozytywna asercja wyprzedzająca o zerowej szerokości, w przypadku której powodzenie dopasowania wymaga, aby ciąg wejściowy pasował do wzorca wyrażenia regularnego w „podwyrażeniu”. Dopasowany podciąg nie jest dołączany do wyniku dopasowania. Pozytywna asercja wyprzedzająca o zerowej szerokości nie wykonuje cofania się.
 
-Zwykle pozytywna asercja wyprzedzająca o zerowej szerokości znajduje się na końcu wzorca wyrażenia regularnego. Definiuje ona podciąg, który musi znajdować się na końcu ciągu, aby nastąpiło dopasowanie, lecz który nie powinien zostać dołączony do dopasowania. Jest także przydatna do ograniczenia nadmiernego cofania. Pozytywnej asercji wyprzedzającej o zerowej szerokości możesz użyć, aby zapewnić, że konkretna przechwycona grupa zaczyna się tekstem pasującym do podzbioru wzorca definiującego tę przechwyconą grupę.</target>
+Zwykle pozytywna asercja wyprzedzająca o zerowej szerokości znajduje się na końcu wzorca wyrażenia regularnego. Definiuje ona podciąg, który musi znajdować się na końcu ciągu, aby nastąpiło dopasowanie, lecz który nie powinien zostać dołączony do dopasowania. Jest także przydatna do ograniczenia nadmiernego cofania się. Pozytywnej asercji wyprzedzającej o zerowej szerokości możesz użyć, aby zapewnić, że konkretna przechwycona grupa zaczyna się tekstem pasującym do podzbioru wzorca definiującego tę przechwyconą grupę.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
@@ -1329,7 +1329,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">Dodanie importów spowoduje wprowadzenie metody rozszerzenia do zakresu o takiej samej nazwie jak „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

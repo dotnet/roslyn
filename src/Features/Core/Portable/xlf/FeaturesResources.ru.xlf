@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
-        <target state="new">Add null checks for all parameters</target>
+        <target state="translated">Добавление проверки NULL для всех параметров</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Избегайте неиспользуемых параметров в коде. Если удалить параметр невозможно, измените его имя так, чтобы оно начиналось с символа подчеркивания, за которым при необходимости следует целое число, например, "_", "_1", "_2" и т. д. Эти имена считаются особыми пустыми именами символов.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <target state="translated">Текущее содержимое исходного файла "{0}" не соответствует созданному источнику. Сеанс отладки не может быть продолжен, пока не будет восстановлено содержимое исходного файла.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="translated">Удалить избыточные операторы присваивания</target>
+        <target state="translated">Удалить избыточные операторы назначения</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="needs-review-translation">Используйте рекомендуемый шаблон Dispose, чтобы убедиться, что все освобождаемые объекты в локальной области освобождены для всех путей. Если это возможно, заключите создание объекта в оператор "using" или в объявление "using". В противном случае используйте шаблон try-finally с выделенной локальной переменной, объявляемой до области try, и безусловным вызовом Dispose для отличного от NULL значения в области "finally", например "x?.Dispose()". Если объект явно освобождается в области try или если права владения для операции освобождения передаются другому объекту или методу, присвойте значение "null" локальной переменной сразу после такой операции, чтобы предотвратить двойное освобождение в области "finally".</target>
+        <target state="translated">Используйте рекомендуемый шаблон для корректного освобождения объектов в локальной области по всем путям. По возможности создание следует заключить в оператор using или объявление using. Если это невозможно, используйте шаблон try-finally с выделенной локальной переменной, объявляемой до области try, и безусловным вызовом Dispose для отличного от NULL значения в области finally, например: x?.Dispose(). Если объект явно освобождается в области try или владение освобождением передается другому объекту или методу, то сразу после такой операции присвойте локальной переменной значение NULL, чтобы предотвратить двойное освобождение в finally.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
-        <target state="translated">Использовать составной оператор присваивания</target>
+        <target state="translated">Использовать составной оператор назначения</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
@@ -599,7 +599,7 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="translated">Использовать интерполированную строку verbatim</target>
+        <target state="translated">Использовать интерполированную буквальную строку</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
@@ -609,12 +609,12 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="translated">Использовать рекомендуемый шаблон Dispose</target>
+        <target state="translated">Использовать рекомендуемый шаблон освобождения</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">Используйте рекомендуемый шаблон Dispose, чтобы убедиться, что объект, созданный "{0}", освобожден для всех путей: инструкцию или объявление using либо конструкцию try/finally.</target>
+        <target state="translated">Используйте рекомендуемый шаблон освобождения, чтобы убедиться, что объект, созданный "{0}", освобожден для всех путей: инструкцию или объявление using либо конструкцию try/finally.</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -1179,7 +1179,7 @@
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Обновление дисперсии объекта "{0}" сделает продолжение сеанса отладки невозможным.</target>
+        <target state="translated">Обновление вариантности объекта "{0}" сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
@@ -1605,12 +1605,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
         <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Явно внедрите интерфейс с шаблоном Dispose</target>
+        <target state="translated">Явно внедрите интерфейс с шаблоном освобождения</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Внедрите интерфейс с шаблоном Dispose</target>
+        <target state="translated">Внедрите интерфейс с шаблоном освобождения</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler1">
