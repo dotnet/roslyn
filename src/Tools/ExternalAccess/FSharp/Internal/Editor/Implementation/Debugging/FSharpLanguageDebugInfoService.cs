@@ -23,23 +23,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implement
             _service = service;
         }
 
-        public async Task<CodeAnalysis.Editor.Implementation.Debugging.DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var result = await _service.GetDataTipInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return new CodeAnalysis.Editor.Implementation.Debugging.DebugDataTipInfo(result.Span, result.Text);
-        }
+        public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
+            => (await _service.GetDataTipInfoAsync(document, position, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
 
-        public async Task<CodeAnalysis.Editor.Implementation.Debugging.DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var result = await _service.GetLocationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (result.IsDefault)
-            {
-                return new CodeAnalysis.Editor.Implementation.Debugging.DebugLocationInfo();
-            }
-            else
-            {
-                return new CodeAnalysis.Editor.Implementation.Debugging.DebugLocationInfo(result.Name, result.LineOffset);
-            }
-        }
+        public async Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
+            => (await _service.GetLocationInfoAsync(document, position, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
     }
 }

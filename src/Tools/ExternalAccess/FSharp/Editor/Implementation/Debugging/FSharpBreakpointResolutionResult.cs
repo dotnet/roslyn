@@ -1,32 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
 {
-    internal class FSharpBreakpointResolutionResult
+    // TODO: Should be readonly struct.
+    internal sealed class FSharpBreakpointResolutionResult
     {
-        public Document Document { get; }
-        public TextSpan TextSpan { get; }
-        public string LocationNameOpt { get; }
-        public bool IsLineBreakpoint { get; }
+        internal readonly BreakpointResolutionResult UnderlyingObject;
 
-        private FSharpBreakpointResolutionResult(Document document, TextSpan textSpan, string locationNameOpt, bool isLineBreakpoint)
-        {
-            Document = document;
-            TextSpan = textSpan;
-            LocationNameOpt = locationNameOpt;
-            IsLineBreakpoint = isLineBreakpoint;
-        }
+        private FSharpBreakpointResolutionResult(BreakpointResolutionResult result)
+            => UnderlyingObject = result;
 
-        public static FSharpBreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string locationNameOpt = null)
-        {
-            return new FSharpBreakpointResolutionResult(document, textSpan, locationNameOpt, isLineBreakpoint: false);
-        }
+        public Document Document => UnderlyingObject.Document;
+        public TextSpan TextSpan => UnderlyingObject.TextSpan;
+        public string? LocationNameOpt => UnderlyingObject.LocationNameOpt;
+        public bool IsLineBreakpoint => UnderlyingObject.IsLineBreakpoint;
 
-        public static FSharpBreakpointResolutionResult CreateLineResult(Document document, string locationNameOpt = null)
-        {
-            return new FSharpBreakpointResolutionResult(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
-        }
+        public static FSharpBreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
+            => new FSharpBreakpointResolutionResult(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
+
+        public static FSharpBreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
+            => new FSharpBreakpointResolutionResult(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
     }
 }
