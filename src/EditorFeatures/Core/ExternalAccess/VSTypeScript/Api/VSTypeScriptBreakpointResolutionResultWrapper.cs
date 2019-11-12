@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptBreakpointResolutionResult
+    internal readonly struct VSTypeScriptBreakpointResolutionResultWrapper
     {
         internal readonly BreakpointResolutionResult UnderlyingObject;
 
-        private VSTypeScriptBreakpointResolutionResult(BreakpointResolutionResult result)
+        private VSTypeScriptBreakpointResolutionResultWrapper(BreakpointResolutionResult result)
             => UnderlyingObject = result;
 
         public Document Document => UnderlyingObject.Document;
@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public string? LocationNameOpt => UnderlyingObject.LocationNameOpt;
         public bool IsLineBreakpoint => UnderlyingObject.IsLineBreakpoint;
 
-        public static VSTypeScriptBreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResult(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
+        public static VSTypeScriptBreakpointResolutionResultWrapper CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
+            => new VSTypeScriptBreakpointResolutionResultWrapper(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
 
-        public static VSTypeScriptBreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResult(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
+        public static VSTypeScriptBreakpointResolutionResultWrapper CreateLineResult(Document document, string? locationNameOpt = null)
+            => new VSTypeScriptBreakpointResolutionResultWrapper(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
     }
 }

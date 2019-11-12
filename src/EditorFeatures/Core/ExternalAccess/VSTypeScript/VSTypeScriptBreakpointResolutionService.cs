@@ -20,20 +20,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [ExportLanguageService(typeof(IBreakpointResolutionService), InternalLanguageNames.TypeScript)]
     internal sealed class VSTypeScriptBreakpointResolutionService : IBreakpointResolutionService
     {
-        private readonly IVSTypeScriptBreakpointResolutionService _service;
+        private readonly IVSTypeScriptBreakpointResolutionServiceImplementation _implementation;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptBreakpointResolutionService(IVSTypeScriptBreakpointResolutionService service)
+        public VSTypeScriptBreakpointResolutionService(IVSTypeScriptBreakpointResolutionServiceImplementation implementation)
         {
-            _service = service;
+            _implementation = implementation;
         }
 
         public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-            => (await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
+            => (await _implementation.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
 
         public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
-            => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
+            => (await _implementation.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
 
     }
 }

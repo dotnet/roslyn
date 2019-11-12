@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptDebugDataTipInfo
+    internal readonly struct VSTypeScriptDebugDataTipInfoWrapper
     {
         internal readonly DebugDataTipInfo UnderlyingObject;
 
-        public VSTypeScriptDebugDataTipInfo(TextSpan span, string text)
+        public VSTypeScriptDebugDataTipInfoWrapper(TextSpan span, string text)
             => UnderlyingObject = new DebugDataTipInfo(span, text);
 
         public readonly TextSpan Span => UnderlyingObject.Span;

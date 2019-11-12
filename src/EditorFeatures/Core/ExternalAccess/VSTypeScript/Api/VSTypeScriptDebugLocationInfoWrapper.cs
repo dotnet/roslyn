@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptDebugLocationInfo
+    internal readonly struct VSTypeScriptDebugLocationInfoWrapper
     {
         internal readonly DebugLocationInfo UnderlyingObject;
 
-        public VSTypeScriptDebugLocationInfo(string name, int lineOffset)
+        public VSTypeScriptDebugLocationInfoWrapper(string name, int lineOffset)
             => UnderlyingObject = new DebugLocationInfo(name, lineOffset);
 
         public readonly string Name => UnderlyingObject.Name;
