@@ -5,11 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal interface IFSharpLanguageDebugInfoService
+    internal interface IVSTypeScriptLanguageDebugInfoServiceImplementation
     {
-        Task<FSharpDebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<VSTypeScriptDebugLocationInfoWrapper> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Find an appropriate span to pass the debugger given a point in a snapshot.  Optionally
@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         /// example, if the user hovers on "var" then we actually want to pass the fully qualified
         /// name of the type that 'var' binds to, to the debugger.
         /// </summary>
-        Task<FSharpDebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<VSTypeScriptDebugDataTipInfoWrapper> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }
