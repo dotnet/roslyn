@@ -5,10 +5,10 @@
     x:ClassModifier="internal"         
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0" xmlns:changesignature="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature"
     Height="200" Width="400"
     MinHeight="200" MinWidth="400"
-    Title="Add Parameter"
+    Title="{Binding ElementName=dialog, Path=AddParameterDialogTitle}"
     HasHelpButton="False"
     ResizeMode="CanResizeWithGrip"
     ShowInTaskbar="False"
@@ -26,21 +26,26 @@
             <RowDefinition />
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Height="Auto" Width="Auto" Orientation="Vertical">
-            <StackPanel Orientation="Horizontal">
-                <Label>Type:</Label>
-                <TextBox Width="200" Text="{Binding TypeNameEditorControl, Mode=OneTime}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label>Name:</Label>
-                <TextBox Width="200" Text="{Binding ParameterName}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label>Callsite value:</Label>
-                <TextBox Width="200" Text="{Binding CallsiteValue}"/>
-            </StackPanel>
-        </StackPanel>
-
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0"  Name="Table" Margin="11,6,11,11">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="200" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
+            <Control Grid.Row="0" Grid.Column="1" Name="TypeControl" Width="200" Visibility="Visible" PreviewKeyDown="TypeControl_PreviewKeyDown" BorderBrush="Black" />
+            <Label Grid.Row="1" Grid.Column="0" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
+            <TextBox Grid.Row="1" Grid.Column="1" Width="200" Text="{Binding ParameterName}" HorizontalAlignment="Right"/>
+            <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />
+            <TextBox Grid.Row="2" Grid.Column="1" Width="200" Text="{Binding CallsiteValue}"/>
+        </Grid>
         <StackPanel Grid.Row="1" 
                     HorizontalAlignment="Right" 
                     Margin="0, 11, 0, 0"
