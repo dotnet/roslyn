@@ -139,6 +139,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerConfigOptionSet(configOptions, optionSet);
         }
 
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetOptionAsync(analyzerOptions, option, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+        }
+
         public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
@@ -151,6 +156,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return optionSet is object
                 ? optionSet.GetOption(option)
                 : option.DefaultValue;
+        }
+
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetOptionAsync(analyzerOptions, option, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
         }
 
         public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string language, SyntaxTree syntaxTree, CancellationToken cancellationToken)

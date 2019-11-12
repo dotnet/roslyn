@@ -185,8 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
 
             // Don't bother analyzing if the user doesn't like using Index/Range operators.
-            var option = context.Options.GetOptionAsync(
-                CSharpCodeStyleOptions.PreferIndexOperator, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIndexOperator, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

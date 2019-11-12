@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             var cancellationToken = context.CancellationToken;
 
             // We only create a diagnostic if the option's value is set to true.
-            var option = context.Options.GetOptionAsync(
-                CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var cancellationToken = context.CancellationToken;
-            var option = context.Options.GetOptionAsync(
-                CSharpCodeStyleOptions.PreferStaticLocalFunction, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

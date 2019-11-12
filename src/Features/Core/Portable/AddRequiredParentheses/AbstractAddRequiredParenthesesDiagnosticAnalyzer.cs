@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var preference = context.Options.GetOptionAsync(
-                parentPrecedence, context.Compilation.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var preference = context.Options.GetOption(parentPrecedence, context.Compilation.Language, syntaxTree, cancellationToken);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
@@ -120,6 +119,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 context, binaryLike, precedence, preference.Notification.Severity,
                 additionalLocations, equivalenceKey, includeInFixAll: true);
         }
+
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
             ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,

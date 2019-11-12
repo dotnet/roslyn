@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
-            var styleOption = options.GetOptionAsync(CSharpCodeStyleOptions.PreferSwitchExpression, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
                 // User has disabled this feature.

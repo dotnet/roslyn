@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var option = context.Options.GetOptionAsync(
-                _preferThrowExpressionOption, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(_preferThrowExpressionOption, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             options = null;
 
-            var unusedParametersOption = analyzerOptions.GetOptionAsync(CodeStyleOptions.UnusedParameters, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var unusedParametersOption = analyzerOptions.GetOption(CodeStyleOptions.UnusedParameters, language, syntaxTree, cancellationToken);
             var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(UnusedValueExpressionStatementOption);
             var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(UnusedValueAssignmentOption);
             if (unusedParametersOption.Notification.Severity == ReportDiagnostic.Suppress &&
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(
                 Option<CodeStyleOption<UnusedValuePreference>> codeStyleOption)
             {
-                var option = analyzerOptions.GetOptionAsync(codeStyleOption, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+                var option = analyzerOptions.GetOption(codeStyleOption, syntaxTree, cancellationToken);
                 var preferenceOpt = option?.Value;
                 if (preferenceOpt == null ||
                     option.Notification.Severity == ReportDiagnostic.Suppress)

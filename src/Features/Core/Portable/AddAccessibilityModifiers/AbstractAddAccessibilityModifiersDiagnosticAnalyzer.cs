@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             }
 
             var language = syntaxTree.Options.Language;
-            var option = context.Options.GetOptionAsync(
-                CodeStyleOptions.RequireAccessibilityModifiers, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers, language, syntaxTree, cancellationToken);
             if (option.Value == AccessibilityModifiersRequired.Never)
             {
                 return;

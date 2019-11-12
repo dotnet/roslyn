@@ -100,8 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     return default;
                 }
 
-                option = analyzerOptionsOpt.GetOptionAsync(
-                    CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+                option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
                 if (!option.Value)
                 {
                     return default;

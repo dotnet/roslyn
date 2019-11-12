@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var options = syntaxContext.Options;
             var cancellationToken = syntaxContext.CancellationToken;
 
-            var styleOption = options.GetOptionAsync(
-                CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.

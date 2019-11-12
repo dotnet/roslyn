@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var cancellationToken = context.CancellationToken;
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
-            var optionValue = context.Options.GetOptionAsync(
-                applicableOption, context.Operation.Syntax.Language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionValue = context.Options.GetOption(applicableOption, context.Operation.Syntax.Language, syntaxTree, cancellationToken);
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;

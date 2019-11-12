@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var namingPreferences = GetNamingStylePreferencesAsync(compilation, symbol, options, cancellationToken).GetAwaiter().GetResult();
+            var namingPreferences = GetNamingStylePreferencesAsync(compilation, symbol, options, cancellationToken);
             if (namingPreferences == null)
             {
                 return null;
@@ -149,8 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        private static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(
+        private static NamingStylePreferences GetNamingStylePreferencesAsync(
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            return await options.GetOptionAsync(SimplificationOptions.NamingPreferences, compilation.Language, sourceTree, cancellationToken).ConfigureAwait(false);
+            return options.GetOption(SimplificationOptions.NamingPreferences, compilation.Language, sourceTree, cancellationToken);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
