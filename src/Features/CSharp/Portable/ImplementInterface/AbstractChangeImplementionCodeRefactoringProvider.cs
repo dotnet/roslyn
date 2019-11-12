@@ -15,14 +15,20 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    using static Helpers;
-
     internal abstract class AbstractChangeImplementionCodeRefactoringProvider : CodeRefactoringProvider
     {
+        public static readonly SymbolDisplayFormat NameAndTypeParametersFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         protected abstract bool CheckExplicitName(ExplicitInterfaceSpecifierSyntax? explicitName);
         protected abstract bool CheckMember(ISymbol member);
         protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol interfaceMember);
@@ -97,6 +103,45 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 Implement, nestedActions.ToImmutableAndFree(), isInlinable: true));
         }
 
+        private static async Task<(SyntaxNode, ExplicitInterfaceSpecifierSyntax?, SyntaxToken)> GetContainerAsync(CodeRefactoringContext context)
+        {
+            var (document, span, cancellationToken) = context;
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(span.Start);
+
+            // Move back if the user is at: X.Goo$$(
+            if (span.IsEmpty && token.Kind() == SyntaxKind.OpenParenToken)
+                token = token.GetPreviousToken();
+
+            var (container, explicitName, identifier) = GetContainer(token);
+            var applicableSpan = explicitName == null
+                ? identifier.FullSpan
+                : TextSpan.FromBounds(explicitName.FullSpan.Start, identifier.FullSpan.End);
+
+            if (!applicableSpan.Contains(span))
+                return default;
+
+            return (container, explicitName, identifier);
+        }
+
+        private static (SyntaxNode, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
+        {
+            for (var node = token.Parent; node != null; node = node.Parent)
+            {
+                switch (node)
+                {
+                    case MethodDeclarationSyntax method:
+                        return (method, method.ExplicitInterfaceSpecifier, method.Identifier);
+                    case PropertyDeclarationSyntax property:
+                        return (property, property.ExplicitInterfaceSpecifier, property.Identifier);
+                    case EventDeclarationSyntax ev:
+                        return (ev, ev.ExplicitInterfaceSpecifier, ev.Identifier);
+                }
+            }
+
+            return default;
+        }
 
         private int TotalCount(MultiDictionary<ISymbol, ISymbol> dictionary)
         {

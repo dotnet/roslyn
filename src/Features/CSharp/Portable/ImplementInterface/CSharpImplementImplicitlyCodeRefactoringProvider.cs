@@ -47,13 +47,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 EventDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),
                 _ => null,
             };
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
-            {
-            }
-        }
     }
 }

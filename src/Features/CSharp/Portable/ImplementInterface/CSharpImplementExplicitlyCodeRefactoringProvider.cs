@@ -134,13 +134,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol interfaceMember)
             => generator.WithExplicitInterfaceImplementations(decl, ImmutableArray.Create(interfaceMember));
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
-            {
-            }
-        }
     }
 }
