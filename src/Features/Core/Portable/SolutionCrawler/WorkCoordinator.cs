@@ -210,9 +210,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 IAsyncToken asyncToken;
                 var solution = _registration.Workspace.CurrentSolution;
+
+                // Check if we are only performing backgroung analysis for active file.
                 if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Options) == BackgroundAnalysisScope.ActiveFile &&
                     activeDocumentId != null)
                 {
+                    // Change to active document needs to trigger following events in active file analysis scope:
+                    //  1. Request analysis for newly active file, similar to a newly opened file.
+                    //  2. Clear analysis data for prior active file, similar to a closed file.
+                    // Note that if 'activeDocumentId' is null, i.e. user navigated to a non-source file,
+                    // we are treating it as a no-op here.
+                    // As soon as user switches to a source document, we will perform the appropriate analysis callbacks
+                    // on the next active document changed event.
                     var activeDocument = solution.GetDocument(activeDocumentId);
                     if (activeDocument != null)
                     {
