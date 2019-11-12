@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -234,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 var document = group.Key;
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var editor = await GetEditor(documentToEditor, document, cancellationToken).ConfigureAwait(false);
 
@@ -246,47 +248,81 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     if (!location.IsInSource)
                         continue;
 
-                    UpdateLocation(interfaceType, editor, syntaxFacts, location, cancellationToken);
+                    UpdateLocation(
+                        semanticModel, interfaceType, editor,
+                        syntaxFacts, location, cancellationToken);
                 }
             }
         }
 
         private void UpdateLocation(
-            INamedTypeSymbol interfaceType, SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
+            SemanticModel semanticModel, INamedTypeSymbol interfaceType,
+            SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             Location location, CancellationToken cancellationToken)
         {
             var identifierName = location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             if (identifierName == null || !syntaxFacts.IsIdentifierName(identifierName))
                 return;
 
-            var parent = identifierName.Parent;
-            if (syntaxFacts.IsAnyMemberAccessExpression(parent))
-            {
-                // We have something like `expr.Goo` replace it with `((IGoo)expr).Goo`
-                var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(parent);
-                editor.ReplaceNode(expr, (current, g) => AddCast(interfaceType, current, g));
+            var node = syntaxFacts.IsNameOfMemberAccessExpression(identifierName) || syntaxFacts.IsMemberBindingExpression(identifierName.Parent)
+                ? identifierName.Parent
+                : identifierName;
+
+            if (syntaxFacts.IsInvocationExpression(node.Parent))
+                node = node.Parent;
+
+            var operation = semanticModel.GetOperation(node);
+            if (operation == null || operation.Kind == OperationKind.None)
                 return;
+
+            var instance =
+                operation is IMemberReferenceOperation memberReference ? memberReference.Instance :
+                operation is IInvocationOperation invocation ? invocation.Instance : null;
+
+            if (instance == null)
+                return;
+
+            if (instance.IsImplicit)
+            {
+                if (instance is IInstanceReferenceOperation instanceReference &&
+                    instanceReference.ReferenceKind != InstanceReferenceKind.ContainingTypeInstance)
+                {
+                    return;
+                }
+
+                // Accessing the member not off of <dot>.  i.e just plain `Goo()`.  Replace with
+                // ((IGoo)this).Goo();
+                var generator = editor.Generator;
+                editor.ReplaceNode(
+                    identifierName,
+                    generator.MemberAccessExpression(
+                        generator.AddParentheses(generator.CastExpression(interfaceType, generator.ThisExpression())),
+                        identifierName.WithoutTrivia()).WithTriviaFrom(identifierName));
+            }
+            else
+            {
+                editor.ReplaceNode(instance.Syntax, (current, g) => AddCast(interfaceType, current, g));
             }
 
-            if (syntaxFacts.IsMemberBindingExpression(parent))
-            {
-                // We have something like `expr?.Goo` replace it with `((IGoo)expr)?.Goo`
-                var expr = syntaxFacts.GetTargetOfMemberBinding(parent);
-                editor.ReplaceNode(expr, (current, g) => AddCast(interfaceType, current, g));
-                return;
-            }
 
-            // Accessing the member not off of <dot>.  i.e just plain `Goo()`.  Replace with
-            // ((IGoo)this).Goo();
-            var generator = editor.Generator;
-            editor.ReplaceNode(
-                identifierName,
-                generator.MemberAccessExpression(
-                    generator.AddParentheses(
-                        generator.CastExpression(
-                            interfaceType,
-                            generator.ThisExpression())),
-                    identifierName.WithoutTrivia()).WithTriviaFrom(identifierName));
+            //var parent = identifierName.Parent;
+            //if (syntaxFacts.IsAnyMemberAccessExpression(parent))
+            //{
+            //    // We have something like `expr.Goo` replace it with `((IGoo)expr).Goo`
+            //    var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(parent);
+            //    editor.ReplaceNode(expr, (current, g) => AddCast(interfaceType, current, g));
+            //    return;
+            //}
+
+            //if (syntaxFacts.IsMemberBindingExpression(parent))
+            //{
+            //    // We have something like `expr?.Goo` replace it with `((IGoo)expr)?.Goo`
+            //    var expr = syntaxFacts.GetTargetOfMemberBinding(parent);
+            //    editor.ReplaceNode(expr, (current, g) => AddCast(interfaceType, current, g));
+            //    return;
+            //}
+
+
         }
 
         private static SyntaxNode AddCast(INamedTypeSymbol interfaceType, SyntaxNode current, SyntaxGenerator g)

@@ -373,7 +373,7 @@ class T
             Prop = 1
         };
 
-        var v1 = nameof(C.Prop);
+        var v1 = nameof(c.Prop);
     }
 }",
 @"
