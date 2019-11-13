@@ -234,6 +234,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 #endif
         }
 
+        internal bool RetargetingDefinitions(AssemblySymbol from, out AssemblySymbol to)
+        {
+            DestinationData destination;
+
+            if (!_retargetingAssemblyMap.TryGetValue(from, out destination))
+            {
+                to = null;
+                return false;
+            }
+
+            to = destination.To;
+            return true;
+        }
+
         internal override ICollection<string> TypeNames
         {
             get

@@ -190,21 +190,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
+                        var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.InUsing);
                         var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
                         if (imported.Kind == SymbolKind.Namespace)
                         {
+                            if (!declarationBinder.IsSemanticModelBinder &&
+                                !Compilation.ReportUnusedImportsInTree(usingDirective.SyntaxTree))
+                            {
+                                declarationBinder.Compilation.AddAssembliesUsedByNamespaceReference((NamespaceSymbol)imported);
+                            }
+
                             if (usingDirective.StaticKeyword != default(SyntaxToken))
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadUsingType, usingDirective.Name.Location, imported);
                             }
-                            else if (uniqueUsings.Contains(imported))
+                            else if (!uniqueUsings.Add(imported))
                             {
                                 diagnostics.Add(ErrorCode.WRN_DuplicateUsing, usingDirective.Name.Location, imported);
                             }
                             else
                             {
-                                uniqueUsings.Add(imported);
                                 usings.Add(new NamespaceOrTypeAndUsingDirective(imported, usingDirective));
                             }
                         }
@@ -286,6 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var imported = usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, diagnostics).NamespaceOrTypeSymbol;
                 if (uniqueUsings.Add(imported))
                 {
+                    if (imported is NamespaceSymbol ns)
+                    {
+                        Debug.Assert(!ns.IsGlobalNamespace);
+                        compilation.AddAssembliesUsedByNamespaceReference(ns);
+                    }
+
                     boundUsings.Add(new NamespaceOrTypeAndUsingDirective(imported, null));
                 }
             }

@@ -2096,14 +2096,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            if (_lazyImportInfos != null && filterTree?.Options.DocumentationMode != DocumentationMode.None)
+            if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
                 foreach (ImportInfo info in _lazyImportInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     SyntaxTree infoTree = info.Tree;
-                    if ((filterTree == null || filterTree == infoTree) && infoTree.Options.DocumentationMode != DocumentationMode.None)
+                    if ((filterTree == null || filterTree == infoTree) && ReportUnusedImportsInTree(infoTree))
                     {
                         TextSpan infoSpan = info.Span;
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))

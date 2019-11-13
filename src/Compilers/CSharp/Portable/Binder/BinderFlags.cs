@@ -88,25 +88,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         IgnoreCorLibraryDuplicatedTypes = 1 << 26,
 
         /// <summary>
+        /// Set for a binder used to bind a using directive target
+        /// </summary>
+        InUsing = 1 << 27,
+
+        /// <summary>
         /// When binding imports in scripts/submissions, using aliases (other than from the current submission)
         /// are considered but other imports are not.
         /// </summary>
-        InScriptUsing = 1 << 27,
+        InScriptUsing = 1 << 28,
 
         /// <summary>
         /// In a file that has been included in the compilation via #load.
         /// </summary>
-        InLoadedSyntaxTree = 1 << 28,
+        InLoadedSyntaxTree = 1 << 29,
 
         /// <summary>
         /// This is a <see cref="ContextualAttributeBinder"/>, or has <see cref="ContextualAttributeBinder"/> as its parent.
         /// </summary>
-        InContextualAttributeBinder = 1 << 29,
+        InContextualAttributeBinder = 1 << 30,
 
         /// <summary>
         /// Are we binding for the purpose of an Expression Evaluator
         /// </summary>
-        InEEMethodBinder = 1 << 30,
+        InEEMethodBinder = 1U << 31,
 
         // Groups
 

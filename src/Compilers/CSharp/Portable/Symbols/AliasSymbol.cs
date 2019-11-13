@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 NamespaceOrTypeSymbol symbol = this.IsExtern ?
                     ResolveExternAliasTarget(newDiagnostics) :
-                    ResolveAliasTarget(_binder, _aliasTargetName, newDiagnostics, basesBeingResolved);
+                    ResolveAliasTarget(_aliasTargetName, newDiagnostics, basesBeingResolved);
 
                 if ((object)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
@@ -315,16 +315,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText);
             }
+            else if (!_binder.IsSemanticModelBinder &&
+                     !Compilation.ReportUnusedImportsInTree(_aliasName.SyntaxTree))
+            {
+                _binder.Compilation.AddAssembliesUsedByNamespaceReference(target);
+            }
 
             Debug.Assert((object)target != null);
+            Debug.Assert(target.IsGlobalNamespace);
 
             return target;
         }
 
-        private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
+        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
-            var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
-            return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
+            var declarationBinder = _binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks | BinderFlags.InUsing);
+            NamespaceOrTypeSymbol result = declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
+
+            if (!declarationBinder.IsSemanticModelBinder &&
+                !Compilation.ReportUnusedImportsInTree(syntax.SyntaxTree) &&
+                result is NamespaceSymbol ns)
+            {
+                declarationBinder.Compilation.AddAssembliesUsedByNamespaceReference(ns);
+            }
+
+            return result;
         }
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)

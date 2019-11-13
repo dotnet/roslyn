@@ -961,6 +961,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol = ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved: null);
             }
 
+            if (symbol is TypeSymbol type)
+            {
+                binder.Compilation.AddAssembliesUsedByTypeReference(type);
+            }
+            else if (symbol is NamespaceSymbol ns)
+            {
+                Debug.Assert(!ns.IsGlobalNamespace);
+                binder.Compilation.AddAssembliesUsedByNamespaceReference(ns);
+            }
+            else
+            {
+                binder.Compilation.AddAssembliesUsedByTypeReference(symbol.ContainingType);
+            }
+
             return symbol.OriginalDefinition.GetDocumentationCommentId();
         }
 

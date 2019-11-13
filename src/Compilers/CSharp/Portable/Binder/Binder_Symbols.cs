@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "var" keyword in the current context.
         /// </returns>
-        internal TypeWithAnnotations BindTypeWithAnnotationsOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
+        internal TypeWithAnnotations BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
         {
             var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == symbol.IsDefault);
@@ -231,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         where: syntax,
                         diagnostics: resultDiagnostics,
                         suppressUseSiteDiagnostics: false,
-                        wasError: out wasError);
+                        wasError: out wasError,
+                        qualifierOpt: null);
 
                     // Here, we're mimicking behavior of dev10.  If the identifier fails to bind
                     // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupSymbolsWithFallback(result, plainName, 0, ref useSiteDiagnostics, null, LookupOptions.NamespaceAliasesOnly);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                Symbol bindingResult = ResultSymbol(result, plainName, 0, node, diagnostics, false, out wasError, options: LookupOptions.NamespaceAliasesOnly);
+                Symbol bindingResult = ResultSymbol(result, plainName, 0, node, diagnostics, false, out wasError, qualifierOpt: null, options: LookupOptions.NamespaceAliasesOnly);
                 result.Free();
 
                 return bindingResult;
@@ -1523,17 +1524,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics,
             out bool wasError,
-            NamespaceOrTypeSymbol qualifierOpt = null,
+            NamespaceOrTypeSymbol qualifierOpt,
             LookupOptions options = default(LookupOptions))
         {
             Symbol symbol = resultSymbol(result, simpleName, arity, where, diagnostics, suppressUseSiteDiagnostics, out wasError, qualifierOpt, options);
 
-            if (symbol.Kind == SymbolKind.NamedType)
+            switch (symbol.Kind)
             {
-                CheckRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
+                case SymbolKind.NamedType:
+                    CheckRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
+
+                    if (shouldRecordUsedAssemblyReferences() && qualifierOpt?.IsType != true)
+                    {
+                        NamedTypeSymbol container = symbol.ContainingType;
+
+                        if (container is null)
+                        {
+                            Compilation.AddUsedAssembly(symbol.ContainingAssembly);
+                        }
+                        else
+                        {
+                            Compilation.AddAssembliesUsedByTypeReference(container);
+                        }
+                    }
+                    break;
+
+                case SymbolKind.Alias:
+                    if (shouldRecordUsedAssemblyReferences() && ((AliasSymbol)symbol).Target is TypeSymbol type)
+                    {
+                        Compilation.AddAssembliesUsedByTypeReference(type);
+                    }
+                    break;
             }
 
             return symbol;
+
+            bool shouldRecordUsedAssemblyReferences()
+            {
+                if (IsSemanticModelBinder)
+                {
+                    return false;
+                }
+
+                if (Flags.IncludesAny(BinderFlags.InUsing) && CodeAnalysis.Compilation.ReportUnusedImportsInTree(where.SyntaxTree))
+                {
+                    return false;
+                }
+
+                return true;
+            }
 
             Symbol resultSymbol(
                 LookupResult result,

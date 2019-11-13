@@ -149,6 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TupleUnderlyingType ?? type;
         }
 
+        public static NamedTypeSymbol TupleUnderlyingTypeOrSelf(this NamedTypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
+        }
+
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
             return type.IsEnumType() ? type.GetEnumUnderlyingType() : type;

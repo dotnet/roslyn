@@ -1397,6 +1397,16 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Unique metadata assembly references that are considered as used by this compilation.
+        /// For example, if a type declared in a referenced assembly is referenced in source code 
+        /// within this compilation, the reference is considered to be used. Etc.
+        /// The returned set is a subset of references returned by <see cref="References"/> API.
+        /// If compilation contains errors, it is valid to consider all assembly references as used for the purpose
+        /// of this API. The actual behavior in this case could be implementation dependent.
+        /// </summary>
+        internal abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
+
         internal void EnsureCompilationEventQueueCompleted()
         {
             Debug.Assert(EventQueue != null);
@@ -2141,6 +2151,11 @@ namespace Microsoft.CodeAnalysis
             SyntaxTree filterTree,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
+
+        internal static bool ReportUnusedImportsInTree(SyntaxTree tree)
+        {
+            return tree.Options.DocumentationMode != DocumentationMode.None;
+        }
 
         /// <summary>
         /// Signals the event queue, if any, that we are done compiling.

@@ -381,8 +381,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            return new BoundParameterEqualsValue(defaultValueSyntax, parameter, defaultValueBinder.GetDeclaredLocalsForScope(defaultValueSyntax),
+            var result = new BoundParameterEqualsValue(defaultValueSyntax, parameter, defaultValueBinder.GetDeclaredLocalsForScope(defaultValueSyntax),
                               defaultValueBinder.GenerateConversionForAssignment(parameter.Type, valueBeforeConversion, diagnostics, isDefaultParameter: true));
+
+            if (!IsSemanticModelBinder)
+            {
+                UsedAssembliesRecorder.RecordUsedAssemblies(Compilation, result, diagnostics);
+            }
+
+            return result;
         }
 
         internal BoundFieldEqualsValue BindEnumConstantInitializer(
@@ -1340,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = false;
                 bool wasError;
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
+                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError, qualifierOpt: null);  // reports diagnostics in result.
 
                 isError |= wasError;
 
@@ -6264,7 +6271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var members = ArrayBuilder<Symbol>.GetInstance();
             BoundExpression result;
             bool wasError;
-            Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, right, plainName, arity, members, diagnostics, out wasError);
+            Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, right, plainName, arity, members, diagnostics, out wasError,
+                                                             qualifierOpt: left is BoundTypeExpression typeExpr ? typeExpr.Type : null);
 
             if ((object)symbol == null)
             {
@@ -6496,7 +6504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lookupResult.Symbols.Any());
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 bool wasError;
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError);
+                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
                 methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
@@ -6783,7 +6791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// members of different member types, or multiple properties but no indexed properties -
         /// then a diagnostic is reported for the ambiguity and a single symbol is returned.
         /// </summary>
-        private Symbol GetSymbolOrMethodOrPropertyGroup(LookupResult result, SyntaxNode node, string plainName, int arity, ArrayBuilder<Symbol> methodOrPropertyGroup, DiagnosticBag diagnostics, out bool wasError)
+        private Symbol GetSymbolOrMethodOrPropertyGroup(LookupResult result, SyntaxNode node, string plainName, int arity, ArrayBuilder<Symbol> methodOrPropertyGroup, DiagnosticBag diagnostics, out bool wasError, NamespaceOrTypeSymbol qualifierOpt)
         {
             Debug.Assert(!methodOrPropertyGroup.Any());
 
@@ -6862,7 +6870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             methodOrPropertyGroup.Clear();
-            return ResultSymbol(result, plainName, arity, node, diagnostics, false, out wasError);
+            return ResultSymbol(result, plainName, arity, node, diagnostics, false, out wasError, qualifierOpt);
         }
 
         private static bool IsMethodOrPropertyGroup(ArrayBuilder<Symbol> members)
