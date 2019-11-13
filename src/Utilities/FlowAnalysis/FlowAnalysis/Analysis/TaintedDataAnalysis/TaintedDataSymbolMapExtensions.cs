@@ -23,19 +23,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="sourceSymbolMap"></param>
         /// <param name="method"></param>
         /// <param name="arguments"></param>
-        /// <param name="pointsToAnalysisResult">If the method needs to do PointsToAnalysis, the PointsToAnalysis result will be produced by the passed value factory.</param>
-        /// <param name="valueContentAnalysisResult">If the method needs to do ValueContentAnalysis, the ValueContentAnalysis result will be produced by the passed value factory.</param>
+        /// <param name="pointsToFactory">If the method needs to do PointsToAnalysis, the PointsToAnalysis result will be produced by the passed value factory.</param>
+        /// <param name="valueContentFactory">If the method needs to do ValueContentAnalysis, the ValueContentAnalysis result will be produced by the passed value factory.</param>
         /// <param name="allTaintedTargets"></param>
         /// <returns></returns>
         public static bool IsSourceMethod(
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
-            Lazy<PointsToAnalysisResult> pointsToAnalysisResult,
-            Lazy<ValueContentAnalysisResult> valueContentAnalysisResult,
+            Lazy<PointsToAnalysisResult> pointsToFactory,
+            Lazy<(PointsToAnalysisResult p, ValueContentAnalysisResult v)> valueContentFactory,
             out PooledHashSet<string> allTaintedTargets)
         {
             allTaintedTargets = null;
+            PointsToAnalysisResult pointsToAnalysisResult = null;
+            ValueContentAnalysisResult valueContentAnalysisResult = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
                 foreach ((MethodMatcher methodMatcher, ImmutableHashSet<string> taintedTargets) in sourceInfo.TaintedMethods)
@@ -53,13 +55,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(PointsToCheck pointsToCheck, string)> pointsToTaintedTargets) in sourceInfo.TaintedMethodsNeedsPointsToAnalysis)
                 {
-                    if (methodMatcher(method.Name, arguments))
+                    if (pointsToTaintedTargets.Any() && methodMatcher(method.Name, arguments))
                     {
+                        pointsToAnalysisResult ??= pointsToFactory.Value;
+                        if (pointsToAnalysisResult == null)
+                        {
+                            break;
+                        }
+
                         IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s =>
                             s.pointsToCheck(
                                 arguments.Select(o =>
-                                    pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
-                        if (positivePointsToTaintedTargets != null)
+                                    pointsToAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray()));
+                        if (positivePointsToTaintedTargets.Any())
                         {
                             if (allTaintedTargets == null)
                             {
@@ -73,14 +81,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(ValueContentCheck valueContentCheck, string)> valueContentTaintedTargets) in sourceInfo.TaintedMethodsNeedsValueContentAnalysis)
                 {
-                    if (methodMatcher(method.Name, arguments))
+                    if (valueContentTaintedTargets.Any() && methodMatcher(method.Name, arguments))
                     {
+                        pointsToAnalysisResult ??= valueContentFactory.Value.p;
+                        valueContentAnalysisResult ??= valueContentFactory.Value.v;
+                        if (pointsToAnalysisResult == null || valueContentAnalysisResult == null)
+                        {
+                            break;
+                        }
+
                         IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s =>
                             s.valueContentCheck(
-                                arguments.Select(o =>
-                                pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray(),
-                                arguments.Select(o => valueContentAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
-                        if (positiveValueContentTaintedTargets != null)
+                                arguments.Select(o => pointsToAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray(),
+                                arguments.Select(o => valueContentAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray()));
+                        if (positiveValueContentTaintedTargets.Any())
                         {
                             if (allTaintedTargets == null)
                             {
