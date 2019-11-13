@@ -9258,6 +9258,53 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
         }
 
+        [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
+        public void CanUseIndexInitialiserWithFixedSizeBuffer()
+        {
+            var source = @"
+unsafe struct S
+{
+    public fixed double V[3];
+
+    static void M()
+    {
+        var b = new S { V = { [0] = 1 } };
+    }
+}";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
+        public void CanNotUseObjectOrCollectionInitialiserWithFixedSizeBufferOutsideOfFixedContext()
+        {
+            var source = @"
+unsafe struct S
+{
+    public fixed double V[3];
+
+    static void M()
+    {
+        var b = new S { V = { 1 } };
+        b = new S { V = { Prop = 1 } };
+    }
+}";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll)
+                .VerifyDiagnostics(
+                    // (8,25): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                    //         var b = new S { V = { 1 } };
+                    Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "V").WithLocation(8, 25),
+                    // (8,29): error CS1922: Cannot initialize type 'double*' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                    //         var b = new S { V = { 1 } };
+                    Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1 }").WithArguments("double*").WithLocation(8, 29),
+                    // (9,21): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                    //         b = new S { V = { Prop = 1 } };
+                    Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "V").WithLocation(9, 21),
+                    // (9,27): error CS0117: 'double*' does not contain a definition for 'Prop'
+                    //         b = new S { V = { Prop = 1 } };
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "Prop").WithArguments("double*", "Prop").WithLocation(9, 27));
+        }
+
         [Fact, WorkItem(34693, "https://github.com/dotnet/roslyn/issues/34693")]
         public void Repro_34693()
         {

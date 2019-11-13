@@ -4344,7 +4344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
                     invoked: false,
-                    indexed: false,
+                    indexed: allInitialiserExpressionsAreIndexExpression(),
                     diagnostics: diagnostics);
 
                 resultKind = boundMember.ResultKind;
@@ -4481,6 +4481,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binderOpt: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
+
+            bool allInitialiserExpressionsAreIndexExpression()
+            {
+                if (namedAssignment.Right is InitializerExpressionSyntax { Expressions: var expressions })
+                    return expressions.All(x => x is AssignmentExpressionSyntax { Left: ImplicitElementAccessSyntax _ });
+                return false;
+            }
         }
 
         private static bool CheckNestedObjectInitializerPropertySymbol(

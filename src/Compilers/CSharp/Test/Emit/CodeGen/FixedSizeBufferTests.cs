@@ -1134,5 +1134,87 @@ unsafe class C
   IL_001f:  ret
 }");
         }
+
+        [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
+        public void CanUseIndexInitialiserWithFixedSizeBuffer()
+        {
+            var source = @"
+using System;
+
+unsafe struct S
+{
+    public fixed double V[3];
+
+    static void Main()
+    {
+        var b = new S();
+        b.V[0] = 0;
+        b.V[1] = 1;
+        b.V[2] = 2;
+        
+        Console.Write(b.V[0]);
+        Console.Write(b.V[1]);
+        Console.Write(b.V[2]);
+    }
+}";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "012",
+                verify: Verification.Fails);
+            verifier.VerifyIL("S.Main", @"
+{
+      // Code size      143 (0x8f)
+      .maxstack  3
+      .locals init (S V_0) //b
+      IL_0000:  ldloca.s   V_0
+      IL_0002:  initobj    ""S""
+      IL_0008:  ldloca.s   V_0
+      IL_000a:  ldflda     ""double* S.V""
+      IL_000f:  ldflda     ""double S.<V>e__FixedBuffer.FixedElementField""
+      IL_0014:  ldc.r8     0
+      IL_001d:  stind.r8
+      IL_001e:  ldloca.s   V_0
+      IL_0020:  ldflda     ""double* S.V""
+      IL_0025:  ldflda     ""double S.<V>e__FixedBuffer.FixedElementField""
+      IL_002a:  ldc.i4.8
+      IL_002b:  add
+      IL_002c:  ldc.r8     1
+      IL_0035:  stind.r8
+      IL_0036:  ldloca.s   V_0
+      IL_0038:  ldflda     ""double* S.V""
+      IL_003d:  ldflda     ""double S.<V>e__FixedBuffer.FixedElementField""
+      IL_0042:  ldc.i4.2
+      IL_0043:  conv.i
+      IL_0044:  ldc.i4.8
+      IL_0045:  mul
+      IL_0046:  add
+      IL_0047:  ldc.r8     2
+      IL_0050:  stind.r8
+      IL_0051:  ldloca.s   V_0
+      IL_0053:  ldflda     ""double* S.V""
+      IL_0058:  ldflda     ""double S.<V>e__FixedBuffer.FixedElementField""
+      IL_005d:  ldind.r8
+      IL_005e:  call       ""void System.Console.Write(double)""
+      IL_0063:  ldloca.s   V_0
+      IL_0065:  ldflda     ""double* S.V""
+      IL_006a:  ldflda     ""double S.<V>e__FixedBuffer.FixedElementField""
+      IL_006f:  ldc.i4.8
+      IL_0070:  add
+      IL_0071:  ldind.r8
+      IL_0072:  call       ""void System.Console.Write(double)""
+      IL_0077:  ldloca.s   V_0
+      IL_0079:  ldflda     ""double* S.V""
+      IL_007e:  ldflda     ""double S.<V>e__FixedBuffer.FixedElementField""
+      IL_0083:  ldc.i4.2
+      IL_0084:  conv.i
+      IL_0085:  ldc.i4.8
+      IL_0086:  mul
+      IL_0087:  add
+      IL_0088:  ldind.r8
+      IL_0089:  call       ""void System.Console.Write(double)""
+      IL_008e:  ret
+    }");
+        }
     }
 }
