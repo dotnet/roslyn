@@ -6663,6 +6663,48 @@ void $$M(int x, int y) { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocCycle1()
+        {
+            var markup =
+@"
+/// <inheritdoc cref=""M(int, int)""/>
+void M(int x) { }
+
+/// <inheritdoc cref=""M(int)""/>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocCycle2()
+        {
+            var markup =
+@"
+/// <inheritdoc cref=""M(int)""/>
+void $$M(int x) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x)"),
+                Documentation(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocCycle3()
+        {
+            var markup =
+@"
+/// <inheritdoc cref=""M""/>
+void $$M(int x) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x)"),
+                Documentation(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
         public async Task TestLinqGroupVariableDeclaration()
         {
