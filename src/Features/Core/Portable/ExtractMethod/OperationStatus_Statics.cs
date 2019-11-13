@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public static readonly OperationStatus NoActiveStatement = new OperationStatus(OperationStatusFlag.BestEffort, FeaturesResources.The_selection_contains_no_active_statement);
         public static readonly OperationStatus ErrorOrUnknownType = new OperationStatus(OperationStatusFlag.BestEffort, FeaturesResources.The_selection_contains_an_error_or_unknown_type);
         public static readonly OperationStatus UnsafeAddressTaken = new OperationStatus(OperationStatusFlag.BestEffort, FeaturesResources.The_address_of_a_variable_is_used_inside_the_selected_code);
+        public static readonly OperationStatus LocalFunctionCallWithoutDeclaration = new OperationStatus(OperationStatusFlag.BestEffort, FeaturesResources.The_selection_contains_a_local_function_call_without_its_declaration);
 
         /// <summary>
         /// create operation status with the given data

@@ -1478,7 +1478,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCall()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestMissingInRegularAndScriptAsync(@"
 class C
 {
     public static void Main()
@@ -1486,18 +1486,32 @@ class C
         void Local() { }
         [|Local();|]
     }
+}");
+        }
+
+        [Fact]
+        public async Task ExtractLocalFunctionCall_2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main()
+    {
+        [|void Local() { }
+        Local();|]
+    }
 }", @"
 class C
 {
     public static void Main()
     {
-        void Local() { }
         {|Rename:NewMethod|}();
     }
 
     private static void NewMethod()
     {
-        {|Warning:Local();|}
+        void Local() { }
+        Local();
     }
 }");
         }
@@ -1506,26 +1520,13 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestMissingInRegularAndScriptAsync(@"
 class C
 {
     public static void Main(string[] args)
     {
         bool Local() => args == null;
         [|Local();|]
-    }
-}", @"
-class C
-{
-    public static void Main(string[] args)
-    {
-        bool Local() => args == null;
-        {|Rename:NewMethod|}(args);
-    }
-
-    private static void NewMethod(string[] args)
-    {
-        {|Warning:Local();|}
     }
 }");
         }
@@ -1567,9 +1568,9 @@ class C
     public static void Main()
     {
         void Local()
-        {|Warning:{
+        {
             {|Rename:NewMethod|}();
-        }|}
+        }
         Local();
     }
 
@@ -1616,7 +1617,7 @@ class Test
 
     private static int NewMethod(int v, int i)
     {
-        {|Warning:v = v + i;|}
+        v = v + i;
         return v;
     }
 }");
@@ -1650,7 +1651,7 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Warning:v = {|Rename:NewMethod|}(v, i)|};
+                v = {|Rename:NewMethod|}(v, i);
             }
         }
     }
@@ -1690,7 +1691,7 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Warning:i = {|Rename:NewMethod|}(ref v, i)|};
+                i = {|Rename:NewMethod|}(ref v, i);
             }
         }
     }

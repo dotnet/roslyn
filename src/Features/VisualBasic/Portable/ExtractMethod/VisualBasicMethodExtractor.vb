@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             MyBase.New(result)
         End Sub
 
-        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
+        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, extractLocalFunction As Boolean, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 

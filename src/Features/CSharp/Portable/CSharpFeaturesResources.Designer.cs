@@ -1568,15 +1568,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning: Extracting a local function reference may produce invalid code.
-        /// </summary>
-        internal static string Warning_Extracting_a_local_function_reference_may_produce_invalid_code {
-            get {
-                return ResourceManager.GetString("Warning_Extracting_a_local_function_reference_may_produce_invalid_code", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Warning: Inlining temporary into conditional method call..
         /// </summary>
         internal static string Warning_Inlining_temporary_into_conditional_method_call {

@@ -497,6 +497,11 @@
         <target state="translated">目标类型匹配</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
+        <source>The selection contains a local function call without its declaration.</source>
+        <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">不需要赋值</target>

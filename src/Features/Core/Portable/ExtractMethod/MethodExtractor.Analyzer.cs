@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,14 +23,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected readonly CancellationToken CancellationToken;
             protected readonly SelectionResult SelectionResult;
+            protected readonly bool ExtractLocalFunction;
 
-            protected Analyzer(SelectionResult selectionResult, CancellationToken cancellationToken)
+            protected Analyzer(SelectionResult selectionResult, bool extractLocalFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 
                 SelectionResult = selectionResult;
                 _semanticDocument = selectionResult.SemanticDocument;
                 CancellationToken = cancellationToken;
+                ExtractLocalFunction = extractLocalFunction;
             }
 
             /// <summary>
@@ -91,7 +94,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
-                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten;
+                // Checks to see if selection includes a non-static local function call + if the given local function declaration is not included in the selection.
+                var containsNonStaticLocalMethodCallWithoutDeclaration = symbolMap.Keys.Any(s => s.IsLocalFunction() && !s.IsStatic && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
+
+                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten || containsNonStaticLocalMethodCallWithoutDeclaration;
                 var shouldBeReadOnly = !isThisParameterWritten
                     && thisParameterBeingRead != null
                     && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // check various error cases
                 var operationStatus = GetOperationStatus(
-                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType);
+                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType, containsNonStaticLocalMethodCallWithoutDeclaration);
 
                 return new AnalyzerResult(
                     newDocument,
@@ -266,7 +272,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private OperationStatus GetOperationStatus(
                 SemanticModel model, Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 IList<VariableInfo> parameters, IList<ISymbol> failedVariables,
-                bool unsafeAddressTakenUsed, bool returnTypeHasAnonymousType)
+                bool unsafeAddressTakenUsed, bool returnTypeHasAnonymousType,
+                bool containsNonStaticLocalMethodCallWithoutDeclaration)
             {
                 var readonlyFieldStatus = CheckReadOnlyFields(model, symbolMap);
 
@@ -296,10 +303,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             FeaturesResources.Failed_to_analyze_data_flow_for_0,
                             string.Join(", ", failedVariables.Select(v => v.Name))));
 
+                var localFunctionStatus = (containsNonStaticLocalMethodCallWithoutDeclaration && !ExtractLocalFunction)
+                    ? OperationStatus.LocalFunctionCallWithoutDeclaration
+                    : OperationStatus.Succeeded;
+
                 return readonlyFieldStatus.With(anonymousTypeStatus)
                                           .With(unsafeAddressStatus)
                                           .With(asyncRefOutParameterStatus)
-                                          .With(variableMapStatus);
+                                          .With(variableMapStatus)
+                                          .With(localFunctionStatus);
             }
 
             private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)

@@ -168,6 +168,9 @@
   <data name="The_selection_contains_no_active_statement" xml:space="preserve">
     <value>The selection contains no active statement.</value>
   </data>
+  <data name="The_selection_contains_a_local_function_call_without_its_declaration" xml:space="preserve">
+    <value>The selection contains a local function call without its declaration.</value>
+  </data>
   <data name="The_selection_contains_an_error_or_unknown_type" xml:space="preserve">
     <value>The selection contains an error or unknown type.</value>
   </data>

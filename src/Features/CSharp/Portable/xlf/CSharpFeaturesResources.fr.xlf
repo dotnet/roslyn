@@ -757,11 +757,6 @@
         <target state="translated">Ajouter 'this.'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
-        <source>Warning: Extracting a local function reference may produce invalid code</source>
-        <target state="translated">Avertissement : L'extraction d'une référence de fonction locale peut produire du code non valide</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Nom&gt;</target>

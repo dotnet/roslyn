@@ -1494,9 +1494,9 @@ class C
         void Local() { }
         {|Rename:NewMethod|}();
 
-        static void NewMethod()
+        void NewMethod()
         {
-            {|Warning:Local();|}
+            Local();
         }
     }
 }");
@@ -1521,9 +1521,9 @@ class C
         bool Local() => args == null;
         {|Rename:NewMethod|}(args);
 
-        static void NewMethod(string[] args)
+        void NewMethod(string[] args)
         {
-            {|Warning:Local();|}
+            Local();
         }
     }
 }");
@@ -1564,7 +1564,7 @@ class C
     public static void Main()
     {
         void Local()
-        {|Warning:{
+        {
             {|Rename:NewMethod|}();
 
             static void NewMethod()
@@ -1572,7 +1572,7 @@ class C
                 int x = 0;
                 x++;
             }
-        }|}
+        }
         Local();
     }
 }");
@@ -1610,7 +1610,7 @@ class Test
 
             static int NewMethod(int v, int i)
             {
-                {|Warning:v = v + i;|}
+                v = v + i;
                 return v;
             }
         }
@@ -1645,7 +1645,7 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Warning:v = {|Rename:NewMethod|}(v, i)|};
+                v = {|Rename:NewMethod|}(v, i);
             }
 
             static int NewMethod(int v, int i)
@@ -1684,7 +1684,7 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Warning:i = {|Rename:NewMethod|}(ref v, i)|};
+                i = {|Rename:NewMethod|}(ref v, i);
             }
 
             static int NewMethod(ref int v, int i)
@@ -3096,6 +3096,72 @@ class C
             static void NewMethod2()
             {
                 var test = 1;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        public async Task TestExtractNonStaticLocalMethod_WithoutDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        [|ExistingLocalFunction();|]
+
+        void ExistingLocalFunction()
+        {
+        }
+    }
+}",
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        {|Rename:NewMethod|}();
+
+        void ExistingLocalFunction()
+        {
+        }
+
+        void NewMethod()
+        {
+            ExistingLocalFunction();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        public async Task TestExtractNonStaticLocalMethod_WithDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        [|ExistingLocalFunction();
+
+        void ExistingLocalFunction()
+        {
+        }|]
+    }
+}",
+@"class Test
+{
+    static void Main(string[] args)
+    {
+        {|Rename:NewMethod|}();
+
+        static void NewMethod()
+        {
+            ExistingLocalFunction();
+
+            void ExistingLocalFunction()
+            {
             }
         }
     }

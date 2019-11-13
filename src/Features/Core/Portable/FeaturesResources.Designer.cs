@@ -3838,6 +3838,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The selection contains a local function call without its declaration..
+        /// </summary>
+        internal static string The_selection_contains_a_local_function_call_without_its_declaration {
+            get {
+                return ResourceManager.GetString("The_selection_contains_a_local_function_call_without_its_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection contains an error or unknown type..
         /// </summary>
         internal static string The_selection_contains_an_error_or_unknown_type {
