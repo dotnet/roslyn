@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -75,6 +76,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
 
+                        // Don't enqueue item if we don't have any high priority analyzers
+                        if (this.Analyzers.IsEmpty)
+                        {
+                            return;
+                        }
+
                         // we only put workitem in high priority queue if there is a text change.
                         // this is to prevent things like opening a file, changing in other files keep enqueuing
                         // expensive high priority work.
@@ -110,6 +117,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override async Task ExecuteAsync()
                     {
+                        Debug.Assert(!Analyzers.IsEmpty);
+
                         if (CancellationToken.IsCancellationRequested)
                         {
                             return;

@@ -174,10 +174,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         asyncToken);
                 }
 
-                public WorkItem With(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers)
+                public WorkItem With(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers, IAsyncToken asyncToken)
                 {
                     return new WorkItem(DocumentId, ProjectId, Language, InvocationReasons,
-                        IsLowPriority, ActiveMember, specificAnalyzers, IsRetry, AsyncToken);
+                        IsLowPriority, ActiveMember, specificAnalyzers, IsRetry, asyncToken);
                 }
 
                 public override string ToString()

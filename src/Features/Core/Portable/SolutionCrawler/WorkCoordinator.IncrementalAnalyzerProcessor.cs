@@ -116,20 +116,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     else
                     {
-                        if (TryGetItemWithOverriddenAnalysisScope(item, _highPriorityProcessor.Analyzers, options, analysisScope, out var newWorkItem))
+                        if (TryGetItemWithOverriddenAnalysisScope(item, _highPriorityProcessor.Analyzers, options, analysisScope, _listener, out var newWorkItem))
                         {
                             _highPriorityProcessor.Enqueue(newWorkItem.Value);
                         }
 
-                        if (TryGetItemWithOverriddenAnalysisScope(item, _normalPriorityProcessor.Analyzers, options, analysisScope, out newWorkItem))
+                        if (TryGetItemWithOverriddenAnalysisScope(item, _normalPriorityProcessor.Analyzers, options, analysisScope, _listener, out newWorkItem))
                         {
                             _normalPriorityProcessor.Enqueue(newWorkItem.Value);
                         }
 
-                        if (TryGetItemWithOverriddenAnalysisScope(item, _lowPriorityProcessor.Analyzers, options, analysisScope, out newWorkItem))
+                        if (TryGetItemWithOverriddenAnalysisScope(item, _lowPriorityProcessor.Analyzers, options, analysisScope, _listener, out newWorkItem))
                         {
                             _lowPriorityProcessor.Enqueue(newWorkItem.Value);
                         }
+
+                        item.AsyncToken.Dispose();
                     }
 
                     ReportPendingWorkItemCount();
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             !reasons.Contains(PredefinedInvocationReasons.DocumentClosed) &&
                             !reasons.Contains(PredefinedInvocationReasons.DocumentRemoved))
                         {
-                            return item.DocumentId == _documentTracker.TryGetActiveDocument();
+                            return item.DocumentId == _documentTracker?.TryGetActiveDocument();
                         }
 
                         return true;
@@ -163,6 +165,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ImmutableArray<IIncrementalAnalyzer> allAnalyzers,
                     OptionSet options,
                     BackgroundAnalysisScope analysisScope,
+                    IAsynchronousOperationListener listener,
                     [NotNullWhen(returnValue: true)] out WorkItem? newWorkItem)
                 {
                     var analyzersToExecute = item.GetApplicableAnalyzers(allAnalyzers);
@@ -173,7 +176,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (!analyzersWithOverriddenAnalysisScope.IsEmpty)
                     {
-                        newWorkItem = item.With(analyzersWithOverriddenAnalysisScope);
+                        newWorkItem = item.With(analyzersWithOverriddenAnalysisScope, listener.BeginAsyncOperation("WorkItem"));
                         return true;
                     }
 
