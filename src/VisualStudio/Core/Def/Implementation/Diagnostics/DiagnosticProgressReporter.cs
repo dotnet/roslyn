@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
@@ -21,35 +21,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IVsTaskStatusCenterService _taskCenterService;
         private readonly TaskHandlerOptions _options;
 
-        // these fields are never accessed concurrently
-        private TaskCompletionSource<VoidResult> _currentTask;
-        private DateTimeOffset _lastTimeReported;
+        #region Fields protected by _lock
 
+        /// <summary>
+        /// Gate access to reporting sln crawler events so we cannot
+        /// report UI changes concurrently.
+        /// </summary>
+        private readonly object _lock = new object();
+
+        /// <summary>
+        /// Task used to trigger throttled UI updates in an interval
+        /// defined by <see cref="s_minimumInterval"/>
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private Task? _intervalTask;
+
+        /// <summary>
+        /// Stores the last shown <see cref="ProgressData"/>
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private ProgressData _lastProgressData;
+
+        /// <summary>
+        /// Task used to ensure serialization of UI updates.
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private Task _updateUITask = Task.CompletedTask;
+
+        #endregion
+
+        #region Fields protected by _updateUITask running serially
+
+        /// <summary>
+        /// Task handler to provide a task to the <see cref="_taskCenterService"/>
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
+        private ITaskHandler? _taskHandler;
+
+        /// <summary>
+        /// Stores the currently running task center task.
+        /// This is manually started and completed based on receiving start / stop events
+        /// from the <see cref="ISolutionCrawlerProgressReporter"/>
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
+        private TaskCompletionSource<VoidResult>? _taskCenterTask;
+
+        /// <summary>
+        /// Unfortunately, <see cref="ProgressData.PendingItemCount"/> is only reported
+        /// when the <see cref="ProgressData.Status"/> is <see cref="ProgressStatus.PendingItemCountUpdated"/>
+        /// So we have to store the count separately for the UI so that we do not overwrite the last reported count with 0.
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
         private int _lastPendingItemCount;
-        private ProgressStatus _lastProgressStatus;
-        private ProgressStatus _lastShownProgressStatus;
 
-        // _resettableDelay makes sure that we at the end update status to correct value.
-        // in contrast to _lastTimeReported makes sure that we only update at least s_minimumInterval interval.
-        //
-        // for example, when an event stream comes in as below (assuming 200ms minimum interval)
-        // e1 -> (100ms)-> e2 -> (300ms)-> e3 -> (100ms) -> e4
-        //
-        // actual status shown to users without _resettableDelay will be 
-        // e1 -> e3.
-        //
-        // e2 and e4 will be skipped since interval was smaller than min interval.
-        // losing e2 is fine, but e4 is problematic since the user now could see the wrong status 
-        // until the next event comes in. 
-        // for example, it could show "Evaluating" when it is actually "Paused" until the next event
-        // which could be long time later.
-        // what _resettableDelay does is making sure that if the next event doesn't come in 
-        // within certain delay, it updates status to e4 (current).
-        private ResettableDelay _resettableDelay;
-
-        // this is only field that is shared between 2 events streams (IDiagnosticService and ISolutionCrawlerProgressReporter)
-        // and can be called concurrently.
-        private volatile ITaskHandler _taskHandler;
+        #endregion
 
         [ImportingConstructor]
         public TaskCenterSolutionAnalysisProgressReporter(
@@ -57,153 +82,110 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             IDiagnosticService diagnosticService,
             VisualStudioWorkspace workspace)
         {
-            _lastTimeReported = DateTimeOffset.UtcNow;
-            _resettableDelay = null;
-
-            ResetProgressStatus();
-
             _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
-
             _options = new TaskHandlerOptions()
             {
                 Title = ServicesVSResources.Running_low_priority_background_processes,
                 ActionsAfterCompletion = CompletionActions.None
             };
 
-            var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
+            var crawlerService = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
 
-            StartedOrStopped(reporter.InProgress);
+            if (reporter.InProgress)
+            {
+                // The reporter was already sending events before we were able to subscribe, so trigger an update to the task center.
+                OnSolutionCrawlerProgressChanged(this, new ProgressData(ProgressStatus.Started, pendingItemCount: null));
+            }
 
-            // no event unsubscription since it will remain alive until VS shutdown
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
         }
 
-        private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
+        /// <summary>
+        /// Retrieve and throttle solution crawler events to be sent to the progress reporter UI.
+        /// 
+        /// there is no concurrent call to this method since ISolutionCrawlerProgressReporter will serialize all
+        /// events to preserve event ordering
+        /// </summary>
+        /// <param name="progressData"></param>
+        public void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
         {
-            // there is no concurrent call to this method since ISolutionCrawlerProgressReporter will serialize all
-            // events to preserve event ordering
-            switch (progressData.Status)
+            lock (_lock)
             {
-                case ProgressStatus.Started:
-                    StartedOrStopped(started: true);
-                    break;
-                case ProgressStatus.PendingItemCountUpdated:
-                    _lastPendingItemCount = progressData.PendingItemCount.Value;
-                    ProgressUpdated();
-                    break;
-                case ProgressStatus.Stopped:
-                    StartedOrStopped(started: false);
-                    break;
-                case ProgressStatus.Evaluating:
-                case ProgressStatus.Paused:
-                    _lastProgressStatus = progressData.Status;
-                    ProgressUpdated();
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(progressData.Status);
-            }
-        }
+                _lastProgressData = progressData;
 
-        private void ProgressUpdated()
-        {
-            // we prefer showing evaluating if progress is flipping between evaluate and pause
-            // in short period of time.
-            var forceUpdate = _lastShownProgressStatus == ProgressStatus.Paused &&
-                              _lastProgressStatus == ProgressStatus.Evaluating;
-
-            var current = DateTimeOffset.UtcNow;
-            if (!forceUpdate && current - _lastTimeReported < s_minimumInterval)
-            {
-                // make sure we are not flooding UI. 
-                // this is just presentation, fine to not updating UI right away especially since
-                // at the end, this notification will go away automatically
-                // but to make UI to be updated to right status eventually if task takes long time to finish
-                // we enqueue refresh task.
-                EnqueueRefresh();
-                return;
-            }
-
-            _lastShownProgressStatus = _lastProgressStatus;
-            _lastTimeReported = current;
-
-            ChangeProgress(_taskHandler, GetMessage());
-
-            string GetMessage()
-            {
-                var statusMessage = (_lastProgressStatus == ProgressStatus.Paused) ? ServicesVSResources.Paused_0_tasks_in_queue : ServicesVSResources.Evaluating_0_tasks_in_queue;
-                return string.Format(statusMessage, _lastPendingItemCount);
-            }
-
-            void EnqueueRefresh()
-            {
-                if (_resettableDelay != null)
+                // The task is running which will update the progress.
+                if (_intervalTask != null)
                 {
-                    _resettableDelay.Reset();
                     return;
                 }
 
-                _resettableDelay = new ResettableDelay((int)s_minimumInterval.TotalMilliseconds, AsynchronousOperationListenerProvider.NullListener);
-                _resettableDelay.Task.SafeContinueWith(_ =>
-                {
-                    _resettableDelay = null;
-                    ProgressUpdated();
-                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                // Kick off task to update the UI after a delay to pick up any new events.
+                _intervalTask = Task.Delay(s_minimumInterval).ContinueWith(_ => ReportProgress(),
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
 
-        private void StartedOrStopped(bool started)
+        private void ReportProgress()
         {
-            if (started)
+            lock (_lock)
             {
-                ResetProgressStatus();
+                var data = _lastProgressData;
+                _intervalTask = null;
 
-                // if there is any pending one. make sure it is finished.
-                _currentTask?.TrySetResult(default);
-
-                var taskHandler = _taskCenterService.PreRegister(_options, data: default);
-
-                _currentTask = new TaskCompletionSource<VoidResult>();
-                taskHandler.RegisterTask(_currentTask.Task);
-
-                // report initial progress
-                ChangeProgress(taskHandler, message: null);
-
-                // set handler
-                _taskHandler = taskHandler;
-            }
-            else
-            {
-                // clear progress message
-                ChangeProgress(_taskHandler, message: null);
-
-                // stop progress
-                _currentTask?.TrySetResult(default);
-                _currentTask = null;
-
-                _taskHandler = null;
-
-                ResetProgressStatus();
+                _updateUITask = _updateUITask.ContinueWith(_ => UpdateUI(data),
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
 
-        private void ResetProgressStatus()
+        private void UpdateUI(ProgressData progressData)
         {
-            _lastPendingItemCount = 0;
-            _lastProgressStatus = ProgressStatus.Paused;
-            _lastShownProgressStatus = ProgressStatus.Paused;
-        }
-
-        private static void ChangeProgress(ITaskHandler taskHandler, string message)
-        {
-            var data = new TaskProgressData
+            if (progressData.Status == ProgressStatus.Stopped)
             {
-                ProgressText = message,
+                StopTaskCenter();
+                return;
+            }
+
+            // Update the pending item count if the progress data specifies a value.
+            if (progressData.PendingItemCount.HasValue)
+            {
+                _lastPendingItemCount = progressData.PendingItemCount.Value;
+            }
+
+            // Start the task center task if not already running.
+            if (_taskHandler == null)
+            {
+                // Register a new task handler to handle a new task center task.
+                // Each task handler can only register one task, so we must create a new one each time we start.
+                _taskHandler = _taskCenterService.PreRegister(_options, data: default);
+
+                // Create a new non-completed task to be tracked by the task handler.
+                _taskCenterTask = new TaskCompletionSource<VoidResult>();
+                _taskHandler.RegisterTask(_taskCenterTask.Task);
+            }
+
+            var statusMessage = progressData.Status == ProgressStatus.Paused
+                ? ServicesVSResources.Paused_0_tasks_in_queue
+                : ServicesVSResources.Evaluating_0_tasks_in_queue;
+
+            _taskHandler.Progress.Report(new TaskProgressData
+            {
+                ProgressText = string.Format(statusMessage, _lastPendingItemCount),
                 CanBeCanceled = false,
                 PercentComplete = null,
-            };
+            });
+        }
 
-            taskHandler?.Progress.Report(data);
+        private void StopTaskCenter()
+        {
+            // Mark the progress task as completed so it shows complete in the task center.
+            _taskCenterTask?.TrySetResult(default);
+
+            // Clear tasks and data.
+            _taskCenterTask = null;
+            _taskHandler = null;
+            _lastProgressData = default;
+            _lastPendingItemCount = 0;
         }
     }
 }
