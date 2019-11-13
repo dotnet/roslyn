@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
         }
 
-        protected override bool UnderAsyncAnonymousMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
+        protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
         {
             var current = token.Parent;
             for (; current != null; current = current.Parent)
@@ -79,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (current is MemberDeclarationSyntax ||
                     current is SimpleLambdaExpressionSyntax ||
                     current is ParenthesizedLambdaExpressionSyntax ||
-                    current is AnonymousMethodExpressionSyntax)
+                    current is AnonymousMethodExpressionSyntax ||
+                    current is LocalFunctionStatementSyntax)
                 {
                     break;
                 }
