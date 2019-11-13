@@ -137,6 +137,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            Debug.Assert(base.GetAttributes().IsEmpty);
+            return BaseMethod.SynthesizedMethodsInheritAttributes
+                ? BaseMethod.GetAttributes()
+                : ImmutableArray<CSharpAttributeData>.Empty;
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            Debug.Assert(base.GetReturnTypeAttributes().IsEmpty);
+            return BaseMethod.SynthesizedMethodsInheritAttributes ? BaseMethod.GetReturnTypeAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
+        }
+
         public sealed override RefKind RefKind
         {
             get { return this.BaseMethod.RefKind; }

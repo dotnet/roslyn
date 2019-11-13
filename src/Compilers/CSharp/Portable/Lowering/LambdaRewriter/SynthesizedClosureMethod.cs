@@ -164,12 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool IsExpressionBodied => false;
         internal MethodSymbol TopLevelMethod => _topLevelMethod;
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
-            => BaseMethod.SynthesizedMethodsInheritAttributes ? BaseMethod.GetAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
-
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
-            => BaseMethod.SynthesizedMethodsInheritAttributes ? BaseMethod.GetReturnTypeAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
-
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             // Syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method.
