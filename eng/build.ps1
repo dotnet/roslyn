@@ -235,6 +235,8 @@ function BuildSolution() {
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
   try {
+    EnableFusionLogging
+
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -263,8 +265,25 @@ function BuildSolution() {
       @properties
   }
   finally {
+    DisableFusionLogging
     ${env:ROSLYNCOMMANDLINELOGFILE} = $null
   }
+}
+
+function EnableFusionLogging() {
+  $registryPath = "HKLM:\SOFTWARE\Microsoft\Fusion"
+  Set-ItemProperty -Path $registryPath -Name ForceLog         -Value 1       -Type DWord
+  Set-ItemProperty -Path $registryPath -Name LogFailures      -Value 1       -Type DWord
+  Set-ItemProperty -Path $registryPath -Name LogResourceBinds -Value 1       -Type DWord
+  Set-ItemProperty -Path $registryPath -Name LogPath          -Value $LogDir -Type String
+}
+
+function DisableFusionLogging() {
+  $registryPath = "HKLM:\SOFTWARE\Microsoft\Fusion"
+  Remove-ItemProperty -Path $registryPath -Name ForceLog
+  Remove-ItemProperty -Path $registryPath -Name LogFailures
+  Remove-ItemProperty -Path $registryPath -Name LogResourceBinds
+  Remove-ItemProperty -Path $registryPath -Name LogPath
 }
 
 
