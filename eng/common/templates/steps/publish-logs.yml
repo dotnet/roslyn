@@ -8,8 +8,8 @@ steps:
   inputs:
     targetType: inline
     script: |
-      New-Item -ItemType Directory $(Build.SourcesDirectory)/PostBuildLogs/${parameters.StageLabel}/${parameters.JobLabel}/
-      Move-Item -Path $(Build.SourcesDirectory)/artifacts/log/Debug/* $(Build.SourcesDirectory)/PostBuildLogs/${parameters.StageLabel}/${parameters.JobLabel}/
+      New-Item -ItemType Directory $(Build.SourcesDirectory)/PostBuildLogs/${{parameters.StageLabel}}/${{parameters.JobLabel}}/
+      Move-Item -Path $(Build.SourcesDirectory)/artifacts/log/Debug/* $(Build.SourcesDirectory)/PostBuildLogs/${{parameters.StageLabel}}/${{parameters.JobLabel}}/
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Logs
