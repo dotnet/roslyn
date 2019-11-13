@@ -79,8 +79,25 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
             private string GetCloseTokenIndentation()
             {
-                var initialStatement = _listSyntax.Parent.Parent.Parent.Parent;
-                var afterInitialStatementOffset = OriginalSourceText.GetOffset(initialStatement.SpanStart);
+                var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
+                var initialStatement = generator.GetDeclaration(_listSyntax);
+
+                if (initialStatement == null)
+                {
+                    return string.Empty;
+                }
+
+                var initialStatementOffset = initialStatement.SpanStart;
+                if (generator.GetDeclarationKind(initialStatement) == DeclarationKind.Method)
+                {
+                    // If we didn't find some form of declaration and are in a method body
+                    // the initializer must be in a return statement. Therefore, add a tab
+                    // to align the end brace with the return keyword
+                    initialStatementOffset += TabSize;
+                }
+
+
+                var afterInitialStatementOffset = OriginalSourceText.GetOffset(initialStatementOffset);
 
                 var indentString = afterInitialStatementOffset.CreateIndentationString(UseTabs, TabSize);
                 return indentString;
