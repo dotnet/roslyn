@@ -32,15 +32,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var workspace = project.Solution.Workspace;
             var typeImportCompletionService = document.GetLanguageService<ITypeImportCompletionService>()!;
 
-            var tasksToGetCompletionItems = ArrayBuilder<Task<ImmutableArray<CompletionItem>>>.GetInstance();
+            using var disposer = ArrayBuilder<CompletionItem>.GetInstance(out var itemsBuilder);
 
             // Get completion items from current project. 
-            var compilation = (await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
-            tasksToGetCompletionItems.Add(Task.Run(() => typeImportCompletionService.GetTopLevelTypesAsync(
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var items = await typeImportCompletionService.GetTopLevelTypesAsync(
                 project,
                 syntaxContext,
                 isInternalsVisible: true,
-                cancellationToken)));
+                cancellationToken).ConfigureAwait(false);
+
+            AddItems(items, completionContext, namespacesInScope, telemetryCounter);
 
             // Get declarations from directly referenced projects and PEs.
             // For script compilation, we don't want previous submissions returned as referenced assemblies,
@@ -49,33 +51,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // This can be parallelized because we don't add items to CompletionContext
             // until all the collected tasks are completed.
-            tasksToGetCompletionItems.AddRange(
-                referencedAssemblySymbols.Select(symbol => Task.Run(() => HandleReferenceAsync(symbol))));
-
-            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache. 
-            // The idea is not to block completion for too long (likely to happen the first time import completion is triggered).
-            // The trade-off is we might not provide unimported types until the cache is warmed up.
-            var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion);
-            var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
-
-            if (isExpandedCompletion ||
-                timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
+            foreach (var refernecedAssembly in referencedAssemblySymbols)
             {
-                // Either there's no timeout, and we now have all completion items ready,
-                // or user asked for unimported type explicitly so we need to wait until they are calculated.
-                var completionItemsToAdd = await combinedTask.ConfigureAwait(false);
-                foreach (var completionItems in completionItemsToAdd)
-                {
-                    AddItems(completionItems, completionContext, namespacesInScope, telemetryCounter);
-                }
-            }
-            else
-            {
-                // If timed out, we don't want to cancel the computation so next time the cache would be populated.
-                // We do not keep track if previous compuation for a given project/PE reference is still running. So there's a chance 
-                // we queue same computation again later. However, we expect such computation for an individual reference to be relatively 
-                // fast so the actual cycles wasted would be insignificant.
-                telemetryCounter.TimedOut = true;
+                items = await HandleReferenceAsync(refernecedAssembly).ConfigureAwait(false);
+                AddItems(items, completionContext, namespacesInScope, telemetryCounter);
             }
 
             telemetryCounter.ReferenceCount = referencedAssemblySymbols.Length;
@@ -90,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Skip reference with only non-global alias.
                 var metadataReference = compilation.GetMetadataReference(referencedAssemblySymbol);
 
-                if (metadataReference.Properties.Aliases.IsEmpty ||
-                    metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias))
+                if (HasGlobalAlias(metadataReference))
                 {
                     var assemblyProject = project.Solution.GetProject(referencedAssemblySymbol, cancellationToken);
                     if (assemblyProject != null && assemblyProject.SupportsCompilation)
@@ -116,6 +94,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return ImmutableArray<CompletionItem>.Empty;
             }
+
+            static bool HasGlobalAlias(MetadataReference metadataReference)
+                => metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
 
             static void AddItems(ImmutableArray<CompletionItem> items, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
             {
