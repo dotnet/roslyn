@@ -6,14 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -34,69 +37,68 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using var disposer = ArrayBuilder<CompletionItem>.GetInstance(out var itemsBuilder);
 
-            // Get completion items from current project. 
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var items = await typeImportCompletionService.GetTopLevelTypesAsync(
-                project,
+            var builder = ArrayBuilder<CompletionItem>.GetInstance();
+
+            var currentProject = document.Project;
+
+            var items = await typeImportCompletionService.GetTopLevelTypesAsync(currentProject,
                 syntaxContext,
                 isInternalsVisible: true,
                 cancellationToken).ConfigureAwait(false);
 
             AddItems(items, completionContext, namespacesInScope, telemetryCounter);
 
-            // Get declarations from directly referenced projects and PEs.
-            // For script compilation, we don't want previous submissions returned as referenced assemblies,
-            // there's no need to check for unimported type from them since namespace declaration is not allowed in script.
-            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols(excludePreviousSubmissions: true);
+            var solution = currentProject.Solution;
+            var graph = solution.GetProjectDependencyGraph();
+            var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).SelectAsArray(id => solution.GetRequiredProject(id));
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // This can be parallelized because we don't add items to CompletionContext
-            // until all the collected tasks are completed.
-            foreach (var refernecedAssembly in referencedAssemblySymbols)
+            foreach (var referencedProject in referencedProjects.Where(p => p.SupportsCompilation))
             {
-                items = await HandleReferenceAsync(refernecedAssembly).ConfigureAwait(false);
-                AddItems(items, completionContext, namespacesInScope, telemetryCounter);
-            }
-
-            telemetryCounter.ReferenceCount = referencedAssemblySymbols.Length;
-            telemetryCounter.Report();
-
-            return;
-
-            async Task<ImmutableArray<CompletionItem>> HandleReferenceAsync(IAssemblySymbol referencedAssemblySymbol)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Skip reference with only non-global alias.
-                var metadataReference = compilation.GetMetadataReference(referencedAssemblySymbol);
+                var compilation = await referencedProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var assembly = SymbolFinder.FindSimilarSymbols(compilation.Assembly, currentCompilation).SingleOrDefault();
+                var metadataReference = currentCompilation.GetMetadataReference(assembly);
 
                 if (HasGlobalAlias(metadataReference))
                 {
-                    var assemblyProject = project.Solution.GetProject(referencedAssemblySymbol, cancellationToken);
-                    if (assemblyProject != null && assemblyProject.SupportsCompilation)
+                    items = await typeImportCompletionService.GetTopLevelTypesAsync(
+                        referencedProject,
+                        syntaxContext,
+                        isInternalsVisible: currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(compilation.Assembly),
+                        cancellationToken).ConfigureAwait(false);
+
+                    AddItems(items, completionContext, namespacesInScope, telemetryCounter);
+                }
+
+                telemetryCounter.ReferenceCount++;
+            }
+
+            foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
+            {
+                if (HasGlobalAlias(peReference))
+                {
+                    if (currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly)
                     {
-                        return await typeImportCompletionService.GetTopLevelTypesAsync(
-                            assemblyProject,
-                            syntaxContext,
-                            isInternalsVisible: compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssemblySymbol),
-                            cancellationToken).ConfigureAwait(false);
-                    }
-                    else if (metadataReference is PortableExecutableReference peReference)
-                    {
-                        return typeImportCompletionService.GetTopLevelTypesFromPEReference(
-                            project.Solution,
-                            compilation,
+                        items = typeImportCompletionService.GetTopLevelTypesFromPEReference(
+                            solution,
+                            currentCompilation,
                             peReference,
                             syntaxContext,
-                            isInternalsVisible: compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssemblySymbol),
+                            isInternalsVisible: currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assembly),
                             cancellationToken);
+
+                        AddItems(items, completionContext, namespacesInScope, telemetryCounter);
                     }
                 }
 
-                return ImmutableArray<CompletionItem>.Empty;
+                telemetryCounter.ReferenceCount++;
             }
 
+            telemetryCounter.Report();
+            return;
+
             static bool HasGlobalAlias(MetadataReference metadataReference)
-                => metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
+                => metadataReference != null && (metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias));
 
             static void AddItems(ImmutableArray<CompletionItem> items, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
             {
