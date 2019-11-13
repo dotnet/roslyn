@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind IParameterSymbol.RefKind => _underlying.RefKind;
 
+        bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
+
         bool IParameterSymbol.IsParams => _underlying.IsParams;
 
         bool IParameterSymbol.IsOptional => _underlying.IsOptional;

@@ -279,6 +279,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "IParameterSymbol"
 
+        Private ReadOnly Property IParameterSymbol_IsDiscard As Boolean Implements IParameterSymbol.IsDiscard
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind
             Get
                 ' TODO: Should we check if it has the <Out> attribute and return 'RefKind.Out' in
