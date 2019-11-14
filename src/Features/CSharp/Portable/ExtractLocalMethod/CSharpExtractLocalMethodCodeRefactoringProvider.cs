@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
             CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var preferStatic = documentOptions.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
 
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,

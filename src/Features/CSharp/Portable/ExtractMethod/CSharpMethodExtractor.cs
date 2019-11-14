@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result, bool extractLocalFunction = false)
+        public CSharpMethodExtractor(CSharpSelectionResult result, bool extractLocalFunction)
             : base(result, extractLocalFunction)
         {
         }
@@ -33,10 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var basePosition = root.FindToken(position);
 
             // Check if we are extracting a local function and are within a local function
-            var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
-            if (ExtractLocalFunction && localMethodNode != null)
+            if (ExtractLocalFunction)
             {
-                return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
+                var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
+                if (localMethodNode is object)
+                {
+                    return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();

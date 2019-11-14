@@ -84,24 +84,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var newCallSiteRoot = callSiteDocument.Root;
                 var previousMemberNode = GetPreviousMember(callSiteDocument);
 
-                SyntaxNode destination;
+                var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
+                var result = GenerateMethodDefinition(cancellationToken);
+
+                SyntaxNode destination, newContainer;
                 if (ExtractLocalFunction)
                 {
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
-                }
-                else
-                {
-                    // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
-                    destination = previousMemberNode.Parent ?? previousMemberNode;
-                }
-
-                var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
-
-                var result = GenerateMethodDefinition(cancellationToken);
-
-                SyntaxNode newContainer;
-                if (ExtractLocalFunction)
-                {
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
                         new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true),
@@ -109,6 +98,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
                 else
                 {
+                    // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
+                    destination = previousMemberNode.Parent ?? previousMemberNode;
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
                         new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),

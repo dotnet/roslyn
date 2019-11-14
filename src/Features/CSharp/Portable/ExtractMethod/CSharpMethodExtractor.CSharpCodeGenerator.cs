@@ -702,7 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
-                if (syntaxNode == null || !(syntaxNode is MethodDeclarationSyntax || syntaxNode is LocalFunctionStatementSyntax))
+                var nodeIsMethodOrLocalFunction = syntaxNode is MethodDeclarationSyntax || syntaxNode is LocalFunctionStatementSyntax;
+                if (syntaxNode == null || !nodeIsMethodOrLocalFunction)
                 {
                     return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
                 }
@@ -712,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (syntaxNode is MethodDeclarationSyntax methodDeclaration)
                 {
                     var nullableReturnOperations = await CheckReturnOperations(methodDeclaration).ConfigureAwait(false);
-                    if (nullableReturnOperations != null)
+                    if (nullableReturnOperations is object)
                     {
                         return nullableReturnOperations;
                     }

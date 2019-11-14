@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
 {
-    public class ExtractLocalMethodTests : AbstractCSharpCodeActionTest
+    public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpExtractLocalMethodCodeRefactoringProvider();
@@ -68,6 +68,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
     }
 }", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        public async Task TestPartialSelection_StaticOptionDefault()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+
+        static bool NewMethod(bool b)
+        {
+            return b != true;
+        }
+    }
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CSharpCodeStyleOptions.PreferStaticLocalFunction.DefaultValue));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
@@ -341,7 +368,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
-        public async Task TestMissingOnNamespace()
+        public async Task TestOnNamespace()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -366,7 +393,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
-        public async Task TestMissingOnType()
+        public async Task TestOnType()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -391,7 +418,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
-        public async Task TestMissingOnBase()
+        public async Task TestOnBase()
         {
             await TestInRegularAndScriptAsync(
 @"class Program

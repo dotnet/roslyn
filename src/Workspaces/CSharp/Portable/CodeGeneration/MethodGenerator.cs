@@ -165,14 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // `method` abstract. This would provide more flexibility.
             var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
 
-            var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
-
             var localMethodDeclaration = SyntaxFactory.LocalFunctionStatement(
                     modifiers: GenerateModifiers(method, destination, workspace, options),
                     returnType: method.GenerateReturnTypeSyntax(),
                     identifier: method.Name.ToIdentifierToken(),
                     typeParameterList: GenerateTypeParameterList(method, options),
-                    parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
+                    parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options),
                     constraintClauses: GenerateConstraintClauses(method),
                     body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                     expressionBody: default,

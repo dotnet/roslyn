@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected readonly SelectionResult OriginalSelectionResult;
         protected readonly bool ExtractLocalFunction;
 
-        public MethodExtractor(SelectionResult selectionResult, bool extractLocalFunction = false)
+        public MethodExtractor(SelectionResult selectionResult, bool extractLocalFunction)
         {
             Contract.ThrowIfNull(selectionResult);
             OriginalSelectionResult = selectionResult;

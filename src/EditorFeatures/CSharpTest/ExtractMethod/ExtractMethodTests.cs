@@ -10329,7 +10329,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(null, default, false, null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, extractLocalFunction: false, options: null, CancellationToken.None);
             }));
         }
 

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.True(selectedCode.ContainsValidContext);
 
             // extract method
-            var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode);
+            var extractor = new CSharpMethodExtractor(result: (CSharpSelectionResult)selectedCode, extractLocalFunction: false);
             var result = await extractor.ExtractMethodAsync(CancellationToken.None);
             Assert.NotNull(result);
             Assert.Equal(succeed,
