@@ -1385,6 +1385,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project of ID {0} is required to accomplish the task but is not available from the solution.
+        /// </summary>
+        internal static string Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution {
+            get {
+                return ResourceManager.GetString("Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_" +
+                        "solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Property.
         /// </summary>
         internal static string Property {

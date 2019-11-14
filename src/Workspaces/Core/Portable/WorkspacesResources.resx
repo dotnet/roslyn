@@ -1485,4 +1485,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0" xml:space="preserve">
     <value>Syntax tree is required to accomplish the task but is not supported by document {0}.</value>
   </data>
+  <data name="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution" xml:space="preserve">
+    <value>Project of ID {0} is required to accomplish the task but is not available from the solution</value>
+  </data>
 </root>

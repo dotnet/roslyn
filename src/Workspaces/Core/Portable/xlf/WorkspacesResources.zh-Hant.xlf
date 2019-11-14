@@ -107,6 +107,11 @@
         <target state="translated">不應為前置詞 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
+        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
+        <target state="new">Project of ID {0} is required to accomplish the task but is not available from the solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">僅重構</target>

@@ -25,9 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
             workspace.Options = workspace.Options _
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds) _
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue).WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Sub
 
         Protected Overrides Function GetExportProvider() As ExportProvider

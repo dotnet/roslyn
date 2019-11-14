@@ -1,10 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Composition
 
@@ -19,14 +17,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
-
-        ' -1 would disable timebox, whereas 0 means always timeout.
-        Private Property TimeoutInMilliseconds As Integer = -1
+        Public Property IsExpandedCompletion As Boolean = True
 
         Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
             workspace.Options = workspace.Options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Sub
 
         Protected Overrides Function GetExportProvider() As ExportProvider

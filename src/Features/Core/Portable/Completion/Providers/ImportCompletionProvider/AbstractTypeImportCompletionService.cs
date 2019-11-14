@@ -5,17 +5,24 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
+        private static readonly object s_gate = new object();
+        private static Task s_cachingTask = Task.CompletedTask;
+
         private IImportCompletionCacheService<CacheEntry, CacheEntry> CacheService { get; }
 
         protected abstract string GenericTypeSuffix { get; }
@@ -27,108 +34,207 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
         }
 
-        public async Task<ImmutableArray<CompletionItem>> GetTopLevelTypesAsync(
-            Project project,
+        public async Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
+            Project currentProject,
             SyntaxContext syntaxContext,
-            bool isInternalsVisible,
+            bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            if (!project.SupportsCompilation)
+            var getCacheResults = await GetCacheEntries(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+
+            if (getCacheResults == null)
             {
-                throw new ArgumentException(nameof(project));
+                // We use a very simple approach to build the cache in the background:
+                // queue a new task only if the previous task is completed, regardless of what
+                // that task is doing.
+                lock (s_gate)
+                {
+                    if (s_cachingTask.IsCompleted)
+                    {
+                        s_cachingTask = Task.Run(() => GetCacheEntries(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None));
+                    }
+                }
+
+                return null;
             }
 
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            return getCacheResults.Value.SelectAsArray(GetItemsFromCacheResult);
+
+            ImmutableArray<CompletionItem> GetItemsFromCacheResult(GetCacheResult cacheResult)
+            {
+                return cacheResult.Entry.GetItemsForContext(
+                         syntaxContext.SemanticModel.Language,
+                         GenericTypeSuffix,
+                         currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(cacheResult.Assembly),
+                         syntaxContext.IsAttributeNameContext,
+                         IsCaseSensitive);
+            }
+        }
+
+        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntries(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
+        {
+            var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
+
+            var cacheResult = await GetCacheForProject(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+
+            // We always force create cache for current project.
+            Debug.Assert(cacheResult.HasValue);
+            builder.Add(cacheResult!.Value);
+
+            var solution = currentProject.Solution;
+            var graph = solution.GetProjectDependencyGraph();
+            var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).SelectAsArray(id => solution.GetRequiredProject(id));
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var referencedProject in referencedProjects.Where(p => p.SupportsCompilation))
+            {
+                var compilation = await referencedProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var assembly = SymbolFinder.FindSimilarSymbols(compilation.Assembly, currentCompilation).SingleOrDefault();
+                var metadataReference = currentCompilation.GetMetadataReference(assembly);
+
+                if (HasGlobalAlias(metadataReference))
+                {
+                    cacheResult = await GetCacheForProject(
+                        referencedProject,
+                        syntaxContext,
+                        forceCacheCreation,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (cacheResult.HasValue)
+                    {
+                        builder.Add(cacheResult.Value);
+                    }
+                    else
+                    {
+                        // If there's cache miss, we just don't return any item.
+                        // This way, we will not block completion building our cache.
+                        return null;
+                    }
+                }
+            }
+
+            foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
+            {
+                if (HasGlobalAlias(peReference) &&
+                    currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly &&
+                    TryGetCacheForPEReference(solution, currentCompilation, peReference, syntaxContext, forceCacheCreation, cancellationToken, out cacheResult))
+                {
+                    if (cacheResult.HasValue)
+                    {
+                        builder.Add(cacheResult.Value);
+                    }
+                    else
+                    {
+                        // If there's cache miss, we just don't return any item.
+                        // This way, we will not block completion building our cache.
+                        return null;
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+
+            static bool HasGlobalAlias(MetadataReference metadataReference)
+                => metadataReference != null && (metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias));
+        }
+
+        /// <summary>
+        /// Get appropriate completion items for all the visible top level types from given project. 
+        /// This method is intended to be used for getting types from source only, so the project must support compilation. 
+        /// For getting types from PE, use <see cref="TryGetCacheForPEReference"/>.
+        /// </summary>
+        private async Task<GetCacheResult?> GetCacheForProject(
+            Project project,
+            SyntaxContext syntaxContext,
+            bool forceCacheCreation,
+            CancellationToken cancellationToken)
+        {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
-            return GetAccessibleTopLevelTypesWorker(
+            return GetCacheWorker(
                 project.Id,
                 compilation.Assembly,
                 checksum,
                 syntaxContext,
-                isInternalsVisible,
+                forceCacheCreation,
                 CacheService.ProjectItemsCache,
                 cancellationToken);
         }
 
-        public ImmutableArray<CompletionItem> GetTopLevelTypesFromPEReference(
+        /// <summary>
+        /// Get appropriate completion items for all the visible top level types from given PE reference.
+        /// </summary>
+        private bool TryGetCacheForPEReference(
             Solution solution,
             Compilation compilation,
             PortableExecutableReference peReference,
             SyntaxContext syntaxContext,
-            bool isInternalsVisible,
-            CancellationToken cancellationToken)
+            bool forceCacheCreation,
+            CancellationToken cancellationToken,
+            out GetCacheResult? result)
         {
-            var key = GetReferenceKey(peReference);
+            var key = peReference.FilePath ?? peReference.Display;
             if (key == null)
             {
                 // Can't cache items for reference with null key. We don't want risk potential perf regression by 
                 // making those items repeatedly, so simply not returning anything from this assembly, until 
-                // we have a better understanding on this sceanrio.
+                // we have a better understanding on this scenario.
                 // TODO: Add telemetry
-                return ImmutableArray<CompletionItem>.Empty;
+                result = default;
+                return false;
             }
 
             if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
             {
-                return ImmutableArray<CompletionItem>.Empty;
+                result = default;
+                return false;
             }
 
             var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
-            return GetAccessibleTopLevelTypesWorker(
+            result = GetCacheWorker(
                 key,
                 assemblySymbol,
                 checksum,
                 syntaxContext,
-                isInternalsVisible,
+                forceCacheCreation,
                 CacheService.PEItemsCache,
                 cancellationToken);
-
-            static string GetReferenceKey(PortableExecutableReference reference)
-                => reference.FilePath ?? reference.Display;
+            return true;
         }
 
-        private ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesWorker<TKey>(
+        private GetCacheResult? GetCacheWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,
             Checksum checksum,
             SyntaxContext syntaxContext,
-            bool isInternalsVisible,
-            IDictionary<TKey, CacheEntry> cache,
-            CancellationToken cancellationToken)
-        {
-            var cacheEntry = GetCacheEntry(key, assembly, checksum, syntaxContext, cache, cancellationToken);
-            return cacheEntry.GetItemsForContext(
-                syntaxContext.SemanticModel.Language,
-                GenericTypeSuffix,
-                isInternalsVisible,
-                syntaxContext.IsAttributeNameContext,
-                IsCaseSensitive);
-        }
-
-        private CacheEntry GetCacheEntry<TKey>(
-            TKey key,
-            IAssemblySymbol assembly,
-            Checksum checksum,
-            SyntaxContext syntaxContext,
+            bool forceCacheCreation,
             IDictionary<TKey, CacheEntry> cache,
             CancellationToken cancellationToken)
         {
             var language = syntaxContext.SemanticModel.Language;
 
-            // Cache miss, create all requested items.
-            if (!cache.TryGetValue(key, out var cacheEntry) ||
-                cacheEntry.Checksum != checksum)
+            // Cache hit
+            if (cache.TryGetValue(key, out var cacheEntry) && cacheEntry.Checksum == checksum)
+            {
+                return new GetCacheResult(cacheEntry, assembly);
+            }
+
+            // Cache miss, create all items only when asked.
+            if (forceCacheCreation)
             {
                 using var builder = new CacheEntry.Builder(checksum, language, GenericTypeSuffix);
                 GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
                 cacheEntry = builder.ToReferenceCacheEntry();
                 cache[key] = cacheEntry;
+
+                return new GetCacheResult(cacheEntry, assembly);
             }
 
-            return cacheEntry;
+            return null;
         }
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
@@ -228,6 +334,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 var newContainsPublicGenericOverload = type.DeclaredAccessibility >= Accessibility.Public || ContainsPublicGenericOverload;
 
                 return new TypeOverloadInfo(NonGenericOverload, newBestGenericOverload, newContainsPublicGenericOverload);
+            }
+        }
+
+        private readonly struct GetCacheResult
+        {
+            public CacheEntry Entry { get; }
+            public IAssemblySymbol Assembly { get; }
+
+            public GetCacheResult(CacheEntry entry, IAssemblySymbol assembly)
+            {
+                Entry = entry;
+                Assembly = assembly;
             }
         }
 
