@@ -105,14 +105,20 @@
   <ItemGroup>
     <ProjectReference Include="..\Roslyn.SDK.Template.Wizard\Roslyn.SDK.Template.Wizard.csproj">
       <Name>Roslyn.SDK.Template.Wizard</Name>
+      <Ngen>false</Ngen>
     </ProjectReference>
-    <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Control\Roslyn.SyntaxVisualizer.Control.csproj" />
-    <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.DgmlHelper\Roslyn.SyntaxVisualizer.DgmlHelper.vbproj" />
+    <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Control\Roslyn.SyntaxVisualizer.Control.csproj">
+      <Ngen>false</Ngen>
+    </ProjectReference>
+    <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.DgmlHelper\Roslyn.SyntaxVisualizer.DgmlHelper.vbproj">
+      <Ngen>false</Ngen>
+    </ProjectReference>
     <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\Roslyn.SyntaxVisualizer.Extension.csproj">
       <Name>Roslyn.SyntaxVisualizer.Extension</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>false</Ngen>
     </ProjectReference>
     <PackageReference Include="UpdateTemplateVersion" Version="$(UpdateTemplateVersionVersion)" />
   </ItemGroup>
