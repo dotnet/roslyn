@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool InheritsBaseMethodAttributes => false;
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             Debug.Assert(base.GetAttributes().IsEmpty);
             return InheritsBaseMethodAttributes
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : ImmutableArray<CSharpAttributeData>.Empty;
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
         {
             Debug.Assert(base.GetReturnTypeAttributes().IsEmpty);
             return InheritsBaseMethodAttributes ? BaseMethod.GetReturnTypeAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
