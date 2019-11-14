@@ -3117,7 +3117,7 @@ class C
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip = "PROTOTYPE")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip = "PROTOTYPE(local-function-attributes)")]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_LocalFunction()
         {
             string source = @"
