@@ -121,6 +121,7 @@
       <_Dependency Remove="Microsoft.Win32.Registry"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="Microsoft.ServiceHub.Framework"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->
