@@ -9259,7 +9259,7 @@ unsafe class C
         }
 
         [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
-        public void CanUseIndexInitialiserWithFixedSizeBuffer()
+        public void CanUseEmptyInitialiserWithFixedSizeBuffer()
         {
             var source = @"
 unsafe struct S
@@ -9268,11 +9268,124 @@ unsafe struct S
 
     static void M()
     {
-        var b = new S { V = { [0] = 1 } };
+        var s = new S { V = {} };
+    }
+}";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
+        public void CanUseIndexInitialiserWithFixedSizeBuffer()
+        {
+            var source = @"
+using System;
+
+unsafe struct S
+{
+    public fixed double V[3];
+
+    static void Main()
+    {
+        var s = new S { V = 
+        {
+            [0] = 0,
+            [1] = 1,
+            [2] = 2,
+        } };
+        
+        Console.Write(s.V[0]);
+        Console.Write(s.V[1]);
+        Console.Write(s.V[2]);
+    }
+}";
+            CompileAndVerify(
+                source,
+                options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "012",
+                verify: Verification.Fails);
+        }
+
+        [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
+        public void CanUseIndexInitialiserWithFixedSizeBufferNestedInClass()
+        {
+            var source = @"
+using System;
+
+unsafe struct S
+{
+    public fixed double V[3];
+
+    static void Main()
+    {
+        var c = new C { S = new S { V = 
+        {
+            [0] = 0,
+            [1] = 1,
+            [2] = 2,
+        } } };
+        
+        Console.Write(c.S.V[0]);
+        Console.Write(c.S.V[1]);
+        Console.Write(c.S.V[2]);
+    }
+}
+
+class C { public S S; }";
+
+            CompileAndVerify(
+                source,
+                options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "012",
+                verify: Verification.Fails);
+        }
+
+        [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
+        public void CannotUseIndexInitialiserWithFixedSizeBufferOutsideUnsafeContext()
+        {
+            var source = @"
+struct S
+{
+    public unsafe fixed double V[3];
+
+    static void M()
+    {
+        var s = new S { V = 
+        {
+            [0] = 0,
+        } };
     }
 }";
             CreateCompilation(source, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics();
+                .VerifyDiagnostics(
+                    // (8,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //         var s = new S { V = 
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "V").WithLocation(8, 25));
+        }
+
+        [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
+        public void CannotUseIndexInitialiserWithFixedSizeBufferBeforeCSharp7_3()
+        {
+            var source = @"
+unsafe struct S
+{
+    public fixed double V[3];
+
+    static void M()
+    {
+        var s = new S { V = 
+        {
+            [0] = 0,
+        } };
+    }
+}";
+            CreateCompilation(
+                source,
+                options: TestOptions.UnsafeDebugDll,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2))
+                .VerifyDiagnostics(
+                    // (10,25): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
+                    //         var s = new S { V = 
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "V").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(8, 25));
         }
 
         [Fact, WorkItem(39632, "https://github.com/dotnet/roslyn/issues/39632")]
@@ -9287,6 +9400,8 @@ unsafe struct S
     {
         var b = new S { V = { 1 } };
         b = new S { V = { Prop = 1 } };
+        b = new S { V = { Prop = 1, [0] = 1 } };
+        b = new S { V = { [0] = 1, Prop = 1 } };
     }
 }";
             CreateCompilation(source, options: TestOptions.UnsafeDebugDll)
@@ -9302,7 +9417,19 @@ unsafe struct S
                     Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "V").WithLocation(9, 21),
                     // (9,27): error CS0117: 'double*' does not contain a definition for 'Prop'
                     //         b = new S { V = { Prop = 1 } };
-                    Diagnostic(ErrorCode.ERR_NoSuchMember, "Prop").WithArguments("double*", "Prop").WithLocation(9, 27));
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "Prop").WithArguments("double*", "Prop").WithLocation(9, 27),
+                    // (10,21): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                    //         b = new S { V = { Prop = 1, [0] = 1 } };
+                    Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "V").WithLocation(10, 21),
+                    // (10,27): error CS0117: 'double*' does not contain a definition for 'Prop'
+                    //         b = new S { V = { Prop = 1, [0] = 1 } };
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "Prop").WithArguments("double*", "Prop").WithLocation(10, 27),
+                    // (11,21): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                    //         b = new S { V = { [0] = 1, Prop = 1 } };
+                    Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "V").WithLocation(11, 21),
+                    // (11,36): error CS0117: 'double*' does not contain a definition for 'Prop'
+                    //         b = new S { V = { [0] = 1, Prop = 1 } };
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "Prop").WithArguments("double*", "Prop").WithLocation(11, 36));
         }
 
         [Fact, WorkItem(34693, "https://github.com/dotnet/roslyn/issues/34693")]

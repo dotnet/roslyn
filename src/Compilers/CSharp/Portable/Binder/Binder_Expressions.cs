@@ -4329,6 +4329,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var memberName = (IdentifierNameSyntax)namedAssignment.Left;
 
+                var allInitializerExpressionsAreIndexExpressions =
+                    namedAssignment.Right is
+                        InitializerExpressionSyntax { Expressions: var expressions }
+                    && expressions.All(x => x is
+                        AssignmentExpressionSyntax { Left: ImplicitElementAccessSyntax _ });
+
                 // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
                 // SPEC:    an expression or an object initializer or collection initializer.
                 // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
@@ -4344,8 +4350,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
                     invoked: false,
-                    indexed: allInitialiserExpressionsAreIndexExpression(),
+                    indexed: allInitializerExpressionsAreIndexExpressions,
                     diagnostics: diagnostics);
+
+                VerifyUnchecked(memberName, diagnostics, boundMember);
 
                 resultKind = boundMember.ResultKind;
                 hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
@@ -4363,7 +4371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var implicitIndexing = (ImplicitElementAccessSyntax)namedAssignment.Left;
                 boundMember = BindElementAccess(implicitIndexing, implicitReceiver, implicitIndexing.ArgumentList, diagnostics);
-
                 resultKind = boundMember.ResultKind;
                 hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
             }
@@ -4481,13 +4488,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binderOpt: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
-
-            bool allInitialiserExpressionsAreIndexExpression()
-            {
-                if (namedAssignment.Right is InitializerExpressionSyntax { Expressions: var expressions })
-                    return expressions.All(x => x is AssignmentExpressionSyntax { Left: ImplicitElementAccessSyntax _ });
-                return false;
-            }
         }
 
         private static bool CheckNestedObjectInitializerPropertySymbol(
