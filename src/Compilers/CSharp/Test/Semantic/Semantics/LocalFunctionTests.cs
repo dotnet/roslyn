@@ -441,11 +441,8 @@ class C
             var symbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
             Assert.NotNull(symbol);
 
-            var attributes = symbol.GetAttributes();
-            var attributeData = attributes.Single();
-            var aAttribute = comp.GetTypeByMetadataName("A");
-            Assert.Equal(aAttribute, attributeData.AttributeClass);
-            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
+            var attributes = symbol.GetAttributes().As<CSharpAttributeData>();
+            Assert.Equal(new[] { "A" }, GetAttributeNames(attributes));
 
             var returnAttributes = symbol.GetReturnTypeAttributes();
             Assert.Empty(returnAttributes);
@@ -495,8 +492,8 @@ class C
             var attributes = symbol.GetAttributes();
             var attributeData = attributes.Single();
             var aAttribute = comp.GetTypeByMetadataName("A");
-            Assert.Equal(aAttribute, attributeData.AttributeClass);
-            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
+            Assert.Equal(aAttribute, attributeData.AttributeClass.GetSymbol());
+            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor.GetSymbol());
             Assert.Equal(42, attributeData.ConstructorArguments.Single().Value);
 
             var returnAttributes = symbol.GetReturnTypeAttributes();
@@ -544,8 +541,8 @@ class C
             var returnAttributes = symbol.GetReturnTypeAttributes();
             var attributeData = returnAttributes.Single();
             var aAttribute = comp.GetTypeByMetadataName("A");
-            Assert.Equal(aAttribute, attributeData.AttributeClass);
-            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
+            Assert.Equal(aAttribute, attributeData.AttributeClass.GetSymbol());
+            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor.GetSymbol());
 
             var attributes = symbol.GetAttributes();
             Assert.Empty(attributes);
@@ -581,7 +578,7 @@ class C
 
             var attrs = paramSymbol.GetAttributes();
             var attr = attrs.Single();
-            Assert.Equal(comp.GetTypeByMetadataName("A"), attr.AttributeClass);
+            Assert.Equal(comp.GetTypeByMetadataName("A"), attr.AttributeClass.GetSymbol());
         }
 
         [Fact]
@@ -691,15 +688,15 @@ public class C {
 
             var attributes = symbol.GetAttributes();
             Assert.Equal(3, attributes.Length);
-            Assert.Equal(comp.GetTypeByMetadataName("PropAttribute"), attributes[0].AttributeClass);
-            Assert.Equal(comp.GetTypeByMetadataName("ReturnAttribute"), attributes[1].AttributeClass);
-            Assert.Equal(comp.GetTypeByMetadataName("MethodAttribute"), attributes[2].AttributeClass);
+            Assert.Equal(comp.GetTypeByMetadataName("PropAttribute"), attributes[0].AttributeClass.GetSymbol());
+            Assert.Equal(comp.GetTypeByMetadataName("ReturnAttribute"), attributes[1].AttributeClass.GetSymbol());
+            Assert.Equal(comp.GetTypeByMetadataName("MethodAttribute"), attributes[2].AttributeClass.GetSymbol());
 
             var returnAttributes = symbol.GetReturnTypeAttributes();
             Assert.Equal(3, returnAttributes.Length);
-            Assert.Equal(comp.GetTypeByMetadataName("PropAttribute"), returnAttributes[0].AttributeClass);
-            Assert.Equal(comp.GetTypeByMetadataName("ReturnAttribute"), returnAttributes[1].AttributeClass);
-            Assert.Equal(comp.GetTypeByMetadataName("MethodAttribute"), returnAttributes[2].AttributeClass);
+            Assert.Equal(comp.GetTypeByMetadataName("PropAttribute"), returnAttributes[0].AttributeClass.GetSymbol());
+            Assert.Equal(comp.GetTypeByMetadataName("ReturnAttribute"), returnAttributes[1].AttributeClass.GetSymbol());
+            Assert.Equal(comp.GetTypeByMetadataName("MethodAttribute"), returnAttributes[2].AttributeClass.GetSymbol());
         }
 
         [Fact]
@@ -743,7 +740,7 @@ class C
             var attributeConstructor = comp.GetTypeByMetadataName("A").InstanceConstructors.Single();
             foreach (var attributeSyntax in attributeSyntaxes)
             {
-                var symbol = model.GetSymbolInfo(attributeSyntaxes[0]).Symbol;
+                var symbol = model.GetSymbolInfo(attributeSyntax).Symbol.GetSymbol<MethodSymbol>();
                 Assert.Equal(attributeConstructor, symbol);
             }
         }

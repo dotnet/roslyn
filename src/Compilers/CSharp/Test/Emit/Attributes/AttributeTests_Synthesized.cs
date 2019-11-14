@@ -548,6 +548,48 @@ class B : A
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(attributes));
             });
         }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        [WorkItem(431, "https://github.com/dotnet/roslyn/issues/431")]
+        public void BaseMethodWrapper_DoNotInheritAttributes(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class Attr : System.Attribute { }
+
+class A
+{
+    [Attr]
+    [return: Attr]
+    public virtual async Task<int> GetIntAsync([Attr] int x)
+    {
+        return 42;
+    }
+}
+class B : A
+{
+    public override async Task<int> GetIntAsync(int x)
+    {
+        return await base.GetIntAsync(x);
+    }
+}
+";
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var baseMethodWrapper = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+                Assert.Empty(baseMethodWrapper.GetReturnTypeAttributes());
+
+                var parameter = baseMethodWrapper.Parameters.Single();
+                Assert.Empty(parameter.GetAttributes());
+            });
+        }
         #endregion
 
         #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute, DebuggableAttribute

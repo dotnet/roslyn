@@ -115,9 +115,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal = 0;
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var parameters = this.BaseMethodParameters;
+            var inheritAttributes = this.BaseMethod.SynthesizedMethodsInheritAttributes;
             foreach (var p in parameters)
             {
-                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.TypeWithAnnotations), ordinal++, p.RefKind, p.Name));
+                builder.Add(SynthesizedParameterSymbol.Create(
+                    this,
+                    this.TypeMap.SubstituteType(p.OriginalDefinition.TypeWithAnnotations),
+                    ordinal++,
+                    p.RefKind,
+                    p.Name,
+                    attributes: inheritAttributes ? p.GetAttributes() : default));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
@@ -128,6 +135,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             return builder.ToImmutableAndFree();
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            Debug.Assert(base.GetAttributes().IsEmpty);
+            return BaseMethod.SynthesizedMethodsInheritAttributes
+                ? BaseMethod.GetAttributes()
+                : ImmutableArray<CSharpAttributeData>.Empty;
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            Debug.Assert(base.GetReturnTypeAttributes().IsEmpty);
+            return BaseMethod.SynthesizedMethodsInheritAttributes ? BaseMethod.GetReturnTypeAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
         }
 
         public sealed override RefKind RefKind
