@@ -37,15 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
         }
 
-        public override TypeWithAnnotations TypeWithAnnotations
-        {
-            get { return _type; }
-        }
+        public override TypeWithAnnotations TypeWithAnnotations => _type;
 
-        public override RefKind RefKind
-        {
-            get { return _refKind; }
-        }
+        public override RefKind RefKind => _refKind;
+
+        public sealed override bool IsDiscard => false;
 
         internal override bool IsMetadataIn => RefKind == RefKind.In;
 
