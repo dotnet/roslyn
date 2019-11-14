@@ -1248,32 +1248,6 @@ namespace Foo
             await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCacheMissNoExpander(bool isProjectReference)
-        {
-            IsExpandedCompletion = false;
-
-            var file1 = $@"
-namespace NS1
-{{
-    public class Bar
-    {{}}
-}}";
-            var file2 = @"
-namespace NS2
-{
-    class C
-    {
-         $$
-    }
-}";
-
-            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
-            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "NS1");
-        }
-
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]

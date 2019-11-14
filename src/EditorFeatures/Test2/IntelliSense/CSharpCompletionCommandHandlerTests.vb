@@ -5087,7 +5087,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39070"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderWithImportCompletionDisabled() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -5114,10 +5114,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
-                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
-
-                ' select expander
+                ' make sure expander is selected
                 state.SetCompletionItemExpanderState(isSelected:=True)
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
@@ -5140,6 +5137,19 @@ namespace NS2
 
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' dismiss completion
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                ' trigger completion again
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                ' should not show unimported item even with cache populated
+                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+
             End Using
         End Function
 
@@ -5171,7 +5181,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                ' select expander
+                ' make sure expander is selected
                 state.SetCompletionItemExpanderState(isSelected:=True)
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
@@ -5179,53 +5189,15 @@ namespace NS2
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
-                ' unselect expander
-                state.SetCompletionItemExpanderState(isSelected:=False)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
+                ' dismiss completion
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
-                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
-            End Using
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Remove() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                  <Document><![CDATA[
-namespace NS1
-{
-    class C
-    {
-        public void Foo()
-        {
-            Bar$$
-        }
-    }
-}
-
-namespace NS2
-{
-    public class Bar { }
-}
-]]></Document>)
-
-                ' Disable import completion 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
-
-                ' trigger completion with import completion disabled
+                ' trigger completion again
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
-                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
-
-                ' select expander
-                state.SetCompletionItemExpanderState(isSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.WaitForUIRenderedAsync()
-
-                ' timeout should be ignored since user asked for unimported types explicitly (via expander)
+                ' now cache is populated
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
