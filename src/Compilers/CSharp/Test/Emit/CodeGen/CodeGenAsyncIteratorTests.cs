@@ -3142,7 +3142,7 @@ class C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
 
-            // PROTOTYPE: EnumeratorCancellation attribute should produce a combinedTokens field and modify codegen
+            // PROTOTYPE(local-function-attributes): EnumeratorCancellation attribute should produce a combinedTokens field and modify codegen
             var expectedFields = new[] {
                 "FieldDefinition:Int32 <>1__state",
                 "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",
