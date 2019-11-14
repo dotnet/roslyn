@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             {
                 // We will need to adjust some items if the request is made in:
                 // 1. attribute context, then we will not show or complete with "Attribute" suffix.
-                // 2. a project with different langauge than when the cache entry was created,
+                // 2. a project with different language than when the cache entry was created,
                 //    then we will change the generic suffix accordingly.
                 // Otherwise, we can simply return cached items.
                 var isSameLanguage = Language == language;

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 else
                 {
                     // If we can't get a valid receiver type, then we don't show expander as available.
-                    // We need to set this explicitly here bacause we didn't do the (more expensive) symbol check inside 
+                    // We need to set this explicitly here because we didn't do the (more expensive) symbol check inside 
                     // `ShouldProvideCompletion` method above, which is intended for quick syntax based check.
                     completionContext.ExpandItemsAvailable = false;
                 }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var parentNode = syntaxContext.TargetToken.Parent;
 
             // Even though implicit access to extension method is allowed, we decide not support it for simplicity 
-            // e.g. we will not provide completion for unimport extension method in this case
+            // e.g. we will not provide completion for unimported extension method in this case
             // New Bar() {.X = .$$ }
             var expressionNode = syntaxFacts.GetLeftSideOfDot(parentNode, allowImplicitTarget: false);
 
