@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
+        public override bool IsDiscard => _originalParam.IsDiscard;
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get

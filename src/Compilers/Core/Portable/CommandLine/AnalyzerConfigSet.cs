@@ -193,17 +193,33 @@ namespace Microsoft.CodeAnalysis
                     treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
                     analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
-                _optionsCache.TryAdd(sectionKey, result);
+                if (_optionsCache.TryAdd(sectionKey, result))
+                {
+                    // Release the pooled object to be used as a key
+                    _sectionKeyPool.ForgetTrackedObject(sectionKey);
+                }
+                else
+                {
+                    freeKey(sectionKey, _sectionKeyPool);
+                }
+            }
+            else
+            {
+                freeKey(sectionKey, _sectionKeyPool);
             }
 
-            sectionKey.Clear();
             treeOptionsBuilder.Clear();
             analyzerOptionsBuilder.Clear();
-            _sectionKeyPool.Free(sectionKey);
             _treeOptionsPool.Free(treeOptionsBuilder);
             _analyzerOptionsPool.Free(analyzerOptionsBuilder);
 
             return result;
+
+            static void freeKey(List<Section> sectionKey, ObjectPool<List<Section>> pool)
+            {
+                sectionKey.Clear();
+                pool.Free(sectionKey);
+            }
 
             static void addOptions(
                 AnalyzerConfig.Section section,

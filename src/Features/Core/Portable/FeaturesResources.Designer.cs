@@ -1275,6 +1275,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to discard.
+        /// </summary>
+        internal static string discard {
+            get {
+                return ResourceManager.GetString("discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
         /// </summary>
         internal static string Disposable_field_0_is_never_disposed {
