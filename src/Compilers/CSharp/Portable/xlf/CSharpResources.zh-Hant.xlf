@@ -839,6 +839,11 @@
         <target state="translated">對可移動的固定緩衝區編製索引</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">巢狀函式中的名稱鏡像處理</target>

@@ -409,6 +409,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool IsDiscard
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         // might be Nil
         internal ParameterHandle Handle
         {
