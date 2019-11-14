@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             return true;
         }
 
+        // Returns null if cache miss and forceCacheCreation == false
         private GetCacheResult? GetCacheWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,

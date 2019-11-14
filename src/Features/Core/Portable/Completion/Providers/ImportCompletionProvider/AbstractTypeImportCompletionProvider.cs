@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (itemsFromAllAssemblies == null)
                 {
-                    telemetryCounter.TimedOut = true;
+                    telemetryCounter.CacheMiss = true;
                 }
                 else
                 {
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             protected int Tick { get; }
             public int ItemsCount { get; set; }
             public int ReferenceCount { get; set; }
-            public bool TimedOut { get; set; }
+            public bool CacheMiss { get; set; }
 
             public TelemetryCounter()
             {
@@ -81,14 +81,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public void Report()
             {
-                var delta = Environment.TickCount - Tick;
-                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
-                CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
-                CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
-
-                if (TimedOut)
+                if (CacheMiss)
                 {
-                    CompletionProvidersLogger.LogTypeImportCompletionTimeout();
+                    CompletionProvidersLogger.LogTypeImportCompletionCacheMiss();
+                }
+                else
+                {
+                    var delta = Environment.TickCount - Tick;
+                    CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
+                    CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
+                    CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
                 }
             }
         }
