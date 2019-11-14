@@ -551,7 +551,7 @@ class B : A
 
         [Theory]
         [MemberData(nameof(OptimizationLevelTheoryData))]
-        [WorkItem(431, "https://github.com/dotnet/roslyn/issues/431")]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void BaseMethodWrapper_DoNotInheritAttributes(OptimizationLevel optimizationLevel)
         {
             string source = @"
@@ -588,6 +588,53 @@ class B : A
 
                 var parameter = baseMethodWrapper.Parameters.Single();
                 Assert.Empty(parameter.GetAttributes());
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void BaseMethodWrapper_DoNotInheritAttributes_TypeParameter(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class Attr : System.Attribute { }
+
+class A
+{
+    [Attr]
+    [return: Attr]
+    public virtual async Task<T> GetAsync<[Attr] T>([Attr] T t)
+    {
+        return t;
+    }
+}
+class B : A
+{
+    [Attr]
+    [return: Attr]
+    public override async Task<T> GetAsync<[Attr] T>([Attr] T t)
+    {
+        return await base.GetAsync(t);
+    }
+}
+";
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var baseMethodWrapper = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+                Assert.Empty(baseMethodWrapper.GetReturnTypeAttributes());
+
+                var parameter = baseMethodWrapper.Parameters.Single();
+                Assert.Empty(parameter.GetAttributes());
+
+                var typeParameter = baseMethodWrapper.TypeParameters.Single();
+                Assert.Empty(typeParameter.GetAttributes());
             });
         }
         #endregion

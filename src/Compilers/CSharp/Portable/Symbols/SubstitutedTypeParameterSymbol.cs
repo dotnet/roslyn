@@ -92,9 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return _underlyingTypeParameter.GetAttributes();
+            if (_container is SynthesizedMethodBaseSymbol { InheritsBaseMethodAttributes: true })
+            {
+                return _underlyingTypeParameter.GetAttributes();
+            }
+
+            return ImmutableArray<CSharpAttributeData>.Empty;
         }
 
         internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
