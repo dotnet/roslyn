@@ -8,15 +8,21 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.RpcContracts.OutputChannel;
+using Microsoft.VisualStudio.RpcContracts.Settings;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -31,16 +37,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
         private class SVsSettingsPersistenceManager { };
 
-        private readonly ISettingsManager _settingManager;
+        private IBrokeredSettingsManager _brokeredSettingsManager;
+
         private readonly IGlobalOptionService _globalOptionService;
 
         /// <summary>
-        /// The list of options that have been been fetched from <see cref="_settingManager"/>, by key. We track this so
+        /// The list of options that have been been fetched from <see cref="_brokeredSettingsManager"/>, by key. We track this so
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
         private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new Dictionary<string, List<OptionKey>>();
         private readonly object _optionsToMonitorForChangesGate = new object();
+        private IServiceBroker _serviceBroker;
 
         /// <remarks>We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.</remarks>
         [ImportingConstructor]
@@ -50,20 +58,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             Contract.ThrowIfNull(globalOptionService);
 
-            _settingManager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
             _globalOptionService = globalOptionService;
 
-            // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
-            // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
-            // as the scenario seems exceedingly unlikely), but we shouldn't crash the IDE.
-            if (_settingManager != null)
-            {
-                var settingsSubset = _settingManager.GetSubset("*");
-                settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
-            }
+            var serviceContainer = serviceProvider.GetService<SVsBrokeredServiceContainer, IBrokeredServiceContainer>();
+            _serviceBroker = serviceContainer.GetFullAccessServiceBroker();
+            _serviceBroker.AvailabilityChanged += Sb_AvailabilityChanged;
+
+            ConnectSettingsManager();
         }
 
-        private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
+        private void ConnectSettingsManager()
+        {
+            ThreadingContext.JoinableTaskFactory.Run(
+                async () =>
+                {
+                    _brokeredSettingsManager = await _serviceBroker.GetProxyAsync<IBrokeredSettingsManager>(VisualStudioServices.VS2019_4.SettingsManager);
+                    await _brokeredSettingsManager.RequestChangeEventsAsync("*", CancellationToken.None).ConfigureAwait(true);
+                    _brokeredSettingsManager.SettingChanged += OnSettingChanged;
+                    return;
+                });
+        }
+
+        private void Sb_AvailabilityChanged(object sender, ServiceHub.Framework.BrokeredServicesChangedEventArgs e)
+        {
+            ConnectSettingsManager();
+        }
+
+        private void OnSettingChanged(object sender, PropertyChangedEventArgs args)
         {
             List<OptionKey> optionsToRefresh = null;
 
@@ -91,8 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     }
                 }
             }
-
-            return System.Threading.Tasks.Task.CompletedTask;
         }
 
         private object GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
@@ -105,24 +124,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // location (and can upgrade the value accordingly) but we only write to the new location so that
             // we don't interfere with older versions. This will essentially "fork" the user's options at the time of upgrade.
 
-            foreach (var roamingSerialization in roamingSerializations)
-            {
-                var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
-
-                RecordObservedValueToWatchForChanges(optionKey, storageKey);
-
-                if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
+            return ThreadingContext.JoinableTaskFactory.Run<object>(
+                async () =>
                 {
-                    return value;
-                }
-            }
+                    foreach (var roamingSerialization in roamingSerializations)
+                    {
+                        var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
 
-            return optionKey.Option.DefaultValue;
+                        RecordObservedValueToWatchForChanges(optionKey, storageKey);
+
+                        var getResult = await _brokeredSettingsManager.GetValueAsync(storageKey, CancellationToken.None);
+
+                        if (getResult.Succeeded)
+                        {
+                            return ((JValue)getResult.Value).Value;
+                        }
+                    }
+
+                    return optionKey.Option.DefaultValue;
+                });
         }
 
         public bool TryFetch(OptionKey optionKey, out object value)
         {
-            if (_settingManager == null)
+            if (_brokeredSettingsManager == null)
             {
                 Debug.Fail("Manager field is unexpectedly null.");
                 value = null;
@@ -245,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryPersist(OptionKey optionKey, object value)
         {
-            if (_settingManager == null)
+            if (_brokeredSettingsManager == null)
             {
                 Debug.Fail("Manager field is unexpectedly null.");
                 return false;
@@ -280,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
             }
 
-            _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
+            _brokeredSettingsManager.SetValueAsync(storageKey, value, CancellationToken.None);
             return true;
         }
     }

@@ -124,7 +124,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 var packages = builder.ToImmutable();
 
-                EnsureMandatoryAnalyzers(packages);
+                // TODO: This crashes my cloud client, so commenting out for now.
+                // EnsureMandatoryAnalyzers(packages);
 
                 // make sure enabled extensions are alive in memory
                 // so that we can debug it through if mandatory analyzers are missing

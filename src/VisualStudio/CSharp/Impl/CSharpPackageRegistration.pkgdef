@@ -54,3 +54,8 @@
 "SortPriority"=dword:00000064
 @="Microsoft Visual C#"
 
+[$RootKey$\Settings\TextEditor.CSharp.*]
+"IsRoamed"=dword:00000000
+"IsShared"=dword:00000000
+"IsStoredOnDisk"=dword:00000000
+"IsRemotable"=dword:00000001
