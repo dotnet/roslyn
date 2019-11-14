@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
 using Microsoft.CodeAnalysis.Wrapping;
+using Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
 {
@@ -18,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
                 new CSharpArgumentWrapper(),
                 new CSharpParameterWrapper(),
                 new CSharpBinaryExpressionWrapper(),
-                new CSharpChainedExpressionWrapper());
+                new CSharpChainedExpressionWrapper(),
+                new CSharpInitializerExpression());
 
         [ImportingConstructor]
         public CSharpWrappingCodeRefactoringProvider()
