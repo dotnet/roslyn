@@ -148,11 +148,11 @@ try {
 
     # Self destruct
     $Invocation = (Get-Variable MyInvocation -Scope 1).Value
-    git rm Expand-Template.ps1
+    git rm Expand-Template.*
     git rm :/azure-pipelines/expand-template.yml
 
     # Self-integrity check
-    Get-ChildItem -Recurse -File -Exclude bin,obj,README.md,Expand-Template.ps1 |? { -not $_.FullName.Contains("obj") } |% {
+    Get-ChildItem -Recurse -File -Exclude bin,obj,README.md,Expand-Template.* |? { -not $_.FullName.Contains("obj") } |% {
         $PLACEHOLDERS = Get-Content -Path $_.FullName |? { $_.Contains('PLACEHOLDER') }
         if ($PLACEHOLDERS) {
             Write-Error "PLACEHOLDER discovered in $($_.FullName)"
@@ -161,6 +161,15 @@ try {
 
     # Commit the changes
     git commit -qm "Expanded template for $LibraryName" -m "This expansion done by the (now removed) Expand-Template.ps1 script."
+
+    Write-Host -ForegroundColor Green "Template successfully expanded."
+
+    if ($env:PS1UnderCmd) {
+        # We're running under the Expand-Template.cmd script.
+        # Since we just deleted it from disk cmd.exe will complain. Just advise the user it's OK.
+        Write-Host -ForegroundColor Green 'Disregard an error you may see: "The batch file cannot be found." We just cleaned up after ourselves.'
+    }
+
 } finally {
     Pop-Location
 }
