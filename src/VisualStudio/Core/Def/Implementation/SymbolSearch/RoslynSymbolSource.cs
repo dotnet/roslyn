@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,40 +46,48 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             var symbolSearchContext = new SymbolSearchContext(this, sink, rootNodeName);
 
-            switch (navigationKind)
+            try
             {
-                case PredefinedSymbolNavigationKinds.Definition:
-                    {
-                        var goToDefinitionService = roslynDocument.GetLanguageService<IGoToDefinitionService>();
-                        goToDefinitionService.TryGoToDefinition(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, token);
-                        return SymbolSearchStatus.Completed;
-                    }
-                case PredefinedSymbolNavigationKinds.Implementation:
-                    {
-                        var findUsagesService = roslynDocument.GetLanguageService<IFindUsagesService>();
-                        var context = new SimpleFindUsagesContext(token);
-                        await findUsagesService.FindImplementationsAsync(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, symbolSearchContext)
-                            .ConfigureAwait(false);
-                        return SymbolSearchStatus.Completed;
-                    }
-                case PredefinedSymbolNavigationKinds.Reference:
-                    {
-                        var findUsagesService = roslynDocument.GetLanguageService<IFindUsagesService>();
-                        var context = new SimpleFindUsagesContext(token);
-                        await findUsagesService.FindReferencesAsync(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, symbolSearchContext)
-                            .ConfigureAwait(false);
-                        return SymbolSearchStatus.Completed;
-                    }
-                case PredefinedSymbolNavigationKinds.Base:
-                    {
-                        var goToBaseService = roslynDocument.GetLanguageService<IGoToBaseService>();
-                        var context = new SimpleFindUsagesContext(token);
-                        await goToBaseService.FindBasesAsync(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, symbolSearchContext)
-                            .ConfigureAwait(false);
-                        return SymbolSearchStatus.Completed;
-                    }
-                default:
-                    return SymbolSearchStatus.Withheld;
+                switch (navigationKind)
+                {
+                    case PredefinedSymbolNavigationKinds.Definition:
+                        {
+                            var goToDefinitionService = roslynDocument.GetLanguageService<IGoToDefinitionService>();
+                            goToDefinitionService.TryGoToDefinition(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, token);
+                            return SymbolSearchStatus.Completed;
+                        }
+                    case PredefinedSymbolNavigationKinds.Implementation:
+                        {
+                            var findUsagesService = roslynDocument.GetLanguageService<IFindUsagesService>();
+                            var context = new SimpleFindUsagesContext(token);
+                            await findUsagesService.FindImplementationsAsync(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, symbolSearchContext)
+                                .ConfigureAwait(false);
+                            return SymbolSearchStatus.Completed;
+                        }
+                    case PredefinedSymbolNavigationKinds.Reference:
+                        {
+                            var findUsagesService = roslynDocument.GetLanguageService<IFindUsagesService>();
+                            var context = new SimpleFindUsagesContext(token);
+                            await findUsagesService.FindReferencesAsync(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, symbolSearchContext)
+                                .ConfigureAwait(false);
+                            return SymbolSearchStatus.Completed;
+                        }
+                    case PredefinedSymbolNavigationKinds.Base:
+                        {
+                            var goToBaseService = roslynDocument.GetLanguageService<IGoToBaseService>();
+                            var context = new SimpleFindUsagesContext(token);
+                            await goToBaseService.FindBasesAsync(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, symbolSearchContext)
+                                .ConfigureAwait(false);
+                            return SymbolSearchStatus.Completed;
+                        }
+                    default:
+                        return SymbolSearchStatus.Withheld;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return SymbolSearchStatus.Completed; // Update API and use the error status
             }
         }
     }
