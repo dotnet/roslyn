@@ -85,13 +85,31 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     result.ContainingMemberName = containingMemberInfo;
                 }
 
-                if (result.ReferenceItem.SymbolUsageInfo.IsWrittenTo())
+                // Get read\written information
+                if (result.ReferenceItem.IsWrittenTo)
                 {
+                    result.IsWrittenTo = true;
+                }
+                else
+                {
+                    result.IsReadFrom = true;
+                }
+
+                // Override read\writtern information from SymbolUsageInfo
+                if (result.ReferenceItem.SymbolUsageInfo.IsWrittenTo() && result.ReferenceItem.SymbolUsageInfo.IsReadFrom())
+                {
+                    result.IsReadFrom = true;
+                    result.IsWrittenTo = true;
+                }
+                else if (result.ReferenceItem.SymbolUsageInfo.IsWrittenTo())
+                {
+                    result.IsReadFrom = false;
                     result.IsWrittenTo = true;
                 }
                 else if (result.ReferenceItem.SymbolUsageInfo.IsReadFrom())
                 {
                     result.IsReadFrom = true;
+                    result.IsWrittenTo = false;
                 }
 
                 var definitionResult = result.Context.GetDefinitionResult(result.ReferenceItem.Definition);
