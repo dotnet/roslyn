@@ -237,6 +237,54 @@ End Class
 
         <Theory>
         <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub BaseMethodWrapper_DoNotInheritAttributes(optimizationLevel As OptimizationLevel)
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Public Class Attr
+    Inherits Attribute
+End Class
+
+Public Class C
+    <Attr>
+    Public Overridable Async Function GetIntAsync() As <Attr> Task(Of Integer)
+        Return 0
+    End Function
+End Class
+
+Public Class D
+    Inherits C
+
+    <Attr>
+    Public Overrides Async Function GetIntAsync() As <Attr> Task(Of Integer)
+        Return Await MyBase.GetIntAsync()
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=
+                                                     New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                                                     WithOptimizationLevel(optimizationLevel).
+                                                     WithMetadataImportOptions(MetadataImportOptions.All))
+
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim baseWrapper = m.ContainingAssembly.GetTypeByMetadataName("D").GetMethod("$VB$ClosureStub_GetIntAsync_MyBase")
+
+                                                        Dim expectedNames = If(optimizationLevel = OptimizationLevel.Release,
+                                                                               {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute"},
+                                                                               {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute", "DebuggerHiddenAttribute"})
+
+                                                        AssertEx.SetEqual(expectedNames, GetAttributeNames(baseWrapper.GetAttributes()))
+                                                        AssertEx.SetEqual({}, GetAttributeNames(baseWrapper.GetReturnTypeAttributes()))
+                                                    End Sub)
+        End Sub
+
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
         Public Sub Lambdas(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
