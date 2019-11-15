@@ -71,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             await FindLiteralOrSymbolReferencesAsync(
                 document, position, definitionTrackingContext).ConfigureAwait(true);
 
+            // For the purposes of the prototype, operate exclusively on the background thread
+            // and don't call into third party extensions
+            /*
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
             var thirdPartyDefinitions = GetThirdPartyDefinitions(
@@ -84,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // Don't need ConfigureAwait(true) here 
                 await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
             }
+            */
         }
 
         private async Task FindLiteralOrSymbolReferencesAsync(
