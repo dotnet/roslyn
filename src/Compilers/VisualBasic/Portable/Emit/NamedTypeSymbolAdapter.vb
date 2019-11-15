@@ -568,6 +568,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ITypeDefinitionIsDelegate As Boolean Implements ITypeDefinition.IsDelegate
+            Get
+                Debug.Assert(Not Me.IsAnonymousType)
+
+                ' can't be generic instantiation
+                ' must be declared in the module we are building
+                CheckDefinitionInvariant()
+
+                Return Me.IsDelegateType()
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeDefinitionIsRuntimeSpecial As Boolean Implements ITypeDefinition.IsRuntimeSpecial
             Get
                 Debug.Assert(Not Me.IsAnonymousType)

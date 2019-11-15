@@ -472,6 +472,11 @@
         <target state="translated">U syntaxe var pro vzor se nepovoluje odkazování na typ, ale {0} je tady v rámci rozsahu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">Přiřazení k řazené kolekci členů typu {0} vyžaduje dílčí vzory {1}, ale k dispozici jsou dílčí vzory {2}.</target>

@@ -472,6 +472,11 @@
         <target state="translated">La syntaxe 'var' d'un modèle n'est pas autorisée à faire référence à un type, mais '{0}' est dans l'étendue ici.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">La correspondance avec le type de tuple '{0}' nécessite des sous-modèles '{1}', mais des sous-modèles '{2}' sont présents.</target>

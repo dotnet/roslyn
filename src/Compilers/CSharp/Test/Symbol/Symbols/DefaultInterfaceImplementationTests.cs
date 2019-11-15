@@ -58605,5 +58605,578 @@ class C3 : C1
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_01()
+        {
+            var source1 =
+@"
+interface I1<out T1, in T2, T3>
+{
+    delegate void D11(T1 x);
+    delegate T2 D12();
+    delegate T3 D13(T3 x);
+
+    void M1(T1 x);
+    T2 M2();
+    T3 M3(T3 x);
+
+    interface I2
+    {
+        void M21(T1 x);
+        T2 M22();
+        T3 M23(T3 x);
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,23): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.D11.Invoke(T1)'. 'T1' is covariant.
+                //     delegate void D11(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.D11.Invoke(T1)", "T1", "covariant", "contravariantly").WithLocation(4, 23),
+                // (5,14): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.D12.Invoke()'. 'T2' is contravariant.
+                //     delegate T2 D12();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.D12.Invoke()", "T2", "contravariant", "covariantly").WithLocation(5, 14),
+                // (8,13): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.M1(T1)'. 'T1' is covariant.
+                //     void M1(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.M1(T1)", "T1", "covariant", "contravariantly").WithLocation(8, 13),
+                // (9,5): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.M2()'. 'T2' is contravariant.
+                //     T2 M2();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.M2()", "T2", "contravariant", "covariantly").WithLocation(9, 5),
+                // (14,18): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.I2.M21(T1)'. 'T1' is covariant.
+                //         void M21(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.I2.M21(T1)", "T1", "covariant", "contravariantly").WithLocation(14, 18),
+                // (15,9): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.I2.M22()'. 'T2' is contravariant.
+                //         T2 M22();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.I2.M22()", "T2", "contravariant", "covariantly").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_02()
+        {
+            var source1 =
+@"
+interface I2<in T1, out T2>
+{
+    delegate void D21(T1 x);
+    delegate T2 D22();
+
+    void M1(T1 x);
+    T2 M2();
+
+    interface I2
+    {
+        void M21(T1 x);
+        T2 M22();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_03()
+        {
+            var source1 =
+@"
+interface I1<out T1, in T2, T3>
+{
+    interface I2
+    {
+        delegate void D11(T1 x);
+        delegate T2 D12();
+        delegate T3 D13(T3 x);
+
+        interface I3
+        {
+            void M31(T1 x);
+            T2 M32();
+            T3 M33(T3 x);
+        }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (6,27): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.I2.D11.Invoke(T1)'. 'T1' is covariant.
+                //         delegate void D11(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.I2.D11.Invoke(T1)", "T1", "covariant", "contravariantly").WithLocation(6, 27),
+                // (7,18): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.I2.D12.Invoke()'. 'T2' is contravariant.
+                //         delegate T2 D12();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.I2.D12.Invoke()", "T2", "contravariant", "covariantly").WithLocation(7, 18),
+                // (12,22): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.I2.I3.M31(T1)'. 'T1' is covariant.
+                //             void M31(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.I2.I3.M31(T1)", "T1", "covariant", "contravariantly").WithLocation(12, 22),
+                // (13,13): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.I2.I3.M32()'. 'T2' is contravariant.
+                //             T2 M32();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.I2.I3.M32()", "T2", "contravariant", "covariantly").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_04()
+        {
+            var source1 =
+@"
+interface I2<in T1, out T2>
+{
+    interface I2
+    {
+        delegate void D21(T1 x);
+        delegate T2 D22();
+
+        interface I3
+        {
+            void M31(T1 x);
+            T2 M32();
+        }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_05()
+        {
+            var source1 =
+@"
+interface I1<out T1>
+{
+    class C1
+    {
+        void MC1(T1 x) {}
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    struct S1
+    {
+        void MS1(T1 x) {}
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    enum E1 {}
+}
+
+interface I2<in T2>
+{
+    class C2
+    {
+        T2 MC2() => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    struct S2
+    {
+        T2 MS2() => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    enum E2 {}
+}
+
+interface I3<T3>
+{
+    class C3
+    {
+        T3 MC3(T3 x) => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    struct S3
+    {
+        T3 MS3(T3 x) => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    enum E3 {}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,11): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     class C1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C1").WithLocation(4, 11),
+                // (11,12): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     struct S1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S1").WithLocation(11, 12),
+                // (18,10): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     enum E1 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E1").WithLocation(18, 10),
+                // (23,11): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     class C2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C2").WithLocation(23, 11),
+                // (30,12): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     struct S2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S2").WithLocation(30, 12),
+                // (37,10): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     enum E2 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E2").WithLocation(37, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_06()
+        {
+            var source1 =
+@"
+interface I1<out T1>
+{
+    interface I0
+    {
+        class C1
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        struct S1
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        enum E1 {}
+    }
+}
+
+interface I2<in T2>
+{
+    interface I0
+    {
+        class C2
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        struct S2
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        enum E2 {}
+    }
+}
+
+interface I3<T3>
+{
+    interface I0
+    {
+        class C3
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        struct S3
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        enum E3 {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (6,15): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         class C1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C1").WithLocation(6, 15),
+                // (15,16): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         struct S1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S1").WithLocation(15, 16),
+                // (24,14): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         enum E1 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E1").WithLocation(24, 14),
+                // (32,15): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         class C2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C2").WithLocation(32, 15),
+                // (41,16): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         struct S2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S2").WithLocation(41, 16),
+                // (50,14): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         enum E2 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E2").WithLocation(50, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_07()
+        {
+            var source1 =
+@"
+public interface I1<out T1, in T2, T3>
+{
+    void M1()
+    {
+        T1 x = local(default, default);
+
+        T1 local(T1 x, I2 y)
+        {
+            System.Console.WriteLine(""M1"");
+            return x;
+        }
+    }
+
+    void M2()
+    {
+        T2 x = local(default, default);
+
+        T2 local(T2 x, I2.I3 y)
+        {
+            System.Console.WriteLine(""M2"");
+            return x;
+        }
+    }
+
+    void M3()
+    {
+        T3 x = local(default);
+
+        T3 local(T3 x)
+        {
+            System.Console.WriteLine(""M3"");
+            return x;
+        }
+    }
+
+    interface I2
+    {
+        void M4()
+        {
+            System.Console.WriteLine(""M4"");
+        }
+
+        interface I3
+        {
+        }
+    }
+
+    delegate T1 D1(T2 x);
+    delegate T3 D3(T3 x);
+}
+";
+            var source2 =
+@"
+class C1 : I1<C1, C1, C1>, I1<C1, object, C1>.I2
+{
+    static void Main()
+    {
+        I1<C1, C1, C1> x = new C1();
+        x.M1();
+        x.M2();
+        x.M3();
+
+        var y = (I1<C1, object, C1>.I2)x;
+        I1<object, C1, C1>.I2 z = y;
+        z.M4();
+
+        I1<C1, object, C1>.D1 d1 = M5;
+        I1<object, C1, C1>.D1 d2 = d1;
+        _ = d2(new C1());
+    }
+
+    static C1 M5(object x)
+    {
+        System.Console.WriteLine(""M5"");
+        return (C1)x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2
+M3
+M4
+M5");
+            }
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_08()
+        {
+            var source1 =
+@"
+public interface I1<out T1, in T2>
+{
+    void M1()
+    {
+        System.Func<T1, T1> d = (T1 x) =>
+                                {
+                                    System.Console.WriteLine(""M1"");
+                                    return x;
+                                };
+        d(default);
+    }
+
+    void M2()
+    {
+        System.Func<T2, T2> d = (T2 x) =>
+                                {
+                                    System.Console.WriteLine(""M2"");
+                                    return x;
+                                };
+        d(default);
+    }
+}
+
+class C1 : I1<C1, C1>
+{
+    static void Main()
+    {
+        I1<C1, C1> x = new C1();
+        x.M1();
+        x.M2();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2");
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_09()
+        {
+            var source1 =
+@"
+using System.Collections.Generic;
+
+class Program : I2<int>
+{
+    static void Main()
+    {
+        ((I2<int>)new Program()).M2().GetEnumerator().MoveNext();
+    }
+}
+
+interface I2<out T>
+{
+    IEnumerable<int> M2()
+    {
+        System.Console.WriteLine(""M2"");
+        yield break;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M2");
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_10()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.F1 = ""a"";
+        I2<string, string>.F2 = ""b"";
+        System.Console.WriteLine(I2<string, string>.F1);
+        System.Console.WriteLine(I2<string, string>.F2);
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 F1 = default;
+    static T2 F2 = default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b");
+        }
     }
 }

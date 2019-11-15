@@ -120,6 +120,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property IsDelegate As Boolean
+            Get
+                Return UnderlyingNamedType.IsDelegateType()
+            End Get
+        End Property
+
         Protected Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return UnderlyingNamedType.IsSerializable

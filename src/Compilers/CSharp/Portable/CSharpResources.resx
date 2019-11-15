@@ -5951,4 +5951,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
   </data>
+  <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
+    <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
+  </data>
 </root>

@@ -504,6 +504,11 @@ namespace Microsoft.Cci
         bool IsInterface { get; }
 
         /// <summary>
+        /// True if the type is a delegate.
+        /// </summary>
+        bool IsDelegate { get; }
+
+        /// <summary>
         /// True if this type gets special treatment from the runtime.
         /// </summary>
         bool IsRuntimeSpecial { get; }

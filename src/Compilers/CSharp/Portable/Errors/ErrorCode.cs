@@ -1735,6 +1735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 8.0
 
         ERR_InternalError = 8751,
+        ERR_VarianceInterfaceNesting = 8752,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
