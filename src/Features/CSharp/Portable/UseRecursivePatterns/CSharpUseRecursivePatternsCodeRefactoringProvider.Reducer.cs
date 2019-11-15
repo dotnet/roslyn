@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+#nullable enable
+
+using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -23,23 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 _semanticModel = semanticModel;
             }
 
-            public static AnalyzedNode Reduce(AnalyzedNode node, SemanticModel semanticModel)
+            public static AnalyzedNode? Reduce(AnalyzedNode node, SemanticModel semanticModel)
             {
                 var reducer = new Reducer(semanticModel);
                 var result = reducer.Visit(node);
                 return reducer._isNonTrivial ? result : null;
             }
 
-            public AnalyzedNode VisitConjunction(Conjunction node)
+            public AnalyzedNode? VisitConjunction(Conjunction node)
                 => VisitConjunction(Visit(node.Left), Visit(node.Right));
 
-            public AnalyzedNode VisitPatternMatch(PatternMatch node)
+            public AnalyzedNode? VisitPatternMatch(PatternMatch node)
                 => VisitPatternMatch(node.Expression, Visit(node.Pattern));
 
-            private AnalyzedNode Visit(AnalyzedNode node)
+            private AnalyzedNode? Visit(AnalyzedNode node)
                 => node.Visit(this);
 
-            private AnalyzedNode VisitConjunction(AnalyzedNode left, AnalyzedNode right)
+            private AnalyzedNode? VisitConjunction(AnalyzedNode? left, AnalyzedNode? right)
             {
                 // Bail out in case previous intersection attempts have failed.
                 if (left is null || right is null)
@@ -139,24 +141,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 }
             }
 
-            private AnalyzedNode Visit(TypePattern left, TypePattern right)
-            {
-                if (AreEquivalent(left.Type, right.Type))
-                {
-                    return left;
-                }
+            private static AnalyzedNode? Visit(TypePattern left, TypePattern right)
+                => AreEquivalent(left.Type, right.Type) ? left : null;
 
-                return null;
-            }
-
-            private AnalyzedNode Visit(AnalyzedNode node, Conjunction conjunction)
-            {
+            private AnalyzedNode? Visit(AnalyzedNode node, Conjunction conjunction)
                 // We deconstruct a conjunction to attempt the intersection recursively.
                 // This way, we capture an invalid intersection if any of the nested pairs are invalid.
-                return VisitConjunction(VisitConjunction(node, conjunction.Left), conjunction.Right);
-            }
+                => VisitConjunction(VisitConjunction(node, conjunction.Left), conjunction.Right);
 
-            private AnalyzedNode Visit(Conjunction conjunction, PatternMatch match)
+            private AnalyzedNode? Visit(Conjunction conjunction, PatternMatch match)
             {
                 // We need to decide which side has an intersection with the pattern-match.
                 // For example, if we have:
@@ -181,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return new Conjunction(conjunction, match);
             }
 
-            private AnalyzedNode Visit(PatternMatch leftMatch, PatternMatch rightMatch)
+            private AnalyzedNode? Visit(PatternMatch leftMatch, PatternMatch rightMatch)
             {
                 // First, we check if both pattern-matches are against the same expression.
                 // For example, if we have:
@@ -241,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return new Conjunction(var, match);
             }
 
-            private AnalyzedNode Visit(PositionalPattern positional, PatternMatch match)
+            private AnalyzedNode? Visit(PositionalPattern positional, PatternMatch match)
             {
                 var subpatterns = positional.Subpatterns;
                 for (var index = 0; index < subpatterns.Length; index++)
@@ -266,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return new Conjunction(positional, match);
             }
 
-            private AnalyzedNode Visit(PositionalPattern left, PositionalPattern right)
+            private AnalyzedNode? Visit(PositionalPattern left, PositionalPattern right)
             {
                 var leftSubpatterns = left.Subpatterns;
                 var rightSubpatterns = right.Subpatterns;
@@ -276,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     return null;
                 }
 
-                var builder = ArrayBuilder<(NameColonSyntax, AnalyzedNode)>.GetInstance(leftSubpatterns.Length);
+                var builder = ArrayBuilder<(NameColonSyntax?, AnalyzedNode)>.GetInstance(leftSubpatterns.Length);
                 for (var index = 0; index < leftSubpatterns.Length; index++)
                 {
                     var leftSub = leftSubpatterns[index];
@@ -295,14 +288,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return new PositionalPattern(builder.ToImmutableAndFree());
             }
 
-            private PatternMatch VisitPatternMatch(ExpressionSyntax expression, AnalyzedNode pattern)
+            private PatternMatch? VisitPatternMatch(ExpressionSyntax expression, AnalyzedNode? pattern)
             {
                 if (pattern is null)
                 {
                     return null;
                 }
 
-                // Try to expand a match of the form 
+                // Try to expand a match of the form
                 //
                 //      expression.Property.AnotherProperty is A
                 //
@@ -311,30 +304,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 //      expression is {Property: {AnotherProperty: A}}
                 //
                 // so that we can check if the identifiers are matched in other places and merge.
-                switch (expression.Kind())
+                return VisitPatternMatchCore(expression, pattern) ?? new PatternMatch(expression, pattern);
+            }
+
+            private PatternMatch? VisitPatternMatchCore(ExpressionSyntax expression, AnalyzedNode pattern)
+            {
+                switch (expression)
                 {
-                    default:
-                        return new PatternMatch(expression, pattern);
+                    case IdentifierNameSyntax node:
+                        return new PatternMatch(node, pattern);
 
-                    case SyntaxKind.ParenthesizedExpression when (ParenthesizedExpressionSyntax)expression is var node:
-                        return VisitPatternMatch(node.Expression, pattern);
+                    case ParenthesizedExpressionSyntax node:
+                        return VisitPatternMatchCore(node.Expression, pattern);
 
-                    case SyntaxKind.MemberBindingExpression when (MemberBindingExpressionSyntax)expression is var node
-                            && IsIdentifierOrSimpleMemberAccess(node.Name):
-                        return new PatternMatch(node.Name, pattern);
+                    case MemberBindingExpressionSyntax node:
+                        return VisitPatternMatchCore(node.Name, pattern);
 
-                    case SyntaxKind.ConditionalAccessExpression when (ConditionalAccessExpressionSyntax)expression is var node
-                            && IsIdentifierOrSimpleMemberAccess(node.WhenNotNull):
-                        return VisitPatternMatch(node.Expression, VisitPatternMatch(node.WhenNotNull, pattern));
+                    case ConditionalAccessExpressionSyntax node:
+                        return VisitPatternMatch(node.Expression, VisitPatternMatchCore(node.WhenNotNull, pattern));
 
-                    case SyntaxKind.SimpleMemberAccessExpression when (MemberAccessExpressionSyntax)expression is var node
-                            && IsIdentifierOrSimpleMemberAccess(node.Name)
-                            // The expression on the left must no be a type or namespace,
-                            // because something like `TypeOrNamespace is P` is not valid.
-                            && !(_semanticModel.GetSymbolInfo(node.Expression).Symbol is INamespaceOrTypeSymbol):
-                        return VisitPatternMatch(node.Expression, new PatternMatch(node.Name, pattern));
+                    case CastExpressionSyntax node when _semanticModel.GetTypeInfo(node.Type).Type.IsObjectType():
+                        // Skip object cast as it has no effect to the pattern-match.
+                        return VisitPatternMatchCore(node.Expression, pattern);
 
-                    case SyntaxKind.AsExpression when (BinaryExpressionSyntax)expression is var node:
+                    case CastExpressionSyntax node:
+                        return VisitPatternMatch(node.Expression, VisitConjunction(new TypePattern(node.Type), pattern));
+
+                    case MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } node
+                        // The expression on the left must no be a type or namespace,
+                        // because something like `TypeOrNamespace is P` is not valid.
+                        when !(_semanticModel.GetSymbolInfo(node.Expression).Symbol is INamespaceOrTypeSymbol):
+                        return VisitPatternMatch(node.Expression, VisitPatternMatchCore(node.Name, pattern));
+
+                    case BinaryExpressionSyntax { RawKind: (int)SyntaxKind.AsExpression } node:
                         // Marking as non-trivial because we want to offer the fix for something like:
                         //
                         //      (e as T)?.Property == true -> e is T {Property: true}
@@ -342,13 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         _isNonTrivial = true;
                         return VisitPatternMatch(node.Left, VisitConjunction(new TypePattern((TypeSyntax)node.Right), pattern));
 
-                    case SyntaxKind.CastExpression when (CastExpressionSyntax)expression is var node:
-                        // Not marking as non-trivial because we don't want to offer the fix for something like:
-                        //
-                        //      ((T)e).Property == true
-                        //
-                        // But still yield a type-pattern in case the type is checked in other places so we can merge the two.
-                        return VisitPatternMatch(node.Expression, VisitConjunction(new TypePattern(node.Type), pattern));
+                    default:
+                        return null;
                 }
             }
         }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -11,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
@@ -30,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
             var node = GetOutermostExpression(root.FindToken(span.Start));
             if (node is null)
             {
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
 
             // First, we make a tree of comparisons and pattern-matches from source.
             // For example, if we have:
@@ -75,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return;
             }
 
-            if (node.IsKind(SyntaxKind.CasePatternSwitchLabel, SyntaxKind.SwitchExpressionArm) &&
-                reducedNode.Kind != NodeKind.Conjunction)
+            if (reducedNode.Kind != NodeKind.Conjunction &&
+                node.IsKind(SyntaxKind.CasePatternSwitchLabel, SyntaxKind.SwitchExpressionArm))
             {
                 // We don't expect to reach here, but we'll bail out if this assumption didn't hold.
                 Debug.Fail("Unhandled case.");
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             context.RegisterRefactoring(new MyCodeAction(
                 c => document.ReplaceNodeAsync(node, Rewrite(reducedNode, node)
-                .WithAdditionalAnnotations(Formatter.Annotation), c)));
+                        .WithAdditionalAnnotations(Formatter.Annotation), c)));
         }
 
         private static SyntaxNode Rewrite(AnalyzedNode reducedNode, SyntaxNode sourceNode)
@@ -127,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.IsPatternExpression:
                     // Otherwise, we do normal rewriting as an expression.
@@ -137,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        private static SyntaxNode GetOutermostExpression(SyntaxToken token)
+        private static SyntaxNode? GetOutermostExpression(SyntaxToken token)
         {
             var node = token.Parent;
             if (token.IsKind(SyntaxKind.WhenKeyword))
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return null;
             }
 
-            SyntaxNode previous = null;
+            SyntaxNode? previous = null;
             while (node != null)
             {
                 switch (node.Kind())
@@ -160,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         continue;
                     case SyntaxKind.LogicalAndExpression:
                     case SyntaxKind.EqualsExpression:
+                    case SyntaxKind.NotEqualsExpression:
                     case SyntaxKind.IsExpression:
                     case SyntaxKind.IsPatternExpression:
                         // Walk up the tree to catch all applicable expressions.

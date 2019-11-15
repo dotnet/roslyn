@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -185,6 +186,14 @@ namespace Microsoft.CodeAnalysis
             if (value != null)
             {
                 builder.Add(value);
+            }
+        }
+
+        public static void AddRangeIfNotNull<T>(this ArrayBuilder<T> builder, IEnumerable<T>? value)
+        {
+            if (value != null)
+            {
+                builder.AddRange(value);
             }
         }
 
