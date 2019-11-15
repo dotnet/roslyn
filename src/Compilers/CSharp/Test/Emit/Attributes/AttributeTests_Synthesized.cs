@@ -637,6 +637,26 @@ class B : A
                 Assert.Empty(typeParameter.GetAttributes());
             });
         }
+
+        [Fact]
+        public void SubstitutedTypeParameter_Attributes()
+        {
+            string source = @"
+class Attr : System.Attribute { }
+
+internal class C1<T1>
+{
+    internal class C2<[Attr] T2> { }
+}
+";
+            var comp = CreateCompilation(source);
+            var c1OfInt = comp.GetTypeByMetadataName("C1`1").Construct(comp.GetSpecialType(SpecialType.System_Int32));
+
+            var c2 = c1OfInt.GetTypeMember("C2");
+            var typeParam = c2.TypeParameters.Single();
+            Assert.Equal(new[] { "Attr" }, GetAttributeNames(typeParam.GetAttributes()));
+        }
+
         #endregion
 
         #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute, DebuggableAttribute

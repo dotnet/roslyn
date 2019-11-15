@@ -146,5 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
         }
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            return _underlyingTypeParameter.GetAttributes();
+        }
     }
 }
