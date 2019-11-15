@@ -348,8 +348,8 @@
   <data name="location_unknown" xml:space="preserve">
     <value>location unknown</value>
   </data>
-  <data name="Extract_Interface" xml:space="preserve">
-    <value>Extract Interface...</value>
+  <data name="Extract_interface" xml:space="preserve">
+    <value>Extract interface...</value>
   </data>
   <data name="Updating_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
@@ -601,14 +601,14 @@
   <data name="Unknown" xml:space="preserve">
     <value>Unknown</value>
   </data>
-  <data name="Extract_Local_Method" xml:space="preserve">
-    <value>Extract Local Method</value>
+  <data name="Extract_local_function" xml:space="preserve">
+    <value>Extract local function</value>
   </data>
-  <data name="Extract_Method" xml:space="preserve">
-    <value>Extract Method</value>
+  <data name="Extract_method" xml:space="preserve">
+    <value>Extract method</value>
   </data>
-  <data name="Extract_Method_plus_Local" xml:space="preserve">
-    <value>Extract Method + Local</value>
+  <data name="Extract_method_plus_local" xml:space="preserve">
+    <value>Extract method + local</value>
   </data>
   <data name="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket" xml:space="preserve">
     <value>Asynchronous method cannot have ref/out parameters : [{0}]</value>

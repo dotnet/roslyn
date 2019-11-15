@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             }
 
             var result = ExtractMethodService.ExtractMethodAsync(
-                document, spans.Single().Span.ToTextSpan(), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                document, spans.Single().Span.ToTextSpan(), extractLocalFunction: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             Contract.ThrowIfNull(result);
 
             if (!result.Succeeded && !result.SucceededWithSuggestion)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             {
                 options = options.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, true);
                 var newResult = ExtractMethodService.ExtractMethodAsync(
-                    document: document, textSpan: spans.Single().Span.ToTextSpan(), extractLocalMethod: false, options: options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document: document, textSpan: spans.Single().Span.ToTextSpan(), extractLocalFunction: false, options: options, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // retry succeeded, return new result
                 if (newResult.Succeeded || newResult.SucceededWithSuggestion)

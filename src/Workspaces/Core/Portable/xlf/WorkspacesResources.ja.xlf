@@ -42,6 +42,11 @@
         <target state="new">Destination type must be a {0}, {1}, {2}, {3} or {4}, but given one is {5}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="new">Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
         <target state="new">Document does not support syntax trees</target>

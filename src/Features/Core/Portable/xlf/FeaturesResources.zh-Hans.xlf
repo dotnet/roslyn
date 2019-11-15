@@ -217,9 +217,24 @@
         <target state="translated">永远不会使用表达式值</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Local_Method">
-        <source>Extract Local Method</source>
-        <target state="new">Extract Local Method</target>
+      <trans-unit id="Extract_interface">
+        <source>Extract interface...</source>
+        <target state="new">Extract interface...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_local_function">
+        <source>Extract local function</source>
+        <target state="new">Extract local function</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method">
+        <source>Extract method</source>
+        <target state="new">Extract method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_plus_local">
+        <source>Extract method + local</source>
+        <target state="new">Extract method + local</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -1072,11 +1087,6 @@
         <target state="translated">未知的位置</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Interface">
-        <source>Extract Interface...</source>
-        <target state="translated">提取接口...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">更新“{0}”将阻止调试会话继续。</target>
@@ -1460,16 +1470,6 @@
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">未知</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">提取方法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method_plus_Local">
-        <source>Extract Method + Local</source>
-        <target state="translated">提取方法 + 本地</target>
         <note />
       </trans-unit>
       <trans-unit id="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket">

@@ -1491,38 +1491,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Interface....
+        ///   Looks up a localized string similar to Extract interface....
         /// </summary>
-        internal static string Extract_Interface {
+        internal static string Extract_interface {
             get {
-                return ResourceManager.GetString("Extract_Interface", resourceCulture);
+                return ResourceManager.GetString("Extract_interface", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Local Method.
+        ///   Looks up a localized string similar to Extract local function.
         /// </summary>
-        internal static string Extract_Local_Method {
+        internal static string Extract_local_function {
             get {
-                return ResourceManager.GetString("Extract_Local_Method", resourceCulture);
+                return ResourceManager.GetString("Extract_local_function", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method.
+        ///   Looks up a localized string similar to Extract method.
         /// </summary>
-        internal static string Extract_Method {
+        internal static string Extract_method {
             get {
-                return ResourceManager.GetString("Extract_Method", resourceCulture);
+                return ResourceManager.GetString("Extract_method", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method + Local.
+        ///   Looks up a localized string similar to Extract method + local.
         /// </summary>
-        internal static string Extract_Method_plus_Local {
+        internal static string Extract_method_plus_local {
             get {
-                return ResourceManager.GetString("Extract_Method_plus_Local", resourceCulture);
+                return ResourceManager.GetString("Extract_method_plus_local", resourceCulture);
             }
         }
         

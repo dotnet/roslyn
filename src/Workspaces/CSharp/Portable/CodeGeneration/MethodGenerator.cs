@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
                     attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
-                    modifiers: GenerateModifiers(method, destination, workspace, options),
+                    modifiers: GenerateModifiers(method, destination, workspace, options, extractLocalFunction: false),
                     returnType: method.GenerateReturnTypeSyntax(),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     identifier: method.Name.ToIdentifierToken(),
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
 
             var localMethodDeclaration = SyntaxFactory.LocalFunctionStatement(
-                    modifiers: GenerateModifiers(method, destination, workspace, options),
+                    modifiers: GenerateModifiers(method, destination, workspace, options, extractLocalFunction: true),
                     returnType: method.GenerateReturnTypeSyntax(),
                     identifier: method.Name.ToIdentifierToken(),
                     typeParameterList: GenerateTypeParameterList(method, options),
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxTokenList GenerateModifiers(
-            IMethodSymbol method, CodeGenerationDestination destination, Workspace workspace, CodeGenerationOptions options)
+            IMethodSymbol method, CodeGenerationDestination destination, Workspace workspace, CodeGenerationOptions options, bool extractLocalFunction)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -278,10 +278,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
                     }
 
-                    var preferStaticFunction = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
-                    if (method.IsStatic && preferStaticFunction)
+                    if (method.IsStatic)
                     {
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                        if (extractLocalFunction)
+                        {
+                            var preferStaticLocalFunction = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
+                            if (preferStaticLocalFunction)
+                            {
+                                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                            }
+                        }
+                        else
+                        {
+                            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                        }
                     }
 
                     // Don't show the readonly modifier if the containing type is already readonly

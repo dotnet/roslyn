@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            context.RegisterRefactoring(action.action, textSpan);
+            context.RegisterRefactoring(action, textSpan);
         }
 
-        protected virtual async Task<(CodeAction action, string methodBlock)> GetCodeActionAsync(
+        protected virtual async Task<CodeAction> GetCodeActionAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
+                extractLocalFunction: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 
@@ -70,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             {
                 var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var description = documentOptions.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
-                                      FeaturesResources.Extract_Method_plus_Local : FeaturesResources.Extract_Method;
+                                      FeaturesResources.Extract_method_plus_local : FeaturesResources.Extract_method;
 
                 var codeAction = new MyCodeAction(description, c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
                 var methodBlock = result.MethodDeclarationNode;
 
-                return (codeAction, methodBlock.ToString());
+                return codeAction;
             }
 
             return default;

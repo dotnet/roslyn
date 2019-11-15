@@ -3124,5 +3124,32 @@ class C
         return (string)o;
     }
 }");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
+        {
+            await TestInRegularAndScriptAsync(
+    @"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+    @"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b)
+    {
+        return b != true;
+    }
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSuggestionEnforcement));
+        }
     }
 }

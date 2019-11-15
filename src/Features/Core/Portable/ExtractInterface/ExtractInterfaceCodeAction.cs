@@ -56,6 +56,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return operations;
         }
 
-        public override string Title => FeaturesResources.Extract_Interface;
+        public override string Title => FeaturesResources.Extract_interface;
     }
 }

@@ -7,24 +7,23 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalFunction
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp,
         Name = PredefinedCodeRefactoringProviderNames.ExtractLocalMethod), Shared]
-    internal class CSharpExtractLocalMethodCodeRefactoringProvider : ExtractMethodCodeRefactoringProvider
+    internal class CSharpExtractLocalFunctionCodeRefactoringProvider : ExtractMethodCodeRefactoringProvider
     {
         [ImportingConstructor]
-        public CSharpExtractLocalMethodCodeRefactoringProvider()
+        public CSharpExtractLocalFunctionCodeRefactoringProvider()
         {
         }
 
-        protected override async Task<(CodeAction action, string methodBlock)> GetCodeActionAsync(
+        protected override async Task<CodeAction> GetCodeActionAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -34,27 +33,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
-                extractLocalMethod: true,
+                extractLocalFunction: true,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 
             if (result.Succeeded || result.SucceededWithSuggestion)
             {
                 // We insert an empty line between the generated local method and the previous statements if there is not one already.
-                var (resultDocument, resultMethodDeclarationNode, resultInvocationNameToken) = await InsertNewLineBeforeLocalMethodIfNecessaryAsync(result, cancellationToken).ConfigureAwait(false);
+                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => InsertNewLineBeforeLocalMethodIfNecessaryAsync(result, c));
 
-                var description = FeaturesResources.Extract_Local_Method;
-
-                var codeAction = new MyCodeAction(description, c => AddRenameAnnotationAsync(resultDocument, resultInvocationNameToken, c));
-                var methodBlock = resultMethodDeclarationNode;
-
-                return (codeAction, methodBlock.ToString());
+                return codeAction;
             }
 
             return default;
         }
 
-        private async Task<(Document resultDocument, SyntaxNode resultMethodDeclarationNode, SyntaxToken resultInvocationNameToken)> InsertNewLineBeforeLocalMethodIfNecessaryAsync(
+        private async Task<Document> InsertNewLineBeforeLocalMethodIfNecessaryAsync(
             ExtractMethodResult result,
             CancellationToken cancellationToken)
         {
@@ -76,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalMethod
                 resultInvocationNameToken = newRoot.FindToken(result.InvocationNameToken.SpanStart);
             }
 
-            return (resultDocument, resultMethodDeclarationNode, resultInvocationNameToken);
+            return await AddRenameAnnotationAsync(resultDocument, resultInvocationNameToken, cancellationToken).ConfigureAwait(false);
         }
     }
 }

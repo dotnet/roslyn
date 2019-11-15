@@ -10345,7 +10345,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, default);
+            await service.ExtractMethodAsync(document, textSpan: default, extractLocalFunction: false);
         }
 
         [WpfFact]
