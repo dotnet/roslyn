@@ -34,19 +34,5 @@ namespace Analyzer.Utilities.Extensions
                 _ => throw new ArgumentOutOfRangeException(nameof(typeVisibility), typeVisibility, null),
             };
         }
-
-        public static SymbolVisibilityGroup ToSymbolVisibilityGroup(this SymbolVisibility symbolVisibility)
-        {
-            return symbolVisibility switch
-            {
-                SymbolVisibility.Public => SymbolVisibilityGroup.Public,
-
-                SymbolVisibility.Internal => SymbolVisibilityGroup.Internal,
-
-                SymbolVisibility.Private => SymbolVisibilityGroup.Private,
-
-                _ => throw new ArgumentOutOfRangeException(nameof(symbolVisibility), symbolVisibility, null),
-            };
-        }
     }
 }

@@ -89,26 +89,6 @@ namespace Analyzer.Utilities.Extensions
                    symbol.ImplementsOperator(WellKnownMemberNames.InequalityOperatorName);
         }
 
-        /// <summary>
-        /// Returns a value indicating whether the specified type implements the comparison
-        /// operators.
-        /// </summary>
-        /// <param name="symbol">
-        /// A symbols specifying the type to examine.
-        /// </param>
-        /// <returns>
-        /// true if the type specified by <paramref name="symbol"/> implements the comparison
-        /// operators (which includes the equality and inequality operators), otherwise false.
-        /// </returns>
-        public static bool ImplementsComparisonOperators(this INamedTypeSymbol symbol)
-        {
-            return symbol.ImplementsEqualityOperators() &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.LessThanOperatorName) &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.LessThanOrEqualOperatorName) &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.GreaterThanOperatorName) &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.GreaterThanOrEqualOperatorName);
-        }
-
         public static bool OverridesEquals(this INamedTypeSymbol symbol)
         {
             // Does the symbol override Object.Equals?

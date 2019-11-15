@@ -282,11 +282,6 @@ namespace Analyzer.Utilities.Extensions
             => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
 #endif
 
-        public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
-        }
-
         /// <summary>
         /// Checks whether the current type contains one of the following count property:
         ///     - <see cref="System.Collections.ICollection.Count"/>
@@ -345,59 +340,6 @@ namespace Analyzer.Utilities.Extensions
             bool isAnySupportedCollectionType(ITypeSymbol type) =>
                 type?.OriginalDefinition is INamedTypeSymbol originalDefinition &&
                 (iCollection.Equals(originalDefinition) || iCollectionOfT.Equals(originalDefinition) || iReadOnlyCollectionOfT.Equals(originalDefinition));
-        }
-
-        private class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
-        {
-            public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
-
-            public override Accessibility DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override Accessibility VisitAlias(IAliasSymbol symbol)
-            {
-                return symbol.Target.Accept(this);
-            }
-
-            public override Accessibility VisitArrayType(IArrayTypeSymbol symbol)
-            {
-                return symbol.ElementType.Accept(this);
-            }
-
-            public override Accessibility VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return Accessibility.Public;
-            }
-
-            public override Accessibility VisitNamedType(INamedTypeSymbol symbol)
-            {
-                Accessibility accessibility = symbol.DeclaredAccessibility;
-
-                foreach (ITypeSymbol arg in symbol.TypeArguments)
-                {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, arg.Accept(this));
-                }
-
-                if (symbol.ContainingType != null)
-                {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, symbol.ContainingType.Accept(this));
-                }
-
-                return accessibility;
-            }
-
-            public override Accessibility VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                return symbol.PointedAtType.Accept(this);
-            }
-
-            public override Accessibility VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                // TODO(cyrusn): Do we have to consider the constraints?
-                return Accessibility.Public;
-            }
         }
     }
 }

@@ -279,11 +279,6 @@ namespace Analyzer.Utilities.Extensions
             return member != null && member.Kind == SymbolKind.Property && member.MatchMemberDerivedByName(type, name);
         }
 
-        public static bool MatchFieldDerivedByName(this ISymbol member, INamedTypeSymbol type, string name)
-        {
-            return member != null && member.Kind == SymbolKind.Field && member.MatchMemberDerivedByName(type, name);
-        }
-
         public static bool MatchMemberByName(this ISymbol member, INamedTypeSymbol type, string name)
         {
             return member != null && Equals(member.ContainingType, type) && member.MetadataName == name;

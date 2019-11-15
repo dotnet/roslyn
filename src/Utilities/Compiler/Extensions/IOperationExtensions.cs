@@ -56,22 +56,6 @@ namespace Analyzer.Utilities.Extensions
             return typeInfo.Type as INamedTypeSymbol;
         }
 
-        public static bool HasConstantValue(this IOperation operation, string comparand, StringComparison comparison)
-        {
-            var constantValue = operation.ConstantValue;
-            if (!constantValue.HasValue)
-            {
-                return false;
-            }
-
-            if (operation.Type == null || operation.Type.SpecialType != SpecialType.System_String)
-            {
-                return false;
-            }
-
-            return string.Equals((string)constantValue.Value, comparand, comparison);
-        }
-
         public static bool HasNullConstantValue(this IOperation operation)
         {
             return operation.ConstantValue.HasValue && operation.ConstantValue.Value == null;
@@ -393,12 +377,6 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool IsLambdaOrLocalFunctionOrDelegateInvocation(this IInvocationOperation operation)
-            => operation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate();
-
-        public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
-            => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
-
         public static IOperation GetRoot(this IOperation operation)
         {
             while (operation.Parent != null)
@@ -633,21 +611,6 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Walks up consequtive parenthesized operations until a parent is reached that isn't a parenthesized operation.
-        /// </summary>
-        /// <param name="operation">The starting operation.</param>
-        /// <returns>The outer non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
-        public static IOperation WalkUpParenthesis(this IOperation operation)
-        {
-            while (operation is IParenthesizedOperation parenthesizedOperation)
-            {
-                operation = parenthesizedOperation.Parent;
-            }
-
-            return operation;
-        }
-
-        /// <summary>
         /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
         /// </summary>
         /// <param name="operation">The starting operation.</param>
@@ -657,21 +620,6 @@ namespace Analyzer.Utilities.Extensions
             while (operation is IConversionOperation conversionOperation)
             {
                 operation = conversionOperation.Operand;
-            }
-
-            return operation;
-        }
-
-        /// <summary>
-        /// Walks up consequtive conversion operations until a parent is reached that isn't a conversion operation.
-        /// </summary>
-        /// <param name="operation">The starting operation.</param>
-        /// <returns>The outer non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
-        public static IOperation WalkUpConversion(this IOperation operation)
-        {
-            while (operation is IConversionOperation conversionOperation)
-            {
-                operation = conversionOperation.Parent;
             }
 
             return operation;
