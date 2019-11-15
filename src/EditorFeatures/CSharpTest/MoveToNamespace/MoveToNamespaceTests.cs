@@ -32,7 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 
         protected override string GetLanguage() => LanguageNames.CSharp;
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public static IEnumerable<object[]> SupportedKeywords => new[]
+        {
+            new []{"class" },
+            new []{"enum" },
+            new []{"interface"}
+        };
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace()
             => TestMoveToNamespaceAsync(
 @"using System;
@@ -45,7 +52,7 @@ namespace A
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace2()
             => TestMoveToNamespaceAsync(
 @"using System;[||]
@@ -58,7 +65,7 @@ namespace A
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_WeirdNamespace()
             => TestMoveToNamespaceAsync(
 @"namespace A  [||].    B   .   C
@@ -79,7 +86,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.B.C.MyClass", "A.MyClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
             => TestMoveToNamespaceAsync(
 @"namespace A[||] 
@@ -102,7 +109,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.MyClass", "B.MyClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName2()
             => TestMoveToNamespaceAsync(
 @"namespace A[||].B.C
@@ -125,7 +132,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.B.C.MyClass", "B.MyClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword()
         => TestMoveToNamespaceAsync(
 @"namespace[||] A
@@ -149,7 +156,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     }
 );
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword2()
         => TestMoveToNamespaceAsync(
 @"[||]namespace A
@@ -172,7 +179,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
         {"A.MyClass", "B.MyClass"}
     });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -184,7 +191,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace2()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -196,7 +203,7 @@ expectedSuccess: false);
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_MultipleDeclarations()
             => TestMoveToNamespaceAsync(
 @"namespace A[||] 
@@ -230,7 +237,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.MyOtherClass", "B.MyOtherClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_WithVariousSymbols()
         => TestMoveToNamespaceAsync(
 @"namespace A[||] 
@@ -298,7 +305,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.MyOtherClass", "B.MyOtherClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace()
         => TestMoveToNamespaceAsync(
 @"namespace A[||]
@@ -313,7 +320,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace2()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -328,74 +335,77 @@ expectedSuccess: false);
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_Nested()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Nested(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
+@$"namespace A
+{{
     class MyClass
-    {
-        class NestedClass[||]
-        {
-        }
-    }
-}",
+    {{
+        {typeKeyword} NestedType[||]
+        {{
+        }}
+    }}
+}}",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_Single()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Single(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass[||]
-    {
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    class MyClass
-    {
-    }
-}",
+@$"namespace A
+{{
+    {typeKeyword} MyType[||]
+    {{
+    }}
+}}",
+expectedMarkup: @$"namespace {{|Warning:B|}}
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"A.MyClass", "B.MyClass" }
+    {"A.MyType", "B.MyType" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_SingleTop()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_SingleTop(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass[||]
-    {
-    }
+@$"namespace A
+{{
+    {typeKeyword} MyType[||]
+    {{
+    }}
 
-    class MyClass2
-    {
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    class MyClass
-    {
-    }
-}
+    {typeKeyword} MyType2
+    {{
+    }}
+}}",
+expectedMarkup: @$"namespace {{|Warning:B|}}
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}
 
 namespace A
-{
-    class MyClass2
-    {
-    }
-}",
+{{
+    {typeKeyword} MyType2
+    {{
+    }}
+}}",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"A.MyClass", "B.MyClass" }
+    {"A.MyType", "B.MyType" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_TopWithReference()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -429,39 +439,40 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.MyClass", "B.MyClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_Bottom()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Bottom(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass
-    {
-    }
+@$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
 
-    class MyClass2[||]
-    {
-    }
-}",
-expectedMarkup: @"namespace A
-{
-    class MyClass
-    {
-    }
-}
+    {typeKeyword} MyType2[||]
+    {{
+    }}
+}}",
+expectedMarkup: @$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}
 
-namespace {|Warning:B|}
-{
-    class MyClass2
-    {
-    }
-}",
+namespace {{|Warning:B|}}
+{{
+    {typeKeyword} MyType2
+    {{
+    }}
+}}",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"A.MyClass2", "B.MyClass2" }
+    {"A.MyType2", "B.MyType2" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_BottomReference()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -495,179 +506,183 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.IMyClass", "B.IMyClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_Middle()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Middle(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass
-    {
-    }
+@$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
 
-    class MyClass2[||]
-    {
-    }
+    {typeKeyword} MyType2[||]
+    {{
+    }}
 
-    class MyClass3
-    {
-    }
-}",
-expectedMarkup: @"namespace A
-{
-    class MyClass
-    {
-    }
-}
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
+expectedMarkup: @$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}
 
-namespace {|Warning:B|}
-{
-    class MyClass2
-    {
-    }
-}
+namespace {{|Warning:B|}}
+{{
+    {typeKeyword} MyType2
+    {{
+    }}
+}}
 
 namespace A
-{
-    class MyClass3
-    {
-    }
-}",
+{{
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"A.MyClass2", "B.MyClass2" }
+    {"A.MyType2", "B.MyType2" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_Middle_CaretBeforeClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Middle_CaretBeforeKeyword(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass
-    {
-    }
+@$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
 
-    [||]class MyClass2
-    {
-    }
+    [||]{typeKeyword} MyType2
+    {{
+    }}
 
-    class MyClass3
-    {
-    }
-}",
-expectedMarkup: @"namespace A
-{
-    class MyClass
-    {
-    }
-}
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
+expectedMarkup: @$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}
 
-namespace {|Warning:B|}
-{
-    class MyClass2
-    {
-    }
-}
+namespace {{|Warning:B|}}
+{{
+    {typeKeyword} MyType2
+    {{
+    }}
+}}
 
 namespace A
-{
-    class MyClass3
-    {
-    }
-}",
+{{
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"A.MyClass2", "B.MyClass2" }
+    {"A.MyType2", "B.MyType2" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_Middle_CaretAfterClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Middle_CaretAfterTypeKeyword(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass
-    {
-    }
+@$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
 
-    class[||] MyClass2
-    {
-    }
+    {typeKeyword}[||] MyType2
+    {{
+    }}
 
-    class MyClass3
-    {
-    }
-}",
-expectedMarkup: @"namespace A
-{
-    class MyClass
-    {
-    }
-}
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
+expectedMarkup: @$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}
 
-namespace {|Warning:B|}
-{
-    class MyClass2
-    {
-    }
-}
+namespace {{|Warning:B|}}
+{{
+    {typeKeyword} MyType2
+    {{
+    }}
+}}
 
 namespace A
-{
-    class MyClass3
-    {
-    }
-}",
+{{
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"A.MyClass2", "B.MyClass2" }
+    {"A.MyType2", "B.MyType2" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public Task MoveToNamespace_MoveType_Middle_CaretBeforeClassName()
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Middle_CaretBeforeTypeName(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass
-    {
-    }
+@$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
 
-    class [||]MyClass2
-    {
-    }
+    {typeKeyword} [||]MyType2
+    {{
+    }}
 
-    class MyClass3
-    {
-    }
-}",
-expectedMarkup: @"namespace A
-{
-    class MyClass
-    {
-    }
-}
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
+expectedMarkup: @$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}
 
-namespace {|Warning:B|}
-{
-    class MyClass2
-    {
-    }
-}
+namespace {{|Warning:B|}}
+{{
+    {typeKeyword} MyType2
+    {{
+    }}
+}}
 
 namespace A
-{
-    class MyClass3
-    {
-    }
-}",
+{{
+    {typeKeyword} MyType3
+    {{
+    }}
+}}",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"A.MyClass2", "B.MyClass2" }
+    {"A.MyType2", "B.MyType2" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_CaretInMethod()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -683,7 +698,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -728,7 +743,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.IMyClass", "B.IMyClass" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference2()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -781,7 +796,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.MyClass3", "B.MyClass3" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_NestedInNamespace()
         => TestMoveToNamespaceAsync(
 @"namespace A
@@ -803,7 +818,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
 expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Cancelled()
             => TestCancelledOption(
 @"namespace A
@@ -821,7 +836,7 @@ expectedSuccess: false);
     }
 }");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_Cancelled()
             => TestCancelledOption(
 @"namespace A[||]
@@ -839,7 +854,7 @@ expectedSuccess: false);
     }
 }");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName()
         => TestMoveToNamespaceAsync(
 @"namespace A.B.C
@@ -892,7 +907,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.B.C.MyClass3", "My.New.Namespace.MyClass3" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName2()
        => TestMoveToNamespaceAsync(
 @"namespace A
@@ -945,7 +960,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.MyClass3", "My.New.Namespace.MyClass3" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName3()
        => TestMoveToNamespaceAsync(
 @"namespace A.B.C
@@ -998,7 +1013,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.B.C.MyClass3", "B.MyClass3" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_Analysis_MoveItems_ComplexNamespace()
            => TestMoveToNamespaceAnalysisAsync(
 @"namespace [||]A.Complex.Namespace
@@ -1009,7 +1024,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
 expectedNamespaceName: "A.Complex.Namespace");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_Analysis_MoveType_ComplexNamespace()
            => TestMoveToNamespaceAnalysisAsync(
 @"namespace A.Complex.Namespace
@@ -1020,7 +1035,7 @@ expectedNamespaceName: "A.Complex.Namespace");
 }",
 expectedNamespaceName: "A.Complex.Namespace");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_Analysis_MoveItems_WeirdNamespace()
            => TestMoveToNamespaceAnalysisAsync(
 @"namespace A  [||].    B   .   C
@@ -1031,7 +1046,7 @@ expectedNamespaceName: "A.Complex.Namespace");
 }",
 expectedNamespaceName: "A  .    B   .   C");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_Analysis_MoveType_WeirdNamespace()
            => TestMoveToNamespaceAnalysisAsync(
 @"namespace A  .    B   .   C
@@ -1042,7 +1057,7 @@ expectedNamespaceName: "A  .    B   .   C");
 }",
 expectedNamespaceName: "A  .    B   .   C");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(34736, "https://github.com/dotnet/roslyn/issues/34736")]
         public Task MoveToNamespace_MoveType_Usings()
             => TestMoveToNamespaceAsync(
@@ -1084,7 +1099,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"Two.C2", "Three.C2" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(35577, "https://github.com/dotnet/roslyn/issues/35577")]
         public async Task MoveToNamespace_WithoutOptionsService()
         {
@@ -1111,61 +1126,64 @@ class MyClass
             Assert.Empty(actions);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
-        public Task MoveToNamespace_MoveOnlyTypeInGlobalNamespace()
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveOnlyTypeInGlobalNamespace(string typeKeyword)
         => TestMoveToNamespaceAsync(
-@"class MyClass[||]
-{
-}",
-expectedMarkup: @"namespace {|Warning:A|}
-{
-    class MyClass
-    {
-    }
-}",
+@$"{typeKeyword} MyType[||]
+{{
+}}",
+expectedMarkup: @$"namespace {{|Warning:A|}}
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}",
 targetNamespace: "A",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
-    {"MyClass", "A.MyClass" }
+    {"MyType", "A.MyType" }
 });
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
-        public async Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace()
+        [MemberData(nameof(SupportedKeywords))]
+        public async Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
         {
             // We will not get "" as target namespace in VS, but the refactoring should be able
             // to handle it w/o crashing.
             await TestMoveToNamespaceAsync(
- @"namespace A
-{
-    class MyClass[||]
-    {
-    }
-}",
-  expectedMarkup: @"namespace A
-{
-    class MyClass
-    {
-    }
-}",
+ @$"namespace A
+{{
+    {typeKeyword} MyType[||]
+    {{
+    }}
+}}",
+  expectedMarkup: @$"namespace A
+{{
+    {typeKeyword} MyType
+    {{
+    }}
+}}",
       targetNamespace: "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
-        public Task MoveToNamespace_MoveOneTypeInGlobalNamespace()
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveOneTypeInGlobalNamespace(string typeKeyword)
             => TestMoveToNamespaceAsync(
-@"class MyClass1[||]
-{
-}
+@$"{typeKeyword} MyType1[||]
+{{
+}}
 
-class MyClass2
-{
-}",
+{typeKeyword} MyType2
+{{
+}}",
     expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInNamesapce_SelectType()
             => TestMoveToNamespaceAsync(
@@ -1181,7 +1199,7 @@ class MyClass2
 }",
     expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInNamesapce_SelectNamespace()
             => TestMoveToNamespaceAsync(
@@ -1197,7 +1215,7 @@ class MyClass2
 }",
     expectedSuccess: false);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInGlobalNamesapce()
             => TestMoveToNamespaceAsync(
