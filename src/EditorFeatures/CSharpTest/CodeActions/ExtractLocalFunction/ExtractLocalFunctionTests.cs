@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpExtractLocalFunctionCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestPartialSelection_StaticOptionTrue()
         {
             await TestInRegularAndScriptAsync(
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 }", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestPartialSelection_StaticOptionFalse()
         {
             await TestInRegularAndScriptAsync(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 }", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestPartialSelection_StaticOptionDefault()
         {
             await TestInRegularAndScriptAsync(
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 }", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CSharpCodeStyleOptions.PreferStaticLocalFunction.DefaultValue));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseExpressionBodyWhenPossible()
         {
             await TestInRegularAndScriptAsync(
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
         {
             await TestInRegularAndScriptAsync(
@@ -147,7 +147,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
         {
             await TestInRegularAndScriptAsync(
@@ -178,7 +178,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
         {
             await TestInRegularAndScriptAsync(
@@ -208,7 +208,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
         {
             await TestInRegularAndScriptAsync(
@@ -238,7 +238,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
         {
             await TestInRegularAndScriptAsync(
@@ -268,7 +268,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestReadOfDataThatDoesNotFlowIn()
         {
             await TestInRegularAndScriptAsync(
@@ -307,7 +307,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingOnGoto()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -327,7 +327,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestOnStatementAfterUnconditionalGoto()
         {
             await TestInRegularAndScriptAsync(
@@ -367,7 +367,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestOnNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -392,7 +392,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestOnType()
         {
             await TestInRegularAndScriptAsync(
@@ -417,7 +417,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestOnBase()
         {
             await TestInRegularAndScriptAsync(
@@ -442,7 +442,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestOnActionInvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -481,7 +481,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task DisambiguateCallSiteIfNecessary1()
         {
             await TestInRegularAndScriptAsync(
@@ -519,7 +519,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task DisambiguateCallSiteIfNecessary2()
         {
             await TestInRegularAndScriptAsync(
@@ -557,7 +557,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task DontOverparenthesize()
         {
             await TestAsync(
@@ -655,7 +655,7 @@ static class E
 parseOptions: Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task DontOverparenthesizeGenerics()
         {
             await TestAsync(
@@ -753,7 +753,7 @@ static class E
 parseOptions: Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task PreserveCommentsBeforeDeclaration_1()
         {
             await TestInRegularAndScriptAsync(
@@ -794,7 +794,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task PreserveCommentsBeforeDeclaration_2()
         {
             await TestInRegularAndScriptAsync(
@@ -843,7 +843,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task PreserveCommentsBeforeDeclaration_3()
         {
             await TestInRegularAndScriptAsync(
@@ -889,7 +889,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), CompilerTrait(CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTuple()
         {
             await TestInRegularAndScriptAsync(
@@ -916,7 +916,7 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -943,7 +943,7 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationWithSomeNames()
         {
             await TestInRegularAndScriptAsync(
@@ -970,7 +970,7 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleWith1Arity()
         {
             await TestInRegularAndScriptAsync(
@@ -999,7 +999,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleLiteralWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -1026,7 +1026,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationAndLiteralWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -1053,7 +1053,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleIntoVar()
         {
             await TestInRegularAndScriptAsync(
@@ -1080,7 +1080,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task RefactorWithoutSystemValueTuple()
         {
             await TestInRegularAndScriptAsync(
@@ -1107,7 +1107,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleWithNestedNamedTuple()
         {
             // This is not the best refactoring, but this is an edge case
@@ -1135,7 +1135,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestDeconstruction()
         {
             await TestInRegularAndScriptAsync(
@@ -1162,7 +1162,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestDeconstruction2()
         {
             await TestInRegularAndScriptAsync(
@@ -1191,7 +1191,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.OutVar)]
         public async Task TestOutVar()
         {
@@ -1222,7 +1222,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task TestIsPattern()
         {
@@ -1253,7 +1253,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task TestOutVarAndIsPattern()
         {
@@ -1284,7 +1284,7 @@ class Program
 } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task ConflictingOutVarLocals()
         {
@@ -1325,7 +1325,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task ConflictingPatternLocals()
         {
@@ -1366,7 +1366,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestCancellationTokenGoesLast()
         {
             await TestInRegularAndScriptAsync(
@@ -1408,7 +1408,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseVar1()
         {
             await TestInRegularAndScriptAsync(
@@ -1455,7 +1455,7 @@ class C
 }", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestUseVar2()
         {
             await TestInRegularAndScriptAsync(
@@ -1502,7 +1502,7 @@ class C
 }", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionCall()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1529,7 +1529,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1556,7 +1556,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1570,7 +1570,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionInterior()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1605,7 +1605,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task Bug3790()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1645,7 +1645,7 @@ class Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task Bug3790_1()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1684,7 +1684,7 @@ class Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task Bug3790_2()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1723,7 +1723,7 @@ class Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyProperty()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1735,7 +1735,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyIndexer()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1747,7 +1747,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyPropertyGetAccessor()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1763,7 +1763,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyPropertySetAccessor()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1779,7 +1779,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyIndexerGetAccessor()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1795,7 +1795,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyIndexerSetAccessor()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1811,7 +1811,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestTupleWithInferredNames()
         {
             await TestAsync(@"
@@ -1841,7 +1841,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestDeconstruction4()
         {
             await TestAsync(@"
@@ -1870,7 +1870,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestDeconstruction5()
         {
             await TestAsync(@"
@@ -1899,7 +1899,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestIndexExpression()
         {
             await TestInRegularAndScriptAsync(TestSources.Index + @"
@@ -1929,7 +1929,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestRangeExpression_Empty()
         {
             await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
@@ -1959,7 +1959,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestRangeExpression_Left()
         {
             await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
@@ -1989,7 +1989,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestRangeExpression_Right()
         {
             await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
@@ -2019,7 +2019,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestRangeExpression_Both()
         {
             await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
@@ -2049,7 +2049,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableReturn()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2084,7 +2084,7 @@ class C
 }");
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters1()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2119,7 +2119,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters2()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2156,7 +2156,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters3()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2189,7 +2189,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters4()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2220,7 +2220,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters1()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2251,7 +2251,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters2()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2282,7 +2282,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters3()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2313,7 +2313,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_MultipleStates()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2359,7 +2359,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2405,7 +2405,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2449,7 +2449,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_RefNotNull()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2497,7 +2497,7 @@ class C
         // an exception and the return statement would never be hit. The only way the return
         // statement gets executed is if the `x.ToString()` call succeeds, thus suggesting 
         // that the value is indeed not null.
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowNullableReturn_NotNull1()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2531,7 +2531,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowNullableReturn_NotNull2()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2566,7 +2566,7 @@ class C
         }
     }
 }");
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowNullable_Lambda()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2614,7 +2614,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowNullable_LambdaWithReturn()
             => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2662,7 +2662,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestExtractReadOnlyMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -2689,7 +2689,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
         {
             await TestInRegularAndScriptAsync(
@@ -2716,7 +2716,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -2744,7 +2744,7 @@ class C
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableObjectWithExplicitCast()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2779,7 +2779,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNotNullableObjectWithExplicitCast()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2814,7 +2814,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNotNullableWithExplicitCast()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2863,7 +2863,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableWithExplicitCast()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2912,7 +2912,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNotNullableWithExplicitCastSelected()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2947,7 +2947,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableWithExplicitCastSelected()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -2981,7 +2981,7 @@ class C
         }
     }
 }");
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -3016,7 +3016,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
         => TestInRegularAndScriptAsync(
 @"#nullable enable
@@ -3051,8 +3051,8 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
-        public async Task TestExtractLocalMethod_EnsureUniqueMethodName()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestExtractLocalFunction_EnsureUniqueFunctionName()
         {
             await TestInRegularAndScriptAsync(
 @"class Test
@@ -3086,8 +3086,8 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
-        public async Task TestExtractLocalMethodWithinLocalMethod_EnsureUniqueMethodName()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestExtractLocalFunctionWithinLocalMethod_EnsureUniqueMethodName()
         {
             await TestInRegularAndScriptAsync(
 @"class Test
@@ -3129,7 +3129,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestExtractNonStaticLocalMethod_WithoutDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -3162,7 +3162,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestExtractNonStaticLocalMethod_WithDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -3190,6 +3190,44 @@ class C
             void ExistingLocalFunction()
             {
             }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task ArgumentlessReturnWithConstIfExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Test()
+    {
+        if (true)
+            [|if (true)
+                return;|]
+        Console.WriteLine();
+    }
+}",
+@"using System;
+
+class Program
+{
+    void Test()
+    {
+        if (true)
+        {
+            {|Rename:NewMethod|}();
+            return;
+        }
+        Console.WriteLine();
+
+        static void NewMethod()
+        {
+            if (true)
+                return;
         }
     }
 }");
