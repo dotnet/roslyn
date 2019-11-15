@@ -16,13 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Background_analysis_scope_colon;
 
         public static string Option_Background_Analysis_Scope_Active_File
-            => ServicesVSResources.Active_file;
+            => ServicesVSResources.Current_Document;
 
         public static string Option_Background_Analysis_Scope_Open_Files_And_Projects
-            => ServicesVSResources.Open_files_and_projects;
+            => ServicesVSResources.Open_Documents_and_Projects;
 
         public static string Option_Background_Analysis_Scope_Full_Solution
-            => ServicesVSResources.Full_solution;
+            => ServicesVSResources.Entire_Solution;
 
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;

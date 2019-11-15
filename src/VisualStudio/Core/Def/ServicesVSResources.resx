@@ -1344,13 +1344,13 @@ I agree to all of the foregoing:</value>
   <data name="Background_analysis_scope_colon" xml:space="preserve">
     <value>Background analysis scope:</value>
   </data>
-  <data name="Active_file" xml:space="preserve">
-    <value>Active file</value>
+  <data name="Current_Document" xml:space="preserve">
+    <value>Current Document</value>
   </data>
-  <data name="Open_files_and_projects" xml:space="preserve">
-    <value>Open files and projects</value>
+  <data name="Open_Documents_and_Projects" xml:space="preserve">
+    <value>Open Documents and Projects</value>
   </data>
-  <data name="Full_solution" xml:space="preserve">
-    <value>Full solution</value>
+  <data name="Entire_Solution" xml:space="preserve">
+    <value>Entire Solution</value>
   </data>
 </root>

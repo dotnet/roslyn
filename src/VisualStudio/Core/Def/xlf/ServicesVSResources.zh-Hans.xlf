@@ -12,11 +12,6 @@
         <target state="translated">将创建一个新的命名空间</target>
         <note />
       </trans-unit>
-      <trans-unit id="Active_file">
-        <source>Active file</source>
-        <target state="new">Active file</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">添加到当前文件(_C)</target>
@@ -112,9 +107,19 @@
         <target state="new">Containing Type</target>
         <note />
       </trans-unit>
+      <trans-unit id="Current_Document">
+        <source>Current Document</source>
+        <target state="new">Current Document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">元素无效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_Solution">
+        <source>Entire Solution</source>
+        <target state="new">Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -125,11 +130,6 @@
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">完成</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Full_solution">
-        <source>Full solution</source>
-        <target state="new">Full solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -362,9 +362,9 @@
         <target state="translated">非公共成员</target>
         <note />
       </trans-unit>
-      <trans-unit id="Open_files_and_projects">
-        <source>Open files and projects</source>
-        <target state="new">Open files and projects</target>
+      <trans-unit id="Open_Documents_and_Projects">
+        <source>Open Documents and Projects</source>
+        <target state="new">Open Documents and Projects</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">

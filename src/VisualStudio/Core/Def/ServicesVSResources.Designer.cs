@@ -163,15 +163,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Active file.
-        /// </summary>
-        internal static string Active_file {
-            get {
-                return ResourceManager.GetString("Active_file", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add a naming rule.
         /// </summary>
         internal static string Add_a_naming_rule {
@@ -777,6 +768,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current Document.
+        /// </summary>
+        internal static string Current_Document {
+            get {
+                return ResourceManager.GetString("Current_Document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Debugger.
         /// </summary>
         internal static string Debugger {
@@ -955,6 +955,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enter_a_title_for_this_Symbol_Specification {
             get {
                 return ResourceManager.GetString("Enter_a_title_for_this_Symbol_Specification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Entire Solution.
+        /// </summary>
+        internal static string Entire_Solution {
+            get {
+                return ResourceManager.GetString("Entire_Solution", resourceCulture);
             }
         }
         
@@ -1166,15 +1175,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string For_member_access_expressions {
             get {
                 return ResourceManager.GetString("For_member_access_expressions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Full solution.
-        /// </summary>
-        internal static string Full_solution {
-            get {
-                return ResourceManager.GetString("Full_solution", resourceCulture);
             }
         }
         
@@ -2092,11 +2092,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open files and projects.
+        ///   Looks up a localized string similar to Open Documents and Projects.
         /// </summary>
-        internal static string Open_files_and_projects {
+        internal static string Open_Documents_and_Projects {
             get {
-                return ResourceManager.GetString("Open_files_and_projects", resourceCulture);
+                return ResourceManager.GetString("Open_Documents_and_Projects", resourceCulture);
             }
         }
         
