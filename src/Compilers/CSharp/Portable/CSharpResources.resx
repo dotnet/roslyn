@@ -5954,4 +5954,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
   </data>
+  <data name="IDS_FeatureParenthesizedPattern" xml:space="preserve">
+    <value>parenthesized pattern</value>
+  </data>
+  <data name="IDS_FeatureOrPattern" xml:space="preserve">
+    <value>or pattern</value>
+  </data>
+  <data name="IDS_FeatureAndPattern" xml:space="preserve">
+    <value>and pattern</value>
+  </data>
+  <data name="IDS_FeatureNotPattern" xml:space="preserve">
+    <value>not pattern</value>
+  </data>
+  <data name="IDS_FeatureTypePattern" xml:space="preserve">
+    <value>type pattern</value>
+  </data>
+  <data name="IDS_FeatureRelationalPattern" xml:space="preserve">
+    <value>relational pattern</value>
+  </data>
 </root>

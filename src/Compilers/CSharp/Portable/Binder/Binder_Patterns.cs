@@ -116,9 +116,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.VarPattern:
                     return BindVarPattern((VarPatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
 
+                case SyntaxKind.ParenthesizedPattern:
+                    return BindPattern(((ParenthesizedPatternSyntax)node).Pattern, inputType, inputValEscape, hasErrors, diagnostics);
+
+                case SyntaxKind.BinaryPattern:
+                    var binary = (BinaryPatternSyntax)node;
+                    switch (binary.PatternOperator.Kind())
+                    {
+                        case SyntaxKind.OrKeyword:
+                            if (!node.HasErrors)
+                                diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, node.Location, MessageID.IDS_FeatureOrPattern.Localize());
+                            return errorPattern();
+                        case SyntaxKind.AndKeyword:
+                            if (!node.HasErrors)
+                                diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, node.Location, MessageID.IDS_FeatureAndPattern.Localize());
+                            return errorPattern();
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(binary.PatternOperator.Kind());
+                    }
+
+                case SyntaxKind.UnaryPattern:
+                    var unary = (UnaryPatternSyntax)node;
+                    switch (unary.PatternOperator.Kind())
+                    {
+                        case SyntaxKind.NotKeyword:
+                            if (!node.HasErrors)
+                                diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, node.Location, MessageID.IDS_FeatureNotPattern.Localize());
+                            return errorPattern();
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(unary.PatternOperator.Kind());
+                    }
+
+                case SyntaxKind.RelationalPattern:
+                    if (!node.HasErrors)
+                        diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, node.Location, MessageID.IDS_FeatureRelationalPattern.Localize());
+                    return errorPattern();
+
+                case SyntaxKind.TypePattern:
+                    if (!node.HasErrors)
+                        diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, node.Location, MessageID.IDS_FeatureTypePattern.Localize());
+                    return errorPattern();
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
+
+            // this is reachable only for unsupported pattern kinds.
+            BoundPattern errorPattern() => new BoundConstantPattern(node, new BoundLiteral(node, ConstantValue.Bad, CreateErrorType()), ConstantValue.Bad, inputType, hasErrors: true);
         }
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)

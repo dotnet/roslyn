@@ -11114,6 +11114,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to and pattern.
+        /// </summary>
+        internal static string IDS_FeatureAndPattern {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAndPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous methods.
         /// </summary>
         internal static string IDS_FeatureAnonDelegates {
@@ -11528,6 +11537,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to not pattern.
+        /// </summary>
+        internal static string IDS_FeatureNotPattern {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNotPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to nullable types.
         /// </summary>
         internal static string IDS_FeatureNullable {
@@ -11582,11 +11600,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to or pattern.
+        /// </summary>
+        internal static string IDS_FeatureOrPattern {
+            get {
+                return ResourceManager.GetString("IDS_FeatureOrPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to out variable declaration.
         /// </summary>
         internal static string IDS_FeatureOutVar {
             get {
                 return ResourceManager.GetString("IDS_FeatureOutVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to parenthesized pattern.
+        /// </summary>
+        internal static string IDS_FeatureParenthesizedPattern {
+            get {
+                return ResourceManager.GetString("IDS_FeatureParenthesizedPattern", resourceCulture);
             }
         }
         
@@ -11780,6 +11816,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to relational pattern.
+        /// </summary>
+        internal static string IDS_FeatureRelationalPattern {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRelationalPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to stackalloc initializer.
         /// </summary>
         internal static string IDS_FeatureStackAllocInitializer {
@@ -11848,6 +11893,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureTuples {
             get {
                 return ResourceManager.GetString("IDS_FeatureTuples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type pattern.
+        /// </summary>
+        internal static string IDS_FeatureTypePattern {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTypePattern", resourceCulture);
             }
         }
         

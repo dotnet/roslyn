@@ -1044,6 +1044,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return token;
         }
 
+        protected static SyntaxToken ConvertToIdentifier(SyntaxToken token)
+        {
+            Debug.Assert(!token.IsMissing);
+            return SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+        }
+
         internal DirectiveStack Directives
         {
             get { return lexer.Directives; }
