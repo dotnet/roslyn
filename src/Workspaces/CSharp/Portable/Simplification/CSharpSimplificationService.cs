@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
-                new CSharpDefaultExpressionReducer());
+                new CSharpDefaultExpressionReducer(),
+                new CSharpRecursivePatternReducer());
 
         [ImportingConstructor]
         public CSharpSimplificationService() : base(s_reducers)

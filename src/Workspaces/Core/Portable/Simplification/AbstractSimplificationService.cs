@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         where TStatementSyntax : SyntaxNode
         where TCrefSyntax : SyntaxNode
     {
-        private ImmutableArray<AbstractReducer> _reducers;
+        private readonly ImmutableArray<AbstractReducer> _reducers;
 
         protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
         {
