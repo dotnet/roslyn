@@ -279,7 +279,7 @@ End Class
                                                                                {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute", "DebuggerHiddenAttribute"})
 
                                                         AssertEx.SetEqual(expectedNames, GetAttributeNames(baseWrapper.GetAttributes()))
-                                                        AssertEx.SetEqual({}, GetAttributeNames(baseWrapper.GetReturnTypeAttributes()))
+                                                        Assert.Empty(baseWrapper.GetReturnTypeAttributes())
                                                     End Sub)
         End Sub
 
@@ -335,9 +335,9 @@ End Class
                                                                                {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute", "DebuggerHiddenAttribute"})
 
                                                         AssertEx.SetEqual(expectedNames, GetAttributeNames(baseWrapper.GetAttributes()))
-                                                        AssertEx.SetEqual({}, GetAttributeNames(baseWrapper.GetReturnTypeAttributes()))
-                                                        AssertEx.SetEqual({}, GetAttributeNames(baseWrapper.Parameters.Single().GetAttributes()))
-                                                        AssertEx.SetEqual({}, GetAttributeNames(baseWrapper.TypeParameters.Single().GetAttributes()))
+                                                        Assert.Empty(baseWrapper.GetReturnTypeAttributes())
+                                                        Assert.Empty(baseWrapper.Parameters.Single().GetAttributes())
+                                                        Assert.Empty(baseWrapper.TypeParameters.Single().GetAttributes())
                                                     End Sub)
         End Sub
 
