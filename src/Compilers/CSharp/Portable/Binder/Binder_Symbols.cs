@@ -1536,16 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (shouldRecordUsedAssemblyReferences() && qualifierOpt?.IsType != true)
                     {
-                        NamedTypeSymbol container = symbol.ContainingType;
-
-                        if (container is null)
-                        {
-                            Compilation.AddUsedAssembly(symbol.ContainingAssembly);
-                        }
-                        else
-                        {
-                            Compilation.AddAssembliesUsedByTypeReference(container);
-                        }
+                        Compilation.AddAssembliesUsedByTypeReference((NamedTypeSymbol)symbol);
                     }
                     break;
 

@@ -1398,12 +1398,11 @@ namespace Microsoft.CodeAnalysis
         internal abstract void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Unique metadata assembly references that are considered as used by this compilation.
+        /// Unique metadata assembly references that are considered to be used by this compilation.
         /// For example, if a type declared in a referenced assembly is referenced in source code 
         /// within this compilation, the reference is considered to be used. Etc.
         /// The returned set is a subset of references returned by <see cref="References"/> API.
-        /// If compilation contains errors, it is valid to consider all assembly references as used for the purpose
-        /// of this API. The actual behavior in this case could be implementation dependent.
+        /// The result is undefined if the compilation contains errors.
         /// </summary>
         internal abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
 

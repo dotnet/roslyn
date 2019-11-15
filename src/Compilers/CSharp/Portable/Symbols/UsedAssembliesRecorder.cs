@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(UsedAssemblyReferences): This error might not be cached, but its presence might affect cached full set of used assemblies. 
                 //                                    We would report all assemblies as used, even though no one will ever see this error and under
                 //                                    different environment state the pass could succeed causing us to return different set of used assemblies
-                //                                    with now apparent reason for the difference from the consumer's point of view. 
+                //                                    with no apparent reason for the difference from the consumer's point of view. 
                 ex.AddAnError(diagnostics);
             }
         }

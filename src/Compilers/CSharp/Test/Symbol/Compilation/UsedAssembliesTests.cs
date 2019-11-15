@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class UsedAssembliesTests : CSharpTestBase
     {
-
         [Fact]
         public void NoReferences_01()
         {
