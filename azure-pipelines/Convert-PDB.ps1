@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Builds all projects in this repo.
+    Converts between Windows PDB and Portable PDB formats.
 .PARAMETER DllPath
     The path to the DLL whose PDB is to be converted.
 .PARAMETER PdbPath
