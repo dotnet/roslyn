@@ -113,6 +113,16 @@ public class C2
             return AssertUsedAssemblyReferences(source, references, references);
         }
 
+        private static void AssertUsedAssemblyReferences(string source, MetadataReference[] references, params DiagnosticDescription[] expected)
+        {
+            Compilation comp = CreateCompilation(source, references: references);
+            var diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(expected);
+
+            Assert.True(diagnostics.Any(d => d.DefaultSeverity == DiagnosticSeverity.Error));
+            AssertEx.Equal(comp.References.Where(r => r.Properties.Kind == MetadataImageKind.Assembly), comp.GetUsedAssemblyReferences());
+        }
+
         [Fact]
         public void NoReferences_03()
         {
@@ -1263,18 +1273,193 @@ public class C2
 }
 ";
 
-            Compilation comp2 = CreateCompilation(source2, references: new[] { comp0Ref, comp1Ref });
-            comp2.VerifyDiagnostics(
+            AssertUsedAssemblyReferences(source2, references: new[] { comp0Ref, comp1Ref },
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C0.M1(string, string)' and 'C1.M1(string, string)'
                 //         x.M1("b");
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C0.M1(string, string)", "C1.M1(string, string)").WithLocation(7, 11)
                 );
+        }
 
-            var used = comp2.GetUsedAssemblyReferences();
-            foreach (var reference in comp2.References)
-            {
-                Assert.Contains(reference, used);
-            }
+        [Fact]
+        public void MethodReference_05()
+        {
+            var source0 =
+@"
+public class C0
+{
+}
+";
+            var comp0 = CreateCompilation(source0, assemblyName: "MethodReference_05_0");
+            var comp0Ref = comp0.ToMetadataReference();
+
+            var source1 =
+@"
+public static class C1
+{
+    public static void M1(this string x, C0 y) { }
+}
+
+public interface I1 {}
+";
+            var comp1 = CreateCompilation(source1, references: new[] { comp0Ref });
+            var comp1Ref = comp1.ToMetadataReference();
+
+            var source2 =
+@"
+public static class C2
+{
+    public static void M1(this string x, string y) { }
+}
+";
+            var comp2 = CreateCompilation(source2);
+            var comp2Ref = comp2.ToMetadataReference();
+
+            var source3 =
+@"
+public class C3
+{
+    public static void Main()
+    {
+        var x = ""a"";
+        x.M1(""b"");
+    }
+}
+";
+
+            AssertUsedAssemblyReferences(source3, references: new[] { comp0Ref, comp1Ref, comp2Ref }, comp2Ref);
+
+            AssertUsedAssemblyReferences(source3, references: new[] { comp1Ref, comp2Ref },
+                // (7,9): error CS0012: The type 'C0' is defined in an assembly that is not referenced. You must add a reference to assembly 'MethodReference_05_0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         x.M1("b");
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "x.M1").WithArguments("C0", "MethodReference_05_0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9)
+                );
+
+            var source4 =
+@"
+public class C3
+{
+    public static void Main()
+    {
+        var x = ""a"";
+        x.M1(""b"");
+    }
+
+    void M1(I1 x) {}
+}
+";
+            AssertUsedAssemblyReferences(source4, references: new[] { comp0Ref, comp1Ref, comp2Ref }, comp0Ref, comp1Ref, comp2Ref);
+
+            AssertUsedAssemblyReferences(source4, references: new[] { comp1Ref, comp2Ref },
+                // (7,9): error CS0012: The type 'C0' is defined in an assembly that is not referenced. You must add a reference to assembly 'MethodReference_05_0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         x.M1("b");
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "x.M1").WithArguments("C0", "MethodReference_05_0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodReference_06()
+        {
+            var source0 =
+@"
+public class C0
+{
+}
+";
+            var comp0 = CreateCompilation(source0);
+            var comp0Ref = comp0.ToMetadataReference();
+
+            var source1 =
+@"
+public class C1
+{
+    public void M1(C0 y) { }
+}
+";
+            var comp1 = CreateCompilation(source1, references: new[] { comp0Ref });
+            var comp1Ref = comp1.ToMetadataReference();
+            var comp1ImageRef = comp1.EmitToImageReference();
+
+            var source2 =
+@"
+public class C2 : C1
+{
+    public void M1(string y) { }
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp1Ref });
+            var comp2Ref = comp2.ToMetadataReference();
+            var comp2ImageRef = comp2.EmitToImageReference();
+
+            var source3 =
+@"
+public class C3
+{
+    public static void Main()
+    {
+        var x = ""a"";
+        new C2().M1(x);
+    }
+}
+";
+
+            AssertUsedAssemblyReferences(source3, references: new[] { comp0Ref, comp1Ref, comp2Ref }, comp0Ref, comp1Ref, comp2Ref);
+            AssertUsedAssemblyReferences(source3, references: new[] { comp1Ref, comp2Ref }, comp1Ref, comp2Ref);
+            AssertUsedAssemblyReferences(source3, references: new[] { comp1ImageRef, comp2Ref }, comp1ImageRef, comp2Ref);
+            AssertUsedAssemblyReferences(source3, references: new[] { comp1Ref, comp2ImageRef }, comp1Ref, comp2ImageRef);
+            AssertUsedAssemblyReferences(source3, references: new[] { comp1ImageRef, comp2ImageRef }, comp1ImageRef, comp2ImageRef);
+        }
+
+        [Fact]
+        public void MethodReference_07()
+        {
+            var source0 =
+@"
+public class C0
+{
+}
+";
+            var comp0 = CreateCompilation(source0, assemblyName: "MethodReference_07_0");
+            var comp0Ref = comp0.ToMetadataReference();
+
+            var source1 =
+@"
+public class C1
+{
+    public void M1(string y) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.ToMetadataReference();
+
+            var source2 =
+@"
+public class C2 : C1
+{
+    public void M1(C0 y) { }
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp0Ref, comp1Ref });
+            var comp2Ref = comp2.ToMetadataReference();
+
+            var source3 =
+@"
+public class C3
+{
+    public static void Main()
+    {
+        var x = ""a"";
+        new C2().M1(x);
+    }
+}
+";
+
+            AssertUsedAssemblyReferences(source3, references: new[] { comp0Ref, comp1Ref, comp2Ref }, comp0Ref, comp1Ref, comp2Ref);
+
+            AssertUsedAssemblyReferences(source3, references: new[] { comp1Ref, comp2Ref },
+                // (7,9): error CS0012: The type 'C0' is defined in an assembly that is not referenced. You must add a reference to assembly 'MethodReference_07_0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         new C2().M1(x);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new C2().M1").WithArguments("C0", "MethodReference_07_0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9)
+                );
         }
 
         [Fact]
