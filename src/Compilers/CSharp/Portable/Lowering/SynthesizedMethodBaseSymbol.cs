@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal = 0;
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var parameters = this.BaseMethodParameters;
-            var inheritAttributes = this.BaseMethod.SynthesizedMethodsInheritAttributes;
+            var inheritAttributes = InheritsBaseMethodAttributes;
             foreach (var p in parameters)
             {
                 builder.Add(SynthesizedParameterSymbol.Create(
@@ -137,18 +137,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        /// <summary>
+        /// Indicates that this method inherits attributes from the base method, its parameters, return type, and type parameters.
+        /// </summary>
+        internal virtual bool InheritsBaseMethodAttributes => false;
+
+        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             Debug.Assert(base.GetAttributes().IsEmpty);
-            return BaseMethod.SynthesizedMethodsInheritAttributes
+            return InheritsBaseMethodAttributes
                 ? BaseMethod.GetAttributes()
                 : ImmutableArray<CSharpAttributeData>.Empty;
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
         {
             Debug.Assert(base.GetReturnTypeAttributes().IsEmpty);
-            return BaseMethod.SynthesizedMethodsInheritAttributes ? BaseMethod.GetReturnTypeAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
+            return InheritsBaseMethodAttributes ? BaseMethod.GetReturnTypeAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
         }
 
         public sealed override RefKind RefKind

@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => ImmutableArray<TypeSymbol>.CastUp(_structEnvironments);
         internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
+        internal override bool InheritsBaseMethodAttributes => BaseMethod is LocalFunctionSymbol;
         internal override bool GenerateDebugInfo => !this.IsAsync;
         internal override bool IsExpressionBodied => false;
         internal MethodSymbol TopLevelMethod => _topLevelMethod;

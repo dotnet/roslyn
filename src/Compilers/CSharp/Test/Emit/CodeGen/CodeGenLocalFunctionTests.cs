@@ -5355,7 +5355,7 @@ class C
                 var attrs1 = localFn1.GetAttributes();
                 Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
 
-                // PROTOTYPE: consider preventing the lowered local function from containing DynamicAttribute
+                // PROTOTYPE(local-function-attributes): consider preventing the lowered local function from containing DynamicAttribute
                 Assert.Equal("DynamicAttribute", localFn1.GetReturnTypeAttributes().Single().AttributeClass.Name);
 
                 var param = localFn1.Parameters.Single();
@@ -5363,7 +5363,7 @@ class C
             }
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact(Skip = "PROTOTYPE(local-function-attributes)")]
         public void LocalFunctionConditionalAttribute()
         {
             var source = @"
@@ -5391,7 +5391,7 @@ class C
                 symbolValidator: validate,
                 expectedOutput: "hello");
 
-            // PROTOTYPE: local functions with conditional attribute should not run in release mode
+            // PROTOTYPE(local-function-attributes): local functions with conditional attribute should not run in release mode
             CompileAndVerify(
                 source,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),

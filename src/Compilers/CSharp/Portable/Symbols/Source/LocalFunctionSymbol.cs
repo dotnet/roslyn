@@ -383,8 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
-        internal override bool SynthesizedMethodsInheritAttributes => true;
-
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Method | AttributeLocation.Return;

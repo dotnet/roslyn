@@ -7154,7 +7154,7 @@ done:;
                 case SyntaxKind.ProtectedKeyword:
                 case SyntaxKind.PrivateKeyword:
                 // could be a local function with attributes
-                case SyntaxKind.OpenBracketToken:  // PROTOTYPE reuse this or always allow the OpenBracketToken?
+                case SyntaxKind.OpenBracketToken:  // PROTOTYPE(local-function-attributes): reuse this or always allow the OpenBracketToken?
                     return acceptAccessibilityMods;
                 default:
                     return IsPredefinedType(tk)

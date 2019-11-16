@@ -3117,7 +3117,7 @@ class C
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip = "PROTOTYPE")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip = "PROTOTYPE(local-function-attributes)")]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_LocalFunction()
         {
             string source = @"
@@ -3142,7 +3142,7 @@ class C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
 
-            // PROTOTYPE: EnumeratorCancellation attribute should produce a combinedTokens field and modify codegen
+            // PROTOTYPE(local-function-attributes): EnumeratorCancellation attribute should produce a combinedTokens field and modify codegen
             var expectedFields = new[] {
                 "FieldDefinition:Int32 <>1__state",
                 "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",

@@ -330,11 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor;
 
         /// <summary>
-        /// Indicates whether synthesized methods derived from this method should inherit the attributes of this method, its parameters, return type, and type parameters.
-        /// </summary>
-        internal virtual bool SynthesizedMethodsInheritAttributes => false;
-
-        /// <summary>
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>
         /// <remarks>

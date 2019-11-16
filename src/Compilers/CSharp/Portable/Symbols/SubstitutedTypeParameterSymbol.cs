@@ -92,11 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
-        {
-            return _underlyingTypeParameter.GetAttributes();
-        }
-
         internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
