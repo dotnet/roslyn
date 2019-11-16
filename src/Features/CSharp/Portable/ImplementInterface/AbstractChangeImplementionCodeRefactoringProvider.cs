@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 Implement, nestedActions.ToImmutableAndFree(), isInlinable: true));
         }
 
-        private static async Task<(SyntaxNode, ExplicitInterfaceSpecifierSyntax?, SyntaxToken)> GetContainerAsync(CodeRefactoringContext context)
+        private static async Task<(SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken)> GetContainerAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
 
