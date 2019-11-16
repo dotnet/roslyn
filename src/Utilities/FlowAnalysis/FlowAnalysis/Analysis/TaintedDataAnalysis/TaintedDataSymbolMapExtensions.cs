@@ -37,8 +37,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             [NotNullWhen(returnValue: true)] out PooledHashSet<string>? allTaintedTargets)
         {
             allTaintedTargets = null;
-            PointsToAnalysisResult pointsToAnalysisResult = null;
-            ValueContentAnalysisResult valueContentAnalysisResult = null;
+            PointsToAnalysisResult? pointsToAnalysisResult = null;
+            ValueContentAnalysisResult? valueContentAnalysisResult = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
                 foreach ((MethodMatcher methodMatcher, ImmutableHashSet<string> taintedTargets) in sourceInfo.TaintedMethods)
@@ -67,10 +67,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s =>
                             s.pointsToCheck(
                                 arguments.Select(o =>
-                                    // TODO(dotpaul): Remove the below suppression.
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
                                     pointsToAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray()));
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
                         if (positivePointsToTaintedTargets.Any())
                         {
                             if (allTaintedTargets == null)
@@ -96,11 +93,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                         IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s =>
                             s.valueContentCheck(
-                                // TODO(dotpaul): Remove the below suppression.
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
                                 arguments.Select(o => pointsToAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray(),
                                 arguments.Select(o => valueContentAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray()));
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
                         if (positiveValueContentTaintedTargets.Any())
                         {
                             if (allTaintedTargets == null)
