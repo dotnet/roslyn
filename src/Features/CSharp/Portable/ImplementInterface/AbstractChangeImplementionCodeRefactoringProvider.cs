@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected abstract string Implement_all_interfaces { get; }
         protected abstract string Implement { get; }
 
-        protected abstract bool CheckExplicitName(ExplicitInterfaceSpecifierSyntax? explicitName);
+        protected abstract bool CheckExplicitNameAllowsConversion(ExplicitInterfaceSpecifierSyntax? explicitName);
         protected abstract bool CheckMember(ISymbol member);
         protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol interfaceMember);
         protected abstract Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (container == null)
                 return;
 
-            if (!CheckExplicitName(explicitName))
+            if (!CheckExplicitNameAllowsConversion(explicitName))
                 return;
 
             var (document, _, cancellationToken) = context;

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override string Implement => FeaturesResources.Implement_implicitly;
 
         // We need to be an explicit impl in order to convert to implicit.
-        protected override bool CheckExplicitName(ExplicitInterfaceSpecifierSyntax? explicitName)
+        protected override bool CheckExplicitNameAllowsConversion(ExplicitInterfaceSpecifierSyntax? explicitName)
             => explicitName != null;
 
         // If we don't implement any interface members explicitly we can't convert this to be

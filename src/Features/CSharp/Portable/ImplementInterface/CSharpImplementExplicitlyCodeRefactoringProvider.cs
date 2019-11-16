@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override string Implement => FeaturesResources.Implement_explicitly;
 
         // If we already have an explicit name, we can't change this to be explicit.
-        protected override bool CheckExplicitName(ExplicitInterfaceSpecifierSyntax? explicitName)
+        protected override bool CheckExplicitNameAllowsConversion(ExplicitInterfaceSpecifierSyntax? explicitName)
             => explicitName == null;
 
         // If we don't implement any interface members we can't convert this to be explicit.
