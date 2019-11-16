@@ -3,7 +3,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected abstract bool CheckExplicitName(ExplicitInterfaceSpecifierSyntax? explicitName);
         protected abstract bool CheckMember(ISymbol member);
         protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol interfaceMember);
-        protected abstract Task UpdateReferencesAsync(Project project, Dictionary<Document, SyntaxEditor> documentToEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken);
+        protected abstract Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -198,20 +197,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         private async Task<Solution> ChangeImplementationAsync(
             Project project, MemberImplementationMap implMemberToInterfaceMembers, CancellationToken cancellationToken)
         {
+            var solution = project.Solution;
+            var solutionEditor = new SolutionEditor(solution);
+
             // First, we have to go through and find all the references to these interface
             // implementation members.  We may have to update them to preserve semantics.  i.e. a
             // call to goo.Bar() will be updated to `((IGoo)goo).Bar()` if we're switching to
             // explicit implementation.
-            var documentToEditor = new Dictionary<Document, SyntaxEditor>();
             foreach (var (implMember, interfaceMembers) in implMemberToInterfaceMembers)
             {
                 await UpdateReferencesAsync(
-                    project, documentToEditor, implMember,
+                    project, solutionEditor, implMember,
                     interfaceMembers.First().ContainingType,
                     cancellationToken).ConfigureAwait(false);
             }
-
-            var solution = project.Solution;
 
             // Now, bucket all the implemented members by which document they appear in.
             // That way, we can update all the members in a specific document in bulk.
@@ -235,7 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var currentSolution = solution;
             foreach (var (document, declsAndSymbol) in documentToImplDeclarations)
             {
-                var editor = await GetEditor(documentToEditor, document, cancellationToken).ConfigureAwait(false);
+                var editor = await solutionEditor.GetDocumentEditorAsync(
+                    document.Id, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (decl, symbols) in declsAndSymbol)
                 {
@@ -248,19 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
 
             return currentSolution;
-        }
-
-        protected static async Task<SyntaxEditor> GetEditor(
-            Dictionary<Document, SyntaxEditor> documentToEditor, Document document, CancellationToken cancellationToken)
-        {
-            if (!documentToEditor.TryGetValue(document, out var editor))
-            {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-                documentToEditor.Add(document, editor);
-            }
-
-            return editor;
         }
 
         private class MyCodeAction : CodeAction.SolutionChangeAction

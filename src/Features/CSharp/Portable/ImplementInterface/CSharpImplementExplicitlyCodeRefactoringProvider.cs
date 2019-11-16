@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             => member.ImplicitInterfaceImplementations().Length > 0;
 
         protected override async Task UpdateReferencesAsync(
-            Project project, Dictionary<Document, SyntaxEditor> documentToEditor,
+            Project project, SolutionEditor solutionEditor,
             ISymbol implMember, INamedTypeSymbol interfaceType, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = await GetEditor(documentToEditor, document, cancellationToken).ConfigureAwait(false);
+                var editor = await solutionEditor.GetDocumentEditorAsync(
+                    document.Id, cancellationToken).ConfigureAwait(false);
 
                 foreach (var refLocation in group)
                 {

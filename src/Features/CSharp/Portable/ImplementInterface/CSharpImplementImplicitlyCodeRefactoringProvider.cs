@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             => member.ExplicitInterfaceImplementations().Length > 0;
 
         // When converting to implicit, we don't need to update any references.
-        protected override Task UpdateReferencesAsync(Project project, Dictionary<Document, SyntaxEditor> documentToEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        protected override Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _)
