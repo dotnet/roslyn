@@ -412,6 +412,86 @@ class T
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUpdateReferences_CrossLanguage()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""A1"">
+        <Document FilePath=""File.cs"">
+using System;
+public interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+public class C : IGoo
+{
+    public int [||]Prop { get { } set { } }
+    public int M(int i) { }
+    public event Action Ev { add { } remove { } }
+}
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" CommonReferences=""true"" AssemblyName=""A2"">
+        <ProjectReference>A1</ProjectReference>
+        <Document>
+class T
+    sub External(c1 as C)
+        dim v = c1.Prop
+        c1.Prop = 1
+
+        c1.M(0)
+        c1.M(c1.M(0))
+
+        dim x = new C() with {
+            .Prop = 1
+        }
+
+        dim v1 = nameof(c1.Prop)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+",
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""A1"">
+        <Document FilePath=""File.cs"">
+using System;
+public interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+public class C : IGoo
+{
+    int IGoo.Prop { get { } set { } }
+    int IGoo.M(int i) { }
+    event Action IGoo.Ev { add { } remove { } }
+}
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" CommonReferences=""true"" AssemblyName=""A2"">
+        <ProjectReference>A1</ProjectReference>
+        <Document>
+class T
+    sub External(c1 as C)
+        dim v = DirectCast(c1, IGoo).Prop
+        DirectCast(c1, IGoo).Prop = 1
+
+        DirectCast(c1, IGoo).M(0)
+        DirectCast(c1, IGoo).M(DirectCast(c1, IGoo).M(0))
+
+        dim x = new C() with {
+            .Prop = 1
+        }
+
+        dim v1 = nameof(c1.Prop)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMemberWhichImplementsMultipleMembers()
         {
             await TestInRegularAndScriptAsync(
