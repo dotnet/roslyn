@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 node = node.Parent;
 
             var operation = semanticModel.GetOperation(node);
-            if (operation == null || operation.Kind == OperationKind.None)
-                return;
-
-            var instance =
-                operation is IMemberReferenceOperation memberReference ? memberReference.Instance :
-                operation is IInvocationOperation invocation ? invocation.Instance : null;
+            var instance = operation switch
+            {
+                IMemberReferenceOperation memberReference => memberReference.Instance,
+                IInvocationOperation invocation => invocation.Instance,
+                _ => null,
+            };
 
             if (instance == null)
                 return;
