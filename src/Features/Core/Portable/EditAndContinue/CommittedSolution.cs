@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(DocumentId documentId, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
         {
             Document? document;
+            var matchLoadedModulesOnly = false;
 
             lock (_guard)
             {
@@ -174,7 +175,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         case DocumentState.MatchesBuildOutput:
                             // Module might have been loaded since the last time we checked,
                             // let's check whether that is so and the document now matches the debuggee.
+                            // Do not try to read the information from on-disk module again.
                             // CONSIDER: Reusing the state until we receive module load event.
+                            matchLoadedModulesOnly = true;
                             break;
 
                         case DocumentState.OutOfSync:
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var (matchingSourceText, checksumOrigin, isDocumentMissing) = await TryGetPdbMatchingSourceTextAsync(document.FilePath, document.Project.Id, cancellationToken).ConfigureAwait(false);
+            var (matchingSourceText, checksumOrigin, isDocumentMissing) = await TryGetPdbMatchingSourceTextAsync(document.FilePath, document.Project.Id, matchLoadedModulesOnly, cancellationToken).ConfigureAwait(false);
 
             lock (_guard)
             {
@@ -208,6 +211,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (checksumOrigin == SourceHashOrigin.None)
                 {
+                    // We know the document matches the build output and the module is still not loaded.
+                    if (matchLoadedModulesOnly)
+                    {
+                        return (document, DocumentState.MatchesBuildOutput);
+                    }
+
                     // PDB for the module not found (neither loaded nor in built outputs):
                     Debug.Assert(isDocumentMissing);
                     return (null, DocumentState.DesignTimeOnly);
@@ -265,9 +274,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<(SourceText? Source, SourceHashOrigin ChecksumOrigin, bool IsDocumentMissing)> TryGetPdbMatchingSourceTextAsync(string sourceFilePath, ProjectId projectId, CancellationToken cancellationToken)
+        private async Task<(SourceText? Source, SourceHashOrigin ChecksumOrigin, bool IsDocumentMissing)> TryGetPdbMatchingSourceTextAsync(string sourceFilePath, ProjectId projectId, bool matchLoadedModulesOnly, CancellationToken cancellationToken)
         {
-            var (symChecksum, algorithm, origin) = await TryReadSourceFileChecksumFromPdb(sourceFilePath, projectId, cancellationToken).ConfigureAwait(false);
+            var (symChecksum, algorithm, origin) = await TryReadSourceFileChecksumFromPdb(sourceFilePath, projectId, matchLoadedModulesOnly, cancellationToken).ConfigureAwait(false);
             if (symChecksum.IsDefault)
             {
                 return (Source: null, origin, IsDocumentMissing: true);
@@ -292,7 +301,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<(ImmutableArray<byte> Checksum, SourceHashAlgorithm Algorithm, SourceHashOrigin Origin)> TryReadSourceFileChecksumFromPdb(string sourceFilePath, ProjectId projectId, CancellationToken cancellationToken)
+        private async Task<(ImmutableArray<byte> Checksum, SourceHashAlgorithm Algorithm, SourceHashOrigin Origin)> TryReadSourceFileChecksumFromPdb(string sourceFilePath, ProjectId projectId, bool matchLoadedModulesOnly, CancellationToken cancellationToken)
         {
             try
             {
@@ -348,6 +357,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             }
 
                             return (default, default, SourceHashOrigin.LoadedPdb);
+                        }
+
+                        if (matchLoadedModulesOnly)
+                        {
+                            return (default, default, SourceHashOrigin.None);
                         }
 
                         // if the module is not loaded check against build output:
