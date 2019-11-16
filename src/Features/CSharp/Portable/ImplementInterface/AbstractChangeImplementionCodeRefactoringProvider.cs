@@ -20,7 +20,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    // A mapping from a concrete member to the interface members it implements.
+    // A mapping from a concrete member to the interface members it implements. We need this to be
+    // Ordered so that we process members in a consistent order (esp. necessary during tests).  For
+    // example, if an implicit method implements multiple interface methods, we want to walk those
+    // in the same order every time when converting the implicit method to multiple explicit
+    // methods.
     using MemberImplementationMap = OrderedMultiDictionary<ISymbol, ISymbol>;
 
     internal abstract class AbstractChangeImplementionCodeRefactoringProvider : CodeRefactoringProvider
