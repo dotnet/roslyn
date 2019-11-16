@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return (container, explicitName, identifier);
         }
 
-        private static (SyntaxNode, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
+        private static (SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
         {
             for (var node = token.Parent; node != null; node = node.Parent)
             {
