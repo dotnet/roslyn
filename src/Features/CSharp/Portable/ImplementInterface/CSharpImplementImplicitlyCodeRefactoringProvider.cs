@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),
                 PropertyDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),
                 EventDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),
-                _ => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(decl),
             };
     }
 }
