@@ -128,6 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // Offer the feature if the user is anywhere between the start of the explicit-impl of
             // the member (if we have one) and the end if the identifier of the member.
             var (container, explicitName, identifier) = GetContainer(token);
+            if (container == null)
+                return default;
+
             var applicableSpan = explicitName == null
                 ? identifier.FullSpan
                 : TextSpan.FromBounds(explicitName.FullSpan.Start, identifier.FullSpan.End);
