@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected abstract string Implement { get; }
 
         protected abstract bool CheckExplicitNameAllowsConversion(ExplicitInterfaceSpecifierSyntax? explicitName);
-        protected abstract bool CheckMember(ISymbol member);
+        protected abstract bool CheckMemberCanBeConverted(ISymbol member);
         protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol interfaceMember);
         protected abstract Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken);
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var member = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             Contract.ThrowIfNull(member);
 
-            if (!CheckMember(member))
+            if (!CheckMemberCanBeConverted(member))
                 return;
 
             var project = document.Project;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     var impl = containingType.FindImplementationForInterfaceMember(interfaceMember);
                     if (impl != null &&
                         containingType.Equals(impl.ContainingType) &&
-                        CheckMember(impl) &&
+                        CheckMemberCanBeConverted(impl) &&
                         !impl.IsAccessor())
                     {
                         result.Add(impl, interfaceMember);

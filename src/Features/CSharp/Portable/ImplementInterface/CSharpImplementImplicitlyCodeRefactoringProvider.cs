@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         // If we don't implement any interface members explicitly we can't convert this to be
         // implicit.
-        protected override bool CheckMember(ISymbol member)
+        protected override bool CheckMemberCanBeConverted(ISymbol member)
             => member.ExplicitInterfaceImplementations().Length > 0;
 
         // When converting to implicit, we don't need to update any references.

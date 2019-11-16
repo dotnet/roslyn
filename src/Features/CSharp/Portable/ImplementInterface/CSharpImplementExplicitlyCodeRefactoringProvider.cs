@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             => explicitName == null;
 
         // If we don't implement any interface members we can't convert this to be explicit.
-        protected override bool CheckMember(ISymbol member)
+        protected override bool CheckMemberCanBeConverted(ISymbol member)
             => member.ImplicitInterfaceImplementations().Length > 0;
 
         protected override async Task UpdateReferencesAsync(
