@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (useLegacyWarnings &&
                 valueType.Type?.TypeKind == TypeKind.TypeParameter &&
-                valueType.State == NullableFlowState.MaybeNullEvenIfNotNullable)
+                valueType.State == NullableFlowState.MaybeDefault)
             {
                 // No W warning reported assigning or casting [MaybeNull]T value to T
                 // because there is no syntax for declaring the target type as [MaybeNull]T.
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
         {
             return ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0) ?
-                TypeWithState.Create(parameterType.Type, NullableFlowState.MaybeNullEvenIfNotNullable) :
+                TypeWithState.Create(parameterType.Type, NullableFlowState.MaybeDefault) :
                 parameterType.ToTypeWithState();
         }
 
@@ -2886,7 +2886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Per LDM 2019-02-13 decision, the result of a conditional access "may be null" even if
             // both the receiver and right-hand-side are believed not to be null.
-            SetResultType(node, TypeWithState.Create(resultType, NullableFlowState.MaybeNullEvenIfNotNullable));
+            SetResultType(node, TypeWithState.Create(resultType, NullableFlowState.MaybeDefault));
             _currentConditionalReceiverVisitResult = default;
             _lastConditionalAccessSlot = previousConditionalAccessSlot;
             return null;
@@ -3410,7 +3410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
             {
-                return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNullEvenIfNotNullable);
+                return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
             }
 
             if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
@@ -5366,10 +5366,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (operandType.Type?.IsTypeParameterDisallowingAnnotation() != true &&
                             targetType.Type?.IsTypeParameterDisallowingAnnotation() == true)
                         {
-                            return NullableFlowState.MaybeNullEvenIfNotNullable;
+                            return NullableFlowState.MaybeDefault;
                         }
                         break;
-                    case NullableFlowState.MaybeNullEvenIfNotNullable:
+                    case NullableFlowState.MaybeDefault:
                         if (targetType.Type?.IsTypeParameterDisallowingAnnotation() == false)
                         {
                             return NullableFlowState.MaybeNull;
@@ -5400,7 +5400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var state = operandType.State;
                 if (state == NullableFlowState.MaybeNull)
                 {
-                    return NullableFlowState.MaybeNullEvenIfNotNullable;
+                    return NullableFlowState.MaybeDefault;
                 }
                 return state;
             }
@@ -5413,7 +5413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var type = operandType.Type;
                     if ((object)type == null || !type.IsTypeParameterDisallowingAnnotation())
                     {
-                        return NullableFlowState.MaybeNullEvenIfNotNullable;
+                        return NullableFlowState.MaybeDefault;
                     }
                 }
                 return state;
@@ -7345,7 +7345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        resultState = NullableFlowState.MaybeNullEvenIfNotNullable;
+                        resultState = NullableFlowState.MaybeDefault;
                         break;
                 }
             }
@@ -7384,7 +7384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitLiteral(node);
 
             Debug.Assert(!IsConditionalState);
-            SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeNullEvenIfNotNullable : NullableFlowState.NotNull));
+            SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull));
 
             if (node.ConstantValue?.IsBoolean == true)
             {
@@ -7964,7 +7964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (false, false) => NullableFlowState.NotNull,
                             (false, true) => NullableFlowState.MaybeNull,
                             (true, false) => throw ExceptionUtilities.UnexpectedValue(slot),
-                            (true, true) => NullableFlowState.MaybeNullEvenIfNotNullable
+                            (true, true) => NullableFlowState.MaybeDefault
                         };
                     }
                     return NullableFlowState.NotNull;
@@ -7975,7 +7975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!this.Reachable) return;
                     slot *= 2;
                     _state[slot] = (value != NullableFlowState.NotNull);
-                    _state[slot + 1] = (value == NullableFlowState.MaybeNullEvenIfNotNullable);
+                    _state[slot + 1] = (value == NullableFlowState.MaybeDefault);
                 }
             }
 

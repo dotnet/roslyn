@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CSharp.NullableFlowState.NotNull => CodeAnalysis.NullableFlowState.NotNull,
                 CSharp.NullableFlowState.MaybeNull => CodeAnalysis.NullableFlowState.MaybeNull,
-                CSharp.NullableFlowState.MaybeNullEvenIfNotNullable => CodeAnalysis.NullableFlowState.MaybeNull,
+                CSharp.NullableFlowState.MaybeDefault => CodeAnalysis.NullableFlowState.MaybeNull,
                 _ => throw ExceptionUtilities.UnexpectedValue(nullableFlowState)
             };
 

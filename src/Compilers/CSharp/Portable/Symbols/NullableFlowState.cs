@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Maybe null (type may be not nullable).
         /// </summary>
-        MaybeNullEvenIfNotNullable = 0b11,
+        MaybeDefault = 0b11,
     }
 }

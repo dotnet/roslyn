@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeWithState ForType(TypeSymbol type)
         {
-            return Create(type, NullableFlowState.MaybeNullEvenIfNotNullable);
+            return Create(type, NullableFlowState.MaybeDefault);
         }
 
         public static TypeWithState Create(TypeSymbol type, NullableFlowState defaultState)
         {
-            if (defaultState == NullableFlowState.MaybeNullEvenIfNotNullable &&
+            if (defaultState == NullableFlowState.MaybeDefault &&
                 (type is null || type.IsTypeParameterDisallowingAnnotation()))
             {
                 return new TypeWithState(type, defaultState);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
                 {
-                    state = NullableFlowState.MaybeNullEvenIfNotNullable;
+                    state = NullableFlowState.MaybeDefault;
                 }
                 else if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
                 {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeWithState(TypeSymbol type, NullableFlowState state)
         {
             Debug.Assert(state == NullableFlowState.NotNull || type?.CanContainNull() != false);
-            Debug.Assert(state != NullableFlowState.MaybeNullEvenIfNotNullable || type is null || type.IsTypeParameterDisallowingAnnotation());
+            Debug.Assert(state != NullableFlowState.MaybeDefault || type is null || type.IsTypeParameterDisallowingAnnotation());
             Type = type;
             State = state;
         }
