@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             /// The document content is matched with the build output instead of the loaded module
             ///  since the module hasn't been loaded yet.
             ///
-            /// This document state may change to to <see cref="OutOfSync"/>, <see cref="MatchesDebuggee"/>, 
+            /// This document state may change to <see cref="OutOfSync"/>, <see cref="MatchesDebuggee"/>, 
             /// or <see cref="DesignTimeOnly"/> or once the module has been loaded.
             /// </summary>
             MatchesBuildOutput = 1,
