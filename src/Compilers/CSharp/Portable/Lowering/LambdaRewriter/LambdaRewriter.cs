@@ -424,11 +424,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureKind = ClosureKind.ThisOnly;
                     closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
                 }
-                else if (closure.CapturedEnvironments.Count == 0 &&
-                         originalMethod.MethodKind == MethodKind.LambdaMethod &&
-                         _analysis.MethodsConvertedToDelegates.Contains(originalMethod))
+                else if ((closure.CapturedEnvironments.Count == 0 &&
+                          originalMethod.MethodKind == MethodKind.LambdaMethod &&
+                          _analysis.MethodsConvertedToDelegates.Contains(originalMethod)) ||
+                         // If we are in a variant interface, runtime might not consider the 
+                         // method synthesized directly within the interface as viriant safe.
+                         // For simplicity we do not perform precise analysis whether this would
+                         // definitely be the case. If we are in a variant interface, we always force
+                         // creation of a display class.
+                         VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is object)
                 {
-                    prepareForSingletonClosure(syntax, out closureOrdinal, out closureKind, out translatedLambdaContainer, out containerAsFrame);
+                    translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
+                    closureKind = ClosureKind.Singleton;
+                    closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
                 else
                 {
@@ -439,16 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
 
-                if ((closureKind == ClosureKind.Static || closureKind == ClosureKind.ThisOnly) &&
-                    VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is object)
-                {
-                    // If we are in a variant interface, runtime might not consider the 
-                    // method synthesized directly within the interface as viriant safe.
-                    // For simplicity we do not perform precise analysis whether this would
-                    // definitely be the case. If we are in a variant interface, we always force
-                    // creation of a display class.
-                    prepareForSingletonClosure(syntax, out closureOrdinal, out closureKind, out translatedLambdaContainer, out containerAsFrame);
-                }
+                Debug.Assert((object)translatedLambdaContainer != _topLevelMethod.ContainingType ||
+                             VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null);
 
                 // Move the body of the lambda to a freshly generated synthetic method on its frame.
                 topLevelMethodId = _analysis.GetTopLevelMethodId();
@@ -466,13 +466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Diagnostics);
                 closure.SynthesizedLoweredMethod = synthesizedMethod;
             });
-
-            void prepareForSingletonClosure(SyntaxNode syntax, out int closureOrdinal, out ClosureKind closureKind, out NamedTypeSymbol translatedLambdaContainer, out SynthesizedClosureEnvironment containerAsFrame)
-            {
-                translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
-                closureKind = ClosureKind.Singleton;
-                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
-            }
 
             static ImmutableArray<SynthesizedClosureEnvironment> getStructClosures(Analysis.Closure closure)
             {

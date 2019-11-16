@@ -59178,5 +59178,67 @@ interface I2<out T1, in T2>
 @"a
 b");
         }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_11()
+        {
+            var source1 =
+@"
+public interface I1<out T1, in T2>
+{
+    void M1()
+    {
+        T1 x = local(default);
+
+        T1 local(T1 x)
+        {
+            System.Console.WriteLine(GetString(""M1""));
+            return x;
+        }
+    }
+
+    string GetString(string s) => s;
+
+    void M2()
+    {
+        T2 x = local(default);
+
+        T2 local(T2 x)
+        {
+            System.Console.WriteLine(GetString(""M2""));
+            return x;
+        }
+    }
+}
+";
+            var source2 =
+@"
+class C1 : I1<C1, C1>
+{
+    static void Main()
+    {
+        I1<C1, C1> x = new C1();
+        x.M1();
+        x.M2();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2");
+            }
+        }
     }
 }

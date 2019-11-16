@@ -246,7 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         RemoveEnv();
                     }
                 }
-                else
+                // If we are in a variant interface, runtime might not consider the 
+                // method synthesized directly within the interface as viriant safe.
+                // For simplicity we do not perform precise analysis whether this would
+                // definitely be the case. If we are in a variant interface, we always force
+                // creation of a display class.
+                else if (VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null)
                 {
                     // Class-based 'this' closures can move member functions to
                     // the top-level type and environments which capture the 'this'
@@ -299,7 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // functions that capture those variables, so multiple passes may
                     // be needed. This will also decide if the environment is a struct
                     // or a class.
-                    bool isStruct = true;
+
+                    // If we are in a variant interface, runtime might not consider the 
+                    // method synthesized directly within the interface as viriant safe.
+                    // For simplicity we do not perform precise analysis whether this would
+                    // definitely be the case. If we are in a variant interface, we always force
+                    // creation of a display class.
+                    bool isStruct = VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null;
                     var closures = new SetWithInsertionOrder<Closure>();
                     bool addedItem;
 
