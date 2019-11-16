@@ -246,7 +246,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         method,
                         visitedArguments,
                         new Lazy<PointsToAnalysisResult?>(() => DataFlowAnalysisContext.PointsToAnalysisResultOpt),
-                        new Lazy<ValueContentAnalysisResult?>(() => DataFlowAnalysisContext.ValueContentAnalysisResultOpt),
+                        new Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)>(() => (DataFlowAnalysisContext.PointsToAnalysisResultOpt, DataFlowAnalysisContext.ValueContentAnalysisResultOpt)),
                         out taintedTargets))
                     {
                         foreach (string taintedTarget in taintedTargets)
