@@ -59,6 +59,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s =>
                             s.pointsToCheck(
                                 arguments.Select(o =>
+                                    // TODO(dotpaul): Remove the below suppression.
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
                                     pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
@@ -81,6 +82,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s =>
                             s.valueContentCheck(
                                 arguments.Select(o =>
+                                // TODO(dotpaul): Remove the below suppression.
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
                                 pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray(),
                                 arguments.Select(o => valueContentAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));

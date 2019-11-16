@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Abstract cache based equatable implementation for objects that are compared frequently and hence need a performance optimization of using a cached hash code.
     /// </summary>
-    public abstract class CacheBasedEquatable<T> : IEquatable<T>
+    public abstract class CacheBasedEquatable<T> : IEquatable<T?>
         where T : class
     {
         private ImmutableArray<int> _lazyHashCodeParts;

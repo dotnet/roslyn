@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 return ValueDomain.UnknownOrMayBeValue;
             }
 
-            public override ValueContentAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+            public override ValueContentAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object? argument)
             {
                 var leftValue = Visit(operation.LeftOperand, argument);
                 var rightValue = Visit(operation.RightOperand, argument);
@@ -212,14 +212,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 return targetValue.MergeBinaryOperation(incrementValue, operationKind, operation.Target.Type, incrementValueType, operation.Type);
             }
 
-            public override ValueContentAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+            public override ValueContentAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 // TODO: Analyze string constructor
                 // https://github.com/dotnet/roslyn-analyzers/issues/1547
                 return base.VisitObjectCreation(operation, argument);
             }
 
-            public override ValueContentAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object argument)
+            public override ValueContentAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object? argument)
             {
                 var value = base.VisitFieldReference(operation, argument);
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 return base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
             }
 
-            public override ValueContentAbstractValue VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
+            public override ValueContentAbstractValue VisitInterpolatedString(IInterpolatedStringOperation operation, object? argument)
             {
                 if (operation.Parts.IsEmpty)
                 {

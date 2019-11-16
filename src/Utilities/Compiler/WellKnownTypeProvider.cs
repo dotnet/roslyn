@@ -117,7 +117,7 @@ namespace Analyzer.Utilities
         /// <param name="typeArgumentPredicate">Predicate to check the <paramref name="typeSymbol"/>'s type argument.</param>
         /// <returns>True if <paramref name="typeSymbol"/> is a <see cref="System.Threading.Tasks.Task{TResult}"/> with its
         /// type argument satisfying <paramref name="typeArgumentPredicate"/>, false otherwise.</returns>
-        internal bool IsTaskOfType(ITypeSymbol? typeSymbol, Func<ITypeSymbol, bool> typeArgumentPredicate)
+        internal bool IsTaskOfType([NotNullWhen(returnValue: true)] ITypeSymbol? typeSymbol, Func<ITypeSymbol, bool> typeArgumentPredicate)
         {
             return typeSymbol != null
                 && typeSymbol.OriginalDefinition != null

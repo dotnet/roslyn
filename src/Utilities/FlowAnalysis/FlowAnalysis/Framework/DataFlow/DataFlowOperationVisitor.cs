@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Operation visitor to flow the abstract dataflow analysis values across a given statement in a basic block.
     /// </summary>
-    public abstract class DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> : OperationVisitor<object, TAbstractAnalysisValue>
+    public abstract class DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> : OperationVisitor<object?, TAbstractAnalysisValue>
         where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
@@ -2415,7 +2415,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return VisitArray(operation.Children, argument);
         }
 
-        public override TAbstractAnalysisValue VisitSimpleAssignment(ISimpleAssignmentOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitSimpleAssignment(ISimpleAssignmentOperation operation, object? argument)
         {
             return VisitAssignmentOperation(operation, argument);
         }
@@ -2452,12 +2452,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return ValueDomain.UnknownOrMayBeValue;
         }
 
-        public override TAbstractAnalysisValue VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, object? argument)
         {
             return VisitAssignmentOperation(operation, argument);
         }
 
-        protected virtual TAbstractAnalysisValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+        protected virtual TAbstractAnalysisValue VisitAssignmentOperation(IAssignmentOperation operation, object? argument)
         {
             _ = Visit(operation.Target, argument);
             TAbstractAnalysisValue assignedValue = Visit(operation.Value, argument);
@@ -2474,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return assignedValue;
         }
 
-        public override TAbstractAnalysisValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitArrayInitializer(IArrayInitializerOperation operation, object? argument)
         {
             var arrayCreation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
             if (arrayCreation != null)
@@ -2496,55 +2496,55 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return ValueDomain.UnknownOrMayBeValue;
         }
 
-        public override TAbstractAnalysisValue VisitLocalReference(ILocalReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitLocalReference(ILocalReferenceOperation operation, object? argument)
         {
             var value = base.VisitLocalReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitParameterReference(IParameterReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitParameterReference(IParameterReferenceOperation operation, object? argument)
         {
             var value = base.VisitParameterReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitArrayElementReference(IArrayElementReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitArrayElementReference(IArrayElementReferenceOperation operation, object? argument)
         {
             var value = base.VisitArrayElementReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, object? argument)
         {
             var value = base.VisitDynamicMemberReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitEventReference(IEventReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitEventReference(IEventReferenceOperation operation, object? argument)
         {
             var value = base.VisitEventReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitFieldReference(IFieldReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitFieldReference(IFieldReferenceOperation operation, object? argument)
         {
             var value = base.VisitFieldReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitMethodReference(IMethodReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitMethodReference(IMethodReferenceOperation operation, object? argument)
         {
             var value = base.VisitMethodReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitPropertyReference(IPropertyReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitPropertyReference(IPropertyReferenceOperation operation, object? argument)
         {
             var value = base.VisitPropertyReference(operation, argument);
             return ComputeAnalysisValueForReferenceOperation(operation, value);
         }
 
-        public override TAbstractAnalysisValue VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object? argument)
         {
             var value = base.VisitFlowCaptureReference(operation, argument);
             if (!IsLValueFlowCaptureReference(operation))
@@ -2591,7 +2591,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public override TAbstractAnalysisValue VisitFlowCapture(IFlowCaptureOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitFlowCapture(IFlowCaptureOperation operation, object? argument)
         {
             var value = Visit(operation.Value, argument);
             if (!IsLValueFlowCapture(operation))
@@ -2632,12 +2632,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public override TAbstractAnalysisValue VisitDefaultValue(IDefaultValueOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitDefaultValue(IDefaultValueOperation operation, object? argument)
         {
             return GetAbstractDefaultValue(operation.Type);
         }
 
-        public override TAbstractAnalysisValue VisitInterpolation(IInterpolationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitInterpolation(IInterpolationOperation operation, object? argument)
         {
             var expressionValue = Visit(operation.Expression, argument);
             _ = Visit(operation.FormatString, argument);
@@ -2645,12 +2645,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return expressionValue;
         }
 
-        public override TAbstractAnalysisValue VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, object? argument)
         {
             return Visit(operation.Text, argument);
         }
 
-        public sealed override TAbstractAnalysisValue VisitArgument(IArgumentOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitArgument(IArgumentOperation operation, object? argument)
         {
             var value = Visit(operation.Value, argument);
 
@@ -2714,22 +2714,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public override TAbstractAnalysisValue VisitConstantPattern(IConstantPatternOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitConstantPattern(IConstantPatternOperation operation, object? argument)
         {
             return Visit(operation.Value, argument);
         }
 
-        public override TAbstractAnalysisValue VisitParenthesized(IParenthesizedOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitParenthesized(IParenthesizedOperation operation, object? argument)
         {
             return Visit(operation.Operand, argument);
         }
 
-        public override TAbstractAnalysisValue VisitTranslatedQuery(ITranslatedQueryOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitTranslatedQuery(ITranslatedQueryOperation operation, object? argument)
         {
             return Visit(operation.Operation, argument);
         }
 
-        public override TAbstractAnalysisValue VisitConversion(IConversionOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitConversion(IConversionOperation operation, object? argument)
         {
             var operandValue = Visit(operation.Operand, argument);
 
@@ -2737,7 +2737,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return operation.Conversion.Exists && !operation.Conversion.IsUserDefined ? operandValue : ValueDomain.UnknownOrMayBeValue;
         }
 
-        public override TAbstractAnalysisValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
         {
             Debug.Assert(operation.Initializer == null, "Object or collection initializer must have been lowered in the CFG");
 
@@ -2750,7 +2750,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 operation.Arguments, operation, defaultValue, isLambdaOrLocalFunction: false);
         }
 
-        public sealed override TAbstractAnalysisValue VisitInvocation(IInvocationOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitInvocation(IInvocationOperation operation, object? argument)
         {
             TAbstractAnalysisValue value;
             if (operation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate())
@@ -2843,7 +2843,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        private TAbstractAnalysisValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object argument)
+        private TAbstractAnalysisValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IInvocationOperation operation, object? argument)
         {
             var value = base.VisitInvocation(operation, argument);
             return VisitInvocation_NonLambdaOrDelegateOrLocalFunction(operation.TargetMethod, operation.Instance, operation.Arguments,
@@ -2852,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private TAbstractAnalysisValue VisitInvocation_LambdaOrDelegateOrLocalFunction(
             IInvocationOperation operation,
-            object argument,
+            object? argument,
             out HashSet<(IMethodSymbol method, IOperation? instance)>? resolvedMethodTargetsOpt)
         {
             var value = base.VisitInvocation(operation, argument);
@@ -2986,7 +2986,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
                                     invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
                             inputAnalysisData: savedCurrentAnalysisData,
-                            mergedAnalysisData: mergedCurrentAnalysisData!,
+                            mergedAnalysisData: mergedCurrentAnalysisData,
                             first: ref first);
                         Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
                         oldMergedAnalysisData?.Dispose();
@@ -3001,7 +3001,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
                             computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
                             inputAnalysisData: savedCurrentAnalysisData,
-                            mergedAnalysisData: mergedCurrentAnalysisData!,
+                            mergedAnalysisData: mergedCurrentAnalysisData,
                             first: ref first);
                         Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
                         oldMergedAnalysisData?.Dispose();
@@ -3011,7 +3011,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(mergedCurrentAnalysisData == null || ReferenceEquals(mergedCurrentAnalysisData, CurrentAnalysisData));
             }
 
-            TAnalysisData AnalyzePossibleTargetInvocation(Func<TAbstractAnalysisValue> computeValueForInvocation, TAnalysisData inputAnalysisData, TAnalysisData mergedAnalysisData, ref bool first)
+            TAnalysisData AnalyzePossibleTargetInvocation(Func<TAbstractAnalysisValue> computeValueForInvocation, TAnalysisData inputAnalysisData, TAnalysisData? mergedAnalysisData, ref bool first)
             {
                 CurrentAnalysisData = GetClonedAnalysisData(inputAnalysisData);
                 var invocationValue = computeValueForInvocation();
@@ -3023,6 +3023,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
                 else
                 {
+                    RoslynDebug.Assert(mergedAnalysisData != null);
+
                     value = ValueDomain.Merge(value, invocationValue);
                     var result = MergeAnalysisData(mergedAnalysisData, CurrentAnalysisData);
                     CurrentAnalysisData.Dispose();
@@ -3136,7 +3138,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public override TAbstractAnalysisValue VisitTuple(ITupleOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitTuple(ITupleOperation operation, object? argument)
         {
             var elementValueBuilder = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length);
 
@@ -3183,12 +3185,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public virtual TAbstractAnalysisValue VisitUnaryOperatorCore(IUnaryOperation operation, object argument)
+        public virtual TAbstractAnalysisValue VisitUnaryOperatorCore(IUnaryOperation operation, object? argument)
         {
             return base.VisitUnaryOperator(operation, argument);
         }
 
-        public sealed override TAbstractAnalysisValue VisitUnaryOperator(IUnaryOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitUnaryOperator(IUnaryOperation operation, object? argument)
         {
             var value = VisitUnaryOperatorCore(operation, argument);
             if (PredicateAnalysis && operation.OperatorKind == UnaryOperatorKind.Not)
@@ -3199,12 +3201,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return value;
         }
 
-        public virtual TAbstractAnalysisValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+        public virtual TAbstractAnalysisValue VisitBinaryOperatorCore(IBinaryOperation operation, object? argument)
         {
             return base.VisitBinaryOperator(operation, argument);
         }
 
-        public sealed override TAbstractAnalysisValue VisitBinaryOperator(IBinaryOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitBinaryOperator(IBinaryOperation operation, object? argument)
         {
             var value = VisitBinaryOperatorCore(operation, argument);
             if (PredicateAnalysis && operation.IsComparisonOperator())
@@ -3215,7 +3217,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return value;
         }
 
-        public override TAbstractAnalysisValue VisitIsNull(IIsNullOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitIsNull(IIsNullOperation operation, object? argument)
         {
             var value = base.VisitIsNull(operation, argument);
             if (PredicateAnalysis)
@@ -3225,7 +3227,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return value;
         }
 
-        public override TAbstractAnalysisValue VisitCaughtException(ICaughtExceptionOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitCaughtException(ICaughtExceptionOperation operation, object? argument)
         {
             // Merge data from unhandled exception paths within try that match the caught exception type.
             if (operation.Type != null)
@@ -3281,19 +3283,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public override TAbstractAnalysisValue VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object? argument)
         {
             // https://github.com/dotnet/roslyn-analyzers/issues/1571 tracks adding support.
             return base.VisitFlowAnonymousFunction(operation, argument);
         }
 
-        public override TAbstractAnalysisValue VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object? argument)
         {
             // https://github.com/dotnet/roslyn-analyzers/issues/1571 tracks adding support.
             return base.VisitStaticLocalInitializationSemaphore(operation, argument);
         }
 
-        public override TAbstractAnalysisValue VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object? argument)
         {
             var savedIsInsideAnonymousObjectInitializer = IsInsideAnonymousObjectInitializer;
             IsInsideAnonymousObjectInitializer = true;
@@ -3302,7 +3304,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return value;
         }
 
-        public sealed override TAbstractAnalysisValue VisitReturn(IReturnOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitReturn(IReturnOperation operation, object? argument)
         {
             Debug.Assert(operation.Kind == OperationKind.YieldReturn, "IReturnOperation must have been lowered in the CFG");
 
@@ -3317,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return operandValue;
         }
 
-        public sealed override TAbstractAnalysisValue VisitIsPattern(IIsPatternOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitIsPattern(IIsPatternOperation operation, object? argument)
         {
             // "c is D d" OR "x is 1"
             var operandValue = Visit(operation.Value, argument);
@@ -3340,7 +3342,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return ValueDomain.UnknownOrMayBeValue;
         }
 
-        public override TAbstractAnalysisValue VisitAwait(IAwaitOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitAwait(IAwaitOperation operation, object? argument)
         {
             var value = base.VisitAwait(operation, argument);
 
@@ -3352,187 +3354,187 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Overrides for lowered IOperations
 
-        public sealed override TAbstractAnalysisValue VisitUsing(IUsingOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitUsing(IUsingOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IUsingOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitWhileLoop(IWhileLoopOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitWhileLoop(IWhileLoopOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IWhileLoopOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitForEachLoop(IForEachLoopOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitForEachLoop(IForEachLoopOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IForEachLoopOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitForLoop(IForLoopOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitForLoop(IForLoopOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IForLoopOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitForToLoop(IForToLoopOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitForToLoop(IForToLoopOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IForToLoopOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitCoalesce(ICoalesceOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitCoalesce(ICoalesceOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ICoalesceOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitConditional(IConditionalOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitConditional(IConditionalOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IConditionalOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitConditionalAccess(IConditionalAccessOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitConditionalAccess(IConditionalAccessOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IConditionalAccessOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IConditionalAccessInstanceOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitThrow(IThrowOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitThrow(IThrowOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IThrowOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitVariableDeclaration(IVariableDeclarationOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitVariableDeclarator(IVariableDeclaratorOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitVariableDeclarator(IVariableDeclaratorOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IVariableDeclaratorOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitTry(ITryOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitTry(ITryOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ITryOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitCatchClause(ICatchClauseOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitCatchClause(ICatchClauseOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ICatchClauseOperation)}' must have been lowered in the CFG");
         }
 
-        public override TAbstractAnalysisValue VisitLock(ILockOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitLock(ILockOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ILockOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitBranch(IBranchOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitBranch(IBranchOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IBranchOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitLabeled(ILabeledOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitLabeled(ILabeledOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ILabeledOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitSwitch(ISwitchOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitSwitch(ISwitchOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ISwitchOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitSwitchCase(ISwitchCaseOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitSwitchCase(ISwitchCaseOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ISwitchCaseOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IDefaultCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitPatternCaseClause(IPatternCaseClauseOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IPatternCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitRangeCaseClause(IRangeCaseClauseOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitRangeCaseClause(IRangeCaseClauseOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IRangeCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IRelationalCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ISingleValueCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IObjectOrCollectionInitializerOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitMemberInitializer(IMemberInitializerOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitMemberInitializer(IMemberInitializerOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IMemberInitializerOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitBlock(IBlockOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitBlock(IBlockOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IBlockOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitVariableInitializer(IVariableInitializerOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitVariableInitializer(IVariableInitializerOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IVariableInitializerOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitFieldInitializer(IFieldInitializerOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IFieldInitializerOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitParameterInitializer(IParameterInitializerOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IParameterInitializerOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitPropertyInitializer(IPropertyInitializerOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitPropertyInitializer(IPropertyInitializerOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IPropertyInitializerOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitEnd(IEndOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitEnd(IEndOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IEndOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitEmpty(IEmptyOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitEmpty(IEmptyOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IEmptyOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitNameOf(INameOfOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitNameOf(INameOfOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(INameOfOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitAnonymousFunction(IAnonymousFunctionOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitAnonymousFunction(IAnonymousFunctionOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(IAnonymousFunctionOperation)}' must have been lowered in the CFG");
         }
 
-        public sealed override TAbstractAnalysisValue VisitLocalFunction(ILocalFunctionOperation operation, object argument)
+        public sealed override TAbstractAnalysisValue VisitLocalFunction(ILocalFunctionOperation operation, object? argument)
         {
             throw new InvalidProgramException($"'{nameof(ILocalFunctionOperation)}' must have been lowered in the CFG");
         }

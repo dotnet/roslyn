@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(disposedInstance);
                 foreach (AbstractLocation location in instanceLocation.Locations)
                 {
-                    if (CurrentAnalysisData.TryGetValue(location, out DisposeAbstractValue currentDisposeValue))
+                    if (CurrentAnalysisData.TryGetValue(location, out var currentDisposeValue))
                     {
                         DisposeAbstractValue disposeValue = currentDisposeValue.WithNewDisposingOperation(disposingOperation);
                         SetAbstractValue(location, disposeValue);
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(invalidatedInstance);
                 foreach (AbstractLocation location in instanceLocation.Locations)
                 {
-                    if (CurrentAnalysisData.TryGetValue(location, out DisposeAbstractValue currentDisposeValue) &&
+                    if (CurrentAnalysisData.TryGetValue(location, out var currentDisposeValue) &&
                         currentDisposeValue.Kind != DisposeAbstractValueKind.NotDisposable)
                     {
                         SetAbstractValue(location, DisposeAbstractValue.Invalid);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 foreach (AbstractLocation escapedLocation in escapedLocations)
                 {
-                    if (CurrentAnalysisData.TryGetValue(escapedLocation, out DisposeAbstractValue currentDisposeValue) &&
+                    if (CurrentAnalysisData.TryGetValue(escapedLocation, out var currentDisposeValue) &&
                         currentDisposeValue.Kind != DisposeAbstractValueKind.Unknown)
                     {
                         DisposeAbstractValue newDisposeValue = currentDisposeValue.WithNewEscapingOperation(escapingOperation);
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
-            public override DisposeAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object argument)
+            public override DisposeAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object? argument)
             {
                 var value = base.VisitFieldReference(operation, argument);
                 if (_trackedInstanceFieldLocationsOpt != null &&
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return value;
             }
 
-            public override DisposeAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+            public override DisposeAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object? argument)
             {
                 var value = base.VisitBinaryOperatorCore(operation, argument);
 
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return value;
             }
 
-            public override DisposeAbstractValue VisitIsNull(IIsNullOperation operation, object argument)
+            public override DisposeAbstractValue VisitIsNull(IIsNullOperation operation, object? argument)
             {
                 var value = base.VisitIsNull(operation, argument);
 

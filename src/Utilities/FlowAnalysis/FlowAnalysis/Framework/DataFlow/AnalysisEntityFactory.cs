@@ -288,9 +288,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var indices = ImmutableArray<AbstractIndex>.Empty;
             IOperation? instance = null;
             var type = symbol.GetMemberOrLocalOrParameterType();
-            Debug.Assert(type != null);
+            RoslynDebug.Assert(type != null);
 
-            return TryCreate(symbol, indices, type!, instance, out analysisEntity);
+            return TryCreate(symbol, indices, type, instance, out analysisEntity);
         }
 
         public bool TryCreateForTupleElements(ITupleOperation tupleOperation, [NotNullWhen(returnValue: true)] out ImmutableArray<AnalysisEntity> elementEntities)
@@ -505,8 +505,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private AnalysisEntity Create(ISymbol? symbolOpt, ImmutableArray<AbstractIndex> indices, ITypeSymbol type, PointsToAbstractValue? instanceLocationOpt, AnalysisEntity? parentOpt)
         {
             instanceLocationOpt = EnsureLocation(instanceLocationOpt, symbolOpt, parentOpt);
-            Debug.Assert(instanceLocationOpt != null);
-            var analysisEntity = AnalysisEntity.Create(symbolOpt, indices, type, instanceLocationOpt!, parentOpt);
+            RoslynDebug.Assert(instanceLocationOpt != null);
+            var analysisEntity = AnalysisEntity.Create(symbolOpt, indices, type, instanceLocationOpt, parentOpt);
             return analysisEntity;
         }
 

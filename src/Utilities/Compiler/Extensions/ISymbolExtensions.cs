@@ -603,7 +603,7 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        public static ITypeSymbol? GetMemberType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
         {
             return symbol switch
             {

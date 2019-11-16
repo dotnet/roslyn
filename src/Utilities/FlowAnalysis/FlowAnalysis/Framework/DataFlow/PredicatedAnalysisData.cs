@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -196,6 +197,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             predicatedData.Remove(key);
         }
 
+        [return: NotNullIfNotNull(parameterName: "fromData")]
         private static DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>? Clone(DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>? fromData)
         {
             if (fromData == null)

@@ -13,7 +13,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <summary>
     /// Mapping of <see cref="ITypeSymbol"/> to <see cref="ITaintedDataInfo"/> (tainted data source/sanitizer/sink info).
     /// </summary>
-    internal class TaintedDataSymbolMap<TInfo> : IEquatable<TaintedDataSymbolMap<TInfo>>
+    internal class TaintedDataSymbolMap<TInfo> : IEquatable<TaintedDataSymbolMap<TInfo>?>
         where TInfo : ITaintedDataInfo
     {
         public TaintedDataSymbolMap(WellKnownTypeProvider wellKnownTypeProvider, IEnumerable<TInfo> taintedDataInfos)

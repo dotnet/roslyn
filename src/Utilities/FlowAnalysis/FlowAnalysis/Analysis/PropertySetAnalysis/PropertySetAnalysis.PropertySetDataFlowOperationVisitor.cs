@@ -47,6 +47,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <summary>
             /// The types containing the property set we're tracking.
             /// </summary>
+            /// <remarks>TODO(dotpaul): Consider disallowing null values in this set.</remarks>
             private readonly ImmutableHashSet<INamedTypeSymbol?> TrackedTypeSymbols;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
@@ -155,7 +156,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
             }
 
-            public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+            public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
                 if (this.TrackedTypeSymbols.Any(s => operation.Type.GetBaseTypesAndThis().Contains(s)))
@@ -227,7 +228,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return abstractValue;
             }
 
-            protected override PropertySetAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+            protected override PropertySetAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object? argument)
             {
                 PropertySetAbstractValue? baseValue = base.VisitAssignmentOperation(operation, argument);
 
@@ -410,6 +411,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                         {
                                             this.MergeHazardousUsageResult(
                                                 assignmentOperation.Syntax,
+                                                // TODO(dotpaul): Remove the below suppression.
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                                                 methodSymbol: null,    // No method invocation; just evaluating initialization value.
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -436,6 +438,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                     {
                                         this.MergeHazardousUsageResult(
                                             assignmentOperation.Syntax,
+                                            // TODO(dotpaul): Remove the below suppression.
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                                             methodSymbol: null,    // No method invocation; just evaluating initialization value.
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -483,6 +486,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         {
                             this.EvaluatePotentialHazardousUsage(
                                 visitedArgument.Value.Syntax,
+                                // TODO(dotpaul): Remove the below suppression.
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                                 null,
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
@@ -503,6 +507,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     this.EvaluatePotentialHazardousUsage(
                         originalOperation.Syntax,
                         method,
+                        // TODO(dotpaul): Remove the below suppression.
 #pragma warning disable CS8604 // Possible null reference argument.
                         propertySetInstance,
 #pragma warning restore CS8604 // Possible null reference argument.
@@ -672,6 +677,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     this.EvaluatePotentialHazardousUsage(
                         returnValue.Syntax,
+                        // TODO(dotpaul): Remove the below suppression.
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                         null,
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.

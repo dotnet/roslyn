@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
-            public override ParameterValidationAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+            public override ParameterValidationAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 var value = base.VisitObjectCreation(operation, argument);
                 ProcessRegularInvocationOrCreation(operation.Constructor, operation.Arguments, operation);
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
             }
 
-            public override ParameterValidationAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+            public override ParameterValidationAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object? argument)
             {
                 var value = base.VisitBinaryOperatorCore(operation, argument);
 
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
-            public override ParameterValidationAbstractValue VisitIsNull(IIsNullOperation operation, object argument)
+            public override ParameterValidationAbstractValue VisitIsNull(IIsNullOperation operation, object? argument)
             {
                 var value = base.VisitIsNull(operation, argument);
 
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
-            public override ParameterValidationAbstractValue VisitIsType(IIsTypeOperation operation, object argument)
+            public override ParameterValidationAbstractValue VisitIsType(IIsTypeOperation operation, object? argument)
             {
                 var value = base.VisitIsType(operation, argument);
 

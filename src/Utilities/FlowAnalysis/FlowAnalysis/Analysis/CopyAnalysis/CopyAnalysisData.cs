@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
             Debug.Assert(HasPredicatedData);
 
-            var hasEntry = predicatedData.TryGetValue(key, out CopyAbstractValue value);
+            var hasEntry = predicatedData.TryGetValue(key, out var value);
             base.RemoveEntryInPredicatedData(key, predicatedData);
 
             // If we are removing an entity from predicated data, we need to adjust the copy values of its copy entities.
-            if (hasEntry && value.AnalysisEntities.Count > 1)
+            if (hasEntry && value!.AnalysisEntities.Count > 1)
             {
                 var newValueForOldCopyEntities = value.WithEntityRemoved(key);
                 if (newValueForOldCopyEntities.AnalysisEntities.Count == 1)

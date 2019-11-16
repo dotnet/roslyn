@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.ArrayBuilder<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
@@ -102,7 +101,7 @@ namespace Analyzer.Utilities.PooledObjects
         /// Write <paramref name="value"/> to slot <paramref name="index"/>. 
         /// Fills in unallocated slots preceding the <paramref name="index"/>, if any.
         /// </summary>
-        public void SetItem(int index, [MaybeNull]T value)
+        public void SetItem(int index, T value)
         {
             while (index > _builder.Count)
             {
@@ -119,12 +118,12 @@ namespace Analyzer.Utilities.PooledObjects
             }
         }
 
-        public void Add([MaybeNull]T item)
+        public void Add(T item)
         {
             _builder.Add(item);
         }
 
-        public void Insert(int index, [MaybeNull]T item)
+        public void Insert(int index, T item)
         {
             _builder.Insert(index, item);
         }
@@ -142,22 +141,22 @@ namespace Analyzer.Utilities.PooledObjects
             _builder.Clear();
         }
 
-        public bool Contains([MaybeNull]T item)
+        public bool Contains(T item)
         {
             return _builder.Contains(item);
         }
 
-        public int IndexOf([MaybeNull]T item)
+        public int IndexOf(T item)
         {
             return _builder.IndexOf(item);
         }
 
-        public int IndexOf([MaybeNull]T item, IEqualityComparer<T> equalityComparer)
+        public int IndexOf(T item, IEqualityComparer<T> equalityComparer)
         {
             return _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
         }
 
-        public int IndexOf([MaybeNull]T item, int startIndex, int count)
+        public int IndexOf(T item, int startIndex, int count)
         {
             return _builder.IndexOf(item, startIndex, count);
         }
@@ -225,13 +224,11 @@ namespace Analyzer.Utilities.PooledObjects
             _builder.CopyTo(array, start);
         }
 
-        [return: MaybeNull]
         public T Last()
         {
             return _builder[_builder.Count - 1];
         }
 
-        [return: MaybeNull]
         public T First()
         {
             return _builder[0];
@@ -499,7 +496,7 @@ namespace Analyzer.Utilities.PooledObjects
             _builder.Count = count;
         }
 
-        public void AddMany([MaybeNull] T item, int count)
+        public void AddMany(T item, int count)
         {
             for (int i = 0; i < count; i++)
             {

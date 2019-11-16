@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
                     return;
                 }
 
-                var immutableSymbols = ImmutableHashSet.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
+                var immutableSymbols = ImmutableArray.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
                 compilationContext.RegisterSyntaxNodeAction(sc => AnalyzeInvocationForIgnoredReturnValue(sc, immutableSymbols), SyntaxKind.InvocationExpression);
             });
         }
 
-        public static void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableHashSet<INamedTypeSymbol> immutableTypeSymbols)
+        public static void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
         {
             SemanticModel model = context.SemanticModel;
             var candidateInvocation = (InvocationExpressionSyntax)context.Node;

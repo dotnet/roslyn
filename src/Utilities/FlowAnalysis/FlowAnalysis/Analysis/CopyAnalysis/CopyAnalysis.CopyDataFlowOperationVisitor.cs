@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return CopyAbstractValue.Unknown;
             }
 
-            public override CopyAbstractValue VisitConversion(IConversionOperation operation, object argument)
+            public override CopyAbstractValue VisitConversion(IConversionOperation operation, object? argument)
             {
                 var operandValue = Visit(operation.Operand, argument);
 
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return false;
             }
 
-            protected override CopyAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+            protected override CopyAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object? argument)
             {
                 var value = base.VisitAssignmentOperation(operation, argument);
                 if (AnalysisEntityFactory.TryCreate(operation.Target, out var analysisEntity))

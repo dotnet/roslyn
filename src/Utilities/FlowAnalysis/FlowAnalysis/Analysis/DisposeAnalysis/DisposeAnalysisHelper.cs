@@ -38,7 +38,7 @@ namespace Analyzer.Utilities
             OperationKind.Invocation);
 
         private readonly WellKnownTypeProvider _wellKnownTypeProvider;
-        private readonly ImmutableHashSet<INamedTypeSymbol>? _disposeOwnershipTransferLikelyTypes;
+        private readonly ImmutableHashSet<INamedTypeSymbol> _disposeOwnershipTransferLikelyTypes;
         private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>>? _lazyDisposableFieldsMap;
         public INamedTypeSymbol? IDisposable { get; }
         public INamedTypeSymbol? Task { get; }
@@ -50,10 +50,9 @@ namespace Analyzer.Utilities
             IDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             Task = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
 
-            if (IDisposable != null)
-            {
-                _disposeOwnershipTransferLikelyTypes = GetDisposeOwnershipTransferLikelyTypes(compilation);
-            }
+            _disposeOwnershipTransferLikelyTypes = IDisposable != null ?
+                GetDisposeOwnershipTransferLikelyTypes(compilation) :
+                ImmutableHashSet<INamedTypeSymbol>.Empty;
         }
 
         private static ImmutableHashSet<INamedTypeSymbol> GetDisposeOwnershipTransferLikelyTypes(Compilation compilation)
@@ -112,7 +111,7 @@ namespace Analyzer.Utilities
             if (cfg != null && IDisposable != null)
             {
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
-                    analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes!, trackInstanceFields,
+                    analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                     trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
                     interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);

@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <param name="literalValue">Literal value, or its default if not a single non-null literal value.</param>
         /// <returns>True if a non-null literal value was found, false otherwise.</returns>
         /// <remarks>If you're looking for null, you should be looking at <see cref="PointsToAnalysis"/>.</remarks>
-        public bool TryGetSingleNonNullLiteral<T>(out T literalValue)
+        public bool TryGetSingleNonNullLiteral<T>([MaybeNullWhen(returnValue: false)] out T literalValue)
         {
             if (!IsLiteralState || LiteralValues.Count != 1)
             {
@@ -413,15 +413,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         private static bool TryMerge(string value1, string value2, BinaryOperatorKind binaryOperatorKind, [NotNullWhen(returnValue: true)] out object? result)
         {
-            if (value1 != null && value2 != null)
+            switch (binaryOperatorKind)
             {
-                switch (binaryOperatorKind)
-                {
-                    case BinaryOperatorKind.Add:
-                    case BinaryOperatorKind.Concatenate:
-                        result = value1 + value2;
-                        return true;
-                }
+                case BinaryOperatorKind.Add:
+                case BinaryOperatorKind.Concatenate:
+                    result = value1 + value2;
+                    return true;
             }
 
             result = null;

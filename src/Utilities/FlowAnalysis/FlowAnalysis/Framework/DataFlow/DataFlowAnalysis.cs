@@ -400,22 +400,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             TAnalysisData mergedSuccessorInput;
                             if (needsMerge)
                             {
+                                RoslynDebug.Assert(currentSuccessorInput != null);
+
                                 // Mark that all input into successorBlockOpt requires a merge as we have non-unique input flow branches into successor block.
                                 blockToUniqueInputFlowMap[successorBlockOpt.Ordinal] = null;
 
                                 // Check if the current input data for the successor block is equal to the new input data from this branch.
                                 // If so, we don't need to propagate new input data from this branch.
-                                if (AnalysisDomain.Equals(currentSuccessorInput!, newSuccessorInput))
+                                if (AnalysisDomain.Equals(currentSuccessorInput, newSuccessorInput))
                                 {
                                     newSuccessorInput.Dispose();
                                     continue;
                                 }
 
                                 // Otherwise, check if the input data for the successor block changes after merging with the new input data.
-                                mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput!, newSuccessorInput, isBackEdge);
+                                mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput, newSuccessorInput, isBackEdge);
                                 newSuccessorInput.Dispose();
 
-                                int compare = AnalysisDomain.Compare(currentSuccessorInput!, mergedSuccessorInput);
+                                int compare = AnalysisDomain.Compare(currentSuccessorInput, mergedSuccessorInput);
 
                                 // The newly computed abstract values for each basic block
                                 // must be always greater or equal than the previous value

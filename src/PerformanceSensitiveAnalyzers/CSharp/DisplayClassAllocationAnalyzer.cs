@@ -92,12 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         private static void ClosureCaptureDataFlowAnalysis(DataFlowAnalysis? flow, Action<Diagnostic> reportDiagnostic, Location location)
         {
-            if (flow?.Captured.Length <= 0)
+            if (flow == null ||
+                flow.Captured.Length <= 0)
             {
                 return;
             }
 
-            foreach (var capture in flow!.Captured)
+            foreach (var capture in flow.Captured)
             {
                 if (capture.Name != null && capture.Locations != null)
                 {

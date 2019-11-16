@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Attempts to get the syntax node to report diagnostic for this abstract location 
         /// Returns null if the location is owned by another method invoked through interprocedural analysis.
         /// </summary>
-        public SyntaxNode? TryGetNodeToReportDiagnostic(PointsToAnalysisResult pointsToAnalysisResultOpt)
+        public SyntaxNode? TryGetNodeToReportDiagnostic(PointsToAnalysisResult? pointsToAnalysisResultOpt)
         {
             Debug.Assert(CreationOpt != null);
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Attempt to report diagnostic at the bottommost stack frame that owns the location.
                 foreach (var creation in CreationCallStack)
                 {
-                    var syntaxNode = TryGetSyntaxNodeToReportDiagnostic(creation);
+                    var syntaxNode = TryGetSyntaxNodeToReportDiagnostic(creation, pointsToAnalysisResultOpt);
                     if (syntaxNode != null)
                     {
                         return syntaxNode;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return CreationOpt?.Syntax;
 
             // Local functions.
-            SyntaxNode? TryGetSyntaxNodeToReportDiagnostic(IOperation creation)
+            SyntaxNode? TryGetSyntaxNodeToReportDiagnostic(IOperation creation, PointsToAnalysisResult pointsToAnalysisResult)
             {
                 // If any of the argument to creation points to this location, then use the argument.
                 var arguments = creation switch
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 SyntaxNode? TryGetSyntaxNodeToReportDiagnosticCore(IOperation operation)
                 {
-                    var pointsToValue = pointsToAnalysisResultOpt[operation];
+                    var pointsToValue = pointsToAnalysisResult[operation];
                     return TryGetSyntaxNodeToReportDiagnosticForPointsValue(pointsToValue, operation);
 
                     SyntaxNode? TryGetSyntaxNodeToReportDiagnosticForPointsValue(PointsToAbstractValue pointsToValue, IOperation operation)
@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             }
                         }
 
-                        if (pointsToAnalysisResultOpt.TaskWrappedValuesMapOpt != null &&
-                            pointsToAnalysisResultOpt.TaskWrappedValuesMapOpt.TryGetValue(pointsToValue, out var wrappedValue))
+                        if (pointsToAnalysisResult.TaskWrappedValuesMapOpt != null &&
+                            pointsToAnalysisResult.TaskWrappedValuesMapOpt.TryGetValue(pointsToValue, out var wrappedValue))
                         {
                             return TryGetSyntaxNodeToReportDiagnosticForPointsValue(wrappedValue, operation);
                         }

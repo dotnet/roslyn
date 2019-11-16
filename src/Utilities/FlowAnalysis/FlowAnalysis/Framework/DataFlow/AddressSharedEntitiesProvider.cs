@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             ImmutableHashSet<AnalysisEntity> ComputeAddressSharedEntities()
             {
-                RoslynDebug.Assert(assignedValueOpt != null);
-                RoslynDebug.Assert(assignedValueOpt.AnalysisEntityOpt != null);
+                RoslynDebug.Assert(assignedValueOpt?.AnalysisEntityOpt != null);
 
                 var builder = PooledHashSet<AnalysisEntity>.GetInstance();
                 AddIfHasKnownInstanceLocation(analysisEntity, builder);
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                 // We need to handle multiple ref/out parameters passed the same location.
                 // For example, "M(ref a, ref a);"
-                if (_addressSharedEntitiesBuilder.TryGetValue(assignedValueOpt.AnalysisEntityOpt!, out var existingValue))
+                if (_addressSharedEntitiesBuilder.TryGetValue(assignedValueOpt.AnalysisEntityOpt, out var existingValue))
                 {
                     foreach (var entity in existingValue.AnalysisEntities)
                     {

@@ -58,19 +58,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             bool pessimisticAnalysis = true)
         {
             var cfg = topmostBlock.GetEnclosingControlFlowGraph();
-            if (cfg != null)
+            if (cfg == null)
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-                var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                    interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis, performCopyAnalysis);
-                if (pointsToAnalysisResult != null)
+                return ImmutableDictionary<IParameterSymbol, SyntaxNode>.Empty;
+            }
+
+            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+            var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
+                interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis, performCopyAnalysis);
+            if (pointsToAnalysisResult != null)
+            {
+                var result = TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
+                    nullCheckValidationMethods, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult);
+                if (result != null)
                 {
-                    var result = TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                        nullCheckValidationMethods, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult);
-                    if (result != null)
-                    {
-                        return result.HazardousParameterUsages;
-                    }
+                    return result.HazardousParameterUsages;
                 }
             }
 

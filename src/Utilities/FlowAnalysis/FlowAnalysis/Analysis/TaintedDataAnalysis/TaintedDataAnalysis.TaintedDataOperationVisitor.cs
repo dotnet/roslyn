@@ -194,7 +194,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             // So we can hook into constructor calls.
-            public override TaintedDataAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+            public override TaintedDataAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 TaintedDataAbstractValue baseValue = base.VisitObjectCreation(operation, argument);
                 IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(operation.Arguments);
@@ -348,7 +348,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             // So we can treat the array as tainted when it's passed to other object constructors.
             // See HttpRequest_Form_Array_List_Diagnostic and HttpRequest_Form_List_Diagnostic tests.
-            public override TaintedDataAbstractValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
+            public override TaintedDataAbstractValue VisitArrayInitializer(IArrayInitializerOperation operation, object? argument)
             {
                 HashSet<SymbolAccess>? sourceOrigins = null;
                 TaintedDataAbstractValue baseAbstractValue = base.VisitArrayInitializer(operation, argument);
@@ -391,7 +391,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
-            protected override TaintedDataAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+            protected override TaintedDataAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object? argument)
             {
                 TaintedDataAbstractValue taintedDataAbstractValue = base.VisitAssignmentOperation(operation, argument);
                 ProcessAssignmentOperation(operation);

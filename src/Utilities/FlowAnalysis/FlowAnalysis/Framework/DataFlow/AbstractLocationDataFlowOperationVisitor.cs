@@ -115,17 +115,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Helper method to reset analysis data for analysis locations.
         /// </summary>
-        protected void ResetAnalysisData(DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue>? currentAnalysisDataOpt)
+        protected void ResetAnalysisData(DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> currentAnalysisData)
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
-            if (currentAnalysisDataOpt != null)
+            var keys = currentAnalysisData.Keys.ToImmutableArray();
+            foreach (var key in keys)
             {
-                var keys = currentAnalysisDataOpt.Keys.ToImmutableArray();
-                foreach (var key in keys)
-                {
-                    SetAbstractValue(key, ValueDomain.UnknownOrMayBeValue);
-                }
+                SetAbstractValue(key, ValueDomain.UnknownOrMayBeValue);
             }
         }
 
@@ -143,42 +140,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Visitor methods
 
-        public override TAbstractAnalysisValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
         {
             var value = base.VisitObjectCreation(operation, argument);
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
 
-        public override TAbstractAnalysisValue VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, object? argument)
         {
             var value = base.VisitTypeParameterObjectCreation(operation, argument);
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
 
-        public override TAbstractAnalysisValue VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, object? argument)
         {
             var value = base.VisitDynamicObjectCreation(operation, argument);
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
 
-        public override TAbstractAnalysisValue VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object? argument)
         {
             var value = base.VisitAnonymousObjectCreation(operation, argument);
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
 
-        public override TAbstractAnalysisValue VisitArrayCreation(IArrayCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitArrayCreation(IArrayCreationOperation operation, object? argument)
         {
             var value = base.VisitArrayCreation(operation, argument);
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
 
-        public override TAbstractAnalysisValue VisitDelegateCreation(IDelegateCreationOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitDelegateCreation(IDelegateCreationOperation operation, object? argument)
         {
             var value = base.VisitDelegateCreation(operation, argument);
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);

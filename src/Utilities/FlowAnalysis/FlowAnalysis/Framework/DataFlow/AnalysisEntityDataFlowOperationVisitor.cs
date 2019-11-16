@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public abstract class AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisData : AbstractAnalysisData
+        where TAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TAbstractAnalysisValue : IEquatable<TAbstractAnalysisValue>
@@ -83,17 +83,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Helper method to reset analysis data for analysis entities.
         /// </summary>
-        protected void ResetAnalysisData(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> currentAnalysisDataOpt)
+        protected void ResetAnalysisData(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> currentAnalysisData)
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
-            if (currentAnalysisDataOpt != null)
+            var keys = currentAnalysisData.Keys.ToImmutableArray();
+            foreach (var key in keys)
             {
-                var keys = currentAnalysisDataOpt.Keys.ToImmutableArray();
-                foreach (var key in keys)
-                {
-                    ResetAbstractValue(key);
-                }
+                ResetAbstractValue(key);
             }
         }
 
@@ -496,10 +493,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override void SetPredicateValueKind(IOperation operation, TAnalysisData analysisData, PredicateValueKind predicateValueKind)
         {
             base.SetPredicateValueKind(operation, analysisData, predicateValueKind);
-            if (predicateValueKind == PredicateValueKind.AlwaysFalse &&
-                analysisData is AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue> analysisEntityBasedData)
+            if (predicateValueKind == PredicateValueKind.AlwaysFalse)
             {
-                analysisEntityBasedData.IsReachableBlockData = false;
+                analysisData.IsReachableBlockData = false;
             }
         }
         #endregion
@@ -801,7 +797,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Visitor methods
 
-        public override TAbstractAnalysisValue VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, object argument)
+        public override TAbstractAnalysisValue VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, object? argument)
         {
             var value = base.VisitDeconstructionAssignment(operation, argument);
             var assignedInstance = GetPointsToAbstractValue(operation.Value);
