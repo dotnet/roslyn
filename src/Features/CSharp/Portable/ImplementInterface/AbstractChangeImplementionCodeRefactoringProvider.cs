@@ -231,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 }
             }
 
-            var currentSolution = solution;
             foreach (var (document, declsAndSymbol) in documentToImplDeclarations)
             {
                 var editor = await solutionEditor.GetDocumentEditorAsync(
@@ -242,12 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     editor.ReplaceNode(decl, (currentDecl, g) =>
                         symbols.Select(s => ChangeImplementation(g, currentDecl, s)));
                 }
-
-                currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                    document.Id, editor.GetChangedRoot());
             }
 
-            return currentSolution;
+            return solutionEditor.GetChangedSolution();
         }
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
