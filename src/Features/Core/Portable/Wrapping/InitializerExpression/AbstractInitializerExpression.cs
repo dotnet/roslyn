@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         protected abstract string Wrap_every_item { get; }
         protected abstract string Indent_all_items { get; }
 
+        protected abstract bool DoWrapInitializerOpenBrace { get; }
+
         protected AbstractInitializerExpression(IIndentationService indentationService)
             : base(indentationService)
         {
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new InitializerExpressionCodeActionComputer(
-                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
+                this, document, sourceText, options, listSyntax, listItems, DoWrapInitializerOpenBrace, cancellationToken);
         }
     }
 }

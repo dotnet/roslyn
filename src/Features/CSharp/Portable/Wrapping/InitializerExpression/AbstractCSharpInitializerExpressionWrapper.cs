@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression
         protected override string Unwrap_list => FeaturesResources.Unwrap_element_list;
         protected override string Wrap_every_item => FeaturesResources.Wrap_every_element;
         protected override string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
+        protected override bool DoWrapInitializerOpenBrace => true;
 
         protected AbstractCSharpInitializerExpressionWrapper() : base(CSharpIndentationService.Instance)
         {

@@ -22,39 +22,16 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         {
             private readonly TListSyntax _listSyntax;
             private readonly SeparatedSyntaxList<TListItemSyntax> _listItems;
-
-            /// <summary>
-            /// The indentation string necessary to indent an item in a list such that the start of
-            /// that item will exact start at the end of the open-token for the containing list. i.e.
-            /// 
-            ///     void Goobar(
-            ///                 ^
-            ///                 |
-            /// 
-            /// This is the indentation we want when we're aligning wrapped items with the first item 
-            /// in the list.
-            /// </summary>
             private readonly SyntaxTrivia _afterOpenTokenIndentationTrivia;
-
-            /// <summary>
-            /// Indentation amount for any items that have been wrapped to a new line.  Valid if we're
-            /// not aligning with the first item. i.e.
-            /// 
-            ///     void Goobar(
-            ///         ^
-            ///         |
-            /// </summary>
             private readonly SyntaxTrivia _singleIndentationTrivia;
-
-            private readonly SyntaxTrivia _closeBraceIndentationTrivia;
-
-            private readonly SyntaxTrivia _elasticTrivia;
+            private readonly SyntaxTrivia _braceIndentationTrivia;
+            private readonly bool DoWrapInitializerOpenBrace;
 
             public InitializerExpressionCodeActionComputer(
                 AbstractInitializerExpression<TListSyntax, TListItemSyntax> service,
                 Document document, SourceText sourceText, DocumentOptionSet options,
                 TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems,
-                CancellationToken cancellationToken)
+                bool doWrapInitializerOpenBrace, CancellationToken cancellationToken)
                 : base(service, document, sourceText, options, cancellationToken)
             {
                 _listSyntax = listSyntax;
@@ -64,8 +41,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
-                _closeBraceIndentationTrivia = generator.Whitespace(GetCloseTokenIndentation());
-                _elasticTrivia = generator.ElasticCarriageReturnLineFeed;
+                _braceIndentationTrivia = generator.Whitespace(GetBraceTokenIndentation());
+
+                DoWrapInitializerOpenBrace = doWrapInitializerOpenBrace;
             }
 
             private string GetAfterOpenTokenIdentation()
@@ -77,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 return indentString;
             }
 
-            private string GetCloseTokenIndentation()
+            private string GetBraceTokenIndentation()
             {
                 var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
                 var initialStatement = generator.GetDeclaration(_listSyntax);
@@ -171,6 +149,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
+                if (DoWrapInitializerOpenBrace)
+                {
+                    var position = _listSyntax.GetFirstToken().SpanStart;
+                    var token = _listSyntax.Parent.FindToken(position - 1);
+                    result.Add(Edit.UpdateBetween(token, NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
+                }
+
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
                 var itemsAndSeparators = _listItems.GetWithSeparators();
@@ -190,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     }
                 }
 
-                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _closeBraceIndentationTrivia, _listSyntax.GetLastToken()));
+                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }
@@ -272,6 +257,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
+                if (DoWrapInitializerOpenBrace)
+                {
+                    var position = _listSyntax.GetFirstToken().SpanStart;
+                    var token = _listSyntax.Parent.FindToken(position - 1);
+                    result.Add(Edit.UpdateBetween(token, NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
+                }
+
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
                 var currentOffset = wrappingStyle == WrappingStyle.WrapFirst_IndentRest
@@ -313,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     currentOffset += nextToken.Span.Length;
                 }
 
-                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _closeBraceIndentationTrivia, _listSyntax.GetLastToken()));
+                result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }

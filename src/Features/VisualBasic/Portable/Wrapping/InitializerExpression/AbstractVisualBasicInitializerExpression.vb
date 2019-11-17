@@ -11,6 +11,7 @@ Friend MustInherit Class AbstractVisualBasicInitializerExpression(
     Protected Overrides ReadOnly Property Unwrap_list As String = FeaturesResources.Unwrap_element_list
     Protected Overrides ReadOnly Property Wrap_every_item As String = FeaturesResources.Wrap_every_element
     Protected Overrides ReadOnly Property Wrap_long_list As String = FeaturesResources.Wrap_long_element_list
+    Protected Overrides ReadOnly Property DoWrapInitializerOpenBrace As Boolean = False
 
     Protected Sub New()
         MyBase.New(VisualBasicIndentationService.WithoutParameterAlignmentInstance)
