@@ -1038,10 +1038,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useLegacyWarnings,
             AssignmentKind assignmentKind = AssignmentKind.Assignment,
             ParameterSymbol parameterOpt = null,
-            Conversion conversion = default,
             Location location = null)
         {
-            // PROTOTYPE: Fix callers so we don't have cases where valueType and targetType differ.
+            // Callers should apply any conversions before calling this method
+            // (see https://github.com/dotnet/roslyn/issues/39867).
             if (targetType.HasType &&
                 !targetType.Type.Equals(valueType.Type, TypeCompareKind.AllIgnoreOptions))
             {
@@ -5145,7 +5145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
-                    resultState = getDynamicConversionResultState(operandType);
+                    resultState = getConversionResultState(operandType);
                     break;
 
                 case ConversionKind.Boxing:
@@ -5173,7 +5173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.NoConversion:
-                    resultState = getNoConversionResultState(operandType);
+                    resultState = getConversionResultState(operandType);
                     break;
 
                 case ConversionKind.NullLiteral:
@@ -5317,7 +5317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)
                 {
-                    ReportNullableAssignmentIfNecessary(conversionOperand, targetTypeWithNullability, resultType, useLegacyWarnings, assignmentKind, parameterOpt, conversion, diagnosticLocationOpt);
+                    ReportNullableAssignmentIfNecessary(conversionOperand, targetTypeWithNullability, resultType, useLegacyWarnings, assignmentKind, parameterOpt, diagnosticLocationOpt);
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
@@ -5352,11 +5352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return resultType;
             }
 
-            static NullableFlowState getNoConversionResultState(TypeWithState operandType)
-            {
-                return getConversionResultState(operandType);
-            }
-
             static NullableFlowState getReferenceConversionResultState(TypeWithAnnotations targetType, TypeWithState operandType)
             {
                 var state = operandType.State;
@@ -5377,11 +5372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
                 return state;
-            }
-
-            static NullableFlowState getDynamicConversionResultState(TypeWithState operandType)
-            {
-                return getConversionResultState(operandType);
             }
 
             // Converting to a less-derived type (object, interface, type parameter).
