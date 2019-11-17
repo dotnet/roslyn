@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     void Bar() {
-        var test = new[] 
+        var test = new[]
         {
             1,
             2
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     void Bar() {
-        var test = new[] 
+        var test = new[]
         {
             ""the"",
             ""quick"",
@@ -68,15 +68,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             ""over"",
             ""the"",
             ""lazy"",
-            ""dog""};
-        }
+            ""dog""
+        };
+     }
 }",
 @"class C {
     void Bar() {
-        var test = new[] 
+        var test = new[]
         {
-            ""the"",""quick"",""brown"",""fox"",""jumps"",""over"",""the"",""lazy"",""dog""};
-        }
+            ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog""
+        };
+     }
 }"
 );
         }
