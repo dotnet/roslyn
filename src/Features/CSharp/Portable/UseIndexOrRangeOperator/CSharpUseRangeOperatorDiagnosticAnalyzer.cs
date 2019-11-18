@@ -184,9 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         }
 
         private static bool IsConstantInt32(IOperation operation)
-            => operation is
-        {
-            ConstantValue: { HasValue: true, Value: int _ }
-        };
+            => operation is { ConstantValue: { HasValue: true, Value: int _ } };
     }
 }

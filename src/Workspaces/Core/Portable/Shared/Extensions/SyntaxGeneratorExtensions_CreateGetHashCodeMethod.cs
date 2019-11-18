@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     Parameters: { Length: 0 },
                     ReturnType: { SpecialType: SpecialType.System_Int32 }
                 }
-
                 select method;
 
             return existingMethods.FirstOrDefault();

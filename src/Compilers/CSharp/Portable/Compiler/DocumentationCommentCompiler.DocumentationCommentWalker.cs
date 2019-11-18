@@ -149,7 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         nameSyntax = ((XmlElementStartTagSyntax)node).Name;
                     }
 
-                    if (nameSyntax is { Prefix: null } && DocumentationCommentXmlNames.ElementEquals(nameSyntax.LocalName.ValueText, DocumentationCommentXmlNames.IncludeElementName))
+                    if (nameSyntax is { Prefix: null } &&
+                        DocumentationCommentXmlNames.ElementEquals(nameSyntax.LocalName.ValueText, DocumentationCommentXmlNames.IncludeElementName))
                     {
                         _includeElementNodes.Add((CSharpSyntaxNode)node);
                     }

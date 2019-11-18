@@ -203,11 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     pendingExceptionLocal));
 
             BoundStatement syntheticFinally = syntheticFinallyBlock;
-            if (_F is
-            {
-                CurrentFunction: { IsAsync: true, IsIterator: true }
-            }
-)
+            if (_F is { CurrentFunction: { IsAsync: true, IsIterator: true } })
             {
                 // We wrap this block so that it can be processed as a finally block by async-iterator rewriting
                 syntheticFinally = _F.ExtractedFinallyBlock(syntheticFinallyBlock);

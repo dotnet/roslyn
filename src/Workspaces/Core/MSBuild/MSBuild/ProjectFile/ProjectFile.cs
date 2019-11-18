@@ -308,10 +308,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddMetadataReference(MetadataReference reference, AssemblyIdentity identity)
         {
-            if (reference is PortableExecutableReference {
-                FilePath: {
-                }
-            } peRef)
+            if (reference is PortableExecutableReference { FilePath: { } } peRef)
             {
                 var metadata = new Dictionary<string, string>();
                 if (!peRef.Properties.Aliases.IsEmpty)

@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)sourceProperty != null)
             {
                 SynthesizedSealedPropertyAccessor synthesized = sourceProperty.SynthesizedSealedAccessorOpt;
-                return synthesized is object { MethodKind: targetMethodKind } ? synthesized : null;
+                return (object)synthesized != null && synthesized.MethodKind == targetMethodKind ? synthesized : null;
             }
 
             return null;

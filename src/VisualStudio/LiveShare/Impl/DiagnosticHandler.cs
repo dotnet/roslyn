@@ -47,11 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             try
             {
                 // LSP doesnt support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
-                if (e is {
-                    DocumentId: {
-                    }, Solution: {
-                    }
-                })
+                if (e is { DocumentId: { }, Solution: { } })
                 {
                     var document = e.Solution.GetDocument(e.DocumentId);
                     if (document == null || document.FilePath == null)

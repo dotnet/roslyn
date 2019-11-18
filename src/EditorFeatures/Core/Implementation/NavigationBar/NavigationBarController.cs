@@ -167,9 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
 
             // If the displayed project is being renamed, retrigger the update
-            if (args is {
-                Kind: WorkspaceChangeKind.ProjectChanged, ProjectId: {
-                }
+            if (args is
+            {
+                Kind: WorkspaceChangeKind.ProjectChanged,
+                ProjectId: { }
             })
             {
                 var oldProject = args.OldSolution.GetProject(args.ProjectId);

@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     var typeArgument = typeArguments[i];
                     var typeParameter = typeParameters[i];
-                    if (typeArgument is ITypeParameterSymbol { Name: typeParameter.Name })
+                    if (typeArgument is ITypeParameterSymbol && typeArgument.Name == typeParameter.Name)
                     {
                         continue;
                     }
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 // Don't bother showing disambiguating text for enum members. The icon displayed
                 // on Quick Info should be enough.
-                if (symbol.ContainingType != null && symbol.ContainingType.TypeKind == TypeKind.Enum)
+                if (symbol is { ContainingType: { TypeKind: TypeKind.Enum } })
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription, parts);
                 }

@@ -34,10 +34,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             public bool Equals(SymbolKeySignatureHelpItem obj)
             {
                 return ReferenceEquals(this, obj) ||
-                    (obj is {
-                        SymbolKey: {
-                        }
-                    } && CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false).Equals(SymbolKey.Value, obj.SymbolKey.Value));
+                    (obj is { SymbolKey: { } } &&
+                     CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false).Equals(SymbolKey.Value, obj.SymbolKey.Value));
             }
 
             public override int GetHashCode()

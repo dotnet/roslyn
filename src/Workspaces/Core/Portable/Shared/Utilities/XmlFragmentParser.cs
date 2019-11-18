@@ -109,7 +109,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
         {
             get
             {
-                return _xmlReader is { Depth: 1, NodeType: XmlNodeType.EndElement, LocalName: Reader.CurrentElementName };
+                return _xmlReader is { Depth: 1, NodeType: XmlNodeType.EndElement } && _xmlReader.LocalName == Reader.CurrentElementName;
             }
         }
 

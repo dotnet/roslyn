@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     if (info is
                     {
                         Type: ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter
-                    }
-)
+                    })
                     {
                         return typeParameter;
                     }

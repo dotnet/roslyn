@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis
                 using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
                 foreach (var property in properties)
                 {
-                    if (property is { Parameters: { Length: refKinds.Count }, MetadataName: metadataName, IsIndexer: isIndexer } && ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) && reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
+                    if (property.Parameters.Length == refKinds.Count &&
+                        property.MetadataName == metadataName &&
+                        property.IsIndexer == isIndexer &&
+                        ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) &&
+                        reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
                     {
                         result.AddIfNotNull(property);
                     }

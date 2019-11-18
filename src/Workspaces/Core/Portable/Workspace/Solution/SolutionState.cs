@@ -1830,8 +1830,7 @@ namespace Microsoft.CodeAnalysis
                     if (this is
                     {
                         Workspace: Workspace { TestHookPartialSolutionsDisabled: true } ws
-                    }
-)
+                    })
                     {
                         return this;
                     }

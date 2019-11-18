@@ -144,7 +144,12 @@ namespace Microsoft.CodeAnalysis
             foreach (var resourceHandle in mdReader.ManifestResources)
             {
                 var resource = mdReader.GetManifestResource(resourceHandle);
-                if (resource is { Implementation: { IsNil: true }, Attributes: ManifestResourceAttributes.Private } && mdReader.StringComparer.Equals(resource.Name, resourceName))
+                if (resource is
+                {
+                    Implementation: { IsNil: true },
+                    Attributes: ManifestResourceAttributes.Private
+                } &&
+                    mdReader.StringComparer.Equals(resource.Name, resourceName))
                 {
                     offset = resource.Offset;
                 }

@@ -19,7 +19,8 @@ namespace Roslyn.Test.Utilities
 
         public bool Equals(CustomAttributeRow other)
         {
-            return this is { ParentToken: other.ParentToken, ConstructorToken: other.ConstructorToken };
+            return this.ParentToken == other.ParentToken
+                && this.ConstructorToken == other.ConstructorToken;
         }
 
         public override bool Equals(object obj)

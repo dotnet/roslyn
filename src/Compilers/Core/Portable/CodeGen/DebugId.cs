@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool Equals(DebugId other)
         {
-            return this is { Ordinal: other.Ordinal, Generation: other.Generation };
+            return this.Ordinal == other.Ordinal
+                && this.Generation == other.Generation;
         }
 
         public override bool Equals(object? obj)

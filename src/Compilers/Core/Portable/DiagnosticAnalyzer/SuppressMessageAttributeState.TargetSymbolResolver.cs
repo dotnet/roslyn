@@ -380,9 +380,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     // If parsing as a named type failed, this could be a named type parameter,
                     // which we will only be able to resolve once we have a binding context.
-                    if (bindingContext is
-                    {
-                    } && result is { HasValue: true, Value: { IsBound: false } })
+                    if (bindingContext is { } && result is { HasValue: true, Value: { IsBound: false } })
                     {
                         _index = result.Value.StartIndex;
                         result = ParseNamedTypeParameter(bindingContext);

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return base.WithLine(line, indentation, context, formattingRules, cancellationToken);
                 }
 
-                if (_original is { LineBreaks: line, Spaces: indentation })
+                if (_original.LineBreaks == line && _original.Spaces == indentation)
                 {
                     return _original;
                 }

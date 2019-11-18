@@ -176,7 +176,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             if (member != null && member.ContainingType.IsInterfaceType())
             {
                 typeMember = classOrStructType?.FindImplementationForInterfaceMember(member);
-                return typeMember is IPropertySymbol { DeclaredAccessibility: Accessibility.Private } property && property.ExplicitInterfaceImplementations.Length > 0;
+                return typeMember is IPropertySymbol { DeclaredAccessibility: Accessibility.Private } property &&
+                    property.ExplicitInterfaceImplementations.Length > 0;
             }
 
             typeMember = member;

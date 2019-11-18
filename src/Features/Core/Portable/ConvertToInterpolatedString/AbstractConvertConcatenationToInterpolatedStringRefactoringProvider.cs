@@ -194,9 +194,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             return semanticModel.GetSymbolInfo(expression, cancellationToken) is
             {
-                Symbol: IMethodSymbol { ContainingType: { SpecialType: SpecialType.System_String }, MethodKind: MethodKind.BuiltinOperator } method
-            }
-&& (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
+                Symbol: IMethodSymbol
+                {
+                    ContainingType: { SpecialType: SpecialType.System_String },
+                    MethodKind: MethodKind.BuiltinOperator
+                } method
+            } &&
+                   (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
                     method.MetadataName == WellKnownMemberNames.ConcatenateOperatorName);
         }
 

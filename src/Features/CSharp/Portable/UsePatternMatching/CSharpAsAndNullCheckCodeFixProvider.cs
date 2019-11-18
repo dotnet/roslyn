@@ -116,10 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Parent: VariableDeclarationSyntax
                 {
                     Variables: { Count: 1 },
-                    Parent: LocalDeclarationStatementSyntax { } localDeclaration
+                    Parent: LocalDeclarationStatementSyntax localDeclaration
                 } declaration
-            }
-)
+            })
             {
                 // Trivia on the local declaration will move to the next statement.
                 // use the callback form as the next statement may be the place where we're

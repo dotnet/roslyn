@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = syntaxRoot.FindNode(span);
-            if (node is { Span: span })
+            if (node != null && node.Span == span)
             {
                 await CheckNodeAsync(context, document, node, cancellationToken).ConfigureAwait(false);
                 return;

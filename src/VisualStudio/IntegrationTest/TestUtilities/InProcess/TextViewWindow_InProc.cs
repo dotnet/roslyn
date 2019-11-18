@@ -396,11 +396,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
 
                     if (willBlockUntilComplete
-&& action is FixAllSuggestedAction
-                    {
-                        CodeAction: FixSomeCodeAction { } fixSomeCodeAction
-                    } fixAllSuggestedAction
-)
+&& action is FixAllSuggestedAction { CodeAction: FixSomeCodeAction fixSomeCodeAction } fixAllSuggestedAction)
                     {
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                         // the caller would not be able to interact with the preview changes dialog, and the tests would

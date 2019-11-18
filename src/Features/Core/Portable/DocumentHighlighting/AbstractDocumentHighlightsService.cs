@@ -319,8 +319,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     if (symbol is
                     {
                         ContainingSymbol: IPropertySymbol { IsIndexer: true } containingProperty
-                    }
-)
+                    })
                     {
                         return false;
                     }

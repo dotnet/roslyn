@@ -260,9 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (node is
                 {
                     NameColon: null,
-                    Parent: TupleExpressionSyntax { } tuple
-                }
-&& !IsTupleInDeconstruction(tuple)) // The language currently does not allow explicit element names in deconstruction
+                    Parent: TupleExpressionSyntax tuple
+                } && IsTupleInDeconstruction(tuple) is false) // The language currently does not allow explicit element names in deconstruction
                 {
                     var inferredName = node.Expression.TryGetInferredMemberName();
                     if (CanMakeNameExplicitInTuple(tuple, inferredName))

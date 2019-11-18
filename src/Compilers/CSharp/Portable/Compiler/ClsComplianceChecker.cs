@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             System.Diagnostics.Debug.Assert(!IsTrue(GetDeclaredOrInheritedCompliance(symbol)), "Only call on non-compliant symbols");
 
             NamedTypeSymbol containingType = symbol.ContainingType;
-            if (containingType is object { IsInterface: true })
+            if (containingType is { IsInterface: true })
             {
                 this.AddDiagnostic(ErrorCode.WRN_CLS_BadInterfaceMember, symbol.Locations[0], symbol);
             }

@@ -357,13 +357,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return analysis.Operator;
                     }
 
-                    if (uncommonData is DeconstructionUncommonData {
-                        DeconstructMethodInfo:
-                        {
-                            Invocation: BoundCall { } call
-                        }
-                    } deconstruction
-)
+                    if (uncommonData is DeconstructionUncommonData
+                    {
+                        DeconstructMethodInfo: { Invocation: BoundCall call }
+                    } deconstruction)
                     {
                         return call.Method;
                     }

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             var currentNode = token.Parent;
             while (currentNode != null)
             {
-                if (currentNode is ExpressionSyntax { Span: textSpan } result)
+                if (currentNode is ExpressionSyntax result && result.Span == textSpan)
                 {
                     return result;
                 }

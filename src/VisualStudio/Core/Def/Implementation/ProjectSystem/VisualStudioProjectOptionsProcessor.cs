@@ -115,11 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e is
-            {
-                Option: { Name: FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name, Feature: FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature }
-            }
-)
+            if (e.Option.Name == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name
+                && e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
             {
                 UpdateProjectForNewHostValues();
             }
@@ -193,8 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            var fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
-                                                    ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
+            var fullIntermediateOutputPath = _commandLineArgumentsForCommandLine is { OutputDirectory: { }, OutputFileName: { } } ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
                                                     : _commandLineArgumentsForCommandLine.OutputFileName;
 
             _project.IntermediateOutputFilePath = fullIntermediateOutputPath ?? _project.IntermediateOutputFilePath;

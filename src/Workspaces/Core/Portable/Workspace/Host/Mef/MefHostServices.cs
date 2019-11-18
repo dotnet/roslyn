@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             if (s_CreationHook != null)
             {
                 var requestingDefaultAssemblies =
-                    assemblies is ImmutableArray<Assembly> { } array
-;
+                    assemblies is ImmutableArray<Assembly> array
+                    && array == DefaultAssemblies;
                 return s_CreationHook(assemblies, requestingDefaultAssemblies);
             }
 

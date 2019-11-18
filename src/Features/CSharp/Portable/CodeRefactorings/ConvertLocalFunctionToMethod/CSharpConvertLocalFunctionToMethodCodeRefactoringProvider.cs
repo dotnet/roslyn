@@ -290,9 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 var symbol = semanticModel.GetSymbolInfo(id).Symbol;
                 if (symbol is
                 {
-                    OriginalDefinition: ITypeParameterSymbol { } typeParameter
-                }
-)
+                    OriginalDefinition: ITypeParameterSymbol typeParameter
+                })
                 {
                     unusedTypeParameters.Remove(typeParameter);
                 }

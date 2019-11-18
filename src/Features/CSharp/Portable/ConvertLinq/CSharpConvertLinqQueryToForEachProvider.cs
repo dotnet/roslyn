@@ -296,9 +296,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 if (_semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken) is
                 {
-                    Symbol: IMethodSymbol { RefKind: RefKind.None, ReturnType: { SpecialType: SpecialType.System_Int32 }, Parameters: { Length: 0 } } methodSymbol
-                }
-)
+                    Symbol: IMethodSymbol
+                    {
+                        RefKind: RefKind.None,
+                        ReturnType: { SpecialType: SpecialType.System_Int32 },
+                        Parameters: { Length: 0 }
+                    } methodSymbol
+                })
                 {
                     // before var count = (from a in b select a).Count();
                     // after

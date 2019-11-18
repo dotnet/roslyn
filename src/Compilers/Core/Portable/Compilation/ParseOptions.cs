@@ -137,7 +137,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             return
-                this is { SpecifiedKind: other.SpecifiedKind, DocumentationMode: other.DocumentationMode } && this.Features.SequenceEqual(other.Features) && (this.PreprocessorSymbolNames == null ? other.PreprocessorSymbolNames == null : this.PreprocessorSymbolNames.SequenceEqual(other.PreprocessorSymbolNames, StringComparer.Ordinal));
+                this.SpecifiedKind == other.SpecifiedKind &&
+                this.DocumentationMode == other.DocumentationMode &&
+                this.Features.SequenceEqual(other.Features) &&
+                (this.PreprocessorSymbolNames == null ? other.PreprocessorSymbolNames == null : this.PreprocessorSymbolNames.SequenceEqual(other.PreprocessorSymbolNames, StringComparer.Ordinal));
         }
 
         public abstract override int GetHashCode();

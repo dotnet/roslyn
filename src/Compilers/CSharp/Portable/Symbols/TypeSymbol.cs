@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 DiagnosticInfo info = GetUseSiteDiagnostic();
-                return info is object { Code: (int)ErrorCode.ERR_BogusType };
+                return info is { Code: (int)ErrorCode.ERR_BogusType };
             }
         }
 

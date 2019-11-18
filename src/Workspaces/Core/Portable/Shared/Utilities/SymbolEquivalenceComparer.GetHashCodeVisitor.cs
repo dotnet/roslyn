@@ -296,7 +296,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return currentHash;
                 }
 
-                if (x is { TypeParameterKind: TypeParameterKind.Type, ContainingType: { IsAnonymousType: true } })
+                if (x is
+                {
+                    TypeParameterKind: TypeParameterKind.Type,
+                    ContainingType: { IsAnonymousType: true }
+                })
                 {
                     // Anonymous type type parameters compare by index as well to prevent
                     // recursion.

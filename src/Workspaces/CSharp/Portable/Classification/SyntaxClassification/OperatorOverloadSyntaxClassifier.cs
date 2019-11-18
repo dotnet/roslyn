@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             if (symbolInfo is
             {
                 Symbol: IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator } methodSymbol
-            }
-)
+            })
             {
                 var operatorSpan = GetOperatorTokenSpan(syntax);
                 if (!operatorSpan.IsEmpty)

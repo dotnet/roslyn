@@ -79,10 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     }
 
 
-                    if (member is IMethodSymbol {
-                        AssociatedSymbol: {
-                        }
-                    } method)
+                    if (member is IMethodSymbol { AssociatedSymbol: { } } method)
                     {
                         continue;
                     }

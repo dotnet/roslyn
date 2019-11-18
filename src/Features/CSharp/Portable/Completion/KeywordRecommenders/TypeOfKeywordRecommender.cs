@@ -17,7 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                (context is { IsAnyExpressionContext: true, IsConstantExpressionContext: false }) ||
+                (context is
+            {
+                IsAnyExpressionContext: true,
+                IsConstantExpressionContext: false
+            }) ||
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 IsAttributeArgumentContext(context);

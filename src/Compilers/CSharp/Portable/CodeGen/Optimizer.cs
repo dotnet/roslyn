@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var value = node.Value;
 
             // local must be used as the value of the sequence.
-            if (value is BoundLocal { LocalSymbol: local, Kind: BoundKind.Local })
+            if (value is { Kind: BoundKind.Local } && ((BoundLocal)value).LocalSymbol == local)
             {
                 var sideeffects = node.SideEffects;
                 var lastSideeffect = sideeffects.LastOrDefault();

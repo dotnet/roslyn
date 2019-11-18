@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Symbol> BindMemberCref(MemberCrefSyntax syntax, NamespaceOrTypeSymbol containerOpt, out Symbol ambiguityWinner, DiagnosticBag diagnostics)
         {
-            if (containerOpt is object { Kind: SymbolKind.TypeParameter })
+            if (containerOpt is { Kind: SymbolKind.TypeParameter })
             {
                 // As in normal lookup (see CreateErrorIfLookupOnTypeParameter), you can't dot into a type parameter
                 // (though you can dot into an expression of type parameter type).

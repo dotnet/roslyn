@@ -716,7 +716,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return this is { AllowUnsafe: other.AllowUnsafe, TopLevelBinderFlags: other.TopLevelBinderFlags } && (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
+            return this.AllowUnsafe == other.AllowUnsafe &&
+                   this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
+                   (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
                    this.NullableContextOptions == other.NullableContextOptions);
         }
 

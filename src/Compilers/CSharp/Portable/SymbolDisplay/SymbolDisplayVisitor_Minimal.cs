@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.IsMinimizing && !symbol.Locations.IsEmpty)
             {
                 var location = symbol.Locations.First();
-                if (location is { IsInSource: true, SourceTree: semanticModelOpt.SyntaxTree })
+                if (location.IsInSource && location.SourceTree == semanticModelOpt.SyntaxTree)
                 {
                     var token = location.SourceTree.GetRoot().FindToken(positionOpt);
                     var queryBody = GetQueryBody(token);

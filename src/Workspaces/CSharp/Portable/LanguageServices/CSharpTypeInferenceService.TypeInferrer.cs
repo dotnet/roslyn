@@ -678,11 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 AttributeArgumentSyntax argumentOpt = null)
             {
-                if (argumentOpt is
-                {
-                    NameEquals: {
-                    }
-                })
+                if (argumentOpt is { NameEquals: { } })
                 {
                     // [MyAttribute(Prop = ...
 

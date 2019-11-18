@@ -142,14 +142,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     (fallThroughAnalysisData, conditionalSuccessorAnalysisData) = analyzer.AnalyzeConditionalBranch(current, fallThroughAnalysisData, cancellationToken);
 
                     var conditionalSuccesorIsReachable = true;
-                    if (current is {
+                    if (current is
+                    {
                         BranchValue:
                         {
-                            ConstantValue:
-                            {
-                                HasValue: true,
-                                Value: bool { } constant
-                            }
+                            ConstantValue: { HasValue: true, Value: bool constant }
                         }
                     })
                     {

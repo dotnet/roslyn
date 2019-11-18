@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                return this is { DocumentIds: other.DocumentIds, Analyzer: other.Analyzer, Kind: other.Kind };
+                return this.DocumentIds == other.DocumentIds && this.Analyzer == other.Analyzer && this.Kind == other.Kind;
             }
 
             public override int GetHashCode()

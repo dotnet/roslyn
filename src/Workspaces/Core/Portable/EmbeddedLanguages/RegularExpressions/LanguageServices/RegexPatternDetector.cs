@@ -288,7 +288,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             SyntaxToken stringLiteral, SyntaxNode argumentNode, ISymbol method,
             CancellationToken cancellationToken, out RegexOptions options)
         {
-            if (method is { DeclaredAccessibility: Accessibility.Public, IsStatic: true } && _regexType.Equals(method.ContainingType))
+            if (method is
+            {
+                DeclaredAccessibility: Accessibility.Public,
+                IsStatic: true
+            } && _regexType.Equals(method.ContainingType))
             {
                 return AnalyzeStringLiteral(
                     stringLiteral, argumentNode, cancellationToken, out options);

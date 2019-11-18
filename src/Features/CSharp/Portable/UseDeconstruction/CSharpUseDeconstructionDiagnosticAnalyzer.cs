@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 IsIdentity: false,
                 IsTupleConversion: false,
                 IsTupleLiteralConversion: false
-            }
-)
+            })
             {
                 // If there is any other conversion, we bail out because the source type might not be a tuple
                 // or it is a tuple but only thanks to target type inference, which won't occur in a deconstruction.

@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         var trackingSpan = documentSpans[id.Ordinal].Span;
                         var snapshot = source.FindCorrespondingEditorTextSnapshot();
 
-                        if (snapshot is { TextBuffer: trackingSpan.TextBuffer })
+                        if (snapshot != null && snapshot.TextBuffer == trackingSpan.TextBuffer)
                         {
                             span = trackingSpan.GetSpan(snapshot).Span.ToTextSpan();
                             return true;

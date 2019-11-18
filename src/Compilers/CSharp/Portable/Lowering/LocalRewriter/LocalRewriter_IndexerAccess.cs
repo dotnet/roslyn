@@ -290,7 +290,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 usedLength = true;
                 return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
             }
-            else if (unloweredExpr is BoundConversion { Operand: { Type: { SpecialType: SpecialType.System_Int32 } } } conversion)
+            else if (unloweredExpr is BoundConversion
+            {
+                Operand: { Type: { SpecialType: SpecialType.System_Int32 } }
+            } conversion)
             {
                 // If the System.Index argument is a conversion from int to Index we
                 // can return the int directly

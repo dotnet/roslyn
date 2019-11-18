@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         public void HandleError(object sender, Exception exception)
         {
-            if (exception is ArgumentOutOfRangeException { ParamName: "index" } argumentOutOfRangeException
-&& argumentOutOfRangeException.StackTrace.Contains("Microsoft.NodejsTools.Repl.ReplOutputClassifier.GetClassificationSpans"))
+            if (exception is ArgumentOutOfRangeException { ParamName: "index" } argumentOutOfRangeException &&
+argumentOutOfRangeException.StackTrace.Contains("Microsoft.NodejsTools.Repl.ReplOutputClassifier.GetClassificationSpans"))
             {
                 // Known issue https://github.com/Microsoft/nodejstools/issues/2138
                 return;

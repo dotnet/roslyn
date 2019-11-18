@@ -245,14 +245,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (current.HasCondition)
                 {
-                    if (current is {
+                    if (current is
+                    {
                         BranchValue:
                         {
-                            ConstantValue:
-                            {
-                                HasValue: true,
-                                Value: bool { } constant
-                            }
+                            ConstantValue: { HasValue: true, Value: bool constant }
                         }
                     })
                     {

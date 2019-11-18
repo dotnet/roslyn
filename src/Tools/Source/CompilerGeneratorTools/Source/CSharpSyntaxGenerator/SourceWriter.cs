@@ -645,10 +645,7 @@ namespace CSharpSyntaxGenerator
                 {
                     WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
                 }
-                if (field is {
-                    Type: "SyntaxToken", Kinds: {
-                    }
-                } && field.Kinds.Count > 0)
+                if (field is { Type: "SyntaxToken", Kinds: { } } && field.Kinds.Count > 0)
                 {
                     if (IsOptional(field))
                     {

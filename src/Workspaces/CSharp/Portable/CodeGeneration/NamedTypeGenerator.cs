@@ -258,10 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static BaseListSyntax GenerateBaseList(INamedTypeSymbol namedType)
         {
             var types = new List<BaseTypeSyntax>();
-            if (namedType is {
-                TypeKind: TypeKind.Class, BaseType: {
-                }
-            } && namedType.BaseType.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_Object)
+            if (namedType is { TypeKind: TypeKind.Class, BaseType: { } } &&
+namedType.BaseType.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_Object)
             {
                 types.Add(SyntaxFactory.SimpleBaseType(namedType.BaseType.GenerateTypeSyntax()));
             }

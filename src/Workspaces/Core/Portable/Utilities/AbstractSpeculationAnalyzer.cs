@@ -326,7 +326,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // As we are comparing symbols from different semantic models, locations will differ.
                     // Hence perform minimal checks for these symbol kinds.
                     case SymbolKind.Local:
-                        return newSymbol is { Kind: SymbolKind.Local, IsImplicitlyDeclared: symbol.IsImplicitlyDeclared } && string.Equals(symbol.Name, newSymbol.Name, StringComparison.Ordinal) && ((ILocalSymbol)newSymbol).Type.Equals(((ILocalSymbol)symbol).Type);
+                        return newSymbol.Kind == SymbolKind.Local &&
+                            newSymbol.IsImplicitlyDeclared == symbol.IsImplicitlyDeclared &&
+                            string.Equals(symbol.Name, newSymbol.Name, StringComparison.Ordinal) &&
+                            ((ILocalSymbol)newSymbol).Type.Equals(((ILocalSymbol)symbol).Type);
 
                     case SymbolKind.Label:
                     case SymbolKind.RangeVariable:
@@ -553,11 +556,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         private static bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
         {
-            return symbol != null
-                && symbol.IsKind(SymbolKind.Method)
-                && symbol.ContainingType.SpecialType == SpecialType.System_Object
-                && !symbol.IsOverridable()
-                && !symbol.IsStaticType();
+            return symbol is
+            {
+                ContainingType: { SpecialType: SpecialType.System_Object }
+            } && symbol.IsKind(SymbolKind.Method) && symbol.IsOverridable() is false && symbol.IsStaticType() is false;
         }
 
         private bool ReplacementBreaksAttribute(TAttributeSyntax attribute, TAttributeSyntax newAttribute)

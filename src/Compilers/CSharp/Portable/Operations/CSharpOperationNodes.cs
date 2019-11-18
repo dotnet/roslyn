@@ -1483,11 +1483,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IBlockOperation CreateIgnoredBody()
         {
-            return _localFunctionStatement is {
-                BlockBody: {
-                }, ExpressionBody: {
-                }
-            } ?
+            return _localFunctionStatement is { BlockBody: { }, ExpressionBody: { } } ?
                         (IBlockOperation)_operationFactory.Create(_localFunctionStatement.ExpressionBody) :
                         null;
         }

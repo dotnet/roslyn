@@ -350,7 +350,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     // don't allow merging if there are diagnostics or values for these tokens.  
                     // We might be able to support that, but it's easier to not do anything that 
                     // might break an expectation someone might have downstream.                    /
-                    if (lastTextToken is { Diagnostics: { Length: 0 }, Value: null } && nextTextToken is { Diagnostics: { Length: 0 }, Value: null, LeadingTrivia: { Length: 0 } })
+                    if (lastTextToken is { Diagnostics: { Length: 0 }, Value: null } && nextTextToken is
+                    {
+                        Diagnostics: { Length: 0 },
+                        Value: null,
+                        LeadingTrivia: { Length: 0 }
+                    })
                     {
                         lastTextToken.VirtualChars.AssertAdjacentTo(nextTextToken.VirtualChars);
                         return true;

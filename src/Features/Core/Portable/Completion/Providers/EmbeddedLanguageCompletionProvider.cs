@@ -72,6 +72,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
-            => (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => lang is IEmbeddedLanguageFeatures { CompletionProvider: { Name: item.Properties[EmbeddedProviderName] } });
+            => (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
     }
 }

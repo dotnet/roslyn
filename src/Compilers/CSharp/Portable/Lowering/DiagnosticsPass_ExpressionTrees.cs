@@ -54,11 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckUnsafeType(BoundExpression e)
         {
-            if (e is
-            {
-                Type: object { TypeKind: TypeKind.Pointer }
-            }
-) NoteUnsafe(e);
+            if (e is { Type: { TypeKind: TypeKind.Pointer } }) NoteUnsafe(e);
         }
 
         private void NoteUnsafe(BoundNode node)

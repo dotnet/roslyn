@@ -117,7 +117,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return SpecializedTasks.EmptyImmutableArray<ISymbol>();
                 }
 
-                if (type is ITypeParameterSymbol { HasConstructorConstraint: false, TypeKind: TypeKind.TypeParameter })
+                if (type is ITypeParameterSymbol
+                {
+                    HasConstructorConstraint: false,
+                    TypeKind: TypeKind.TypeParameter
+                })
                 {
                     return SpecializedTasks.EmptyImmutableArray<ISymbol>();
                 }

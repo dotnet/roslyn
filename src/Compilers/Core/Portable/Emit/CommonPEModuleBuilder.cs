@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private bool IsSourceDefinition(IMethodSymbol method)
         {
-            return method is { ContainingModule: CommonSourceModule, IsDefinition: true };
+            return method.ContainingModule == CommonSourceModule && method.IsDefinition;
         }
 
         /// <summary>
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // First time through, we need to push things through TypeReferenceIndexer
             // to make sure we collect all to be embedded NoPia types and members.
-            if (EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen)
+            if (EmbeddedTypesManagerOpt is { IsFrozen: false })
             {
                 typeReferenceIndexer = new Cci.TypeReferenceIndexer(context);
                 Debug.Assert(names != null);

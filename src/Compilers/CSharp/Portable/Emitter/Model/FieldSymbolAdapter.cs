@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (this is { IsDefinition: true, ContainingModule: moduleBeingBuilt.SourceModule })
+            if (this.IsDefinition &&
+                this.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsReadOnly || (this.IsConst && !this.IsMetadataConstant);
+                return this.IsReadOnly || (this is { IsConst: true, IsMetadataConstant: false });
             }
         }
 

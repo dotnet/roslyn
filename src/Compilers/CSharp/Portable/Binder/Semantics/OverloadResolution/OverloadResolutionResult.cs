@@ -612,9 +612,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ErrorCode errorCode =
                     symbol.RequiresInstanceReceiver()
-                    ? Binder.WasImplicitReceiver(receiverOpt) && binder is {
-                        InFieldInitializer: true, BindingTopLevelScriptCode: false
-                    } ? ErrorCode.ERR_FieldInitRefNonstatic
+                    ? Binder.WasImplicitReceiver(receiverOpt) && binder is
+                {
+                    InFieldInitializer: true,
+                    BindingTopLevelScriptCode: false
+                } ? ErrorCode.ERR_FieldInitRefNonstatic
                         : ErrorCode.ERR_ObjectRequired
                     : ErrorCode.ERR_ObjectProhibited;
                 // error CS0176: Member 'Program.M(B)' cannot be accessed with an instance reference; qualify it with a type name instead

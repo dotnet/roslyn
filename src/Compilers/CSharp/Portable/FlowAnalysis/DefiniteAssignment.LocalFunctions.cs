@@ -313,7 +313,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (symbol != null)
             {
-                if (symbol is MethodSymbol { MethodKind: MethodKind.LocalFunction, Kind: SymbolKind.Method })
+                if (symbol is MethodSymbol
+                {
+                    MethodKind: MethodKind.LocalFunction,
+                    Kind: SymbolKind.Method
+                })
                 {
                     return (LocalFunctionSymbol)symbol;
                 }

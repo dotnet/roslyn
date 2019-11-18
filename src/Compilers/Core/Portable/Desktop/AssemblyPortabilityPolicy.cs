@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(AssemblyPortabilityPolicy other)
         {
-            return this is { SuppressSilverlightLibraryAssembliesPortability: other.SuppressSilverlightLibraryAssembliesPortability, SuppressSilverlightPlatformAssembliesPortability: other.SuppressSilverlightPlatformAssembliesPortability };
+            return this.SuppressSilverlightLibraryAssembliesPortability == other.SuppressSilverlightLibraryAssembliesPortability
+                && this.SuppressSilverlightPlatformAssembliesPortability == other.SuppressSilverlightPlatformAssembliesPortability;
         }
 
         public override int GetHashCode()

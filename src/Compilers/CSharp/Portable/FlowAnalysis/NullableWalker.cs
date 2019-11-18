@@ -449,7 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             DiagnosticBag diagnostics)
         {
-            if (method is { IsImplicitlyDeclared: true, IsImplicitConstructor: false, IsScriptInitializer: false })
+            if (method is
+            {
+                IsImplicitlyDeclared: true,
+                IsImplicitConstructor: false,
+                IsScriptInitializer: false
+            })
             {
                 return;
             }

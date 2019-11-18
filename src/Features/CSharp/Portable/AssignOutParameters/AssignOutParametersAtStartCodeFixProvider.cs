@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 return;
             }
 
-            if (location is StatementSyntax
-            {
-                Parent: BlockSyntax { Parent: container } block
-            } statement && block.Statements[0] is statement)
+            if (location is StatementSyntax { Parent: BlockSyntax block } statement && block.Statements[0] == statement && block.Parent == container)
             {
                 return;
             }

@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (arg is
                 {
                     Key: UnsupportedMetadataTypeSymbol { Kind: SymbolKind.ErrorType }
-                }
-)
+                })
                 {
                     return new UnsupportedMetadataTypeSymbol();
                 }

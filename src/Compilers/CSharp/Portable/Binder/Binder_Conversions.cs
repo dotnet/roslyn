@@ -534,7 +534,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = group.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
             Debug.Assert((object)conversion.Method != null);
-            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, conversion is { Method: { RequiresInstanceReceiver: false }, IsExtensionMethod: false }, diagnostics);
+            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, conversion is
+            {
+                Method: { RequiresInstanceReceiver: false },
+                IsExtensionMethod: false
+            }, diagnostics);
             return group.Update(
                 group.TypeArgumentsOpt,
                 group.Name,

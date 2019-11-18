@@ -70,16 +70,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x is
-                {
-                    ForcedAnalysis: y.ForcedAnalysis,
-                    ReportSuppressedDiagnostics: y.ReportSuppressedDiagnostics,
-                    LogAnalyzerExecutionTime: y.LogAnalyzerExecutionTime,
-                    ProjectId: y.ProjectId,
-                    OptionSetChecksum: y.OptionSetChecksum,
-                    AnalyzerIds: { Length: y.AnalyzerIds.Length }
-                }
-&& x.AnalyzerIds.Except(y.AnalyzerIds).Count() is 0)
+                if (x.ForcedAnalysis == y.ForcedAnalysis &&
+                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                    x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
+                    x.ProjectId == y.ProjectId &&
+                    x.OptionSetChecksum == y.OptionSetChecksum &&
+                    x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
+                    x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)
                 {
                     return 0;
                 }

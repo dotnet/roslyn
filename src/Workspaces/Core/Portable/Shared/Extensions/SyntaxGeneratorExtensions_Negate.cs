@@ -145,7 +145,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (operationKind)
             {
                 case BinaryOperatorKind.Equals:
-                    return binaryOperation is { LeftOperand: { Type: { IsValueType: true } }, RightOperand: { Type: { IsValueType: true } } } ? generator.ValueEqualsExpression(leftOperand, rightOperand)
+                    return binaryOperation is
+                    {
+                        LeftOperand: { Type: { IsValueType: true } },
+                        RightOperand: { Type: { IsValueType: true } }
+                    } ? generator.ValueEqualsExpression(leftOperand, rightOperand)
                         : generator.ReferenceEqualsExpression(leftOperand, rightOperand);
                 case BinaryOperatorKind.NotEquals:
                     return binaryOperation.LeftOperand.Type?.IsValueType == true && binaryOperation.RightOperand.Type?.IsValueType == true

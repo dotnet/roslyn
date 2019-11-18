@@ -327,7 +327,12 @@ public class Bar
         {
             var testObject = GetCodeClass("Bar");
 
-            var l = from p in testObject.Members.OfType<CodeProperty>() where vsCMAccess.vsCMAccessPublic == p.Access && p.Getter != null && !p.Getter.IsShared && vsCMAccess.vsCMAccessPublic == p.Getter.Access select p;
+            var l = from p in testObject.Members.OfType<CodeProperty>() where p is
+                    {
+                        Access: vsCMAccess.vsCMAccessPublic,
+                        Getter: { IsShared: false, Access: vsCMAccess.vsCMAccessPublic }
+                    }
+                    select p;
             var z = l.ToList<CodeProperty>();
             Assert.Equal(2, z.Count);
         }

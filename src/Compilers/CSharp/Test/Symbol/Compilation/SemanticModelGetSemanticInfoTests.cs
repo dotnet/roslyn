@@ -4545,8 +4545,7 @@ class C
             Assert.True(symbol is
             {
                 ContainingSymbol: IPropertySymbol { IsIndexer: true, Kind: SymbolKind.Property }
-            }
-);
+            });
             Assert.Equal("System.Int16 i", symbol.ToTestDisplayString());
         }
 

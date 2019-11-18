@@ -42,7 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool Equals(BinaryOperatorSignature other)
         {
             return
-                this is { Kind: other.Kind, Method: other.Method } && TypeSymbol.Equals(this.LeftType, other.LeftType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(this.RightType, other.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(this.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything2);
+                this.Kind == other.Kind &&
+                TypeSymbol.Equals(this.LeftType, other.LeftType, TypeCompareKind.ConsiderEverything2) &&
+                TypeSymbol.Equals(this.RightType, other.RightType, TypeCompareKind.ConsiderEverything2) &&
+                TypeSymbol.Equals(this.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything2) &&
+                this.Method == other.Method;
         }
 
         public static bool operator ==(BinaryOperatorSignature x, BinaryOperatorSignature y)

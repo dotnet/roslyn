@@ -63,7 +63,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
                 var referenceEqualsMethodOpt = objectType?.GetMembers(nameof(ReferenceEquals))
                                                           .OfType<IMethodSymbol>()
-                                                          .FirstOrDefault(m => m is { DeclaredAccessibility: Accessibility.Public, Parameters: { Length: 2 } });
+                                                          .FirstOrDefault(m => m is
+                                                          {
+                                                              DeclaredAccessibility: Accessibility.Public,
+                                                              Parameters: { Length: 2 }
+                                                          });
 
                 startContext.RegisterSyntaxNodeAction(
                     c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethodOpt), GetSyntaxKindToAnalyze());

@@ -150,7 +150,11 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this is { SupportsSyntaxTree: true, Project: { SupportsCompilation: true } };
+                return this is
+                {
+                    SupportsSyntaxTree: true,
+                    Project: { SupportsCompilation: true }
+                };
             }
         }
 

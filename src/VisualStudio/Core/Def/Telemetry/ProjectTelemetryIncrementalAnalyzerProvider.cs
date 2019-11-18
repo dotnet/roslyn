@@ -64,14 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
                     public bool Equals(Inputs other)
                     {
-                        return this.Language.Equals(other.Language) && this is
-                        {
-                            AnalyzerReferencesCount: other.AnalyzerReferencesCount,
-                            ProjectReferencesCount: other.ProjectReferencesCount,
-                            MetadataReferencesCount: other.MetadataReferencesCount,
-                            DocumentsCount: other.DocumentsCount,
-                            AdditionalDocumentsCount: other.AdditionalDocumentsCount
-                        };
+                        return this.Language.Equals(other.Language) &&
+                               this.AnalyzerReferencesCount == other.AnalyzerReferencesCount &&
+                               this.ProjectReferencesCount == other.ProjectReferencesCount &&
+                               this.MetadataReferencesCount == other.MetadataReferencesCount &&
+                               this.DocumentsCount == other.DocumentsCount &&
+                               this.AdditionalDocumentsCount == other.AdditionalDocumentsCount;
                     }
                 }
 

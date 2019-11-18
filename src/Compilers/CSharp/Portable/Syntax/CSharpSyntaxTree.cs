@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldTree = this;
 
             // if changes is entire text do a full reparse
-            if (changes is { Count: 1 } && changes[0] is { Span: new TextSpan(0, this.Length), NewLength: newText.Length })
+            if (changes.Count == 1 && changes[0].Span == new TextSpan(0, this.Length) && changes[0].NewLength == newText.Length)
             {
                 // parser will do a full parse if we give it no changes
                 changes = null;

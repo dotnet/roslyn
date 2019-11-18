@@ -387,8 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             return paren.Expression;
                         case IdentifierNameSyntax
                         {
-                            Parent: MemberAccessExpressionSyntax { Name: node } memberAccess
-                        } id:
+                            Parent: MemberAccessExpressionSyntax memberAccess
+                        } id when memberAccess.Name == node:
                             node = memberAccess;
                             continue;
                         case ExpressionSyntax expr when expr.Parent is ConditionalAccessExpressionSyntax cond && cond.WhenNotNull == node:

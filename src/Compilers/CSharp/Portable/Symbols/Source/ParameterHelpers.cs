@@ -430,11 +430,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 hasErrors = true;
             }
-            else if (conversion is { IsReference: true } && (parameterType.SpecialType == SpecialType.System_Object || parameterType.Kind == SymbolKind.DynamicType) && defaultExpression is
-            {
-                Type: object { SpecialType: SpecialType.System_String }
-            }
-||
+            else if (conversion is { IsReference: true } &&
+                (parameterType.SpecialType == SpecialType.System_Object || parameterType.Kind == SymbolKind.DynamicType) && defaultExpression is { Type: { SpecialType: SpecialType.System_String } } ||
                 conversion.IsBoxing)
             {
                 // We don't allow object x = "hello", object x = 123, dynamic x = "hello", etc.

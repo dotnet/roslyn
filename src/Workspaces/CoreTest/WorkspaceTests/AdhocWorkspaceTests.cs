@@ -493,7 +493,8 @@ language: LanguageNames.CSharp);
             var tcs = new TaskCompletionSource<bool>();
             ws.WorkspaceChanged += (s, args) =>
             {
-                if (args is { Kind: WorkspaceChangeKind.DocumentInfoChanged, DocumentId: originalDoc.Id })
+                if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
+                    && args.DocumentId == originalDoc.Id)
                 {
                     tcs.SetResult(true);
                 }
@@ -505,7 +506,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(newName, appliedDoc.Name);
 
             await Task.WhenAny(tcs.Task, Task.Delay(1000));
-            Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
+            Assert.True(tcs is { Task: { IsCompleted: true, Result: true } });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

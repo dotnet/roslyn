@@ -144,8 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (token is
                 {
                     Parent: MemberDeclarationSyntax { Parent: BaseTypeDeclarationSyntax _ }
-                }
-)
+                })
                 {
                     return true;
                 }

@@ -22,11 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 
         public bool IsCondition(SyntaxNode expression, out SyntaxNode ifOrElseIf)
         {
-            if (expression is
-            {
-                Parent: IfStatementSyntax { Condition: expression } ifStatement
-            }
-)
+            if (expression.Parent is IfStatementSyntax ifStatement && ifStatement.Condition == expression)
             {
                 ifOrElseIf = ifStatement;
                 return true;
@@ -38,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 
         public bool IsElseIfClause(SyntaxNode node, out SyntaxNode parentIfOrElseIf)
         {
-            if (node is IfStatementSyntax && node.Parent is ElseClauseSyntax)
+            if (node is IfStatementSyntax { Parent: ElseClauseSyntax _ })
             {
                 parentIfOrElseIf = (IfStatementSyntax)node.Parent.Parent;
                 return true;

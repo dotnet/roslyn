@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static ImmutableArray<Symbol> UnwrapErrorCandidates(ImmutableArray<Symbol> candidateSymbols)
         {
             var candidate = candidateSymbols.IsEmpty ? null : candidateSymbols[0] as ErrorTypeSymbol;
-            return (candidate is object { CandidateSymbols: { IsEmpty: false } }) ? candidate.CandidateSymbols : candidateSymbols;
+            return (candidate is { CandidateSymbols: { IsEmpty: false } }) ? candidate.CandidateSymbols : candidateSymbols;
         }
 
         internal override DiagnosticInfo ErrorInfo

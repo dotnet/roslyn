@@ -1665,7 +1665,10 @@ REPARSE:
             string desiredMethodName, ImmutableArray<TypeParameterSymbol> desiredTypeParameters, bool desiredMethodMustBeInstance)
         {
             return
-candidateMethod is { IsAbstract: false, Name: desiredMethodName } && (!(desiredMethodMustBeInstance && candidateMethod.IsStatic)) && HaveSameConstraints(candidateMethod.TypeParameters, desiredTypeParameters);
+                !candidateMethod.IsAbstract &&
+                (!(desiredMethodMustBeInstance && candidateMethod.IsStatic)) &&
+                candidateMethod.Name == desiredMethodName &&
+                HaveSameConstraints(candidateMethod.TypeParameters, desiredTypeParameters);
         }
 
         private static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> candidateTypeParameters, ImmutableArray<TypeParameterSymbol> desiredTypeParameters)

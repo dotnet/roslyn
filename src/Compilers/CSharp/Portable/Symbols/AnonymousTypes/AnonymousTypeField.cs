@@ -31,7 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Conditional("DEBUG")]
         internal void AssertIsGood()
         {
-            Debug.Assert(this is { Name: { }, Location: { }, TypeWithAnnotations: { HasType: true } });
+            Debug.Assert(this is
+            {
+                Name: { },
+                Location: { },
+                TypeWithAnnotations: { HasType: true }
+            });
         }
     }
 }

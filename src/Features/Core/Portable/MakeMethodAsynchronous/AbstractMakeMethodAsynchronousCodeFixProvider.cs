@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
             // Heuristic to recognize the common case for entry point method
-            var isEntryPoint = symbol is { IsStatic: true } && IsLikelyEntryPointName(symbol.Name, context.Document);
+            var isEntryPoint = symbol is { IsStatic: true } &&
+IsLikelyEntryPointName(symbol.Name, context.Document);
 
             // Offer to convert to a Task return type.
             context.RegisterCodeFix(

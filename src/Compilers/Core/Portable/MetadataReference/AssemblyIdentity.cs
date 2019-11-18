@@ -471,7 +471,10 @@ namespace Microsoft.CodeAnalysis
         internal static bool EqualIgnoringNameAndVersion(AssemblyIdentity x, AssemblyIdentity y)
         {
             return
-                x is { IsRetargetable: y.IsRetargetable, ContentType: y.ContentType } && AssemblyIdentityComparer.CultureComparer.Equals(x.CultureName, y.CultureName) && KeysEqual(x, y);
+                x.IsRetargetable == y.IsRetargetable &&
+                x.ContentType == y.ContentType &&
+                AssemblyIdentityComparer.CultureComparer.Equals(x.CultureName, y.CultureName) &&
+                KeysEqual(x, y);
         }
 
         internal static bool KeysEqual(AssemblyIdentity x, AssemblyIdentity y)

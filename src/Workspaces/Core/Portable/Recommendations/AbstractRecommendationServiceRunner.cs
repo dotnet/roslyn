@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             if (!(parameter is
             {
                 ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } containingMethod
-            }
-))
+            }))
             {
                 return default;
             }

@@ -418,10 +418,11 @@ namespace Microsoft.Cci
 
             INestedTypeReference/*?*/ nestedTypeReference = typeReference.AsNestedTypeReference;
             if (this.typeReferenceNeedsToken || nestedTypeReference != null ||
-              (typeReference is {
-                  TypeCode: PrimitiveTypeCode.NotPrimitive, AsNamespaceTypeReference: {
-                  }
-              }))
+              (typeReference is
+            {
+                TypeCode: PrimitiveTypeCode.NotPrimitive,
+                AsNamespaceTypeReference: { }
+            }))
             {
                 ISpecializedNestedTypeReference/*?*/ specializedNestedTypeReference = nestedTypeReference?.AsSpecializedNestedTypeReference;
                 if (specializedNestedTypeReference != null)

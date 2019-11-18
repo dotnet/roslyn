@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="other">The object to compare.</param>
         public bool Equals(LinePosition other)
         {
-            return other is { Line: this.Line, Character: this.Character };
+            return other.Line == this.Line && other.Character == this.Character;
         }
 
         /// <summary>

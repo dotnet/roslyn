@@ -1388,7 +1388,7 @@ namespace System.Runtime.CompilerServices
             // Get Binding Node with match node type
             if (node != null)
             {
-                while ((node as TNode) == null)
+                while ((node as TNode) is null)
                 {
                     if (node.Parent != null && node.Parent.ToString() == bindText)
                     {

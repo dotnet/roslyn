@@ -215,10 +215,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // 2. Mush have no diagnostic analyzers.
                 // 3. Must have non-null full path.
                 // 4. Must not have any assembly or analyzer load failures.
-                if (analyzerReference is AnalyzerFileReference {
-                    FullPath: {
-                    }
-                } && analyzerReference.GetAnalyzers(project.Language) is { IsDefaultOrEmpty: true } && !analyzersWithLoadErrors.Contains(analyzerReference.FullPath))
+                if (analyzerReference is AnalyzerFileReference { FullPath: { } } && analyzerReference.GetAnalyzers(project.Language) is { IsDefaultOrEmpty: true } &&
+analyzersWithLoadErrors.Contains(analyzerReference.FullPath) is false)
                 {
                     continue;
                 }

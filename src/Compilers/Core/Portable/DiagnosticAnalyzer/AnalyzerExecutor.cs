@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal bool ExceptionFilter(Exception ex)
         {
-            if (ex is OperationCanceledException { CancellationToken: _cancellationToken })
+            if ((ex as OperationCanceledException)?.CancellationToken == _cancellationToken)
             {
                 return false;
             }

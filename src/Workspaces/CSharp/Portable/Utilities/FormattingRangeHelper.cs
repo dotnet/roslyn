@@ -397,10 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool IsColonInSwitchLabel(SyntaxToken token)
         {
-            return token.Kind() is SyntaxKind.ColonToken && token is
-            {
-                Parent: SwitchLabelSyntax { ColonToken: token } switchLabel
-            };
+            return token.Kind() == SyntaxKind.ColonToken &&
+                token.Parent is SwitchLabelSyntax switchLabel &&
+                switchLabel.ColonToken == token;
         }
 
         public static bool InBetweenTwoMembers(SyntaxToken previousToken, SyntaxToken currentToken)

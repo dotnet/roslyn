@@ -1109,8 +1109,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             Options: { StrongNameProvider: { }, PublicSign: false },
                             SignUsingBuilder: true
-                        }
-)
+                        })
                         {
                             privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
                         }

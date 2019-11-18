@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         {
             if (obj is FormattedClassification other)
             {
-                return this is { ClassificationName: other.ClassificationName, Text: other.Text };
+                return this.ClassificationName == other.ClassificationName
+                    && this.Text == other.Text;
             }
 
             return false;

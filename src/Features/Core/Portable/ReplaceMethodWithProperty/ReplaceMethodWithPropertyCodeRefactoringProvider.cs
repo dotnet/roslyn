@@ -114,15 +114,13 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             return getMethod is
             {
-                ContainingType: {
-                },
+                ContainingType: { },
                 IsGenericMethod: false,
                 IsAsync: false,
                 Parameters: { Length: 0 },
                 ReturnsVoid: false,
                 DeclaringSyntaxReferences: { Length: 1 }
-            }
-&& !OverridesMethodFromSystemObject(getMethod);
+            } && OverridesMethodFromSystemObject(getMethod) is false;
         }
 
         private static bool OverridesMethodFromSystemObject(IMethodSymbol method)

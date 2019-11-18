@@ -152,7 +152,11 @@ namespace Acme
 ");
 
             CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.#cctor", compilation, s => s.MethodKind == MethodKind.StaticConstructor);
-            CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.#ctor", compilation, s => s is { MethodKind: MethodKind.Constructor, Parameters: { Length: 0 } });
+            CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.#ctor", compilation, s => s is
+            {
+                MethodKind: MethodKind.Constructor,
+                Parameters: { Length: 0 }
+            });
             CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.#ctor(System.String)", compilation, s => s.MethodKind == MethodKind.Constructor && s.Parameters.Length == 1);
         }
 

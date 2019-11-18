@@ -510,8 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Name: "System",
                     Kind: SymbolKind.Namespace
                 } declContainer
-            }
-&& type.GetArity() is 0;
+            } && type.GetArity() is 0;
         }
 
         private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)

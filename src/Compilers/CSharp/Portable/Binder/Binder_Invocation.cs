@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     analyzedArguments.Arguments[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
                 }
-                else if ((object)argument.Type == null && !argument.HasAnyErrors)
+                else if (argument is { Type: null, HasAnyErrors: false })
                 {
                     // We are going to need every argument in here to have a type. If we don't have one,
                     // try converting it to object. We'll either succeed (if it is a null literal)
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var r = results.Results;
             for (int i = 0; i < r.Length; ++i)
             {
-                if (r[i] is { IsApplicable: true, Member: { IsConditional: true } })
+                if (r[i].IsApplicable && r[i].Member.IsConditional)
                 {
                     return true;
                 }

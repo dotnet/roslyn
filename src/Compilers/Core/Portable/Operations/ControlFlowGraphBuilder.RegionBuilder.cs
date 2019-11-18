@@ -115,11 +115,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
 
 #if DEBUG
-                Debug.Assert(region.Enclosing == null || (region is
-                {
-                    Enclosing: { _aboutToFree: true, Enclosing: this }
-                }
-));
+                Debug.Assert(region.Enclosing == null || (region.Enclosing._aboutToFree && region.Enclosing.Enclosing == this));
 #endif 
                 region.Enclosing = this;
                 Regions.Add(region);

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsThis(Symbol captured)
         {
             var parameter = captured as ParameterSymbol;
-            return parameter is object { IsThis: true };
+            return parameter is { IsThis: true };
         }
 
         private static string GetCapturedVariableFieldName(Symbol variable, ref int uniqueId)

@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
             public bool Equals(Key key)
             {
-                return this is { FunctionId: key.FunctionId, ItemKey: key.ItemKey };
+                return this.FunctionId == key.FunctionId && this.ItemKey == key.ItemKey;
             }
         }
     }

@@ -562,7 +562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldOptions = this.Options;
             bool reuseReferenceManager = oldOptions.CanReuseCompilationReferenceManager(options);
-            bool reuseSyntaxAndDeclarationManager = oldOptions is { ScriptClassName: options.ScriptClassName, SourceReferenceResolver: options.SourceReferenceResolver };
+            bool reuseSyntaxAndDeclarationManager = oldOptions.ScriptClassName == options.ScriptClassName &&
+                oldOptions.SourceReferenceResolver == options.SourceReferenceResolver;
 
             return new CSharpCompilation(
                 this.AssemblyName,
@@ -1194,9 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamespaceSymbol GetCompilationNamespace(INamespaceSymbol namespaceSymbol)
         {
-            if (namespaceSymbol is NamespaceSymbol &&
-                namespaceSymbol.NamespaceKind == NamespaceKind.Compilation &&
-                namespaceSymbol.ContainingCompilation == this)
+            if (namespaceSymbol is NamespaceSymbol { NamespaceKind: NamespaceKind.Compilation } && namespaceSymbol.ContainingCompilation == this)
             {
                 return (NamespaceSymbol)namespaceSymbol;
             }

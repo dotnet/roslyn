@@ -291,7 +291,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var project = GetProject(projectName);
             var vsproject = (VSProject)project.Object;
             var references = vsproject.References.Cast<Reference>();
-            var reference = references.Where(x => x is { ContainingProject: { }, Name: projectReferenceName }).FirstOrDefault();
+            var reference = references.Where(x => x.ContainingProject != null && x.Name == projectReferenceName).FirstOrDefault();
             if (reference == null)
             {
                 var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);

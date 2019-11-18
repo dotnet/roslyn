@@ -115,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (variableDeclaration is
                 {
                     Parent: LocalDeclarationStatementSyntax { IsConst: true }
-                }
-)
+                })
                 {
                     return false;
                 }

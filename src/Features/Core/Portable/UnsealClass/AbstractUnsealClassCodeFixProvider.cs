@@ -35,9 +35,13 @@ namespace Microsoft.CodeAnalysis.UnsealClass
 
             if (semanticModel.GetSymbolInfo(node, cancellationToken) is
             {
-                Symbol: INamedTypeSymbol { IsStatic: false, IsSealed: true, TypeKind: TypeKind.Class } type
-            }
-)
+                Symbol: INamedTypeSymbol
+                {
+                    IsStatic: false,
+                    IsSealed: true,
+                    TypeKind: TypeKind.Class
+                } type
+            })
             {
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(
                     type, document.Project.Solution, cancellationToken).ConfigureAwait(false);

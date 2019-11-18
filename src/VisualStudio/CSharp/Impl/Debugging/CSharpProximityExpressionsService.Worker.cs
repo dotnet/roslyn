@@ -91,7 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             {
                 return IsFirstBlockStatement()
                     ? (BlockSyntax)_parentStatement.Parent
-                    : _parentStatement is BlockSyntax { OpenBraceToken: _token } ? (BlockSyntax)_parentStatement
+                    : _parentStatement is BlockSyntax && ((BlockSyntax)_parentStatement).OpenBraceToken == _token
+                        ? (BlockSyntax)_parentStatement
                         : null;
             }
 
@@ -114,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 // the proximity expressions.
                 var block = GetImmediatelyContainingBlock();
 
-                if (block != null && block.Parent is MemberDeclarationSyntax)
+                if (block is { Parent: MemberDeclarationSyntax _ })
                 {
                     var parameterList = ((MemberDeclarationSyntax)block.Parent).GetParameterList();
                     AddParameters(parameterList);

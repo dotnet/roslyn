@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void ReportDiagnosticsIfObsolete(DiagnosticBag diagnostics, Conversion conversion, SyntaxNodeOrToken node, bool hasBaseReceiver)
         {
-            if (conversion is { IsValid: true, Method: object _ })
+            if (conversion is { IsValid: true, Method: { } })
             {
                 ReportDiagnosticsIfObsolete(diagnostics, conversion.Method, node, hasBaseReceiver);
             }

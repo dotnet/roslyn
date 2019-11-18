@@ -238,7 +238,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     (TLanguageService)this, v, EditorAdaptersFactoryService).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-            var isOpenMetadataAsSource = openDocument is { Project: { Solution: { Workspace: { Kind: WorkspaceKind.MetadataAsSource } } } };
+            var isOpenMetadataAsSource = openDocument is
+            {
+                Project:
+                {
+                    Solution: { Workspace: { Kind: WorkspaceKind.MetadataAsSource } }
+                }
+            };
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, workspace, isOpenMetadataAsSource);
 

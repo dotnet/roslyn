@@ -260,10 +260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         {
                             if (memberAccessExpression is
                             {
-                                Parent: InvocationExpressionSyntax { } explicitInvocationExpression,
-                                Name: { Identifier: { ValueText: WellKnownMemberNames.DelegateInvokeName } }
-                            }
-)
+                                Parent: InvocationExpressionSyntax explicitInvocationExpression,
+                                Name:
+                                {
+                                    Identifier: { ValueText: WellKnownMemberNames.DelegateInvokeName }
+                                }
+                            })
                             {
                                 references.Add(explicitInvocationExpression.GetLocation());
                             }

@@ -223,11 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return
                 IsLeftSideOfQualifiedName(expression) ||
-                (expression is
-            {
-                Parent: MemberAccessExpressionSyntax { Expression: expression }
-            }
-);
+                (expression.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
         }
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
@@ -506,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsNamedArgumentIdentifier(this ExpressionSyntax expression)
         {
-            return expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
+            return expression is IdentifierNameSyntax { Parent: NameColonSyntax _ };
         }
 
         public static bool IsInsideNameOfExpression(

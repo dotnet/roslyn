@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             return compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
-                .Where(n => n is { NamespaceKind: NamespaceKind.Module, ContainingAssembly: compilation.Assembly })
+                .Where(n => n.NamespaceKind == NamespaceKind.Module && n.ContainingAssembly == compilation.Assembly)
                 .Select(GetQualifiedName);
         }
 

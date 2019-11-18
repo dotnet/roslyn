@@ -85,7 +85,12 @@ namespace Roslyn.Utilities
 
         internal static void AssertCanRead(this ReaderWriterLockSlim @lock)
         {
-            if (@lock is { IsReadLockHeld: false, IsUpgradeableReadLockHeld: false, IsWriteLockHeld: false })
+            if (@lock is
+            {
+                IsReadLockHeld: false,
+                IsUpgradeableReadLockHeld: false,
+                IsWriteLockHeld: false
+            })
             {
                 throw new InvalidOperationException();
             }

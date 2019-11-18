@@ -40,7 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Find the members that can be tested.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, type);
-            members = members.Where(m => m is { CanBeReferencedByName: true, IsImplicitlyDeclared: false, IsStatic: false } && IsFieldOrReadableProperty(m));
+            members = members.Where(m => m is
+            {
+                CanBeReferencedByName: true,
+                IsImplicitlyDeclared: false,
+                IsStatic: false
+            } && IsFieldOrReadableProperty(m));
 
             // Filter out those members that have already been typed
             var propertyPatternClause = (PropertyPatternClauseSyntax)token.Parent;

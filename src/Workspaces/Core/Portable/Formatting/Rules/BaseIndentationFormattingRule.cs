@@ -105,14 +105,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private bool Myself(IndentBlockOperation operation)
         {
-            return operation is
-            {
-                TextSpan: _span,
-                StartToken: _token1,
-                EndToken: _token2,
-                IndentationDeltaOrPosition: _baseIndentation,
-                Option: IndentBlockOption.AbsolutePosition
-            };
+            return operation.TextSpan == _span &&
+                   operation.StartToken == _token1 &&
+                   operation.EndToken == _token2 &&
+                   operation.IndentationDeltaOrPosition == _baseIndentation &&
+                   operation.Option == IndentBlockOption.AbsolutePosition;
         }
 
         private IndentBlockOperation CloneAndAdjustFormattingOperation(IndentBlockOperation operation)

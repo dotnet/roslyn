@@ -82,10 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                     case DeclarationPatternSyntax declarationPattern:
                         if (declarationPattern is
                         {
-                            Designation: DiscardDesignationSyntax { } discardDesignationSyntax,
-                            Parent: IsPatternExpressionSyntax { } isPatternExpression
-                        }
-)
+                            Designation: DiscardDesignationSyntax discardDesignationSyntax,
+                            Parent: IsPatternExpressionSyntax isPatternExpression
+                        })
                         {
                             // "x is int _" => "x is int"
                             var replacementNode = SyntaxFactory.BinaryExpression(

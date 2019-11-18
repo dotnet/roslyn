@@ -195,10 +195,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 int h = hash = GetCacheHash(kind, flags, child1);
                 int idx = h & CacheMask;
                 var e = s_cache[idx];
-                if (e is {
-                    hash: h, node: {
-                    }
-                } && e.node.IsCacheEquivalent(kind, flags, child1))
+                if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1))
                 {
                     GreenStats.CacheHit();
                     return e.node;

@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public bool Equals(MethodImplKey other)
         {
-            return this is { ImplementingMethod: other.ImplementingMethod, Index: other.Index };
+            return this.ImplementingMethod == other.ImplementingMethod &&
+                this.Index == other.Index;
         }
 
         public override int GetHashCode()

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var qc = unoptimizedForm as BoundQueryClause;
             if (qc != null) unoptimizedForm = qc.Value;
             var call = unoptimizedForm as BoundCall;
-            if (call is { Method: object _ })
+            if (call is { Method: { } })
             {
                 var arguments = call.Arguments;
                 if (call.Method.Name == "Select")

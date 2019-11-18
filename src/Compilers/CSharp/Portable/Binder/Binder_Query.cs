@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = ReverseLastTwoParameterOrder(result);
 
                         BoundExpression unoptimizedForm = null;
-                        if (vId is { Identifier: { ValueText: x.Name } })
+                        if (vId != null && vId.Identifier.ValueText == x.Name)
                         {
                             // The optimized form.  We store the unoptimized form for analysis
                             unoptimizedForm = result;
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression castInvocation = null,
             BoundExpression unoptimizedForm = null)
         {
-            if (unoptimizedForm != null && unoptimizedForm.HasAnyErrors && !expression.HasAnyErrors) unoptimizedForm = null;
+            if (unoptimizedForm is { HasAnyErrors: true } && expression is { HasAnyErrors: false }) unoptimizedForm = null;
             return new BoundQueryClause(
                 syntax: syntax, value: expression,
                 definedSymbol: definedSymbol,

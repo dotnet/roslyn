@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 MethodSymbol accessor = AddMethod ?? RemoveMethod;
-                return accessor is object { HidesBaseMethodsByName: true };
+                return accessor is { HidesBaseMethodsByName: true };
             }
         }
 

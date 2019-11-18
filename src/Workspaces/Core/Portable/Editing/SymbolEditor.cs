@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var decl = this.GetDeclarations(currentSymbol).FirstOrDefault(d =>
             {
                 var doc = _currentSolution.GetDocument(d.SyntaxTree);
-                return doc is { Id: documentId } && d.FullSpan.IntersectsWith(position);
+                return doc != null && doc.Id == documentId && d.FullSpan.IntersectsWith(position);
             });
 
             if (decl == null)

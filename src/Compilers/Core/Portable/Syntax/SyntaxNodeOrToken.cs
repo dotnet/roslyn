@@ -804,10 +804,7 @@ namespace Microsoft.CodeAnalysis
         private static void GetDirectives<TDirective>(in SyntaxNodeOrToken node, Func<TDirective, bool> filter, ref List<TDirective> directives)
             where TDirective : SyntaxNode
         {
-            if (node is {
-                _token: {
-                }
-            } && node.AsToken() is { ContainsDirectives: true } token)
+            if (node is { _token: { } } && node.AsToken() is { ContainsDirectives: true } token)
             {
                 GetDirectives(token.LeadingTrivia, filter, ref directives);
                 GetDirectives(token.TrailingTrivia, filter, ref directives);

@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     node.Label = symbol.MetadataName;
 
                     var propertySymbol = (IPropertySymbol)symbol;
-                    if (propertySymbol.IsIndexer && LanguageNames.CSharp == propertySymbol.Language)
+                    if (propertySymbol is { IsIndexer: true, Language: LanguageNames.CSharp })
                     {
                         // For C# indexer, we will strip off the "[]"
                         node.Label = symbol.Name.Replace("[]", string.Empty);
@@ -478,7 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             // Set type-specific properties
-            if (symbol is ITypeSymbol { IsAnonymousType: true } typeSymbol)
+            if (symbol is ITypeSymbol typeSymbol && typeSymbol.IsAnonymousType)
             {
                 node[Properties.IsAnonymous] = true;
             }

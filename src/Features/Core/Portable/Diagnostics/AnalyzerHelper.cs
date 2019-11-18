@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
         {
-            return ex is OperationCanceledException { CancellationToken: cancellationToken };
+            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
         }
 
         private static void OnAnalyzerException(

@@ -41,11 +41,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                      if (operation.Kind == OperationKind.Conversion)
                      {
                          IConversionOperation conversion = (IConversionOperation)operation;
-                         if (conversion is {
-                             Operand:
-                             {
-                                 Type: { IsReferenceType: true, IsValueType: true }
-                             }, OperatorMethod: null
+                         if (conversion is
+                         {
+                             Operand: { Type: { IsReferenceType: true, IsValueType: true } },
+                             OperatorMethod: null
                          })
                          {
                              Report(operationContext, conversion.Syntax);

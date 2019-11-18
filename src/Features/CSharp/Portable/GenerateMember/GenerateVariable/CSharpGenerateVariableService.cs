@@ -73,11 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 {
                     simpleNameOrMemberAccessExpression = memberAccess;
                 }
-                else if (conditionalMemberAccess is
-                {
-                    WhenNotNull: MemberBindingExpressionSyntax { Name: identifierName }
-                }
-)
+                else if ((conditionalMemberAccess?.WhenNotNull as MemberBindingExpressionSyntax)?.Name == identifierName)
                 {
                     simpleNameOrMemberAccessExpression = conditionalMemberAccess;
                 }

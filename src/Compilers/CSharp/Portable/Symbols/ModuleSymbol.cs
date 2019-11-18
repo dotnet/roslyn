@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var moduleNs = namespaceSymbol as NamespaceSymbol;
-            if (moduleNs is object { Extent: { Kind: NamespaceKind.Module }, ContainingModule: this })
+            if (moduleNs is { Extent: { Kind: NamespaceKind.Module } } && moduleNs.ContainingModule == this)
             {
                 // this is already the correct module namespace
                 return moduleNs;

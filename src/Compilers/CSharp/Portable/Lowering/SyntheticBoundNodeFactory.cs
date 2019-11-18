@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundThisReference This()
         {
-            Debug.Assert(CurrentFunction is object { IsStatic: false });
+            Debug.Assert(CurrentFunction is { IsStatic: false });
             return new BoundThisReference(Syntax, CurrentFunction.ThisParameter.Type) { WasCompilerGenerated = true };
         }
 

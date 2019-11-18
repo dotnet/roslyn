@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             // Look for very specific forms.  Basically, only minor variations around:
             // for (var i = 0; i < expr.Lenth; i++)
 
-            if (forStatement is { Declaration: { }, Incrementors: { Count: 1 } } && forStatement.Condition.IsKind(SyntaxKind.LessThanExpression))
+            if (forStatement is { Declaration: { }, Incrementors: { Count: 1 } } &&
+                forStatement.Condition.IsKind(SyntaxKind.LessThanExpression))
             {
                 var declaration = forStatement.Declaration;
                 if (declaration.Variables.Count == 1)

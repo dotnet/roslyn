@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitProperty(PropertySymbol symbol)
         {
             var sourceProperty = symbol as SourcePropertySymbol;
-            if (sourceProperty is object { IsSealed: true })
+            if (sourceProperty is { IsSealed: true })
             {
                 var synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)

@@ -102,11 +102,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var containingType = method.ContainingType;
 
-                if (method is { Name: WellKnownMemberNames.DelegateBeginInvokeName } && containingType is
-                {
-                    DelegateInvokeMethod: {
-                    }
-                } && containingType.IsDelegateType())
+                if (method is { Name: WellKnownMemberNames.DelegateBeginInvokeName } && containingType is { DelegateInvokeMethod: { } } && containingType.IsDelegateType())
                 {
                     symbol = containingType.DelegateInvokeMethod;
                 }

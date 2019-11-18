@@ -332,9 +332,12 @@ namespace Microsoft.CodeAnalysis
             // In addition, the assembly name is determined based upon output kind. It is special for netmodules.
             // Can't reuse when file resolver or identity comparers change.
             // Can reuse even if StrongNameProvider changes. When resolving a cyclic reference only the simple name is considered, not the strong name.
-            return this is { MetadataImportOptions: other.MetadataImportOptions, ReferencesSupersedeLowerVersions: other.ReferencesSupersedeLowerVersions } && this.OutputKind.IsNetModule() is other.OutputKind.IsNetModule() && object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver)
-&& object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
-&& object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
+            return this.MetadataImportOptions == other.MetadataImportOptions
+                && this.ReferencesSupersedeLowerVersions == other.ReferencesSupersedeLowerVersions
+                && this.OutputKind.IsNetModule() == other.OutputKind.IsNetModule()
+                && object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver)
+                && object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
+                && object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
         }
 
         /// <summary>

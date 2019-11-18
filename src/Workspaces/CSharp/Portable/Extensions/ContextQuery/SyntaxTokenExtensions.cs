@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.UsingKeyword))
             {
                 var usingDirective = token.GetAncestor<UsingDirectiveSyntax>();
-                if (usingDirective is { UsingKeyword: token })
+                if (usingDirective != null &&
+                    usingDirective.UsingKeyword == token)
                 {
                     return true;
                 }
@@ -653,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                     if (item.IsNode)
                     {
-                        if (item.AsNode() is ArgumentSyntax node && node.NameColon != null)
+                        if (item.AsNode() is ArgumentSyntax { NameColon: { } } node)
                         {
                             return true;
                         }

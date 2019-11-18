@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // if it has one.
             if (symbol is IMethodSymbol
             {
-                ContainingType: ITypeSymbol { } containingType,
+                ContainingType: ITypeSymbol containingType,
                 MethodKind: MethodKind.BuiltinOperator
             } methodSymbol)
             {

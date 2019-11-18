@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             while (node != null)
             {
-                if (node is { Span: textSpan, RawKind: kind })
+                if (node.Span == textSpan && node.RawKind == kind)
                 {
                     return node;
                 }

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
-                Debug.Assert(textOpt == null || textOpt is { Encoding: encodingOpt, ChecksumAlgorithm: checksumAlgorithm });
+                Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
 
                 _lazyText = textOpt;
                 _encodingOpt = encodingOpt ?? textOpt?.Encoding;

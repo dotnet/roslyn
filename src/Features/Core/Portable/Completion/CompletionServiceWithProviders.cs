@@ -408,7 +408,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
         {
-            return item is { Span: existingItem.Span, SortText: existingItem.SortText };
+            return item.Span == existingItem.Span
+                && item.SortText == existingItem.SortText;
         }
 
         /// <summary>

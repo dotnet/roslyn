@@ -145,8 +145,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                             Kind: SymbolKind.Namespace,
                             Name: "System",
                             ContainingSymbol: INamespaceSymbol { IsGlobalNamespace: true }
-                        }
-)
+                        })
                         {
                             return true;
                         }

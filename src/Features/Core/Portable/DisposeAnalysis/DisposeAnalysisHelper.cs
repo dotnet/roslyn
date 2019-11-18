@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 operation is
         {
             Parent: IArgumentOperation { Parameter: { RefKind: RefKind.Out } } argument
-        }
-) &&
+        }) &&
                operation.Type?.IsDisposable(IDisposableType) == true;
 
         public bool HasAnyDisposableCreationDescendant(ImmutableArray<IOperation> operationBlocks, IMethodSymbol containingMethod)

@@ -413,7 +413,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return defaultRule;
             }
 
-            if (spaceOperation is { Option: AdjustSpacesOption.DefaultSpacesIfOnSingleLine, Space: 1 })
+            if (spaceOperation is
+            {
+                Option: AdjustSpacesOption.DefaultSpacesIfOnSingleLine,
+                Space: 1
+            })
             {
                 return defaultRule;
             }

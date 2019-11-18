@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-                if (sourceMethod is object { IsPartial: true })
+                if (sourceMethod is { IsPartial: true })
                 {
                     var implementingPart = sourceMethod.SourcePartialImplementation;
                     if ((object)implementingPart != null)

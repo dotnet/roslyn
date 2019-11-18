@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                             {
                                 case DeclarationPatternSyntax
                                 {
-                                    Designation: SingleVariableDesignationSyntax { } designation
+                                    Designation: SingleVariableDesignationSyntax designation
                                 } p:
                                     return new Pattern.ByType(p.Type, designation.Identifier);
 

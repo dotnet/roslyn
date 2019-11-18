@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors,
             bool isConditionallyOmitted)
         {
-            Debug.Assert(!isConditionallyOmitted || attributeClass is object { IsConditional: true });
+            Debug.Assert(!isConditionallyOmitted || attributeClass is { IsConditional: true });
             Debug.Assert(!constructorArguments.IsDefault);
             Debug.Assert(!namedArguments.IsDefault);
             Debug.Assert(constructorArgumentsSourceIndices.IsDefault ||

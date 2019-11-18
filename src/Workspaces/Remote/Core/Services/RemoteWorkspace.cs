@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _currentRemoteWorkspaceVersion = workspaceVersion;
 
                 var oldSolution = this.CurrentSolution;
-                Contract.ThrowIfFalse(oldSolution is { Id: solution.Id, FilePath: solution.FilePath });
+                Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
 
                 var newSolution = this.SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);

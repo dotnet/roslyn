@@ -212,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we didn't get anything and were in Type/Namespace only context, let's bind normally and see
                 // if any symbol comes out.
-                if ((object)result.Symbol == null && result.CandidateReason == CandidateReason.None && node is ExpressionSyntax && SyntaxFacts.IsInNamespaceOrTypeContext((ExpressionSyntax)node))
+                if (result is { Symbol: null, CandidateReason: CandidateReason.None } && node is ExpressionSyntax _ &&
+SyntaxFacts.IsInNamespaceOrTypeContext((ExpressionSyntax)node))
                 {
                     var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(node));
 
@@ -504,11 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // if the expression is the child of a base-list node, then the expression should be
             // bound in the context of the containing symbols base being resolved.
-            for (; expression is
-            {
-                Parent: {
-                }
-            }; expression = expression.Parent as TypeSyntax)
+            for (; expression != null && expression.Parent != null; expression = expression.Parent as TypeSyntax)
             {
                 var parent = expression.Parent;
                 if (parent is BaseTypeSyntax baseType && parent.Parent != null && parent.Parent.Kind() == SyntaxKind.BaseList && baseType.Type == expression)

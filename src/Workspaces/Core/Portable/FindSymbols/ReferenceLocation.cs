@@ -93,7 +93,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool Equals(ReferenceLocation other)
         {
             return
-                EqualityComparer<IAliasSymbol>.Default.Equals(this.Alias, other.Alias) && EqualityComparer<Location>.Default.Equals(this.Location, other.Location) && EqualityComparer<DocumentId>.Default.Equals(this.Document.Id, other.Document.Id) && this is { CandidateReason: other.CandidateReason, IsImplicit: other.IsImplicit };
+                EqualityComparer<IAliasSymbol>.Default.Equals(this.Alias, other.Alias) &&
+                EqualityComparer<Location>.Default.Equals(this.Location, other.Location) &&
+                EqualityComparer<DocumentId>.Default.Equals(this.Document.Id, other.Document.Id) &&
+                this.CandidateReason == other.CandidateReason &&
+                this.IsImplicit == other.IsImplicit;
         }
 
         public override int GetHashCode()

@@ -151,7 +151,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         private bool HasOperator(INamedTypeSymbol containingType, string operatorName)
             => containingType.GetMembers(operatorName)
                              .OfType<IMethodSymbol>()
-                             .Any(m => m is { MethodKind: MethodKind.UserDefinedOperator, Parameters: { Length: 2 } } && containingType.Equals(m.Parameters[0].Type) && containingType.Equals(m.Parameters[1].Type));
+                             .Any(m => m is
+                             {
+                                 MethodKind: MethodKind.UserDefinedOperator,
+                                 Parameters: { Length: 2 }
+                             } && containingType.Equals(m.Parameters[0].Type) && containingType.Equals(m.Parameters[1].Type));
 
         private void GetExistingMemberInfo(INamedTypeSymbol containingType, out bool hasEquals, out bool hasGetHashCode)
         {

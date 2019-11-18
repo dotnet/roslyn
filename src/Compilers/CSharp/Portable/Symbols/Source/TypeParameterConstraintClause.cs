@@ -198,11 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     constraintType.VisitType(null, (type, args, unused2) =>
                     {
-                        if (type is
-                        {
-                            DefaultType: TypeParameterSymbol { ContainingSymbol: (object)args.container } typeParameterSymbol
-                        }
-)
+                        if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.ContainingSymbol == (object)args.container)
                         {
                             if (args.isValueTypeOverride[typeParameterSymbol])
                             {

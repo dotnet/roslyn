@@ -205,7 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((comparison & TypeCompareKind.IgnoreDynamic) != 0)
             {
                 var other = t2 as NamedTypeSymbol;
-                return other is object { SpecialType: Microsoft.CodeAnalysis.SpecialType.System_Object };
+                return other is
+                {
+                    SpecialType: Microsoft.CodeAnalysis.SpecialType.System_Object
+                };
             }
 
             return false;

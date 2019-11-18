@@ -538,10 +538,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                         while (parent != null && parent.Kind() != CSharp.SyntaxKind.SimpleAssignmentExpression);
 
-                        if (parent is AssignmentExpressionSyntax
-                        {
-                            Right: InitializerExpressionSyntax { } initializer
-                        } assignment && assignment.Parent?.Kind() is CSharp.SyntaxKind.ObjectInitializerExpression && assignment.Left.DescendantNodesAndSelf().Contains(syntax) && initializer.Kind() is CSharp.SyntaxKind.ObjectInitializerExpression && !initializer.Expressions.Any())
+                        if (parent is AssignmentExpressionSyntax { Right: InitializerExpressionSyntax initializer } assignment && assignment.Parent?.Kind() is CSharp.SyntaxKind.ObjectInitializerExpression &&
+                            assignment.Left.DescendantNodesAndSelf().Contains(syntax) && initializer.Kind() is CSharp.SyntaxKind.ObjectInitializerExpression && initializer.Expressions.Any() is false)
                         {
                             return true;
                         }

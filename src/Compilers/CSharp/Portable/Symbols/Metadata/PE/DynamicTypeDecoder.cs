@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             NamedTypeSymbol containingType = namedType.ContainingType;
             NamedTypeSymbol newContainingType;
-            if (containingType is object { IsGenericType: true })
+            if (containingType is { IsGenericType: true })
             {
                 newContainingType = TransformNamedType(namedType.ContainingType, isContaining: true);
                 if ((object)newContainingType == null)

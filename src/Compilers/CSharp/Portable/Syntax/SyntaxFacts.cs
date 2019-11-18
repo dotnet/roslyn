@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsAliasQualifier(SyntaxNode node)
         {
             var p = node.Parent as AliasQualifiedNameSyntax;
-            return p is { Alias: node };
+            return p != null && p.Alias == node;
         }
 
         public static bool IsAttributeName(SyntaxNode node)

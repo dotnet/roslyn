@@ -371,11 +371,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 // We check to see if file path of the new file matches the filepath of any other existing file or if the Folders and FileName matches any of the document then
                 // we say that the file already exists.
                 if (this.SelectedProject.Documents.Where(n => n != null).Where(n => n.FilePath == FullFilePath).Any() ||
-                    (this is {
-                        Folders: {
-                        }, FileName: {
-                        }
-                    } && this.SelectedProject.Documents.Where(n => n.Name != null && n.Folders.Count > 0 && n.Name == this.FileName && this.Folders.SequenceEqual(n.Folders)).Any()) ||
+                    (this is { Folders: { }, FileName: { } } &&
+                     this.SelectedProject.Documents.Where(n => n.Name != null && n.Folders.Count > 0 && n.Name == this.FileName && this.Folders.SequenceEqual(n.Folders)).Any()) ||
                      File.Exists(FullFilePath))
                 {
                     SendFailureNotification(ServicesVSResources.File_already_exists);

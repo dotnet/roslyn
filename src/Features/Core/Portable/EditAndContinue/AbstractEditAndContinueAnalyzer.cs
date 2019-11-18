@@ -1315,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // The lambda has already been included when enumerating parent body matches.
                     Debug.Assert(
                         !map.ContainsKey(pair.Key) ||
-                        pair is { Key: lambdaBodyMatch.OldRoot, Value: lambdaBodyMatch.NewRoot } && IsLambda(pair.Key) && IsLambda(pair.Value));
+                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key) && IsLambda(pair.Value));
 
                     map[pair.Key] = pair.Value;
                     reverseMap[pair.Value] = pair.Key;
@@ -2699,9 +2699,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static bool HasBackingField(IEventSymbol @event)
         {
 #nullable disable // https://github.com/dotnet/roslyn/issues/39288
-            return @event.AddMethod.IsImplicitlyDeclared
-#nullable enable
-                && !@event.IsAbstract;
+            return @event is
+            {
+                AddMethod:
+                {
+                    IsImplicitlyDeclared: true
+                },
+                IsAbstract: false
+            };
         }
 
         private static bool HasExplicitOrSequentialLayout(

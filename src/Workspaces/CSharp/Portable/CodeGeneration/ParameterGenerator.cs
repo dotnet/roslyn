@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (isFirstParam && parameter is
             {
                 ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } methodSymbol
-            }
-)
+            })
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
             }

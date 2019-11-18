@@ -26,10 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
             => ImmutableArray.Create(CS0168, CS0219);
 
         protected override bool IsCatchDeclarationIdentifier(SyntaxToken token)
-            => token is
-        {
-            Parent: CatchDeclarationSyntax { Identifier: token } catchDeclaration
-        };
+            => token.Parent is CatchDeclarationSyntax catchDeclaration && catchDeclaration.Identifier == token;
 
         protected override SyntaxNode GetNodeToRemoveOrReplace(SyntaxNode node)
         {

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal void AddOrReplaceRelatedLocation(RelatedLocation location)
         {
-            var existingRelatedLocation = _relatedLocations.Where(rl => rl is { ConflictCheckSpan: location.ConflictCheckSpan, DocumentId: location.DocumentId }).FirstOrDefault();
+            var existingRelatedLocation = _relatedLocations.Where(rl => rl.ConflictCheckSpan == location.ConflictCheckSpan && rl.DocumentId == location.DocumentId).FirstOrDefault();
             if (existingRelatedLocation != null)
             {
                 _relatedLocations.Remove(existingRelatedLocation);

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 var typeParameters = token.GetAncestor<TypeParameterListSyntax>();
                 var type = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
 
-                if (type is { TypeParameterList: typeParameters })
+                if (type != null && type.TypeParameterList == typeParameters)
                 {
                     return true;
                 }

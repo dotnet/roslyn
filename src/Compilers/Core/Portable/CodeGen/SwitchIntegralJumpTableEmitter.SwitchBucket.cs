@@ -263,8 +263,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return constant is
                 {
                     IsNull: false, IsString: false
-                } && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant)
-;
+                } &&
+SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant);
             }
 
             private static bool IsValidSwitchBucketConstantPair(ConstantValue startConstant, ConstantValue endConstant)

@@ -218,10 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
         private static ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
         {
-            if (node is AwaitExpressionSyntax {
-                Expression: {
-                }
-            } awaitExpression)
+            if (node is AwaitExpressionSyntax { Expression: { } } awaitExpression)
             {
                 return GetRightmostInvocationExpression(awaitExpression.Expression);
             }

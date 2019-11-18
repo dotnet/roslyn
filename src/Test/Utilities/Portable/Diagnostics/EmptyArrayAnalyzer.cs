@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             && elementType?.TypeKind != TypeKind.Pointer)
                         {
                             Optional<object> arrayLength = arrayCreation.DimensionSizes[0].ConstantValue;
-                            if (arrayLength.HasValue &&
-                                arrayLength.Value is int &&
-                                (int)arrayLength.Value == 0)
+                            if (arrayLength is { HasValue: true, Value: int _ } && (int)arrayLength.Value is 0)
                             {
                                 Report(operationContext, arrayCreation.Syntax);
                             }

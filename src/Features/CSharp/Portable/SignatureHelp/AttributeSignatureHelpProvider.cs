@@ -48,12 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) && token is
+            return token.IsKind(SyntaxKind.None) is false && token is
             {
                 ValueText: { Length: 1 },
                 Parent: AttributeArgumentListSyntax { Parent: AttributeSyntax _ }
-            }
-&& IsTriggerCharacter(token.ValueText[0]);
+            } && IsTriggerCharacter(token.ValueText[0]);
         }
 
         private static bool IsArgumentListToken(AttributeSyntax expression, SyntaxToken token)

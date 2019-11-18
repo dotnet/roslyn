@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public bool Equals(Diagnostic x, Diagnostic y)
         {
-            return x is { Id: y.Id, Descriptor: { Category: y.Descriptor.Category } };
+            return x.Id == y.Id && x.Descriptor.Category == y.Descriptor.Category;
         }
 
         public int GetHashCode(Diagnostic obj)

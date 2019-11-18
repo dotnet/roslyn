@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (syntaxFactsService.IsBaseConstructorInitializer(t))
                 {
                     var containingType = semanticModel.GetEnclosingNamedType(t.SpanStart, cancellationToken);
-                    return containingType is { BaseType: { Name: typeName } };
+                    return containingType is { BaseType: { } } && containingType.BaseType.Name == typeName;
                 }
                 else if (syntaxFactsService.IsThisConstructorInitializer(t))
                 {

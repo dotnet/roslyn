@@ -78,7 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             foreach (Symbol s in underlyingMembers)
             {
                 // Skip explicitly declared local types.
-                if (s is NamedTypeSymbol { IsExplicitDefinitionOfNoPiaLocalType: true, Kind: SymbolKind.NamedType })
+                if (s is NamedTypeSymbol
+                {
+                    IsExplicitDefinitionOfNoPiaLocalType: true,
+                    Kind: SymbolKind.NamedType
+                })
                 {
                     continue;
                 }

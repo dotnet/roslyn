@@ -127,10 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
-                if (symbol is {
-                    IsTupleType: true, TupleUnderlyingType: {
-                    }
-                } && !symbol.Equals(symbol.TupleUnderlyingType))
+                if (symbol is { IsTupleType: true, TupleUnderlyingType: { } } && symbol.Equals(symbol.TupleUnderlyingType) is false)
                 {
                     return CreateSimpleTypeSyntax(symbol.TupleUnderlyingType);
                 }

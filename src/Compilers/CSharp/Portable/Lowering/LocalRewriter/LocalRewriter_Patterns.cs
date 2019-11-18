@@ -353,7 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
                 // case 1: type test followed by cast to that type
-                if (test is BoundDagTypeTest { Type: { IsReferenceType: true } } typeDecision && evaluation is BoundDagTypeEvaluation { Input: typeDecision.Input } typeEvaluation1 && typeEvaluation1.Type.Equals(typeDecision.Type, TypeCompareKind.AllIgnoreOptions))
+                if (test is BoundDagTypeTest { Type: { IsReferenceType: true } } typeDecision && evaluation is BoundDagTypeEvaluation typeEvaluation1 &&
+                    typeEvaluation1.Type.Equals(typeDecision.Type, TypeCompareKind.AllIgnoreOptions) && typeEvaluation1.Input == typeDecision.Input)
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation1.Type, evaluation));

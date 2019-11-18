@@ -597,8 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule && DeclaringCompilation is
             {
                 Options: { CryptoPublicKey: { IsEmpty: true }, PublicSign: false }
-            }
-&& Identity is { HasPublicKey: true } && IsDelaySigned is false && StrongNameKeys is { CanSign: false, DiagnosticOpt: null })
+            } && Identity is { HasPublicKey: true } && IsDelaySigned is false && StrongNameKeys is { CanSign: false, DiagnosticOpt: null })
             {
                 // Since the container always contains both keys, the problem is that the key file didn't contain private key.
                 diagnostics.Add(ErrorCode.ERR_SignButNoPrivateKey, NoLocation.Singleton, StrongNameKeys.KeyFilePath);

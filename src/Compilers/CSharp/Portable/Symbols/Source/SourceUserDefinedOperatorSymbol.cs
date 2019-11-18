@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return new SourceUserDefinedOperatorSymbol(
                 containingType, name, location, syntax, diagnostics,
-                syntax is {
-                    Body: null, ExpressionBody: {
-                    }
-                });
+                syntax is { Body: null, ExpressionBody: { } });
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature

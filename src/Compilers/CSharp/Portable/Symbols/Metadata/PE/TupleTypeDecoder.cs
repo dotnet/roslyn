@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Now check the container
             NamedTypeSymbol containingType = type.ContainingType;
             NamedTypeSymbol decodedContainingType;
-            if (containingType is object { IsGenericType: true })
+            if (containingType is { IsGenericType: true })
             {
                 decodedContainingType = DecodeNamedType(containingType);
                 Debug.Assert(decodedContainingType.IsGenericType);

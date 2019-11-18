@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentOutOfRangeException(nameof(span));
             }
 
-            if (span is { Start: 0, Length: this.Length })
+            if (span.Start == 0 && span.Length == this.Length)
             {
                 return this.Source;
             }

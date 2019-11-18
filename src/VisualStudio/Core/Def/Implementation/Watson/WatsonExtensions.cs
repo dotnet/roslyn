@@ -84,10 +84,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             => exception switch
             {
                 RemoteInvocationException remote => $"{remote.ErrorCode} {remote.StackTrace ?? exception.Message}",
-                AggregateException {
-                    InnerException: {
-                    }
-                } aggregate =>
+                AggregateException { InnerException: { } } aggregate =>
                     // get first exception that is not aggregated exception
                     GetParameterString(aggregate.InnerException),
                 _ => $"{exception.GetType().ToString()} {(exception.StackTrace ?? exception.ToString())}",

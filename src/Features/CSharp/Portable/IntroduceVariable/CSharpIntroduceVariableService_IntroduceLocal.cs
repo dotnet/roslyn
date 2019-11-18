@@ -91,12 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var newBody =
                 document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken) is
             {
-                ConvertedType: INamedTypeSymbol {
+                ConvertedType: INamedTypeSymbol
+                {
                     DelegateInvokeMethod:
                     {
                         ReturnsVoid: true
-                    }, DelegateInvokeMethod: {
-                    }
+                    },
+                    DelegateInvokeMethod: { }
                 } delegateType
             } ? SyntaxFactory.Block(declarationStatement)
                     : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));

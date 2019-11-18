@@ -179,15 +179,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                     void AnalyzeOperationNone(OperationAnalysisContext context)
                     {
-                        if (context is
-                        {
-                            Operation:
-                            {
-                                Kind: OperationKind.None, Parent: {
-                                }
-                            }
-                        }
-)
+                        if (context is { Operation: { Kind: OperationKind.None, Parent: { } } })
                         {
                             hasUnsupportedOperation = true;
                         }

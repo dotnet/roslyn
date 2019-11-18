@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool Equals(Diagnostic x, Diagnostic y)
             {
-                return x is { Id: y.Id, Location: y.Location };
+                return x.Id == y.Id && x.Location == y.Location;
             }
 
             public int GetHashCode(Diagnostic obj)

@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name));
             }
 
-            if (this is { isFirstSymbolVisited: true } && format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeConstantValue) && symbol is { IsConst: true, HasConstantValue: true } && CanAddConstant(symbol.Type, symbol.ConstantValue))
+            if (this is { isFirstSymbolVisited: true } &&
+                format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeConstantValue) && symbol is { IsConst: true, HasConstantValue: true } && CanAddConstant(symbol.Type, symbol.ConstantValue))
             {
                 AddSpace();
                 AddPunctuation(SyntaxKind.EqualsToken);

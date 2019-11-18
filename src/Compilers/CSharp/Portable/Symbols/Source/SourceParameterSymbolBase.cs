@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var symbol = obj as SourceParameterSymbolBase;
-            return symbol is object { Ordinal: this.Ordinal } && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
+            return (object)symbol != null
+                && symbol.Ordinal == this.Ordinal
+                && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
 
         public sealed override int GetHashCode()
@@ -69,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Synthesize DecimalConstantAttribute if we don't have an explicit custom attribute already:
             var defaultValue = this.ExplicitDefaultConstantValue;
-            if (defaultValue != ConstantValue.NotAvailable &&
-                defaultValue.SpecialType == SpecialType.System_Decimal &&
-                DefaultValueFromAttributes == ConstantValue.NotAvailable)
+            if (defaultValue is { SpecialType: SpecialType.System_Decimal } && DefaultValueFromAttributes is ConstantValue.NotAvailable)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
             }

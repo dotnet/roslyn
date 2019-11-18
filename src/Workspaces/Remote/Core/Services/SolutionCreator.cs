@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var newSolutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
 
             // if either solution id or file path changed, then we consider it as new solution
-            return _baseSolution is { Id: newSolutionInfo.Id, FilePath: newSolutionInfo.FilePath };
+            return _baseSolution.Id == newSolutionInfo.Id && _baseSolution.FilePath == newSolutionInfo.FilePath;
         }
 
         public async Task<Solution> CreateSolutionAsync(Checksum newSolutionChecksum)

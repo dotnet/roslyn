@@ -112,7 +112,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return
-               DataLocation is { OriginalStartLine: other.DataLocation?.OriginalStartLine, OriginalStartColumn: other.DataLocation?.OriginalStartColumn } && Id is other.Id && Category is other.Category && Severity is other.Severity && WarningLevel is other.WarningLevel && IsSuppressed is other.IsSuppressed && ProjectId is other.ProjectId && DocumentId is other.DocumentId && Message is other.Message;
+               DataLocation?.OriginalStartLine == other.DataLocation?.OriginalStartLine &&
+               DataLocation?.OriginalStartColumn == other.DataLocation?.OriginalStartColumn &&
+               Id == other.Id &&
+               Category == other.Category &&
+               Severity == other.Severity &&
+               WarningLevel == other.WarningLevel &&
+               IsSuppressed == other.IsSuppressed &&
+               ProjectId == other.ProjectId &&
+               DocumentId == other.DocumentId &&
+               Message == other.Message;
         }
 
         public override int GetHashCode()

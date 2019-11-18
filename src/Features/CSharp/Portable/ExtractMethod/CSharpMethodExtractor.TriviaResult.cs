@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // method has no statement in them. so basically two trivia list now pointing to same thing. "{" and "}"
                 if (method.Body != null)
                 {
-                    if (tokenPair is { PreviousToken: method.Body.OpenBraceToken, NextToken: method.Body.CloseBraceToken })
+                    if (tokenPair.PreviousToken == method.Body.OpenBraceToken &&
+                        tokenPair.NextToken == method.Body.CloseBraceToken)
                     {
                         return (location == TriviaLocation.AfterBeginningOfSpan)
                             ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)

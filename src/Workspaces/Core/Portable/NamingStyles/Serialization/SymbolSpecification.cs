@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public bool MatchesSymbol(ISymbol symbol)
                 => SymbolKind.HasValue ? symbol.IsKind(SymbolKind.Value) :
-                   TypeKind.HasValue ? symbol is ITypeSymbol { TypeKind: TypeKind.Value } type :
+                   TypeKind.HasValue ? symbol is ITypeSymbol type && type.TypeKind == TypeKind.Value :
                    MethodKind.HasValue ? symbol is IMethodSymbol method && method.MethodKind == MethodKind.Value :
                    throw ExceptionUtilities.Unreachable;
 

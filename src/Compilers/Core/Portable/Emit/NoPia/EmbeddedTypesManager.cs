@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         {
                             Cci.INamespaceTypeDefinition current = _frozen[i];
 
-                            if (prev is { NamespaceName: current.NamespaceName, Name: current.Name })
+                            if (prev.NamespaceName == current.NamespaceName &&
+                                prev.Name == current.Name)
                             {
                                 if (!reportedDuplicate)
                                 {

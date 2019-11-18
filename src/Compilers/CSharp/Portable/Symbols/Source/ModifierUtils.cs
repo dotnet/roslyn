@@ -339,7 +339,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case DeclarationModifiers.ProtectedInternal:
                     case DeclarationModifiers.PrivateProtected:
 
-                        if (symbol is { ContainingType: { IsInterface: true }, ContainingAssembly: { RuntimeSupportsDefaultInterfaceImplementation: false } })
+                        if (symbol is
+                        {
+                            ContainingType: { IsInterface: true },
+                            ContainingAssembly:
+                            {
+                                RuntimeSupportsDefaultInterfaceImplementation: false
+                            }
+                        })
                         {
                             return new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember);
                         }

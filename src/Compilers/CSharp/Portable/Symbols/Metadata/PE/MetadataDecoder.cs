@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             foreach (Symbol member in typeSymbol.GetMembersUnordered())
             {
                 PEMethodSymbol method = member as PEMethodSymbol;
-                if (method is object { Handle: targetMethodDef })
+                if ((object)method != null && method.Handle == targetMethodDef)
                 {
                     return method;
                 }

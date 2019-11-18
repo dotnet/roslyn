@@ -61,11 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var parameterSyntax = this.CSharpSyntaxNode;
-            if (parameterSyntax is
-            {
-                Default: {
-                }
-            })
+            if (parameterSyntax is { Default: { } })
             {
                 _parameterSyntaxKind |= ParameterSyntaxKind.DefaultParameter;
             }

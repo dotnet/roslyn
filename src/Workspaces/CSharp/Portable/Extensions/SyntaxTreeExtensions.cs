@@ -733,11 +733,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return token is
             {
-                Parent: GenericNameSyntax {
-                    TypeArgumentList: { GreaterThanToken: { IsMissing: false } }, TypeArgumentList: { LessThanToken: lessThanToken }, TypeArgumentList: {
-                    }
+                Parent: GenericNameSyntax
+                {
+                    TypeArgumentList: { GreaterThanToken: { IsMissing: false } },
+                    TypeArgumentList: { }
                 } genericName
-            };
+            } &&
+                   genericName.TypeArgumentList.LessThanToken == lessThanToken;
         }
     }
 }

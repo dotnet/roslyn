@@ -394,8 +394,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     IsStatic: false,
                     Parameters: { Length: 1 },
                     ReturnType: { SpecialType: SpecialType.System_Boolean }
-                }
-&& method.Parameters[0] is { Type: { SpecialType: SpecialType.System_Object } }
+                } && method.Parameters[0] is { Type: { SpecialType: SpecialType.System_Object } }
                 select method;
 
             return existingMethods.Any();

@@ -40,9 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             if (ifStatement is
             {
                 Parent: ElseClauseSyntax _,
-                Statement: BlockSyntax { } block
-            }
-)
+                Statement: BlockSyntax block
+            })
             {
                 return block.WithStatements(SyntaxFactory.SingletonList(statement))
                             .WithAdditionalAnnotations(Formatter.Annotation);

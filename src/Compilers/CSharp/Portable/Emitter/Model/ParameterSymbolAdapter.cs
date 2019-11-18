@@ -212,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            if (this is { IsDefinition: true, ContainingModule: moduleBeingBuilt.SourceModule })
+            if (this.IsDefinition &&
+                this.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }

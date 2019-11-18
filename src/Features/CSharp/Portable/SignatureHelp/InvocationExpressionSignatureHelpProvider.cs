@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (symbolInfo is
             {
                 Symbol: IMethodSymbol { IsGenericMethod: true } matchedMethodSymbol
-            }
-)
+            })
             {
                 methodGroup = methodGroup.SelectAsArray(m => Equals(matchedMethodSymbol.OriginalDefinition, m) ? matchedMethodSymbol : m);
             }

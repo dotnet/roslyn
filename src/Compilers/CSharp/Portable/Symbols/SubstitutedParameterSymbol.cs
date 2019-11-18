@@ -54,9 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (substituted is { CustomModifiers: { IsEmpty: true } } && this is
                 {
-                    _underlyingParameter: { TypeWithAnnotations: { CustomModifiers: { IsEmpty: true } }, RefCustomModifiers: { IsEmpty: true } }
-                }
-)
+                    _underlyingParameter:
+                    {
+                        TypeWithAnnotations: { CustomModifiers: { IsEmpty: true } },
+                        RefCustomModifiers: { IsEmpty: true }
+                    }
+                })
                 {
                     _mapOrType = substituted;
                 }

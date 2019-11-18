@@ -58,11 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 
             if (methodDeclaration is
             {
-                ExplicitInterfaceSpecifier: {
-                },
-                ParameterList: { OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
-            }
-)
+                ExplicitInterfaceSpecifier: { },
+                ParameterList:
+                {
+                    OpenParenToken: { IsMissing: false },
+                    CloseParenToken: { IsMissing: false }
+                }
+            })
             {
                 var semanticModel = document.SemanticModel;
                 methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol;

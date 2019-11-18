@@ -327,11 +327,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // special case for empty span. in case of empty span, consider it
                 // contains the position if start == position
-                if (operation is
-                {
-                    TextSpan: { IsEmpty: true, Start: position }
-                }
-)
+                if (operation.TextSpan.IsEmpty && operation.TextSpan.Start == position)
                 {
                     yield return operation;
                     continue;

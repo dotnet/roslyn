@@ -447,8 +447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ImmutableArray.Create(expression)
                 : ImmutableArray<BoundExpression>.Empty;
 
-            var refKinds = method is {
-                IsExtensionMethod: true, ParameterRefKinds:
+            var refKinds = method is
+            {
+                IsExtensionMethod: true,
+                ParameterRefKinds:
                 {
                     IsDefaultOrEmpty: false
                 }

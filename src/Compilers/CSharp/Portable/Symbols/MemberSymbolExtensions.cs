@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsImplementable(this MethodSymbol methodOpt)
         {
-            return methodOpt is object { IsSealed: false } && (methodOpt.IsAbstract || methodOpt.IsVirtual);
+            return methodOpt is { IsSealed: false } && (methodOpt.IsAbstract || methodOpt.IsVirtual);
         }
 
         public static bool IsAccessor(this MethodSymbol methodSymbol)

@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (symbolInfo is
                     {
                         Symbol: IMethodSymbol { MethodKind: MethodKind.LocalFunction } method
-                    }
-)
+                    })
                     {
                         return true;
                     }

@@ -7674,7 +7674,7 @@ class Module1
             Assert.Equal(symbol3, symbol7);
             Assert.Equal(symbol4, symbol8);
 
-            if (symbol1 is object { IsImplicitlyDeclared: true })
+            if (symbol1 is { IsImplicitlyDeclared: true })
             {
                 Assert.NotSame(symbol1, symbol5);
                 Assert.Equal(symbol1.GetHashCode(), symbol5.GetHashCode());

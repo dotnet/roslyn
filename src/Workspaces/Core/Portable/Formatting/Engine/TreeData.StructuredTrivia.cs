@@ -54,13 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 var parent = _trivia.Token.Parent;
-                if (parent is
-                {
-                    SyntaxTree: {
-                    }
-                } && parent.SyntaxTree.GetText() is
-                {
-                })
+                if (parent is { SyntaxTree: { } } && parent.SyntaxTree.GetText() is { })
                 {
                     return parent.SyntaxTree.GetText();
                 }

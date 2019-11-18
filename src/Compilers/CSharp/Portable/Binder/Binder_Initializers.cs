@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var initializer = siblingInitializers[j];
                     var fieldSymbol = initializer.FieldOpt;
 
-                    if (fieldSymbol is object { IsConst: true })
+                    if (fieldSymbol is { IsConst: true })
                     {
                         // Constants do not need field initializers.
                         continue;

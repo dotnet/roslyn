@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
                 }
             }
 
-            if (node is ElseClauseSyntax
-            {
-                Statement: IfStatementSyntax { } elseIfStatement
-            } elseClause)
+            if (node is ElseClauseSyntax { Statement: IfStatementSyntax elseIfStatement } elseClause)
             {
                 // 5. Position is at a child token of an else clause with no selection ('else' keyword)
                 // 6. Selection around the header including the 'else' keyword - from 'else' keyword to the end of the condition

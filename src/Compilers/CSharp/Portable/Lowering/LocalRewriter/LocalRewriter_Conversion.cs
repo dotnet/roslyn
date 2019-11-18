@@ -71,7 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Conversion:
                     // lowered conversions have definite precision unless they are implicit identity casts
                     var conversion = (BoundConversion)rewrittenNode;
-                    return conversion is { ConversionKind: ConversionKind.Identity, ExplicitCastInCode: false };
+                    return conversion is
+                    {
+                        ConversionKind: ConversionKind.Identity,
+                        ExplicitCastInCode: false
+                    };
             }
 
             // it is a float/double expression and we have no idea ...

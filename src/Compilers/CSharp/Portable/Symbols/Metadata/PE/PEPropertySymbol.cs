@@ -72,8 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var returnInfo = propertyParams[0];
 
-            PEPropertySymbol result = returnInfo is {
-                CustomModifiers: { IsDefaultOrEmpty: true }, RefCustomModifiers:
+            PEPropertySymbol result = returnInfo is
+            {
+                CustomModifiers: { IsDefaultOrEmpty: true },
+                RefCustomModifiers:
                 {
                     IsDefaultOrEmpty: true
                 }

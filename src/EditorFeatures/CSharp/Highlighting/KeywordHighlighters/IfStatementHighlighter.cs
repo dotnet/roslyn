@@ -38,11 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
             yield return ifStatement.IfKeyword.Span;
 
             // Loop to get all the else if parts
-            while (ifStatement is
-            {
-                Else: {
-                }
-            })
+            while (ifStatement is { Else: { } })
             {
                 // Check for 'else if' scenario' (the statement in the else clause is an if statement)
                 var elseKeyword = ifStatement.Else.ElseKeyword;

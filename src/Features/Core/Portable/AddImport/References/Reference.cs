@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public bool Equals(Reference other)
             {
-                return other is { SearchResult: { NameParts: { } } } && SearchResult.NameParts.SequenceEqual(other.SearchResult.NameParts);
+                return other is { SearchResult: { NameParts: { } } } &&
+                    SearchResult.NameParts.SequenceEqual(other.SearchResult.NameParts);
             }
 
             public override int GetHashCode()

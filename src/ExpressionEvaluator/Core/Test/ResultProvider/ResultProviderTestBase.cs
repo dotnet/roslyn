@@ -538,21 +538,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool IEqualityComparer<DkmCustomUIVisualizerInfo>.Equals(DkmCustomUIVisualizerInfo x, DkmCustomUIVisualizerInfo y)
             {
                 return x == y ||
-                    (x is
-                {
-                    Id: y.Id,
-                    MenuName: y.MenuName,
-                    Description: y.Description,
-                    Metric: y.Metric,
-                    UISideVisualizerTypeName: y.UISideVisualizerTypeName,
-                    UISideVisualizerAssemblyName: y.UISideVisualizerAssemblyName,
-                    UISideVisualizerAssemblyLocation: y.UISideVisualizerAssemblyLocation,
-                    DebuggeeSideVisualizerTypeName: y.DebuggeeSideVisualizerTypeName,
-                    DebuggeeSideVisualizerAssemblyName: y.DebuggeeSideVisualizerAssemblyName
-                }
-&& y is
-                {
-                });
+                    (x != null && y != null &&
+                    x.Id == y.Id &&
+                    x.MenuName == y.MenuName &&
+                    x.Description == y.Description &&
+                    x.Metric == y.Metric &&
+                    x.UISideVisualizerTypeName == y.UISideVisualizerTypeName &&
+                    x.UISideVisualizerAssemblyName == y.UISideVisualizerAssemblyName &&
+                    x.UISideVisualizerAssemblyLocation == y.UISideVisualizerAssemblyLocation &&
+                    x.DebuggeeSideVisualizerTypeName == y.DebuggeeSideVisualizerTypeName &&
+                    x.DebuggeeSideVisualizerAssemblyName == y.DebuggeeSideVisualizerAssemblyName);
             }
 
             int IEqualityComparer<DkmCustomUIVisualizerInfo>.GetHashCode(DkmCustomUIVisualizerInfo obj)

@@ -80,7 +80,9 @@ namespace Microsoft.CodeAnalysis
         {
             // Technically, we don't need to check project id.
             return
-                !ReferenceEquals(other, null) && this is { Id: other.Id, ProjectId: other.ProjectId };
+                !ReferenceEquals(other, null) &&
+                this.Id == other.Id &&
+                this.ProjectId == other.ProjectId;
         }
 
         public override int GetHashCode()

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var containingType = memberOpt?.ContainingType;
-            bool inTopLevelScriptMember = containingType is object { IsScriptClass: true };
+            bool inTopLevelScriptMember = containingType is { IsScriptClass: true };
 
             // "this" is not allowed in field initializers (that are not script variable initializers):
             if (InFieldInitializer && !inTopLevelScriptMember)

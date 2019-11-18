@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string codeActionEquivalenceKey)
         {
-            if (this is { Scope: scope, CodeActionEquivalenceKey: codeActionEquivalenceKey })
+            if (this.Scope == scope && this.CodeActionEquivalenceKey == codeActionEquivalenceKey)
             {
                 return this;
             }

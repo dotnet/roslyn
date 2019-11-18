@@ -388,7 +388,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get
                 {
                     var next = this.NextBlock;
-                    while (next is { BranchCode: ILOpCode.Nop, HasNoRegularInstructions: true })
+                    while (next is
+                    {
+                        BranchCode: ILOpCode.Nop,
+                        HasNoRegularInstructions: true
+                    })
                     {
                         next = next.NextBlock;
                     }

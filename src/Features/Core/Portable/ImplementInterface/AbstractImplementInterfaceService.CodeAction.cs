@@ -478,7 +478,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             through = generator.CastExpression(interfaceBeingImplemented,
                                 through.WithAdditionalAnnotations(Simplifier.Annotation));
                         }
-                        else if (ThroughMember is IPropertySymbol { IsStatic: false } throughMemberProperty && throughMemberProperty.ExplicitInterfaceImplementations.Any())
+                        else if (ThroughMember is IPropertySymbol { IsStatic: false } throughMemberProperty &&
+                            throughMemberProperty.ExplicitInterfaceImplementations.Any())
                         {
                             // If we are implementing through an explicitly implemented property, we need to cast 'this' to
                             // the explicitly implemented interface type before calling the member, as in:

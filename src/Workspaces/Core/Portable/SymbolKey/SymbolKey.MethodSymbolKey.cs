@@ -172,7 +172,9 @@ namespace Microsoft.CodeAnalysis
                 PooledArrayBuilder<RefKind> parameterRefKinds, int beforeParametersPosition,
                 IMethodSymbol method)
             {
-                if (method is { Arity: arity, MetadataName: metadataName } && ParameterRefKindsMatch(method.Parameters, parameterRefKinds))
+                if (method.Arity == arity &&
+                    method.MetadataName == metadataName &&
+                    ParameterRefKindsMatch(method.Parameters, parameterRefKinds))
                 {
                     // Method looks like a potential match.  It has the right arity, name and 
                     // refkinds match.  We now need to do the more complicated work of checking

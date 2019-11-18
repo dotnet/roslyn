@@ -237,11 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReachable(BoundStatement statement)
         {
-            if (this is
-            {
-                State: { Alive: false, Reported: false }
-            }
-&& statement is { WasCompilerGenerated: false } && statement.Syntax.Span.Length != 0)
+            if (this is { State: { Alive: false, Reported: false } } && statement is { WasCompilerGenerated: false } && statement.Syntax.Span.Length != 0)
             {
                 var firstToken = statement.Syntax.GetFirstToken();
                 Diagnostics.Add(ErrorCode.WRN_UnreachableCode, new SourceLocation(firstToken));

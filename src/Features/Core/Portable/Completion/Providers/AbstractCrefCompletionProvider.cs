@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
-            var bestSymbols = symbols.WhereAsArray(s => s is { Kind: kind, Name: name });
+            var bestSymbols = symbols.WhereAsArray(s => s.Kind == kind && s.Name == name);
             return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, semanticModel, cancellationToken).ConfigureAwait(false);
         }
 

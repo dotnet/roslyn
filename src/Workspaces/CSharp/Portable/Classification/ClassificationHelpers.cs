@@ -187,11 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static string? GetClassificationForIdentifier(SyntaxToken token)
         {
-            if (token is
-            {
-                Parent: BaseTypeDeclarationSyntax { Identifier: token } typeDeclaration
-            }
-)
+            if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
@@ -486,7 +482,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                     case VarKeyword:
                         // var
-                        if (token.Parent is IdentifierNameSyntax && token.Parent?.Parent is ExpressionStatementSyntax)
+                        if (token is
+                        {
+                            Parent: IdentifierNameSyntax { Parent: ExpressionStatementSyntax _ }
+                        })
                         {
                             return true;
                         }

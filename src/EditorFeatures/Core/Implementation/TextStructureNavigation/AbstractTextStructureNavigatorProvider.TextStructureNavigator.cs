@@ -97,11 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     var token = root.FindToken(position, findInsideTrivia: true);
 
                     // If end of file, go back a token
-                    if (token is
-                    {
-                        Span: { Length: 0, Start: textLength }
-                    }
-)
+                    if (token.Span.Length == 0 && token.Span.Start == textLength)
                     {
                         token = token.GetPreviousToken();
                     }

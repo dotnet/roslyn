@@ -442,11 +442,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
         {
-            return node is
-            {
-                Parent: AssignmentExpressionSyntax { Left: node }
-            }
-&& node.Parent.IsAnyAssignExpression();
+            return node != null &&
+                node.Parent.IsAnyAssignExpression() &&
+                ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
         public static bool IsRightSideOfAnyAssignExpression(this SyntaxNode node)

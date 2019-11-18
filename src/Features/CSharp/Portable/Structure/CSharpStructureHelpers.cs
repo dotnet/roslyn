@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (nextToken.Kind() != SyntaxKind.None && nextToken.Kind() == SyntaxKind.SemicolonToken)
             {
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
-                if (forStatement is { FirstSemicolonToken: nextToken })
+                if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)
                 {
                     return default;
                 }

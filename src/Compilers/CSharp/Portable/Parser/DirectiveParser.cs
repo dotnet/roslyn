@@ -362,7 +362,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     line = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.ERR_InvalidLineNumber, reportError: isActive);
                     sawLineButNotFile = true; //assume this is the case until we (potentially) see the file name below
-                    if (isActive && line is { IsMissing: false, Kind: SyntaxKind.NumericLiteralToken })
+                    if (isActive && line is
+                    {
+                        IsMissing: false,
+                        Kind: SyntaxKind.NumericLiteralToken
+                    })
                     {
                         if ((int)line.Value < 1)
                         {

@@ -238,11 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // don't reuse nodes or tokens with skipped text or diagnostics attached to them
                 if (nodeOrToken.ContainsDiagnostics ||
-                    (nodeOrToken is { IsToken: true, Parent: { ContainsDiagnostics: true } } && nodeOrToken.AsToken() is
-                {
-                    Node: CSharpSyntaxNode { ContainsSkippedText: true }
-                }
-))
+                    (nodeOrToken is { IsToken: true, Parent: { ContainsDiagnostics: true } } && nodeOrToken.AsToken() is { Node: CSharpSyntaxNode { ContainsSkippedText: true } }))
                 {
                     return false;
                 }

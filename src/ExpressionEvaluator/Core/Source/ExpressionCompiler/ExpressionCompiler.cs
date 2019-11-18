@@ -176,7 +176,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     out error);
 
                 Debug.Assert(
-                    r is { CompileResult: null, ResultProperties: { Flags: default } } ||
+                    r is
+                {
+                    CompileResult: null,
+                    ResultProperties: { Flags: default }
+                } ||
                     (r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
 
                 result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);

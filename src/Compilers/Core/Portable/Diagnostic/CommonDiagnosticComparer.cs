@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            return x is { Location: y.Location, Id: y.Id };
+            return x.Location == y.Location && x.Id == y.Id;
         }
 
         public int GetHashCode(Diagnostic obj)

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
-                if (document is { Id: e.NewActiveContextDocumentId })
+                if (document != null && document.Id == e.NewActiveContextDocumentId)
                 {
                     this.RaiseChanged();
                 }

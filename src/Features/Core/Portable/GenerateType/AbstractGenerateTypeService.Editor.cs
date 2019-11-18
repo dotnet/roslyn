@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 ITypeSymbol parameterType,
                 ISymbol symbol)
             {
-                if (symbol is { IsStatic: false } && parameterType is { Language: symbol.Language })
+                if (symbol is { IsStatic: false } && parameterType.Language == symbol.Language)
                 {
                     if (symbol is IFieldSymbol field)
                     {

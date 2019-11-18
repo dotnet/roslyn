@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
                     case SymbolKind.Method:
                         var method = member as PEMethodSymbol;
-                        if (method is object { AssociatedSymbol: null })
+                        if (method is { AssociatedSymbol: null })
                         {
                             result.Append(memberIndent);
                             result.Append(".method ");

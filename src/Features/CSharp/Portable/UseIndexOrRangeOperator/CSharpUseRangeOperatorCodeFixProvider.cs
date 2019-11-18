@@ -158,11 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             // If we're starting the range operation from 0, then we can just leave off the start of
             // the range. i.e. `..end`
-            if (startOperation is
-            {
-                ConstantValue: { HasValue: true, Value: 0 }
-            }
-)
+            if (startOperation is { ConstantValue: { HasValue: true, Value: 0 } })
             {
                 startExpr = null;
             }

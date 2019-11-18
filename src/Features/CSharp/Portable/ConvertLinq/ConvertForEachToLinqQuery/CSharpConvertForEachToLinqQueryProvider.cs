@@ -242,14 +242,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             // Check that there is 'list.Add(item)'.
                             if (invocationExpression is
                             {
-                                Expression: MemberAccessExpressionSyntax { } memberAccessExpression,
+                                Expression: MemberAccessExpressionSyntax memberAccessExpression,
                                 ArgumentList: { Arguments: { Count: 1 } }
-                            }
-&& semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken) is
+                            } &&
+                                semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken) is
                             {
                                 Symbol: IMethodSymbol { Parameters: { Length: 1 }, Name: nameof(IList.Add) } methodSymbol
-                            }
-&& TypeSymbolOptIsList(methodSymbol.ContainingType, semanticModel))
+                            } &&
+                                TypeSymbolOptIsList(methodSymbol.ContainingType, semanticModel))
                             {
                                 // Input:
                                 // foreach (var x in a)

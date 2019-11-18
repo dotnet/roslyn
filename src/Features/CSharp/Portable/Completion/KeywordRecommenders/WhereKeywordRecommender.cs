@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 if (typeParameters != null && token == typeParameters.GetLastToken(includeSkipped: true))
                 {
                     var decl = typeParameters.GetAncestorOrThis<TypeDeclarationSyntax>();
-                    if (decl is { TypeParameterList: typeParameters })
+                    if (decl != null && decl.TypeParameterList == typeParameters)
                     {
                         return true;
                     }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 token.Parent.IsParentKind(SyntaxKind.DelegateDeclaration))
             {
                 var decl = token.GetAncestor<DelegateDeclarationSyntax>();
-                if (decl != null && decl.TypeParameterList != null)
+                if (decl is { TypeParameterList: { } })
                 {
                     return true;
                 }

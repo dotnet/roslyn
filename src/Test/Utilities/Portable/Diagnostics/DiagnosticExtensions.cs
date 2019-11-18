@@ -213,9 +213,12 @@ namespace Microsoft.CodeAnalysis
             // explicitly overridden specific or general diagnostic options.
             if (c is
             {
-                Options: { GeneralDiagnosticOption: ReportDiagnostic.Default, SpecificDiagnosticOptions: { IsEmpty: true } }
-            }
-)
+                Options:
+                {
+                    GeneralDiagnosticOption: ReportDiagnostic.Default,
+                    SpecificDiagnosticOptions: { IsEmpty: true }
+                }
+            })
             {
                 _ = c.VerifySuppressedDiagnostics(toggleWarnAsError: true,
                     analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics,

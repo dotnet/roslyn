@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                          (symbolContext) =>
                          {
                              IFieldSymbol field = (IFieldSymbol)symbolContext.Symbol;
-                             if (field is { IsConst: false, IsReadOnly: false } && !assignedToFields.Contains(field))
+                             if (field is { IsConst: false, IsReadOnly: false } && assignedToFields.Contains(field) is false)
                              {
                                  mightBecomeReadOnlyFields.Add(field);
                              }

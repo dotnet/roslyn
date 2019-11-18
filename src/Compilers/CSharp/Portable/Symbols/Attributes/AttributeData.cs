@@ -459,9 +459,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeWithAnnotations: { HasType: true },
                     Type: { SpecialType: SpecialType.System_String },
                     DeclaredAccessibility: Accessibility.Public,
-                    SetMethod: object { DeclaredAccessibility: Accessibility.Public }
-                }
-&& property.GetMemberArity() is 0)
+                    SetMethod: { DeclaredAccessibility: Accessibility.Public }
+                } && property.GetMemberArity() is 0)
                 {
                     return true;
                 }

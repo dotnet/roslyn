@@ -72,9 +72,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                return ParameterSymbol is {
-                    HasExplicitDefaultValue: true, ExplicitDefaultValue: {
-                    }
+                return ParameterSymbol is
+                {
+                    HasExplicitDefaultValue: true,
+                    ExplicitDefaultValue: { }
                 } ? ParameterSymbol.ExplicitDefaultValue.ToString()
                     : null;
             }

@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralNull(this BoundExpression node)
         {
-            return node is { Kind: BoundKind.Literal, ConstantValue: { Discriminator: ConstantValueTypeDiscriminator.Null } };
+            return node is
+            {
+                Kind: BoundKind.Literal,
+                ConstantValue: { Discriminator: ConstantValueTypeDiscriminator.Null }
+            };
         }
 
         public static bool IsLiteralDefault(this BoundExpression node)

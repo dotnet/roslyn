@@ -101,9 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var value = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
 
             // Synthesize DecimalConstantAttribute when the default value is of type decimal
-            if (this is { IsConst: true, Type: { SpecialType: SpecialType.System_Decimal } } && value is
+            if (this is
             {
-            })
+                IsConst: true,
+                Type: { SpecialType: SpecialType.System_Decimal }
+            } && value is { })
             {
                 var data = GetDecodedWellKnownAttributeData();
 

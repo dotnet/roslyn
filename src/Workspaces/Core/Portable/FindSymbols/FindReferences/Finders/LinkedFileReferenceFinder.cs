@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var semanticModel = await linkedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var linkedSymbol = semanticModel.GetDeclaredSymbol(linkedNode, cancellationToken);
 
-                    if (linkedSymbol is { Kind: symbol.Kind, Name: symbol.Name })
+                    if (linkedSymbol != null &&
+                        linkedSymbol.Kind == symbol.Kind &&
+                        linkedSymbol.Name == symbol.Name)
                     {
                         var linkedSymbolAndProjectId = SymbolAndProjectId.Create(linkedSymbol, linkedDocument.Project.Id);
                         if (!linkedSymbols.Contains(linkedSymbolAndProjectId))

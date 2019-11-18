@@ -410,10 +410,8 @@ namespace Microsoft.CodeAnalysis
         {
             return
                 (UnderlyingNode == null && trivia.UnderlyingNode == null) ||
-                (trivia is {
-                    UnderlyingNode: {
-                    }
-                } && UnderlyingNode.IsEquivalentTo(trivia.UnderlyingNode));
+                (trivia is { UnderlyingNode: { } } &&
+UnderlyingNode.IsEquivalentTo(trivia.UnderlyingNode));
         }
     }
 }

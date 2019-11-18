@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeOutputTypeInferences(Binder binder, BoundExpression argument, TypeWithAnnotations formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (argument.Kind == BoundKind.TupleLiteral && (object)argument.Type == null)
+            if (argument is { Kind: BoundKind.TupleLiteral, Type: null })
             {
                 MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, formalType, ref useSiteDiagnostics);
             }
@@ -1249,11 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // cannot be hit, because an invalid delegate does not have an unfixed return type
             // this will be checked earlier.
-            Debug.Assert(delegateType is
-            {
-                DelegateInvokeMethod: object { HasUseSiteError: false }
-            }
-,
+            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types.");
             var returnType = delegateType.DelegateInvokeMethod.ReturnTypeWithAnnotations;
             if (!returnType.HasType || returnType.SpecialType == SpecialType.System_Void)

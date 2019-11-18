@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                             Kind: SymbolKind.Namespace,
                             Name: "System",
                             ContainingSymbol: INamespaceSymbol { IsGlobalNamespace: true }
-                        }
-)
+                        })
                         {
                             return true;
                         }

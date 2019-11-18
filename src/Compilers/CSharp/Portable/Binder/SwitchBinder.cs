@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 object key;
                 var constantValue = label.SwitchCaseLabelConstant;
-                if (constantValue is object { IsBad: false })
+                if (constantValue is { IsBad: false })
                 {
                     // Case labels with a non-null constant value are indexed on their ConstantValue.
                     key = KeyForConstant(constantValue);

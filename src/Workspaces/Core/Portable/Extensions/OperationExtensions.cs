@@ -13,8 +13,11 @@ namespace Microsoft.CodeAnalysis
         public static bool IsTargetOfObjectMemberInitializer(this IOperation operation)
             => operation is
         {
-            Parent: IAssignmentOperation { Parent: { Kind: OperationKind.ObjectOrCollectionInitializer }, Target: operation } assignmentOperation
-        };
+            Parent: IAssignmentOperation
+            {
+                Parent: { Kind: OperationKind.ObjectOrCollectionInitializer }
+            } assignmentOperation
+        } && assignmentOperation.Target == operation;
 
         /// <summary>
         /// Returns the <see cref="ValueUsageInfo"/> for the given operation.

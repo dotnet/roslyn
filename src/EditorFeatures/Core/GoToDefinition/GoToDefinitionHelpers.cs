@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 if (alias is
                 {
                     Target: INamespaceSymbol { IsGlobalNamespace: true } ns
-                }
-)
+                })
                 {
                     return ImmutableArray.Create<DefinitionItem>();
                 }

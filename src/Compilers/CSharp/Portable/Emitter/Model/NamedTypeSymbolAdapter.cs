@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (this.IsDefinition &&
-                    (object)this.ContainingType == null)
+                if (this is { IsDefinition: true, ContainingType: null })
                 {
                     return this;
                 }
@@ -156,7 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (this is { ContainingType: object _, IsDefinition: true, ContainingModule: moduleBeingBuilt.SourceModule })
+            if ((object)this.ContainingType != null &&
+                this.IsDefinition &&
+                this.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }

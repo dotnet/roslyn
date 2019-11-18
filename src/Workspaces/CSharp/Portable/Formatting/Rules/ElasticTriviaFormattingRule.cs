@@ -37,10 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static void AddPropertyDeclarationSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            if (node is BasePropertyDeclarationSyntax {
-                AccessorList: {
-                }
-            } basePropertyDeclaration && basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) && basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
+            if (node is BasePropertyDeclarationSyntax { AccessorList: { } } basePropertyDeclaration &&
+                basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
+                basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
             {
                 var tokens = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
 

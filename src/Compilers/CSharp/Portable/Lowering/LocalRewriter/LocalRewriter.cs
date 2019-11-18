@@ -228,7 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsUnusedDeconstruction(BoundExpression node)
         {
-            return node is BoundDeconstructionAssignmentOperator { IsUsed: false, Kind: BoundKind.DeconstructionAssignmentOperator };
+            return node is BoundDeconstructionAssignmentOperator
+            {
+                IsUsed: false,
+                Kind: BoundKind.DeconstructionAssignmentOperator
+            };
         }
 
         public override BoundNode VisitLambda(BoundLambda node)

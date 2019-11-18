@@ -152,11 +152,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     var typeInference = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
                     var delegateType = typeInference.InferDelegateType(semanticModel, SimpleNameOrMemberAccessExpression, cancellationToken);
-                    if (delegateType is
-                    {
-                        DelegateInvokeMethod: {
-                        }
-                    })
+                    if (delegateType is { DelegateInvokeMethod: { } })
                     {
                         SignatureInfo = new MethodSignatureInfo(semanticDocument, this, delegateType.DelegateInvokeMethod);
                     }

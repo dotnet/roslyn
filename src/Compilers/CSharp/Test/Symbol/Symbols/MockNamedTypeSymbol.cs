@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
             return (from sym in _children
-                    where sym is NamedTypeSymbol { Arity: arity, Name: name }
+                    where sym is NamedTypeSymbol && sym.Name == name && ((NamedTypeSymbol)sym).Arity == arity
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 

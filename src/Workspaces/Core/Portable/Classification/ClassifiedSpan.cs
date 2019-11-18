@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public bool Equals(ClassifiedSpan other)
         {
-            return this is { ClassificationType: other.ClassificationType, TextSpan: other.TextSpan };
+            return this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;
         }
     }
 }

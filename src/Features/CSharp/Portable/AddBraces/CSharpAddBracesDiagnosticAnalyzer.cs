@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             // 'else' clause (bullet 3)
             if (statement.GetLastToken() != embeddedStatement.GetLastToken())
             {
-                if (statement is IfStatementSyntax { Statement: embeddedStatement } ifStatement)
+                if (statement is IfStatementSyntax ifStatement && ifStatement.Statement == embeddedStatement)
                 {
                     // The embedded statement is followed by an 'else' clause, which may span multiple lines without
                     // triggering a braces requirement, such as this:

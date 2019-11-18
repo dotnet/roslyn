@@ -57,7 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             walker.Analyze(ref badRegion);
             Debug.Assert(!badRegion);
 
-            if (method is { IsStatic: false, ContainingType: { TypeKind: TypeKind.Struct } })
+            if (method is
+            {
+                IsStatic: false,
+                ContainingType: { TypeKind: TypeKind.Struct }
+            })
             {
                 // It is possible that the enclosing method only *writes* to the enclosing struct, but in that
                 // case it should be considered captured anyway so that we have a proxy for it to write to.
