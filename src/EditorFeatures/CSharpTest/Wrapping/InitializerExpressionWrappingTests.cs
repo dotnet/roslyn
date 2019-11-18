@@ -44,6 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             2
         };
     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[]
+        {
+            1, 2
+        };
+    }
 }");
         }
 
