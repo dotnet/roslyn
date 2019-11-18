@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -12,5 +13,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             @object.WriteTo(writer);
         }
+
+        public static Document GetRequiredDocument(this Solution solution, SyntaxTree syntaxTree)
+            => solution.GetDocument(syntaxTree) ?? throw new InvalidOperationException();
     }
 }

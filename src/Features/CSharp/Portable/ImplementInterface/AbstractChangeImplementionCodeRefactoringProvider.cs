@@ -224,15 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             {
                 foreach (var syntaxRef in implMember.DeclaringSyntaxReferences)
                 {
-                    var doc = solution.GetDocument(syntaxRef.SyntaxTree);
-                    if (doc != null)
-                    {
-                        var decl = await syntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                        if (decl != null)
-                        {
-                            documentToImplDeclarations.Add(doc, (decl, interfaceMembers));
-                        }
-                    }
+                    var doc = solution.GetRequiredDocument(syntaxRef.SyntaxTree);
+                    var decl = await syntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                    documentToImplDeclarations.Add(doc, (decl, interfaceMembers));
                 }
             }
 
