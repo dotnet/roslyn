@@ -2765,6 +2765,7 @@ class C
         return x;
     }
 }");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractReadOnlyMethod()

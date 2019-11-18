@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
+            protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol, CancellationToken _)
             => symbol switch
             {
                 ILocalSymbol local => local.GetTypeWithAnnotatedNullability(),
