@@ -19,18 +19,14 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
     public class SymbolIsBannedAnalyzerTests
     {
         private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
-        {
-            return new DiagnosticResult(descriptor)
+            => VerifyCS.Diagnostic(descriptor)
                 .WithLocation(line, column)
                 .WithArguments(v3, v4);
-        }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
-        {
-            return new DiagnosticResult(descriptor)
+            => VerifyVB.Diagnostic(descriptor)
                 .WithLocation(line, column)
                 .WithArguments(v3, v4);
-        }
 
         private static async Task VerifyBasicAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
