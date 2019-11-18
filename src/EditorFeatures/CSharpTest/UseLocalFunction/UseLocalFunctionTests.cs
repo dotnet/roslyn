@@ -3687,5 +3687,27 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDiscardParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Func<int, string, int, long> [||]f = (_, _, a) => 1;
+    }
+}",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        static long f(int _, string _, int a) => 1;
+    }
+}");
+        }
     }
 }

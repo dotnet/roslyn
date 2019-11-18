@@ -25,10 +25,9 @@ Each entry should include a short description of the break, followed by either a
 
     Such code will produce an error in version 16.4.
 
-3. https://github.com/dotnet/roslyn/issues/35684 In C# `7.1` the resolution of a binary operator with a `default` literal could result in using an object equality and giving the literal a type `object`.
+3. https://github.com/dotnet/roslyn/issues/35684 In C# `7.1` the resolution of a binary operator with a `default` literal and unconstrained type parameter could result in using an object equality and giving the literal a type `object`.
     For example, given a variable `t` of an unconstrained type `T`, `t == default` would be improperly allowed and emitted as `t == default(object)`.
-    Similarly, for a reference type without a custom `==` operator, `x == default` would be improperly allowed and emitted as `x == default(object)`.
-    In *Visual Studio 2019 version 16.4* these scenarios will now produce an error.
+    In *Visual Studio 2019 version 16.4* this scenario will now produce an error.
 
 4. In C# `7.1`, `default as TClass` and `using (default)` were allowed. In *Visual Studio 2019 version 16.4* those scenarios will now produce errors.
 
@@ -67,3 +66,15 @@ Each entry should include a short description of the break, followed by either a
         s.F.ToString(); // warning: s.F may be null
     }
     ```
+
+9. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
+the compiler didn't look for the name in base interfaces of the interface. Lookup could succeed by finding a type up the containership
+hierarchy or through usings. We now look in base interfaces and find types declared within them, if any match the name. The type
+could be different than the one that compiler used to find.
+
+10. https://github.com/dotnet/roslyn/issues/38427 C# `7.0` incorrectly allowed duplicate type constraints with tuple name differences. In *Visual Studio 2019 version 16.4* this is an error.
+    ```C#
+    class C<T> where T : I<(int a, int b)>, I<(int c, int d)> { } // error
+    ```
+
+11. Previously, the language version was not checked for `this ref` and `this in` orderings of parameter modifiers. In *Visual Studio 2019 version 16.4* these orderings produce an error with langversion below 7.2. See https://github.com/dotnet/roslyn/issues/38486

@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 .SelectAsArray(member =>
                     new PullMemberUpSymbolViewModel(member, _glyphService)
                     {
-                        // The member user selected will be checked at the begining.
+                        // The member user selected will be checked at the beginning.
                         IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, member),
                         MakeAbstract = false,
                         IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,

@@ -80,5 +80,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
 
         bool ITypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
+
+        NullableAnnotation ITypeSymbol.NullableAnnotation => throw new System.NotImplementedException();
+
+        ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

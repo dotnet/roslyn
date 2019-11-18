@@ -11,8 +11,6 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class CpsDiagnosticItemSource : BaseDiagnosticItemSource, INotifyPropertyChanged
     {
         private readonly IVsHierarchyItem _item;
@@ -28,25 +26,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _item = item;
             _projectDirectoryPath = Path.GetDirectoryName(projectPath);
 
-            _analyzerReference = TryGetAnalyzerReference(_workspace.CurrentSolution);
+            _analyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
             if (_analyzerReference == null)
             {
                 // The workspace doesn't know about the project and/or the analyzer yet.
                 // Hook up an event handler so we can update when it does.
-                _workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
             }
         }
 
-        public IContextMenuController DiagnosticItemContextMenuController => _commandHandler.DiagnosticContextMenuController;
-        public Workspace Workspace => _workspace;
-        public ProjectId ProjectId => _projectId;
+        public IContextMenuController DiagnosticItemContextMenuController => CommandHandler.DiagnosticContextMenuController;
 
         public override object SourceItem => _item;
 
         public override AnalyzerReference AnalyzerReference => _analyzerReference;
-        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity)
+
+        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language)
         {
-            return new CpsDiagnosticItem(this, diagnostic, effectiveSeverity);
+            return new CpsDiagnosticItem(this, diagnostic, effectiveSeverity, language);
         }
 
         private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
@@ -55,23 +52,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 e.Kind == WorkspaceChangeKind.SolutionReloaded ||
                 e.Kind == WorkspaceChangeKind.SolutionRemoved)
             {
-                _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
             }
             else if (e.Kind == WorkspaceChangeKind.SolutionAdded)
             {
                 _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
                 if (_analyzerReference != null)
                 {
-                    _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
 
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
                 }
             }
-            else if (e.ProjectId == _projectId)
+            else if (e.ProjectId == ProjectId)
             {
                 if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
                 {
-                    _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
                 }
                 else if (e.Kind == WorkspaceChangeKind.ProjectAdded
                          || e.Kind == WorkspaceChangeKind.ProjectChanged)
@@ -79,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
                     if (_analyzerReference != null)
                     {
-                        _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                        Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
 
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
                     }
@@ -89,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private AnalyzerReference TryGetAnalyzerReference(Solution solution)
         {
-            var project = solution.GetProject(_projectId);
+            var project = solution.GetProject(ProjectId);
 
             if (project == null)
             {

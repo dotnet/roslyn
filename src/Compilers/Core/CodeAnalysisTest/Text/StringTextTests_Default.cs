@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Indexer1()
         {
             var data = Create(String.Empty);
-            Assert.Throws(
-                typeof(IndexOutOfRangeException),
+            Assert.Throws<IndexOutOfRangeException>(
                 () => { var value = data[-1]; });
         }
 

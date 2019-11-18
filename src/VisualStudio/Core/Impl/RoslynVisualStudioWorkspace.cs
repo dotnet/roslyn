@@ -39,9 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
-            : base(exportProvider, asyncServiceProvider, documentOptionsProviderFactories)
+            : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenter = streamingPresenter;
         }

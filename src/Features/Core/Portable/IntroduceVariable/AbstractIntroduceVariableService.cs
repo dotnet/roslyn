@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 // we also check if expression and current node are both instance member access.
                 //
                 // For example, even though the first `c` binds to a field and we are introducing a local for it,
-                // we don't want other refrences to that field to be replaced as well (i.e. the second `c` in the expression).
+                // we don't want other references to that field to be replaced as well (i.e. the second `c` in the expression).
                 //
                 //  class C
                 //  {

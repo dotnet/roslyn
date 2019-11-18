@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis
         {
             // We need to work out path to this document. Documents may not have a "real" file path if they're something created
             // as a part of a code action, but haven't been written to disk yet.
-            string effectiveFilePath;
+            string? effectiveFilePath = null;
 
             if (FilePath != null)
             {
@@ -757,7 +757,19 @@ namespace Microsoft.CodeAnalysis
             }
             else if (Name != null && projectFilePath != null)
             {
-                effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                if (!RoslynString.IsNullOrEmpty(projectPath))
+                {
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                }
+            }
+
+            if (effectiveFilePath != null)
+            {
+                var analyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                return analyzerConfigSet.GetOptionsForSourcePath(effectiveFilePath).AnalyzerOptions;
             }
             else
             {
@@ -765,10 +777,6 @@ namespace Microsoft.CodeAnalysis
                 // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
                 return ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer);
             }
-
-            var analyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-            return analyzerConfigSet.GetOptionsForSourcePath(effectiveFilePath).AnalyzerOptions;
         }
 
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
@@ -786,7 +794,7 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(existingId == id);
         }
 
-        public static DocumentId GetDocumentIdForTree(SyntaxTree tree)
+        public static DocumentId? GetDocumentIdForTree(SyntaxTree tree)
         {
             s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
             return id;

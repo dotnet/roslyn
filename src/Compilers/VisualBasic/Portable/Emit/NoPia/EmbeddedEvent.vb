@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     Dim sourceInterface As NamedTypeSymbol = Nothing
 
                     If attrData.CommonConstructorArguments.Length = 2 Then
-                        sourceInterface = TryCast(attrData.CommonConstructorArguments(0).Value, NamedTypeSymbol)
+                        sourceInterface = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, NamedTypeSymbol)
                         If sourceInterface IsNot Nothing Then
                             foundMatch = EmbedMatchingInterfaceMethods(sourceInterface, syntaxNodeOpt, diagnostics)
 

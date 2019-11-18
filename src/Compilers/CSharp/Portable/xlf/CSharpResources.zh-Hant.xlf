@@ -37,6 +37,11 @@
         <target state="translated">在運算式中使用可為 Null 的參考型別 '{0}?' 不合法，請改用基礎類型 '{0}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">屬性 '{0}' 在事件存取子上無效。其只有在 '{1}' 宣告上才有效。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">因為自動實作屬性 '{0}' 有 'set' 存取子，所以無法將其標記為 'readonly'。</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">無法將自動實作 'set' 存取子 '{0}' 標記為 'readonly'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">屬性 '{0}' 在事件存取子上無效。其只有在 '{1}' 宣告上才有效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">/nullable 的選項 '{0}' 無效; 必須為 'disable'、'enable'、'warnings' 或 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -80,6 +80,11 @@
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">模式比對運算元無效; 需要值，但找到 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">重複 Null 隱藏運算子 ('!')</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -288,8 +293,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。您指的是 'using' 而不是 'await using' 嗎?</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。您指的是 'using' 而不是 'await using' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -309,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">必須是 'warnings'、'annotations' 或指示詞結尾</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -552,8 +557,11 @@
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
                               diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -626,11 +634,11 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Visual C# 編譯器選項
 
                        - 輸出檔案 -
--out:&lt;檔案&gt;                   指定輸出檔案名稱 (預設: 具有主要類別的檔案或
+-out:&lt;file&gt;                   指定輸出檔案名稱 (預設: 具有主要類別的檔案或
                               第一個檔案的基底名稱)
 -target:exe                   建置主控台可執行檔 (預設) (簡短
                               形式: -t:exe)
@@ -643,40 +651,40 @@
                               -t:appcontainerexe)
 -target:winmdobj              建置 WinMDExp 所取用的 Windows 執行階段
                               中繼檔案 (簡短形式: -t:winmdobj)
--doc:&lt;檔案&gt;                   要產生的 XML 文件檔案
--refout:&lt;檔案&gt;                要產生的參考組件輸出
--platform:&lt;字串&gt;            限制此程式碼可執行的平台: x86、
+-doc:&lt;file&gt;                   要產生的 XML 文件檔案
+-refout:&lt;file&gt;                要產生的參考組件輸出
+-platform:&lt;string&gt;            限制此程式碼可執行的平台: x86、
                               Itanium、x64、arm、arm64、anycpu32bitpreferred 或
                               anycpu。預設為 anycpu。
 
                        - 輸入檔案 -
--recurse:&lt;萬用字元&gt;           依據萬用字元的規格，納入
+-recurse:&lt;wildcard&gt;           依據萬用字元的規格，納入
                               目前目錄和子目錄中的所有
                               檔案
--reference:&lt;別名&gt;=&lt;檔案&gt;     使用給定的別名，參考指定組件檔
+-reference:&lt;alias&gt;=&lt;file&gt;     使用給定的別名，參考指定組件檔
                               的中繼資料 (簡短形式: -r)
--reference:&lt;檔案清單&gt;        參考指定組件檔的中繼資料
+-reference:&lt;file list&gt;        參考指定組件檔的中繼資料
                               (簡短形式: -r)
--addmodule:&lt;檔案清單&gt;        將指定的模組連結至這個組件
--link:&lt;檔案清單&gt;             從指定的 Interop 組件檔，
+-addmodule:&lt;file list&gt;        將指定的模組連結至這個組件
+-link:&lt;file list&gt;             從指定的 Interop 組件檔，
                               內嵌中繼資料 (簡短形式: -l)
--analyzer:&lt;檔案清單&gt;         從這個組件執行分析器
+-analyzer:&lt;file list&gt;         從這個組件執行分析器
                               (簡短形式: -a)
--additionalfile:&lt;檔案清單&gt;   不會直接影響程式碼產生，
+-additionalfile:&lt;file list&gt;   不會直接影響程式碼產生，
                               但分析器可用以產生錯誤或警告的
                               其他檔案。
 -embed                        在 PDB 中內嵌所有來源檔案。
--embed:&lt;檔案清單&gt;            在 PDB 中內嵌特定檔案。
+-embed:&lt;file list&gt;            在 PDB 中內嵌特定檔案。
 
                        - 資源 -
--win32res:&lt;檔案&gt;              指定 Win32 資源檔 (.res)
--win32icon:&lt;檔案&gt;             使用此圖示進行輸出
--win32manifest:&lt;檔案&gt;         指定 Win32 資訊清單檔案 (.xml)
+-win32res:&lt;file&gt;              指定 Win32 資源檔 (.res)
+-win32icon:&lt;file&gt;             使用此圖示進行輸出
+-win32manifest:&lt;file&gt;         指定 Win32 資訊清單檔案 (.xml)
 -nowin32manifest              不要納入預設 Win32 資訊清單
 -resource:&lt;resinfo&gt;           內嵌指定的資源 (簡短形式: -res)
 -linkresource:&lt;resinfo&gt;       將指定的資源連結至這個組件
                               (簡短形式: -linkres) 其中 resinfo 的格式為
-                              &lt;檔案&gt;[,&lt;字串名稱&gt;[,public|private]]
+                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - 產生程式碼 -
 -debug[+|-]                   發出偵錯資訊
@@ -691,16 +699,16 @@
 -refonly                      產生代替主要輸出的參考組件
 -instrument:TestCoverage      產生已檢測的組件以收集
                               涵蓋範圍資訊
--sourcelink:&lt;檔案&gt;            要內嵌至 PDB 中的來源連結資訊。
+-sourcelink:&lt;file&gt;            要內嵌至 PDB 中的來源連結資訊。
 
                        - 錯誤及警告 -
 -warnaserror[+|-]             將所有警告回報為錯誤
--warnaserror[+|-]:&lt;警告清單&gt; 將特定警告回報為錯誤
+-warnaserror[+|-]:&lt;warn list&gt; 將特定警告回報為錯誤
 -warn:&lt;n&gt;                     設定警告層級 (0-4) (簡短形式: -w)
--nowarn:&lt;警告清單&gt;           停用特定的警告訊息
--ruleset:&lt;檔案&gt;               指定停用特定診斷的規則集
+-nowarn:&lt;warn list&gt;           停用特定的警告訊息
+-ruleset:&lt;file&gt;               指定停用特定診斷的規則集
                               檔案。
--errorlog:&lt;檔案&gt;              指定要記錄所有編譯器和分析器診斷的
+-errorlog:&lt;file&gt;              指定要記錄所有編譯器和分析器診斷的
                               檔案。
 -reportanalyzer               回報其他分析器資訊，例如
                               執行時間。
@@ -708,12 +716,14 @@
                        - 語言 -
 -checked[+|-]                 產生溢位核對
 -unsafe[+|-]                  允許 'unsafe' 程式碼
--define:&lt;符號清單&gt;         定義條件式編譯符號 (簡短
+-define:&lt;symbol list&gt;        定義條件式編譯符號 (簡短
                               形式: -d)
 -langversion:?                顯示適用於語言版本的允許值
--langversion:&lt;字串&gt;         指定語言版本，例如
-                              `default` (最新主要版本)，或
-                              `latest` (最新版本，包括次要版本)，
+-langversion:&lt;string&gt;         指定語言版本，例如
+                              `latest` (最新版本，包括次要版本)、
+                              `default` (與 `latest` 相同)、
+                              `latestmajor` (最新版本，不含次要版本)、
+                              `preview` (最新版本，包括未支援的預覽版功能)
                               或特定版本如 `6` 或 `7.1`
 -nullable[+|-]                指定可為 Null 的內容選項 enable|disable。
 -nullable:{enable|disable|warnings}
@@ -724,12 +734,12 @@
                               延遲簽署組件
 -publicsign[+|-]              只使用強式名稱金鑰的公開
                               部分，公開簽署組件
--keyfile:&lt;檔案&gt;               指定強式名稱金鑰檔
--keycontainer:&lt;字串&gt;        指定強式名稱金鑰容器
+-keyfile:&lt;file&gt;               指定強式名稱金鑰檔
+-keycontainer:&lt;string&gt;        指定強式名稱金鑰容器
 -highentropyva[+|-]           啟用高度 Entropy ASLR
 
                        - 其他 -
-@&lt;檔案&gt;                       讀取回應檔以取得更多選項
+@&lt;file&gt;                       讀取回應檔以取得更多選項
 -help                         顯示本使用方式訊息 (簡短形式: -?)
 -nologo                       隱藏編譯器著作權訊息
 -noconfig                     不自動包含 CSC.RSP 檔
@@ -737,14 +747,14 @@
 -version                      顯示編譯器版本號碼並結束。
 
                        - 進階 -
--baseaddress:&lt;位址&gt;        要建置的程式庫基底位址
--checksumalgorithm:&lt;演算法&gt;      為計算儲存在 PDB 中的原始程式檔總和檢查碼，
+-baseaddress:&lt;address&gt;        要建置的程式庫基底位址
+-checksumalgorithm:&lt;alg&gt;      為計算儲存在 PDB 中的原始程式檔總和檢查碼，
                               指定演算法。支援的值為:
                               SHA1 或 SHA256 (預設)。
 -codepage:&lt;n&gt;                 指定開啟原始程式檔時要使用的
                               字碼頁
 -utf8output                   以 UTF-8 編碼方式輸出編譯器訊息
--main:&lt;類型&gt;                  指定包含進入點
+-main:&lt;type&gt;                  指定包含進入點
                               (忽略所有其他可能的進入點) 的類型 (簡短
                               形式: -m)
 -fullpaths                    編譯器產生完整路徑
@@ -753,30 +763,30 @@
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               為編譯器輸出的來源路徑名稱，
                               指定對應。
--pdb:&lt;檔案&gt;                   指定偵錯資訊檔案名稱 (預設:
+-pdb:&lt;file&gt;                   指定偵錯資訊檔案名稱 (預設:
                               副檔名為 .pdb 的輸出檔案名稱)
 -errorendlocation             輸出每個錯誤之結束位置的
                               行與資料行
 -preferreduilang              指定慣用的輸出語言名稱。
 -nosdkpath                    停用搜尋標準程式庫組件的預設 SDK 路徑。
 -nostdlib[+|-]                不參考標準程式庫 (mscorlib.dll)
--subsystemversion:&lt;字串&gt;    指定這個組件的子系統版本
--lib:&lt;檔案清單&gt;              指定要搜尋的其他目錄
+-subsystemversion:&lt;string&gt;    指定這個組件的子系統版本
+-lib:&lt;file list&gt;              指定要搜尋的其他目錄
                               以供參考
--errorreport:&lt;字串&gt;         指定如何處理內部編譯器錯誤:
+-errorreport:&lt;string&gt;         指定如何處理內部編譯器錯誤:
                               prompt、send、queue 或 none。預設為
                               queue.
--appconfig:&lt;檔案&gt;             指定包含組件繫結設定的
+-appconfig:&lt;file&gt;             指定包含組件繫結設定的
                               應用程式組態檔
--moduleassemblyname:&lt;字串&gt;  將包含此模組的
+-moduleassemblyname:&lt;string&gt;  將包含此模組的
                               組件之名稱
--modulename:&lt;字串&gt;          指定來源模組的名稱
+-modulename:&lt;string&gt;          指定來源模組的名稱
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">預設介面實作</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -787,6 +797,11 @@
       <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
         <source>alternative interpolated verbatim strings</source>
         <target state="translated">插入的逐字替代字串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAsyncUsing">
+        <source>asynchronous using</source>
+        <target state="new">asynchronous using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -822,6 +837,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">對可移動的固定緩衝區編製索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -901,7 +921,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;切換運算式&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1365,13 +1385,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">可能為 null 的值，不能傳遞到標記了 [DisallowNull] 屬性的目標</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">可能為 null 的值，不能傳遞到標記了 [DisallowNull] 屬性的目標</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">可能為 null 的值，不能傳遞到標記了 [DisallowNull] 屬性的目標</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">可能為 null 的值，不能傳遞到標記了 [DisallowNull] 屬性的目標</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1426,7 +1446,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">可為 Null 的參考型別註釋應只用於 '#nullable' 註釋內容中的程式碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1441,7 +1461,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">可為 Null 的參考型別註釋應只用於 '#nullable' 註釋內容中的程式碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1482,6 +1502,16 @@
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
         <target state="translated">可能有 Null 參考指派。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1606,7 +1636,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">參數 '{1}' 之 '{0}' 型別中參考型別的可 Null 性與隱含實作的成員 '{2}' 不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1656,7 +1686,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">傳回型別 '{0}' 中參考型別的可 Null 性與隱含實作的成員 '{1}' 不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1686,7 +1716,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">'{0}' 的型別中參考型別的可 Null 性與隱含實作的成員 '{1}' 不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1696,12 +1726,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">型別中參考型別的可 Null 性與覆寫的成員不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">型別中參考型別的可 Null 性與覆寫的成員不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1745,8 +1775,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">switch 運算式未處理所有可能的輸入 (其並不徹底)。</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">switch 運算式未處理所有可能的輸入 (其並不徹底)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1760,8 +1790,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">switch 運算式未處理所有可能的輸入 (其並不徹底)。</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">switch 運算式未處理所有可能的輸入 (其並不徹底)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1826,12 +1856,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">不可為 Null 的型別 {0} '{1}' 未初始化。</target>
+        <target state="translated">不可為 null 的 {0} '{1}' 未初始化。請考慮將 {0} 宣告為可為 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">不可為 Null 的型別欄位未初始化。</target>
+        <target state="translated">不可為 null 的欄位未初始化。請考慮宣告為可為 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5854,12 +5884,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">必須是 disable、restore、enable 或 safeonly</target>
+        <target state="translated">應為 'disable' 或 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">#pragma warning 後面必須有 disable、restore、enable 或 safeonly</target>
+        <target state="translated">#pragma 警告後應有 'disable' 或 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -9696,8 +9726,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

@@ -231,9 +231,6 @@
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="ErrorReadingFile" xml:space="preserve">
-    <value>Error while reading file '{0}': {1}</value>
-  </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
   </data>
@@ -470,21 +467,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well" xml:space="preserve">
     <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
-  </data>
-  <data name="Suppression_State" xml:space="preserve">
-    <value>Suppression State</value>
-  </data>
-  <data name="Active" xml:space="preserve">
-    <value>Active</value>
-  </data>
-  <data name="Suppressed" xml:space="preserve">
-    <value>Suppressed</value>
-  </data>
-  <data name="NotApplicable" xml:space="preserve">
-    <value>N/A</value>
-  </data>
-  <data name="SuppressionNotSupportedToolTip" xml:space="preserve">
-    <value>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</value>
   </data>
   <data name="Suppress_diagnostics" xml:space="preserve">
     <value>Suppress diagnostics</value>
@@ -960,20 +942,6 @@ Additional information: {1}</value>
   <data name="Fading" xml:space="preserve">
     <value>Fading</value>
   </data>
-  <data name="ChangesNotAllowedIFAssemblyHasNotBeenLoaded" xml:space="preserve">
-    <value>Changes are not allowed if the assembly has not been loaded.</value>
-  </data>
-  <data name="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted" xml:space="preserve">
-    <value>Changes are not allowed if the project wasn't built when debugging started.</value>
-  </data>
-  <data name="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging" xml:space="preserve">
-    <value>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</value>
-  </data>
-  <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
-    <value>Changes are not allowed while code is running.</value>
-  </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
   </data>
@@ -994,12 +962,6 @@ Additional information: {1}</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
-  </data>
-  <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
-    <value>Can't apply changes -- module '{0}' has been unloaded.</value>
-  </data>
-  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
-    <value>Can't apply changes -- unexpected error: '{0}'</value>
   </data>
   <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
     <value>Prefer deconstructed variable declaration</value>
@@ -1204,9 +1166,6 @@ I agree to all of the foregoing:</value>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
   </data>
-  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
-    <value>Enable nullable reference analysis IDE features</value>
-  </data>
   <data name="Move_to_namespace" xml:space="preserve">
     <value>Move to Namespace</value>
   </data>
@@ -1337,6 +1296,12 @@ I agree to all of the foregoing:</value>
     <value>Type Parameter</value>
     <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</comment>
   </data>
+  <data name="Containing_member" xml:space="preserve">
+    <value>Containing Member</value>
+  </data>
+  <data name="Containing_type" xml:space="preserve">
+    <value>Containing Type</value>
+  </data>
   <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
     <value>Use .editorconfig compatibility mode (requires restart)</value>
   </data>
@@ -1351,5 +1316,32 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Naming_rules" xml:space="preserve">
     <value>Naming rules</value>
+  </data>
+  <data name="Updating_severity" xml:space="preserve">
+    <value>Updating severity</value>
+  </data>
+  <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
+    <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
+  </data>
+  <data name="Requires_System_HashCode_be_present_in_project" xml:space="preserve">
+    <value>Requires 'System.HashCode' be present in project</value>
+  </data>
+  <data name="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item" xml:space="preserve">
+    <value>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</value>
+  </data>
+  <data name="Run_Code_Analysis_on_0" xml:space="preserve">
+    <value>Run Code Analysis on {0}</value>
+  </data>
+  <data name="Running_code_analysis_for_0" xml:space="preserve">
+    <value>Running code analysis for '{0}'...</value>
+  </data>
+  <data name="Running_code_analysis_for_Solution" xml:space="preserve">
+    <value>Running code analysis for Solution...</value>
+  </data>
+  <data name="Code_analysis_completed_for_0" xml:space="preserve">
+    <value>Code analysis completed for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
+    <value>Code analysis completed for Solution.</value>
   </data>
 </root>

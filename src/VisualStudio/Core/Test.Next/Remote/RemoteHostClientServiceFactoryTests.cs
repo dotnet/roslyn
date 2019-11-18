@@ -287,13 +287,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
         {
-            public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => Task.CompletedTask;
-            public Task LogInfoAsync(string text, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
+            public Task LogInfoAsync(string text) => Task.CompletedTask;
 
-            public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
         }
     }
 }

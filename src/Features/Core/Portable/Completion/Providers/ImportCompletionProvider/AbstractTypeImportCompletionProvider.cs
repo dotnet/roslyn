@@ -1,96 +1,41 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
-using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractTypeImportCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractTypeImportCompletionProvider : AbstractImportCompletionProvider
     {
-        private bool? _isTypeImportCompletionExperimentEnabled = null;
+        protected override bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext)
+            => syntaxContext.IsTypeContext;
 
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
-
-        protected abstract ImmutableArray<string> GetImportedNamespaces(
-            SyntaxNode location,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken);
-
-        protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
-
-        public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
+        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
         {
-            var cancellationToken = completionContext.CancellationToken;
-            var document = completionContext.Document;
-            var workspace = document.Project.Solution.Workspace;
+            using var _ = Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken);
+            var telemetryCounter = new TelemetryCounter();
 
-            var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
-            {
-                return;
-            }
-
-            var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
-            if (!syntaxContext.IsTypeContext)
-            {
-                return;
-            }
-
-            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
-            using (var telemetryCounter = new TelemetryCounter())
-            {
-                await AddCompletionItemsAsync(completionContext, syntaxContext, telemetryCounter, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private bool IsTypeImportCompletionExperimentEnabled(Workspace workspace)
-        {
-            if (!_isTypeImportCompletionExperimentEnabled.HasValue)
-            {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                _isTypeImportCompletionExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
-            }
-
-            return _isTypeImportCompletionExperimentEnabled == true;
-        }
-
-        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
-        {
             var document = completionContext.Document;
             var project = document.Project;
             var workspace = project.Solution.Workspace;
-            var typeImportCompletionService = document.GetLanguageService<ITypeImportCompletionService>();
-
-            // Find all namespaces in scope at current cursor location, 
-            // which will be used to filter so the provider only returns out-of-scope types.
-            var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
+            var typeImportCompletionService = document.GetLanguageService<ITypeImportCompletionService>()!;
 
             var tasksToGetCompletionItems = ArrayBuilder<Task<ImmutableArray<CompletionItem>>>.GetInstance();
 
             // Get completion items from current project. 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = (await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
             tasksToGetCompletionItems.Add(Task.Run(() => typeImportCompletionService.GetTopLevelTypesAsync(
                 project,
                 syntaxContext,
@@ -98,21 +43,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken)));
 
             // Get declarations from directly referenced projects and PEs.
+            // For script compilation, we don't want previous submissions returned as referenced assemblies,
+            // there's no need to check for unimported type from them since namespace declaration is not allowed in script.
+            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols(excludePreviousSubmissions: true);
+
             // This can be parallelized because we don't add items to CompletionContext
             // until all the collected tasks are completed.
-            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols();
             tasksToGetCompletionItems.AddRange(
                 referencedAssemblySymbols.Select(symbol => Task.Run(() => HandleReferenceAsync(symbol))));
 
-            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache, 
-            // the idea is not to block completion for too long (likely to happen the first time import completion is triggered).
+            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache. 
+            // The idea is not to block completion for too long (likely to happen the first time import completion is triggered).
             // The trade-off is we might not provide unimported types until the cache is warmed up.
             var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion);
             var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
 
-            if (timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
+            if (isExpandedCompletion ||
+                timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
             {
-                // No timeout. We now have all completion items ready. 
+                // Either there's no timeout, and we now have all completion items ready,
+                // or user asked for unimported type explicitly so we need to wait until they are calculated.
                 var completionItemsToAdd = await combinedTask.ConfigureAwait(false);
                 foreach (var completionItems in completionItemsToAdd)
                 {
@@ -129,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             telemetryCounter.ReferenceCount = referencedAssemblySymbols.Length;
+            telemetryCounter.Report();
 
             return;
 
@@ -170,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 foreach (var item in items)
                 {
-                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
+                    var containingNamespace = ImportCompletionItem.GetContainingNamespace(item);
                     if (!namespacesInScope.Contains(containingNamespace))
                     {
                         // We can return cached item directly, item's span will be fixed by completion service.
@@ -184,159 +135,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        private class TelemetryCounter
         {
-            var semanticModel = syntaxContext.SemanticModel;
-            var importedNamespaces = GetImportedNamespaces(syntaxContext.LeftToken.Parent, semanticModel, cancellationToken);
-
-            // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var namespacesInScope = new HashSet<string>(importedNamespaces, syntaxFacts.StringComparer);
-
-            // Get containing namespaces.
-            var namespaceSymbol = semanticModel.GetEnclosingNamespace(syntaxContext.Position, cancellationToken);
-            while (namespaceSymbol != null)
-            {
-                namespacesInScope.Add(namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
-                namespaceSymbol = namespaceSymbol.ContainingNamespace;
-            }
-
-            return namespacesInScope;
-        }
-
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, CancellationToken cancellationToken)
-        {
-            var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
-            Debug.Assert(containingNamespace != null);
-
-            if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
-            {
-                var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
-                var change = new TextChange(completionListSpan, fullyQualifiedName);
-
-                return CompletionChange.Create(change);
-            }
-            else
-            {
-                // Find context node so we can use it to decide where to insert using/imports.
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
-
-                // Add required using/imports directive.                              
-                var addImportService = document.GetLanguageService<IAddImportsService>();
-                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var importNode = CreateImport(document, containingNamespace);
-
-                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst);
-                var documentWithImport = document.WithSyntaxRoot(rootWithImport);
-                var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                var builder = ArrayBuilder<TextChange>.GetInstance();
-
-                // Get text change for add improt
-                var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                builder.AddRange(importChanges);
-
-                // Create text change for complete type name.
-                //
-                // Note: Don't try to obtain TextChange for completed type name by replacing the text directly, 
-                //       then use Document.GetTextChangesAsync on document created from the changed text. This is
-                //       because it will do a diff and return TextChanges with minimum span instead of actual 
-                //       replacement span.
-                //
-                //       For example: If I'm typing "asd", the completion provider could be triggered after "a"
-                //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described 
-                //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
-                //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
-                //       with "AsnEncodedDatasd" in the code.
-                builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
-
-                // Then get the combined change
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = text.WithChanges(builder);
-
-                return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
-            }
-
-            async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
-            {
-                var workspace = document.Project.Solution.Workspace;
-
-                // Certain types of workspace don't support document change, e.g. DebuggerIntellisense
-                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                {
-                    return true;
-                }
-
-                // During an EnC session, adding import is not supported.
-                var encService = workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
-                if (encService?.EditSession != null)
-                {
-                    return true;
-                }
-
-                // Certain documents, e.g. Razor document, don't support adding imports
-                var documentSupportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                if (!documentSupportsFeatureService.SupportsRefactorings(document))
-                {
-                    return true;
-                }
-
-                // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
-                // import container (e.g. namespace/class/etc. declarations).
-                //
-                // For example, `List` and `StringBuilder` both need to be fully qualified below: 
-                // 
-                //      using CollectionOfStringBuilders = System.Collections.Generic.List<System.Text.StringBuilder>;
-                //
-                // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block), 
-                // then we can add an using in the outer import container instead (this is not allowed in VB). 
-                //
-                // For example:
-                //
-                //      using System.Collections.Generic;
-                //      using System.Text;
-                //
-                //      namespace Foo
-                //      {
-                //          using CollectionOfStringBuilders = List<StringBuilder>;
-                //      }
-                //
-                // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
-                return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static SyntaxNode CreateImport(Document document, string namespaceName)
-        {
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            return syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
-        }
-
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => TypeImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
-
-        private class TelemetryCounter : IDisposable
-        {
-            private readonly int _tick;
-
+            protected int Tick { get; }
             public int ItemsCount { get; set; }
-
             public int ReferenceCount { get; set; }
-
             public bool TimedOut { get; set; }
 
             public TelemetryCounter()
             {
-                _tick = Environment.TickCount;
+                Tick = Environment.TickCount;
             }
 
-            public void Dispose()
+            public void Report()
             {
-                var delta = Environment.TickCount - _tick;
+                var delta = Environment.TickCount - Tick;
                 CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
                 CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
                 CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);

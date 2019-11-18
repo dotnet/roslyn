@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Base class for parameters can be referred to from source code.
     /// </summary>
     /// <remarks>
-    /// These parameters can potentially be targetted by an attribute specified in source code. 
+    /// These parameters can potentially be targeted by an attribute specified in source code. 
     /// As an optimization we distinguish simple parameters (no attributes, no modifiers, etc.) and complex parameters.
     /// </remarks>
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier,
             DiagnosticBag declarationDiagnostics)
         {
+            Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
+
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
 
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (syntax.AttributeLists.Count == 0) &&
                 !owner.IsPartialMethod())
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard: false, locations);
             }
 
             return new SourceComplexParameterSymbol(

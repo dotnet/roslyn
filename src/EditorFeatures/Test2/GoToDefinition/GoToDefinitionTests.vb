@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim textBuffer = textView.TextBuffer
                 textView.Caret.MoveTo(New SnapshotPoint(textBuffer.CurrentSnapshot, cursorPosition))
 
-                Dim cursorBuffer = cursorDocument.TextBuffer
+                Dim cursorBuffer = cursorDocument.GetTextBuffer()
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
                 Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
@@ -1018,7 +1018,7 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <!-- intentionally not including tuple2, shoudl still work -->
+        <!-- intentionally not including tuple2, should still work -->
         <Document>
     class Program
     {

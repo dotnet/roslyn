@@ -18,14 +18,13 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
     internal abstract class AbstractToggleBlockCommentBase :
         // Value tuple to represent that there is no distinct command to be passed in.
         AbstractCommentSelectionBase<ValueTuple>,
-        VSCommanding.ICommandHandler<ToggleBlockCommentCommandArgs>
+        ICommandHandler<ToggleBlockCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         protected abstract Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken);
 
-        public VSCommanding.CommandState GetCommandState(ToggleBlockCommentCommandArgs args)
+        public CommandState GetCommandState(ToggleBlockCommentCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
         }

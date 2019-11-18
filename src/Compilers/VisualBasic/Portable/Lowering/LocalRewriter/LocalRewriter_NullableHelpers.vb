@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Right operand could be a method that takes Left operand byref. Ex: " local And TakesArgByref(local) "
         ' So in general we must capture Left even if it is a local.
         ' however in many case we do not need that.
-        Private Function RightCanChangeLeftLocal(left As BoundExpression, right As BoundExpression) As Boolean
+        Private Shared Function RightCantChangeLeftLocal(left As BoundExpression, right As BoundExpression) As Boolean
             ' TODO: in most cases right operand does not change value of the left one
             '       we could be smarter than this.
             Return right.Kind = BoundKind.Local OrElse
@@ -158,14 +158,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' check if we are not getting value from freshly constructed nullable
             ' no need to wrap/unwrap it then.
-            If expr.Kind = BoundKind.ObjectCreationExpression Then
-                Dim objectCreation = DirectCast(expr, BoundObjectCreationExpression)
+            Select Case expr.Kind
+                Case BoundKind.ObjectCreationExpression
+                    Dim objectCreation = DirectCast(expr, BoundObjectCreationExpression)
 
-                ' passing one argument means we are calling New Nullable<T>(arg)
-                If objectCreation.Arguments.Length = 1 Then
-                    Return objectCreation.Arguments(0)
-                End If
-            End If
+                    ' passing one argument means we are calling New Nullable<T>(arg)
+                    If objectCreation.Arguments.Length = 1 Then
+                        Return objectCreation.Arguments(0)
+                    End If
+                Case BoundKind.Conversion
+                    Dim conversion = DirectCast(expr, BoundConversion)
+                    If IsConversionFromUnderlyingToNullable(conversion) Then
+                        Return conversion.Operand
+                    End If
+            End Select
 
             Dim getValueOrDefaultMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault)
 
@@ -182,6 +188,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+        End Function
+
+        Private Shared Function IsConversionFromUnderlyingToNullable(conversion As BoundConversion) As Boolean
+            Return (conversion.ConversionKind And (ConversionKind.Widening Or ConversionKind.Nullable Or ConversionKind.UserDefined)) = (ConversionKind.Widening Or ConversionKind.Nullable) AndAlso
+                   conversion.Type.GetNullableUnderlyingType().Equals(conversion.Operand.Type, TypeCompareKind.AllIgnoreOptionsForVB)
         End Function
 
         Private Function NullableValue(expr As BoundExpression) As BoundExpression
@@ -322,11 +333,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function HasValue(expr As BoundExpression) As Boolean
             Debug.Assert(expr.Type.IsNullableType)
 
-            If expr.Kind = BoundKind.ObjectCreationExpression Then
-                Dim objCreation = DirectCast(expr, BoundObjectCreationExpression)
-                ' Nullable<T> has only one ctor with parameters and only that one sets hasValue = true
-                Return objCreation.Arguments.Length <> 0
-            End If
+            Select Case expr.Kind
+                Case BoundKind.ObjectCreationExpression
+                    Dim objCreation = DirectCast(expr, BoundObjectCreationExpression)
+                    ' Nullable<T> has only one ctor with parameters and only that one sets hasValue = true
+                    Return objCreation.Arguments.Length <> 0
+                Case BoundKind.Conversion
+                    If IsConversionFromUnderlyingToNullable(DirectCast(expr, BoundConversion)) Then
+                        Return True
+                    End If
+            End Select
 
             ' by default we do not know
             Return False

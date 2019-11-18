@@ -264,10 +264,10 @@ namespace N
                 context = CreateTypeContext(runtime, "N.C");
                 testData = new CompilationTestData();
                 result = context.CompileExpression("typeof(A.C) ?? typeof(B) ?? typeof(C)", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)", error);
                 testData = new CompilationTestData();
                 result = context.CompileExpression("typeof(B) ?? typeof(C)", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
             });
         }
 
@@ -287,7 +287,7 @@ class C
                 string error;
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("$ReturnValue", out error, testData);
-                Assert.Equal(error, "error CS0103: The name '$ReturnValue' does not exist in the current context");
+                Assert.Equal("error CS0103: The name '$ReturnValue' does not exist in the current context", error);
             });
         }
 
@@ -346,9 +346,9 @@ class C
                 // Format specifiers.
                 result = context.CompileExpression("F, nq,ac", out error);
                 Assert.NotNull(result.Assembly);
-                Assert.Equal(result.FormatSpecifiers.Count, 2);
-                Assert.Equal(result.FormatSpecifiers[0], "nq");
-                Assert.Equal(result.FormatSpecifiers[1], "ac");
+                Assert.Equal(2, result.FormatSpecifiers.Count);
+                Assert.Equal("nq", result.FormatSpecifiers[0]);
+                Assert.Equal("ac", result.FormatSpecifiers[1]);
             });
         }
 

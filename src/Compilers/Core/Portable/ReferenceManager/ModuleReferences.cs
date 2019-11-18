@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// A record of the assemblies referenced by a module (their identities, symbols, and unification).
     /// </summary>
     internal sealed class ModuleReferences<TAssemblySymbol>
-        where TAssemblySymbol : class, IAssemblySymbol
+        where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         /// <summary>
         /// Identities of referenced assemblies (those that are or will be emitted to metadata).

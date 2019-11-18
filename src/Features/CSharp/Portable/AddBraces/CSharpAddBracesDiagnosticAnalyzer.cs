@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// part of the <c>if</c>/<c>else if</c>/<c>else</c> sequence.
         /// </summary>
         /// <remarks>
-        /// <para>For the purpose of brace usage analysis, the embedded statments of an <c>if</c>/<c>else if</c>/<c>else</c>
+        /// <para>For the purpose of brace usage analysis, the embedded statements of an <c>if</c>/<c>else if</c>/<c>else</c>
         /// sequence are considered sibling statements, even though they don't appear as immediate siblings in the
         /// syntax tree. This method walks up the syntax tree to find the <c>if</c> statement that starts the
         /// sequence.</para>

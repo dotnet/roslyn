@@ -59,7 +59,6 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
-  [switch]$testLegacyCompletion,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -91,7 +90,6 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testLegacyCompletion     Run integration tests with legacy completion"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -225,12 +223,10 @@ function BuildSolution() {
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
-  # that MSBuild output as well as ones that custom tasks output. This causes problems for us as 
-  # portions of our build will issue warnings: style analyzers being the most prominent example. Hence
-  # rather than a blanket include of warnings we include a fixed set.
+  # that MSBuild output as well as ones that custom tasks output.
   #
   # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
-  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError:MSB3270,MSB3277" } else { "" }
+  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
@@ -326,10 +322,6 @@ function SetVisualStudioBootstrapperBuildArgs() {
 
   Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
   Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
-
-  $insertionDir = Join-Path $VSSetupDir "Insertion"
-  $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-  Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
 }
 
 # Core function for running our unit / integration tests tests
@@ -350,10 +342,6 @@ function TestUsingOptimizedRunner() {
 
   if ($testIOperation) {
     $env:ROSLYN_TEST_IOPERATION = "true"
-  }
-
-  if ($testLegacyCompletion) {
-    $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
   }
 
   $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
@@ -431,9 +419,6 @@ function TestUsingOptimizedRunner() {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
-    }
-    if ($testLegacyCompletion) {
-      Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
     }
   }
 }

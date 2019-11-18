@@ -12,6 +12,16 @@
         <target state="translated">Somente atributos, expressões ou instruções podem ser tornados explícitos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Imports">
+        <source>R&amp;emove and Sort Imports</source>
+        <target state="translated">R&amp;emover e Classificar Importações</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">Cla&amp;ssificar Importações</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;event&gt;</target>

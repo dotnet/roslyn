@@ -101,8 +101,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -127,8 +127,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -160,8 +160,8 @@ class C
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
 
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("void C.bar(System.Int32 a)", semanticInfo.Symbol.ToTestDisplayString());
@@ -187,7 +187,7 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
             Assert.Equal("C C.Create(System.Int32 arg)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -259,7 +259,7 @@ class List : List<int>
 }";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
 
             // there is only one applicable candidate:
             Assert.Equal("void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)", semanticInfo.Symbol.ToTestDisplayString());
@@ -413,8 +413,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
@@ -448,8 +448,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -476,8 +476,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -513,8 +513,8 @@ class C
 ";
                 var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-                Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-                Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+                Assert.True(semanticInfo.Type.IsDynamic());
+                Assert.True(semanticInfo.ConvertedType.IsDynamic());
                 Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
                 Assert.Equal("dynamic dynamic." + operatorNames[i] + "(dynamic value)", semanticInfo.Symbol.ToTestDisplayString());
@@ -540,8 +540,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -568,8 +568,8 @@ class C
 ";
                 var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-                Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-                Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+                Assert.True(semanticInfo.Type.IsDynamic());
+                Assert.True(semanticInfo.ConvertedType.IsDynamic());
                 Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
                 if (op == "&&" || op == "||")
@@ -603,8 +603,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -632,8 +632,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -659,8 +659,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-            Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -687,8 +687,8 @@ class C
 ";
                 var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-                Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
-                Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
+                Assert.True(semanticInfo.Type.IsDynamic());
+                Assert.True(semanticInfo.ConvertedType.IsDynamic());
                 Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
                 Assert.Equal("dynamic.operator " + op.Substring(0, op.Length - 1) + "(dynamic, dynamic)", semanticInfo.Symbol.ToString());

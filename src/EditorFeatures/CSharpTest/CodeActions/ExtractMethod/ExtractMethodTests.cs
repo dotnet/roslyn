@@ -1982,7 +1982,12 @@ class Program
     {
         System.Console.WriteLine([|^1|]);
     }
-}", TestSources.Index + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+@"
 class Program
 {
     static void Main(string[] args)
@@ -1990,7 +1995,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Index NewMethod()
+    private static Index NewMethod()
     {
         return ^1;
     }
@@ -2007,7 +2012,12 @@ class Program
     {
         System.Console.WriteLine([|..|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2015,7 +2025,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return ..;
     }
@@ -2032,7 +2042,12 @@ class Program
     {
         System.Console.WriteLine([|..1|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2040,7 +2055,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return ..1;
     }
@@ -2057,7 +2072,12 @@ class Program
     {
         System.Console.WriteLine([|1..|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2065,7 +2085,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return 1..;
     }
@@ -2082,7 +2102,12 @@ class Program
     {
         System.Console.WriteLine([|1..2|]);
     }
-}", TestSources.Index + TestSources.Range + @"
+}",
+@"
+
+using System;" +
+TestSources.Index +
+TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2090,7 +2115,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static System.Range NewMethod()
+    private static Range NewMethod()
     {
         return 1..2;
     }
@@ -2818,6 +2843,665 @@ class C
     private void NewMethod()
     {
         int i = M1() + M1();
+    }
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableObjectWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = (string?)[|o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = (string?){|Rename:GetO|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static object? GetO(object? o)
+    {
+        return o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNotNullableObjectWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = (string)[|o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = (string){|Rename:GetO|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static object GetO(object o)
+    {
+        return o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNotNullableWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = new B();
+        var s = (A)[|b|];
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = new B();
+        var s = (A){|Rename:GetB|}(b);
+    }
+
+    private static B GetB(B b)
+    {
+        return b;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableWithExplicitCast()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = null;
+        var s = (A)[|b|];
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class A
+{
+}
+
+class B : A 
+{
+}
+
+class C
+{
+    void M()
+    {
+        B? b = null;
+        var s = (A){|Rename:GetB|}(b);
+    }
+
+    private static B? GetB(B? b)
+    {
+        return b;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNotNullableWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = [|(string)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string GetS(object o)
+    {
+        return (string)o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = [|(string?)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object? o)
+    {
+        return (string?)o;
+    }
+}");
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = [|(string?)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object o)
+    {
+        return (string?)o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = [|(string)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object? o)
+    {
+        return (string)o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M() 
+    {
+        [|F();
+        async void F() => await Task.Delay(0);|]
+    }
+}",
+@"class C
+{
+    void M()
+    {|Warning:{
+        {|Rename:NewMethod|}();
+    }|}
+
+    private static void NewMethod()
+    {
+        F();
+        async void F() => await Task.Delay(0);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalse()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(false)|];
+    }
+}",
+@"class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+    }
+
+    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+    {
+        return await Task.Delay(duration).ConfigureAwait(false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false)|];
+    }
+}",
+@"class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+    }
+
+    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+    {
+        return await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks
+
+class C
+{
+    async Task MyDelay() 
+    {
+        [|await new ValueTask<int>(0).ConfigureAwait(false)|];
+    }
+}",
+@"using System.Threading.Tasks
+
+class C
+{
+    async Task MyDelay()
+    {
+        await {|Rename:NewMethod|}().ConfigureAwait(false);
+    }
+
+    private static async Task<object> NewMethod()
+    {
+        return await new ValueTask<int>(0).ConfigureAwait(false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitTrue()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(true)|];
+    }
+}",
+@"class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration);
+    }
+
+    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+    {
+        return await Task.Delay(duration).ConfigureAwait(true);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(M())|];
+    }
+}",
+@"class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration);
+    }
+
+    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+    {
+        return await Task.Delay(duration).ConfigureAwait(M());
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithNoConfigureAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration)|];
+    }
+}",
+@"class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration);
+    }
+
+    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+    {
+        return await Task.Delay(duration);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Run(async () => await Task.Delay(duration).ConfigureAwait(false))|];
+    }
+}",
+@"class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration);
+    }
+
+    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+    {
+        return await Task.Run(async () => await Task.Delay(duration).ConfigureAwait(false));
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Run(F());
+        async Task F() => await Task.Delay(duration).ConfigureAwait(false);|]
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {|Warning:{
+        await {|Rename:NewMethod|}(duration);
+    }|}
+
+    private static async Task NewMethod(TimeSpan duration)
+    {
+        await Task.Run(F());
+        async Task F() => await Task.Delay(duration).ConfigureAwait(false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(false);
+        await Task.Delay(duration).ConfigureAwait(true);|]
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+    }
+
+    private static async Task NewMethod(TimeSpan duration)
+    {
+        await Task.Delay(duration).ConfigureAwait(false);
+        await Task.Delay(duration).ConfigureAwait(true);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(true);
+        await Task.Delay(duration).ConfigureAwait(false);|]
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+    }
+
+    private static async Task NewMethod(TimeSpan duration)
+    {
+        await Task.Delay(duration).ConfigureAwait(true);
+        await Task.Delay(duration).ConfigureAwait(false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        [|await Task.Delay(duration).ConfigureAwait(M());
+        await Task.Delay(duration).ConfigureAwait(false);|]
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+    }
+
+    private static async Task NewMethod(TimeSpan duration)
+    {
+        await Task.Delay(duration).ConfigureAwait(M());
+        await Task.Delay(duration).ConfigureAwait(false);
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async Task MyDelay(TimeSpan duration) 
+    {
+        await Task.Delay(duration).ConfigureAwait(false);
+        [|await Task.Delay(duration).ConfigureAwait(true);|]
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task MyDelay(TimeSpan duration)
+    {
+        await Task.Delay(duration).ConfigureAwait(false);
+        await {|Rename:NewMethod|}(duration);
+    }
+
+    private static async Task NewMethod(TimeSpan duration)
+    {
+        await Task.Delay(duration).ConfigureAwait(true);
     }
 }");
         }

@@ -23,8 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, ISymbolInternal, IFormattable
+    internal abstract partial class Symbol : ISymbolInternal, IFormattable
     {
+        private ISymbol _lazyISymbol;
+
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
         // Do not make any changes to the public interface without making the corresponding change
@@ -194,6 +196,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         Compilation ISymbolInternal.DeclaringCompilation
             => DeclaringCompilation;
+
+        string ISymbolInternal.Name => this.Name;
+
+        string ISymbolInternal.MetadataName => this.MetadataName;
+
+        ISymbolInternal ISymbolInternal.ContainingSymbol => this.ContainingSymbol;
+
+        IModuleSymbolInternal ISymbolInternal.ContainingModule => this.ContainingModule;
+
+        IAssemblySymbolInternal ISymbolInternal.ContainingAssembly => this.ContainingAssembly;
+
+        ImmutableArray<Location> ISymbolInternal.Locations => this.Locations;
+
+        INamespaceSymbolInternal ISymbolInternal.ContainingNamespace => this.ContainingNamespace;
+
+        bool ISymbolInternal.IsImplicitlyDeclared => this.IsImplicitlyDeclared;
+
+        INamedTypeSymbolInternal ISymbolInternal.ContainingType
+        {
+            get
+            {
+                return this.ContainingType;
+            }
+        }
+
+        ISymbol ISymbolInternal.GetISymbol() => this.ISymbol;
 
         /// <summary>
         /// Returns the module containing this symbol. If this symbol is shared across multiple
@@ -598,17 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        bool IEquatable<ISymbol>.Equals(ISymbol other)
-        {
-            return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
-        }
-
-        bool ISymbol.Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
-        {
-            return equalityComparer.Equals(this, other);
-        }
-
-        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
         {
             return this.Equals(other as Symbol, compareKind);
         }
@@ -623,6 +641,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode()
         {
             return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
+        }
+
+        public static bool Equals(Symbol first, Symbol second, TypeCompareKind compareKind)
+        {
+            if (first is null)
+            {
+                return second is null;
+            }
+
+            return first.Equals(second, compareKind);
         }
 
         /// <summary>
@@ -982,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (CustomModifier modifier in customModifiers)
             {
-                var modifierType = (NamedTypeSymbol)modifier.Modifier;
+                NamedTypeSymbol modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
 
                 // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
                 if (modifierType.IsUnboundGenericType)
@@ -1029,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var modifier in modifiers)
             {
-                if (((TypeSymbol)modifier.Modifier).GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
+                if (((CSharpCustomModifier)modifier).ModifierSymbol.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
                 {
                     return true;
                 }
@@ -1128,12 +1156,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayString(this, format);
+            return SymbolDisplay.ToDisplayString(ISymbol, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayParts(this, format);
+            return SymbolDisplay.ToDisplayParts(ISymbol, format);
         }
 
         public string ToMinimalDisplayString(
@@ -1141,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayString(this, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayString(ISymbol, semanticModel, position, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
@@ -1149,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayParts(ISymbol, semanticModel, position, format);
         }
 
         internal static void ReportErrorIfHasConstraints(
@@ -1317,110 +1345,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        #region ISymbol Members
-
-        public string Language
-        {
-            get
-            {
-                return LanguageNames.CSharp;
-            }
-        }
-
-        string ISymbol.Name
-        {
-            get { return this.Name; }
-        }
-
-        string ISymbol.ToDisplayString(SymbolDisplayFormat format)
-        {
-            return SymbolDisplay.ToDisplayString(this, format);
-        }
-
-        ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat format)
-        {
-            return SymbolDisplay.ToDisplayParts(this, format);
-        }
-
-        string ISymbol.ToMinimalDisplayString(
-            SemanticModel semanticModel,
-            int position,
-            SymbolDisplayFormat format)
-        {
-            var csharpModel = semanticModel as CSharpSemanticModel;
-            if (csharpModel == null)
-            {
-                throw new ArgumentException(CSharpResources.WrongSemanticModelType, this.Language);
-            }
-
-            return SymbolDisplay.ToMinimalDisplayString(this, csharpModel, position, format);
-        }
-
-        ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(
-            SemanticModel semanticModel,
-            int position,
-            SymbolDisplayFormat format)
-        {
-            var csharpModel = semanticModel as CSharpSemanticModel;
-            if (csharpModel == null)
-            {
-                throw new ArgumentException(CSharpResources.WrongSemanticModelType, this.Language);
-            }
-
-            return SymbolDisplay.ToMinimalDisplayParts(this, csharpModel, position, format);
-        }
-
-        bool ISymbol.IsImplicitlyDeclared
-        {
-            get { return this.IsImplicitlyDeclared; }
-        }
-
-        ISymbol ISymbol.ContainingSymbol
-        {
-            get { return this.ContainingSymbol; }
-        }
-
-        IAssemblySymbol ISymbol.ContainingAssembly
-        {
-            get { return this.ContainingAssembly; }
-        }
-
-        IModuleSymbol ISymbol.ContainingModule
-        {
-            get { return this.ContainingModule; }
-        }
-
-        INamedTypeSymbol ISymbol.ContainingType
-        {
-            get { return this.ContainingType; }
-        }
-
-        INamespaceSymbol ISymbol.ContainingNamespace
-        {
-            get { return this.ContainingNamespace; }
-        }
-
-        bool ISymbol.IsDefinition
-        {
-            get { return this.IsDefinition; }
-        }
-
-        bool ISymbol.IsStatic
+        bool ISymbolInternal.IsStatic
         {
             get { return this.IsStatic; }
         }
 
-        bool ISymbol.IsVirtual
+        bool ISymbolInternal.IsVirtual
         {
             get { return this.IsVirtual; }
         }
 
-        bool ISymbol.IsOverride
+        bool ISymbolInternal.IsOverride
         {
             get { return this.IsOverride; }
         }
 
-        bool ISymbol.IsAbstract
+        bool ISymbolInternal.IsAbstract
         {
             get
             {
@@ -1428,36 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool ISymbol.IsSealed
-        {
-            get
-            {
-                return this.IsSealed;
-            }
-        }
-
-        ImmutableArray<Location> ISymbol.Locations
-        {
-            get
-            {
-                return this.Locations;
-            }
-        }
-
-        ImmutableArray<SyntaxReference> ISymbol.DeclaringSyntaxReferences
-        {
-            get
-            {
-                return this.DeclaringSyntaxReferences;
-            }
-        }
-
-        ImmutableArray<AttributeData> ISymbol.GetAttributes()
-        {
-            return StaticCast<AttributeData>.From(this.GetAttributes());
-        }
-
-        Accessibility ISymbol.DeclaredAccessibility
+        Accessibility ISymbolInternal.DeclaredAccessibility
         {
             get
             {
@@ -1465,62 +1376,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ISymbol ISymbol.OriginalDefinition
-        {
-            get
-            {
-                return this.OriginalDefinition;
-            }
-        }
-
-        public abstract void Accept(SymbolVisitor visitor);
-
-        public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
-
         public abstract void Accept(CSharpSymbolVisitor visitor);
 
         public abstract TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor);
 
-        #endregion
-
-        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ITypeSymbol[] typeArguments)
-        {
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);
-            foreach (var typeArg in typeArguments)
-            {
-                var type = typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
-                builder.Add(TypeWithAnnotations.Create(type));
-            }
-            return builder.ToImmutableAndFree();
-        }
-
-        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
-        {
-            if (typeArguments.IsDefault)
-            {
-                throw new ArgumentException(nameof(typeArguments));
-            }
-
-            int n = typeArguments.Length;
-            if (!typeArgumentNullableAnnotations.IsDefault && typeArgumentNullableAnnotations.Length != n)
-            {
-                throw new ArgumentException(nameof(typeArgumentNullableAnnotations));
-            }
-
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
-            for (int i = 0; i < n; i++)
-            {
-                var type = typeArguments[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
-                var annotation = typeArgumentNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : typeArgumentNullableAnnotations[i].ToInternalAnnotation();
-                builder.Add(TypeWithAnnotations.Create(type, annotation));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {
             return ToString();
+        }
+
+        protected abstract ISymbol CreateISymbol();
+
+        internal ISymbol ISymbol
+        {
+            get
+            {
+                if (_lazyISymbol is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyISymbol, CreateISymbol(), null);
+                }
+
+                return _lazyISymbol;
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #nullable enable
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -75,13 +76,119 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (sym is null) return sym;
 
-            if (_updatedSymbols.TryGetValue((expr, sym), out var updatedSymbol))
+            Symbol? updatedSymbol = null;
+            if (_snapshotManager?.TryGetUpdatedSymbol(expr, sym, out updatedSymbol) != true)
             {
-                Debug.Assert(updatedSymbol is object);
-                return (T)updatedSymbol;
+                updatedSymbol = sym;
+            }
+            RoslynDebug.Assert(updatedSymbol is object);
+
+            switch (updatedSymbol)
+            {
+                case LambdaSymbol lambda:
+                    return (T)remapLambda((BoundLambda)expr, lambda);
+
+                case SourceLocalSymbol local:
+                    return (T)remapLocal(local);
+
+                case ParameterSymbol param:
+                    if (_remappedSymbols.TryGetValue(param, out var updatedParam))
+                    {
+                        return (T)updatedParam;
+                    }
+                    break;
             }
 
-            return sym;
+            return (T)updatedSymbol;
+
+            Symbol remapLambda(BoundLambda boundLambda, LambdaSymbol lambda)
+            {
+                var updatedDelegateType = _snapshotManager?.GetUpdatedDelegateTypeForLambda(lambda);
+
+                if (!_remappedSymbols.TryGetValue(lambda.ContainingSymbol, out Symbol? updatedContaining) && updatedDelegateType is null)
+                {
+                    return lambda;
+                }
+
+                LambdaSymbol updatedLambda;
+                if (updatedDelegateType is null)
+                {
+                    Debug.Assert(updatedContaining is object);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind);
+                }
+                else
+                {
+                    Debug.Assert(updatedDelegateType is object);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedDelegateType, updatedContaining ?? lambda.ContainingSymbol);
+                }
+
+                _remappedSymbols.Add(lambda, updatedLambda);
+
+                Debug.Assert(lambda.ParameterCount == updatedLambda.ParameterCount);
+                for (int i = 0; i < lambda.ParameterCount; i++)
+                {
+                    _remappedSymbols.Add(lambda.Parameters[i], updatedLambda.Parameters[i]);
+                }
+
+                return updatedLambda;
+            }
+
+            Symbol remapLocal(SourceLocalSymbol local)
+            {
+                if (_remappedSymbols.TryGetValue(local, out var updatedLocal))
+                {
+                    return updatedLocal;
+                }
+
+                var updatedType = _snapshotManager?.GetUpdatedTypeForLocalSymbol(local);
+
+                if (!_remappedSymbols.TryGetValue(local.ContainingSymbol, out Symbol? updatedContaining) && !updatedType.HasValue)
+                {
+                    // Map the local to itself so we don't have to search again in the future
+                    _remappedSymbols.Add(local, local);
+                    return local;
+                }
+
+                updatedLocal = new UpdatedContainingSymbolAndNullableAnnotationLocal(local, updatedContaining ?? local.ContainingSymbol, updatedType ?? local.TypeWithAnnotations);
+                _remappedSymbols.Add(local, updatedLocal);
+                return updatedLocal;
+            }
+        }
+
+        private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol?
+        {
+            if (symbols.IsDefaultOrEmpty)
+            {
+                return symbols;
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance(symbols.Length);
+            bool foundUpdate = false;
+            foreach (var originalSymbol in symbols)
+            {
+                T updatedSymbol = null!;
+                if (originalSymbol is object)
+                {
+                    updatedSymbol = GetUpdatedSymbol(expr, originalSymbol);
+                    Debug.Assert(updatedSymbol is object);
+                    if ((object)originalSymbol != updatedSymbol)
+                    {
+                        foundUpdate = true;
+                    }
+                }
+
+                builder.Add(updatedSymbol);
+            }
+
+            if (foundUpdate)
+            {
+                return builder.ToImmutableAndFree();
+            }
+            else
+            {
+                builder.Free();
+                return symbols;
+            }
         }
     }
 }

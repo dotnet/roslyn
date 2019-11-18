@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal static class Extensions
     {
-        public static ExpressionSyntax GetUnparenthesizedExpression(this SyntaxNode node)
+        public static ExpressionSyntax? GetUnparenthesizedExpression(this SyntaxNode? node)
         {
             if (!(node is ParenthesizedExpressionSyntax parenthesizedExpression))
             {
@@ -26,19 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return GetUnparenthesizedExpression(parenthesizedExpression.Expression);
         }
 
-        public static StatementSyntax GetStatementUnderContainer(this SyntaxNode node)
+        public static StatementSyntax? GetStatementUnderContainer(this SyntaxNode node)
         {
             Contract.ThrowIfNull(node);
 
-            while (node != null)
+            for (SyntaxNode? current = node; current is object; current = current.Parent)
             {
-                if (node.Parent != null &&
-                    node.Parent.IsStatementContainerNode())
+                if (current.Parent != null &&
+                    current.Parent.IsStatementContainerNode())
                 {
-                    return node as StatementSyntax;
+                    return current as StatementSyntax;
                 }
-
-                node = node.Parent;
             }
 
             return null;
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
         }
 
-        public static bool IsStatementContainerNode(this SyntaxNode node)
+        public static bool IsStatementContainerNode([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
             return node is BlockSyntax || node is SwitchSectionSyntax;
         }
 
-        public static BlockSyntax GetBlockBody(this SyntaxNode node)
+        public static BlockSyntax? GetBlockBody(this SyntaxNode? node)
         {
             switch (node)
             {
@@ -246,22 +246,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return false;
         }
 
-        public static bool IsArrayInitializer(this SyntaxNode node)
+        public static bool IsArrayInitializer([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
             return node is InitializerExpressionSyntax && node.Parent is EqualsValueClauseSyntax;
         }
 
-        public static bool IsExpressionInCast(this SyntaxNode node)
+        public static bool IsExpressionInCast([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
             return node is ExpressionSyntax && node.Parent is CastExpressionSyntax;
         }
 
-        public static bool IsExpression(this SyntaxNode node)
+        public static bool IsExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
             return node is ExpressionSyntax;
         }
 
-        public static bool IsObjectType(this ITypeSymbol type)
+        public static bool IsObjectType(this ITypeSymbol? type)
         {
             return type == null || type.SpecialType == SpecialType.System_Object;
         }

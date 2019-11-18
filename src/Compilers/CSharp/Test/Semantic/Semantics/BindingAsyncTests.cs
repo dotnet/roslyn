@@ -52,13 +52,13 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var simple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
-            Assert.True(((LambdaSymbol)model.GetSymbolInfo(simple).Symbol).IsAsync);
+            Assert.True(((IMethodSymbol)model.GetSymbolInfo(simple).Symbol).IsAsync);
 
             var parens = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>();
             Assert.True(parens.Count() == 2, "Expect exactly two parenthesized lambda expressions in the syntax tree.");
             foreach (var paren in parens)
             {
-                Assert.True(((LambdaSymbol)model.GetSymbolInfo(paren).Symbol).IsAsync);
+                Assert.True(((IMethodSymbol)model.GetSymbolInfo(paren).Symbol).IsAsync);
             }
         }
 
@@ -81,7 +81,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var del = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
-            Assert.True(((LambdaSymbol)model.GetSymbolInfo(del).Symbol).IsAsync);
+            Assert.True(((IMethodSymbol)model.GetSymbolInfo(del).Symbol).IsAsync);
         }
 
         [Fact]

@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // we probably need to move the API to syntaxFact service not semanticFact.
                 //
                 // if one wants to get result that also considers semantic, he should use data control flow analysis API.
-                var semanticFacts = _semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.Project.LanguageServices.GetRequiredService<ISemanticFactsService>();
                 return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, CancellationToken.None));
             }
 
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 List<string>? names = null;
-                var semanticFacts = _semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.Project.LanguageServices.GetRequiredService<ISemanticFactsService>();
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
                 {
                     var field = (IFieldSymbol)pair.Key;

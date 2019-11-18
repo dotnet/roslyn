@@ -1637,10 +1637,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var first = symbols[best.Index];
                         var second = symbols[secondBest.Index];
 
-                        Debug.Assert(originalSymbols[best.Index] != originalSymbols[secondBest.Index] || options.IsAttributeTypeLookup(),
+                        Debug.Assert(!Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything) || options.IsAttributeTypeLookup(),
                             "This kind of ambiguity is only possible for attributes.");
 
-                        Debug.Assert(first != second || originalSymbols[best.Index] != originalSymbols[secondBest.Index],
+                        Debug.Assert(!Symbol.Equals(first, second, TypeCompareKind.ConsiderEverything) || !Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything),
                             "Why does the LookupResult contain the same symbol twice?");
 
                         CSDiagnosticInfo info;
@@ -1787,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(originalSymbols[best.Index].Name != originalSymbols[secondBest.Index].Name ||
-                                         originalSymbols[best.Index] != originalSymbols[secondBest.Index],
+                                         !Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything),
                                 "Why was the lookup result viable if it contained non-equal symbols with the same name?");
 
                             reportError = true;
@@ -2309,14 +2309,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
+#nullable enable
+        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location? location = null)
         {
-            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, locationOpt ?? syntax.GetLocation());
+            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, location ?? syntax.GetLocation());
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
         {
-            if (feature.GetFeatureAvailabilityDiagnosticInfoOpt((CSharpParseOptions)tree.Options) is { } diagInfo)
+            if (feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options) is { } diagInfo)
             {
                 diagnostics.Add(diagInfo, location);
                 return false;

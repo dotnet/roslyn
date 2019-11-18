@@ -144,8 +144,8 @@ public class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -264,10 +264,10 @@ public class C
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Insert, null, b2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, b2)));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",

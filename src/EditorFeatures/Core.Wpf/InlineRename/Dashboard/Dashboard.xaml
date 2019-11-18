@@ -14,8 +14,14 @@
              MinWidth="300"
              Cursor="Arrow"
              Focusable="True"
-             AutomationProperties.AutomationId="Rename"
+             AutomationProperties.AutomationId="Microsoft.CodeAnalysis.EditorFeatures.InlineRenameDialog" 
              UseLayoutRounding="True">
+    <!-- 
+        !!!IMPORTANT!!! 
+        The automation string of this dialog, "Microsoft.CodeAnalysis.EditorFeatures.InlineRenameDialog", 
+        is being used by 3rd parties to assist in a better inline rename experience for screen readers. 
+        Do not change this automation id.
+    -->
 
     <UserControl.Resources>
         <ResourceDictionary>

@@ -83,9 +83,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics.Add(ERRID.ERR_DocFileGen, Location.None, ex.Message)
                 End Try
 
-                For Each tree In compilation.SyntaxTrees
-                    MislocatedDocumentationCommentFinder.ReportUnprocessed(tree, filterSpanWithinTree, diagnostics, cancellationToken)
-                Next
+                If filterTree IsNot Nothing Then
+                    MislocatedDocumentationCommentFinder.ReportUnprocessed(filterTree, filterSpanWithinTree, diagnostics, cancellationToken)
+                Else
+                    For Each tree In compilation.SyntaxTrees
+                        MislocatedDocumentationCommentFinder.ReportUnprocessed(tree, filterSpanWithinTree:=Nothing, diagnostics, cancellationToken)
+                    Next
+                End If
             End Sub
 
             Private ReadOnly Property [Module] As SourceModuleSymbol

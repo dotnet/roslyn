@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly bool _generateGetHashCode;
             private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
+            private readonly SyntaxNode _typeDeclaration;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
+                SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> viableMembers,
                 ImmutableArray<PickMembersOption> pickMembersOptions,
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 _service = service;
                 _document = document;
+                _typeDeclaration = typeDeclaration;
                 _containingType = containingType;
                 _viableMembers = viableMembers;
                 _pickMembersOptions = pickMembersOptions;
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 }
 
                 // If we presented the user any options, then persist whatever values
-                // the user chose.  That way we'll keep that as the default for the 
+                // the user chose.  That way we'll keep that as the default for the
                 // next time the user opens the dialog.
                 var workspace = _document.Project.Solution.Workspace;
                 var implementIEqutableOption = result.Options.FirstOrDefault(o => o.Id == ImplementIEquatableId);
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
 
                 var action = new GenerateEqualsAndGetHashCodeAction(
-                    _document, _textSpan, _containingType, result.Members,
+                    _document, _textSpan, _typeDeclaration, _containingType, result.Members,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
                 return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             //          
             //          }
             //
-            // We don't want to consider the block parented by teh case, because 
+            // We don't want to consider the block parented by the case, because 
             // that would cause us to draw the following:
             // 
             //      case 0:

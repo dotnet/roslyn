@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             Dim position = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
             View.Caret.MoveTo(New SnapshotPoint(View.TextSnapshot, position))
 
-            Buffer = workspace.Documents.Single().TextBuffer
+            Buffer = workspace.Documents.Single().GetTextBuffer()
 
             ' HACK: We may have already created a CommitBufferManager for the buffer, so remove it
             If (Buffer.Properties.ContainsProperty(GetType(CommitBufferManager))) Then

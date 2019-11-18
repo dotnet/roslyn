@@ -18,14 +18,13 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
         IChainedCommandHandler<TypeCharCommandArgs>,
-        VSCommanding.ICommandHandler<ReturnKeyCommandArgs>,
-        VSCommanding.ICommandHandler<InsertCommentCommandArgs>,
+        ICommandHandler<ReturnKeyCommandArgs>,
+        ICommandHandler<InsertCommentCommandArgs>,
         IChainedCommandHandler<OpenLineAboveCommandArgs>,
         IChainedCommandHandler<OpenLineBelowCommandArgs>
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
@@ -466,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
         }
 
-        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
             return nextHandler();
         }
@@ -486,9 +485,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCharacterTyped, CancellationToken.None);
         }
 
-        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
+        public CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            return VSCommanding.CommandState.Unspecified;
+            return CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
@@ -506,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 var selectedSpan = args.TextView.Selection
                     .GetSnapshotSpansOnBuffer(args.SubjectBuffer)
-                    .FirstOrNullable();
+                    .FirstOrNull();
 
                 originalPosition = selectedSpan != null
                     ? selectedSpan.Value.Start
@@ -541,18 +540,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return true;
         }
 
-        public VSCommanding.CommandState GetCommandState(InsertCommentCommandArgs args)
+        public CommandState GetCommandState(InsertCommentCommandArgs args)
         {
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                return VSCommanding.CommandState.Unavailable;
+                return CommandState.Unavailable;
             }
 
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return VSCommanding.CommandState.Unavailable;
+                return CommandState.Unavailable;
             }
 
             TMemberNode targetMember = null;
@@ -564,8 +563,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             });
 
             return targetMember != null
-                ? VSCommanding.CommandState.Available
-                : VSCommanding.CommandState.Unavailable;
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public bool ExecuteCommand(InsertCommentCommandArgs args, CommandExecutionContext context)
@@ -578,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
         }
 
-        public VSCommanding.CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
         {
             return nextHandler();
         }
@@ -607,7 +606,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
         }
 
-        public VSCommanding.CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
         {
             return nextHandler();
         }

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -288,13 +289,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(item.Workspace, data);
+                            content = BrowserHelper.GetHelpLinkToolTip(data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(item.Workspace, data);
+                            content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -331,8 +332,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             var guids = item.ProjectGuids;
                             content = guids;
                             return guids.Length > 0;
-                        case SuppressionStateColumnDefinition.ColumnName:
-                            content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
+                        case StandardTableKeyNames.SuppressionState:
+                            content = data.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
                             return true;
                         default:
                             content = null;

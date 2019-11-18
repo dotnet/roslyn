@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return boundLocal.LocalSymbol.IsUsing;
             }
-            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
+            else if (boundStatement is BoundMultipleLocalDeclarationsBase boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
             {
                 return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
             }
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportIfConstantNamedUnderscore(BoundPattern pattern, ExpressionSyntax expression)
             {
                 if (!pattern.HasErrors &&
-                    expression is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken)
+                    expression is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken())
                 {
                     diagnostics.Add(ErrorCode.WRN_CaseConstantNamedUnderscore, expression.Location);
                 }

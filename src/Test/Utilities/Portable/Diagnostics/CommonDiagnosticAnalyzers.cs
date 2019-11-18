@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedErrorLogResultsText(Compilation compilation)
+            public static string GetExpectedV1ErrorLogResultsAndRulesText(Compilation compilation)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
@@ -164,9 +165,103 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
+            public static string GetExpectedV2ErrorLogResultsText(Compilation compilation)
+            {
+                var tree = compilation.SyntaxTrees.First();
+                var root = tree.GetRoot();
+                var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = GetUriForPath(tree.FilePath);
+
+                return
+@"      ""results"": [
+        {
+          ""ruleId"": """ + Descriptor1.Id + @""",
+          ""ruleIndex"": 0,
+          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor1.MessageFormat + @"""
+          },
+          ""locations"": [
+            {
+              ""physicalLocation"": {
+                ""artifactLocation"": {
+                  ""uri"": """ + filePath + @"""
+                },
+                ""region"": {
+                  ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                  ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                  ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                  ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
+                }
+              }
+            }
+          ],
+          ""properties"": {
+            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          }
+        },
+        {
+          ""ruleId"": """ + Descriptor2.Id + @""",
+          ""ruleIndex"": 1,
+          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor2.MessageFormat + @"""
+          },
+          ""properties"": {" +
+             GetExpectedPropertiesMapText() + @"
+          }
+        }
+      ]";
+            }
+
+            public static string GetExpectedV2ErrorLogRulesText()
+            {
+                return
+@"          ""rules"": [
+            {
+              ""id"": """ + Descriptor1.Id + @""",
+              ""shortDescription"": {
+                ""text"": """ + Descriptor1.Title + @"""
+              },
+              ""fullDescription"": {
+                ""text"": """ + Descriptor1.Description + @"""
+              },
+              ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
+              ""properties"": {
+                ""category"": """ + Descriptor1.Category + @""",
+                ""tags"": [
+                  " + String.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+                ]
+              }
+            },
+            {
+              ""id"": """ + Descriptor2.Id + @""",
+              ""shortDescription"": {
+                ""text"": """ + Descriptor2.Title + @"""
+              },
+              ""fullDescription"": {
+                ""text"": """ + Descriptor2.Description + @"""
+              },
+              ""defaultConfiguration"": {
+                ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @"""
+              },
+              ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
+              ""properties"": {
+                ""category"": """ + Descriptor2.Category + @""",
+                ""tags"": [
+                  " + String.Join("," + Environment.NewLine + "                  ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
+                ]
+              }
+            }
+          ]";
+            }
+
             public static string GetUriForPath(string path)
             {
-                return new Uri(path, UriKind.RelativeOrAbsolute).ToString();
+                var uri = new Uri(path, UriKind.RelativeOrAbsolute);
+                return uri.IsAbsoluteUri
+                    ? uri.AbsoluteUri
+                    : WebUtility.UrlEncode(uri.ToString());
             }
         }
 
@@ -1826,6 +1921,138 @@ namespace Microsoft.CodeAnalysis
                     isEnabledByDefault: true,
                     warningLevel: 1);
                 context.ReportSuppression(Suppression.Create(_descriptor2, nonReportedDiagnostic));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class NamedTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public enum AnalysisKind
+            {
+                Symbol,
+                SymbolStartEnd,
+                CompilationStartEnd
+            }
+
+            public const string RuleId = "ID1";
+            private readonly DiagnosticDescriptor _rule;
+            private readonly AnalysisKind _analysisKind;
+            private readonly GeneratedCodeAnalysisFlags _analysisFlags;
+            private readonly ConcurrentSet<ISymbol> _symbolCallbacks;
+
+            public NamedTypeAnalyzer(AnalysisKind analysisKind, GeneratedCodeAnalysisFlags analysisFlags = GeneratedCodeAnalysisFlags.None, bool configurable = true)
+            {
+                _analysisKind = analysisKind;
+                _analysisFlags = analysisFlags;
+                _symbolCallbacks = new ConcurrentSet<ISymbol>();
+
+                var customTags = configurable ? Array.Empty<string>() : new[] { WellKnownDiagnosticTags.NotConfigurable };
+                _rule = new DiagnosticDescriptor(
+                    RuleId,
+                    "Title1",
+                    "Symbol: {0}",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    customTags: customTags);
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(_analysisFlags);
+
+                switch (_analysisKind)
+                {
+                    case AnalysisKind.Symbol:
+                        context.RegisterSymbolAction(c =>
+                            {
+                                _symbolCallbacks.Add(c.Symbol);
+                                ReportDiagnostic(c.Symbol, c.ReportDiagnostic);
+                            }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.SymbolStartEnd:
+                        context.RegisterSymbolStartAction(symbolStartContext =>
+                        {
+                            symbolStartContext.RegisterSymbolEndAction(symbolEndContext =>
+                            {
+                                _symbolCallbacks.Add(symbolEndContext.Symbol);
+                                ReportDiagnostic(symbolEndContext.Symbol, symbolEndContext.ReportDiagnostic);
+                            });
+                        }, SymbolKind.NamedType);
+
+                        break;
+
+                    case AnalysisKind.CompilationStartEnd:
+                        context.RegisterCompilationStartAction(compilationStartContext =>
+                        {
+                            compilationStartContext.RegisterSymbolAction(c =>
+                            {
+                                _symbolCallbacks.Add(c.Symbol);
+                            }, SymbolKind.NamedType);
+
+                            compilationStartContext.RegisterCompilationEndAction(
+                                compilationEndContext => compilationEndContext.ReportDiagnostic(
+                                    Diagnostic.Create(_rule, Location.None, GetSortedSymbolCallbacksString())));
+                        });
+
+                        break;
+                }
+            }
+
+            private void ReportDiagnostic(ISymbol symbol, Action<Diagnostic> reportDiagnostic)
+                => reportDiagnostic(Diagnostic.Create(_rule, symbol.Locations[0], symbol.Name));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithNoLocationDiagnostics : DiagnosticAnalyzer
+        {
+            public AnalyzerWithNoLocationDiagnostics(bool isEnabledByDefault)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(compilationContext =>
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None)));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
+        {
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(
+                    context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                    SymbolKind.NamedType);
             }
         }
     }

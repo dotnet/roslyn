@@ -37,6 +37,11 @@
         <target state="translated">Ve výrazu as se nepovoluje použití typu odkazu s možnou hodnotou null {0}?; místo toho použijte základní typ {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Atribut {0} není platný pro přístupové objekty události. Je platný jenom pro deklarace {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Automaticky implementovanou vlastnost {0} nelze označit modifikátorem readonly, protože má přístupový objekt set.</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">Automaticky implementovaný přístupový objekt set {0} nelze označit modifikátorem readonly.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">Atribut {0} není platný pro přístupové objekty události. Je platný jenom pro deklarace {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="translated">Neplatná možnost {0} pro /nullable; musí mít hodnotu disable, enable, safeonly, warnings nebo safeonlywarnings.</target>
+        <target state="translated">Neplatná možnost {0} pro /nullable. Je třeba použít disable, enable, warnings nebo annotations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -80,6 +80,11 @@
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Neplatný operand pro porovnávací vzorek. Vyžaduje se hodnota, ale nalezeno: {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Duplicitní operátor potlačení hodnoty null (!)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -288,8 +293,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync. Neměli jste v úmyslu použít using místo await using?</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync. Neměli jste v úmyslu použít using místo await using?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -309,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">Očekávala se možnost warnings nebo annotations nebo konec direktivy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -552,8 +557,11 @@
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
                               diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -626,7 +634,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Parametry kompilátoru Visual C#
 
                        - VÝSTUPNÍ SOUBORY -
@@ -655,7 +663,7 @@
                                zástupného znaku.
 -reference:&lt;alias&gt;=&lt;soubor&gt;     Odkazuje na metadata ze zadaného souboru sestavení
                               pomocí daného aliasu. (Krátký formát: -r)
--reference:&lt;seznam souborů&gt;        Odkazuje na metadata ze zadaných souborů 
+-reference:&lt;seznam souborů&gt;        Odkazuje na metadata ze zadaných souborů
                               sestavení (Krátký formát: -r)
 -addmodule:&lt;seznam souborů&gt;        Připojí zadané moduly k tomuto sestavení.
 -link:&lt;seznam souborů&gt;             Vloží metadata ze zadaných souborů
@@ -702,7 +710,7 @@
                               specifickou diagnostiku.
 -errorlog:&lt;soubor&gt;              Určuje soubor pro protokolování veškeré
                               diagnostiky kompilátoru a analyzátoru.
--reportanalyzer               Hlásí další informace analyzátoru, např.\r
+-reportanalyzer               Hlásí další informace analyzátoru, např.
                               dobu spuštění.
 
                        - JAZYK -
@@ -711,13 +719,15 @@
 -define:&lt;seznam symbolů&gt;         Definuje symboly podmíněné kompilace. (Krátký
                               formát: -d)
 -langversion:?                Zobrazuje povolené hodnoty pro verzi jazyka.
--langversion:&lt;řetězec&gt;         Určuje verzi jazyka:r
-                              default (poslední hlavní verze) nebo
+-langversion:&lt;řetězec&gt;         Určuje verzi jazyka, například:
                               latest (poslední verze včetně podverzí),
-                              nebo konkrétní verze jako 6 nebo 7.1.
+                              default (stejné jako latest),
+                              latestmajor (poslední verze bez podverzí),
+                              preview (poslední verze včetně funkcí v nepodporované verzi preview)
+                              nebo konkrétní verze, například 6 nebo 7.1.
 -nullable[+|-]                Určuje pro kontext s hodnotou null možnosti enable|disable.
--nullable:{enable|disable|warnings}
-                              Určuje pro kontext s hodnotou null možnosti enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Určuje pro kontext s hodnotou null možnosti enable|disable|warnings|annotations.
 
                        - ZABEZPEČENÍ -
 -delaysign[+|-]               Vytvoří zpožděný podpis sestavení s využitím
@@ -761,7 +771,7 @@
 -nosdkpath                    Zakazuje hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
 -nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
 -subsystemversion:&lt;string&gt;    Určuje verzi subsystému tohoto sestavení.
--lib:&lt;seznam souborů&gt;              Určuje další adresáře, ve kterých se mají 
+-lib:&lt;seznam souborů&gt;              Určuje další adresáře, ve kterých se mají
                               hledat reference.
 -errorreport:&lt;řetězec&gt;         Určuje způsob zpracování interních chyb kompilátoru:
                               prompt, send, queue nebo none. Výchozí možnost je
@@ -776,7 +786,7 @@
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">implementace výchozího rozhraní</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -787,6 +797,11 @@
       <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
         <source>alternative interpolated verbatim strings</source>
         <target state="translated">alternativní interpolované doslovné řetězce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAsyncUsing">
+        <source>asynchronous using</source>
+        <target state="new">asynchronous using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -822,6 +837,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">indexování mobilních vyrovnávacích pamětí pevné velikosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -901,7 +921,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;výraz přepínače&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1365,13 +1385,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1426,7 +1446,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Poznámka u typů odkazů s možnou hodnotou null by se měla v kódu používat jenom v kontextu poznámek #nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1441,7 +1461,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Poznámka u typů odkazů s možnou hodnotou null by se měla v kódu používat jenom v kontextu poznámek #nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1482,6 +1502,16 @@
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
         <target state="translated">Může jít o přiřazení s odkazem null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1606,7 +1636,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} z {1} neodpovídá implicitně implementovanému členu {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1656,7 +1686,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v návratovém typu {0} neodpovídá implicitně implementovanému členu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1686,7 +1716,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu {0} neodpovídá implicitně implementovanému členu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1696,12 +1726,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá přepsanému členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá přepsanému členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1745,8 +1775,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1760,8 +1790,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1826,12 +1856,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Pole {0} {1}, které neumožňuje hodnotu null, není inicializované.</target>
+        <target state="translated">Není inicializované pole {0} ({1}) bez možnosti zadání hodnoty null. Zvažte možnost deklarovat {0} jako pole typu s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Pole, které neumožňuje hodnotu null, není inicializované.</target>
+        <target state="translated">Není inicializované pole bez možnosti zadání hodnoty null. Zvažte možnost deklarovat ho jako typ s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5854,12 +5884,12 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">Byla očekávána hodnota disable, restore, enable nebo safeonly.</target>
+        <target state="translated">Očekávala se hodnota disable nebo restore.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">Po #pragma warning byla očekávána hodnota disable, restore, enable nebo safeonly.</target>
+        <target state="translated">Po varování #pragma se očekávala hodnota disable nebo restore.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -9696,8 +9726,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync.</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -13,6 +15,7 @@ namespace Roslyn.Utilities
     /// </summary>
     [DebuggerDisplay("Count = {Count}")]
     internal sealed class ConcurrentSet<T> : ICollection<T>
+        where T : notnull
     {
         /// <summary>
         /// The default concurrency level is 2. That means the collection can cope with up to two
@@ -82,7 +85,7 @@ namespace Roslyn.Utilities
             return _dictionary.TryAdd(value, 0);
         }
 
-        public void AddRange(IEnumerable<T> values)
+        public void AddRange(IEnumerable<T>? values)
         {
             if (values != null)
             {

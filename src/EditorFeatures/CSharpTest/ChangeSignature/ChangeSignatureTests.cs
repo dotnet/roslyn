@@ -65,6 +65,61 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestOnLambdaWithTwoDiscardParameters_ViaCommand()
+        {
+            var markup = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = $$(int _, string _) => 1;
+    }
+}";
+            var expectedCode = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = (string _, int _) => 1;
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup: markup,
+                updatedSignature: new[] { 1, 0 },
+                expectedUpdatedInvocationDocumentCode: expectedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestOnAnonymousMethodWithTwoParameters_ViaCommand()
+        {
+            var markup = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = [||]delegate(int x, string y) { return 1; };
+    }
+}";
+            await TestMissingAsync(markup);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestOnAnonymousMethodWithTwoDiscardParameters_ViaCommand()
+        {
+            var markup = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = [||]delegate(int _, string _) { return 1; };
+    }
+}";
+            await TestMissingAsync(markup);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCodeAction()
         {
             var markup = @"
@@ -280,7 +335,7 @@ public class C3
                     }
                     else if (updatedDocument.Name == "C3.cs")
                     {
-                        // shouldn't change unchangable document
+                        // shouldn't change unchangeable document
                         Assert.Contains("bool _x = C1.M(1, 2);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                     }
                 }

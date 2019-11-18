@@ -12,17 +12,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FindReferences)]
-    internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
+    internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
@@ -41,30 +41,34 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
-        public VSCommanding.CommandState GetCommandState(FindReferencesCommandArgs args)
+        public CommandState GetCommandState(FindReferencesCommandArgs args)
         {
-            return VSCommanding.CommandState.Unspecified;
+            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return service != null
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public bool ExecuteCommand(FindReferencesCommandArgs args, CommandExecutionContext context)
         {
+            var subjectBuffer = args.SubjectBuffer;
+
             // Get the selection that user has in our buffer (this also works if there
             // is no selection and the caret is just at a single position).  If we 
             // can't get the selection, or there are multiple spans for it (i.e. a 
             // box selection), then don't do anything.
-            var snapshotSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
+            var snapshotSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
             if (snapshotSpans.Count == 1)
             {
                 var selectedSpan = snapshotSpans[0];
-                var snapshot = args.SubjectBuffer.CurrentSnapshot;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
                 if (document != null)
                 {
                     // Do a find-refs at the *start* of the selection.  That way if the
                     // user has selected a symbol that has another symbol touching it
                     // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
                     // symbol selected, not the symbol following.
-                    if (TryExecuteCommand(selectedSpan.Start, document, context))
+                    if (TryExecuteCommand(selectedSpan.Start, document, service, context))
                     {
                         return true;
                     }
@@ -74,16 +78,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             return false;
         }
 
-        private bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
+        private (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
         {
-            var streamingService = document.GetLanguageService<IFindUsagesService>();
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            return (document, document?.GetLanguageService<IFindUsagesService>());
+        }
 
+        private bool TryExecuteCommand(int caretPosition, Document document, IFindUsagesService findUsagesService, CommandExecutionContext context)
+        {
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
             // a presenter that can accept streamed results.
-            if (streamingService != null && _streamingPresenter != null)
+            if (findUsagesService != null && _streamingPresenter != null)
             {
-                _ = StreamingFindReferencesAsync(document, caretPosition, streamingService, _streamingPresenter);
+                _ = StreamingFindReferencesAsync(document, caretPosition, findUsagesService, _streamingPresenter);
                 return true;
             }
 
@@ -101,8 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
                 // Let the presented know we're starting a search.  It will give us back
                 // the context object that the FAR service will push results into.
-                var context = presenter.StartSearch(
-                    EditorFeaturesResources.Find_References, supportsReferences: true);
+                var context = presenter.StartSearchWithCustomColumns(
+                    EditorFeaturesResources.Find_References,
+                    supportsReferences: true,
+                    includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
+                    includeKindColumn: document.Project.Language != LanguageNames.FSharp);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

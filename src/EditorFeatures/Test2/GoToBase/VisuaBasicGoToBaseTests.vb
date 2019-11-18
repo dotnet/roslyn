@@ -4,8 +4,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     <[UseExportProvider]>
     Public Class VisualBasicGoToBaseTests
         Inherits GoToBaseTestsBase
-        Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True) As Task
-            Await TestAsync(source, LanguageNames.VisualBasic, shouldSucceed)
+        Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
+                                                   Optional metadataDefinitions As String() = Nothing) As Task
+            Await TestAsync(source, LanguageNames.VisualBasic, shouldSucceed, metadataDefinitions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
         Public Async Function TestWithSingleClass() As Task
             Await TestAsync(
 "class $$C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -30,7 +31,7 @@ end class
 
 class $$D 
     inherits C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -43,7 +44,7 @@ mustinherit class [|C|]
 end class
 class $$D 
     inherits C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -53,7 +54,7 @@ end class")
 end class
 NotInheritable class $$C 
     inherits D
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -71,7 +72,7 @@ end class
 
 class $$D 
     inherits C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -81,7 +82,7 @@ end class")
     implements I
 end class
 interface [|I|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -94,7 +95,7 @@ class D
     implements I
 end class
 interface [|I|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -127,7 +128,7 @@ end interface
 interface [|J1|]
 end interface
 interface [|J2|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
 #End Region
@@ -138,7 +139,7 @@ end interface")
         Public Async Function TestWithStruct() As Task
             Await TestAsync(
 "structure $$S
-end structure")
+end structure", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -148,7 +149,7 @@ end structure")
     implements I
 end structure
 interface [|I|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -169,7 +170,7 @@ end interface
 interface [|J1|]
 end interface
 interface [|J2|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
 #End Region
@@ -342,7 +343,8 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenWithInterfaceOnBaseClass() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods 
+            ' and methods in interfaces if hidden below but the nested class does not implement the interface.
             Await TestAsync(
 "Class C
     Implements I
@@ -355,7 +357,7 @@ Class D
     End Sub
 End Class
 Interface I
-    Sub [|M|]()
+    Sub M()
 End Interface")
         End Function
 
@@ -417,7 +419,12 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenAndInterfaceImplementedOnDerivedType() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods.
+            ' We should not find methods of interfaces not implemented by the method symbol.
+            ' In this example, 
+            ' Dim i As I = New D()
+            ' i.M()
+            ' calls the method from C not from D.
             Await TestAsync(
 "Class C
     Implements I
@@ -428,6 +435,26 @@ Class D
     Inherits C
     Implements I
     Public Shadows Sub $$M()
+    End Sub
+End Class
+Interface I
+    Sub M()
+End Interface")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithVirtualMethodHiddenAndInterfaceAndMethodImplementedOnDerivedType() As Task
+            ' We should not find hidden methods but should find the interface method.
+            Await TestAsync(
+"Class C
+    Implements I
+    Public Overridable Sub M() Implements I.M
+    End Sub
+End Class
+Class D
+    Inherits C
+    Implements I
+    Public Shadows Sub $$M() Implements I.M
     End Sub
 End Class
 Interface I
@@ -513,6 +540,64 @@ NotInheritable Class C2
         MyBase.M()
     End Sub
 End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_01() As Task
+            Await TestAsync(
+"Class C
+    Implements I
+    Public Overridable Sub [|N|]() Implements I.M
+    End Sub
+    Public Overridable Sub N(i As Integer) Implements I.M
+    End Sub
+End Class
+Class D
+    Inherits C
+    Public Overrides Sub $$N()
+    End Sub
+    Public Overrides Sub N(i As Integer)
+    End Sub
+End Class
+Interface I
+    Sub [|M|]()
+    Sub M(i As Integer)
+End Interface")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_02() As Task
+            Await TestAsync(
+"Class C
+    Implements I
+    Public Overridable Sub N() Implements I.M
+    End Sub
+    Public Overridable Sub [|N|](i As Integer) Implements I.M
+    End Sub
+End Class
+Class D
+    Inherits C
+    Public Overrides Sub N()
+    End Sub
+    Public Overrides Sub $$N(i As Integer)
+    End Sub
+End Class
+Interface I
+    Sub M()
+    Sub [|M|](i As Integer)
+End Interface")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestOverrideOfMethodFromMetadata() As Task
+            Await TestAsync(
+"Imports System
+Class C 
+    Public Overrides Function $$ToString() As String
+        Return base.ToString();
+    End Function
+End Class
+", metadataDefinitions:={"mscorlib:Object.ToString"})
         End Function
 
 #End Region

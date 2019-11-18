@@ -270,8 +270,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                 Debug.Assert(signatureIndex = 0 OrElse signatureIndex = 1)
 
                                 If signatureIndex = 1 AndAlso attrData.CommonConstructorArguments.Length = 2 Then
-                                    scope = TryCast(attrData.CommonConstructorArguments(0).Value, String)
-                                    identifier = TryCast(attrData.CommonConstructorArguments(1).Value, String)
+                                    scope = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
+                                    identifier = TryCast(attrData.CommonConstructorArguments(1).ValueInternal, String)
                                 End If
 
                                 Exit For
@@ -723,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Private Function RetargetTypedConstant(oldConstant As TypedConstant, ByRef typedConstantChanged As Boolean) As TypedConstant
-                Dim oldConstantType As TypeSymbol = DirectCast(oldConstant.Type, TypeSymbol)
+                Dim oldConstantType As TypeSymbol = DirectCast(oldConstant.TypeInternal, TypeSymbol)
                 Dim newConstantType As TypeSymbol = If(oldConstantType Is Nothing,
                                                        Nothing,
                                                        Retarget(oldConstantType, RetargetOptions.RetargetPrimitiveTypesByTypeCode))
@@ -739,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 End If
 
                 Dim newConstantValue As Object
-                Dim oldConstantValue = oldConstant.Value
+                Dim oldConstantValue = oldConstant.ValueInternal
                 If (oldConstant.Kind = TypedConstantKind.Type) AndAlso (oldConstantValue IsNot Nothing) Then
                     newConstantValue = Retarget(DirectCast(oldConstantValue, TypeSymbol), RetargetOptions.RetargetPrimitiveTypesByTypeCode)
                 Else
