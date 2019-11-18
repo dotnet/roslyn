@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
@@ -25,29 +28,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implement
             _service = service;
         }
 
-        public async Task<CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-        {
-            var result = await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (result != null)
-            {
-                if (result.IsLineBreakpoint)
-                {
-                    return CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateLineResult(result.Document, result.LocationNameOpt);
-                }
-                else
-                {
-                    return CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateSpanResult(result.Document, result.TextSpan, result.LocationNameOpt);
-                }
-            }
-            else
-            {
-                return null;
-            }
-        }
+        public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
+            => (await _service.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false))?.UnderlyingObject;
 
-        public Task<IEnumerable<CodeAnalysis.Editor.Implementation.Debugging.BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
+            => (await _service.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
     }
 }

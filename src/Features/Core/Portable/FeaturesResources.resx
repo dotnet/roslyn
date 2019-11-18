@@ -315,6 +315,9 @@
   <data name="parameter" xml:space="preserve">
     <value>parameter</value>
   </data>
+  <data name="discard" xml:space="preserve">
+    <value>discard</value>
+  </data>
   <data name="in_" xml:space="preserve">
     <value>in</value>
   </data>

@@ -722,6 +722,11 @@
         <target state="translated">可簡化 {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">泛型多載</target>

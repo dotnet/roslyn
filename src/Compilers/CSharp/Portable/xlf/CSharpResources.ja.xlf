@@ -839,6 +839,11 @@
         <target state="translated">移動可能な固定バッファーのインデックス化</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">入れ子になった関数での名前シャドウイング</target>

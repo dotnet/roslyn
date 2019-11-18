@@ -722,6 +722,11 @@
         <target state="translated">{0}은(는) 단순화될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">제네릭 오버로드</target>
