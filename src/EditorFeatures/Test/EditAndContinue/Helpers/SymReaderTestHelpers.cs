@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -30,32 +31,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => throw new NotImplementedException();
         }
 
-        public static (ImmutableArray<byte> PEImage, ISymUnmanagedReader5 SymReader) EmitAndOpenDummySymReader(Compilation compilation, DebugInformationFormat pdbFormat)
+        public static (ImmutableArray<byte> PEImage, ImmutableArray<byte> PdbImage) EmitToArrays(this Compilation compilation, EmitOptions options)
+        {
+            var pdbStream = new MemoryStream();
+            var peImage = compilation.EmitToArray(options, pdbStream: pdbStream);
+            return (peImage, pdbStream.ToImmutable());
+        }
+
+        public static ISymUnmanagedReader5 OpenDummySymReader(ImmutableArray<byte> pdbImage)
         {
             var symBinder = new SymBinder();
             var metadataImportProvider = new DummyMetadataImportProvider();
 
             var pdbStream = new MemoryStream();
-            var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: pdbFormat), pdbStream: pdbStream);
-            pdbStream.Position = 0;
+            pdbImage.WriteToStream(pdbStream);
 
             var pdbStreamCom = SymUnmanagedStreamFactory.CreateStream(pdbStream);
-
-            ISymUnmanagedReader5 symReader5;
-            if (pdbFormat == DebugInformationFormat.PortablePdb)
+            if (pdbImage.Length > 4 && pdbImage[0] == 'B' && pdbImage[1] == 'S' && pdbImage[2] == 'J' && pdbImage[3] == 'B')
             {
                 int hr = symBinder.GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader);
                 Assert.Equal(0, hr);
-                symReader5 = (ISymUnmanagedReader5)symReader;
+                return (ISymUnmanagedReader5)symReader;
             }
             else
             {
-                symReader5 = SymUnmanagedReaderFactory.CreateReader<ISymUnmanagedReader5>(pdbStream, new DummySymReaderMetadataProvider());
+                return SymUnmanagedReaderFactory.CreateReader<ISymUnmanagedReader5>(pdbStream, new DummySymReaderMetadataProvider());
             }
-
-            return (peImage, symReader5);
         }
-
-
     }
 }

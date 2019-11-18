@@ -139,20 +139,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private (DebuggeeModuleInfo, Guid) EmitAndLoadLibraryToDebuggee(string source, ProjectId projectId, string assemblyName = "", string sourceFilePath = "test1.cs")
         {
+            var (debuggeeModuleInfo, moduleId) = EmitLibrary(source, projectId, assemblyName, sourceFilePath);
+            LoadLibraryToDebuggee(debuggeeModuleInfo);
+            return (debuggeeModuleInfo, moduleId);
+        }
+
+        private void LoadLibraryToDebuggee(DebuggeeModuleInfo debuggeeModuleInfo)
+            => _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => debuggeeModuleInfo;
+
+        private (DebuggeeModuleInfo, Guid) EmitLibrary(string source, ProjectId projectId, string assemblyName = "", string sourceFilePath = "test1.cs", DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+        {
             var sourceText = SourceText.From(new MemoryStream(Encoding.UTF8.GetBytes(source)), encoding: Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256);
             var tree = SyntaxFactory.ParseSyntaxTree(sourceText, TestOptions.RegularPreview, sourceFilePath);
             var compilation = CSharpTestBase.CreateCompilationWithMscorlib40(tree, options: TestOptions.DebugDll, assemblyName: assemblyName);
-            var (peImage, symReader) = SymReaderTestHelpers.EmitAndOpenDummySymReader(compilation, DebugInformationFormat.PortablePdb);
+
+            var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
+            var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
 
             var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
             var moduleId = moduleMetadata.GetModuleVersionId();
             var debuggeeModuleInfo = new DebuggeeModuleInfo(moduleMetadata, symReader);
 
-            // "load" it to the debuggee:
-            _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => debuggeeModuleInfo;
-
             // associate the binaries with the project
-            _mockCompilationOutputsService.Outputs.Add(projectId, new MockCompilationOutputs(moduleId));
+            _mockCompilationOutputsService.Outputs.Add(projectId, new MockCompilationOutputs(moduleId)
+            {
+                OpenPdbStreamImpl = () =>
+                {
+                    var pdbStream = new MemoryStream();
+                    pdbImage.WriteToStream(pdbStream);
+                    pdbStream.Position = 0;
+                    return pdbStream;
+                }
+            });
+
+            // library not loaded yet:
+            _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => null;
 
             return (debuggeeModuleInfo, moduleId);
         }
@@ -162,7 +183,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             using var stream = File.OpenRead(path);
             return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithm.Sha256);
         }
-
 
         [Fact]
         public void ActiveStatementTracking()
@@ -577,15 +597,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Empty(deltas);
         }
 
-        [Fact]
-        public async Task BreakMode_DesignTimeOnlyDocument_Wpf()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task BreakMode_DesignTimeOnlyDocument_Wpf(bool delayLoad)
         {
             var sourceA = "class A { public void M() { } }";
             var sourceB = "class B { public void M() { } }";
             var sourceC = "class C { public void M() { } }";
 
             var dir = Temp.CreateDirectory();
-            var sourceFile = dir.CreateFile("a.cs").WriteAllText(sourceA);
+            var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA);
 
             using var workspace = new TestWorkspace();
 
@@ -593,7 +615,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var documentA = workspace.CurrentSolution.
                 AddProject("test", "test", LanguageNames.CSharp).
                 AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
-                AddDocument("a.cs", SourceText.From(sourceA, Encoding.UTF8), filePath: sourceFile.Path);
+                AddDocument("a.cs", SourceText.From(sourceA, Encoding.UTF8), filePath: sourceFileA.Path);
 
             var documentB = documentA.Project.
                 AddDocument("b.g.i.cs", SourceText.From(sourceB, Encoding.UTF8), filePath: "b.g.i.cs");
@@ -604,7 +626,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             workspace.ChangeSolution(documentC.Project.Solution);
 
             // only compile A; B and C are design-time-only:
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(sourceA, documentA.Project.Id, sourceFilePath: sourceFile.Path);
+            var (moduleInfo, moduleId) = EmitLibrary(sourceA, documentA.Project.Id, sourceFilePath: sourceFileA.Path);
+
+            if (!delayLoad)
+            {
+                LoadLibraryToDebuggee(moduleInfo);
+            }
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -629,6 +656,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(_emitDiagnosticsUpdated);
+
+            if (delayLoad)
+            {
+                LoadLibraryToDebuggee(moduleInfo);
+
+                // validate solution update status and emit:
+                solutionStatus = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
+                Assert.Equal(SolutionUpdateStatus.None, solutionStatus);
+
+                (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
+                Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
+                Assert.Empty(_emitDiagnosticsUpdated);
+            }
 
             service.EndEditSession();
             service.EndDebuggingSession();
@@ -1014,6 +1054,70 @@ class C1
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatus);
 
             var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
+            Assert.Empty(deltas);
+
+            service.EndEditSession();
+            service.EndDebuggingSession();
+        }
+
+        [Fact]
+        public async Task BreakMode_RudeEdits_DelayLoadedModule()
+        {
+            var source1 = "class C { public void M() { } }";
+            var dir = Temp.CreateDirectory();
+            var sourceFile = dir.CreateFile("a.cs").WriteAllText(source1);
+
+            using var workspace = new TestWorkspace();
+
+            // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
+            var document1 = workspace.CurrentSolution.
+                AddProject("test", "test", LanguageNames.CSharp).
+                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddDocument("test.cs", SourceText.From(source1, Encoding.UTF8), filePath: sourceFile.Path);
+
+            var project = document1.Project;
+            workspace.ChangeSolution(project.Solution);
+
+            var (debuggeeModuleInfo, _) = EmitLibrary(source1, project.Id, sourceFilePath: sourceFile.Path);
+
+            var service = CreateEditAndContinueService(workspace);
+
+            // do not initialize the document state - we will detect the state based on the PDB content.
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+
+            service.StartEditSession();
+
+            // change the source (rude edit) before the library is loaded:
+            workspace.ChangeDocument(document1.Id, SourceText.From("class C { public void Renamed() { } }"));
+            var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            // Rude Edits reported:
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal(
+                new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_will_prevent_the_debug_session_from_continuing, FeaturesResources.method) },
+                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            var solutionStatus = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatus);
+
+            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
+            Assert.Empty(deltas);
+
+            // load library to the debuggee:
+            LoadLibraryToDebuggee(debuggeeModuleInfo);
+
+            // Rude Edits still reported:
+            diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal(
+                new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_will_prevent_the_debug_session_from_continuing, FeaturesResources.method) },
+                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            solutionStatus = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatus);
+
+            (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
 
@@ -1413,8 +1517,10 @@ class C1
             service.EndDebuggingSession();
         }
 
-        [Fact]
-        public async Task BreakMode_ValidSignificantChange_DocumentOutOfSync2()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task BreakMode_ValidSignificantChange_DocumentOutOfSync(bool delayLoad)
         {
             var sourceOnDisk = "class C1 { void M() { System.Console.WriteLine(1); } }";
 
@@ -1432,11 +1538,16 @@ class C1
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(sourceOnDisk, project.Id, sourceFilePath: sourceFile.Path);
+            var (moduleInfo, moduleId) = EmitLibrary(sourceOnDisk, project.Id, sourceFilePath: sourceFile.Path);
+
+            if (!delayLoad)
+            {
+                LoadLibraryToDebuggee(moduleInfo);
+            }
 
             var service = CreateEditAndContinueService(workspace);
 
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
@@ -1458,15 +1569,15 @@ class C1
             workspace.ChangeDocument(document1.Id, SourceText.From(sourceOnDisk, Encoding.UTF8));
             var document3 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            var diagnostics2 = await service.GetDocumentDiagnosticsAsync(document3, CancellationToken.None).ConfigureAwait(false);
-            Assert.Empty(diagnostics2);
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document3, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(diagnostics);
 
             // the content of the file is now exactly the same as the compiled document, so there is no change to be applied:
-            var solutionStatus2 = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(SolutionUpdateStatus.None, solutionStatus2);
+            solutionStatus = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.None, solutionStatus);
 
-            var (solutionStatusEmit2, deltas2) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit2);
+            (solutionStatusEmit, _) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
 
             service.EndEditSession();
 
@@ -1745,7 +1856,8 @@ class C1
             var compilationA = CSharpTestBase.CreateCompilationWithMscorlib40(source1, options: TestOptions.DebugDll, assemblyName: "A");
             var compilationB = CSharpTestBase.CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll, assemblyName: "B");
 
-            var (peImageA, symReaderA) = SymReaderTestHelpers.EmitAndOpenDummySymReader(compilationA, DebugInformationFormat.PortablePdb);
+            var (peImageA, pdbImageA) = compilationA.EmitToArrays(new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb));
+            var symReaderA = SymReaderTestHelpers.OpenDummySymReader(pdbImageA);
 
             var moduleMetadataA = ModuleMetadata.CreateFromImage(peImageA);
             var moduleFileA = Temp.CreateFile("A.dll").WriteAllBytes(peImageA);
