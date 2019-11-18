@@ -3858,7 +3858,7 @@ oneMoreTime:
 
             IOperation tryDispose(IOperation value)
             {
-                Debug.Assert(value.Type == iDisposable);
+                Debug.Assert(Equals(value.Type, iDisposable));
 
                 var method = isAsynchronous
                     ? (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
