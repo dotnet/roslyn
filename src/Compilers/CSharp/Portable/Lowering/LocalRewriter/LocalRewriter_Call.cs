@@ -1403,6 +1403,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so replace the argument with default(int?).
                 defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
             }
+            else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
+            {
+                defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
+            }
             else if (parameterType.IsNullableType())
             {
                 // We have something like M(double? x = 1.23), so replace the argument
@@ -1423,10 +1427,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null,
                     defaultValue)
                 { WasCompilerGenerated = true };
-            }
-            else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
-            {
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
             }
             else
             {

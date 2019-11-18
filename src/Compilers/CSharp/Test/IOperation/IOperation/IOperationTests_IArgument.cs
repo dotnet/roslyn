@@ -3680,6 +3680,41 @@ IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation,
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        [WorkItem(39868, "https://github.com/dotnet/roslyn/issues/39868")]
+        public void BadNullableDefaultArgument()
+        {
+            string source = @"
+public struct MyStruct
+{
+    static void M1(MyStruct? s = default(MyStruct)) { } // 1
+    static void M2() { /*<bind>*/M1();/*</bind>*/ }
+}
+";
+
+            string expectedOperationTree = @"
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M1();')
+    Expression:
+    IInvocationOperation (void MyStruct.M1([MyStruct? s = null])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M1()')
+        Instance Receiver:
+        null
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M1()')
+            ILiteralOperation (OperationKind.Literal, Type: MyStruct?, IsImplicit) (Syntax: 'M1()')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)";
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,30): error CS1770: A value of type 'MyStruct' cannot be used as default parameter for nullable parameter 's' because 'MyStruct' is not a simple type
+                //     static void M1(MyStruct? s = default(MyStruct)) { } // 1
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "s").WithArguments("MyStruct", "s").WithLocation(4, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<StatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void UndefinedMethod()
         {
             string source = @"
