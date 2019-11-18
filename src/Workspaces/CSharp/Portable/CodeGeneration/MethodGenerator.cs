@@ -59,33 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return AddMembersTo(destination, members);
         }
-
-        internal static MethodDeclarationSyntax AddMethodTo(
-            MethodDeclarationSyntax destination,
-            IMethodSymbol method,
-            Workspace workspace,
-            CodeGenerationOptions options)
-        {
-            var localMethodDeclaration = GenerateLocalMethodDeclaration(
-                method, GetDestination(destination), workspace, options,
-                destination?.SyntaxTree.Options ?? options.ParseOptions);
-
-            return destination.AddBodyStatements(localMethodDeclaration);
-        }
-
-        internal static LocalFunctionStatementSyntax AddMethodTo(
-            LocalFunctionStatementSyntax destination,
-            IMethodSymbol method,
-            Workspace workspace,
-            CodeGenerationOptions options)
-        {
-            var localMethodDeclaration = GenerateLocalMethodDeclaration(
-                method, GetDestination(destination), workspace, options,
-                destination?.SyntaxTree.Options ?? options.ParseOptions);
-
-            return destination.AddBodyStatements(localMethodDeclaration);
-        }
-
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
             IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options,

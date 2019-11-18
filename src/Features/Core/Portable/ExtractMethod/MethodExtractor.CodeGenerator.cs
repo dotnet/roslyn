@@ -91,10 +91,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (ExtractLocalFunction)
                 {
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
-                    newContainer = codeGenerationService.AddMethod(
-                        destination, result.Data,
-                        new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true),
-                        cancellationToken);
+                    newContainer = codeGenerationService.CreateMethodDeclaration(
+                        method: result.Data,
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true),
+                        destinationNode: destination,
+                        createLocalFunction: true);
                 }
                 else
                 {

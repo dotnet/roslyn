@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Returns a newly created method declaration node from the provided method.
         /// </summary>
-        SyntaxNode CreateMethodDeclaration(IMethodSymbol method, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions options = null);
+        SyntaxNode CreateMethodDeclaration(IMethodSymbol method, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions options = null, SyntaxNode destinationNode = null, bool createLocalFunction = false);
 
         /// <summary>
         /// Returns a newly created property declaration node from the provided property.

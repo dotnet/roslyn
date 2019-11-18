@@ -141,9 +141,6 @@
   <data name="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4" xml:space="preserve">
     <value>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</value>
   </data>
-  <data name="Destination_type_must_be_a_0_1_2_3_or_4_but_given_one_is_5" xml:space="preserve">
-    <value>Destination type must be a {0}, {1}, {2}, {3} or {4}, but given one is {5}.</value>
-  </data>
   <data name="Could_not_find_location_to_generation_symbol_into" xml:space="preserve">
     <value>Could not find location to generation symbol into.</value>
   </data>
