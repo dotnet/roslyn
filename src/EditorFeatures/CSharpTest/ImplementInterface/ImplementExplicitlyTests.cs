@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
     {
+        private const int SingleMember = 1;
+        private const int SameInterface = 2;
+        private const int AllInterfaces = 3;
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpImplementExplicitlyCodeRefactoringProvider();
 
@@ -46,7 +50,7 @@ class C : IGoo, IBar
     public void Goo2() { }
 
     public void Bar() { }
-}");
+}", index: SingleMember);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -76,7 +80,7 @@ class C : IGoo, IBar
     void IGoo.Goo2() { }
 
     public void Bar() { }
-}", index: 1);
+}", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -106,7 +110,7 @@ class C : IGoo, IBar
     void IGoo.Goo2() { }
 
     void IBar.Bar() { }
-}", index: 2);
+}", index: AllInterfaces);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -126,7 +130,7 @@ interface IGoo { int Goo1 { get; } }
 class C : IGoo
 {
     int IGoo.Goo1 { get { } }
-}");
+}", index: SingleMember);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -146,7 +150,7 @@ interface IGoo { event Action E; }
 class C : IGoo
 {
     event Action IGoo.E { add { } remove { } }
-}");
+}", index: SingleMember);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -198,7 +202,7 @@ class C : IGoo
     int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
     int IGoo.M(int i) { return ((IGoo)this).M(i); }
     event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
-}", index: 1);
+}", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -224,7 +228,7 @@ class C : IGoo
     int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
     int IGoo.M(int i) { return ((IGoo)this).M(i); }
     event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
-}", index: 1);
+}", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -280,7 +284,7 @@ class C : IGoo
 
         var v1 = nameof(((IGoo)this).Prop);
     }
-}", index: 1);
+}", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -336,7 +340,7 @@ class C : IGoo
 
         var v1 = nameof(((IGoo)this).Prop);
     }
-}", index: 1);
+}", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -408,7 +412,7 @@ class T
 
         var v1 = nameof(((IGoo)c).Prop);
     }
-}", index: 1);
+}", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -488,7 +492,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-", index: 1);
+", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -520,7 +524,7 @@ class C : IGoo, IBar
     {
         throw new System.Exception();
     }
-}");
+}", index: SingleMember);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -552,7 +556,7 @@ class C : IGoo, IBar
     {
         return ((IGoo)this).M(1);
     }
-}");
+}", index: SingleMember);
         }
     }
 }

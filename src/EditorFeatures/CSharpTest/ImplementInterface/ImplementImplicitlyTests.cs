@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
     {
+        private const int SingleMember = 1;
+        private const int SameInterface = 2;
+        private const int AllInterfaces = 3;
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpImplementImplicitlyCodeRefactoringProvider();
 
@@ -46,7 +50,7 @@ class C : IGoo, IBar
     void IGoo.Goo2() { }
 
     void IBar.Bar() { }
-}");
+}", index: SingleMember);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -76,7 +80,7 @@ class C : IGoo, IBar
     public void Goo2() { }
 
     void IBar.Bar() { }
-}", index: 1);
+}", index: SameInterface);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -106,7 +110,7 @@ class C : IGoo, IBar
     public void Goo2() { }
 
     public void Bar() { }
-}", index: 2);
+}", index: AllInterfaces);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -126,7 +130,7 @@ interface IGoo { int Goo1 { get; } }
 class C : IGoo
 {
     public int Goo1 { get { } }
-}");
+}", index: SingleMember);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -146,7 +150,7 @@ interface IGoo { event Action E; }
 class C : IGoo
 {
     public event Action E { add { } remove { } }
-}");
+}", index: SingleMember);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
