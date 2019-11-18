@@ -362,6 +362,11 @@
         <target state="translated">Ortak olmayan yöntemler</target>
         <note />
       </trans-unit>
+      <trans-unit id="Open_Documents">
+        <source>Open Documents</source>
+        <target state="new">Open Documents</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Open_Documents_and_Projects">
         <source>Open Documents and Projects</source>
         <target state="new">Open Documents and Projects</target>
