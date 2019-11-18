@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var project = document.Project;
 
             var directlyImplementedMembers = new MemberImplementationMap();
+
+            // Grab the name off of the *interface* member being implemented, not the implementation
+            // member.  Interface member names are the expected names that people expect to see
+            // (like "GetEnumerator"), instead of the auto-generated names that the compiler makes
+            // like: "System.IEnumerable.GetEnumerator"
             directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
 
             var codeAction = new MyCodeAction(
