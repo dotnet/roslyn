@@ -17,7 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
-        Public Property IsExpandedCompletion As Boolean = True
+
+        Private Property IsExpandedCompletion As Boolean = True
 
         Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
             workspace.Options = workspace.Options _

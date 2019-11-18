@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-        public object IsExpandedCompletion { get; private set; } = true;
+
+        private bool IsExpandedCompletion { get; set; } = true;
 
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
