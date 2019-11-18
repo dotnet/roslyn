@@ -189,7 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            _lazyUsedAssemblyReferences ??= new ConcurrentSet<AssemblySymbol>();
+            if (_lazyUsedAssemblyReferences is null)
+            {
+                Interlocked.CompareExchange(ref _lazyUsedAssemblyReferences, new ConcurrentSet<AssemblySymbol>(), null);
+            }
 
 #if DEBUG
             bool wasFrozen = _usedAssemblyReferencesFrozen;

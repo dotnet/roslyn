@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //                                    We would report all assemblies as used, even though no one will ever see this error and under
                 //                                    different environment state the pass could succeed causing us to return different set of used assemblies
                 //                                    with no apparent reason for the difference from the consumer's point of view. 
+                //                                    We will have the same problem with any BoundTreeWalker invoked under umbrella of GetUsedAssemblyReferences API.
+                //                                    Including flow analysis, lowering, etc.
                 ex.AddAnError(diagnostics);
             }
         }

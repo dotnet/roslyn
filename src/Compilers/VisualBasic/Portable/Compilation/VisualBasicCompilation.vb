@@ -1923,6 +1923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Function GetUsedAssemblyReferences(Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of MetadataReference)
+            ' PROTOTYPE(UsedAssemblyReferences): Add implementation
             Throw New System.NotImplementedException()
         End Function
 
