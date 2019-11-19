@@ -2092,15 +2092,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open Documents.
-        /// </summary>
-        internal static string Open_Documents {
-            get {
-                return ResourceManager.GetString("Open_Documents", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Open Documents and Projects.
         /// </summary>
         internal static string Open_Documents_and_Projects {

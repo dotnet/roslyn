@@ -1,20 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -90,42 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ConnectWorkspaceEvents();
 
                 _errorList.PropertyChanged += OnErrorListPropertyChanged;
-
-                var optionsService = workspace.Services.GetService<IOptionService>();
-                optionsService.OptionChanged += OnOptionChanged;
-            }
-
-            private void OnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                if (e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption &&
-                    _errorList is IOleCommandTarget target)
-                {
-                    // Change the error list scope combo box to match the new background analysis scope.
-                    string filterString;
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(Workspace.Options);
-                    switch (analysisScope)
-                    {
-                        case BackgroundAnalysisScope.ActiveFile:
-                            filterString = ServicesVSResources.Current_Document;
-                            break;
-
-                        case BackgroundAnalysisScope.OpenFilesAndProjects:
-                            filterString = ServicesVSResources.Open_Documents;
-                            break;
-
-                        case BackgroundAnalysisScope.FullSolution:
-                            filterString = ServicesVSResources.Entire_Solution;
-                            break;
-
-                        default:
-                            Debug.Fail($"Unhandled BackgroundAnalysisScope: {analysisScope}");
-                            return;
-                    }
-
-                    IntPtr filterStringPtr = Marshal.AllocCoTaskMem(16);
-                    Marshal.GetNativeVariantForObject(filterString, filterStringPtr);
-                    target.Exec(VSConstants.VsStd14, (int)VSConstants.VSStd14CmdID.ErrorContextComboList, 0, pvaIn: filterStringPtr, pvaOut: IntPtr.Zero);
-                }
             }
 
             private ITableDataSource GetCurrentDataSource()

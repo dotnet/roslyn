@@ -362,11 +362,6 @@
         <target state="translated">public이 아닌 메서드</target>
         <note />
       </trans-unit>
-      <trans-unit id="Open_Documents">
-        <source>Open Documents</source>
-        <target state="new">Open Documents</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Open_Documents_and_Projects">
         <source>Open Documents and Projects</source>
         <target state="new">Open Documents and Projects</target>
