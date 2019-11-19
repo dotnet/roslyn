@@ -7396,7 +7396,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos; or implement a suitable &apos;DisposeAsync&apos; method..
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an asynchronous using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos; or implement a suitable &apos;DisposeAsync&apos; method..
         /// </summary>
         internal static string ERR_NoConvToIAsyncDisp {
             get {
@@ -7405,7 +7405,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos; or implement a suitable &apos;DisposeAsync&apos; method. Did you mean &apos;using&apos; rather than &apos;await using&apos;?.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an asynchronous using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos; or implement a suitable &apos;DisposeAsync&apos; method. Did you mean &apos;using&apos; rather than &apos;await using&apos;?.
         /// </summary>
         internal static string ERR_NoConvToIAsyncDispWrongAsync {
             get {
@@ -11159,6 +11159,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to asynchronous using.
+        /// </summary>
+        internal static string IDS_FeatureAsyncUsing {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAsyncUsing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to automatically implemented properties.
         /// </summary>
         internal static string IDS_FeatureAutoImplementedProperties {
@@ -11443,6 +11452,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureLambda {
             get {
                 return ResourceManager.GetString("IDS_FeatureLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lambda discard parameters.
+        /// </summary>
+        internal static string IDS_FeatureLambdaDiscardParameters {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLambdaDiscardParameters", resourceCulture);
             }
         }
         
@@ -14287,24 +14305,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ExplicitImplCollision_Title {
             get {
                 return ResourceManager.GetString("WRN_ExplicitImplCollision_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_ExpressionMayIntroduceNullT {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_ExpressionMayIntroduceNullT_Title {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT_Title", resourceCulture);
             }
         }
         

@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' namespace symbols this property may return incorrect information if multiple declarations
         ''' with different casing were found.
         ''' </summary>
-        Public Overridable ReadOnly Property MetadataName As String Implements ISymbol.MetadataName
+        Public Overridable ReadOnly Property MetadataName As String Implements ISymbol.MetadataName, ISymbolInternal.MetadataName
             Get
                 Return Name
             End Get
@@ -762,14 +762,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Overloads Function IEquatable_Equals(other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
-            Return Me.[Equals](other, SymbolEqualityComparer.Default.CompareKind)
+            Return Me.[Equals](TryCast(other, Symbol), SymbolEqualityComparer.Default.CompareKind)
         End Function
 
         Private Overloads Function ISymbol_Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
-            Return equalityComparer.Equals(Me, other)
+            Return Me.[Equals](TryCast(other, Symbol), equalityComparer.CompareKind)
         End Function
 
-        Overloads Function Equals(other As ISymbol, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+        Overloads Function Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
             Return Me.Equals(TryCast(other, Symbol), compareKind)
         End Function
 
@@ -1070,7 +1070,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property ISymbolInternal_ContainingAssembly As IAssemblySymbolInternal Implements ISymbolInternal.ContainingAssembly
+            Get
+                Return Me.ContainingAssembly
+            End Get
+        End Property
+
         Private ReadOnly Property ISymbol_ContainingModule As IModuleSymbol Implements ISymbol.ContainingModule
+            Get
+                Return Me.ContainingModule
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbolInternal_ContainingModule As IModuleSymbolInternal Implements ISymbolInternal.ContainingModule
             Get
                 Return Me.ContainingModule
             End Get
@@ -1082,7 +1094,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property ISymbolInternal_ContainingNamespace As INamespaceSymbolInternal Implements ISymbolInternal.ContainingNamespace
+            Get
+                Return Me.ContainingNamespace
+            End Get
+        End Property
+
         Private ReadOnly Property ISymbol_ContainingSymbol As ISymbol Implements ISymbol.ContainingSymbol
+            Get
+                Return Me.ContainingSymbol
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbolInternal_ContainingSymbol As ISymbolInternal Implements ISymbolInternal.ContainingSymbol
             Get
                 Return Me.ContainingSymbol
             End Get
@@ -1094,25 +1118,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_DeclaredAccessibility As Accessibility Implements ISymbol.DeclaredAccessibility
+        Private ReadOnly Property ISymbolInternal_ContainingType As INamedTypeSymbolInternal Implements ISymbolInternal.ContainingType
+            Get
+                Return Me.ContainingType
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbol_DeclaredAccessibility As Accessibility Implements ISymbol.DeclaredAccessibility, ISymbolInternal.DeclaredAccessibility
             Get
                 Return Me.DeclaredAccessibility
             End Get
         End Property
 
-        Protected Overridable ReadOnly Property ISymbol_IsAbstract As Boolean Implements ISymbol.IsAbstract
+        Protected Overridable ReadOnly Property ISymbol_IsAbstract As Boolean Implements ISymbol.IsAbstract, ISymbolInternal.IsAbstract
             Get
                 Return Me.IsMustOverride
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsDefinition As Boolean Implements ISymbol.IsDefinition
+        Private ReadOnly Property ISymbol_IsDefinition As Boolean Implements ISymbol.IsDefinition, ISymbolInternal.IsDefinition
             Get
                 Return Me.IsDefinition
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsOverride As Boolean Implements ISymbol.IsOverride
+        Private ReadOnly Property ISymbol_IsOverride As Boolean Implements ISymbol.IsOverride, ISymbolInternal.IsOverride
             Get
                 Return Me.IsOverrides
             End Get
@@ -1124,19 +1154,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overridable ReadOnly Property ISymbol_IsStatic As Boolean Implements ISymbol.IsStatic
+        Protected Overridable ReadOnly Property ISymbol_IsStatic As Boolean Implements ISymbol.IsStatic, ISymbolInternal.IsStatic
             Get
                 Return Me.IsShared
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsImplicitlyDeclared As Boolean Implements ISymbol.IsImplicitlyDeclared
+        Private ReadOnly Property ISymbol_IsImplicitlyDeclared As Boolean Implements ISymbol.IsImplicitlyDeclared, ISymbolInternal.IsImplicitlyDeclared
             Get
                 Return Me.IsImplicitlyDeclared
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsVirtual As Boolean Implements ISymbol.IsVirtual
+        Private ReadOnly Property ISymbol_IsVirtual As Boolean Implements ISymbol.IsVirtual, ISymbolInternal.IsVirtual
             Get
                 Return Me.IsOverridable
             End Get
@@ -1154,7 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_Locations As ImmutableArray(Of Location) Implements ISymbol.Locations
+        Private ReadOnly Property ISymbol_Locations As ImmutableArray(Of Location) Implements ISymbol.Locations, ISymbolInternal.Locations
             Get
                 Return Me.Locations
             End Get
@@ -1166,7 +1196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_Name As String Implements ISymbol.Name
+        Private ReadOnly Property ISymbol_Name As String Implements ISymbol.Name, ISymbolInternal.Name
             Get
                 Return Me.Name
             End Get
@@ -1178,7 +1208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_Kind As SymbolKind Implements ISymbol.Kind
+        Private ReadOnly Property ISymbol_Kind As SymbolKind Implements ISymbol.Kind, ISymbolInternal.Kind
             Get
                 Return Me.Kind
             End Get
@@ -1236,5 +1266,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Overloads Function IFormattable_ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
             Return ToString()
         End Function
+
+        Private Function ISymbolInternal_GetISymbol() As ISymbol Implements ISymbolInternal.GetISymbol
+            Return Me
+        End Function
+
     End Class
 End Namespace

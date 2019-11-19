@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim model As New NavigationBarModel(items, VersionStamp.Create(), service)
-                Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.TextBuffer.CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
+                Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
                 Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
 

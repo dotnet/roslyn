@@ -45,11 +45,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\CodeLens\Microsoft.CodeAnalysis.ExternalAccess.CodeLens.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.CodeLens</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Debugger</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -60,28 +55,8 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\IntelliTrace\Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\ProjectSystem\Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\TypeScript\Microsoft.CodeAnalysis.ExternalAccess.TypeScript.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.TypeScript</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\UnitTesting\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.UnitTesting</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
@@ -266,7 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Humanizer.Core" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Optimization="true"/>
+    <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Optimization="true"/>
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
@@ -308,7 +283,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>

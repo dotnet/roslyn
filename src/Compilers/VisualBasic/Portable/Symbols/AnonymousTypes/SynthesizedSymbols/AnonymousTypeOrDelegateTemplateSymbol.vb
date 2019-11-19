@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
 
-        Private NotInheritable Class NameAndIndex
+        Friend NotInheritable Class NameAndIndex
             Public Sub New(name As String, index As Integer)
                 Me.Name = name
                 Me.Index = index
@@ -21,9 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public ReadOnly Index As Integer
         End Class
 
-        Private MustInherit Class AnonymousTypeOrDelegateTemplateSymbol
+        Friend MustInherit Class AnonymousTypeOrDelegateTemplateSymbol
             Inherits InstanceTypeSymbol
-            Implements IAnonymousTypeTemplateSymbolInternal
 
             Public ReadOnly Manager As AnonymousTypeManager
 
@@ -75,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End Sub
 
-            Friend MustOverride Function GetAnonymousTypeKey() As AnonymousTypeKey Implements IAnonymousTypeTemplateSymbolInternal.GetAnonymousTypeKey
+            Friend MustOverride Function GetAnonymousTypeKey() As AnonymousTypeKey
 
             Public Overrides ReadOnly Property Name As String
                 Get

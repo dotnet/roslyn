@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim solution = workspace.CurrentSolution
             Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
             Dim cursorPosition = cursorDocument.CursorPosition.Value
-            Dim cursorBuffer = cursorDocument.TextBuffer
+            Dim cursorBuffer = cursorDocument.GetTextBuffer()
 
             Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
             Dim semanticModel = Await document.GetSemanticModelAsync()

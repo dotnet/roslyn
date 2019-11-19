@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 var expectedHighlightSpans = testDocument.SelectedSpans ?? new List<TextSpan>();
                 expectedHighlightSpans = Sort(expectedHighlightSpans);
                 var cursorSpan = testDocument.AnnotatedSpans["Cursor"].Single();
-                var textSnapshot = testDocument.TextBuffer.CurrentSnapshot;
+                var textSnapshot = testDocument.GetTextBuffer().CurrentSnapshot;
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
                 // If the position being tested is immediately following the keyword, 

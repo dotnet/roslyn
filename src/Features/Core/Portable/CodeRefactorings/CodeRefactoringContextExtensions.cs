@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            var helpers = document.GetLanguageService<IRefactoringHelpersService>();
+            var helpers = document.Project.LanguageServices.GetRequiredService<IRefactoringHelpersService>();
             var potentialNodes = await helpers.GetRelevantNodesAsync<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
             return potentialNodes;
         }

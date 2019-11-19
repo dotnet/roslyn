@@ -18,9 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
-        public static string Option_use_nullable_reference_analysis_IDE_features
-            => ServicesVSResources.Enable_nullable_reference_analysis_IDE_features;
-
         public static string Option_use_editorconfig_compatibility_mode
             => ServicesVSResources.Use_editorconfig_compatibility_mode;
 

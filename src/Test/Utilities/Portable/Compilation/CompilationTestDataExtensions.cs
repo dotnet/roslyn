@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Cci = Microsoft.Cci;
 
 namespace Roslyn.Test.Utilities
@@ -35,7 +36,7 @@ namespace Roslyn.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
-        internal static ImmutableArray<KeyValuePair<IMethodSymbol, CompilationTestData.MethodData>> GetExplicitlyDeclaredMethods(this CompilationTestData data)
+        internal static ImmutableArray<KeyValuePair<IMethodSymbolInternal, CompilationTestData.MethodData>> GetExplicitlyDeclaredMethods(this CompilationTestData data)
         {
             return data.Methods.Where(m => !m.Key.IsImplicitlyDeclared).ToImmutableArray();
         }

@@ -187,6 +187,11 @@
         <target state="translated">Likwiduj obiekty przed utratą zakresu</target>
         <note />
       </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">Edytuj i kontynuuj</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">Generowanie parametru „{0}” (i przesłonięć/implementacji)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -547,6 +557,11 @@
         <target state="needs-review-translation">Użyj zalecanego wzorca dispose, aby upewnić się, że obiekty możliwe do likwidacji w lokalnym zakresie są likwidowane we wszystkich ścieżkach. Jeśli to możliwe, opakuj tworzenie w instrukcji „using” lub deklaracji „using”. W przeciwnym razie użyj wzorca try-finally, z dedykowaną zmienną lokalną zadeklarowaną przed regionem try i bezwarunkowym wywołaniem metody Dispose dla wartości innej niż null w regionie „finally”, na przykład „x?.Dispose()”. Jeśli obiekt jest jawnie likwidowany w regionie try lub własność dispose jest przenoszona do innego obiektu lub metody, przypisz wartość „null” do zmiennej lokalnej zaraz po takiej operacji, aby zapobiec podwójnemu wywołaniu dispose w regionie „finally”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Użyj treści bloku dla wyrażeń lambda</target>
@@ -690,6 +705,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">Element {0} można uprościć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

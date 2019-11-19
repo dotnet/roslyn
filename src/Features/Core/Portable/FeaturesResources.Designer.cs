@@ -1275,6 +1275,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to discard.
+        /// </summary>
+        internal static string discard {
+            get {
+                return ResourceManager.GetString("discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
         /// </summary>
         internal static string Disposable_field_0_is_never_disposed {
@@ -1325,6 +1334,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Document {
             get {
                 return ResourceManager.GetString("Document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The file is likely being updated by a background build. The debug session can&apos;t continue until the update is completed..
+        /// </summary>
+        internal static string DocumentIsOutOfSyncWithDebuggee {
+            get {
+                return ResourceManager.GetString("DocumentIsOutOfSyncWithDebuggee", resourceCulture);
             }
         }
         
@@ -1937,6 +1955,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string generic_overloads {
             get {
                 return ResourceManager.GetString("generic_overloads", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;GetHashCode&apos; implementation can be simplified.
+        /// </summary>
+        internal static string GetHashCode_implementation_can_be_simplified {
+            get {
+                return ResourceManager.GetString("GetHashCode_implementation_can_be_simplified", resourceCulture);
             }
         }
         
@@ -4623,6 +4650,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_simple_using_statement {
             get {
                 return ResourceManager.GetString("Use_simple_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;System.HashCode&apos;.
+        /// </summary>
+        internal static string Use_System_HashCode {
+            get {
+                return ResourceManager.GetString("Use_System_HashCode", resourceCulture);
             }
         }
         

@@ -187,6 +187,11 @@
         <target state="translated">Elimina gli oggetti prima che siano esterni all'ambito</target>
         <note />
       </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">Modifica e continuazione</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">Generare il parametro '{0}' (e override/implementazioni)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -547,6 +557,11 @@
         <target state="needs-review-translation">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
@@ -690,6 +705,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} può essere semplificato</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

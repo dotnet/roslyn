@@ -187,6 +187,11 @@
         <target state="translated">必須在超出範圍前處置物件</target>
         <note />
       </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">編輯並繼續</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">產生參數 '{0}' (以及覆寫/實作)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -547,6 +557,11 @@
         <target state="needs-review-translation">請使用建議的處置模式，確保區域範圍的可處置物件在所有路徑上均會經過處置。在可能的情況下，請將建立包在 'using' 陳述式或 'using' 宣告內。否則，請使用 try-finally 模式，同時在 try 區域之前先宣告專用的區域變數，並在 'finally' 區域中的非 null 值上，設定無條件 Dispose 引動過程，比如 'x?.Dispose()'。如果 try 區域內已明確地處置了該物件，或是處置擁有權已轉移到另一個物件或方法，則請在這類作業之後，對區域變數指派 'null'，以避免在 'finally' 中發生雙重處置</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">使用 Lambda 運算式的區體主體</target>
@@ -690,6 +705,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">可簡化 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

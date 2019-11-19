@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     {
                         var symbol = model.GetSymbolInfo(o).Symbol;
                         return symbol != null
-                            ? c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation) 
+                            ? c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation)
                             : c;
                     });
                 doc = doc.WithSyntaxRoot(root);
@@ -179,8 +179,8 @@ using System.Collections.Generic;
 class C
 {
     public List<int> F;
-}", 
-                safe, 
+}",
+                safe,
                 useSymbolAnnotations,
                 options => options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
 );
@@ -1240,7 +1240,8 @@ class C
 }", safe: true, useSymbolAnnotations);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/39641"), InlineData(true), InlineData(false)]
+        [WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
         public async Task TestSafeWithMatchingSimpleNameInAllLocations(bool useSymbolAnnotations)
         {
             await TestAsync(

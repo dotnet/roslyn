@@ -111,7 +111,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 foreach (var provider in GetProviders(document))
                 {
                     tasks.Add(Task.Run(
-                        () => GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken), cancellationToken));
+                        () =>
+                        {
+                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, provider, cancellationToken))
+                            {
+                                return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
+                            }
+                        },
+                        cancellationToken));
                 }
 
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);

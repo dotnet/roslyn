@@ -10,8 +10,6 @@
     <IsPackable>true</IsPackable>
     <PackageId>VS.ExternalAPIs.Roslyn</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- https://github.com/NuGet/Home/issues/8583 -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageDescription>CoreXT package for the VS build</PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
 
@@ -40,14 +38,9 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Apex\Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\CodeLens\Microsoft.CodeAnalysis.ExternalAccess.CodeLens.csproj" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\IntelliTrace\Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.csproj" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\ProjectSystem\Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.csproj" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\TypeScript\Microsoft.CodeAnalysis.ExternalAccess.TypeScript.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\UnitTesting\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\LiveShare\Impl\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" PrivateAssets="all" />
@@ -89,14 +82,9 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.Wpf\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Apex\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Apex.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.CodeLens\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.CodeLens.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Debugger\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.FSharp\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Razor.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.TypeScript\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.TypeScript.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.UnitTesting\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.InteractiveHost\$(Configuration)\net472\Microsoft.CodeAnalysis.InteractiveHost.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.LanguageServer.Protocol\$(Configuration)\net472\Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" TargetDir="" />
@@ -143,7 +131,7 @@
       <!-- Include a few dependencies of Roslyn. These right now are consumed out of the ExternalAPIs NuGet package to do assembly consistency checking in the main VS
            repo. We should remove these and insert the packages directly, but for now we'll include these to limit the work needed to consume this package. -->
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\Humanizer.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\Microsoft.CodeAnalysis.AnalyzerUtilities.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\ICSharpCode.Decompiler.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\System.Composition.Hosting.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\System.Composition.TypedParts.dll" TargetDir="" />

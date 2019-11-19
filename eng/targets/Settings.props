@@ -18,7 +18,7 @@
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
     <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
-    <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
+    <RoslynCheckCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true' or '$(RoslynEnforceCodeStyle)' == 'true'">true</RoslynCheckCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <Features>strict, IOperation</Features>
@@ -42,6 +42,14 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+
+    <!-- 
+        When markup compilation is involved, WPF generates .g.cs files via the GenerateTemporaryTargetAssembly task. 
+        These do not always have the correct full-paths to their respective .xaml files annotated in them in the #line directives.
+        This can cause compile errors if these files are included in Source Link. 
+        https://github.com/dotnet/wpf/issues/1718
+    -->
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
   </PropertyGroup>
 
   <!-- 
@@ -58,7 +66,7 @@
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
     <!--
       Choose default target frameworks to use for testing on Mono and Core.
-      These may be overriden by projects that need to be skipped.
+      These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp2.1</TestTargetFrameworks>
@@ -126,20 +134,20 @@
 
   <!-- Language-specific analyzer packages -->
   <Choose>
-    <When Condition="'$(Language)' == 'VB' and '$(RoslynEnforceCodeStyle)' == 'true'">
+    <When Condition="'$(Language)' == 'VB' and '$(RoslynCheckCodeStyle)' == 'true'">
       <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>
 
-    <When Condition="'$(Language)' == 'C#' and '$(RoslynEnforceCodeStyle)' == 'true'">
+    <When Condition="'$(Language)' == 'C#' and '$(RoslynCheckCodeStyle)' == 'true'">
       <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>
   </Choose>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
     <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
   </PropertyGroup>

@@ -50,7 +50,9 @@ class C
             var arrayTypes = arrayAccesses.Select(arr => model.GetTypeInfo(arr.Expression).Type).Cast<IArrayTypeSymbol>().ToList();
 
             Assert.Equal(PublicNullableAnnotation.Annotated, arrayTypes[0].ElementNullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, arrayTypes[0].ElementType.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, arrayTypes[1].ElementNullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, arrayTypes[1].ElementType.NullableAnnotation);
         }
 
         [Fact]
@@ -82,8 +84,11 @@ class C
             var expressionTypes = invocations.Select(inv => model.GetTypeInfo(inv).Type).Cast<INamedTypeSymbol>().ToList();
 
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentNullableAnnotations().Single());
             Assert.Equal(PublicNullableAnnotation.Annotated, expressionTypes[1].TypeArgumentNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.Annotated, expressionTypes[1].TypeArgumentNullableAnnotations().Single());
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[2].TypeArgumentNullableAnnotations.Single());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[2].TypeArgumentNullableAnnotations().Single());
         }
 
         [Fact]
@@ -132,10 +137,15 @@ public class C
                 },
                 comp =>
                 {
-                    var c = comp.GetTypeByMetadataName("C");
+                    var c = ((Compilation)comp).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IFieldSymbol>().ToArray();
                 },
-                member => member.NullableAnnotation,
+                member =>
+                {
+                    var result = member.Type.NullableAnnotation;
+                    Assert.Equal(result, member.NullableAnnotation);
+                    return member.Type.NullableAnnotation;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
@@ -194,10 +204,15 @@ public class C
                 },
                 comp =>
                 {
-                    var c = comp.GetTypeByMetadataName("C");
+                    var c = ((Compilation)comp).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IPropertySymbol>().ToArray();
                 },
-                member => member.NullableAnnotation,
+                member =>
+                {
+                    var result = member.Type.NullableAnnotation;
+                    Assert.Equal(result, member.NullableAnnotation);
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
@@ -263,10 +278,15 @@ public class C
                 },
                 compilation =>
                 {
-                    var c = compilation.GetTypeByMetadataName("C");
+                    var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).ToArray();
                 },
-                member => member.ReturnNullableAnnotation,
+                member =>
+                {
+                    var result = member.ReturnType.NullableAnnotation;
+                    Assert.Equal(result, member.ReturnNullableAnnotation);
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
@@ -347,10 +367,15 @@ public class C
                 },
                 compilation =>
                 {
-                    var c = compilation.GetTypeByMetadataName("C");
+                    var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                     return c.GetMembers("M1").OfType<IMethodSymbol>().Single().Parameters.ToArray();
                 },
-                member => member.NullableAnnotation,
+                member =>
+                {
+                    var result = member.Type.NullableAnnotation;
+                    Assert.Equal(result, member.NullableAnnotation);
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.None,
@@ -445,7 +470,7 @@ public static class Ext
 
             void verifyCompilation(CSharpCompilation compilation)
             {
-                var c = compilation.GetTypeByMetadataName("C");
+                var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                 var members = c.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).ToArray();
                 assertNullability(members,
                     PublicNullableAnnotation.None,
@@ -453,7 +478,7 @@ public static class Ext
                     PublicNullableAnnotation.None,
                     PublicNullableAnnotation.NotAnnotated);
 
-                var e = compilation.GetTypeByMetadataName("Ext");
+                var e = ((Compilation)compilation).GetTypeByMetadataName("Ext");
                 members = e.GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("M")).Select(m => m.ReduceExtensionMethod(m.Parameters[0].Type)).ToArray();
                 assertNullability(members,
                     PublicNullableAnnotation.NotAnnotated,
@@ -467,7 +492,12 @@ public static class Ext
 
                 static void assertNullability(IMethodSymbol[] methods, params PublicNullableAnnotation[] expectedAnnotations)
                 {
-                    var actualAnnotations = methods.Select(m => m.ReceiverNullableAnnotation);
+                    var actualAnnotations = methods.Select(m =>
+                    {
+                        var result = m.ReceiverType.NullableAnnotation;
+                        Assert.Equal(result, m.ReceiverNullableAnnotation);
+                        return result;
+                    });
                     AssertEx.Equal(expectedAnnotations, actualAnnotations);
                 }
             }
@@ -536,8 +566,12 @@ public class C
                 method =>
                 {
                     Assert.Equal(method.ReturnNullableAnnotation, method.Parameters[0].NullableAnnotation);
+                    Assert.Equal(method.ReturnNullableAnnotation, method.Parameters[0].Type.NullableAnnotation);
                     Assert.Equal(PublicNullableAnnotation.None, method.ReceiverNullableAnnotation);
-                    return method.ReturnNullableAnnotation;
+                    Assert.Equal(PublicNullableAnnotation.None, method.ReceiverType.NullableAnnotation);
+                    var result = method.ReturnType.NullableAnnotation;
+                    Assert.Equal(result, method.ReturnNullableAnnotation);
+                    return result;
                 },
                 testMetadata: false,
                 PublicNullableAnnotation.NotAnnotated,
@@ -593,10 +627,15 @@ public class C
                 },
                 compilation =>
                 {
-                    var c = compilation.GetTypeByMetadataName("C");
+                    var c = ((Compilation)compilation).GetTypeByMetadataName("C");
                     return c.GetMembers().OfType<IEventSymbol>().ToArray();
                 },
-                member => member.NullableAnnotation,
+                member =>
+                {
+                    var result = member.Type.NullableAnnotation;
+                    Assert.Equal(result, member.NullableAnnotation);
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
@@ -645,8 +684,14 @@ public class C
                     //     object?[] F6();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(10, 11)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
-                method => ((IArrayTypeSymbol)method.ReturnType).ElementNullableAnnotation,
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method =>
+                {
+                    var array = (IArrayTypeSymbol)method.ReturnType;
+                    var result = array.ElementType.NullableAnnotation;
+                    Assert.Equal(result, array.ElementNullableAnnotation);
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
@@ -703,8 +748,13 @@ public interface I<T, U, V>
                     //     U? F8();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 6)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
-                method => method.ReturnNullableAnnotation,
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method =>
+                {
+                    var result = method.ReturnType.NullableAnnotation;
+                    Assert.Equal(result, method.ReturnNullableAnnotation);
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.NotAnnotated,
@@ -763,8 +813,14 @@ public interface I
                     //     A<string?> F6();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 13)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
-                method => ((INamedTypeSymbol)((INamedTypeSymbol)method.ReturnType).GetMembers("B").Single()).TypeParameters.Single().ConstraintNullableAnnotations.Single(),
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("I")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method =>
+                {
+                    ITypeParameterSymbol typeParameterSymbol = ((INamedTypeSymbol)((INamedTypeSymbol)method.ReturnType).GetMembers("B").Single()).TypeParameters.Single();
+                    var result = typeParameterSymbol.ConstraintTypes.Single().NullableAnnotation;
+                    Assert.Equal(result, typeParameterSymbol.ConstraintNullableAnnotations.Single());
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.Annotated,
@@ -824,8 +880,14 @@ public interface IB<T, U, V>
                     //     IA<U?> F8();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 9)
                 },
-                comp => ((NamedTypeSymbol)comp.GetMember("IB")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
-                method => ((INamedTypeSymbol)method.ReturnType).TypeArgumentNullableAnnotations.Single(),
+                comp => ((INamedTypeSymbol)((Compilation)comp).GetMember("IB")).GetMembers().OfType<IMethodSymbol>().Where(m => m.Name.StartsWith("F")).ToArray(),
+                method =>
+                {
+                    var result = ((INamedTypeSymbol)method.ReturnType).TypeArguments.Single().NullableAnnotation;
+                    Assert.Equal(result, ((INamedTypeSymbol)method.ReturnType).TypeArgumentNullableAnnotations.Single());
+                    Assert.Equal(result, ((INamedTypeSymbol)method.ReturnType).TypeArgumentNullableAnnotations().Single());
+                    return result;
+                },
                 testMetadata: true,
                 PublicNullableAnnotation.NotAnnotated,
                 PublicNullableAnnotation.NotAnnotated,
@@ -875,7 +937,13 @@ public interface IB<T, U, V>
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var invocations = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>();
-            var actualAnnotations = invocations.Select(inv => ((IMethodSymbol)model.GetSymbolInfo(inv).Symbol).TypeArgumentNullableAnnotations.Single()).ToArray();
+            var actualAnnotations = invocations.Select(inv =>
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(inv).Symbol;
+                var result = method.TypeArguments.Single().NullableAnnotation;
+                Assert.Equal(result, method.TypeArgumentNullableAnnotations.Single());
+                return result;
+            }).ToArray();
             var expectedAnnotations = new[]
             {
                 PublicNullableAnnotation.NotAnnotated,
@@ -926,7 +994,14 @@ class C
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var variables = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
-            var actualAnnotations = variables.Select(v => ((ILocalSymbol)model.GetDeclaredSymbol(v)).NullableAnnotation).ToArray();
+            var actualAnnotations = variables.Select(v =>
+            {
+                var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(v);
+                var result = localSymbol.Type.NullableAnnotation;
+                Assert.Equal(result, localSymbol.NullableAnnotation);
+                return result;
+            }).ToArray();
+
             var expectedAnnotations = new[]
             {
                 PublicNullableAnnotation.NotAnnotated,
@@ -1094,6 +1169,7 @@ class C
                 {
                     var declarator = (VariableDeclaratorSyntax)context.Node;
                     var declaredSymbol = (ILocalSymbol)context.SemanticModel.GetDeclaredSymbol(declarator);
+                    Assert.Equal(declaredSymbol.Type.NullableAnnotation, declaredSymbol.NullableAnnotation);
                     context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor2, declarator.GetLocation(), declaredSymbol.Name, declaredSymbol.NullableAnnotation));
 
                 }, SyntaxKind.VariableDeclarator);
@@ -1116,13 +1192,13 @@ class E
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = (Compilation)CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var d = (D)(C?)new B();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)(C?)new B()").WithLocation(10, 17));
 
-            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxTree = comp.SyntaxTrees.First();
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -1430,7 +1506,7 @@ class C
 
             var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
             var conditionalAccessExpression = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
-            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Skip(1).Single();
+            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().ElementAt(1);
 
             var newReference = (IdentifierNameSyntax)SyntaxFactory.ParseExpression(@"s1");
             var newCoalesce = (AssignmentExpressionSyntax)SyntaxFactory.ParseExpression(@"s1 ??= """"");
@@ -1515,8 +1591,11 @@ class C
             static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
             {
                 Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArguments.Single().NullableAnnotation);
                 Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
+                Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().Type.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, methodSymbol.ReturnNullableAnnotation);
+                Assert.Equal(expectedAnnotation, methodSymbol.ReturnType.NullableAnnotation);
             }
         }
 
@@ -1555,8 +1634,11 @@ class C
             static void verifySymbolInfo(IMethodSymbol methodSymbol, PublicNullableAnnotation expectedAnnotation)
             {
                 Assert.Equal(expectedAnnotation, methodSymbol.TypeArgumentNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, methodSymbol.TypeArguments.Single().NullableAnnotation);
                 Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().NullableAnnotation);
+                Assert.Equal(expectedAnnotation, methodSymbol.Parameters.Single().Type.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentNullableAnnotations.Single());
+                Assert.Equal(expectedAnnotation, ((INamedTypeSymbol)methodSymbol.ReturnType).TypeArgumentNullableAnnotations().Single());
             }
         }
 
@@ -1598,6 +1680,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -1638,6 +1721,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -1698,7 +1782,9 @@ class C
                 {
                     var symbols = variable.DescendantNodes().OfType<SingleVariableDesignationSyntax>().Select(s => model.GetDeclaredSymbol(s)).Cast<ILocalSymbol>().ToList();
                     Assert.Equal(expectedAnnotation1, symbols[0].NullableAnnotation);
+                    Assert.Equal(expectedAnnotation1, symbols[0].Type.NullableAnnotation);
                     Assert.Equal(expectedAnnotation2, symbols[1].NullableAnnotation);
+                    Assert.Equal(expectedAnnotation2, symbols[1].Type.NullableAnnotation);
                 }
             }
         }
@@ -1739,7 +1825,9 @@ class C
             {
                 var symbols = variable.DescendantNodes().OfType<SingleVariableDesignationSyntax>().Select(s => model.GetDeclaredSymbol(s)).Cast<ILocalSymbol>().ToList();
                 Assert.Equal(expectedAnnotation1, symbols[0].NullableAnnotation);
+                Assert.Equal(expectedAnnotation1, symbols[0].Type.NullableAnnotation);
                 Assert.Equal(expectedAnnotation2, symbols[1].NullableAnnotation);
+                Assert.Equal(expectedAnnotation2, symbols[1].Type.NullableAnnotation);
             }
         }
 
@@ -1770,15 +1858,17 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
 
             var s2Assignment = root.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
-            var lastDeclaration = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Skip(3).Single();
+            var lastDeclaration = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(3);
             var newDeclaration = SyntaxFactory.ParseStatement("var o5 = s2;");
             var newDeclarator = newDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
 
             Assert.True(model.TryGetSpeculativeSemanticModel(s2Assignment.SpanStart, newDeclaration, out var specModel));
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).Type.NullableAnnotation);
 
             Assert.True(model.TryGetSpeculativeSemanticModel(lastDeclaration.SpanStart, newDeclaration, out specModel));
             Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).Type.NullableAnnotation);
         }
 
         [Fact]
@@ -1823,6 +1913,7 @@ class C : IDisposable, IAsyncDisposable
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -1854,6 +1945,7 @@ class C
             var declaration = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declaration);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -1891,6 +1983,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -1923,6 +2016,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -1963,6 +2057,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -2004,6 +2099,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -2046,6 +2142,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -2087,6 +2184,7 @@ class C
             {
                 var symbol = model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -2134,6 +2232,7 @@ class C
             {
                 var symbol = model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -2181,6 +2280,7 @@ class C
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
+                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
             }
         }
 
@@ -2318,10 +2418,14 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IPropertySymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IPropertySymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IPropertySymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IPropertySymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
         }
 
         [Fact]
@@ -2360,10 +2464,14 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IFieldSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IFieldSymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IFieldSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IFieldSymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
         }
 
         [Fact]
@@ -2399,10 +2507,14 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
 
             var event1 = model.GetSymbolInfo(memberAccess[2]).Symbol;
             var event2 = model.GetSymbolInfo(memberAccess[3]).Symbol;
@@ -2444,10 +2556,14 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).Type.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations().First());
         }
 
         [Fact]
@@ -2485,6 +2601,7 @@ class C : IEnumerable
             {
                 var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
                 Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArguments[0].NullableAnnotation);
             }
         }
 
@@ -2526,6 +2643,7 @@ static class CExt
             {
                 var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
                 Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArguments[0].NullableAnnotation);
             }
         }
 
@@ -2567,7 +2685,9 @@ static class CExt
             {
                 var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
                 Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IMethodSymbol)symbolInfo.Symbol).TypeArguments[0].NullableAnnotation);
                 Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[1]);
+                Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArguments[1].NullableAnnotation);
             }
         }
 
@@ -2628,6 +2748,7 @@ static class CExt2
                 foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
                     Assert.Equal(PublicNullableAnnotation.None, ((IMethodSymbol)symbol).TypeArgumentNullableAnnotations[0]);
+                    Assert.Equal(PublicNullableAnnotation.None, ((IMethodSymbol)symbol).TypeArguments[0].NullableAnnotation);
                 }
             }
         }
@@ -2671,7 +2792,9 @@ static class CExt
                 var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
                 var methodSymbol = ((IMethodSymbol)symbolInfo.Symbol);
                 Assert.Equal(annotation1, methodSymbol.TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(annotation1, methodSymbol.TypeArguments[0].NullableAnnotation);
                 Assert.Equal(annotation2, methodSymbol.TypeArgumentNullableAnnotations[1]);
+                Assert.Equal(annotation2, methodSymbol.TypeArguments[1].NullableAnnotation);
             }
         }
 
@@ -2714,6 +2837,7 @@ static class CExt
                 var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
                 var methodSymbol = ((IMethodSymbol)symbolInfo.Symbol);
                 Assert.Equal(annotation, methodSymbol.TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(annotation, methodSymbol.TypeArguments[0].NullableAnnotation);
             }
         }
 
@@ -2783,7 +2907,9 @@ static class CExt
                 {
                     Assert.True(propertySymbol.IsIndexer);
                     Assert.Equal(firstAnnotation, propertySymbol.NullableAnnotation);
+                    Assert.Equal(firstAnnotation, propertySymbol.Type.NullableAnnotation);
                     Assert.Equal(secondAnnotation, propertySymbol.Parameters[0].NullableAnnotation);
+                    Assert.Equal(secondAnnotation, propertySymbol.Parameters[0].Type.NullableAnnotation);
                 }
             }
         }
@@ -2832,6 +2958,7 @@ class C<T>
                 {
                     Assert.True(propertySymbol.IsIndexer);
                     Assert.Equal(annotation, propertySymbol.NullableAnnotation);
+                    Assert.Equal(annotation, propertySymbol.Type.NullableAnnotation);
                 }
             }
         }
@@ -2875,6 +3002,7 @@ class C<T>
                 Assert.NotNull(propertySymbol);
                 var spanType = (INamedTypeSymbol)propertySymbol.ReturnType;
                 Assert.Equal(annotation, spanType.TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(annotation, spanType.TypeArgumentNullableAnnotations().First());
             }
         }
 
@@ -2919,6 +3047,7 @@ class Program
                 var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
                 Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
                 Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations().First());
             }
         }
 
@@ -2963,7 +3092,701 @@ class Program
                 var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
                 Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
                 Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations().First());
             }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_SimpleLambdaReinference()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => { _ = o1.ToString(); });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (9,39): warning CS8602: Dereference of a possibly null reference.
+                    //         var a = Create(o, o1 => { _ = o1.ToString(); });
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o1").WithLocation(9, 39));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+            Assert.NotNull(lambdaSymbol);
+            Assert.Equal(MethodKind.LambdaMethod, lambdaSymbol.MethodKind);
+            Assert.Equal(PublicNullableAnnotation.Annotated, lambdaSymbol.Parameters[0].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, lambdaSymbol.Parameters[0].Type.NullableAnnotation);
+
+            var o1Ref = lambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Single()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+
+            var parameterSymbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+            Assert.NotNull(parameterSymbol);
+            Assert.Equal(PublicNullableAnnotation.Annotated, parameterSymbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, parameterSymbol.Type.NullableAnnotation);
+
+            var mDeclaration = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First(m => m.Identifier.ValueText == "M");
+            var mSymbol = model.GetDeclaredSymbol(mDeclaration);
+            Assert.Equal(mSymbol, lambdaSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinference_NestedReinferred()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            if (o1 == null) return;
+            Create(o1, o2 => { _ = o2; _ = o1; });
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+
+            var innerLambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(innerLambda).Symbol;
+            Assert.NotNull(innerLambdaSymbol);
+            Assert.Equal(MethodKind.LambdaMethod, innerLambdaSymbol.MethodKind);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol.Parameters[0].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var o1Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .ElementAt(1)
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+
+            var o1Symbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.Annotated, o1Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o1Symbol.Type.NullableAnnotation);
+
+            var o2Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o2");
+
+            var o2Symbol = (IParameterSymbol)model.GetSymbolInfo(o2Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.Type.NullableAnnotation);
+            Assert.Equal(innerLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinference_NestedNotReinferred()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            if (o1 == null) return;
+            Action<string> a = o2 => { _ = o2; _ = o1; };
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+
+            var innerLambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(innerLambda).Symbol;
+            Assert.NotNull(innerLambdaSymbol);
+            Assert.Equal(MethodKind.LambdaMethod, innerLambdaSymbol.MethodKind);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol.Parameters[0].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var o1Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .ElementAt(1)
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+
+            var o1Symbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.Annotated, o1Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o1Symbol.Type.NullableAnnotation);
+
+            var o2Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o2");
+
+            var o2Symbol = (IParameterSymbol)model.GetSymbolInfo(o2Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.Type.NullableAnnotation);
+            Assert.Equal(innerLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38922")]
+        public void NestedLambdaReinference_LocalFunctionInLambda()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            LocalFunction(o1);
+            void LocalFunction(object? o2) 
+            {
+                _ = o2;
+            }
+        });
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+
+            var o2Reference = localFunction.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o2");
+            var o2Symbol = model.GetSymbolInfo(o2Reference).Symbol;
+
+            Assert.Equal(lambdaSymbol, localFunctionSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(localFunctionSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_SpeculativeParamReference()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => { _ = o1.ToString(); });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (9,39): warning CS8602: Dereference of a possibly null reference.
+                    //         var a = Create(o, o1 => { _ = o1.ToString(); });
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o1").WithLocation(9, 39));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var o1Ref = lambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Single()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+            var parameterSymbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+
+            var newStatement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("_ = o1;");
+            var newReference = ((AssignmentExpressionSyntax)newStatement.Expression).Right;
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(lambda.Body.SpanStart, newStatement, out var speculativeModel));
+            var info = speculativeModel.GetSymbolInfo(newReference);
+
+            Assert.Equal(parameterSymbol, info.Symbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_GetDeclaredSymbolParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => { });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+            var parameter = lambda.DescendantNodes().OfType<ParameterSyntax>().Single();
+            var paramSymbol = model.GetDeclaredSymbol(parameter);
+            Assert.Equal(lambdaSymbol, paramSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_NestedLocalDeclaration()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => 
+        {
+            var o2 = o1 ?? new object();
+            Action nested = () => { _ = o2; };
+
+            foreach (var o3 in new int[] {}) {}
+            foreach (var (o4, o5) in new (object, object)[]{}) {}
+            (var o6, var o7) = (new object(), new object());
+
+            void localFunc(out object? o)
+            {
+                o = null;
+                var o8 = new object();
+            }
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
+                    //             void localFunc(out object? o)
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+            var o2Declaration = lambda.DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var o2Symbol = model.GetDeclaredSymbol(o2Declaration);
+
+            Assert.NotNull(lambdaSymbol);
+            assertParent(o2Declaration);
+
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var innerO2Reference = innerLambda.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o2");
+            var o2Ref = model.GetSymbolInfo(innerO2Reference);
+
+            Assert.Equal(o2Symbol, o2Ref.Symbol, SymbolEqualityComparer.IncludeNullability);
+
+            var @foreach = lambda.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            assertParent(@foreach);
+
+            foreach (var singleVarDesignation in lambda.DescendantNodes().OfType<SingleVariableDesignationSyntax>())
+            {
+                assertParent(singleVarDesignation);
+            }
+
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = model.GetDeclaredSymbol(localFunction);
+
+            var o8Declaration = localFunction.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            Assert.Equal(localFunctionSymbol, model.GetDeclaredSymbol(o8Declaration).ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            void assertParent(SyntaxNode node)
+            {
+                Assert.Equal(lambdaSymbol, model.GetDeclaredSymbol(node).ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            }
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_InInitializers()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+    public static object? s_o = null;
+
+    public Action<object> f = Create(s_o ?? new object(), o1 => { 
+        var o2 = o1;
+    });
+
+    public Action<object> Prop { get; } = Create(s_o ?? new object(), o3 => { var o4 = o3; });
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var fieldLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var fieldLambdaSymbol = model.GetSymbolInfo(fieldLambda).Symbol;
+            var o1Reference = fieldLambda.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o1");
+            var o1Symbol = (IParameterSymbol)model.GetSymbolInfo(o1Reference).Symbol;
+            var o2Decl = fieldLambda.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var o2Symbol = (ILocalSymbol)model.GetDeclaredSymbol(o2Decl);
+
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o1Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o1Symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.Type.NullableAnnotation);
+            Assert.Equal(fieldLambdaSymbol, o1Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(fieldLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var propertyLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var propertyLambdaSymbol = model.GetSymbolInfo(propertyLambda).Symbol;
+            var o3Reference = propertyLambda.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o3");
+            var o3Symbol = (IParameterSymbol)model.GetSymbolInfo(o3Reference).Symbol;
+            var o4Decl = propertyLambda.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var o4Symbol = (ILocalSymbol)model.GetDeclaredSymbol(o4Decl);
+
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o3Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o3Symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o4Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o4Symbol.Type.NullableAnnotation);
+            Assert.Equal(propertyLambdaSymbol, o3Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(propertyLambdaSymbol, o4Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_PartialExplicitTypes()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+    public static Action<T> Create<T>(T t, Action<T, T, T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            if (o1 == null) return;
+            Create(o1, (o2, object o3, object? o4) => { });
+            Create(o1, (object o2, object? o3, o4) => { });
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (12,29): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                    //             Create(o1, (o2, object o3, object? o4) => { });
+                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "object").WithLocation(12, 29),
+                    // (12,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                    //             Create(o1, (o2, object o3, object? o4) => { });
+                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "object?").WithLocation(12, 40),
+                    // (13,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                    //             Create(o1, (object o2, object? o3, o4) => { });
+                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "o4").WithLocation(13, 48));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+
+            var innerLambda1 = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var innerLambdaSymbol1 = (IMethodSymbol)model.GetSymbolInfo(innerLambda1).Symbol;
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol1.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[0].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[1].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[1].Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[2].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[2].Type.NullableAnnotation);
+
+            var innerLambda2 = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var innerLambdaSymbol2 = (IMethodSymbol)model.GetSymbolInfo(innerLambda2).Symbol;
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol1.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[0].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[0].Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[1].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[1].Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[2].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[2].Type.NullableAnnotation);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_AttributeAndInitializers()
+        {
+            var source = @"
+using System;
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(object a) {}
+}
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => 
+        {
+            var o2 = o1 ?? new object();
+
+            void localFunc([A(o1)] object o3 = o2)
+            {
+                o = null;
+                var o8 = new object();
+            }
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18),
+                    // (18,28): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(o1)]").WithLocation(18, 28),
+                    // (18,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "o1").WithLocation(18, 31),
+                    // (18,48): error CS1736: Default parameter value for 'o3' must be a compile-time constant
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "o2").WithArguments("o3").WithLocation(18, 48));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
+            var o1Decl = lambda.Parameter;
+            var o1Symbol = model.GetDeclaredSymbol(o1Decl);
+            var o2Decl = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            var o2Symbol = model.GetDeclaredSymbol(o2Decl);
+
+            var o1Ref = root.DescendantNodes().OfType<AttributeArgumentSyntax>().Last().Expression;
+            var o1RefSymbol = model.GetSymbolInfo(o1Ref).Symbol;
+
+            var o2Ref = root.DescendantNodes().OfType<ParameterSyntax>().Last().Default.Value;
+            var o2RefSymbol = model.GetSymbolInfo(o2Ref).Symbol;
+
+            Assert.Equal(o1Symbol, o1RefSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(o2Symbol, o2RefSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+
+            var speculativeAttribute = SyntaxFactory.Attribute(SyntaxFactory.ParseName("A"), SyntaxFactory.ParseAttributeArgumentList("(o2)"));
+            var speculativeO2Ref = speculativeAttribute.DescendantNodes().OfType<AttributeArgumentSyntax>().Single().Expression;
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.SpanStart, speculativeAttribute, out var speculativeModel));
+            Assert.Equal(o2Symbol, speculativeModel.GetSymbolInfo(speculativeO2Ref).Symbol, SymbolEqualityComparer.IncludeNullability);
+
+            var speculativeInitializer = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("o1"));
+            var speculativeO1Ref = speculativeInitializer.Value;
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.ParameterList.Parameters[0].Default.SpanStart, speculativeInitializer, out speculativeModel));
+            Assert.Equal(o1Symbol, speculativeModel.GetSymbolInfo(speculativeO1Ref).Symbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void LookupSymbols_ReinferredSymbols()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => 
+        {
+            var o2 = o1 ?? new object();
+            Action nested = () => { _ = o2; };
+
+            foreach (var o3 in new int[] {}) {}
+            foreach (var (o4, o5) in new (object, object)[]{}) {}
+            (var o6, var o7) = (new object(), new object());
+
+            void localFunc(out object? o)
+            {
+                o = null;
+                var o8 = new object();
+            }
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
+                    //             void localFunc(out object? o)
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = model.GetDeclaredSymbol(localFunction);
+
+            var position = localFunction.DescendantNodes().OfType<VariableDeclarationSyntax>().Single().Span.End;
+
+            var lookupResults = model.LookupSymbols(position);
+
+            var o2Result = lookupResults.OfType<ILocalSymbol>().First(l => l.Name == "o2");
+            var o8Result = lookupResults.OfType<ILocalSymbol>().First(l => l.Name == "o8");
+            Assert.Equal(lambdaSymbol, o2Result.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(localFunctionSymbol, o8Result.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var o1Result = lookupResults.OfType<IParameterSymbol>().First(p => p.Name == "o1");
+            var oResult = lookupResults.OfType<IParameterSymbol>().First(p => p.Name == "o");
+            Assert.Equal(lambdaSymbol, o1Result.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(localFunctionSymbol, oResult.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var localFunctionResult = lookupResults.OfType<IMethodSymbol>().First(m => m.MethodKind == MethodKind.LocalFunction);
+            Assert.Equal(localFunctionSymbol, localFunctionResult, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38922")]
+        public void LocalFunction_GenericTypeParameters()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+	public static T[] Create<T>(T t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            LocalFunction(o1);
+            T LocalFunction<T>(T t) 
+            {
+                _ = Create(t); // Type argument for Create needs to be reparented
+				var d = new D<T>(); // Type argument in D's substituted type needs to be reparented
+				d.DoSomething(t); // Argument of the function needs to be reparented
+                var f = SecondFunction(); // Return type of nested function needs to be reparented
+				return d.Prop; // Return type needs to be reparented
+                T SecondFunction() { return t; }
+            }
+        });
+    }
+}
+class D<T>
+{
+	public void DoSomething(T t) => throw null!;
+	public T Prop { get; } = default!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
+            var localFunctionSymbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+            var nestedLocalFunction = (IMethodSymbol)model.GetDeclaredSymbol(lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().ElementAt(1));
+
+            var typeParameters = localFunctionSymbol.TypeParameters[0];
+            Assert.Same(localFunctionSymbol, typeParameters.ContainingSymbol);
+        }
+
+        [Fact]
+        public void SpeculativeModel_InAttribute()
+        {
+            var source = @"
+using System;
+[AttributeUsage(AttributeTargets.ReturnValue)]
+class Attr : Attribute
+{
+    public Attr(string Test) {}
+}
+class Test
+{
+    const string Constant = ""Test"";
+    [return: Attr(""Test"")]
+    void M() {}
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var attributeUsage = root.DescendantNodes().OfType<AttributeSyntax>().ElementAt(1);
+            var newAttributeUsage = SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr"), SyntaxFactory.ParseAttributeArgumentList("(Constant)"));
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(attributeUsage.SpanStart, newAttributeUsage, out var specModel));
+            Assert.NotNull(specModel);
+
+            var symbolInfo = specModel.GetSymbolInfo(newAttributeUsage.ArgumentList.Arguments[0].Expression);
+            Assert.Equal(SpecialType.System_String, ((IFieldSymbol)symbolInfo.Symbol).Type.SpecialType);
         }
     }
 }

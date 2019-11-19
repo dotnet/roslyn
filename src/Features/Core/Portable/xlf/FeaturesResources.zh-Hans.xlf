@@ -187,6 +187,11 @@
         <target state="translated">丢失范围之前释放对象</target>
         <note />
       </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">编辑并继续</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">生成参数 {0}(和重写/实现)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -547,6 +557,11 @@
         <target state="needs-review-translation">使用推荐的 Dispose 模式以确保在所有路径中释放局部可释放对象。如果可能，请将创建包装在 "using" 语句或 "using" 声明中。否则，请使用 try-finally 模式，在 try 区域之前声明一个专用的局部变量，在 "finally" 区域中对非 null 值进行无条件 Dispose 调用，比如，"x?.Dispose()"。如果对象显式释放在 try 区域内或释放所有权转让给另一个对象或方法，则在这样的操作之后立即将 "null" 分配给局部变量，以防止在 "finally" 中进行双重释放。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">对 lambda 表达式使用块正文</target>
@@ -690,6 +705,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} 可以简化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

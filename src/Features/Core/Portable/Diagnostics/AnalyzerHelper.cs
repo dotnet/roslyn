@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 warningLevel: 0,
                 projectId: projectId,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty);
+                properties: ImmutableDictionary<string, string>.Empty,
+                language: language);
         }
 
         private static bool TryGetErrorMessage(
@@ -441,13 +442,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnostics = await analyzerDriverOpt.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
                         LogSyntaxInfo(diagnostics, tree);
 
-                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     case AnalysisKind.Semantic:
                         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         diagnostics = await analyzerDriverOpt.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, oneAnalyzers, cancellationToken).ConfigureAwait(false);
 
-                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     default:
                         return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");

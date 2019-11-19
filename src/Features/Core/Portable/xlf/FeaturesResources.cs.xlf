@@ -187,6 +187,11 @@
         <target state="translated">Uvolňujte objekty před ztrátou oboru</target>
         <note />
       </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">Upravit a pokračovat</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">Generovat parametr {0} (a přepsání/implementace)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -547,6 +557,11 @@
         <target state="needs-review-translation">Použijte doporučený vzor vyřazení, abyste měli jistotu, že objekty, které lze vyřadit v místním oboru, se vyřadí na všech cestách. Pokud je to možné, zabalte vytváření do příkazu nebo deklarace using. Jinak použijte vzor try-finally s vyhrazenou místní proměnnou deklarovanou před oblastí try a nepodmíněným voláním Dispose pro hodnotu, která není null, v oblasti finally, třeba x?.Dispose(). Pokud se objekt explicitně vyřadí v oblasti try nebo se vlastnictví vyřazení převede na jiný objekt nebo metodu, přiřaďte ihned po takové operaci místní proměnné hodnotu null, aby ve finally nedošlo k dvojímu vyřazení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Pro lambda výrazy používat text bloku</target>
@@ -690,6 +705,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} se dá zjednodušit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

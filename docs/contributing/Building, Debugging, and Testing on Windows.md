@@ -18,7 +18,8 @@ The minimal required version of .NET Framework is 4.7.2.
 1. [Visual Studio 2019 16.3](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "16.3" or greater
-    - Ensure "Use Previews" is checked in Tools -> Options -> Projects and Solutions -> .NET Core
+    - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
+    - Restart Visual Studio
 1. [.NET Core SDK 3.0](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-3.0.100-windows-x64-installer )
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd

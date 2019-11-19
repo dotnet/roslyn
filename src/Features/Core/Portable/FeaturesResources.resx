@@ -315,6 +315,9 @@
   <data name="parameter" xml:space="preserve">
     <value>parameter</value>
   </data>
+  <data name="discard" xml:space="preserve">
+    <value>discard</value>
+  </data>
   <data name="in_" xml:space="preserve">
     <value>in</value>
   </data>
@@ -1671,6 +1674,9 @@ This version used in: {2}</value>
   <data name="ChangesNotAppliedWhileRunning" xml:space="preserve">
     <value>Changes made in project '{0}' will not be applied while the application is running</value>
   </data>
+  <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
+    <value>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</value>
+  </data>
   <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
     <value>Changes are not allowed while stopped at exception</value>
   </data>
@@ -1710,6 +1716,12 @@ This version used in: {2}</value>
   </data>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
+  </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
   </data>
   <data name="Unwrap_element_list" xml:space="preserve">
     <value>Unwrap element list</value>

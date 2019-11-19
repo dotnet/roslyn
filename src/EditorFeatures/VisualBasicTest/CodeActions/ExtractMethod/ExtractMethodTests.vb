@@ -635,5 +635,222 @@ End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBa
 
         End Function
 
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalse() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).ConfigureAwait(False)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(False)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitTrue() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).ConfigureAwait(True)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(True)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitNonLiteral() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).ConfigureAwait(M())|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(M())
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithNoConfigureAwait() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalseInLambda() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Run(Async Function () Await Task.Delay(duration).ConfigureAwait(False))|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Run(Async Function() Await Task.Delay(duration).ConfigureAwait(False))
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalseDifferentCase() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).configureawait(False)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).configureawait(False)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitMixture1() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).ConfigureAwait(False)
+        Await Task.Delay(duration).ConfigureAwait(True)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(False)
+        Await Task.Delay(duration).ConfigureAwait(True)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitMixture2() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).ConfigureAwait(True)
+        Await Task.Delay(duration).ConfigureAwait(False)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(True)
+        Await Task.Delay(duration).ConfigureAwait(False)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitMixture3() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).ConfigureAwait(M())
+        Await Task.Delay(duration).ConfigureAwait(False)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(M())
+        Await Task.Delay(duration).ConfigureAwait(False)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(False)
+        [|Await Task.Delay(duration).ConfigureAwait(True)|]
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(False)
+        Await {|Rename:NewMethod|}(duration)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+        Await Task.Delay(duration).ConfigureAwait(True)
+    End Function
+End Class")
+        End Function
     End Class
 End Namespace

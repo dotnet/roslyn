@@ -187,6 +187,11 @@
         <target state="translated">Descartar objetos antes de perder o escopo</target>
         <note />
       </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">Editar e Continuar</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">Gerar o parâmetro '{0}' (e as substituições/implementações)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -547,6 +557,11 @@
         <target state="needs-review-translation">Use o padrão de descarte recomendado para garantir que os objetos descartáveis no escopo local sejam descartados em todos os caminhos. Se possível, encapsule a criação em uma instrução 'using' ou em uma declaração 'using'. Caso contrário, use um padrão try-finally, com uma variável local dedicada declarada antes da região try e uma invocação de Dispose incondicional em um valor que não seja nulo na região 'finally', como x?.Dispose()'. Se o objeto for descartado explicitamente dentro da região try ou se a propriedade de descarte for transferida para outro objeto ou método, atribua 'null' à variável local logo após essa operação para evitar um descarte duplo em 'finally'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usar o corpo do bloco para expressões lambda</target>
@@ -690,6 +705,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} pode ser simplificado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

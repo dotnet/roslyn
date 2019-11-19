@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension>
         Friend Function ContainingNonLambdaMember(member As Symbol) As Symbol
-            While member?.Kind = SymbolKind.Method AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
+            While (member?.Kind = SymbolKind.Method).GetValueOrDefault() AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
                 member = member.ContainingSymbol
             End While
 

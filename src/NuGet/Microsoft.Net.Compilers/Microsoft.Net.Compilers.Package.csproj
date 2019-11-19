@@ -6,14 +6,15 @@
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- https://github.com/NuGet/Home/issues/8583 -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
-      .NET Compilers package.
-      Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
+      Note: This package is deprecated. Please use Microsoft.Net.Compilers.Toolset instead
 
-      This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.7.2+ Full Framework.
+      .NET Compilers package.
+      Referencing this package will cause the project to be built using the C# and Visual Basic compilers contained in the package, as opposed to the version installed with MSBuild.
+
+      The tools in this package require .NET Framework 4.7.2+ 
+
       $(RoslynPackageDescriptionDetails)
     </PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <remarks>
     /// https://github.com/dotnet/roslyn/issues/30067 Should
     /// UnassignedFieldsWalker inherit from <see
-    /// cref="LocalDataFlowPass{TLocalState}"/> directly since it has simpler
+    /// cref="LocalDataFlowPass{TLocalState, TLocalFunctionState}"/> directly since it has simpler
     /// requirements than <see cref="DefiniteAssignmentPass"/>?
     /// </remarks>
     internal sealed class UnassignedFieldsWalker : DefiniteAssignmentPass
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = (MethodSymbol)_symbol;
-            bool isStatic = method.IsStatic;
+            bool isStatic = !method.RequiresInstanceReceiver();
 
             int thisSlot = -1;
 
@@ -88,10 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 method.TryGetThisParameter(out var thisParameter);
                 thisSlot = VariableSlot(thisParameter);
-                if (thisSlot == -1)
-                {
-                    return;
-                }
+                Debug.Assert(thisSlot > 0);
             }
 
             var containingType = method.ContainingType;
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            int slot = VariableSlot(symbol, thisSlot);
+            int slot = VariableSlot(symbol, symbol.IsStatic ? 0 : thisSlot);
             return slot > 0 && this.State.IsAssigned(slot);
         }
 

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState>
+    internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState, ControlFlowPass.LocalFunctionState>
     {
         private readonly PooledDictionary<LabelSymbol, BoundBlock> _labelsDefined = PooledDictionary<LabelSymbol, BoundBlock>.GetInstance();
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
@@ -62,11 +62,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void Meet(ref LocalState self, ref LocalState other)
+        internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
+            public LocalFunctionState(LocalState unreachableState)
+                : base(unreachableState)
+            { }
+        }
+
+        protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
+
+        protected override bool Meet(ref LocalState self, ref LocalState other)
+        {
+            var old = self;
             self.Alive &= other.Alive;
             self.Reported &= other.Reported;
             Debug.Assert(!self.Alive || !self.Reported);
+            return self.Alive != old.Alive;
         }
 
         protected override bool Join(ref LocalState self, ref LocalState other)
@@ -376,6 +387,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _usingDeclarations.Clip(initialUsingCount);
             _currentBlock = parentBlock;
             return result;
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
+        {
+            return null;
         }
     }
 }

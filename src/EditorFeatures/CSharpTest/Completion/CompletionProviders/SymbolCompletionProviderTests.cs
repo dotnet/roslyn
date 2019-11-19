@@ -1509,6 +1509,18 @@ $$";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LambdaDiscardParameters()
+        {
+            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = (int _, string _) => 1 + $$", "_");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AnonymousMethodDiscardParameters()
+        {
+            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = delegate(int _, string _) { return 1 + $$ }; } }", "_");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommonTypesInNewExpressionContext()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class c { void M() { new $$"), "Exception");
@@ -7179,6 +7191,89 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpression()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task M()
+        {
+            var request = new Request();
+            var m = await request.$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "ReadAsStreamAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpressionWithParentheses()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task M()
+        {
+            var request = new Request();
+            var m = (await request).$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+            // Nothing should be found: no awaiter for request.
+            await VerifyItemIsAbsentAsync(markup, "Result");
+            await VerifyItemIsAbsentAsync(markup, "ReadAsStreamAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpressionWithTaskAndParentheses()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task M()
+        {
+            var request = new Task<Request>();
+            var m = (await request).$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Result");
+            await VerifyItemExistsAsync(markup, "ReadAsStreamAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObsoleteItem()
         {
             var markup = @"
@@ -10045,6 +10140,52 @@ namespace ThenIncludeIntellisenseBug
 
             await VerifyItemExistsAsync(markup, "Task");
             await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaWithOverloads()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace ClassLibrary1
+{
+    class SomeItem
+    {
+        public string A;
+        public int B;
+    }
+    class SomeCollection<T> : List<T>
+    {
+        public virtual SomeCollection<T> Include(string path) => null;
+    }
+
+    static class Extensions
+    {
+        public static IList<T> Include<T, TProperty>(this IList<T> source, Expression<Func<T, TProperty>> path)
+            => null;
+
+        public static IList Include(this IList source, string path) => null;
+
+        public static IList<T> Include<T>(this IList<T> source, string path) => null;
+    }
+
+    class Program 
+    {
+        void M(SomeCollection<SomeItem> c)
+        {
+            var a = from m in c.Include(t => t.$$);
+        }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Substring");
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

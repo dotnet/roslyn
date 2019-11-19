@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 if (kvp.Key.Contains(localFunctionName))
                 {
                     Assert.Null(result); // more than one name matched
-                    result = kvp.Value.Method;
+                    result = ((MethodSymbol)kvp.Value.Method).GetPublicSymbol();
                 }
             }
             Assert.NotNull(result); // no methods matched
@@ -2571,9 +2571,8 @@ Console.Write(goo(2));
             var verify = VerifyOutputInMain(source, "2", "System");
             var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.False(goo.IsStatic);
-            Assert.Equal("<>c", goo.ContainingType.Name);
-            Assert.Equal(program, goo.ContainingType.ContainingType);
+            Assert.True(goo.IsStatic);
+            Assert.Equal(program, goo.ContainingType);
         }
 
         [Fact]

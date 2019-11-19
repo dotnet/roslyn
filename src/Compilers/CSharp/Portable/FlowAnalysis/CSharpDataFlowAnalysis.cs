@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -367,10 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<ISymbol> Normalize(IEnumerable<Symbol> data)
         {
-            var builder = ArrayBuilder<Symbol>.GetInstance();
-            builder.AddRange(data.Where(s => s.CanBeReferencedByName));
-            builder.Sort(LexicalOrderSymbolComparer.Instance);
-            return builder.ToImmutableAndFree().As<ISymbol>();
+            return ImmutableArray.CreateRange(data.Where(s => s.CanBeReferencedByName).OrderBy(s => s, LexicalOrderSymbolComparer.Instance).GetPublicSymbols());
         }
     }
 }

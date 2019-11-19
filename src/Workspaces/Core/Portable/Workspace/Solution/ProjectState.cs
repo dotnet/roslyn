@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
-            // holding on. otherwise, these information will be held onto unnecesarily by projectInfo even after
+            // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
             // the info has changed by DocumentState.
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
-            // holding on. otherwise, these information will be held onto unnecesarily by projectInfo even after
+            // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
             // the info has changed by DocumentState.
             // we hold onto the info so that we don't need to duplicate all information info already has in the state
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
@@ -426,6 +426,9 @@ namespace Microsoft.CodeAnalysis
         public bool HasAllInformation => this.ProjectInfo.HasAllInformation;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public bool RunAnalyzers => this.ProjectInfo.RunAnalyzers;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool HasDocuments => _documentIds.Count > 0;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -608,6 +611,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.With(projectInfo: this.ProjectInfo.WithHasAllInformation(hasAllInformation).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateRunAnalyzers(bool runAnalyzers)
+        {
+            if (runAnalyzers == this.RunAnalyzers)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithRunAnalyzers(runAnalyzers).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)

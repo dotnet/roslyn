@@ -1,12 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ObjectExtensions
     {
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -29,11 +33,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -61,11 +66,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -98,11 +104,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -140,11 +147,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -232,11 +240,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -329,11 +338,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TDerivedType18, TDerivedType19, TDerivedType20, TDerivedType21, TDerivedType22, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TDerivedType18, TResult> matchFunc18, Func<TDerivedType19, TResult> matchFunc19, Func<TDerivedType20, TResult> matchFunc20, Func<TDerivedType21, TResult> matchFunc21, Func<TDerivedType22, TResult> matchFunc22, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TDerivedType18, TDerivedType19, TDerivedType20, TDerivedType21, TDerivedType22, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TDerivedType18, TResult> matchFunc18, Func<TDerivedType19, TResult> matchFunc19, Func<TDerivedType20, TResult> matchFunc20, Func<TDerivedType21, TResult> matchFunc21, Func<TDerivedType22, TResult> matchFunc22, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -451,11 +461,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TDerivedType18, TDerivedType19, TDerivedType20, TDerivedType21, TDerivedType22, TDerivedType23, TDerivedType24, TDerivedType25, TDerivedType26, TDerivedType27, TDerivedType28, TDerivedType29, TDerivedType30, TDerivedType31, TDerivedType32, TDerivedType33, TDerivedType34, TDerivedType35, TDerivedType36, TDerivedType37, TDerivedType38, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TDerivedType18, TResult> matchFunc18, Func<TDerivedType19, TResult> matchFunc19, Func<TDerivedType20, TResult> matchFunc20, Func<TDerivedType21, TResult> matchFunc21, Func<TDerivedType22, TResult> matchFunc22, Func<TDerivedType23, TResult> matchFunc23, Func<TDerivedType24, TResult> matchFunc24, Func<TDerivedType25, TResult> matchFunc25, Func<TDerivedType26, TResult> matchFunc26, Func<TDerivedType27, TResult> matchFunc27, Func<TDerivedType28, TResult> matchFunc28, Func<TDerivedType29, TResult> matchFunc29, Func<TDerivedType30, TResult> matchFunc30, Func<TDerivedType31, TResult> matchFunc31, Func<TDerivedType32, TResult> matchFunc32, Func<TDerivedType33, TResult> matchFunc33, Func<TDerivedType34, TResult> matchFunc34, Func<TDerivedType35, TResult> matchFunc35, Func<TDerivedType36, TResult> matchFunc36, Func<TDerivedType37, TResult> matchFunc37, Func<TDerivedType38, TResult> matchFunc38, Func<TBaseType, TResult> defaultFunc = null)
+        [return: MaybeNull]
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TDerivedType18, TDerivedType19, TDerivedType20, TDerivedType21, TDerivedType22, TDerivedType23, TDerivedType24, TDerivedType25, TDerivedType26, TDerivedType27, TDerivedType28, TDerivedType29, TDerivedType30, TDerivedType31, TDerivedType32, TDerivedType33, TDerivedType34, TDerivedType35, TDerivedType36, TDerivedType37, TDerivedType38, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TDerivedType18, TResult> matchFunc18, Func<TDerivedType19, TResult> matchFunc19, Func<TDerivedType20, TResult> matchFunc20, Func<TDerivedType21, TResult> matchFunc21, Func<TDerivedType22, TResult> matchFunc22, Func<TDerivedType23, TResult> matchFunc23, Func<TDerivedType24, TResult> matchFunc24, Func<TDerivedType25, TResult> matchFunc25, Func<TDerivedType26, TResult> matchFunc26, Func<TDerivedType27, TResult> matchFunc27, Func<TDerivedType28, TResult> matchFunc28, Func<TDerivedType29, TResult> matchFunc29, Func<TDerivedType30, TResult> matchFunc30, Func<TDerivedType31, TResult> matchFunc31, Func<TDerivedType32, TResult> matchFunc32, Func<TDerivedType33, TResult> matchFunc33, Func<TDerivedType34, TResult> matchFunc34, Func<TDerivedType35, TResult> matchFunc35, Func<TDerivedType36, TResult> matchFunc36, Func<TDerivedType37, TResult> matchFunc37, Func<TDerivedType38, TResult> matchFunc38, Func<TBaseType, TResult>? defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -653,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default;
+                return default!;
             }
         }
     }

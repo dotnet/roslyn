@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -16,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private readonly StringBuilder _builder;
 
-        private readonly Encoding _encodingOpt;
+        private readonly Encoding? _encodingOpt;
 
-        public StringBuilderText(StringBuilder builder, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
+        public StringBuilderText(StringBuilder builder, Encoding? encodingOpt, SourceHashAlgorithm checksumAlgorithm)
              : base(checksumAlgorithm: checksumAlgorithm)
         {
-            Debug.Assert(builder != null);
+            RoslynDebug.Assert(builder != null);
 
             _builder = builder;
             _encodingOpt = encodingOpt;
         }
 
-        public override Encoding Encoding
+        public override Encoding? Encoding
         {
             get { return _encodingOpt; }
         }

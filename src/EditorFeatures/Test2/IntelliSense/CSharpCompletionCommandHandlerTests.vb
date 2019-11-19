@@ -3018,6 +3018,176 @@ class C
 
         End Function
 
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround3() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class TARIFE { }
+        class C
+        {
+            void goo(int x)
+            {
+                var t = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARIFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround4() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class IFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              IFADE ifade = null;
+              $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround5() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class İFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              İFADE ifade = null;
+                $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround6() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class TARİFE { }
+        class C
+        {
+            void goo(int x)
+            {
+                var obj = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARİFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround7() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class İFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              var obj = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("İFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround8() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class IFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              var obj = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("IFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround9() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class IFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              IFADE ifade = null;
+              $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround10() As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class İFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              İFADE ifade = null;
+                $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TargetTypePreselection1() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4027,7 +4197,7 @@ class C
 }]]></Document>, {provider})
 
                 Dim testDocument = state.Workspace.Documents(0)
-                Dim textBuffer = testDocument.TextBuffer
+                Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
                 provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
@@ -4092,7 +4262,7 @@ class C
 }]]></Document>, {provider})
 
                 Dim testDocument = state.Workspace.Documents(0)
-                Dim textBuffer = testDocument.TextBuffer
+                Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
                 provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
@@ -4971,7 +5141,7 @@ namespace NS2
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39070"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderWithImportCompletionDisabled() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -5858,7 +6028,7 @@ namespace NS2
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsByPatternMatchIfExperimentEnabled() As Task
+        Public Async Function SortItemsByPatternMatch() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace NS
@@ -5887,9 +6057,6 @@ namespace NS
 
                 state.Workspace.Options = state.Workspace.Options _
                     .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
-
-                Dim experimentService = state.GetService(Of TestExperimentationService)()
-                experimentService.SetExperimentOption(WellKnownExperimentNames.SortCompletionListByMatch, True)
 
                 state.SendTypeChars("task")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -5905,61 +6072,6 @@ namespace NS
                         "BTask2",
                         "BTask3",
                         "ATaAaSaKa"
-                    }
-
-                state.AssertItemsInOrder(expectedOrder)
-            End Using
-        End Function
-
-        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsAlphabeticallyIfExperimentDisabled() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                              <Document>
-namespace NS
-{
-    class C
-    {
-        void M()
-        {
-            $$
-        }
-    }
-
-    class Task { }
-
-    class BTask1 { }
-    class BTask2 { }
-    class BTask3 { }
-
-
-    class Task1 { }
-    class Task2 { }
-    class Task3 { }
-
-    class ATaAaSaKa { }
-} </Document>, extraExportedTypes:={GetType(TestExperimentationService)}.ToList())
-
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
-
-                Dim experimentService = state.GetService(Of TestExperimentationService)()
-                experimentService.SetExperimentOption(WellKnownExperimentNames.SortCompletionListByMatch, False)
-
-                state.SendTypeChars("task")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Task")
-
-                Dim expectedOrder =
-                    {
-                        "ATaAaSaKa",
-                        "BTask1",
-                        "BTask2",
-                        "BTask3",
-                        "Task",
-                        "Task1",
-                        "Task2",
-                        "Task3"
                     }
 
                 state.AssertItemsInOrder(expectedOrder)

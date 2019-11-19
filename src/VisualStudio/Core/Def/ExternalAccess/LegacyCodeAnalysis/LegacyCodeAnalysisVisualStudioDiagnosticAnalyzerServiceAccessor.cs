@@ -26,5 +26,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
 
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy hierarchyOpt)
             => _implementation.GetAllDiagnosticDescriptors(hierarchyOpt);
+
+        public void RunAnalyzers(IVsHierarchy hierarchyOpt)
+            => _implementation.RunAnalyzers(hierarchyOpt);
     }
 }

@@ -57,13 +57,13 @@ End Class
                     <Document>
 {|S1: &lt;html&gt;@|}
 {|S2:|}
-                    </Document>.NormalizedValue, {subjectDocument}, LanguageNames.VisualBasic, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                    </Document>.NormalizedValue, {subjectDocument}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim topProjectionBuffer = state.Workspace.CreateProjectionBufferDocument(
                 <Document>
 {|S1:|}
 {|S2:&lt;/html&gt;|}
-                              </Document>.NormalizedValue, {firstProjection}, LanguageNames.VisualBasic, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                              </Document>.NormalizedValue, {firstProjection}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim view = topProjectionBuffer.GetTextView()
                 Dim buffer = subjectDocument.GetTextBuffer()
@@ -92,13 +92,13 @@ End Class
                     <Document>
 {|S1: &lt;html&gt;@|}
 {|S2:|}
-                    </Document>.NormalizedValue, {subjectDocument}, LanguageNames.CSharp, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                    </Document>.NormalizedValue, {subjectDocument}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim topProjectionBuffer = state.Workspace.CreateProjectionBufferDocument(
                 <Document>
 {|S1:|}
 {|S2:&lt;/html&gt;|}
-                              </Document>.NormalizedValue, {firstProjection}, LanguageNames.CSharp, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                              </Document>.NormalizedValue, {firstProjection}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim view = topProjectionBuffer.GetTextView()
                 Dim buffer = subjectDocument.GetTextBuffer()

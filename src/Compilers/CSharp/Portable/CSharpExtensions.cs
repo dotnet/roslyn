@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis
             return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
         }
 
+        internal static bool IsUnderscoreToken(this SyntaxToken identifier)
+        {
+            return identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
+        }
+
         /// <summary>
         /// Returns the index of the first node of a specified kind in the node list.
         /// </summary>
@@ -1152,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
-                return csmodel.ClassifyConversion(expression, (TypeSymbol)destination, isExplicitInSource);
+                return csmodel.ClassifyConversion(expression, destination, isExplicitInSource);
             }
             else
             {
@@ -1170,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
-                return csmodel.ClassifyConversion(position, expression, (TypeSymbol)destination, isExplicitInSource);
+                return csmodel.ClassifyConversion(position, expression, destination, isExplicitInSource);
             }
             else
             {
