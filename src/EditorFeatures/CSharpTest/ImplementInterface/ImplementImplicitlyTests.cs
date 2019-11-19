@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
     {
-        private const int SingleMember = 1;
-        private const int SameInterface = 2;
-        private const int AllInterfaces = 3;
+        private const int SingleMember = 0;
+        private const int SameInterface = 1;
+        private const int AllInterfaces = 2;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpImplementImplicitlyCodeRefactoringProvider();
@@ -175,6 +175,32 @@ class C : IGoo
 {
     void IGoo.[||]Goo1() { }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestCollision()
+        {
+            // Currently we don't do anything special here.  But we just test here to make sure we
+            // don't blow up here.
+            await TestInRegularAndScriptAsync(
+@"
+interface IGoo { void Goo1(); }
+
+class C : IGoo
+{
+    void IGoo.[||]Goo1() { }
+
+    private void Goo1() { }
+}",
+@"
+interface IGoo { void Goo1(); }
+
+class C : IGoo
+{
+    public void Goo1() { }
+
+    private void Goo1() { }
+}", index: SingleMember);
         }
     }
 }

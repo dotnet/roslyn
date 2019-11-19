@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
     {
-        private const int SingleMember = 1;
-        private const int SameInterface = 2;
-        private const int AllInterfaces = 3;
+        private const int SingleMember = 0;
+        private const int SameInterface = 1;
+        private const int AllInterfaces = 2;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpImplementExplicitlyCodeRefactoringProvider();
