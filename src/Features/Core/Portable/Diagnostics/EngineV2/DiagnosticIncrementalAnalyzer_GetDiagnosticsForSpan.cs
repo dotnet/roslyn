@@ -70,15 +70,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //         Here we don't filter out hidden diagnostic only analyzer since such analyzer can produce hidden diagnostic
                 //         on active file (non local diagnostic)
                 var stateSets = owner._stateManager
-                                     .GetOrCreateStateSets(document.Project).Where(s => !owner.Owner.IsAnalyzerSuppressed(s.Analyzer, document.Project));
+                                     .GetOrCreateStateSets(document.Project).Where(s => !owner.AnalyzerService.IsAnalyzerSuppressed(s.Analyzer, document.Project));
 
                 // filter to specific diagnostic it is looking for
                 if (diagnosticIdOpt != null)
                 {
-                    stateSets = stateSets.Where(s => owner.Owner.GetDiagnosticDescriptors(s.Analyzer).Any(d => d.Id == diagnosticIdOpt)).ToList();
+                    stateSets = stateSets.Where(s => owner.AnalyzerService.GetDiagnosticDescriptors(s.Analyzer).Any(d => d.Id == diagnosticIdOpt)).ToList();
                 }
 
-                var analyzerDriverOpt = await owner._compilationManager.CreateAnalyzerDriverAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await owner.CreateAnalyzerDriverAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(owner, analyzerDriverOpt, document, stateSets, diagnosticIdOpt, range, blockForData, includeSuppressedDiagnostics);
             }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
-                return _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _document, analyzer, AnalysisKind.Syntax, _range, cancellationToken);
+                return _owner.ComputeDiagnosticsAsync(_analyzerDriverOpt, _document, analyzer, AnalysisKind.Syntax, _range, cancellationToken);
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var supportsSemanticInSpan = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
 
                 var analysisSpan = supportsSemanticInSpan ? (TextSpan?)_range : null;
-                return _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _document, analyzer, AnalysisKind.Semantic, analysisSpan, cancellationToken);
+                return _owner.ComputeDiagnosticsAsync(_analyzerDriverOpt, _document, analyzer, AnalysisKind.Semantic, analysisSpan, cancellationToken);
             }
 
             private async Task<IEnumerable<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     // execute whole project as one shot and cache the result.
                     var forceAnalyzerRun = true;
-                    var analysisResult = await _owner._executor.GetProjectAnalysisDataAsync(_analyzerDriverOpt, _project, _stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                    var analysisResult = await _owner.GetProjectAnalysisDataAsync(_analyzerDriverOpt, _project, _stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
 
                     _projectResultCache = analysisResult.Result;
                 }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 List<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                if (!_owner.Owner.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind))
+                if (!_owner.AnalyzerService.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind))
                 {
                     return true;
                 }

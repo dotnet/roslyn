@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var analyzerDriverOpt = await _compilationManager.GetAnalyzerDriverAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await GetAnalyzerDriverAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
                     var analyzer = stateSet.Analyzer;
 
-                    var result = await _executor.GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                    var result = await GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
                     if (result.FromCache)
                     {
                         RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
                 }
 
-                var asyncToken = Owner.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
+                var asyncToken = AnalyzerService.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
                 var _ = ReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).CompletesAsyncOperation(asyncToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             // Perf optimization. check whether we want to analyze this project or not.
-            if (!Executor.FullAnalysisEnabled(project, forceAnalyzerRun: false))
+            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false))
             {
                 return;
             }
@@ -98,14 +98,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project) &&
+                                        .Where(a => !AnalyzerService.IsAnalyzerSuppressed(a, project) &&
                                                     !a.IsOpenFileOnly(project.Solution.Workspace));
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
-                var analyzerDriverOpt = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                var result = await GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)
                 {
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(document.Project);
 
                 // let other component knows about this event
-                _compilationManager.OnDocumentOpened();
+                ClearAnalyzerDriverMap();
                 await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(document.Project);
 
                 // let other components knows about this event
-                _compilationManager.OnDocumentClosed();
+                ClearAnalyzerDriverMap();
                 await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(document.Project);
 
                 // let other components knows about this event
-                _compilationManager.OnDocumentReset();
+                ClearAnalyzerDriverMap();
                 _stateManager.OnDocumentReset(stateSets, document);
             }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
 
                 // let other components knows about this event
-                _compilationManager.OnDocumentRemoved();
+                ClearAnalyzerDriverMap();
                 var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
 
                 // if there was no diagnostic reported for this document, nothing to clean up
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // remove all diagnostics for the document
-                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
                 {
                     Solution nullSolution = null;
                     foreach (var stateSet in stateSets)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(projectId);
 
                 // let other components knows about this event
-                _compilationManager.OnProjectRemoved();
+                ClearAnalyzerDriverMap();
                 var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
 
                 // if there was no diagnostic reported for this project, nothing to clean up
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // remove all diagnostics for the project
-                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
                 {
                     Solution nullSolution = null;
                     foreach (var stateSet in stateSets)
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             // let other components knows about this event
-            _compilationManager.OnNewSolution();
+            ClearAnalyzerDriverMap();
 
             return Task.CompletedTask;
         }
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            return Owner.HasNonHiddenDescriptor(analyzer, project);
+            return AnalyzerService.HasNonHiddenDescriptor(analyzer, project);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 foreach (var stateSet in stateSets)
                 {
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
         {
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, Owner.RaiseDiagnosticsUpdated, forceUpdate: false);
+            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, AnalyzerService.RaiseDiagnosticsUpdated, forceUpdate: false);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 await client.TryRunCodeAnalysisRemoteAsync(
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
+                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(AnalyzerService), /* unit count */ 1 },
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))

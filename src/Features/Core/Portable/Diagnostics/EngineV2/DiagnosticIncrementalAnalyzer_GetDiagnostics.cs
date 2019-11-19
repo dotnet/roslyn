@@ -393,10 +393,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
-                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await Owner.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 var forceAnalyzerRun = true;
-                var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                var result = await Owner.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
             {
                 // REVIEW: this can be expensive. any way to do this cheaper?
-                var diagnosticService = Owner.Owner;
+                var diagnosticService = Owner.AnalyzerService;
                 if (diagnosticService.IsAnalyzerSuppressed(stateSet.Analyzer, project))
                 {
                     return false;
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // Here, we don't care what kind of analyzer (StateSet) is given. 
                 // We just create and use AnalyzerDriver with the given analyzer (StateSet). 
                 var forceAnalyzerRun = true;
-                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await Owner.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 if (documentId != null)
                 {
@@ -455,12 +455,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         case AnalysisKind.Syntax:
                         case AnalysisKind.Semantic:
                             {
-                                var result = await Owner._executor.GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                                var result = await Owner.GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
                                 return result.Items;
                             }
                         case AnalysisKind.NonLocal:
                             {
-                                var nonLocalDocumentResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                                var nonLocalDocumentResult = await Owner.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                                 var analysisResult = nonLocalDocumentResult.GetResult(stateSet.Analyzer);
                                 return GetResult(analysisResult, AnalysisKind.NonLocal, documentId);
                             }
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var projectResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                var projectResult = await Owner.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 return projectResult.GetResult(stateSet.Analyzer).Others;
             }
         }

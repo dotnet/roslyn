@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (map.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
                 {
                     // enqueue re-analysis of open documents.
-                    Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
+                    AnalyzerService.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
                 }
             }
         }
