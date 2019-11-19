@@ -58828,22 +58828,22 @@ interface I3<T3>
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (4,11): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (4,11): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //     class C1
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C1").WithLocation(4, 11),
-                // (11,12): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (11,12): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //     struct S1
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S1").WithLocation(11, 12),
-                // (18,10): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (18,10): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //     enum E1 {}
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E1").WithLocation(18, 10),
-                // (23,11): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (23,11): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //     class C2
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C2").WithLocation(23, 11),
-                // (30,12): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (30,12): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //     struct S2
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S2").WithLocation(30, 12),
-                // (37,10): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (37,10): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //     enum E2 {}
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E2").WithLocation(37, 10)
                 );
@@ -58939,22 +58939,22 @@ interface I3<T3>
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (6,15): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (6,15): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //         class C1
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C1").WithLocation(6, 15),
-                // (15,16): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (15,16): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //         struct S1
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S1").WithLocation(15, 16),
-                // (24,14): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (24,14): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //         enum E1 {}
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E1").WithLocation(24, 14),
-                // (32,15): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (32,15): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //         class C2
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C2").WithLocation(32, 15),
-                // (41,16): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (41,16): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //         struct S2
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S2").WithLocation(41, 16),
-                // (50,14): error CS8752: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                // (50,14): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
                 //         enum E2 {}
                 Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E2").WithLocation(50, 14)
                 );
@@ -59239,6 +59239,33 @@ class C1 : I1<C1, C1>
 @"M1
 M2");
             }
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_12()
+        {
+            var source1 =
+@"
+interface I1<out T1, in T2>
+{
+    private void M1(T1 x) {}
+    private T2 M2() => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,21): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2>.M1(T1)'. 'T1' is covariant.
+                //     private void M1(T1 x) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly").WithLocation(4, 21),
+                // (5,13): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2>.M2()'. 'T2' is contravariant.
+                //     private T2 M2() => default;
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2>.M2()", "T2", "contravariant", "covariantly").WithLocation(5, 13)
+                );
         }
     }
 }

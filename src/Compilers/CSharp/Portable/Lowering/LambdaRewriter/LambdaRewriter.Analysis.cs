@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 // If we are in a variant interface, runtime might not consider the 
-                // method synthesized directly within the interface as viriant safe.
+                // method synthesized directly within the interface as variant safe.
                 // For simplicity we do not perform precise analysis whether this would
                 // definitely be the case. If we are in a variant interface, we always force
                 // creation of a display class.
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // or a class.
 
                     // If we are in a variant interface, runtime might not consider the 
-                    // method synthesized directly within the interface as viriant safe.
+                    // method synthesized directly within the interface as variant safe.
                     // For simplicity we do not perform precise analysis whether this would
                     // definitely be the case. If we are in a variant interface, we always force
                     // creation of a display class.

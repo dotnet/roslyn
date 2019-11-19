@@ -91,31 +91,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static NamedTypeSymbol GetEnclosingVariantInterface(Symbol member)
         {
-            var container = member.ContainingType;
-
-            do
+            for (var container = member.ContainingType; container is object; container = container.ContainingType)
             {
                 if (!container.IsInterfaceType())
                 {
                     Debug.Assert(!container.IsDelegateType());
                     // The same validation will be performed for the container and 
                     // there is no reason to duplicate the same errors, if any, on this type.
-                    container = null;
                     break;
                 }
 
                 if (container.TypeParameters.Any(tp => tp.Variance != VarianceKind.None))
                 {
                     // We are inside of a variant interface
-                    break;
+                    return container;
                 }
 
                 // This interface isn't variant, but its containing interface might be.
-                container = container.ContainingType;
             }
-            while (container is object);
 
-            return container;
+            return null;
         }
 
         /// <summary>
