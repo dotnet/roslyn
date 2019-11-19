@@ -3044,6 +3044,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim methodBlock = DirectCast(declaration, MethodBlockSyntax)
                 Return methodBlock.WithSubOrFunctionStatement(
                     DirectCast(WithExplicitInterfaceImplementations(methodBlock.SubOrFunctionStatement, explicitInterfaceImplementations), MethodStatementSyntax))
+            Else
+                Debug.Assert(False, "Unhandled kind to add explicit implementations for: " & declaration.Kind())
             End If
 
             Return declaration
