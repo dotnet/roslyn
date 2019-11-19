@@ -162,7 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // this is reachable only for unsupported pattern kinds.
-            BoundPattern errorPattern() => new BoundConstantPattern(node, new BoundLiteral(node, ConstantValue.Bad, CreateErrorType()), ConstantValue.Bad, inputType, hasErrors: true);
+            BoundPattern errorPattern() =>
+                new BoundConstantPattern(
+                    node,
+                    new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true },
+                    ConstantValue.Bad, inputType, hasErrors: true);
         }
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)

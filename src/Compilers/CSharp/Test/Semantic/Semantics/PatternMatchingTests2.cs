@@ -677,12 +677,18 @@ class Program
                 // (8,18): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (t is (int x)) { }                           // error 1
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x)").WithArguments("parenthesized pattern").WithLocation(8, 18),
+                // (8,19): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
+                //         if (t is (int x)) { }                           // error 1
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("ValueTuple<int>", "int").WithLocation(8, 19),
                 // (9,27): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         switch (t) { case (_): break; }                 // error 2
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_)").WithArguments("parenthesized pattern").WithLocation(9, 27),
                 // (10,28): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int y)").WithArguments("parenthesized pattern").WithLocation(10, 28)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int y)").WithArguments("parenthesized pattern").WithLocation(10, 28),
+                // (10,29): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
+                //         var u = t switch { (int y) => y, _ => 2 };      // error 3
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("ValueTuple<int>", "int").WithLocation(10, 29)
                 );
         }
 

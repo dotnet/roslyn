@@ -515,7 +515,7 @@ pattern
   ;
 
 binary_pattern
-  : pattern (or_keyword | and_keyword) pattern
+  : pattern ('or' | 'and') pattern
   ;
 
 constant_pattern
@@ -582,7 +582,7 @@ type_pattern
   ;
 
 unary_pattern
-  : not_keyword pattern
+  : 'not' pattern
   ;
 
 var_pattern
@@ -1219,10 +1219,6 @@ skipped_tokens_trivia
   : syntax_token*
   ;
 
-and_keyword
-  : /* see lexical specification */
-  ;
-
 base_argument_list
   : argument_list
   | bracketed_argument_list
@@ -1250,15 +1246,7 @@ interpolated_string_text_token
   : /* see lexical specification */
   ;
 
-not_keyword
-  : /* see lexical specification */
-  ;
-
 numeric_literal_token
-  : /* see lexical specification */
-  ;
-
-or_keyword
   : /* see lexical specification */
   ;
 
