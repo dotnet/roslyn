@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -54,7 +55,7 @@ class C
     }
 }
 ";
-            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, sourceFileName: "/a/c.cs");
 
             var pdbStream = new MemoryStream();
             compilation.EmitToArray(new EmitOptions(debugInformationFormat: format), pdbStream: pdbStream);
@@ -95,6 +96,15 @@ class C
 
             localSig = reader.GetLocalSignature(MetadataTokens.MethodDefinitionHandle(1));
             Assert.Equal(default, localSig);
+
+            // document checksums:
+            Assert.False(reader.TryGetDocumentChecksum("/b/c.cs", out _, out _));
+            Assert.False(reader.TryGetDocumentChecksum("/a/d.cs", out _, out _));
+            Assert.False(reader.TryGetDocumentChecksum("/A/C.cs", out _, out _));
+
+            Assert.True(reader.TryGetDocumentChecksum("/a/c.cs", out var actualChecksum, out var actualAlgorithm));
+            Assert.Equal("21-C8-B2-D7-A3-6B-49-C7-57-DF-67-B8-1F-75-DF-6A-64-FD-59-22", BitConverter.ToString(actualChecksum.ToArray()));
+            Assert.Equal(new Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460"), actualAlgorithm);
         }
     }
 }

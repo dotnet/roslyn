@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Shall only be called while in debug mode.
         /// Shall only be called on MTA thread.
         /// </summary>
+        /// <returns>Null, if the module with the specified MVID is not loaded.</returns>
         DebuggeeModuleInfo? TryGetBaselineModuleInfo(Guid mvid);
 
         /// <summary>
