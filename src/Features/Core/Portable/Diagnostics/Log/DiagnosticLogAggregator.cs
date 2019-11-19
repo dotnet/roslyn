@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             "Analyzer.Suppression",
         };
 
-        private readonly DiagnosticAnalyzerService _owner;
+        private readonly DiagnosticAnalyzerService _analyzerService;
         private ImmutableDictionary<Type, AnalyzerInfo> _analyzerInfoMap;
 
-        public DiagnosticLogAggregator(DiagnosticAnalyzerService owner)
+        public DiagnosticLogAggregator(DiagnosticAnalyzerService analyzerService)
         {
-            _owner = owner;
+            _analyzerService = analyzerService;
             _analyzerInfoMap = ImmutableDictionary<Type, AnalyzerInfo>.Empty;
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
 
         public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, Project projectOpt)
         {
-            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, _owner);
+            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, _analyzerService);
 
             ImmutableInterlocked.AddOrUpdate(
                 ref _analyzerInfoMap,

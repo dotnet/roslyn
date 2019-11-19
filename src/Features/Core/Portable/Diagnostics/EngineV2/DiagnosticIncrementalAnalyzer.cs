@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -28,38 +29,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly int _correlationId;
 
         private readonly StateManager _stateManager;
-        private readonly Executor _executor;
-        private readonly CompilationManager _compilationManager;
+        private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
+        private ConditionalWeakTable<Project, CompilationWithAnalyzers> _analyzerDriverMap;
+
+        internal DiagnosticAnalyzerService AnalyzerService { get; }
+        internal Workspace Workspace { get; }
+        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        internal HostAnalyzerManager HostAnalyzerManager { get; }
+        internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
 
         public DiagnosticIncrementalAnalyzer(
-            DiagnosticAnalyzerService owner,
+            DiagnosticAnalyzerService analyzerService,
             int correlationId,
             Workspace workspace,
             HostAnalyzerManager hostAnalyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
-            Contract.ThrowIfNull(owner);
+            Contract.ThrowIfNull(analyzerService);
 
-            Owner = owner;
+            AnalyzerService = analyzerService;
             Workspace = workspace;
             HostAnalyzerManager = hostAnalyzerManager;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(analyzerService);
 
             _correlationId = correlationId;
 
             _stateManager = new StateManager(hostAnalyzerManager);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
-            _executor = new Executor(this);
-            _compilationManager = new CompilationManager(this);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(AnalyzerService, HostDiagnosticUpdateSource);
+            _analyzerDriverMap = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
         }
-
-        internal DiagnosticAnalyzerService Owner { get; }
-        internal Workspace Workspace { get; }
-        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
-        internal HostAnalyzerManager HostAnalyzerManager { get; }
-        internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
 
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
         {
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             var stateSets = _stateManager.GetStateSets();
 
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
                 var documentSet = PooledHashSet<DocumentId>.GetInstance();
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
         {
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
                 var documentSet = PooledHashSet<DocumentId>.GetInstance();
@@ -268,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void ResetDiagnosticLogAggregator()
         {
-            DiagnosticLogAggregator = new DiagnosticLogAggregator(Owner);
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(AnalyzerService);
         }
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
