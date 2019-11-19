@@ -6916,10 +6916,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
                             }
                         }
+                        else if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
+                        {
+                            // foreach (var variable in collection)
+                            _variableTypes[iterationVariable] = sourceState.ToTypeWithAnnotations();
+                        }
                         else
                         {
                             // foreach (DestinationType variable in collection)
-                            // foreach (var variable in collection)
                             // and asynchronous variants
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
@@ -6943,12 +6947,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // In non-error cases we'll only run this loop a single time. In error cases we'll set the nullability of the VariableType multiple times, but at least end up with something
                         SetAnalyzedNullability(node.IterationVariableType, new VisitResult(result, destinationType), isLvalue: true);
                         state = result.State;
-
-                        // If we inferred the type of this variable, then record the inferred type of the variable for later use by the SemanticModel.
-                        if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
-                        {
-                            _variableTypes[iterationVariable] = result.ToTypeWithAnnotations();
-                        }
                     }
 
                     int slot = GetOrCreateSlot(iterationVariable);

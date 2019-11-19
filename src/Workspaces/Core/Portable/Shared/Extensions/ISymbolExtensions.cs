@@ -102,25 +102,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IEventSymbol @event: return ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations);
-                case IMethodSymbol method: return ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations);
-                case IPropertySymbol property: return ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations);
-                default: return ImmutableArray.Create<ISymbol>();
-            }
-        }
+                IEventSymbol @event => ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations),
+                IMethodSymbol method => ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations),
+                IPropertySymbol property => ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations),
+                _ => ImmutableArray.Create<ISymbol>(),
+            };
 
-        public static ImmutableArray<TSymbol> ExplicitOrImplicitInterfaceImplementations<TSymbol>(this TSymbol symbol)
-            where TSymbol : ISymbol
+        public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
         {
             var containingType = symbol.ContainingType;
-            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers().OfType<TSymbol>());
-            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
-                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
-            return membersImplementingAnInterfaceMember.Cast<TSymbol>().ToImmutableArrayOrEmpty();
+            var query = from iface in containingType.AllInterfaces
+                        from interfaceMember in iface.GetMembers()
+                        let impl = containingType.FindImplementationForInterfaceMember(interfaceMember)
+                        where symbol.Equals(impl)
+                        select interfaceMember;
+            return query.ToImmutableArray();
         }
+
+        public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
+            => symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations()).ToImmutableArray();
 
         public static bool IsOverridable([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
@@ -895,6 +897,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static DocumentationComment GetDocumentationComment(this ISymbol symbol, Compilation compilation, CultureInfo? preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
         {
+            return GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
+        }
+
+        private static DocumentationComment GetDocumentationComment(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, CultureInfo? preferredCulture, bool expandIncludes, bool expandInheritdoc, CancellationToken cancellationToken)
+        {
             var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             if (expandInheritdoc)
             {
@@ -906,7 +913,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 try
                 {
                     var element = XElement.Parse(xmlText, LoadOptions.PreserveWhitespace);
-                    element.ReplaceNodes(RewriteMany(symbol, compilation, element.Nodes().ToArray(), cancellationToken));
+                    element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
                     xmlText = element.ToString(SaveOptions.DisableFormatting);
                 }
                 catch
@@ -953,14 +960,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        private static XNode[] RewriteInheritdocElements(ISymbol symbol, Compilation compilation, XNode node, CancellationToken cancellationToken)
+        private static XNode[] RewriteInheritdocElements(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode node, CancellationToken cancellationToken)
         {
             if (node.NodeType == XmlNodeType.Element)
             {
                 var element = (XElement)node;
                 if (ElementNameIs(element, DocumentationCommentXmlNames.InheritdocElementName))
                 {
-                    var rewritten = RewriteInheritdocElement(symbol, compilation, element, cancellationToken);
+                    var rewritten = RewriteInheritdocElement(symbol, visitedSymbols, compilation, element, cancellationToken);
                     if (rewritten is object)
                     {
                         return rewritten;
@@ -983,25 +990,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (oldNodes != null)
             {
-                XNode[] rewritten = RewriteMany(symbol, compilation, oldNodes.ToArray(), cancellationToken);
+                XNode[] rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
                 container.ReplaceNodes(rewritten);
             }
 
             return new XNode[] { container };
         }
 
-        private static XNode[] RewriteMany(ISymbol symbol, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
+        private static XNode[] RewriteMany(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
         {
             var result = new List<XNode>();
             foreach (var child in nodes)
             {
-                result.AddRange(RewriteInheritdocElements(symbol, compilation, child, cancellationToken));
+                result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
             }
 
             return result.ToArray();
         }
 
-        private static XNode[]? RewriteInheritdocElement(ISymbol memberSymbol, Compilation compilation, XElement element, CancellationToken cancellationToken)
+        private static XNode[]? RewriteInheritdocElement(ISymbol memberSymbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XElement element, CancellationToken cancellationToken)
         {
             var crefAttribute = element.Attribute(XName.Get(DocumentationCommentXmlNames.CrefAttributeName));
             var pathAttribute = element.Attribute(XName.Get(DocumentationCommentXmlNames.PathAttributeName));
@@ -1033,9 +1040,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
+            visitedSymbols ??= new HashSet<ISymbol>();
+            if (!visitedSymbols.Add(symbol))
+            {
+                // Prevent recursion
+                return null;
+            }
+
             try
             {
-                var inheritedDocumentation = GetDocumentationComment(symbol, compilation, preferredCulture: null, expandIncludes: true, expandInheritdoc: true, cancellationToken);
+                var inheritedDocumentation = GetDocumentationComment(symbol, visitedSymbols, compilation, preferredCulture: null, expandIncludes: true, expandInheritdoc: true, cancellationToken);
                 if (inheritedDocumentation == DocumentationComment.Empty)
                 {
                     return Array.Empty<XNode>();
@@ -1067,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // change the current XML file path for nodes contained in the document:
                     // prototype(inheritdoc): what should the file path be?
-                    var result = RewriteMany(symbol, compilation, loadedElements, cancellationToken);
+                    var result = RewriteMany(symbol, visitedSymbols, compilation, loadedElements, cancellationToken);
 
                     // The elements could be rewritten away if they are includes that refer to invalid
                     // (but existing and accessible) XML files.  If this occurs, behave as if we
@@ -1083,6 +1097,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             catch (XmlException)
             {
                 return Array.Empty<XNode>();
+            }
+            finally
+            {
+                visitedSymbols.Remove(symbol);
             }
 
             // Local functions

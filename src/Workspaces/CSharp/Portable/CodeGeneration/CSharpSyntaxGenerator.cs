@@ -1716,18 +1716,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
         }
 
-        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
-            => declaration switch
+        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations)
+            => WithAccessibility(declaration switch
             {
-                MethodDeclarationSyntax methodDeclaration => WithAccessibility(
-                       methodDeclaration.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                       Accessibility.NotApplicable),
+                MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                PropertyDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                EventDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
                 _ => declaration,
-            };
+            }, Accessibility.NotApplicable);
 
-        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
-            => SyntaxFactory.ExplicitInterfaceSpecifier(
-                explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
+        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<ISymbol> explicitInterfaceImplementations)
+            => SyntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
 
         public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
         {

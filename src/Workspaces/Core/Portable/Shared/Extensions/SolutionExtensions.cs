@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             @object.WriteTo(writer);
         }
 
+        public static Document GetRequiredDocument(this Solution solution, SyntaxTree syntaxTree)
+            => solution.GetDocument(syntaxTree) ?? throw new InvalidOperationException();
+
         public static Project GetRequiredProject(this Solution solution, ProjectId projectId)
         {
             var project = solution.GetProject(projectId);

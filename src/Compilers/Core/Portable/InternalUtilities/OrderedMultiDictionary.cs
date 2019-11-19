@@ -47,6 +47,14 @@ namespace Roslyn.Utilities
             _dictionary[k] = set;
         }
 
+        public void AddRange(K k, IEnumerable<V> values)
+        {
+            foreach (var v in values)
+            {
+                Add(k, v);
+            }
+        }
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IEnumerator<KeyValuePair<K, SetWithInsertionOrder<V>>> GetEnumerator()

@@ -1275,6 +1275,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to discard.
+        /// </summary>
+        internal static string discard {
+            get {
+                return ResourceManager.GetString("discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
         /// </summary>
         internal static string Disposable_field_0_is_never_disposed {
@@ -1329,7 +1338,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The file is likely being updated by a background build. The debug session can&apos;t continue until the update is completed..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
@@ -1977,11 +1986,65 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; explicitly.
+        /// </summary>
+        internal static string Implement_0_explicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; implicitly.
+        /// </summary>
+        internal static string Implement_0_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string Implement_Abstract_Class {
             get {
                 return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces explicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_explicitly {
+            get {
+                return ResourceManager.GetString("Implement all interfaces explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces implicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_all_interfaces_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement explicitly.
+        /// </summary>
+        internal static string Implement_explicitly {
+            get {
+                return ResourceManager.GetString("Implement explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement implicitly.
+        /// </summary>
+        internal static string Implement_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_implicitly", resourceCulture);
             }
         }
         

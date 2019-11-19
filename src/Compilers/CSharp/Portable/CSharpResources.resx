@@ -5738,6 +5738,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNameShadowingInNestedFunctions" xml:space="preserve">
     <value>name shadowing in nested functions</value>
   </data>
+  <data name="IDS_FeatureLambdaDiscardParameters" xml:space="preserve">
+    <value>lambda discard parameters</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
