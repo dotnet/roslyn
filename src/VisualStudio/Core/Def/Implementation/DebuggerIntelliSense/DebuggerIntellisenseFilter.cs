@@ -78,8 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding
                 // on the same text view and buffer as this.CurrentHandlers.
-                var componentModel = (IComponentModel)LanguageService.SystemServiceProvider.GetService(typeof(SComponentModel));
-                var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
+                var vsCommandHandlerServiceAdapterFactory = ComponentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
                 var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(),
                     GetSubjectBufferContainingCaret(), // our override doesn't actually check the caret and always returns _context.Buffer
                     nextCommandFilter);

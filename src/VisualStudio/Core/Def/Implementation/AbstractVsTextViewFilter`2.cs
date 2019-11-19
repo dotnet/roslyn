@@ -2,17 +2,12 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -93,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             try
             {
                 var result = VSConstants.S_OK;
-                LanguageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
+                ComponentModel.GetService<IWaitIndicator>().Wait(
                     "Intellisense",
                     allowCancel: true,
                     action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.CancellationToken));
@@ -108,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
         {
-            var braceMatcher = LanguageService.Package.ComponentModel.GetService<IBraceMatchingService>();
+            var braceMatcher = ComponentModel.GetService<IBraceMatchingService>();
             return GetPairExtentsWorker(
                 WpfTextView,
                 braceMatcher,

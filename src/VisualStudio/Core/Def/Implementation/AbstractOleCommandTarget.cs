@@ -17,8 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal abstract partial class AbstractOleCommandTarget : IOleCommandTarget
     {
-        private readonly IComponentModel _componentModel;
-
         /// <summary>
         /// This is set only during Exec. Currently, this is required to disambiguate the editor calls to
         /// <see cref="IVsTextViewFilter.GetPairExtents(int, int, TextSpan[])"/> between GotoBrace and GotoBraceExt commands.
@@ -33,12 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Contract.ThrowIfNull(componentModel);
 
             WpfTextView = wpfTextView;
-            _componentModel = componentModel;
+            ComponentModel = componentModel;
         }
+
+        public IComponentModel ComponentModel { get; }
 
         public IVsEditorAdaptersFactoryService EditorAdaptersFactory
         {
-            get { return _componentModel.GetService<IVsEditorAdaptersFactoryService>(); }
+            get { return ComponentModel.GetService<IVsEditorAdaptersFactoryService>(); }
         }
 
         /// <summary>
