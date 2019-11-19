@@ -4,26 +4,20 @@ parameters:
   - Validate
   publishInstallersAndChecksums: false
   symbolPublishingAdditionalParameters: ''
-  stageName: ''
-  channelName: ''
-  channelId: ''
-  transportFeed: ''
-  shippingFeed: ''
-  symbolsFeed: ''
 
 stages:
-- stage: ${{ parameters.stageName }}
+- stage: NetCore_Blazor31_Features_Publish
   dependsOn: ${{ parameters.dependsOn }}
   variables:
     - template: ../common-variables.yml
-  displayName: ${{ parameters.channelName }} Publishing
+  displayName: .NET Core 3.1 Blazor Features Publishing
   jobs:
   - template: ../setup-maestro-vars.yml
 
   - job: publish_symbols
     displayName: Symbol Publishing
     dependsOn: setupMaestroVars
-    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', ${{ parameters.channelId }} ))
+    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.NetCore_31_Blazor_Features_Channel_Id))
     variables:
       - group: DotNet-Symbol-Server-Pats
     pool:
@@ -68,9 +62,8 @@ stages:
 
       - template: ../../steps/publish-logs.yml
         parameters:
-          StageLabel: '${{ parameters.stageName }}'
+          StageLabel: 'Channel_Net_Core_31_Blazor_Features'
           JobLabel: 'SymbolPublishing'
-
 
   - job: publish_assets
     displayName: Publish Assets
@@ -80,7 +73,7 @@ stages:
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.BARBuildId'] ]
       - name: IsStableBuild
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.IsStableBuild'] ]
-    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', ${{ parameters.channelId }}))
+    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.NetCore_31_Blazor_Features_Channel_Id))
     pool:
       vmImage: 'windows-2019'
     steps:
@@ -142,19 +135,19 @@ stages:
             /p:InstallersAzureAccountKey=$(dotnetcli-storage-key)
             /p:ChecksumsTargetStaticFeed=$(ChecksumsBlobFeedUrl)
             /p:ChecksumsAzureAccountKey=$(dotnetclichecksums-storage-key)
-            /p:AzureDevOpsStaticShippingFeed='${{ parameters.shippingFeed }}'
+            /p:AzureDevOpsStaticShippingFeed='https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet3.1-blazor/nuget/v3/index.json'
             /p:AzureDevOpsStaticShippingFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
-            /p:AzureDevOpsStaticTransportFeed='${{ parameters.transportFeed }}'
+            /p:AzureDevOpsStaticTransportFeed='https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet3.1-blazor/nuget/v3/index.json'
             /p:AzureDevOpsStaticTransportFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
-            /p:AzureDevOpsStaticSymbolsFeed='${{ parameters.symbolsFeed }}'
+            /p:AzureDevOpsStaticSymbolsFeed='https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet3.1-blazor-symbols/nuget/v3/index.json'
             /p:AzureDevOpsStaticSymbolsFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
             ${{ parameters.artifactsPublishingAdditionalParameters }}
 
       - template: ../../steps/publish-logs.yml
         parameters:
-          StageLabel: '${{ parameters.stageName }}'
-          JobLabel: 'AssetsPublishing'
+          StageLabel: 'Channel_Net_Core_31_Blazor_Features'
+          JobLabel: 'AssetPublishing'
 
       - template: ../../steps/promote-build.yml
         parameters:
-          ChannelId: ${{ parameters.channelId }}
+          ChannelId: ${{ variables.NetCore_31_Blazor_Features_Channel_Id }}
