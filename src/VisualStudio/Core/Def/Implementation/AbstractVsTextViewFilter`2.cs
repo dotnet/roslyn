@@ -110,7 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var braceMatcher = LanguageService.Package.ComponentModel.GetService<IBraceMatchingService>();
             return GetPairExtentsWorker(
                 WpfTextView,
-                LanguageService.Workspace,
                 braceMatcher,
                 iLine,
                 iIndex,
