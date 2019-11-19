@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options: options,
                     root: root,
                     directives: Syntax.InternalSyntax.DirectiveStack.Empty,
-                    diagnosticOptions: null)
+                    diagnosticOptions: null,
+                    isGeneratedCode: null,
+                    cloneRoot: true)
             {
             }
 
