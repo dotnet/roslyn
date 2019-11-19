@@ -5192,7 +5192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion())
                     {
                         var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
-                        if (explicitType.Equals((TypeWithAnnotations)targetTypeWithNullability, TypeCompareKind.ConsiderEverything))
+                        if (explicitType.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything))
                         {
                             TrackAnalyzedNullabilityThroughConversionGroup(
                                 calculateResultType(targetTypeWithNullability, fromExplicitCast, operandType.State, isSuppressed, targetType),
@@ -5375,16 +5375,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Converting to a less-derived type (object, interface, type parameter).
-            // If the operand is MaybeNull or MaybeNullEvenIfNotNullable, the result should be
-            // MaybeNull (if the target type allows) or MaybeNullEvenIfNotNullable otherwise.
+            // If the operand is MaybeNull or MaybeDefault, the result should be
+            // MaybeNull (if the target type allows) or MaybeDefault otherwise.
             static NullableFlowState getBoxingConversionResultState(TypeWithState operandType)
             {
                 return getConversionResultState(operandType);
             }
 
             // Converting to a more-derived type (struct, class, type parameter).
-            // If the operand is MaybeNull or MaybeNullEvenIfNotNullable, the result should be
-            // MaybeNullEvenIfNotNullable.
+            // If the operand is MaybeNull or MaybeDefault, the result should be
+            // MaybeDefault.
             static NullableFlowState getUnboxingConversionResultState(TypeWithState operandType)
             {
                 var state = operandType.State;
@@ -5401,7 +5401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (state == NullableFlowState.MaybeNull)
                 {
                     var type = operandType.Type;
-                    if ((object)type == null || !type.IsTypeParameterDisallowingAnnotation())
+                    if (type is null || !type.IsTypeParameterDisallowingAnnotation())
                     {
                         return NullableFlowState.MaybeDefault;
                     }
@@ -7910,7 +7910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         {
             // The representation of a state is a bit vector with two bits per slot:
-            // (false, false) => NotNull, (false, true) => MaybeNull, (true, true) => MaybeNullEvenIfNotNullable.
+            // (false, false) => NotNull, (false, true) => MaybeNull, (true, true) => MaybeDefault.
             // Slot 0 is used to represent whether the state is reachable (true) or not.
             private BitVector _state;
 
