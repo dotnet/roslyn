@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Wrapping;
 using Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList;
 using Roslyn.Utilities;
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             private readonly SyntaxTrivia _afterOpenTokenIndentationTrivia;
             private readonly SyntaxTrivia _singleIndentationTrivia;
             private readonly SyntaxTrivia _braceIndentationTrivia;
-            private readonly bool DoWrapInitializerOpenBrace;
+            private readonly bool _doWrapInitializerOpenBrace;
 
             public InitializerExpressionCodeActionComputer(
                 AbstractInitializerExpression<TListSyntax, TListItemSyntax> service,
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
                 _braceIndentationTrivia = generator.Whitespace(GetBraceTokenIndentation());
 
-                DoWrapInitializerOpenBrace = doWrapInitializerOpenBrace;
+                _doWrapInitializerOpenBrace = doWrapInitializerOpenBrace;
             }
 
             private string GetAfterOpenTokenIdentation()
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                if (DoWrapInitializerOpenBrace)
+                if (_doWrapInitializerOpenBrace)
                 {
                     int position = FindEndOfParentPosition();
 
@@ -210,8 +209,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
                 var parentTitle = Wrapper.Unwrap_list;
-
-                // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
                 unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
@@ -231,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                if (DoWrapInitializerOpenBrace)
+                if (_doWrapInitializerOpenBrace)
                 {
                     var position = FindEndOfParentPosition();
                     var token = _listSyntax.Parent.FindToken(position);
@@ -255,12 +252,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 var parentTitle = Wrapper.Wrap_long_list;
                 var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
-                // MethodName(
-                //     int a, int b, int c, int d, int e,
-                //     int f, int g, int h, int i, int j)
                 codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
-
 
                 return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
             }
@@ -281,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                if (DoWrapInitializerOpenBrace)
+                if (_doWrapInitializerOpenBrace)
                 {
                     var position = FindEndOfParentPosition();
                     var token = _listSyntax.Parent.FindToken(position);
@@ -325,7 +318,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     //// comma or close token).
                     var nextToken = item.GetLastToken().GetNextToken();
 
-                    //result.Add(Edit.DeleteBetween(item, nextToken));
                     currentOffset += nextToken.Span.Length;
                 }
 
