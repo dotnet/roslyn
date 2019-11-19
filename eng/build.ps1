@@ -322,6 +322,10 @@ function SetVisualStudioBootstrapperBuildArgs() {
 
   Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
   Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
+
+  $insertionDir = Join-Path $VSSetupDir "Insertion"
+  $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
+  Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
 }
 
 # Core function for running our unit / integration tests tests

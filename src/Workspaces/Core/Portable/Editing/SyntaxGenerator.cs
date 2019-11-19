@@ -178,7 +178,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
-                decl = this.WithExplicitInterfaceImplementations(decl, method.ExplicitInterfaceImplementations);
+                decl = this.WithExplicitInterfaceImplementations(decl,
+                    ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations));
             }
 
             return decl;
@@ -687,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return declaration;
         }
 
-        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations);
+        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -1230,6 +1231,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 return this.RemoveNode(root, node);
             }
         }
+
+        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+            => root.ReplaceNode(node, newDeclarations);
 
         /// <summary>
         /// Inserts the new node before the specified declaration.
