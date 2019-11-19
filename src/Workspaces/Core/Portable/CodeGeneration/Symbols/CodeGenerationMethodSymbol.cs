@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
                 this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
-                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
+                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
+                this.MethodKind);
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),

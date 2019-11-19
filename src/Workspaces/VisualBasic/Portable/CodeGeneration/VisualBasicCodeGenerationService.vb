@@ -496,9 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreateMethodDeclaration(method As IMethodSymbol,
                                                           destination As CodeGenerationDestination,
-                                                          options As CodeGenerationOptions,
-                                                          Optional destinationNode As SyntaxNode = Nothing,
-                                                          Optional createLocalFunction As Boolean = False) As SyntaxNode
+                                                          options As CodeGenerationOptions) As SyntaxNode
             ' Synthesized methods for properties/events are not things we actually generate 
             ' declarations for.
             If method.AssociatedSymbol IsNot Nothing Then

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return (node.Parent is GlobalStatementSyntax) ? node.Parent : node;
             }
 
-            protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken)
+            protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool generateLocalFunction, CancellationToken cancellationToken)
             {
                 var result = CreateMethodBody(cancellationToken);
 
@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(),
                     parameters: CreateMethodParameters(),
-                    statements: result.Data);
+                    statements: result.Data,
+                    methodKind: generateLocalFunction ? MethodKind.LocalFunction : MethodKind.Ordinary);
 
                 return result.With(
                     this.MethodDefinitionAnnotation.AddAnnotationToSymbol(

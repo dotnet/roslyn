@@ -1910,9 +1910,6 @@ class Program
         System.Console.WriteLine([|^1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 @"
 class Program
@@ -1921,7 +1918,7 @@ class Program
     {
         System.Console.WriteLine({|Rename:NewMethod|}());
 
-        static Index NewMethod()
+        static System.Index NewMethod()
         {
             return ^1;
         }
@@ -1940,9 +1937,6 @@ class Program
         System.Console.WriteLine([|..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -1951,7 +1945,7 @@ class Program
     {
         System.Console.WriteLine({|Rename:NewMethod|}());
 
-        static Range NewMethod()
+        static System.Range NewMethod()
         {
             return ..;
         }
@@ -1970,9 +1964,6 @@ class Program
         System.Console.WriteLine([|..1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -1981,7 +1972,7 @@ class Program
     {
         System.Console.WriteLine({|Rename:NewMethod|}());
 
-        static Range NewMethod()
+        static System.Range NewMethod()
         {
             return ..1;
         }
@@ -2000,9 +1991,6 @@ class Program
         System.Console.WriteLine([|1..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2011,7 +1999,7 @@ class Program
     {
         System.Console.WriteLine({|Rename:NewMethod|}());
 
-        static Range NewMethod()
+        static System.Range NewMethod()
         {
             return 1..;
         }
@@ -2030,9 +2018,6 @@ class Program
         System.Console.WriteLine([|1..2|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2041,7 +2026,7 @@ class Program
     {
         System.Console.WriteLine({|Rename:NewMethod|}());
 
-        static Range NewMethod()
+        static System.Range NewMethod()
         {
             return 1..2;
         }
@@ -3124,39 +3109,6 @@ class C
             {
                 var test = 1;
             }
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestExtractNonStaticLocalMethod_WithoutDeclaration()
-        {
-            await TestInRegularAndScriptAsync(
-@"class Test
-{
-    static void Main(string[] args)
-    {
-        [|ExistingLocalFunction();|]
-
-        void ExistingLocalFunction()
-        {
-        }
-    }
-}",
-@"class Test
-{
-    static void Main(string[] args)
-    {
-        {|Rename:NewMethod|}();
-
-        void ExistingLocalFunction()
-        {
-        }
-
-        void NewMethod()
-        {
-            ExistingLocalFunction();
         }
     }
 }");

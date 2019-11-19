@@ -470,6 +470,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return AddStatementsToMemberDeclaration<TDeclarationNode>(destinationMember, statements, memberDeclaration);
             }
+            else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
+            {
+                return AddStatementsToLocalFunction<TDeclarationNode>(destinationMember, statements, localFunctionDeclaration);
+            }
             else
             {
                 return AddStatementsWorker(destinationMember, statements, options, cancellationToken);
@@ -533,6 +537,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return Cast<TDeclarationNode>(finalMember);
         }
 
+        private static TDeclarationNode AddStatementsToLocalFunction<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, LocalFunctionStatementSyntax localFunctionDeclaration) where TDeclarationNode : SyntaxNode
+        {
+            var body = localFunctionDeclaration.Body;
+            if (body == null)
+            {
+                return destinationMember;
+            }
+
+            var statementNodes = body.Statements.ToList();
+            statementNodes.AddRange(StatementGenerator.GenerateStatements(statements));
+
+            var finalBody = body.WithStatements(SyntaxFactory.List<StatementSyntax>(statementNodes));
+            var finalMember = localFunctionDeclaration.WithBody(finalBody);
+
+            return Cast<TDeclarationNode>(finalMember);
+        }
+
         public override SyntaxNode CreateEventDeclaration(
             IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
@@ -547,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode CreateMethodDeclaration(
-            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options, SyntaxNode destinationNode, bool createLocalFunction)
+            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
             // Synthesized methods for properties/events are not things we actually generate 
             // declarations for.
@@ -584,26 +605,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return ConversionGenerator.GenerateConversionDeclaration(
                     method, destination, Workspace, options, options.ParseOptions);
             }
-            else if (createLocalFunction)
+            else if (method.IsLocalFunction())
             {
-                if (destinationNode is PropertyDeclarationSyntax || destinationNode is IndexerDeclarationSyntax)
-                {
-                    return destinationNode;
-                }
-                if (destinationNode is LocalFunctionStatementSyntax localFunction)
-                {
-                    return localFunction.AddBodyStatements(MethodGenerator.GenerateLocalMethodDeclaration(
-                        method, destination, Workspace, options, destinationNode?.SyntaxTree.Options ?? options.ParseOptions));
-                }
-                else if (destinationNode is MethodDeclarationSyntax methodDeclaration)
-                {
-                    return methodDeclaration.AddBodyStatements(MethodGenerator.GenerateLocalMethodDeclaration(
-                        method, destination, Workspace, options, destinationNode?.SyntaxTree.Options ?? options.ParseOptions));
-                }
-                else
-                {
-                    throw new InvalidOperationException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax.");
-                }
+                return MethodGenerator.GenerateLocalMethodDeclaration(
+                        method, destination, Workspace, options, options.ParseOptions);
             }
             else
             {

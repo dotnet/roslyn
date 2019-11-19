@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
-            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken);
+            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool generateLocalFunction, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -85,17 +85,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var previousMemberNode = GetPreviousMember(callSiteDocument);
 
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
-                var result = GenerateMethodDefinition(cancellationToken);
+                var result = GenerateMethodDefinition(ExtractLocalFunction, cancellationToken);
 
                 SyntaxNode destination, newContainer;
                 if (ExtractLocalFunction)
                 {
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
-                    newContainer = codeGenerationService.CreateMethodDeclaration(
+                    var codeGenerationOptions = new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, parseOptions: destination?.SyntaxTree.Options);
+                    var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true),
-                        destinationNode: destination,
-                        createLocalFunction: true);
+                        options: codeGenerationOptions);
+                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, codeGenerationOptions, cancellationToken);
                 }
                 else
                 {

@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Me.InsertionPoint.With(document).GetContext()
             End Function
 
-            Protected Overrides Function GenerateMethodDefinition(cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
+            Protected Overrides Function GenerateMethodDefinition(generateLocalFunction As Boolean, cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
                 Dim result = CreateMethodBody(cancellationToken)
                 Dim statements = result.Data
 
