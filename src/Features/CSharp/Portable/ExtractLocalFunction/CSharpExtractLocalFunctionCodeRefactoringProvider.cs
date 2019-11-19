@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalFunction
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp,
-        Name = PredefinedCodeRefactoringProviderNames.ExtractLocalMethod), Shared]
+        Name = PredefinedCodeRefactoringProviderNames.ExtractLocalFunction), Shared]
     internal class CSharpExtractLocalFunctionCodeRefactoringProvider : ExtractMethodCodeRefactoringProvider
     {
         [ImportingConstructor]
