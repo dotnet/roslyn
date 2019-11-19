@@ -1377,7 +1377,8 @@ IInvocationOperation ( void P.M2([System.Int32 x = default(System.Int32)])) (Ope
     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2()')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, IsImplicit) (Syntax: 'M2()')
+        IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: 'M2()')
+          Children(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2545,7 +2546,8 @@ IInvocationOperation (void P.M2(System.Int32 x, [S s = null])) (OperationKind.In
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(1)')
-        ILiteralOperation (OperationKind.Literal, Type: S, IsImplicit) (Syntax: 'M2(1)')
+        IInvalidOperation (OperationKind.Invalid, Type: S, IsImplicit) (Syntax: 'M2(1)')
+          Children(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2587,7 +2589,8 @@ IObjectCreationOperation (Constructor: P..ctor(System.Int32 x, [S s = null])) (O
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new P(1)')
-        ILiteralOperation (OperationKind.Literal, Type: S, IsImplicit) (Syntax: 'new P(1)')
+        IInvalidOperation (OperationKind.Invalid, Type: S, IsImplicit) (Syntax: 'new P(1)')
+          Children(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -2636,7 +2639,8 @@ IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index, [S s = null
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'this[0]')
-        ILiteralOperation (OperationKind.Literal, Type: S, IsImplicit) (Syntax: 'this[0]')
+        IInvalidOperation (OperationKind.Invalid, Type: S, IsImplicit) (Syntax: 'this[0]')
+          Children(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3659,7 +3663,8 @@ IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation,
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[0]')
-                      ILiteralOperation (OperationKind.Literal, Type: S, IsImplicit) (Syntax: '[0]')
+                      IInvalidOperation (OperationKind.Invalid, Type: S, IsImplicit) (Syntax: '[0]')
+                        Children(0)
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Right: 
@@ -3699,9 +3704,11 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
         null
         Arguments(1):
             IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M1()')
-            ILiteralOperation (OperationKind.Literal, Type: MyStruct?, IsImplicit) (Syntax: 'M1()')
+            IInvalidOperation (OperationKind.Invalid, Type: MyStruct?, IsImplicit) (Syntax: 'M1()')
+                Children(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)";
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
 
             var expectedDiagnostics = new[]
             {

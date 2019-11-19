@@ -1403,9 +1403,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so replace the argument with default(int?).
                 defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
             }
-            else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
+            else if (defaultConstantValue.IsNull)
             {
                 defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
+            }
+            else if (defaultConstantValue.IsBad)
+            {
+                defaultValue = new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, parameterType, hasErrors: true) { WasCompilerGenerated = true };
             }
             else if (parameterType.IsNullableType())
             {
