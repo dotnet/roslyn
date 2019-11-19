@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+#nullable enable
+
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -21,9 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         public AbstractVsTextViewFilter(
             IWpfTextView wpfTextView,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IServiceProvider systemServiceProvider)
-            : base(wpfTextView, editorAdaptersFactoryService, systemServiceProvider)
+            IComponentModel componentModel)
+            : base(wpfTextView, componentModel)
         {
         }
 

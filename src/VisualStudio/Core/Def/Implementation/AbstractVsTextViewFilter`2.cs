@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -29,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected AbstractVsTextViewFilter(
             AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(wpfTextView, editorAdaptersFactoryService, languageService.SystemServiceProvider)
+            IComponentModel componentModel)
+            : base(wpfTextView, componentModel)
         {
             LanguageService = languageService;
         }

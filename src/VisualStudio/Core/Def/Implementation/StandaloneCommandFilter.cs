@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.VisualStudio.Editor;
+#nullable enable
+
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -19,13 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// Creates a new command handler that is attached to an IVsTextView.
         /// </summary>
         /// <param name="wpfTextView">The IWpfTextView of the view.</param>
-        /// <param name="editorAdaptersFactoryService">The editor adapter</param>
         /// <param name="languageService">The language service</param>
         internal StandaloneCommandFilter(
             TLanguageService languageService,
             IWpfTextView wpfTextView,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(languageService, wpfTextView, editorAdaptersFactoryService)
+            IComponentModel componentModel)
+            : base(languageService, wpfTextView, componentModel)
         {
         }
     }

@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return VSConstants.E_FAIL;
             }
 
-            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(_languageService, wpfTextView, SubjectBuffer, nextCmdTarget, _editorAdaptersFactoryService);
+            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(_languageService, wpfTextView, SubjectBuffer, nextCmdTarget, ComponentModel);
 
             return VSConstants.S_OK;
         }

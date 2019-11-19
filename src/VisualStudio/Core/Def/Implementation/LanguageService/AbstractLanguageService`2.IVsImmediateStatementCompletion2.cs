@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(this,
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
-                        this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>(),
+                        this.Package.ComponentModel,
                         this.Package.ComponentModel.GetService<IFeatureServiceFactory>());
                     this.filters[textView] = filter;
                     Marshal.ThrowExceptionForHR(textView.AddCommandFilter(filter, out var nextFilter));

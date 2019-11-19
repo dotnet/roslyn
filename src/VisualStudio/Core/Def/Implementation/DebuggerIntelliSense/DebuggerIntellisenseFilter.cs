@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         public DebuggerIntelliSenseFilter(
             AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
-            IVsEditorAdaptersFactoryService adapterFactory,
+            IComponentModel componentModel,
             IFeatureServiceFactory featureServiceFactory)
-            : base(languageService, wpfTextView, adapterFactory)
+            : base(languageService, wpfTextView, componentModel)
         {
             _featureServiceFactory = featureServiceFactory;
         }

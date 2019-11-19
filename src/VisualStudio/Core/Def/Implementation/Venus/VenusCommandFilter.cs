@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IWpfTextView wpfTextView,
             ITextBuffer subjectBuffer,
             IOleCommandTarget nextCommandTarget,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(languageService, wpfTextView, editorAdaptersFactoryService)
+            IComponentModel componentModel)
+            : base(languageService, wpfTextView, componentModel)
         {
             Contract.ThrowIfNull(wpfTextView);
             Contract.ThrowIfNull(subjectBuffer);
@@ -37,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _subjectBuffer = subjectBuffer;
 
             // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding.
-            var componentModel = (IComponentModel)languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
             var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
             var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(wpfTextView, _subjectBuffer, nextCommandTarget);
             NextCommandTarget = vsCommandHandlerServiceAdapter;
@@ -51,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer subjectBuffer,
             IOleCommandTarget nextCommandTarget,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : this(languageService, wpfTextView, subjectBuffer, nextCommandTarget, editorAdaptersFactoryService)
+            : this(languageService, wpfTextView, subjectBuffer, nextCommandTarget, languageService.Package.ComponentModel)
         {
         }
 

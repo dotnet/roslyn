@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // The lifetime of CommandFilter is married to the view
             wpfTextView.GetOrCreateAutoClosingProperty(v =>
                 new StandaloneCommandFilter<TPackage, TLanguageService>(
-                    (TLanguageService)this, v, EditorAdaptersFactoryService).AttachToVsTextView());
+                    (TLanguageService)this, v, Package.ComponentModel).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
