@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -3787,6 +3786,40 @@ class Test
 
             var symbolInfo = specModel.GetSymbolInfo(newAttributeUsage.ArgumentList.Arguments[0].Expression);
             Assert.Equal(SpecialType.System_String, ((IFieldSymbol)symbolInfo.Symbol).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(38638, "https://github.com/dotnet/roslyn/issues/38638")]
+        public void TypeParameter_Default()
+        {
+            var source =
+@"#nullable enable
+abstract class A<T>
+{
+    internal abstract void F<U>() where U : T;
+}
+class B1<T> : A<T>
+{
+    internal override void F<U>() { _ = default(U); }
+}
+class B2 : A<int?>
+{
+    internal override void F<U>() { _ = default(U); }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ToArray();
+            verify(exprs[0], PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.MaybeNull);
+            verify(exprs[1], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+
+            void verify(DefaultExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation, PublicNullableFlowState expectedState)
+            {
+                var info = model.GetTypeInfo(expr).Nullability;
+                Assert.Equal(expectedAnnotation, info.Annotation);
+                Assert.Equal(expectedState, info.FlowState);
+            }
         }
     }
 }

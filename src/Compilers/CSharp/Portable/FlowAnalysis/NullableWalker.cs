@@ -1311,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (newState != NullableFlowState.NotNull && NonMonotonicState.HasValue)
             {
                 var tryState = NonMonotonicState.Value;
-                tryState[slot] = newState;
+                tryState[slot] = newState.Join(tryState[slot]);
                 NonMonotonicState = tryState;
             }
         }

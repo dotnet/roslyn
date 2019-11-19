@@ -1849,6 +1849,7 @@ class Program
 
         [Fact]
         [WorkItem(34233, "https://github.com/dotnet/roslyn/issues/34233")]
+        [WorkItem(39888, "https://github.com/dotnet/roslyn/issues/39888")]
         public void SwitchExpressionResultType_01()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -1911,6 +1912,7 @@ public interface IIn<in T> { }
 public interface IOut<out T> { }
 ");
             c.VerifyTypes();
+            // Should not report warnings 5 or 6 (see https://github.com/dotnet/roslyn/issues/39888).
             c.VerifyDiagnostics(
                 // (33,15): error CS8506: No best type was found for the switch expression.
                 //         _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
