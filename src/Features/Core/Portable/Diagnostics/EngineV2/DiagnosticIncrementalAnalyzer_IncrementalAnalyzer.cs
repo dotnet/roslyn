@@ -161,7 +161,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentClosed();
-                await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                var closed = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                RaiseDiagnosticsRemovedForClosedOrResetDocument(document, stateSets, closed);
             }
         }
 
@@ -173,10 +174,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentReset();
-                _stateManager.OnDocumentReset(stateSets, document);
+                var reset = _stateManager.OnDocumentReset(stateSets, document);
+                RaiseDiagnosticsRemovedForClosedOrResetDocument(document, stateSets, reset);
             }
 
             return Task.CompletedTask;
+        }
+
+        private void RaiseDiagnosticsRemovedForClosedOrResetDocument(Document document, IEnumerable<StateSet> stateSets, bool changed)
+        {
+            // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
+            if (!changed ||
+                Executor.FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
+            {
+                // this is Perf to reduce raising events unnecessarily.
+                return;
+            }
+
+            RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
         }
 
         public void RemoveDocument(DocumentId documentId)
@@ -196,19 +211,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                // remove all diagnostics for the document
-                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-                {
-                    Solution nullSolution = null;
-                    foreach (var stateSet in stateSets)
-                    {
-                        // clear all doucment diagnostics
-                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
-                    }
-                });
+                RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
             }
+        }
+
+        private void RaiseDiagnosticsRemovedForDocument(DocumentId documentId, IEnumerable<StateSet> stateSets)
+        {
+            // remove all diagnostics for the document
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                Solution nullSolution = null;
+                foreach (var stateSet in stateSets)
+                {
+                    // clear all doucment diagnostics
+                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                }
+            });
         }
 
         public void RemoveProject(ProjectId projectId)
