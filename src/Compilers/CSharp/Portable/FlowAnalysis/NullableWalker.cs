@@ -1030,6 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Reports top-level nullability problem in assignment.
+        /// Any conversion of the value should have been applied.
         /// </summary>
         private bool ReportNullableAssignmentIfNecessary(
             BoundExpression value,
