@@ -6181,6 +6181,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid calling convention for a function pointer. Valid conventions are &apos;cdecl&apos;, &apos;managed&apos;, &apos;unmanaged&apos;, &apos;thiscall&apos;, and &apos;stdcall&apos;..
+        /// </summary>
+        internal static string ERR_InvalidFunctionPointerCallingConvention {
+            get {
+                return ResourceManager.GetString("ERR_InvalidFunctionPointerCallingConvention", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid function pointer calling convention..
+        /// </summary>
+        internal static string ERR_InvalidFunctionPointerCallingConvention_Title {
+            get {
+                return ResourceManager.GetString("ERR_InvalidFunctionPointerCallingConvention_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid type specified as an argument for TypeForwardedTo attribute.
         /// </summary>
         internal static string ERR_InvalidFwdType {
@@ -11371,6 +11389,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureFixedBuffer {
             get {
                 return ResourceManager.GetString("IDS_FeatureFixedBuffer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to function pointers.
+        /// </summary>
+        internal static string IDS_FeatureFunctionPointers {
+            get {
+                return ResourceManager.GetString("IDS_FeatureFunctionPointers", resourceCulture);
             }
         }
         

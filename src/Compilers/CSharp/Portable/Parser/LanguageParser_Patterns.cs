@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFacts.IsPredefinedType(tk) ||
                 (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
                   (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
-                LooksLikeTupleArrayType();
+                LooksLikeTupleArrayType() ||
+                IsFunctionPointerStart(); // We'll parse the function pointer, but issue an error in semantic analysis
         }
 
         //

@@ -77,9 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfTypeParameterList = 1 << 20,
             IsEndOfMethodSignature = 1 << 21,
             IsEndOfNameInExplicitInterface = 1 << 22,
+            IsEndOfFunctionPointerParameterList = 1 << 23,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfNameInExplicitInterface;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfFunctionPointerParameterList;
 
         private bool IsTerminator()
         {
@@ -115,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfTypeParameterList when this.IsEndOfTypeParameterList():
                     case TerminatorState.IsEndOfMethodSignature when this.IsEndOfMethodSignature():
                     case TerminatorState.IsEndOfNameInExplicitInterface when this.IsEndOfNameInExplicitInterface():
+                    case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList():
                         return true;
                 }
             }
@@ -1857,7 +1859,7 @@ tryAgain:
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                case SyntaxKind.DelegateKeyword:
+                case SyntaxKind.DelegateKeyword when PeekToken(1).Kind != SyntaxKind.AsteriskToken:
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
@@ -2531,6 +2533,11 @@ parse_member_name:;
         private bool IsEndOfNameInExplicitInterface()
         {
             return this.CurrentToken.Kind == SyntaxKind.DotToken || this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
+        }
+
+        private bool IsEndOfFunctionPointerParameterList()
+        {
+            return this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
         }
 
         private MethodDeclarationSyntax ParseMethodDeclaration(
@@ -3547,6 +3554,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken: // attribute
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
+                case SyntaxKind.DelegateKeyword when IsFunctionPointerStart(): // Function pointer type
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -5751,6 +5759,10 @@ tryAgain:
                     return ScanTypeFlags.NotType;
                 }
             }
+            else if (IsFunctionPointerStart())
+            {
+                return ScanFunctionPointerType(out lastTokenOfType);
+            }
             else
             {
                 // Can't be a type!
@@ -5874,6 +5886,63 @@ done:
             return ScanTypeFlags.NotType;
         }
 
+        private ScanTypeFlags ScanFunctionPointerType(out SyntaxToken lastTokenOfType)
+        {
+            Debug.Assert(IsFunctionPointerStart());
+            _ = EatContextualToken(SyntaxKind.DelegateKeyword);
+            _ = EatToken(SyntaxKind.AsteriskToken);
+
+            switch (CurrentToken.ContextualKind)
+            {
+                case SyntaxKind.CdeclKeyword:
+                case SyntaxKind.ManagedKeyword:
+                case SyntaxKind.StdcallKeyword:
+                case SyntaxKind.ThiscallKeyword:
+                case SyntaxKind.UnmanagedKeyword:
+                    _ = EatContextualToken(CurrentToken.ContextualKind);
+                    break;
+
+                default:
+                    if (CurrentToken.Kind != SyntaxKind.LessThanToken)
+                    {
+                        _ = EatToken();
+                    }
+                    break;
+            }
+
+            _ = EatToken(SyntaxKind.LessThanToken);
+
+            do
+            {
+                switch (CurrentToken.Kind)
+                {
+                    case SyntaxKind.ReadOnlyKeyword:
+                        _ = EatToken(SyntaxKind.ReadOnlyKeyword);
+                        _ = EatToken(SyntaxKind.RefKeyword);
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                    case SyntaxKind.InKeyword:
+                    case SyntaxKind.OutKeyword:
+                        _ = EatToken(CurrentToken.Kind);
+                        break;
+                }
+
+                ScanType(out _);
+
+                if (CurrentToken.Kind != SyntaxKind.CommaToken)
+                {
+                    break;
+                }
+
+                _ = EatToken(SyntaxKind.CommaToken);
+            } while (true);
+
+            lastTokenOfType = EatToken(SyntaxKind.GreaterThanToken);
+
+            return ScanTypeFlags.MustBeType;
+        }
+
         private static bool IsPredefinedType(SyntaxKind keyword)
         {
             return SyntaxFacts.IsPredefinedType(keyword);
@@ -5905,7 +5974,7 @@ done:
             AfterTupleComma,
             AsExpression,
             NewExpression,
-            FirstElementOfPossibleTupleLiteral
+            FirstElementOfPossibleTupleLiteral,
         }
 
         private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal)
@@ -6044,6 +6113,9 @@ done:;
             Debug.Assert(type != null);
             return type;
         }
+
+        private bool IsFunctionPointerStart() => CurrentToken.Kind == SyntaxKind.DelegateKeyword
+                                                 && PeekToken(1).Kind == SyntaxKind.AsteriskToken;
 
         private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
         {
@@ -6266,10 +6338,117 @@ done:;
             {
                 return this.ParseTupleType();
             }
+            else if (IsFunctionPointerStart())
+            {
+                return ParseFunctionPointerTypeSyntax();
+            }
             else
             {
                 var name = this.CreateMissingIdentifierName();
                 return this.AddError(name, ErrorCode.ERR_TypeExpected);
+            }
+        }
+
+        private FunctionPointerTypeSyntax ParseFunctionPointerTypeSyntax()
+        {
+            Debug.Assert(IsFunctionPointerStart());
+            var @delegate = EatToken(SyntaxKind.DelegateKeyword);
+            var asterisk = EatToken(SyntaxKind.AsteriskToken);
+            var callingConvention = CurrentToken.Kind != SyntaxKind.LessThanToken
+                ? CurrentToken.ContextualKind switch
+                {
+                    SyntaxKind.CdeclKeyword => EatContextualToken(SyntaxKind.CdeclKeyword),
+                    SyntaxKind.ManagedKeyword => EatContextualToken(SyntaxKind.ManagedKeyword),
+                    SyntaxKind.UnmanagedKeyword => EatContextualToken(SyntaxKind.UnmanagedKeyword),
+                    SyntaxKind.ThiscallKeyword => EatContextualToken(SyntaxKind.ThiscallKeyword),
+                    SyntaxKind.StdcallKeyword => EatContextualToken(SyntaxKind.StdcallKeyword),
+                    _ => parseInvalidCallingConvention(),
+                }
+                : null;
+
+            var lessThanToken = EatToken(SyntaxKind.LessThanToken);
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfFunctionPointerParameterList;
+            var types = _pool.AllocateSeparated<FunctionPointerParameterOrReturnTypeSyntax>();
+
+            try
+            {
+                while (true)
+                {
+                    var modifiers = _pool.Allocate<SyntaxToken>();
+                    try
+                    {
+                        switch (CurrentToken.Kind)
+                        {
+                            case SyntaxKind.ReadOnlyKeyword:
+                                modifiers.Add(EatToken(SyntaxKind.ReadOnlyKeyword));
+                                modifiers.Add(EatToken(SyntaxKind.RefKeyword));
+                                break;
+
+                            case SyntaxKind.RefKeyword:
+                            case SyntaxKind.OutKeyword:
+                            case SyntaxKind.InKeyword:
+                                modifiers.Add(EatToken(CurrentToken.Kind));
+                                break;
+                        }
+
+                        var parameterType = ParseTypeOrVoid();
+                        types.Add(SyntaxFactory.FunctionPointerParameterOrReturnType(modifiers, parameterType));
+
+                        if (CurrentToken.Kind == SyntaxKind.CommaToken)
+                        {
+                            types.AddSeparator(EatToken(SyntaxKind.CommaToken));
+                        }
+                        else if (skipBadFunctionPointerParameterListTokens() == PostSkipAction.Abort)
+                        {
+                            break;
+                        }
+
+                        PostSkipAction skipBadFunctionPointerParameterListTokens()
+                        {
+                            CSharpSyntaxNode tmp = null;
+                            Debug.Assert(types.Count > 0);
+                            return SkipBadSeparatedListTokensWithExpectedKind(ref tmp,
+                                types,
+                                isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                                abortFunction: p => p.CurrentToken.Kind == SyntaxKind.CommaToken || p.IsTerminator(),
+                                expected: SyntaxKind.CommaToken);
+                        }
+                    }
+                    finally
+                    {
+                        _pool.Free(modifiers);
+                    }
+                }
+
+                var greaterThanToken = EatToken(SyntaxKind.GreaterThanToken);
+                var funcPointer = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, lessThanToken, types, greaterThanToken);
+                funcPointer = CheckFeatureAvailability(funcPointer, MessageID.IDS_FeatureFunctionPointers);
+                return funcPointer;
+            }
+            finally
+            {
+                _termState = saveTerm;
+                _pool.Free(types);
+            }
+
+            SyntaxToken parseInvalidCallingConvention()
+            {
+                // If the user typed something other than a simple identifier
+                // (such as a valid name or a predefined type) in this spot,
+                // then assume that it's not an invalid calling convention.
+                // We'll get an unexpected token error when the next step
+                // attempts to a eat a <
+                if (CurrentToken.Kind != SyntaxKind.IdentifierToken ||
+                    SyntaxFacts.IsPredefinedType(CurrentToken.Kind))
+                {
+                    return null;
+                }
+
+                var originalConvention = EatToken();
+                originalConvention = AddError(originalConvention, ErrorCode.ERR_InvalidFunctionPointerCallingConvention, originalConvention.ToString());
+                var convention = SyntaxFactory.MissingToken(originalConvention, SyntaxKind.CdeclKeyword, trailing: null);
+                return convention;
             }
         }
 
@@ -10936,6 +11115,9 @@ tryAgain:
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
 
+                case SyntaxKind.DelegateKeyword:
+                    return this.IsFunctionPointerStart();
+
                 default:
                     return IsPredefinedType(this.CurrentToken.Kind);
             }
@@ -10990,6 +11172,12 @@ tryAgain:
 
             // if we have a tuple type in a lambda.
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                return true;
+            }
+
+            // If this is a function pointer type
+            if (this.IsFunctionPointerStart())
             {
                 return true;
             }

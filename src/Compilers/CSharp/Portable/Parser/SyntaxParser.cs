@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
-        protected SyntaxToken EatTokenAsKind(SyntaxKind expected)
+        protected SyntaxToken EatTokenAsKind(SyntaxKind expected, bool reportError = true)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(expected));
 
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return ct;
             }
 
-            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError);
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 

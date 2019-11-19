@@ -5945,6 +5945,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadSwitchValue" xml:space="preserve">
     <value>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</value>
   </data>
+  <data name="IDS_FeatureFunctionPointers" xml:space="preserve">
+    <value>function pointers</value>
+  </data>
+  <data name="ERR_InvalidFunctionPointerCallingConvention">
+    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'unmanaged', 'thiscall', and 'stdcall'.</value>
+  </data>
+  <data name="ERR_InvalidFunctionPointerCallingConvention_Title">
+    <value>Invalid function pointer calling convention.</value>
+  </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
   </data>
