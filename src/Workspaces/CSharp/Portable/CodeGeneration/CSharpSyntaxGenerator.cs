@@ -1326,9 +1326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override bool CanHaveAccessibility(SyntaxNode declaration)
         {
-            if (declaration == null)
-                return false;
-
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
