@@ -320,9 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
                 InternalSyntax.DirectiveStack.Empty;
 
-            bool isGenerated = isGeneratedCode.HasValue
-                ? isGeneratedCode.Value
-                : GeneratedCodeUtilities.IsGeneratedCode(
+            bool isGenerated = isGeneratedCode ??
+                GeneratedCodeUtilities.IsGeneratedCode(
                     path,
                     root,
                     isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia);
