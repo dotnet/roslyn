@@ -17,7 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal abstract partial class AbstractOleCommandTarget : IOleCommandTarget
     {
-        private readonly IWpfTextView _wpfTextView;
         private readonly IComponentModel _componentModel;
 
         /// <summary>
@@ -33,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Contract.ThrowIfNull(wpfTextView);
             Contract.ThrowIfNull(componentModel);
 
-            _wpfTextView = wpfTextView;
+            WpfTextView = wpfTextView;
             _componentModel = componentModel;
         }
 
@@ -45,10 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// The IWpfTextView that this command filter is attached to.
         /// </summary>
-        public IWpfTextView WpfTextView
-        {
-            get { return _wpfTextView; }
-        }
+        public IWpfTextView WpfTextView { get; }
 
         /// <summary>
         /// The next command target in the chain. This is set by the derived implementation of this
@@ -59,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         internal AbstractOleCommandTarget AttachToVsTextView()
         {
-            var vsTextView = EditorAdaptersFactory.GetViewAdapter(_wpfTextView);
+            var vsTextView = EditorAdaptersFactory.GetViewAdapter(WpfTextView);
 
             // Add command filter to IVsTextView. If something goes wrong, throw.
             var returnValue = vsTextView.AddCommandFilter(this, out var nextCommandTarget);
@@ -73,12 +69,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected virtual ITextBuffer GetSubjectBufferContainingCaret()
         {
-            return _wpfTextView.GetBufferContainingCaret();
+            return WpfTextView.GetBufferContainingCaret();
         }
 
         protected virtual ITextView ConvertTextView()
         {
-            return _wpfTextView;
+            return WpfTextView;
         }
     }
 }
