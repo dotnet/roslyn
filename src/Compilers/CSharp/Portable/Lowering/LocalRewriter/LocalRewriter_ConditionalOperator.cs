@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -46,26 +45,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType,
             bool isRef)
         {
-            ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
+            if (TryRewriteConstantConditionalOperator(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, out var result))
+            {
+                return result;
+            }
+
+            return new BoundConditionalOperator(
+                syntax,
+                isRef,
+                rewrittenCondition,
+                rewrittenConsequence,
+                rewrittenAlternative,
+                constantValueOpt,
+                rewrittenType);
+        }
+
+        /// <summary>
+        /// If the condition has a constant value, then just use the selected branch.
+        /// e.g. "true ? x : y" becomes "x".
+        /// </summary>
+        private static bool TryRewriteConstantConditionalOperator(
+            BoundExpression condition,
+            BoundExpression consequence,
+            BoundExpression alternative,
+            out BoundExpression result)
+        {
+            ConstantValue conditionConstantValue = condition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
-                return rewrittenConsequence;
+                result = consequence;
+                return true;
             }
-            else if (conditionConstantValue == ConstantValue.False)
+
+            if (conditionConstantValue == ConstantValue.False)
             {
-                return rewrittenAlternative;
+                result = alternative;
+                return true;
             }
-            else
-            {
-                return new BoundConditionalOperator(
-                    syntax,
-                    isRef,
-                    rewrittenCondition,
-                    rewrittenConsequence,
-                    rewrittenAlternative,
-                    constantValueOpt,
-                    rewrittenType);
-            }
+
+            result = default;
+            return false;
         }
     }
 }
