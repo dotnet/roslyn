@@ -124,10 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         /// <summary>
-        /// The underlying AssemblySymbol.
-        /// This cannot be an instance of RetargetingAssemblySymbol.
+        /// The underlying <see cref="SourceAssemblySymbol"/>.
         /// </summary>
-        public AssemblySymbol UnderlyingAssembly
+        public SourceAssemblySymbol UnderlyingAssembly
         {
             get
             {

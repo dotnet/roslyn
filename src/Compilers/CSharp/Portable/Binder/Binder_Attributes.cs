@@ -194,6 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)attributeType != null);
 
             NullableWalker.AnalyzeIfNeeded(this, boundAttribute, diagnostics);
+            if (!IsSemanticModelBinder)
+            {
+                UsedAssembliesRecorder.RecordUsedAssemblies(Compilation, boundAttribute, diagnostics);
+            }
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 
@@ -431,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteDiagnostics);
             diagnostics.Add(identifierName, useSiteDiagnostics);
-            Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError);
+            Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError, qualifierOpt: null);
             resultKind = result.Kind;
             result.Free();
             return resultSymbol;
