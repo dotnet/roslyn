@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return false;
                 }
 
-                protected override SyntaxToken CreateMethodName()
+                protected override SyntaxToken CreateMethodName(bool generateLocalFunction)
                 {
                     // change this to more smarter one.
                     var semanticModel = this.SemanticDocument.SemanticModel;
                     var nameGenerator = new UniqueNameGenerator(semanticModel);
                     var scope = this.CSharpSelectionResult.GetContainingScope();
-                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod", GetLocalFunctionNamesIfScopeIsMethod(scope)));
+                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod", generateLocalFunction));
                 }
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()

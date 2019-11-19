@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return False
                 End Function
 
-                Protected Overrides Function CreateMethodName() As SyntaxToken
+                Protected Overrides Function CreateMethodName(generateLocalFunction As Boolean) As SyntaxToken
                     ' change this to more smarter one.
                     Dim semanticModel = SemanticDocument.SemanticModel
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)

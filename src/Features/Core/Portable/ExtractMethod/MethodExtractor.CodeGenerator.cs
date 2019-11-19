@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool generateLocalFunction, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
-            protected abstract SyntaxToken CreateMethodName();
+            protected abstract SyntaxToken CreateMethodName(bool generateLocalFunction);
             protected abstract bool LastStatementOrHasReturnStatementInReturnableConstruct();
 
             protected abstract TNodeUnderContainer GetFirstStatementOrInitializerSelectedAtCallSite();

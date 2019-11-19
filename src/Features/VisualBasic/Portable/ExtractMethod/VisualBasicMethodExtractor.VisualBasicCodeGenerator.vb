@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(insertionPoint, selectionResult, analyzerResult)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
-                Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
+                Me._methodName = CreateMethodName(generateLocalFunction:=False).WithAdditionalAnnotations(MethodNameAnnotation)
             End Sub
 
             Private ReadOnly Property VBSelectionResult() As VisualBasicSelectionResult

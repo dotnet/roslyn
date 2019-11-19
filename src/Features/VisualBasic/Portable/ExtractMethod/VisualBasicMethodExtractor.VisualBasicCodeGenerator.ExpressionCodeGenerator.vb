@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return code.SelectionInExpression
                 End Function
 
-                Protected Overrides Function CreateMethodName() As SyntaxToken
+                Protected Overrides Function CreateMethodName(generateLocalFunction As Boolean) As SyntaxToken
                     Dim methodName = "NewMethod"
                     Dim containingScope = CType(VBSelectionResult.GetContainingScope(), SyntaxNode)
 

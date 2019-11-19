@@ -3072,7 +3072,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestExtractLocalFunctionWithinLocalMethod_EnsureUniqueMethodName()
+        public async Task TestExtractLocalFunctionWithinLocalFunction_EnsureUniqueFunctionName()
         {
             await TestInRegularAndScriptAsync(
 @"class Test
@@ -3098,14 +3098,14 @@ class C
         static void NewMethod()
         {
             var NewMethod2 = 0;
-            {|Rename:NewMethod2|}();
+            {|Rename:NewMethod3|}();
 
             static void NewMethod1()
             {
                 var test = 1;
             }
 
-            static void NewMethod2()
+            static void NewMethod3()
             {
                 var test = 1;
             }

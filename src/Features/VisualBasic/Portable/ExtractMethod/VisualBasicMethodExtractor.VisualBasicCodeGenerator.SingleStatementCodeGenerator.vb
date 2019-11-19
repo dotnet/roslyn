@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return firstStatement Is lastStatement OrElse firstStatement.Span.Contains(lastStatement.Span)
                 End Function
 
-                Protected Overrides Function CreateMethodName() As SyntaxToken
+                Protected Overrides Function CreateMethodName(generateLocalFunction As Boolean) As SyntaxToken
                     ' change this to more smarter one.
                     Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
