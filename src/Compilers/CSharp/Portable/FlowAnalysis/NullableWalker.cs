@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Reports top-level nullability problem in assignment.
         /// Any conversion of the value should have been applied.
         /// </summary>
-        private bool ReportNullableAssignmentIfNecessary(
+        private void ReportNullableAssignmentIfNecessary(
             BoundExpression value,
             TypeWithAnnotations targetType,
             TypeWithState valueType,
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.HasType &&
                 !targetType.Type.Equals(valueType.Type, TypeCompareKind.AllIgnoreOptions))
             {
-                return false;
+                return;
             }
 
             if (value == null ||
@@ -1054,24 +1054,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !targetType.HasType ||
                 targetType.Type.IsValueType)
             {
-                return false;
+                return;
             }
 
             switch (targetType.NullableAnnotation)
             {
                 case NullableAnnotation.Oblivious:
                 case NullableAnnotation.Annotated:
-                    return false;
+                    return;
             }
 
             switch (valueType.State)
             {
                 case NullableFlowState.NotNull:
-                    return false;
+                    return;
                 case NullableFlowState.MaybeNull:
                     if (targetType.Type.IsTypeParameterDisallowingAnnotation())
                     {
-                        return false;
+                        return;
                     }
                     break;
             }
@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var unwrappedValue = SkipReferenceConversions(value);
             if (unwrappedValue.IsSuppressed)
             {
-                return false;
+                return;
             }
 
             if (useLegacyWarnings &&
@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // No W warning reported assigning or casting [MaybeNull]T value to T
                 // because there is no syntax for declaring the target type as [MaybeNull]T.
-                return true;
+                return;
             }
 
             if (value.ConstantValue?.IsNull == true)
@@ -1119,8 +1119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ReportDiagnostic(assignmentKind switch { AssignmentKind.Return => ErrorCode.WRN_NullReferenceReturn, AssignmentKind.ForEachIterationVariable => ErrorCode.WRN_NullReferenceIterationVariable, _ => ErrorCode.WRN_NullReferenceAssignment }, location);
             }
-
-            return true;
         }
 
         private static bool IsDefaultValue(BoundExpression expr)
