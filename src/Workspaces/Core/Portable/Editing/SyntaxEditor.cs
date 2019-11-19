@@ -136,6 +136,19 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes.Add(new ReplaceChange(node, computeReplacement, this));
         }
 
+        internal void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> computeReplacement)
+        {
+            CheckNodeInOriginalTreeOrTracked(node);
+            if (computeReplacement == null)
+            {
+                throw new ArgumentNullException(nameof(computeReplacement));
+            }
+
+            _allowEditsOnLazilyCreatedTrackedNewNodes = true;
+            _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
+        }
+
+
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
             CheckNodeInOriginalTreeOrTracked(node);
@@ -308,6 +321,34 @@ namespace Microsoft.CodeAnalysis.Editing
                 var newNode = _modifier(current, generator);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);
                 return generator.ReplaceNode(root, current, newNode);
+            }
+        }
+
+        private class ReplaceWithCollectionChange : Change
+        {
+            private readonly Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> _modifier;
+            private readonly SyntaxEditor _editor;
+
+            public ReplaceWithCollectionChange(
+                SyntaxNode node,
+                Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> modifier,
+                SyntaxEditor editor)
+                : base(node)
+            {
+                _modifier = modifier;
+                _editor = editor;
+            }
+
+            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            {
+                var current = root.GetCurrentNode(this.Node);
+                var newNodes = _modifier(current, generator).ToList();
+                for (int i = 0; i < newNodes.Count; i++)
+                {
+                    newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
+                }
+
+                return generator.ReplaceNode(root, current, newNodes);
             }
         }
 
