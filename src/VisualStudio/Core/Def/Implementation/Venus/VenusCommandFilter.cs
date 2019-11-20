@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return _subjectBuffer;
         }
 
-        protected override int GetDataTipTextImpl(TextSpan[] pSpan, AbstractLanguageService<TPackage, TLanguageService>.VsLanguageDebugInfo debugInfo, out string pbstrText)
+        protected override int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {
             var textViewModel = WpfTextView.TextViewModel;
             if (textViewModel == null)
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // Next, we'll check to see if there is actually a DataTip for this candidate.
                 // If there is, we'll map this span back to the DataBuffer and return it.
                 pSpan[0] = candidateSpan.ToVsTextSpan();
-                var hr = base.GetDataTipTextImpl(_subjectBuffer, pSpan, debugInfo, out pbstrText);
+                var hr = base.GetDataTipTextImpl(_subjectBuffer, pSpan, out pbstrText);
                 if (ErrorHandler.Succeeded(hr))
                 {
                     var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
