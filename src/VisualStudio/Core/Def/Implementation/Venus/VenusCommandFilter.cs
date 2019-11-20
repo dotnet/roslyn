@@ -23,12 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly ITextBuffer _subjectBuffer;
 
         public VenusCommandFilter(
-            TLanguageService languageService,
             IWpfTextView wpfTextView,
             ITextBuffer subjectBuffer,
             IOleCommandTarget nextCommandTarget,
             IComponentModel componentModel)
-            : base(languageService, wpfTextView, componentModel)
+            : base(wpfTextView, componentModel)
         {
             Contract.ThrowIfNull(wpfTextView);
             Contract.ThrowIfNull(subjectBuffer);
@@ -50,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer subjectBuffer,
             IOleCommandTarget nextCommandTarget,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : this(languageService, wpfTextView, subjectBuffer, nextCommandTarget, languageService.Package.ComponentModel)
+            : this(wpfTextView, subjectBuffer, nextCommandTarget, languageService.Package.ComponentModel)
         {
         }
 

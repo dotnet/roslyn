@@ -27,15 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        protected AbstractLanguageService<TPackage, TLanguageService> LanguageService { get; }
-
         protected AbstractVsTextViewFilter(
-            AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IComponentModel componentModel)
             : base(wpfTextView, componentModel)
         {
-            LanguageService = languageService;
         }
 
         int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)

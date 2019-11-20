@@ -19,12 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// Creates a new command handler that is attached to an IVsTextView.
         /// </summary>
         /// <param name="wpfTextView">The IWpfTextView of the view.</param>
-        /// <param name="languageService">The language service</param>
         internal StandaloneCommandFilter(
-            TLanguageService languageService,
             IWpfTextView wpfTextView,
             IComponentModel componentModel)
-            : base(languageService, wpfTextView, componentModel)
+            : base(wpfTextView, componentModel)
         {
         }
     }

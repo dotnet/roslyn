@@ -28,11 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private IFeatureDisableToken _completionDisabledToken;
 
         public DebuggerIntelliSenseFilter(
-            AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IComponentModel componentModel,
             IFeatureServiceFactory featureServiceFactory)
-            : base(languageService, wpfTextView, componentModel)
+            : base(wpfTextView, componentModel)
         {
             _featureServiceFactory = featureServiceFactory;
         }

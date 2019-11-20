@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -50,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
                 if (!this.filters.ContainsKey(textView))
                 {
-                    filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(this,
+                    filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
                         this.Package.ComponentModel,
                         this.Package.ComponentModel.GetService<IFeatureServiceFactory>());
