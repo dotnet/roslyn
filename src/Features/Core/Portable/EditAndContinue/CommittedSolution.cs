@@ -32,9 +32,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal enum DocumentState
         {
             None = 0,
-            OutOfSync = 1,
-            MatchesDebuggee = 2,
-            DesignTimeOnly = 3,
+
+            /// <summary>
+            /// The current document content matches the content the built module was compiled with.
+            /// The document content is matched with the build output instead of the loaded module
+            ///  since the module hasn't been loaded yet.
+            ///
+            /// This document state may change to <see cref="OutOfSync"/>, <see cref="MatchesDebuggee"/>, 
+            /// or <see cref="DesignTimeOnly"/> or once the module has been loaded.
+            /// </summary>
+            MatchesBuildOutput = 1,
+
+            /// <summary>
+            /// The current document content does not match the content the module was compiled with.
+            /// This document state may change to <see cref="MatchesDebuggee"/> or <see cref="DesignTimeOnly"/>.
+            /// </summary>
+            OutOfSync = 2,
+
+            /// <summary>
+            /// The current document content matches the content the loaded module was compiled with.
+            /// This is a final state. Once a document is in this state it won't switch to a different one.
+            /// </summary>
+            MatchesDebuggee = 3,
+
+            /// <summary>
+            /// The document is not compiled into the module. It's only included in the project
+            /// to support design-time features such as completion, etc.
+            /// This is a final state. Once a document is in this state it won't switch to a different one.
+            /// </summary>
+            DesignTimeOnly = 4,
+        }
+
+        private enum SourceHashOrigin
+        {
+            None = 0,
+            LoadedPdb = 1,
+            BuiltPdb = 2
         }
 
         /// <summary>
@@ -114,6 +147,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(DocumentId documentId, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
         {
             Document? document;
+            var matchLoadedModulesOnly = false;
 
             lock (_guard)
             {
@@ -138,6 +172,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         case DocumentState.DesignTimeOnly:
                             return (null, documentState);
 
+                        case DocumentState.MatchesBuildOutput:
+                            // Module might have been loaded since the last time we checked,
+                            // let's check whether that is so and the document now matches the debuggee.
+                            // Do not try to read the information from on-disk module again.
+                            // CONSIDER: Reusing the state until we receive module load event.
+                            matchLoadedModulesOnly = true;
+                            break;
+
                         case DocumentState.OutOfSync:
                             if (reloadOutOfSyncDocument)
                             {
@@ -152,11 +194,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var (matchingSourceText, isMissing) = await TryGetPdbMatchingSourceTextAsync(document.FilePath, document.Project.Id, cancellationToken).ConfigureAwait(false);
+            var (matchingSourceText, checksumOrigin, isDocumentMissing) = await TryGetPdbMatchingSourceTextAsync(document.FilePath, document.Project.Id, matchLoadedModulesOnly, cancellationToken).ConfigureAwait(false);
 
             lock (_guard)
             {
-                if (_documentState.TryGetValue(documentId, out var documentState) && documentState != DocumentState.OutOfSync)
+                // only listed document states can be changed:
+                if (_documentState.TryGetValue(documentId, out var documentState) &&
+                    documentState != DocumentState.OutOfSync &&
+                    documentState != DocumentState.MatchesBuildOutput)
                 {
                     return (document, documentState);
                 }
@@ -164,7 +209,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 DocumentState newState;
                 Document? matchingDocument;
 
-                if (isMissing)
+                if (checksumOrigin == SourceHashOrigin.None)
+                {
+                    // We know the document matches the build output and the module is still not loaded.
+                    if (matchLoadedModulesOnly)
+                    {
+                        return (document, DocumentState.MatchesBuildOutput);
+                    }
+
+                    // PDB for the module not found (neither loaded nor in built outputs):
+                    Debug.Assert(isDocumentMissing);
+                    return (null, DocumentState.DesignTimeOnly);
+                }
+
+                if (isDocumentMissing)
                 {
                     // Source file is not listed in the PDB. This may happen for a couple of reasons:
                     // The library wasn't built with that source file - the file has been added before debugging session started but after build captured it.
@@ -184,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         matchingDocument = _solution.GetDocument(documentId);
                     }
 
-                    newState = DocumentState.MatchesDebuggee;
+                    newState = (checksumOrigin == SourceHashOrigin.LoadedPdb) ? DocumentState.MatchesDebuggee : DocumentState.MatchesBuildOutput;
                 }
                 else
                 {
@@ -216,34 +274,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<(SourceText? Source, bool IsMissing)> TryGetPdbMatchingSourceTextAsync(string sourceFilePath, ProjectId projectId, CancellationToken cancellationToken)
+        private async Task<(SourceText? Source, SourceHashOrigin ChecksumOrigin, bool IsDocumentMissing)> TryGetPdbMatchingSourceTextAsync(string sourceFilePath, ProjectId projectId, bool matchLoadedModulesOnly, CancellationToken cancellationToken)
         {
-            var (symChecksum, algorithm) = await TryReadSourceFileChecksumFromPdb(sourceFilePath, projectId, cancellationToken).ConfigureAwait(false);
+            var (symChecksum, algorithm, origin) = await TryReadSourceFileChecksumFromPdb(sourceFilePath, projectId, matchLoadedModulesOnly, cancellationToken).ConfigureAwait(false);
             if (symChecksum.IsDefault)
             {
-                return (Source: null, IsMissing: true);
+                return (Source: null, origin, IsDocumentMissing: true);
             }
 
             if (!PathUtilities.IsAbsolute(sourceFilePath))
             {
                 EditAndContinueWorkspaceService.Log.Write("Error calculating checksum for source file '{0}': path not absolute", sourceFilePath);
-                return (Source: null, IsMissing: false);
+                return (Source: null, origin, IsDocumentMissing: false);
             }
 
             try
             {
                 using var fileStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
                 var sourceText = SourceText.From(fileStream, checksumAlgorithm: algorithm);
-                return (sourceText.GetChecksum().SequenceEqual(symChecksum) ? sourceText : null, IsMissing: false);
+                return (sourceText.GetChecksum().SequenceEqual(symChecksum) ? sourceText : null, origin, IsDocumentMissing: false);
             }
             catch (Exception e)
             {
                 EditAndContinueWorkspaceService.Log.Write("Error calculating checksum for source file '{0}': '{1}'", sourceFilePath, e.Message);
-                return (Source: null, IsMissing: false);
+                return (Source: null, origin, IsDocumentMissing: false);
             }
         }
 
-        private async Task<(ImmutableArray<byte> Checksum, SourceHashAlgorithm Algorithm)> TryReadSourceFileChecksumFromPdb(string sourceFilePath, ProjectId projectId, CancellationToken cancellationToken)
+        private async Task<(ImmutableArray<byte> Checksum, SourceHashAlgorithm Algorithm, SourceHashOrigin Origin)> TryReadSourceFileChecksumFromPdb(string sourceFilePath, ProjectId projectId, bool matchLoadedModulesOnly, CancellationToken cancellationToken)
         {
             try
             {
@@ -254,62 +312,101 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return default;
                 }
 
-                cancellationToken.ThrowIfCancellationRequested();
+                // Dispatch to a background thread - reading symbols from debuggee requires MTA thread.
+                var (checksum, algorithmId, origin) = (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA) ?
+                    await Task.Factory.StartNew(ReadChecksum, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default).ConfigureAwait(false) :
+                    ReadChecksum();
 
-                // Dispatch to a background thread - reading symbols requires MTA thread.
-                if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+                if (checksum.IsDefault)
                 {
-                    return await Task.Factory.StartNew(() =>
-                    {
-                        try
-                        {
-                            return ReadChecksum();
-                        }
-                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                        {
-                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unexpected exception: {1}", sourceFilePath, e.Message);
-                            return default;
-                        }
-                    }, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
-                }
-                else
-                {
-                    return ReadChecksum();
+                    return (default, default, origin);
                 }
 
-                (ImmutableArray<byte> Checksum, SourceHashAlgorithm Algorithm) ReadChecksum()
+                var algorithm = SourceHashAlgorithms.GetSourceHashAlgorithm(algorithmId);
+                if (algorithm == SourceHashAlgorithm.None)
                 {
-                    var moduleInfo = _debuggingSession.DebugeeModuleMetadataProvider.TryGetBaselineModuleInfo(mvid);
-                    if (moduleInfo == null)
-                    {
-                        EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: can't get baseline SymReader", sourceFilePath);
-                        return default;
-                    }
+                    // unknown algorithm:
+                    EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unknown checksum alg", sourceFilePath);
+                    return (default, default, origin);
+                }
 
+                return (checksum, algorithm, origin);
+
+                (ImmutableArray<byte> Checksum, Guid AlgorithmId, SourceHashOrigin Origin) ReadChecksum()
+                {
                     try
                     {
-                        var symDocument = moduleInfo.SymReader.GetDocument(sourceFilePath);
-                        if (symDocument == null)
+                        // first try to check against loaded module
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var moduleInfo = _debuggingSession.DebugeeModuleMetadataProvider.TryGetBaselineModuleInfo(mvid);
+                        if (moduleInfo != null)
                         {
-                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: no SymDocument", sourceFilePath);
-                            return default;
+                            try
+                            {
+                                if (EditAndContinueMethodDebugInfoReader.TryGetDocumentChecksum(moduleInfo.SymReader, sourceFilePath, out var checksum, out var algorithmId))
+                                {
+                                    return (checksum, algorithmId, SourceHashOrigin.LoadedPdb);
+                                }
+
+                                EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match loaded PDB: no SymDocument", sourceFilePath);
+                            }
+                            catch (Exception e)
+                            {
+                                EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match loaded PDB: error reading symbols: {1}", sourceFilePath, e.Message);
+                            }
+
+                            return (default, default, SourceHashOrigin.LoadedPdb);
                         }
 
-                        var symAlgorithm = SourceHashAlgorithms.GetSourceHashAlgorithm(symDocument.GetHashAlgorithm());
-                        if (symAlgorithm == SourceHashAlgorithm.None)
+                        if (matchLoadedModulesOnly)
                         {
-                            // unknown algorithm:
-                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unknown checksum alg", sourceFilePath);
-                            return default;
+                            return (default, default, SourceHashOrigin.None);
                         }
 
-                        var symChecksum = symDocument.GetChecksum().ToImmutableArray();
+                        // if the module is not loaded check against build output:
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                        return (symChecksum, symAlgorithm);
+                        var compilationOutputs = _debuggingSession.CompilationOutputsProvider.GetCompilationOutputs(projectId);
+
+                        DebugInformationReaderProvider? debugInfoReaderProvider;
+                        try
+                        {
+                            debugInfoReaderProvider = compilationOutputs.OpenPdb();
+                        }
+                        catch (Exception e)
+                        {
+                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match output PDB: error opening PDB: {1}", sourceFilePath, e.Message);
+                            debugInfoReaderProvider = null;
+                        }
+
+                        if (debugInfoReaderProvider == null)
+                        {
+                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match output PDB: PDB not found", sourceFilePath);
+                            return (default, default, SourceHashOrigin.None);
+                        }
+
+                        try
+                        {
+                            var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
+                            if (debugInfoReader.TryGetDocumentChecksum(sourceFilePath, out var checksum, out var algorithmId))
+                            {
+                                return (checksum, algorithmId, SourceHashOrigin.BuiltPdb);
+                            }
+
+                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match output PDB: no SymDocument", sourceFilePath);
+                            return (default, default, SourceHashOrigin.BuiltPdb);
+                        }
+                        catch (Exception e)
+                        {
+                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match output PDB: error reading symbols: {1}", sourceFilePath, e.Message);
+                        }
+
+                        return (default, default, SourceHashOrigin.BuiltPdb);
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                     {
-                        EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: error reading symbols: {1}", sourceFilePath, e.Message);
+                        EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unexpected exception: {1}", sourceFilePath, e.Message);
                         return default;
                     }
                 }
