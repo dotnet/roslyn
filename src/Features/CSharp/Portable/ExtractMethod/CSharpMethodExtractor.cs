@@ -132,5 +132,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             return OperationStatus.Succeeded;
         }
+
+        protected override async Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+            Document document,
+            SyntaxToken methodName,
+            SyntaxNode methodDefinition,
+            CancellationToken cancellationToken)
+        {
+            // Checking to see if there is already an empty line before the local method declaration.
+            var leadingTrivia = methodDefinition.GetLeadingTrivia();
+            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)))
+            {
+                var originalMethodDefinition = methodDefinition;
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
+
+                // Generating the new document and associated variables.
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                document = document.WithSyntaxRoot(root.ReplaceNode(originalMethodDefinition, methodDefinition));
+
+                var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                methodName = newRoot.FindToken(methodName.SpanStart);
+            }
+
+            return (document, methodName, methodDefinition);
+        }
     }
 }

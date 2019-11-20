@@ -150,5 +150,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
         End Class
+
+        Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(document As Document,
+                                                                                      methodName As SyntaxToken,
+                                                                                      methodDefinition As SyntaxNode,
+                                                                                      cancellationToken As CancellationToken) As Task(Of (document As Document, methodName As SyntaxToken, methodDefinition As SyntaxNode))
+            Return Task.FromResult((document, methodName, methodDefinition))
+        End Function
     End Class
 End Namespace

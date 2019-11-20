@@ -40,37 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalFunction
             if (result.Succeeded || result.SucceededWithSuggestion)
             {
                 // We insert an empty line between the generated local method and the previous statements if there is not one already.
-                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => InsertNewLineBeforeLocalMethodIfNecessaryAsync(result, c));
+                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
 
                 return codeAction;
             }
 
             return default;
-        }
-
-        private async Task<Document> InsertNewLineBeforeLocalMethodIfNecessaryAsync(
-            ExtractMethodResult result,
-            CancellationToken cancellationToken)
-        {
-            var resultDocument = result.Document;
-            var resultMethodDeclarationNode = result.MethodDeclarationNode;
-            var resultInvocationNameToken = result.InvocationNameToken;
-
-            // Checking to see if there is already an empty line before the local method declaration.
-            var leadingTrivia = result.MethodDeclarationNode.GetLeadingTrivia();
-            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)))
-            {
-                resultMethodDeclarationNode = result.MethodDeclarationNode.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
-
-                // Generating the new document and associated variables.
-                var root = await resultDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                resultDocument = resultDocument.WithSyntaxRoot(root.ReplaceNode(result.MethodDeclarationNode, resultMethodDeclarationNode));
-
-                var newRoot = await resultDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                resultInvocationNameToken = newRoot.FindToken(result.InvocationNameToken.SpanStart);
-            }
-
-            return await AddRenameAnnotationAsync(resultDocument, resultInvocationNameToken, cancellationToken).ConfigureAwait(false);
         }
     }
 }

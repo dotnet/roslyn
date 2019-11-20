@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected abstract Task<OperationStatus> CheckTypeAsync(Document document, SyntaxNode contextNode, Location location, ITypeSymbol type, CancellationToken cancellationToken);
 
+        protected abstract Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(Document document, SyntaxToken methodName, SyntaxNode methodDefinition, CancellationToken cancellationToken);
+
         public async Task<ExtractMethodResult> ExtractMethodAsync(CancellationToken cancellationToken)
         {
             var operationStatus = OriginalSelectionResult.Status;
@@ -68,30 +70,43 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             if (afterTriviaRestored.Status.FailedWithNoBestEffortSuggestion())
             {
-                return CreateExtractMethodResult(
-                    operationStatus, generatedCode.SemanticDocument, generatedCode.MethodNameAnnotation, generatedCode.MethodDefinitionAnnotation);
+                return await CreateExtractMethodResultAsync(
+                    operationStatus, generatedCode.SemanticDocument, generatedCode.MethodNameAnnotation, generatedCode.MethodDefinitionAnnotation, cancellationToken).ConfigureAwait(false);
             }
 
             var finalDocument = afterTriviaRestored.Data.Document;
-            finalDocument = await Formatter.FormatAsync(finalDocument, Formatter.Annotation, options: null, rules: GetFormattingRules(finalDocument), cancellationToken: cancellationToken).ConfigureAwait(false);
+            finalDocument = await Formatter.FormatAsync(
+                finalDocument,
+                Formatter.Annotation,
+                options: null,
+                rules: GetFormattingRules(finalDocument),
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
-            return CreateExtractMethodResult(
+            return await CreateExtractMethodResultAsync(
                 operationStatus.With(generatedCode.Status),
                 await SemanticDocument.CreateAsync(finalDocument, cancellationToken).ConfigureAwait(false),
                 generatedCode.MethodNameAnnotation,
-                generatedCode.MethodDefinitionAnnotation);
+                generatedCode.MethodDefinitionAnnotation,
+                cancellationToken).ConfigureAwait(false);
         }
 
-        private ExtractMethodResult CreateExtractMethodResult(
+        private async Task<ExtractMethodResult> CreateExtractMethodResultAsync(
             OperationStatus status, SemanticDocument semanticDocument,
-            SyntaxAnnotation invocationAnnotation, SyntaxAnnotation methodAnnotation)
+            SyntaxAnnotation invocationAnnotation, SyntaxAnnotation methodAnnotation,
+            CancellationToken cancellationToken)
         {
             var newRoot = semanticDocument.Root;
-            var annotatedTokens = newRoot.GetAnnotatedNodesAndTokens(invocationAnnotation);
+            var methodName = GetMethodNameAtInvocation(newRoot.GetAnnotatedNodesAndTokens(invocationAnnotation));
             var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
 
-            return new SimpleExtractMethodResult(status, semanticDocument.Document, GetMethodNameAtInvocation(annotatedTokens), methodDefinition);
+            if (LocalFunction && status.Succeeded())
+            {
+                var result = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(semanticDocument.Document, methodName, methodDefinition, cancellationToken).ConfigureAwait(false);
+                return new SimpleExtractMethodResult(status, result.document, result.methodName, result.methodDefinition);
+            }
+
+            return new SimpleExtractMethodResult(status, semanticDocument.Document, methodName, methodDefinition);
         }
 
         private async Task<OperationStatus> CheckVariableTypesAsync(
