@@ -9,6 +9,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
 using System;
+using System.Net.Sockets;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -1127,10 +1128,14 @@ class Convertible
         return 0;
     }
 }";
+            // PROTOTYPE(ngafter): would be nice to suppress WRN_UnreachableCode
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
                 //             case default(Convertible): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18),
+                // (8,40): warning CS0162: Unreachable code detected
+                //             case default(Convertible): return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(8, 40)
                 );
         }
 
@@ -1157,10 +1162,14 @@ class Convertible
         return 0;
     }
 }";
+            // PROTOTYPE(ngafter): would be nice to suppress WRN_UnreachableCode
             CreateCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case c: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18),
+                // (9,21): warning CS0162: Unreachable code detected
+                //             case c: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(9, 21)
                 );
         }
 

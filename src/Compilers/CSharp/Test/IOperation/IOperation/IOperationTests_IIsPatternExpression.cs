@@ -1089,6 +1089,12 @@ class C
                 // (6,33): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop[1] }'
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop[1]").WithArguments("Prop[1]").WithLocation(6, 33),
+                // (6,33): error CS0246: The type or namespace name 'Prop' could not be found (are you missing a using directive or an assembly reference?)
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Prop").WithArguments("Prop").WithLocation(6, 33),
+                // (6,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[1]").WithLocation(6, 37),
                 // (6,40): error CS1003: Syntax error, ',' expected
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(6, 40),
@@ -1109,10 +1115,7 @@ class C
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
                     Children(0)
                 Pattern: 
-                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?)
-                    Value: 
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
-                        Children(0)
+                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Prop[1]')
               IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
                 Member: 
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')

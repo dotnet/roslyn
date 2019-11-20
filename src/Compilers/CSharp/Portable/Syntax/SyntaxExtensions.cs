@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static SyntaxNode SkipParens(this SyntaxNode expression)
+        internal static ExpressionSyntax SkipParens(this ExpressionSyntax expression)
         {
             while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {

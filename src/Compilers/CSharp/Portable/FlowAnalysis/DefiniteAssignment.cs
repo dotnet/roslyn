@@ -1448,6 +1448,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
+                case BoundKind.TypePattern:
+                    break;
+                case BoundKind.RelationalPattern:
+                    {
+                        var pat = (BoundRelationalPattern)pattern;
+                        this.VisitRvalue(pat.Value);
+                        break;
+                    }
+                case BoundKind.NegatedPattern:
+                case BoundKind.BinaryPattern:
+                    // subpatterns do not lead to things being definitely assigned!
+                    // PROTOTYPE(ngafter): should nested expressions be visited with VisitRvalue?
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }

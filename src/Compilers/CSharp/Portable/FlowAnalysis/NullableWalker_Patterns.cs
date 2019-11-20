@@ -68,6 +68,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitTypePattern(BoundTypePattern node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitRelationalPattern(BoundRelationalPattern node)
+        {
+            Visit(node.Value);
+            return null;
+        }
+
+        public override BoundNode VisitNegatedPattern(BoundNegatedPattern node)
+        {
+            // PROTOTYPE(ngafter): what is the right behavior here?
+            return null;
+        }
+
+        public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            // PROTOTYPE(ngafter): what is the right behavior here?
+            return null;
+        }
+
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
             VisitAndUnsplitAll(node.Subpatterns);
@@ -133,6 +156,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+                    break;
+                case BoundTypePattern p:
+                    // PROTOTYPE(ngafter): what is the right behavior here?
+                    break;
+                case BoundRelationalPattern p:
+                    // PROTOTYPE(ngafter): what is the right behavior here?
+                    break;
+                case BoundNegatedPattern p:
+                    // PROTOTYPE(ngafter): what is the right behavior here?
+                    break;
+                case BoundBinaryPattern p:
+                    // PROTOTYPE(ngafter): what is the right behavior here?
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);

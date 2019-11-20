@@ -290,6 +290,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
 
+                case BoundKind.TypePattern:                    // PROTOTYPE(ngafter): what is the right translation here?
+                case BoundKind.RelationalPattern:              // PROTOTYPE(ngafter): what is the right translation here?
+                case BoundKind.NegatedPattern:                 // PROTOTYPE(ngafter): what is the right translation here?
+                case BoundKind.BinaryPattern:                  // PROTOTYPE(ngafter): what is the right translation here?
+                    return new CSharpLazyNonePatternOperation(this, (BoundPattern)boundNode, _semanticModel, boundNode.Syntax, isImplicit: boundNode.WasCompilerGenerated);
+
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
                 case BoundKind.ArgListOperator:

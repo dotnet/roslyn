@@ -3218,13 +3218,17 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            // PROTOTYPE(ngafter): should avoid the subsumed error
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case typeof(string):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18),
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case typeof(string[]):
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "typeof(string[])").WithLocation(12, 18)
                 );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
@@ -4371,13 +4375,20 @@ public class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            // PROTOTYPE(ngafter): suppress the WRN_CaseConstantNamedUnderscore and WRN_UnreachableCode warnings
             compilation.VerifyDiagnostics(
                 // (9,29): error CS0118: '_' is a variable but is used like a type
                 //         Write($"is _: {i is _}, ");
                 Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
                 // (12,18): error CS0150: A constant value is expected
                 //             case _:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
+                // (12,18): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                //             case _:
+                Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
                 );
         }
 
@@ -4653,6 +4664,7 @@ public class Program46
     }
     private static object M() => null;
 }";
+            // PROTOTYPE(ngafter): should avoid the unreachable warning.
             CreateCompilation(program).VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
@@ -4662,7 +4674,10 @@ public class Program46
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
                 // (11,18): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case ((int)M()):
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "((int)M())").WithLocation(11, 18)
                 );
         }
 
@@ -4808,10 +4823,14 @@ public class Program5815
     }
     private static object M() => null;
 }";
+            // PROTOTYPE(ngafter): should avoid the subsumed warning
             var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case true ? x3 : 4:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18),
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case true ? x3 : 4:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true ? x3 : 4").WithLocation(9, 18),
                 // (9,25): error CS0165: Use of unassigned local variable 'x3'
                 //             case true ? x3 : 4:
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(9, 25)

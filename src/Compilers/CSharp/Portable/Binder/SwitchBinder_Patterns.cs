@@ -235,14 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         SyntaxNode innerExpression = caseLabelSyntax.Value.SkipParens();
                         bool hasErrors = node.HasErrors;
-                        if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
-                            hasErrors = true;
-                        }
-
-                        BoundConstantPattern pattern = sectionBinder.BindConstantPattern(
-                            node, SwitchGoverningType, caseLabelSyntax.Value, hasErrors, diagnostics, out bool wasExpression);
+                        BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
+                            node, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
                         reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
 
@@ -251,7 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DefaultSwitchLabel:
                     {
-                        var defaultLabelSyntax = (DefaultSwitchLabelSyntax)node;
                         var pattern = new BoundDiscardPattern(node, SwitchGoverningType);
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
@@ -287,8 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportIfConstantNamedUnderscore(BoundPattern pattern, ExpressionSyntax expression)
             {
-                if (!pattern.HasErrors &&
-                    expression is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken)
+                if (pattern is BoundConstantPattern { HasErrors: false } && IsUnderscore(expression))
                 {
                     diagnostics.Add(ErrorCode.WRN_CaseConstantNamedUnderscore, expression.Location);
                 }
