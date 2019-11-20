@@ -693,9 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
                 }
 
-                var semanticModel = originalDocument.SemanticModel;
-
-                var nullableReturnOperations = await CheckReturnOperations(syntaxNode, methodSymbolResult, semanticModel, originalDocument, cancellationToken).ConfigureAwait(false);
+                var nullableReturnOperations = await CheckReturnOperations(syntaxNode, methodSymbolResult, originalDocument, cancellationToken).ConfigureAwait(false);
                 if (nullableReturnOperations is object)
                 {
                     return nullableReturnOperations;
@@ -722,11 +720,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 async Task<SemanticDocument> CheckReturnOperations<TDeclarationNode>(
                     TDeclarationNode node,
                     OperationStatus<IMethodSymbol> methodSymbolResult,
-                    SemanticModel semanticModel,
                     SemanticDocument originalDocument,
                     CancellationToken cancellationToken)
                     where TDeclarationNode : SyntaxNode
                 {
+                    var semanticModel = originalDocument.SemanticModel;
+
                     var methodOperation = semanticModel.GetOperation(node, cancellationToken);
                     var returnOperations = methodOperation.DescendantsAndSelf().OfType<IReturnOperation>();
 
@@ -765,6 +764,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     return originalDocument.Document.WithSyntaxRoot(newRoot);
                 }
+            }
+
+            protected SyntaxToken CreateMethodNameForStatementGenerators(bool localFunction)
+            {
+                // change this to more smarter one.
+                var semanticModel = this.SemanticDocument.SemanticModel;
+                var nameGenerator = new UniqueNameGenerator(semanticModel);
+                var scope = this.CSharpSelectionResult.GetContainingScope();
+
+                // If extracting a local function, we want to ensure all local variables are considered when generating a unique name.
+                if (localFunction)
+                {
+                    scope = this.CSharpSelectionResult.GetFirstTokenInSelection().Parent;
+                }
+
+                return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod"));
             }
         }
     }

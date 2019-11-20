@@ -309,26 +309,6 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingOnGoto()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"delegate int del(int i);
-
-class C
-{
-    static void Main(string[] args)
-    {
-        del q = x => {
-            [|goto label2;
-            return x * x;|]
-        };
-    label2:
-        return;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestOnStatementAfterUnconditionalGoto()
         {
             await TestInRegularAndScriptAsync(
@@ -1558,20 +1538,6 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task ExtractLocalFunctionDeclaration()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class C
-{
-    public static void Main()
-    {
-        [|bool Local() => args == null;|]
-        Local();
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionInterior()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1607,7 +1573,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task Bug3790()
+        public async Task ExtractLocalFunctionWithinForLoop()
         {
             await TestInRegularAndScriptAsync(@"
 class Test
@@ -1647,7 +1613,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task Bug3790_1()
+        public async Task ExtractLocalFunctionWithinForLoop2()
         {
             await TestInRegularAndScriptAsync(@"
 class Test
@@ -1686,7 +1652,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task Bug3790_2()
+        public async Task ExtractLocalFunctionWithinForLoop3()
         {
             await TestInRegularAndScriptAsync(@"
 class Test
@@ -1720,94 +1686,6 @@ class Test
                 return v = v + i;
             }
         }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInExpressionBodyProperty()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class Program
-{
-    int field;
-
-    public int Blah => [|this.field|];
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInExpressionBodyIndexer()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class Program
-{
-    int field;
-
-    public int this[int i] => [|this.field|];
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInExpressionBodyPropertyGetAccessor()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class Program
-{
-    int field;
-
-    public int Blah
-    {
-        get => [|this.field|];
-        set => field = value;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInExpressionBodyPropertySetAccessor()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class Program
-{
-    int field;
-
-    public int Blah
-    {
-        get => this.field;
-        set => field = [|value|];
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInExpressionBodyIndexerGetAccessor()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class Program
-{
-    int field;
-
-    public int this[int i]
-    {
-        get => [|this.field|];
-        set => field = value;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInExpressionBodyIndexerSetAccessor()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class Program
-{
-    int field;
-
-    public int this[int i]
-    {
-        get => this.field;
-        set => field = [|value|];
     }
 }");
         }
@@ -3292,6 +3170,353 @@ class Program
         }
     }
 }", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInLocalFunctionDeclaration_ExpressionBody()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main(string[] args)
+    {
+        [|bool Local() => args == null;|]
+        Local();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInLocalFunctionDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main(string[] args)
+    {
+        [|bool Local()
+        {
+            return args == null;
+        }|]
+        Local();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInGoto()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"delegate int del(int i);
+
+class C
+{
+    static void Main(string[] args)
+    {
+        del q = x => {
+            [|goto label2;
+            return x * x;|]
+        };
+    label2:
+        return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInFieldInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    [|int a = 10;|]
+    int b = 5;
+
+    static void Main(string[] args)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInPropertyInitializer_Get()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+   private double _seconds;
+
+   public double Hours
+   {
+       get { [|return _seconds / 3600;|] }
+       set { 
+          if (value < 0 || value > 24)
+             throw new ArgumentOutOfRangeException(
+                   $""{ nameof(value)}
+            must be between 0 and 24."");
+
+          _seconds = value * 3600;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInPropertyInitializer_Get2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+   private double _seconds;
+
+   public double Hours
+   {
+       get { return [|_seconds / 3600|]; }
+       set { 
+          if (value < 0 || value > 24)
+             throw new ArgumentOutOfRangeException(
+                   $""{ nameof(value)}
+            must be between 0 and 24."");
+
+          _seconds = value * 3600;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInPropertyInitializer_Set()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+   private double _seconds;
+
+   public double Hours
+   {
+       get { return _seconds / 3600; }
+       set { 
+          [|if (value < 0 || value > 24)
+             throw new ArgumentOutOfRangeException(
+                   $""{ nameof(value)}
+            must be between 0 and 24."");|]
+
+          _seconds = value * 3600;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInPropertyInitializer_Set2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+   private double _seconds;
+
+   public double Hours
+   {
+       get { return _seconds / 3600; }
+       set { 
+          if (value < 0 || value > 24)
+             throw new ArgumentOutOfRangeException(
+                   $""{ nameof(value)}
+            must be between 0 and 24."");
+
+          [|_seconds = value * 3600;|]
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInPropertyInitializer_Set3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+   private double _seconds;
+
+   public double Hours
+   {
+       get { return _seconds / 3600; }
+       set { 
+          if (value < 0 || value > 24)
+             throw new ArgumentOutOfRangeException(
+                   $""{ nameof(value)}
+            must be between 0 and 24."");
+
+          _seconds = [|value * 3600|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInExpressionBodyProperty()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah => [|this.field|];
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInExpressionBodyIndexer()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInExpressionBodyPropertyGetAccessor()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInExpressionBodyPropertySetAccessor()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInExpressionBodyIndexerGetAccessor()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInExpressionBodyIndexerSetAccessor()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInAttributeInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System;
+
+class C
+{
+    [|[Serializable]|]
+    public class SampleClass
+    {
+        // Objects of this type can be serialized.
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInThisConstructorCall()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class B
+{
+    protected B(string message)
+    {
+
+    }
+}
+
+class C : B
+{
+    public C(string message) : [|this(""test"", ""test2"")|]
+    {
+
+    }
+
+    public C(string message, string message2) : base(message)
+    {
+
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInBaseConstructorCall()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class B
+{
+    protected B(string message)
+    {
+
+    }
+}
+
+class C : B
+{
+    public C(string message) : this(""test"", ""test2"")
+    {
+
+    }
+
+    public C(string message, string message2) : [|base(message)|]
+    {
+
+    }
+}");
         }
     }
 }
