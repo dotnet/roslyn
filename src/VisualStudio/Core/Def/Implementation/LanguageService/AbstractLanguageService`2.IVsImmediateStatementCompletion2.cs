@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsImmediateStatementCompletion2
     {
-        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService>> filters =
-            new Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService>>();
+        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter> filters =
+            new Dictionary<IVsTextView, DebuggerIntelliSenseFilter>();
 
         int IVsImmediateStatementCompletion2.EnableStatementCompletion(int enable, int startIndex, int endIndex, IVsTextView textView)
         {
@@ -45,10 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // of textview->filters.
             if (install != 0)
             {
-                DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
+                DebuggerIntelliSenseFilter filter;
                 if (!this.filters.ContainsKey(textView))
                 {
-                    filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(
+                    filter = new DebuggerIntelliSenseFilter(
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
                         this.Package.ComponentModel,
                         this.Package.ComponentModel.GetService<IFeatureServiceFactory>());

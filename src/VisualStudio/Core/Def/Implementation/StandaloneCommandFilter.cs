@@ -3,7 +3,6 @@
 #nullable enable
 
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -11,9 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// <summary>
     /// A CommandFilter used for "normal" files, as opposed to Venus files which are special.
     /// </summary>
-    internal sealed class StandaloneCommandFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>
-        where TPackage : AbstractPackage<TPackage, TLanguageService>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
+    internal sealed class StandaloneCommandFilter : AbstractVsTextViewFilter
     {
         /// <summary>
         /// Creates a new command handler that is attached to an IVsTextView.

@@ -16,7 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal class VenusCommandFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>
+    // The type arguments are no longer used in this class, but cannot be removed due to the TypeScript compatibility constructor. Once that
+    // is cleaned up, the type arguments can be removed.
+    internal class VenusCommandFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
