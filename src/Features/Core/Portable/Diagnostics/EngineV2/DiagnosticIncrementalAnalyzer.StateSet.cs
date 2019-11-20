@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
             public void CollectDocumentsWithDiagnostics(ProjectId projectId, HashSet<DocumentId> set)
             {
-                Debug.Assert(set != null);
+                RoslynDebug.Assert(set != null);
 
                 // Collect active documents with diagnostics
                 foreach (var kvp in _activeFileStates)

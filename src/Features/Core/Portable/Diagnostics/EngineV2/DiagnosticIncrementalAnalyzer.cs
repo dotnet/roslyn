@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-        private ConditionalWeakTable<Project, CompilationWithAnalyzers> _analyzerDriverMap;
+        private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(AnalyzerService, HostDiagnosticUpdateSource);
-            _analyzerDriverMap = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
+            _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, project.Id, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                CreateId(stateSet, project.Id, AnalysisKind.NonLocal),
                 project.Solution.Workspace,
                 project.Solution,
                 project.Id,
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, projectId, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                CreateId(stateSet, projectId, AnalysisKind.NonLocal),
                 Workspace,
                 solution,
                 projectId,
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, document.Id, kind, stateSet.ErrorSourceName),
+                CreateId(stateSet, document.Id, kind),
                 document.Project.Solution.Workspace,
                 document.Project.Solution,
                 document.Project.Id,
@@ -207,27 +209,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName),
+                CreateId(stateSet, documentId, kind),
                 Workspace,
                 solution,
                 documentId.ProjectId,
                 documentId));
         }
 
-        private object CreateId(DiagnosticAnalyzer analyzer, DocumentId key, AnalysisKind kind, string errorSourceName)
-        {
-            return CreateIdInternal(analyzer, key, kind, errorSourceName);
-        }
-
-        private object CreateId(DiagnosticAnalyzer analyzer, ProjectId key, AnalysisKind kind, string errorSourceName)
-        {
-            return CreateIdInternal(analyzer, key, kind, errorSourceName);
-        }
-
-        private static object CreateIdInternal(DiagnosticAnalyzer analyzer, object key, AnalysisKind kind, string errorSourceName)
-        {
-            return new LiveDiagnosticUpdateArgsId(analyzer, key, (int)kind, errorSourceName);
-        }
+        private static object CreateId(StateSet stateSet, object projectOrDocumentId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectOrDocumentId, (int)kind, stateSet.ErrorSourceName);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
         {
@@ -256,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AnalysisKind.Syntax => result.GetResultOrEmpty(result.SyntaxLocals, id),
                 AnalysisKind.Semantic => result.GetResultOrEmpty(result.SemanticLocals, id),
                 AnalysisKind.NonLocal => result.GetResultOrEmpty(result.NonLocals, id),
-                _ => Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here"),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
         }
 

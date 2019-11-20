@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return service.IsMethodLevelMember(memberNode) ? memberNode : null;
                 }
 
-                internal ProjectId? GetActiveProject()
+                internal ProjectId? GetActiveProjectId()
                     => _documentTracker?.TryGetActiveDocument()?.ProjectId;
 
                 private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
 
-                    var projectItems = items.Select(i => i.With(null, i.ProjectId, EmptyAsyncToken.Instance));
+                    var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
                     _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
                 }
 

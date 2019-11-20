@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private ImmutableArray<DiagnosticData> MergeDiagnostics(ImmutableArray<DiagnosticData> newDiagnostics, ImmutableArray<DiagnosticData> existingDiagnostics)
         {
-            ImmutableArray<DiagnosticData>.Builder builder = null;
+            ImmutableArray<DiagnosticData>.Builder? builder = null;
 
             if (newDiagnostics.Length > 0)
             {
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ImmutableArray<DiagnosticData>.Empty;
             }
 
-            ImmutableArray<DiagnosticData>.Builder builder = null;
+            ImmutableArray<DiagnosticData>.Builder? builder = null;
             foreach (var descriptor in descriptors)
             {
                 // make sure we don't report same id to multiple different analyzers

@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
 
         public IEnumerable<KeyValuePair<Type, AnalyzerInfo>> AnalyzerInfoMap => _analyzerInfoMap;
 
-        public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, Project projectOpt)
+        public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo)
         {
-            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, _analyzerService);
+            var isTelemetryAllowed = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, _analyzerService);
 
             ImmutableInterlocked.AddOrUpdate(
                 ref _analyzerInfoMap,
                 analyzer.GetType(),
-                addValue: new AnalyzerInfo(analyzer, analyzerTelemetryInfo, telemetry),
+                addValue: new AnalyzerInfo(analyzer, analyzerTelemetryInfo, isTelemetryAllowed),
                 updateValueFactory: (k, ai) =>
                 {
                     ai.SetAnalyzerTypeCount(analyzerTelemetryInfo);

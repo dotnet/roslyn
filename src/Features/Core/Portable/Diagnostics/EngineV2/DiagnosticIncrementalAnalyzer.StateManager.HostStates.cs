@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private DiagnosticAnalyzerMap CreateLanguageSpecificAnalyzerMap(string language, HostStates @this)
                 {
-                    var analyzersPerReference = _owner.AnalyzerManager.GetHostDiagnosticAnalyzersPerReference(language);
+                    var analyzersPerReference = _owner._analyzerManager.GetHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateAnalyzerMap(_owner.AnalyzerManager, language, analyzersPerReference.Values);
+                    var analyzerMap = CreateAnalyzerMap(_owner._analyzerManager, language, analyzersPerReference.Values);
                     VerifyDiagnosticStates(analyzerMap.Values);
 
-                    return new DiagnosticAnalyzerMap(_owner.AnalyzerManager, language, analyzerMap);
+                    return new DiagnosticAnalyzerMap(_owner._analyzerManager, language, analyzerMap);
                 }
 
                 private class DiagnosticAnalyzerMap

@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -19,22 +22,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public static readonly DocumentAnalysisData Empty = new DocumentAnalysisData(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
 
             /// <summary>
-            /// Version of the Items
+            /// Version of the diagnostic data.
             /// </summary>
             public readonly VersionStamp Version;
 
             /// <summary>
-            /// Current data that matches the version
+            /// Current data that matches the version.
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> Items;
 
             /// <summary>
-            /// When present, This hold onto last data we broadcast to outer world
+            /// Last set of data we broadcasted to outer world, or <see langword="default"/>.
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> OldItems;
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> items)
             {
+                Debug.Assert(!items.IsDefault);
+
                 Version = version;
                 Items = items;
                 OldItems = default;
@@ -43,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
                 : this(version, newItems)
             {
+                Debug.Assert(!oldItems.IsDefault);
                 OldItems = oldItems;
             }
 
@@ -78,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
 
             /// <summary>
-            /// When present, This hold onto last data we broadcast to outer world
+            /// When present, holds onto last data we broadcasted to outer world.
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> OldResult;
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? OldResult;
 
             public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {

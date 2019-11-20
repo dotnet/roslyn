@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -453,18 +455,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             // we have this builder to avoid allocating collections unnecessarily.
-            private class Builder
+            private sealed class Builder
             {
                 private readonly Project _project;
                 private readonly VersionStamp _version;
-                private readonly ImmutableHashSet<DocumentId> _documentIds;
+                private readonly ImmutableHashSet<DocumentId>? _documentIds;
 
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _syntaxLocals;
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _semanticLocals;
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _nonLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _syntaxLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _semanticLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _nonLocals;
                 private ImmutableArray<DiagnosticData> _others;
 
-                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId> documentIds = null)
+                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds = null)
                 {
                     _project = project;
                     _version = version;
@@ -491,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _others = diagnostics;
                 }
 
-                private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
+                private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {
                     if (_project.GetDocument(documentId)?.SupportsDiagnostics() == false)
                     {
