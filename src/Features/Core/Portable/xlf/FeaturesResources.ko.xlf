@@ -252,6 +252,36 @@
         <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement all interfaces explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0_explicitly">
+        <source>Implement '{0}' explicitly</source>
+        <target state="new">Implement '{0}' explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0_implicitly">
+        <source>Implement '{0}' implicitly</source>
+        <target state="new">Implement '{0}' implicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_implicitly">
+        <source>Implement all interfaces implicitly</source>
+        <target state="new">Implement all interfaces implicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_implicitly">
+        <source>Implement implicitly</source>
+        <target state="new">Implement implicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">모든 인수 들여쓰기</target>
