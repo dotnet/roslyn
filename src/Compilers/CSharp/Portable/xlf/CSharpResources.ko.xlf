@@ -472,6 +472,11 @@
         <target state="translated">패턴의 'var' 구문은 형식 참조가 허용되지 않지만 '{0}'은(는) 여기서 범위 내에 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">튜플 형식 '{0}'을(를) 일치시키려면 '{1}' 하위 패턴이 필요하지만 '{2}' 하위 패턴이 있습니다.</target>
