@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -18,13 +20,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public readonly ProjectId ProjectId;
 
                 // document related workitem
-                public readonly DocumentId DocumentId;
+                public readonly DocumentId? DocumentId;
                 public readonly string Language;
                 public readonly InvocationReasons InvocationReasons;
                 public readonly bool IsLowPriority;
 
                 // extra info
-                public readonly SyntaxPath ActiveMember;
+                public readonly SyntaxPath? ActiveMember;
                 public readonly ImmutableHashSet<IIncrementalAnalyzer> Analyzers;
 
                 // retry
@@ -46,12 +48,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private WorkItem(
-                    DocumentId documentId,
+                    DocumentId? documentId,
                     ProjectId projectId,
                     string language,
                     InvocationReasons invocationReasons,
                     bool isLowPriority,
-                    SyntaxPath activeMember,
+                    SyntaxPath? activeMember,
                     ImmutableHashSet<IIncrementalAnalyzer> analyzers,
                     bool retry,
                     IAsyncToken asyncToken)
@@ -137,19 +139,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         asyncToken);
                 }
 
-                public WorkItem With(IAsyncToken asyncToken)
+                public WorkItem WithAsyncToken(IAsyncToken asyncToken)
                 {
                     return new WorkItem(
                         DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, Analyzers,
                         retry: false, asyncToken: asyncToken);
                 }
 
-                public WorkItem With(DocumentId documentId, ProjectId projectId, IAsyncToken asyncToken)
+                public WorkItem ToProjectWorkItem(IAsyncToken asyncToken)
                 {
-                    // create new work item
+                    RoslynDebug.Assert(DocumentId != null);
+
+                    // create new work item that represents work per project
                     return new WorkItem(
-                        documentId,
-                        projectId,
+                        documentId: null,
+                        DocumentId.ProjectId,
                         Language,
                         InvocationReasons,
                         IsLowPriority,

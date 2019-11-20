@@ -123,24 +123,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private async Task AnalyzeForKind(Document document, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                var diagnosticData = await _service._analyzerService.GetDiagnosticsAsync(document, GetAnalyzers(), kind, cancellationToken).ConfigureAwait(false);
+                var diagnosticData = await _service._analyzerService.GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
                 _service.RaiseDiagnosticsUpdated(
                     DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData.ToImmutableArrayOrEmpty()));
-
-                IEnumerable<DiagnosticAnalyzer> GetAnalyzers()
-                {
-                    // C# or VB document that supports compiler
-                    var compilerAnalyzer = _service._analyzerService.GetCompilerDiagnosticAnalyzer(document.Project.Language);
-                    if (compilerAnalyzer != null)
-                    {
-                        return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
-                    }
-
-                    // document that doesn't support compiler diagnostics such as fsharp or typescript
-                    return _service._analyzerService.GetDiagnosticAnalyzers(document.Project);
-                }
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
             public void RemoveDocument(DocumentId documentId)

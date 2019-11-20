@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<AnalyzerConfigSet> _lazyAnalyzerConfigSet;
 
         // this will be initialized lazily.
-        private AnalyzerOptions? _analyzerOptionsDoNotAccessDirectly;
+        private AnalyzerOptions? _lazyAnalyzerOptions;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -250,19 +250,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public AnalyzerOptions AnalyzerOptions
-        {
-            get
-            {
-                if (_analyzerOptionsDoNotAccessDirectly == null)
-                {
-                    _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(
-                        _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
-                        new WorkspaceAnalyzerConfigOptionsProvider(this));
-                }
-
-                return _analyzerOptionsDoNotAccessDirectly;
-            }
-        }
+            => _lazyAnalyzerOptions ??= new AnalyzerOptions(
+                additionalFiles: _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
+                optionsProvider: new WorkspaceAnalyzerConfigOptionsProvider(this));
 
         public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
         {

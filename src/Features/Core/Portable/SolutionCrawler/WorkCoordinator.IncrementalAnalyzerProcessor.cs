@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -284,20 +285,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return service.IsMethodLevelMember(memberNode) ? memberNode : null;
                 }
 
-                internal ProjectId GetActiveProject()
-                {
-                    ProjectId activeProjectId = null;
-                    if (_documentTracker != null)
-                    {
-                        var activeDocument = _documentTracker.TryGetActiveDocument();
-                        if (activeDocument != null)
-                        {
-                            activeProjectId = activeDocument.ProjectId;
-                        }
-                    }
-
-                    return null;
-                }
+                internal ProjectId GetActiveProjectId()
+                    => _documentTracker?.TryGetActiveDocument()?.ProjectId;
 
                 private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
                 {
@@ -325,7 +314,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
 
-                    var projectItems = items.Select(i => i.With(null, i.ProjectId, EmptyAsyncToken.Instance));
+                    var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
                     _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
                 }
 

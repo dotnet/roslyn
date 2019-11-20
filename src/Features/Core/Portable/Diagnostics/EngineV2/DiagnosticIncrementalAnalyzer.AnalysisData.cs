@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -19,17 +21,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public static readonly DocumentAnalysisData Empty = new DocumentAnalysisData(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
 
             /// <summary>
-            /// Version of the Items
+            /// Version of the diagnostic data.
             /// </summary>
             public readonly VersionStamp Version;
 
             /// <summary>
-            /// Current data that matches the version
+            /// Current data that matches the version.
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> Items;
 
             /// <summary>
-            /// When present, This hold onto last data we broadcast to outer world
+            /// Last set of data we broadcasted to outer world, or <see langword="default"/>.
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> OldItems;
 
@@ -78,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
 
             /// <summary>
-            /// When present, This hold onto last data we broadcast to outer world
+            /// When present, holds onto last data we broadcasted to outer world.
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> OldResult;
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? OldResult;
 
             public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {

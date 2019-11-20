@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             // process any available project work, preferring the active project.
                             if (_workItemQueue.TryTakeAnyWork(
-                                Processor.GetActiveProject(), Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                Processor.GetActiveProjectId(), Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
                                 out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         UpdateLastAccessTime();
 
                         // Project work
-                        item = item.With(documentId: null, projectId: item.ProjectId, asyncToken: Processor._listener.BeginAsyncOperation("WorkItem"));
+                        item = item.ToProjectWorkItem(Processor._listener.BeginAsyncOperation("WorkItem"));
 
                         var added = _workItemQueue.AddOrReplace(item);
 

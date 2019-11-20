@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // we need to clone due to waiter
-                        EnqueueActiveFileItem(item.With(Listener.BeginAsyncOperation("ActiveFile")));
+                        EnqueueActiveFileItem(item.WithAsyncToken(Listener.BeginAsyncOperation("ActiveFile")));
                     }
 
                     private void EnqueueActiveFileItem(WorkItem item)
