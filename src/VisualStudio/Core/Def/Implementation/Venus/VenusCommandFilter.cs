@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -16,11 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    // The type arguments are no longer used in this class, but cannot be removed due to the TypeScript compatibility constructor. Once that
-    // is cleaned up, the type arguments can be removed.
-    internal class VenusCommandFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter
-        where TPackage : AbstractPackage<TPackage, TLanguageService>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
+    internal class VenusCommandFilter : AbstractVsTextViewFilter
     {
         private readonly ITextBuffer _subjectBuffer;
 
@@ -41,18 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
             var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(wpfTextView, _subjectBuffer, nextCommandTarget);
             NextCommandTarget = vsCommandHandlerServiceAdapter;
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        public VenusCommandFilter(
-            TLanguageService languageService,
-            IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
-            ITextBuffer subjectBuffer,
-            IOleCommandTarget nextCommandTarget,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : this(wpfTextView, subjectBuffer, nextCommandTarget, languageService.Package.ComponentModel)
-        {
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()

@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedLanguage
+    internal partial class ContainedLanguage : IVsContainedLanguage
     {
         public int GetColorizer(out IVsColorizer colorizer)
         {
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return VSConstants.E_FAIL;
             }
 
-            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(wpfTextView, SubjectBuffer, nextCmdTarget, ComponentModel);
+            textViewFilter = new VenusCommandFilter(wpfTextView, SubjectBuffer, nextCmdTarget, ComponentModel);
 
             return VSConstants.S_OK;
         }
