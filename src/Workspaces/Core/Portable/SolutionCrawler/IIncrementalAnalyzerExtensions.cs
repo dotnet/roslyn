@@ -15,12 +15,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return unitTestingAnalyzer.GetBackgroundAnalysisScope(options);
             }
 
-            // TODO: Remove the below if statement once SourceBasedTestDiscoveryIncrementalAnalyzer has been switched to UnitTestingIncrementalAnalyzer
-            if (incrementalAnalyzer.GetType().FullName == "Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.SourceBasedTestDiscoveryIncrementalAnalyzer")
-            {
-                return BackgroundAnalysisScope.FullSolution;
-            }
-
             return defaultBackgroundAnalysisScope;
         }
     }
