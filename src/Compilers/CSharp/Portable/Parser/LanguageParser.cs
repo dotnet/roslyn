@@ -1859,7 +1859,7 @@ tryAgain:
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                case SyntaxKind.DelegateKeyword when PeekToken(1).Kind != SyntaxKind.AsteriskToken:
+                case SyntaxKind.DelegateKeyword when !IsFunctionPointerStart():
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
@@ -2535,10 +2535,7 @@ parse_member_name:;
             return this.CurrentToken.Kind == SyntaxKind.DotToken || this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
         }
 
-        private bool IsEndOfFunctionPointerParameterList()
-        {
-            return this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
-        }
+        private bool IsEndOfFunctionPointerParameterList() => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
 
         private MethodDeclarationSyntax ParseMethodDeclaration(
             SyntaxList<AttributeListSyntax> attributes,
@@ -5886,11 +5883,12 @@ done:
             return ScanTypeFlags.NotType;
         }
 
+#nullable enable
         private ScanTypeFlags ScanFunctionPointerType(out SyntaxToken lastTokenOfType)
         {
             Debug.Assert(IsFunctionPointerStart());
             _ = EatContextualToken(SyntaxKind.DelegateKeyword);
-            _ = EatToken(SyntaxKind.AsteriskToken);
+            lastTokenOfType = EatToken(SyntaxKind.AsteriskToken);
 
             switch (CurrentToken.ContextualKind)
             {
@@ -5899,49 +5897,64 @@ done:
                 case SyntaxKind.StdcallKeyword:
                 case SyntaxKind.ThiscallKeyword:
                 case SyntaxKind.UnmanagedKeyword:
-                    _ = EatContextualToken(CurrentToken.ContextualKind);
+                    lastTokenOfType = EatContextualToken(CurrentToken.ContextualKind);
                     break;
 
                 default:
-                    if (CurrentToken.Kind != SyntaxKind.LessThanToken)
+                    if (IsPossibleInvalidCallingConvention() && IsPossibleFunctionPointerParameterListStart(PeekToken(1)))
                     {
                         _ = EatToken();
                     }
                     break;
             }
 
+            if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
+            {
+                return ScanTypeFlags.MustBeType;
+            }
+
             _ = EatToken(SyntaxKind.LessThanToken);
 
-            do
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfFunctionPointerParameterList;
+
+            try
             {
-                switch (CurrentToken.Kind)
+                do
                 {
-                    case SyntaxKind.ReadOnlyKeyword:
-                        _ = EatToken(SyntaxKind.ReadOnlyKeyword);
-                        _ = EatToken(SyntaxKind.RefKeyword);
+                    while (IsParameterModifier(CurrentToken.Kind) || CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
+                    {
+                        _ = EatToken();
+                    }
+
+                    _ = ScanType(out _);
+
+                    if (skipBadFunctionPointerParameterTokens() == PostSkipAction.Abort)
+                    {
                         break;
+                    }
 
-                    case SyntaxKind.RefKeyword:
-                    case SyntaxKind.InKeyword:
-                    case SyntaxKind.OutKeyword:
-                        _ = EatToken(CurrentToken.Kind);
-                        break;
+                    _ = EatToken(SyntaxKind.CommaToken);
                 }
-
-                ScanType(out _);
-
-                if (CurrentToken.Kind != SyntaxKind.CommaToken)
-                {
-                    break;
-                }
-
-                _ = EatToken(SyntaxKind.CommaToken);
-            } while (true);
+                while (true);
+            }
+            finally
+            {
+                _termState = saveTerm;
+            }
 
             lastTokenOfType = EatToken(SyntaxKind.GreaterThanToken);
 
             return ScanTypeFlags.MustBeType;
+
+            PostSkipAction skipBadFunctionPointerParameterTokens()
+            {
+                return SkipBadTokensWithExpectedKind(isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                                                                      abortFunction: p => p.CurrentToken.Kind == SyntaxKind.CommaToken || p.IsTerminator(),
+                                                                      expected: SyntaxKind.CommaToken, trailingTrivia: out _);
+            }
         }
+#nullable restore
 
         private static bool IsPredefinedType(SyntaxKind keyword)
         {
@@ -6113,9 +6126,6 @@ done:;
             Debug.Assert(type != null);
             return type;
         }
-
-        private bool IsFunctionPointerStart() => CurrentToken.Kind == SyntaxKind.DelegateKeyword
-                                                 && PeekToken(1).Kind == SyntaxKind.AsteriskToken;
 
         private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
         {
@@ -6349,22 +6359,30 @@ done:;
             }
         }
 
+#nullable enable
         private FunctionPointerTypeSyntax ParseFunctionPointerTypeSyntax()
         {
             Debug.Assert(IsFunctionPointerStart());
             var @delegate = EatToken(SyntaxKind.DelegateKeyword);
             var asterisk = EatToken(SyntaxKind.AsteriskToken);
-            var callingConvention = CurrentToken.Kind != SyntaxKind.LessThanToken
-                ? CurrentToken.ContextualKind switch
-                {
-                    SyntaxKind.CdeclKeyword => EatContextualToken(SyntaxKind.CdeclKeyword),
-                    SyntaxKind.ManagedKeyword => EatContextualToken(SyntaxKind.ManagedKeyword),
-                    SyntaxKind.UnmanagedKeyword => EatContextualToken(SyntaxKind.UnmanagedKeyword),
-                    SyntaxKind.ThiscallKeyword => EatContextualToken(SyntaxKind.ThiscallKeyword),
-                    SyntaxKind.StdcallKeyword => EatContextualToken(SyntaxKind.StdcallKeyword),
-                    _ => parseInvalidCallingConvention(),
-                }
-                : null;
+            var callingConvention = maybeEatCallingConvention();
+
+            if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
+            {
+                var lessThanTokenError = SyntaxFactory.MissingToken(SyntaxKind.LessThanToken);
+                lessThanTokenError = WithAdditionalDiagnostics(lessThanTokenError, GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
+                var typesError = _pool.AllocateSeparated<FunctionPointerParameterOrReturnTypeSyntax>();
+                var identifierError = CreateMissingIdentifierName();
+                identifierError = AddError(identifierError, ErrorCode.ERR_TypeExpected);
+                var typeError = SyntaxFactory.FunctionPointerParameterOrReturnType(default, identifierError);
+                typesError.Add(typeError);
+                var greaterThanTokenError = SyntaxFactory.MissingToken(SyntaxKind.GreaterThanToken);
+                greaterThanTokenError = WithAdditionalDiagnostics(greaterThanTokenError, GetExpectedTokenError(SyntaxKind.GreaterThanToken, SyntaxKind.None));
+
+                var funcPtr = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, lessThanTokenError, typesError, greaterThanTokenError);
+                _pool.Free(typesError);
+                return funcPtr;
+            }
 
             var lessThanToken = EatToken(SyntaxKind.LessThanToken);
             var saveTerm = _termState;
@@ -6378,42 +6396,22 @@ done:;
                     var modifiers = _pool.Allocate<SyntaxToken>();
                     try
                     {
-                        switch (CurrentToken.Kind)
+                        // Modifiers will be checked for validity in later steps
+                        while (IsParameterModifier(CurrentToken.Kind) || CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                         {
-                            case SyntaxKind.ReadOnlyKeyword:
-                                modifiers.Add(EatToken(SyntaxKind.ReadOnlyKeyword));
-                                modifiers.Add(EatToken(SyntaxKind.RefKeyword));
-                                break;
-
-                            case SyntaxKind.RefKeyword:
-                            case SyntaxKind.OutKeyword:
-                            case SyntaxKind.InKeyword:
-                                modifiers.Add(EatToken(CurrentToken.Kind));
-                                break;
+                            modifiers.Add(EatToken());
                         }
 
                         var parameterType = ParseTypeOrVoid();
                         types.Add(SyntaxFactory.FunctionPointerParameterOrReturnType(modifiers, parameterType));
 
-                        if (CurrentToken.Kind == SyntaxKind.CommaToken)
-                        {
-                            types.AddSeparator(EatToken(SyntaxKind.CommaToken));
-                        }
-                        else if (skipBadFunctionPointerParameterListTokens() == PostSkipAction.Abort)
+                        if (skipBadFunctionPointerParameterListTokens() == PostSkipAction.Abort)
                         {
                             break;
                         }
 
-                        PostSkipAction skipBadFunctionPointerParameterListTokens()
-                        {
-                            CSharpSyntaxNode tmp = null;
-                            Debug.Assert(types.Count > 0);
-                            return SkipBadSeparatedListTokensWithExpectedKind(ref tmp,
-                                types,
-                                isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                                abortFunction: p => p.CurrentToken.Kind == SyntaxKind.CommaToken || p.IsTerminator(),
-                                expected: SyntaxKind.CommaToken);
-                        }
+                        Debug.Assert(CurrentToken.Kind == SyntaxKind.CommaToken);
+                        types.AddSeparator(EatToken(SyntaxKind.CommaToken));
                     }
                     finally
                     {
@@ -6432,25 +6430,60 @@ done:;
                 _pool.Free(types);
             }
 
-            SyntaxToken parseInvalidCallingConvention()
+            SyntaxToken? maybeEatCallingConvention()
             {
-                // If the user typed something other than a simple identifier
-                // (such as a valid name or a predefined type) in this spot,
-                // then assume that it's not an invalid calling convention.
-                // We'll get an unexpected token error when the next step
-                // attempts to a eat a <
-                if (CurrentToken.Kind != SyntaxKind.IdentifierToken ||
-                    SyntaxFacts.IsPredefinedType(CurrentToken.Kind))
+                switch (CurrentToken.ContextualKind)
                 {
-                    return null;
-                }
+                    case SyntaxKind.CdeclKeyword:
+                    case SyntaxKind.ManagedKeyword:
+                    case SyntaxKind.UnmanagedKeyword:
+                    case SyntaxKind.ThiscallKeyword:
+                    case SyntaxKind.StdcallKeyword:
+                        return EatContextualToken(CurrentToken.ContextualKind);
 
-                var originalConvention = EatToken();
-                originalConvention = AddError(originalConvention, ErrorCode.ERR_InvalidFunctionPointerCallingConvention, originalConvention.ToString());
-                var convention = SyntaxFactory.MissingToken(originalConvention, SyntaxKind.CdeclKeyword, trailing: null);
-                return convention;
+                    default:
+                        // If the user typed something other than a simple identifier
+                        // (such as a valid name or a predefined type) in this spot,
+                        // then assume that it's not an invalid calling convention.
+                        // We'll get an unexpected token error when the next step
+                        // attempts to a eat a <. Also skip eating if we don't
+                        // see a possible list start for the function pointer types.
+                        if (!IsPossibleFunctionPointerParameterListStart(CurrentToken) &&
+                            IsPossibleInvalidCallingConvention() &&
+                            IsPossibleFunctionPointerParameterListStart(PeekToken(1)))
+                        {
+                            return SyntaxFactory.MissingToken(EatTokenWithPrejudice(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, CurrentToken.ToString()),
+                                                              SyntaxKind.None,
+                                                              trailing: null);
+                        }
+
+                        return null;
+                }
+            }
+
+            PostSkipAction skipBadFunctionPointerParameterListTokens()
+            {
+                CSharpSyntaxNode? tmp = null;
+                Debug.Assert(types.Count > 0);
+                return SkipBadSeparatedListTokensWithExpectedKind(ref tmp,
+                    types,
+                    isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
+                    abortFunction: p => p.CurrentToken.Kind == SyntaxKind.CommaToken || p.IsTerminator(),
+                    expected: SyntaxKind.CommaToken);
             }
         }
+
+        private bool IsFunctionPointerStart()
+            => CurrentToken.Kind == SyntaxKind.DelegateKeyword && PeekToken(1).Kind == SyntaxKind.AsteriskToken;
+
+        private bool IsPossibleInvalidCallingConvention()
+            => CurrentToken.Kind == SyntaxKind.IdentifierToken || SyntaxFacts.IsPredefinedType(CurrentToken.Kind);
+
+        private static bool IsPossibleFunctionPointerParameterListStart(SyntaxToken token)
+            // We consider both ( and < to be possible starts, in order to make error recovery more graceful
+            // in the scenario where a user accidentally brackets their function pointer type list with parens.
+            => token.Kind == SyntaxKind.LessThanToken || token.Kind == SyntaxKind.OpenParenToken;
+#nullable restore
 
         private TypeSyntax ParsePointerTypeMods(TypeSyntax type)
         {

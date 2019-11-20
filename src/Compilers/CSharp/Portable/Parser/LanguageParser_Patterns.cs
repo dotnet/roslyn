@@ -128,11 +128,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool LooksLikeTypeOfPattern(SyntaxKind tk)
         {
-            return SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
-                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
-                LooksLikeTupleArrayType() ||
-                IsFunctionPointerStart(); // We'll parse the function pointer, but issue an error in semantic analysis
+            if (SyntaxFacts.IsPredefinedType(tk))
+            {
+                return true;
+            }
+
+            if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
+                (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+            {
+                return true;
+            }
+
+            if (LooksLikeTupleArrayType())
+            {
+                return true;
+            }
+
+            // We'll parse the function pointer, but issue an error in semantic analysis
+            if (IsFunctionPointerStart())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         //
