@@ -2113,11 +2113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
             switch (callingConvention.Kind())
             {
-                case SyntaxKind.CdeclKeyword:
-                case SyntaxKind.ManagedKeyword:
-                case SyntaxKind.StdcallKeyword:
-                case SyntaxKind.ThiscallKeyword:
-                case SyntaxKind.UnmanagedKeyword:
+                case SyntaxKind.IdentifierToken:
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(callingConvention));
             }

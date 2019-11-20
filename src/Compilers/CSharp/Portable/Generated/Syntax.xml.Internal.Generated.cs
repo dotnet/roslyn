@@ -31846,11 +31846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 switch (callingConvention.Kind)
                 {
-                    case SyntaxKind.CdeclKeyword:
-                    case SyntaxKind.ManagedKeyword:
-                    case SyntaxKind.StdcallKeyword:
-                    case SyntaxKind.ThiscallKeyword:
-                    case SyntaxKind.UnmanagedKeyword:
+                    case SyntaxKind.IdentifierToken:
                     case SyntaxKind.None: break;
                     default: throw new ArgumentException(nameof(callingConvention));
                 }
@@ -36458,11 +36454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 switch (callingConvention.Kind)
                 {
-                    case SyntaxKind.CdeclKeyword:
-                    case SyntaxKind.ManagedKeyword:
-                    case SyntaxKind.StdcallKeyword:
-                    case SyntaxKind.ThiscallKeyword:
-                    case SyntaxKind.UnmanagedKeyword:
+                    case SyntaxKind.IdentifierToken:
                     case SyntaxKind.None: break;
                     default: throw new ArgumentException(nameof(callingConvention));
                 }

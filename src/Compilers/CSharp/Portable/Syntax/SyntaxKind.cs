@@ -194,11 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
-        CdeclKeyword = 8438,
-        ManagedKeyword = 8439,
-        StdcallKeyword = 8440,
-        ThiscallKeyword = 8441,
-        UnmanagedKeyword = 8442,
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>

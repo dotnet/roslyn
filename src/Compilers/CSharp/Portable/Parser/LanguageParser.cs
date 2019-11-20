@@ -5890,22 +5890,9 @@ done:
             _ = EatContextualToken(SyntaxKind.DelegateKeyword);
             lastTokenOfType = EatToken(SyntaxKind.AsteriskToken);
 
-            switch (CurrentToken.ContextualKind)
+            if (IsPossibleCallingConvention())
             {
-                case SyntaxKind.CdeclKeyword:
-                case SyntaxKind.ManagedKeyword:
-                case SyntaxKind.StdcallKeyword:
-                case SyntaxKind.ThiscallKeyword:
-                case SyntaxKind.UnmanagedKeyword:
-                    lastTokenOfType = EatContextualToken(CurrentToken.ContextualKind);
-                    break;
-
-                default:
-                    if (IsPossibleInvalidCallingConvention() && IsPossibleFunctionPointerParameterListStart(PeekToken(1)))
-                    {
-                        _ = EatToken();
-                    }
-                    break;
+                _ = EatToken();
             }
 
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
@@ -6365,7 +6352,8 @@ done:;
             Debug.Assert(IsFunctionPointerStart());
             var @delegate = EatToken(SyntaxKind.DelegateKeyword);
             var asterisk = EatToken(SyntaxKind.AsteriskToken);
-            var callingConvention = maybeEatCallingConvention();
+            // Invalid calling conventions will be reported at type binding time
+            var callingConvention = IsPossibleCallingConvention() ? EatTokenAsKind(SyntaxKind.IdentifierToken, reportError: false) : null;
 
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
             {
@@ -6430,37 +6418,6 @@ done:;
                 _pool.Free(types);
             }
 
-            SyntaxToken? maybeEatCallingConvention()
-            {
-                switch (CurrentToken.ContextualKind)
-                {
-                    case SyntaxKind.CdeclKeyword:
-                    case SyntaxKind.ManagedKeyword:
-                    case SyntaxKind.UnmanagedKeyword:
-                    case SyntaxKind.ThiscallKeyword:
-                    case SyntaxKind.StdcallKeyword:
-                        return EatContextualToken(CurrentToken.ContextualKind);
-
-                    default:
-                        // If the user typed something other than a simple identifier
-                        // (such as a valid name or a predefined type) in this spot,
-                        // then assume that it's not an invalid calling convention.
-                        // We'll get an unexpected token error when the next step
-                        // attempts to a eat a <. Also skip eating if we don't
-                        // see a possible list start for the function pointer types.
-                        if (!IsPossibleFunctionPointerParameterListStart(CurrentToken) &&
-                            IsPossibleInvalidCallingConvention() &&
-                            IsPossibleFunctionPointerParameterListStart(PeekToken(1)))
-                        {
-                            return SyntaxFactory.MissingToken(EatTokenWithPrejudice(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, CurrentToken.ToString()),
-                                                              SyntaxKind.None,
-                                                              trailing: null);
-                        }
-
-                        return null;
-                }
-            }
-
             PostSkipAction skipBadFunctionPointerParameterListTokens()
             {
                 CSharpSyntaxNode? tmp = null;
@@ -6476,8 +6433,12 @@ done:;
         private bool IsFunctionPointerStart()
             => CurrentToken.Kind == SyntaxKind.DelegateKeyword && PeekToken(1).Kind == SyntaxKind.AsteriskToken;
 
-        private bool IsPossibleInvalidCallingConvention()
-            => CurrentToken.Kind == SyntaxKind.IdentifierToken || SyntaxFacts.IsPredefinedType(CurrentToken.Kind);
+        private bool IsPossibleCallingConvention()
+            => !IsPossibleFunctionPointerParameterListStart(CurrentToken) &&
+               IsPossibleFunctionPointerParameterListStart(PeekToken(1)) &&
+               // Treat predefined types as possible calling conventions, as they're a single
+               // token. This will be a semantic error, but it'll result in a nicer parse tree.
+               (CurrentToken.Kind == SyntaxKind.IdentifierToken || IsPredefinedType(CurrentToken.Kind));
 
         private static bool IsPossibleFunctionPointerParameterListStart(SyntaxToken token)
             // We consider both ( and < to be possible starts, in order to make error recovery more graceful
