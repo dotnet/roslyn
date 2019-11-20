@@ -47,7 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var semanticModel = this.SemanticDocument.SemanticModel;
                     var nameGenerator = new UniqueNameGenerator(semanticModel);
                     var scope = this.CSharpSelectionResult.GetContainingScope();
-                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod", localFunction));
+
+                    // If extracting a local function, we want to ensure all local variables are considered when generating a unique name.
+                    if (localFunction)
+                    {
+                        scope = this.CSharpSelectionResult.GetFirstTokenInSelection().Parent;
+                    }
+
+                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod"));
                 }
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
