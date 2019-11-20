@@ -839,6 +839,11 @@
         <target state="translated">이동 가능한 고정 버퍼 인덱싱</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">중첩된 함수의 이름 섀도잉</target>

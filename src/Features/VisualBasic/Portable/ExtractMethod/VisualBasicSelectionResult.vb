@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 lastTokenAnnotation)
         End Sub
 
-        Protected Overrides Function UnderAsyncAnonymousMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
+        Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
             Dim current = token.Parent
 
             While current IsNot Nothing

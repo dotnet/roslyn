@@ -1968,6 +1968,46 @@ class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
+        [Fact]
+        public void DiscardParameters()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Test
+{
+    public static void Main()
+    {
+        Expression<Func<int, long, string>> e = (_, _) => null;
+        ExpressionVisitor ev = new ExpressionVisitor();
+        ev.Visit(e);
+
+        Console.Write(ev.toStr);
+    }
+}";
+            string expectedOutput = @"                            
+                        Lambda:
+                            Type->System.Func`3[System.Int32,System.Int64,System.String]
+                            Parameters->
+                                Parameter:
+                                    Type->System.Int32
+                                    Name->_
+                                Parameter:
+                                    Type->System.Int64
+                                    Name->_
+                            Body->
+                                Constant:
+                                    Type->System.String
+                                    Value->
+";
+
+            CompileAndVerifyUtil(
+                new[] { text, TreeWalkerLib },
+                parseOptions: TestOptions.RegularPreview,
+                expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
         [WorkItem(544213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544213")]
         [Fact]
         public void DelegateInvocation()

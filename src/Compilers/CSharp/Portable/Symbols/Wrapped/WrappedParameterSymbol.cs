@@ -28,13 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._underlyingParameter = underlyingParameter;
         }
 
-        public ParameterSymbol UnderlyingParameter
-        {
-            get
-            {
-                return _underlyingParameter;
-            }
-        }
+        public ParameterSymbol UnderlyingParameter => _underlyingParameter;
+
+        public sealed override bool IsDiscard => _underlyingParameter.IsDiscard;
 
         #region Forwarded
 

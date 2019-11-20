@@ -327,13 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> refKinds,
             ImmutableArray<TypeWithAnnotations> types,
             ImmutableArray<string> names,
+            ImmutableArray<bool> discardsOpt,
             bool isAsync,
             bool hasErrors = false)
             : base(BoundKind.UnboundLambda, syntax, null, hasErrors || !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
-            this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isAsync);
+            this.Data = new PlainUnboundLambdaState(this, binder, names, discardsOpt, types, refKinds, isAsync);
         }
 
         private UnboundLambda(UnboundLambda other, Binder binder, NullableWalker.VariableState nullableState) :
@@ -376,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
+        public bool ParameterIsDiscard(int index) { return Data.ParameterIsDiscard(index); }
     }
 
     internal abstract class UnboundLambdaState
@@ -415,13 +417,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public abstract MessageID MessageID { get; }
         public abstract string ParameterName(int index);
+        public abstract bool ParameterIsDiscard(int index);
         public abstract bool HasSignature { get; }
         public abstract bool HasExplicitlyTypedParameterList { get; }
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
+        public abstract bool HasNames { get; }
+
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
-        //public abstract SyntaxToken ParameterIdentifier(int index);
         public abstract RefKind RefKind(int index);
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
@@ -1078,6 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class PlainUnboundLambdaState : UnboundLambdaState
     {
         private readonly ImmutableArray<string> _parameterNames;
+        private readonly ImmutableArray<bool> _parameterIsDiscardOpt;
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
         private readonly bool _isAsync;
@@ -1086,16 +1091,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnboundLambda unboundLambda,
             Binder binder,
             ImmutableArray<string> parameterNames,
+            ImmutableArray<bool> parameterIsDiscardOpt,
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
             bool isAsync)
             : base(binder, unboundLambda)
         {
             _parameterNames = parameterNames;
+            _parameterIsDiscardOpt = parameterIsDiscardOpt;
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
             _parameterRefKinds = parameterRefKinds;
             _isAsync = isAsync;
         }
+
+        public override bool HasNames { get { return !_parameterNames.IsDefault; } }
 
         public override bool HasSignature { get { return !_parameterNames.IsDefault; } }
 
@@ -1137,6 +1146,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_parameterNames.IsDefault && 0 <= index && index < _parameterNames.Length);
             return _parameterNames[index];
+        }
+
+        public override bool ParameterIsDiscard(int index)
+        {
+            return _parameterIsDiscardOpt.IsDefault ? false : _parameterIsDiscardOpt[index];
         }
 
         public override RefKind RefKind(int index)

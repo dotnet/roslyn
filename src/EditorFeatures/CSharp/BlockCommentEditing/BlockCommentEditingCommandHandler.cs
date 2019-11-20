@@ -1,18 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
@@ -20,16 +25,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(BlockCommentEditingCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal class BlockCommentEditingCommandHandler : AbstractBlockCommentEditingCommandHandler
+    internal sealed class BlockCommentEditingCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+
         [ImportingConstructor]
         public BlockCommentEditingCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService) : base(undoHistoryRegistry, editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
+            Contract.ThrowIfNull(undoHistoryRegistry);
+            Contract.ThrowIfNull(editorOperationsFactoryService);
+
+            _undoHistoryRegistry = undoHistoryRegistry;
+            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        protected override string GetExteriorTextForNextLine(SnapshotPoint caretPosition)
+        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
+
+        public CommandState GetCommandState(ReturnKeyCommandArgs args)
+            => CommandState.Unspecified;
+
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
+            => TryHandleReturnKey(args.SubjectBuffer, args.TextView);
+
+        private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView)
+        {
+            if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
+            {
+                return false;
+            }
+
+            var caretPosition = textView.GetCaretPoint(subjectBuffer);
+            if (caretPosition == null)
+            {
+                return false;
+            }
+
+            var exteriorText = GetExteriorTextForNextLine(caretPosition.Value);
+            if (exteriorText == null)
+            {
+                return false;
+            }
+
+            using var transaction = _undoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line);
+
+            var editorOperations = _editorOperationsFactoryService.GetEditorOperations(textView);
+
+            editorOperations.InsertNewLine();
+            editorOperations.InsertText(exteriorText);
+
+            transaction.Complete();
+            return true;
+        }
+
+        private string GetExteriorTextForNextLine(SnapshotPoint caretPosition)
         {
             var currentLine = caretPosition.GetContainingLine();
 
@@ -130,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             Debug.Assert(firstNonWhitespaceOffset > -1);
 
             var lineText = currentLine.GetText();
-            if ((lineText.Length == firstNonWhitespaceOffset + exteriorText.Length))
+            if (lineText.Length == firstNonWhitespaceOffset + exteriorText.Length)
             {
                 //     *|
                 return " ";
