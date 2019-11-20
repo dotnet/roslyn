@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             return new ContainedLanguage<TPackage, TLanguageService>(
                 bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid, projectTrackerOpt: null, project.Id,
-                (TLanguageService)this);
+                this.LanguageServiceId);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private readonly TLanguageService _languageService;
+        private readonly Guid _languageServiceGuid;
 
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    itemid,
                    project.ProjectTracker,
                    project.Id,
-                   languageService,
+                   languageService.LanguageServiceId,
                    vbHelperFormattingRule: null)
         {
             Contract.ThrowIfTrue(vbHelperFormattingRule != null);
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    itemid,
                    projectTrackerOpt: null,
                    project.VisualStudioProject.Id,
-                   languageService,
+                   languageService.LanguageServiceId,
                    vbHelperFormattingRule: null)
         {
             Contract.ThrowIfTrue(vbHelperFormattingRule != null);
@@ -124,13 +124,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemid,
             VisualStudioProjectTracker projectTrackerOpt,
             ProjectId projectId,
-            TLanguageService languageService,
+            Guid languageServiceGuid,
             AbstractFormattingRule vbHelperFormattingRule = null)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
             this.Project = project;
-            _languageService = languageService;
+            _languageServiceGuid = languageServiceGuid;
 
             this.Workspace = projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>();
 

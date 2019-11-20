@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int GetLanguageServiceID(out Guid guidLangService)
         {
-            guidLangService = _languageService.LanguageServiceId;
+            guidLangService = _languageServiceGuid;
             return VSConstants.S_OK;
         }
 
