@@ -540,10 +540,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static TDeclarationNode AddStatementsToLocalFunction<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, LocalFunctionStatementSyntax localFunctionDeclaration) where TDeclarationNode : SyntaxNode
         {
             var body = localFunctionDeclaration.Body;
-            if (body == null)
-            {
-                return destinationMember;
-            }
 
             var statementNodes = body.Statements.ToList();
             statementNodes.AddRange(StatementGenerator.GenerateStatements(statements));
@@ -608,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else if (method.IsLocalFunction())
             {
                 return MethodGenerator.GenerateLocalMethodDeclaration(
-                        method, destination, Workspace, options, options.ParseOptions);
+                    method, destination, Workspace, options, options.ParseOptions);
             }
             else
             {

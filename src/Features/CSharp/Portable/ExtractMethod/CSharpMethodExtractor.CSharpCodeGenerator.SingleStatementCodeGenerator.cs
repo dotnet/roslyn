@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
-                    bool extractLocalFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction)
+                    bool localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, localFunction)
                 {
                 }
 
@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
                 }
 
-                protected override SyntaxToken CreateMethodName(bool generateLocalFunction)
+                protected override SyntaxToken CreateMethodName(bool localFunction)
                 {
                     // change this to more smarter one.
                     var semanticModel = this.SemanticDocument.SemanticModel;
                     var nameGenerator = new UniqueNameGenerator(semanticModel);
                     var scope = this.CSharpSelectionResult.GetContainingScope();
-                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod", generateLocalFunction));
+                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod", localFunction));
                 }
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()

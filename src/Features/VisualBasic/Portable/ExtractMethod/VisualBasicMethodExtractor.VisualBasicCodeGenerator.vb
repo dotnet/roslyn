@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(insertionPoint, selectionResult, analyzerResult)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
-                Me._methodName = CreateMethodName(generateLocalFunction:=False).WithAdditionalAnnotations(MethodNameAnnotation)
+                Me._methodName = CreateMethodName(localFunction:=False).WithAdditionalAnnotations(MethodNameAnnotation)
             End Sub
 
             Private ReadOnly Property VBSelectionResult() As VisualBasicSelectionResult
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Me.InsertionPoint.With(document).GetContext()
             End Function
 
-            Protected Overrides Function GenerateMethodDefinition(generateLocalFunction As Boolean, cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
+            Protected Overrides Function GenerateMethodDefinition(localFunction As Boolean, cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
                 Dim result = CreateMethodBody(cancellationToken)
                 Dim statements = result.Data
 

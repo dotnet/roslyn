@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
-            protected readonly bool ExtractLocalFunction;
+            protected readonly bool LocalFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool extractLocalFunction = false)
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool localFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
 
-                ExtractLocalFunction = extractLocalFunction;
+                LocalFunction = localFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
                 CallSiteAnnotation = new SyntaxAnnotation();
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
-            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool generateLocalFunction, CancellationToken cancellationToken);
+            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
-            protected abstract SyntaxToken CreateMethodName(bool generateLocalFunction);
+            protected abstract SyntaxToken CreateMethodName(bool localFunction);
             protected abstract bool LastStatementOrHasReturnStatementInReturnableConstruct();
 
             protected abstract TNodeUnderContainer GetFirstStatementOrInitializerSelectedAtCallSite();
@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
             {
                 var root = SemanticDocument.Root;
-
                 // should I check venus hidden position check here as well?
                 root = root.ReplaceNode(GetOutermostCallSiteContainerToProcess(cancellationToken), await GenerateBodyForCallSiteContainerAsync(cancellationToken).ConfigureAwait(false));
                 var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(root, cancellationToken).ConfigureAwait(false);
@@ -85,17 +84,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var previousMemberNode = GetPreviousMember(callSiteDocument);
 
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
-                var result = GenerateMethodDefinition(ExtractLocalFunction, cancellationToken);
+                var result = GenerateMethodDefinition(LocalFunction, cancellationToken);
 
                 SyntaxNode destination, newContainer;
-                if (ExtractLocalFunction)
+                if (LocalFunction)
                 {
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
-                    var codeGenerationOptions = new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, parseOptions: destination?.SyntaxTree.Options);
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
-                        options: codeGenerationOptions);
-                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, codeGenerationOptions, cancellationToken);
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, parseOptions: destination?.SyntaxTree.Options));
+                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
                 }
                 else
                 {

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
-                extractLocalFunction: false,
+                localFunction: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 

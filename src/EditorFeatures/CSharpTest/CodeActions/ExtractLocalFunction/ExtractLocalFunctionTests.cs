@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ExtractLocalFunction;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1833,7 +1834,7 @@ class Program
         var t = {|Rename:GetT|}(a);
         System.Console.Write(t.a);
 
-        static (int a, int b) GetT(int a)
+        (int a, int b) GetT(int a)
         {
             return (a, b: 2);
         }
@@ -1862,7 +1863,7 @@ class Program
         {|Rename:NewMethod|}(out x, out y);
         System.Console.Write(x + y);
 
-        static void NewMethod(out int x, out int y)
+        void NewMethod(out int x, out int y)
         {
             var (x, y) = (1, 2);
         }
@@ -1891,7 +1892,7 @@ class Program
         {|Rename:NewMethod|}(out x, out y);
         System.Console.Write(x + y);
 
-        static void NewMethod(out int x, out int y)
+        void NewMethod(out int x, out int y)
         {
             (x, y) = (1, 2);
         }
@@ -3183,6 +3184,114 @@ class Program
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestPartialSelection_StaticOptionTrue_EarlierCSharpVersionShouldBeNonStatic()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+
+        bool NewMethod(bool b)
+        {
+            return b != true;
+        }
+    }
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestPartialSelection_StaticOptionTrue_EarlierCSharpVersionShouldBeNonStatic2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+
+        bool NewMethod(bool b)
+        {
+            return b != true;
+        }
+    }
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestPartialSelection_StaticOptionTrue_CSharp8AndLaterStaticSupported()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+
+        static bool NewMethod(bool b)
+        {
+            return b != true;
+        }
+    }
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestPartialSelection_StaticOptionTrue_CSharp8AndLaterStaticSupported2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+
+        static bool NewMethod(bool b)
+        {
+            return b != true;
+        }
+    }
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
     }
 }

@@ -23,16 +23,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected readonly CancellationToken CancellationToken;
             protected readonly SelectionResult SelectionResult;
-            protected readonly bool ExtractLocalFunction;
+            protected readonly bool LocalFunction;
 
-            protected Analyzer(SelectionResult selectionResult, bool extractLocalFunction, CancellationToken cancellationToken)
+            protected Analyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 
                 SelectionResult = selectionResult;
                 _semanticDocument = selectionResult.SemanticDocument;
                 CancellationToken = cancellationToken;
-                ExtractLocalFunction = extractLocalFunction;
+                LocalFunction = localFunction;
             }
 
             /// <summary>
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
                 // Checks to see if selection includes a non-static local function call + if the given local function declaration is not included in the selection.
-                var containsNonStaticLocalMethodCallWithoutDeclaration = symbolMap.Keys.Any(s => s.IsLocalFunction() && !s.IsStatic && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
+                var containsNonStaticLocalMethodCallNotWithinSpan = symbolMap.Keys.Any(s => s.IsLocalFunction() && !s.IsStatic && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
 
-                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten || containsNonStaticLocalMethodCallWithoutDeclaration;
+                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten || containsNonStaticLocalMethodCallNotWithinSpan;
                 var shouldBeReadOnly = !isThisParameterWritten
                     && thisParameterBeingRead != null
                     && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // check various error cases
                 var operationStatus = GetOperationStatus(
-                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType, containsNonStaticLocalMethodCallWithoutDeclaration);
+                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType, containsNonStaticLocalMethodCallNotWithinSpan);
 
                 return new AnalyzerResult(
                     newDocument,
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             FeaturesResources.Failed_to_analyze_data_flow_for_0,
                             string.Join(", ", failedVariables.Select(v => v.Name))));
 
-                var localFunctionStatus = (containsNonStaticLocalMethodCallWithoutDeclaration && !ExtractLocalFunction)
+                var localFunctionStatus = (containsNonStaticLocalMethodCallWithoutDeclaration && !LocalFunction)
                     ? OperationStatus.LocalFunctionCallWithoutDeclaration
                     : OperationStatus.Succeeded;
 

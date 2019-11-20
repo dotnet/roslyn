@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return AddMembersTo(destination, members);
         }
+
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
             IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options,
@@ -112,17 +113,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
-                    attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
-                    modifiers: GenerateModifiers(method, destination, workspace, options, extractLocalFunction: false),
-                    returnType: method.GenerateReturnTypeSyntax(),
-                    explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                    identifier: method.Name.ToIdentifierToken(),
-                    typeParameterList: GenerateTypeParameterList(method, options),
-                    parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
-                    constraintClauses: GenerateConstraintClauses(method),
-                    body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
-                    expressionBody: default,
-                    semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+                attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
+                modifiers: GenerateModifiers(method, destination, workspace, options, localFunction: false),
+                returnType: method.GenerateReturnTypeSyntax(),
+                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
+                identifier: method.Name.ToIdentifierToken(),
+                typeParameterList: GenerateTypeParameterList(method, options),
+                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
+                constraintClauses: GenerateConstraintClauses(method),
+                body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+                expressionBody: default,
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
             methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, parseOptions);
             return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
@@ -132,22 +133,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
-            // Don't rely on destination to decide if method body should be generated.
-            // Users of this service need to express their intention explicitly, either by  
-            // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making 
-            // `method` abstract. This would provide more flexibility.
-            var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
-
             var localMethodDeclaration = SyntaxFactory.LocalFunctionStatement(
-                    modifiers: GenerateModifiers(method, destination, workspace, options, extractLocalFunction: true),
-                    returnType: method.GenerateReturnTypeSyntax(),
-                    identifier: method.Name.ToIdentifierToken(),
-                    typeParameterList: GenerateTypeParameterList(method, options),
-                    parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options),
-                    constraintClauses: GenerateConstraintClauses(method),
-                    body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
-                    expressionBody: default,
-                    semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+                modifiers: GenerateModifiers(method, destination, workspace, options, localFunction: true, ((CSharpParseOptions)parseOptions).LanguageVersion),
+                returnType: method.GenerateReturnTypeSyntax(),
+                identifier: method.Name.ToIdentifierToken(),
+                typeParameterList: GenerateTypeParameterList(method, options),
+                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options),
+                constraintClauses: GenerateConstraintClauses(method),
+                body: StatementGenerator.GenerateBlock(method),
+                expressionBody: default,
+                semicolonToken: new SyntaxToken());
 
             localMethodDeclaration = UseExpressionBodyIfDesired(workspace, localMethodDeclaration, parseOptions);
             return AddFormatterAndCodeGeneratorAnnotationsTo(localMethodDeclaration);
@@ -183,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         out var expressionBody, out var semicolonToken))
                 {
                     return localMethodDeclaration.WithBody(null)
-                                            .WithExpressionBody(expressionBody)
-                                            .WithSemicolonToken(semicolonToken);
+                                                 .WithExpressionBody(expressionBody)
+                                                 .WithSemicolonToken(semicolonToken);
                 }
             }
 
@@ -220,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxTokenList GenerateModifiers(
-            IMethodSymbol method, CodeGenerationDestination destination, Workspace workspace, CodeGenerationOptions options, bool extractLocalFunction)
+            IMethodSymbol method, CodeGenerationDestination destination, Workspace workspace, CodeGenerationOptions options, bool localFunction, LanguageVersion languageVersion = LanguageVersion.Latest)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -253,10 +248,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                     if (method.IsStatic)
                     {
-                        if (extractLocalFunction)
+                        if (localFunction)
                         {
                             var preferStaticLocalFunction = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
-                            if (preferStaticLocalFunction)
+
+                            // Static local functions are only supported in C# 8.0 and later.
+                            if (preferStaticLocalFunction && languageVersion >= LanguageVersion.CSharp8)
                             {
                                 tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                             }

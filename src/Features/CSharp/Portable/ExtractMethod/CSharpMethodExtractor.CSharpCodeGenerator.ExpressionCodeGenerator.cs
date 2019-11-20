@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
-                    bool extractLocalFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, extractLocalFunction)
+                    bool localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, localFunction)
                 {
                 }
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return code.SelectionInExpression;
                 }
 
-                protected override SyntaxToken CreateMethodName(bool generateLocalFunction)
+                protected override SyntaxToken CreateMethodName(bool localFunction)
                 {
                     var methodName = "NewMethod";
                     var containingScope = this.CSharpSelectionResult.GetContainingScope();
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     var semanticModel = this.SemanticDocument.SemanticModel;
                     var nameGenerator = new UniqueNameGenerator(semanticModel);
-                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName, generateLocalFunction));
+                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName, localFunction));
                 }
 
                 private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)

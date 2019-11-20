@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
 
-            public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool extractLocalFunction, CancellationToken cancellationToken)
+            public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
-                var analyzer = new CSharpAnalyzer(selectionResult, extractLocalFunction, cancellationToken);
+                var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
                 return analyzer.AnalyzeAsync();
             }
 
-            public CSharpAnalyzer(SelectionResult selectionResult, bool extractLocalFunction, CancellationToken cancellationToken)
-                : base(selectionResult, extractLocalFunction, cancellationToken)
+            public CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+                : base(selectionResult, localFunction, cancellationToken)
             {
             }
 

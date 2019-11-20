@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractLocalFunction
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
-                extractLocalFunction: true,
+                localFunction: true,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 

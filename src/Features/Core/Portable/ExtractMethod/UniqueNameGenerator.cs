@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             _semanticModel = semanticModel;
         }
 
-        public string CreateUniqueMethodName(SyntaxNode contextNode, string baseName, bool generateLocalFunction = false)
+        public string CreateUniqueMethodName(SyntaxNode contextNode, string baseName, bool localFunction = false)
         {
             Contract.ThrowIfNull(contextNode);
             Contract.ThrowIfNull(baseName);
 
-            if (generateLocalFunction)
+            if (localFunction)
             {
                 // When generating local functions, we also want to take into account the names of local variables.
                 var childNodes = contextNode.ChildNodes().AsArray();

@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Inherits MethodExtractor
 
         Public Sub New(result As VisualBasicSelectionResult)
-            MyBase.New(result, extractLocalFunction:=False)
+            MyBase.New(result, localFunction:=False)
         End Sub
 
-        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, extractLocalFunction As Boolean, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
+        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 

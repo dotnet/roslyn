@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Public Sub New(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken)
-                MyBase.New(currentSelectionResult, extractLocalFunction:=False, cancellationToken)
+                MyBase.New(currentSelectionResult, localFunction:=False, cancellationToken)
             End Sub
 
             Protected Overrides Function CreateFromSymbol(

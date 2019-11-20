@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result, bool extractLocalFunction)
-            : base(result, extractLocalFunction)
+        public CSharpMethodExtractor(CSharpSelectionResult result, bool localFunction)
+            : base(result, localFunction)
         {
         }
 
-        protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool extractLocalFunction, CancellationToken cancellationToken)
-            => CSharpAnalyzer.AnalyzeAsync(selectionResult, extractLocalFunction, cancellationToken);
+        protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
 
         protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
         {
@@ -32,9 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var basePosition = root.FindToken(position);
 
-            // Check if we are extracting a local function and are within a local function
-            if (ExtractLocalFunction)
+            if (LocalFunction)
             {
+                // If we are extracting a local function and are within a local function, then we want the new function to be created within the
+                // existing local function instead of the overarching method.
                 var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
                 if (localMethodNode is object)
                 {
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken)
         {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, ExtractLocalFunction, cancellationToken);
+            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, LocalFunction, cancellationToken);
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
