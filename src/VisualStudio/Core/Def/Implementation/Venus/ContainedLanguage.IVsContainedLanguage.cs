@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedLanguage
+    internal partial class ContainedLanguage : IVsContainedLanguage
     {
         public int GetColorizer(out IVsColorizer colorizer)
         {
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int GetLanguageServiceID(out Guid guidLangService)
         {
-            guidLangService = _languageService.LanguageServiceId;
+            guidLangService = _languageServiceGuid;
             return VSConstants.S_OK;
         }
 
@@ -36,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return VSConstants.E_FAIL;
             }
 
-            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(_languageService, wpfTextView, SubjectBuffer, nextCmdTarget, _editorAdaptersFactoryService);
+            textViewFilter = new VenusCommandFilter(wpfTextView, SubjectBuffer, nextCmdTarget, ComponentModel);
 
             return VSConstants.S_OK;
         }
