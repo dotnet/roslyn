@@ -6009,14 +6009,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundPropertyAccess property => getSetterAnnotations(property.PropertySymbol),
                 BoundIndexerAccess indexer => getSetterAnnotations(indexer.Indexer),
-                BoundFieldAccess field => field.FieldSymbol.FlowAnalysisAnnotations,
+                BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
                 _ => FlowAnalysisAnnotations.None
             };
 
             return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
 
+            static FlowAnalysisAnnotations getFieldAnnotations(FieldSymbol field)
+            {
+                var property = field.AssociatedSymbol as PropertySymbol;
+                return property is null ?
+                    field.FlowAnalysisAnnotations :
+                    getSetterAnnotations(property);
+            }
+
             static FlowAnalysisAnnotations getSetterAnnotations(PropertySymbol property)
-                => property.GetOwnOrInheritedSetMethod()?.Parameters.Last()?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
+            {
+                var accessor = property.GetOwnOrInheritedSetMethod();
+                if (accessor is object)
+                {
+                    return accessor.Parameters.Last().FlowAnalysisAnnotations;
+                }
+                if (property is SourcePropertySymbol sourceProperty)
+                {
+                    return getPropertyAnnotations(sourceProperty);
+                }
+                return FlowAnalysisAnnotations.None;
+            }
+
+            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbol property)
+            {
+                var annotations = FlowAnalysisAnnotations.None;
+                if (property.HasAllowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.AllowNull;
+                }
+                if (property.HasDisallowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.DisallowNull;
+                }
+                return annotations;
+            }
         }
 
         private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
