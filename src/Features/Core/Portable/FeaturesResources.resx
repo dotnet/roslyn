@@ -1750,4 +1750,10 @@ This version used in: {2}</value>
   <data name="Wrap_long_element_list" xml:space="preserve">
     <value>Wrap long element list</value>
   </data>
+  <data name="Indent_all_elements" xml:space="preserve">
+    <value>Indent all elements</value>
+  </data>
+  <data name="Unwrap_all_elements" xml:space="preserve">
+    <value>Unwrap all elements</value>
+  </data>
 </root>

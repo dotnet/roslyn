@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        protected override string Indent_all_items => FeaturesResources.Indent_all_arguments;
-        protected override string Unwrap_all_items => FeaturesResources.Unwrap_all_arguments;
+        protected override string Indent_all_items => FeaturesResources.Indent_all_elements;
+        protected override string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
         protected override string Unwrap_list => FeaturesResources.Unwrap_element_list;
         protected override string Wrap_every_item => FeaturesResources.Wrap_every_element;
         protected override string Wrap_long_list => FeaturesResources.Wrap_long_element_list;

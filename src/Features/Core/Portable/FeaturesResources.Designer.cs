@@ -2157,6 +2157,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indent all elements.
+        /// </summary>
+        internal static string Indent_all_elements {
+            get {
+                return ResourceManager.GetString("Indent_all_elements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indent all parameters.
         /// </summary>
         internal static string Indent_all_parameters {
@@ -4080,6 +4089,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unwrap_all_arguments {
             get {
                 return ResourceManager.GetString("Unwrap_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap all elements.
+        /// </summary>
+        internal static string Unwrap_all_elements {
+            get {
+                return ResourceManager.GetString("Unwrap_all_elements", resourceCulture);
             }
         }
         
