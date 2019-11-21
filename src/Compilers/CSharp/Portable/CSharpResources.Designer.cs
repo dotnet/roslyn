@@ -10753,6 +10753,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enums, classes, and structures cannot be declared in an interface that has an &apos;in&apos; or &apos;out&apos; type parameter..
+        /// </summary>
+        internal static string ERR_VarianceInterfaceNesting {
+            get {
+                return ResourceManager.GetString("ERR_VarianceInterfaceNesting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The syntax &apos;var (...)&apos; as an lvalue is reserved..
         /// </summary>
         internal static string ERR_VarInvocationLvalueReserved {

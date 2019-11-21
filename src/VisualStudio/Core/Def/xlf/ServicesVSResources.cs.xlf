@@ -62,6 +62,11 @@
         <target state="translated">Zpět</target>
         <note />
       </trans-unit>
+      <trans-unit id="Background_analysis_scope_colon">
+        <source>Background analysis scope:</source>
+        <target state="new">Background analysis scope:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Sestavení + živá analýza (balíček NuGet)</target>
@@ -102,9 +107,19 @@
         <target state="translated">Obsahující typ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Current_Document">
+        <source>Current Document</source>
+        <target state="new">Current Document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Element není platný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_Solution">
+        <source>Entire Solution</source>
+        <target state="new">Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -345,6 +360,11 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">Neveřejné metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Open_Documents_and_Projects">
+        <source>Open Documents and Projects</source>
+        <target state="new">Open Documents and Projects</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -1881,11 +1901,6 @@ Další informace: {1}</target>
       <trans-unit id="Analysis">
         <source>Analysis</source>
         <target state="translated">Analýza</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="translated">Povolit úplnou _analýzu řešení</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">

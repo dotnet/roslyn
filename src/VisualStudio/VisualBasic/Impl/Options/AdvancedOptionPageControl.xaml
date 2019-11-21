@@ -16,8 +16,18 @@
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
-                    <CheckBox x:Name="Enable_full_solution_analysis"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_analysis_scope}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="Background_analysis_scope"
+                                              x:Name="Background_analysis_scope_active_file"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Active_File}"/>
+                        <RadioButton  GroupName="Background_analysis_scope"
+                                              x:Name="Background_analysis_scope_open_files"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Open_Files_And_Projects}"/>
+                        <RadioButton  GroupName="Background_analysis_scope"
+                                              x:Name="Background_analysis_scope_full_solution"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
+                    </StackPanel>
                     <CheckBox x:Name="Use_editorconfig_compatibility_mode"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
                 </StackPanel>

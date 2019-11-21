@@ -65,7 +65,6 @@ stages:
           StageLabel: 'Channel_General_Testing'
           JobLabel: 'SymbolPublishing'
 
-
   - job: publish_assets
     displayName: Publish Assets
     dependsOn: setupMaestroVars

@@ -472,6 +472,11 @@
         <target state="translated">Per fare riferimento a un tipo, non è consentito usare la sintassi 'var' per un criterio, ma in questo '{0}' è incluso nell'ambito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">Per la corrispondenza del tipo di tupla '{0}' sono richiesti '{1}' criteri secondari, ma ne sono presenti '{2}'.</target>
