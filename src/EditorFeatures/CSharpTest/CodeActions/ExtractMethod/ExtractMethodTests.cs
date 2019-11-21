@@ -1478,7 +1478,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCall()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class C
 {
     public static void Main()
@@ -1486,7 +1486,8 @@ class C
         void Local() { }
         [|Local();|]
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
         }
 
         [Fact]
@@ -1520,7 +1521,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class C
 {
     public static void Main(string[] args)
@@ -1528,7 +1529,8 @@ class C
         bool Local() => args == null;
         [|Local();|]
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
         }
 
         [Fact]

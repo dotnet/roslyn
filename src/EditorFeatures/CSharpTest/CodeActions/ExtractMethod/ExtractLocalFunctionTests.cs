@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.ExtractLocalFunction;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -15,7 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
     public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpExtractLocalFunctionCodeRefactoringProvider();
+            => new ExtractMethodCodeRefactoringProvider();
+
+        private int CodeActionIndexWhenExtractMethodMissing => 0;
+
+        private int CodeActionIndex => 1;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestPartialSelection_StaticOptionTrue()
@@ -41,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
             return b != true;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
             return b != true;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -95,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
             return b != true;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CSharpCodeStyleOptions.PreferStaticLocalFunction.DefaultValue));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CSharpCodeStyleOptions.PreferStaticLocalFunction.DefaultValue));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -119,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
         static bool NewMethod(bool b) => b != true;
     }
-}",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -144,8 +148,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
         static bool NewMethod(bool b) => b != true;
     }
-}",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -175,8 +178,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
         static bool NewMethod(bool b) => b != true;
     }
-}",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -205,8 +207,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
                         true;
         }
     }
-}",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -235,8 +236,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 */true;
         }
     }
-}",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -265,8 +265,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 "";
         }
     }
-}",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -305,7 +304,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
     {
         return t;
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -345,7 +344,7 @@ class C
             return x * x;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -370,7 +369,7 @@ class C
             System.Console.WriteLine(4);
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -395,7 +394,7 @@ class C
             System.Console.WriteLine(4);
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -420,7 +419,7 @@ class C
             base.ToString();
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -459,7 +458,7 @@ class Program
             return C.X;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -497,7 +496,7 @@ class Program
 
     static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
     static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -535,7 +534,7 @@ class Program
 
     static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
     static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -633,7 +632,7 @@ static class E
     }
 }",
 
-parseOptions: Options.Regular);
+parseOptions: Options.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -731,7 +730,7 @@ static class E
     }
 }",
 
-parseOptions: Options.Regular);
+parseOptions: Options.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -772,7 +771,7 @@ parseOptions: Options.Regular);
             obj2.Do();
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -821,7 +820,7 @@ parseOptions: Options.Regular);
             obj3.Do();
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -867,7 +866,7 @@ parseOptions: Options.Regular);
             obj3.Do();
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
@@ -894,7 +893,7 @@ parseOptions: Options.Regular);
             return (1, 2);
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -921,7 +920,7 @@ parseOptions: Options.Regular);
             return (1, 2);
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -948,7 +947,7 @@ parseOptions: Options.Regular);
             return (1, 2);
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -977,7 +976,7 @@ class Program
             y.Item1.ToString();
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1004,7 +1003,7 @@ class Program
             return (a: 1, b: 2);
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1031,7 +1030,7 @@ class Program
             return (c: 1, d: 2);
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1058,7 +1057,7 @@ class Program
             return (c: 1, d: 2);
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1085,7 +1084,7 @@ class Program
             return (c: 1, d: 2);
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1113,7 +1112,7 @@ class Program
             return new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: ""hello"", b: ""world""));
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1140,7 +1139,7 @@ class Program
             return (1, 2);
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1169,7 +1168,7 @@ class Program
             return 3;
         }
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1200,7 +1199,7 @@ class Program
             r = M1(out y, i);
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1231,7 +1230,7 @@ class Program
             r = M1(3 is int {|Conflict:y|}, i);
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1262,7 +1261,7 @@ class Program
             r = M1(out /*out*/  /*int*/ y /*y*/) + M2(3 is int {|Conflict:z|});
         }
     }
-} ");
+} ", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1303,7 +1302,7 @@ class Program
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1344,7 +1343,7 @@ class Program
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1386,7 +1385,7 @@ class C
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1433,7 +1432,7 @@ class C
             return v;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1480,13 +1479,13 @@ class C
             return v;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionCall()
         {
-            await TestInRegularAndScriptAsync(@"
+            var code = @"
 class C
 {
     public static void Main()
@@ -1494,7 +1493,8 @@ class C
         void Local() { }
         [|Local();|]
     }
-}", @"
+}";
+            var expectedCode = @"
 class C
 {
     public static void Main()
@@ -1507,13 +1507,76 @@ class C
             Local();
         }
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestInRegularAndScriptAsync(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task ExtractLocalFunctionCall_2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main()
+    {
+        [|void Local() { }
+        Local();|]
+    }
+}", @"
+class C
+{
+    public static void Main()
+    {
+        {|Rename:NewMethod|}();
+
+        static void NewMethod()
+        {
+            void Local() { }
+            Local();
+        }
+    }
+}", CodeActionIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task ExtractLocalFunctionCall_3()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main()
+    {
+        static void LocalParent()
+        {
+            [|void Local() { }
+            Local();|]
+        }
+
+    }
+}", @"
+class C
+{
+    public static void Main()
+    {
+        static void LocalParent()
+        {
+            {|Rename:NewMethod|}();
+
+            static void NewMethod()
+            {
+                void Local() { }
+                Local();
+            }
+        }
+    }
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
-            await TestInRegularAndScriptAsync(@"
+            var code = @"
 class C
 {
     public static void Main(string[] args)
@@ -1521,7 +1584,8 @@ class C
         bool Local() => args == null;
         [|Local();|]
     }
-}", @"
+}";
+            var expectedCode = @"
 class C
 {
     public static void Main(string[] args)
@@ -1534,7 +1598,9 @@ class C
             Local();
         }
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestInRegularAndScriptAsync(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1569,7 +1635,7 @@ class C
         }
         Local();
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1609,7 +1675,7 @@ class Test
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1648,7 +1714,7 @@ class Test
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1687,7 +1753,7 @@ class Test
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1717,7 +1783,7 @@ class Program
             return (a, b: 2);
         }
     }
-}", TestOptions.Regular7_1);
+}", TestOptions.Regular7_1, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1746,7 +1812,7 @@ class Program
             var (x, y) = (1, 2);
         }
     }
-}", TestOptions.Regular7_1);
+}", TestOptions.Regular7_1, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1775,7 +1841,7 @@ class Program
             (x, y) = (1, 2);
         }
     }
-}", TestOptions.Regular7_1);
+}", TestOptions.Regular7_1, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1802,7 +1868,7 @@ class Program
             return ^1;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1829,7 +1895,7 @@ class Program
             return ..;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1856,7 +1922,7 @@ class Program
             return ..1;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1883,7 +1949,7 @@ class Program
             return 1..;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1910,7 +1976,7 @@ class Program
             return 1..2;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1945,7 +2011,7 @@ class C
             return x;
         }
     }
-}");
+}", CodeActionIndex);
 
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1981,7 +2047,7 @@ class C
             return a?.Contains(b).ToString();
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters2()
@@ -2018,7 +2084,7 @@ class C
             return (a + b + c).ToString();
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters3()
@@ -2051,7 +2117,7 @@ class C
             return (a + b + c).ToString();
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters4()
@@ -2082,7 +2148,7 @@ class C
             return a?.Contains(b).ToString();
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters1()
@@ -2113,7 +2179,7 @@ class C
             return (a + b + a).ToString();
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters2()
@@ -2144,7 +2210,7 @@ class C
             return (a + b + a).ToString();
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters3()
@@ -2175,7 +2241,7 @@ class C
             return (a + b + a)?.ToString();
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_MultipleStates()
@@ -2221,7 +2287,7 @@ class C
             return c;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
@@ -2267,7 +2333,7 @@ class C
             return c;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
@@ -2311,7 +2377,7 @@ class C
             return c;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowStateNullableParameters_RefNotNull()
@@ -2353,7 +2419,7 @@ class C
             return c;
         }
     }
-}");
+}", CodeActionIndex);
 
         // There's a case below where flow state correctly asseses that the variable
         // 'x' is non-null when returned. It's wasn't obvious when writing, but that's 
@@ -2393,7 +2459,7 @@ class C
             return x;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowNullableReturn_NotNull2()
@@ -2429,7 +2495,7 @@ class C
             return x;
         }
     }
-}");
+}", CodeActionIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowNullable_Lambda()
             => TestInRegularAndScriptAsync(
@@ -2476,7 +2542,7 @@ class C
             return x;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestFlowNullable_LambdaWithReturn()
@@ -2524,7 +2590,7 @@ class C
             return x;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestExtractReadOnlyMethod()
@@ -2550,7 +2616,7 @@ class C
             int i = M1() + M1();
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -2577,7 +2643,7 @@ class C
             int i = M1() + M1();
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -2604,7 +2670,7 @@ class C
             int i = M1() + M1();
         }
     }
-}");
+}", CodeActionIndex);
         }
 
 
@@ -2641,7 +2707,7 @@ class C
             return o;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNotNullableObjectWithExplicitCast()
@@ -2676,7 +2742,7 @@ class C
             return o;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNotNullableWithExplicitCast()
@@ -2725,7 +2791,7 @@ class C
             return b;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableWithExplicitCast()
@@ -2774,7 +2840,7 @@ class C
             return b;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNotNullableWithExplicitCastSelected()
@@ -2809,7 +2875,7 @@ class C
             return (string)o;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableWithExplicitCastSelected()
@@ -2844,7 +2910,7 @@ class C
             return (string?)o;
         }
     }
-}");
+}", CodeActionIndex);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
         => TestInRegularAndScriptAsync(
@@ -2878,7 +2944,7 @@ class C
             return (string?)o;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
@@ -2913,7 +2979,7 @@ class C
             return (string)o;
         }
     }
-}");
+}", CodeActionIndex);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestExtractLocalFunction_EnsureUniqueFunctionName()
@@ -2947,7 +3013,7 @@ class C
             var test = 1;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -2990,7 +3056,7 @@ class C
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3023,7 +3089,7 @@ class C
             }
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3061,7 +3127,7 @@ class Program
                 return;
         }
     }
-}");
+}", CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3088,7 +3154,7 @@ class Program
             return b != true;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3115,7 +3181,7 @@ class Program
             return b != true;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3142,7 +3208,7 @@ class Program
             return b != true;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3169,7 +3235,7 @@ class Program
             return b != true;
         }
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3183,7 +3249,7 @@ class C
         [|bool Local() => args == null;|]
         Local();
     }
-}");
+}", new TestParameters(index: CodeActionIndex));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3200,7 +3266,7 @@ class C
         }|]
         Local();
     }
-}");
+}", new TestParameters(index: CodeActionIndex));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3220,7 +3286,7 @@ class C
     label2:
         return;
     }
-}");
+}", new TestParameters(index: CodeActionIndex));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3235,14 +3301,14 @@ class C
     static void Main(string[] args)
     {
     }
-}");
+}", new TestParameters(index: CodeActionIndex));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInPropertyInitializer_Get()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            var code = @"
+using System;
 
 class TimePeriod
 {
@@ -3260,14 +3326,16 @@ class TimePeriod
           _seconds = value * 3600;
         }
     }
-}");
+}";
+
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInPropertyInitializer_Get2()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            var code = @"
+using System;
 
 class TimePeriod
 {
@@ -3285,14 +3353,15 @@ class TimePeriod
           _seconds = value * 3600;
         }
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInPropertyInitializer_Set()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            var code = @"
+using System;
 
 class TimePeriod
 {
@@ -3310,14 +3379,15 @@ class TimePeriod
           _seconds = value * 3600;
         }
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInPropertyInitializer_Set2()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            var code = @"
+using System;
 
 class TimePeriod
 {
@@ -3335,14 +3405,15 @@ class TimePeriod
           [|_seconds = value * 3600;|]
         }
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInPropertyInitializer_Set3()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
+            var code = @"
+using System;
 
 class TimePeriod
 {
@@ -3360,37 +3431,40 @@ class TimePeriod
           _seconds = [|value * 3600|];
         }
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyProperty()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class Program
 {
     int field;
 
     public int Blah => [|this.field|];
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyIndexer()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class Program
 {
     int field;
 
     public int this[int i] => [|this.field|];
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyPropertyGetAccessor()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class Program
 {
     int field;
@@ -3400,13 +3474,14 @@ class Program
         get => [|this.field|];
         set => field = value;
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyPropertySetAccessor()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class Program
 {
     int field;
@@ -3416,13 +3491,14 @@ class Program
         get => this.field;
         set => field = [|value|];
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyIndexerGetAccessor()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class Program
 {
     int field;
@@ -3432,13 +3508,14 @@ class Program
         get => [|this.field|];
         set => field = value;
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInExpressionBodyIndexerSetAccessor()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            var code = @"
 class Program
 {
     int field;
@@ -3448,7 +3525,8 @@ class Program
         get => this.field;
         set => field = [|value|];
     }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]

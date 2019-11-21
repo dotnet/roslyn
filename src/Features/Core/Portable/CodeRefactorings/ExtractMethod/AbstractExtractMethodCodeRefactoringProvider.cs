@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -46,19 +50,40 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var action = await GetCodeActionAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (action == default)
+            var actions = await GetCodeActionAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (actions.IsEmpty)
             {
                 return;
             }
 
-            context.RegisterRefactoring(action, textSpan);
+            foreach (var action in actions)
+            {
+                context.RegisterRefactoring(action, textSpan);
+            }
         }
 
-        protected virtual async Task<CodeAction> GetCodeActionAsync(
+        protected virtual async Task<ImmutableArray<CodeAction>> GetCodeActionAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
+        {
+            var actions = ImmutableArray.CreateBuilder<CodeAction>();
+            var methodAction = await ExtractMethod(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (methodAction != default)
+            {
+                actions.Add(methodAction);
+            }
+
+            var localFunctionAction = await ExtractLocalFunction(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (localFunctionAction != default)
+            {
+                actions.Add(localFunctionAction);
+            }
+
+            return actions.ToImmutable();
+        }
+
+        private async Task<CodeAction> ExtractMethod(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
@@ -76,6 +101,31 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 var codeAction = new MyCodeAction(description, c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
                 var methodBlock = result.MethodDeclarationNode;
 
+                return codeAction;
+            }
+
+            return default;
+        }
+
+        private async Task<CodeAction> ExtractLocalFunction(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (!syntaxFacts.SupportsLocalFunctionDeclaration())
+            {
+                return default;
+            }
+
+            var localFunctionResult = await ExtractMethodService.ExtractMethodAsync(
+                document,
+                textSpan,
+                localFunction: true,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(localFunctionResult);
+
+            if (localFunctionResult.Succeeded || localFunctionResult.SucceededWithSuggestion)
+            {
+                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => AddRenameAnnotationAsync(localFunctionResult.Document, localFunctionResult.InvocationNameToken, c));
                 return codeAction;
             }
 

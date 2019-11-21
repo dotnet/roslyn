@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 
+        bool SupportsLocalFunctionDeclaration();
+
         SyntaxToken ParseToken(string text);
 
         bool IsAwaitKeyword(SyntaxToken token);

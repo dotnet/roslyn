@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>();
+                var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => node.SpanStart != basePosition.SpanStart);
                 if (localMethodNode is object)
                 {
                     return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
