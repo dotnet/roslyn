@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected abstract TValue GetDefaultValue(AnalysisEntity analysisEntity);
         protected abstract bool CanSkipNewEntry(AnalysisEntity analysisEntity, TValue value);
-        private bool IsNonTrackedEntityOrCanSkipNewEntry(AnalysisEntity analysisEntity, TValue value)
-            => !_isTrackedEntity(analysisEntity) || CanSkipNewEntry(analysisEntity, value);
 
         protected abstract void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, TValue value);
         protected virtual void AssertValidAnalysisData(DictionaryAnalysisData<AnalysisEntity, TValue> map)
@@ -62,7 +60,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             var resultMap = new DictionaryAnalysisData<AnalysisEntity, TValue>();
-            var newKeys = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var newKeys = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var valuesToMergeBuilder = ArrayBuilder<TValue>.GetInstance(5);
 
             var map2LookupIgnoringInstanceLocation = map2.Keys.Where(IsAnalysisEntityForFieldOrProperty)
                                                               .ToLookup(entity => entity.EqualsIgnoringInstanceLocationId);
@@ -94,12 +93,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
 
                         TValue value2 = map2[key2];
-                        TValue mergedValue = ValueDomain.Merge(value1, value2);
-                        Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
-                        Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
+
+                        valuesToMergeBuilder.Clear();
+                        valuesToMergeBuilder.Add(value1);
+                        valuesToMergeBuilder.Add(value2);
 
                         if (key1.InstanceLocation.Equals(key2.InstanceLocation))
                         {
+                            var mergedValue = GetMergedValue(valuesToMergeBuilder);
                             AssertValidEntryForMergedMap(key1, mergedValue);
                             resultMap[key1] = mergedValue;
                         }
@@ -112,33 +113,40 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             }
 
                             AnalysisEntity mergedKey = key1.WithMergedInstanceLocation(key2);
-                            TValue newMergedValue = mergedValue;
+
                             var isExistingKeyInInput = false;
                             var isExistingKeyInResult = false;
                             if (resultMap.TryGetValue(mergedKey, out var existingValue))
                             {
-                                newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
+                                valuesToMergeBuilder.Add(existingValue);
                                 isExistingKeyInResult = true;
                             }
 
                             if (map1.TryGetValue(mergedKey, out existingValue))
                             {
-                                newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
+                                valuesToMergeBuilder.Add(existingValue);
                                 isExistingKeyInInput = true;
                             }
 
                             if (map2.TryGetValue(mergedKey, out existingValue))
                             {
-                                newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
+                                valuesToMergeBuilder.Add(existingValue);
                                 isExistingKeyInInput = true;
                             }
 
-                            Debug.Assert(ValueDomain.Compare(value1, newMergedValue) <= 0);
-                            Debug.Assert(ValueDomain.Compare(value2, newMergedValue) <= 0);
-                            Debug.Assert(ValueDomain.Compare(mergedValue, newMergedValue) <= 0);
-                            mergedValue = newMergedValue;
+                            var isCandidateToBeSkipped = !isExistingKeyInInput && !isExistingKeyInResult;
+                            if (isCandidateToBeSkipped && !_isTrackedEntity(mergedKey))
+                            {
+                                // PERF: Do not add a new key-value pair to the resultMap if the key is not a valid tracked entity.
+                                continue;
+                            }
 
-                            if (!isExistingKeyInInput && !isExistingKeyInResult && IsNonTrackedEntityOrCanSkipNewEntry(mergedKey, mergedValue))
+                            var mergedValue = GetMergedValue(valuesToMergeBuilder);
+
+                            Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
+                            Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
+
+                            if (isCandidateToBeSkipped && CanSkipNewEntry(mergedKey, mergedValue))
                             {
                                 // PERF: Do not add a new key-value pair to the resultMap if the value can be skipped.
                                 continue;
@@ -195,8 +203,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            newKeys.Free();
-
             Debug.Assert(Compare(map1, resultMap) <= 0);
             Debug.Assert(Compare(map2, resultMap) <= 0);
             AssertValidAnalysisData(resultMap);
@@ -204,6 +210,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return resultMap;
             static bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
                 => entity.SymbolOpt?.Kind == SymbolKind.Field || entity.SymbolOpt?.Kind == SymbolKind.Property;
+
+            TValue GetMergedValue(ArrayBuilder<TValue> values)
+            {
+                Debug.Assert(values.Count > 0);
+                var mergedValue = values[0];
+                for (var i = 1; i < values.Count; i++)
+                {
+                    mergedValue = GetMergedValueCore(mergedValue, values[i]);
+                }
+
+                return mergedValue;
+
+                TValue GetMergedValueCore(TValue value1, TValue value2)
+                {
+                    TValue mergedValue = ValueDomain.Merge(value1, value2);
+                    Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
+                    Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
+                    return mergedValue;
+                }
+            }
         }
     }
 }
