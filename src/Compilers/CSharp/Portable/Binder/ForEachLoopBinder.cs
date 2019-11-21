@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.NeedsDisposal = true;
             }
-            else if (Compilation.LanguageVersion >= MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() &&
+            else if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations) &&
                     (enumeratorType.IsRefLikeType || isAsync))
             {
                 // if it wasn't directly convertable to IDisposable, see if it is pattern-disposable
