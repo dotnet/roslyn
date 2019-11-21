@@ -154,6 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
+        protected override bool IsDelegate
+        {
+            get
+            {
+                return UnderlyingNamedType.IsDelegateType();
+            }
+        }
+
         protected override bool IsSerializable
         {
             get

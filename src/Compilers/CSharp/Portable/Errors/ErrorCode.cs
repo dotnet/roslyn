@@ -1604,6 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
+        ERR_VarianceInterfaceNesting = 8427,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1729,7 +1730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DuplicateNullSuppression = 8715,
         ERR_DefaultLiteralNoTargetType = 8716,
-        WRN_ExpressionMayIntroduceNullT = 8717,
 
         ERR_ReAbstractionInNoPIAType = 8750,
 

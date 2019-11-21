@@ -1919,7 +1919,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language,
                         l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
 
-                if (uiContext != null)
+                // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+                if (uiContext != null && !uiContext.IsZombie)
                 {
                     uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
                 }

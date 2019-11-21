@@ -65,11 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
             builder.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
 
-            builder.Add(getId(ErrorCode.WRN_ExpressionMayIntroduceNullT));
-
             NullableWarnings = builder.ToImmutable();
 
-            string getId(ErrorCode errorCode)
+            static string getId(ErrorCode errorCode)
             {
                 return MessageProvider.Instance.GetIdForErrorCode((int)errorCode);
             }
@@ -434,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                 case ErrorCode.WRN_NullReferenceInitializer:
-                case ErrorCode.WRN_ExpressionMayIntroduceNullT:
                     return 1;
                 default:
                     return 0;

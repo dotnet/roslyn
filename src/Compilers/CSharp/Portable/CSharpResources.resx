@@ -5414,12 +5414,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DefaultExpressionMayIntroduceNullT_Title" xml:space="preserve">
     <value>A default expression introduces a null value for a type parameter.</value>
   </data>
-  <data name="WRN_ExpressionMayIntroduceNullT" xml:space="preserve">
-    <value>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</value>
-  </data>
-  <data name="WRN_ExpressionMayIntroduceNullT_Title" xml:space="preserve">
-    <value>A member returning a [MaybeNull] value introduces a null value for a type parameter.</value>
-  </data>
   <data name="WRN_NullLiteralMayIntroduceNullT" xml:space="preserve">
     <value>A null literal introduces a null value when '{0}' is a non-nullable reference type.</value>
   </data>
@@ -5744,6 +5738,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNameShadowingInNestedFunctions" xml:space="preserve">
     <value>name shadowing in nested functions</value>
   </data>
+  <data name="IDS_FeatureLambdaDiscardParameters" xml:space="preserve">
+    <value>lambda discard parameters</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -5971,5 +5968,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRelationalPattern" xml:space="preserve">
     <value>relational pattern</value>
+  </data>
+  <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
+    <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
   </data>
 </root>
