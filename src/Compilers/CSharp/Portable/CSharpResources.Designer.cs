@@ -12644,24 +12644,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_AsOperatorMayReturnNull {
-            get {
-                return ResourceManager.GetString("WRN_AsOperatorMayReturnNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_AsOperatorMayReturnNull_Title {
-            get {
-                return ResourceManager.GetString("WRN_AsOperatorMayReturnNull_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; from module &apos;{1}&apos; will be ignored in favor of the instance appearing in source.
         /// </summary>
         internal static string WRN_AssemblyAttributeFromModuleIsOverridden {
@@ -13805,24 +13787,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conditional access may produce a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_ConditionalAccessMayReturnNull {
-            get {
-                return ResourceManager.GetString("WRN_ConditionalAccessMayReturnNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Conditional access may produce a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_ConditionalAccessMayReturnNull_Title {
-            get {
-                return ResourceManager.GetString("WRN_ConditionalAccessMayReturnNull_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Different checksum values given for &apos;{0}&apos;.
         /// </summary>
         internal static string WRN_ConflictingChecksum {
@@ -13891,24 +13855,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A default expression introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_DefaultExpressionMayIntroduceNullT {
-            get {
-                return ResourceManager.GetString("WRN_DefaultExpressionMayIntroduceNullT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A default expression introduces a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_DefaultExpressionMayIntroduceNullT_Title {
-            get {
-                return ResourceManager.GetString("WRN_DefaultExpressionMayIntroduceNullT_Title", resourceCulture);
             }
         }
         
@@ -15760,24 +15706,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullAsNonNullable_Title {
             get {
                 return ResourceManager.GetString("WRN_NullAsNonNullable_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A null literal introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_NullLiteralMayIntroduceNullT {
-            get {
-                return ResourceManager.GetString("WRN_NullLiteralMayIntroduceNullT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A null literal introduces a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_NullLiteralMayIntroduceNullT_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullLiteralMayIntroduceNullT_Title", resourceCulture);
             }
         }
         
