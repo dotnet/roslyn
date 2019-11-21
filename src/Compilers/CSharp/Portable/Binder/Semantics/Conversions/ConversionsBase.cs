@@ -109,13 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            conversion = GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
             {
                 return conversion;
             }
 
-            return GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
+            // The switch expression conversion is "lowest priority", so that if there is a conversion from the expression's
+            // type it will be preferred over the switch expression conversion.  Technically, we would want the language
+            // specification to say that the switch expression conversion only "exists" if there is no implicit conversion
+            // from the type, and we accomplish that by making it lowest priority.
+            return GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
         }
 
         /// <summary>
