@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var analyzerDriverOpt = await GetAnalyzerDriverAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var compilation = await GetOrCreateCompilationWithAnalyzers(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
                     var analyzer = stateSet.Analyzer;
 
-                    var result = await GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                    var result = await GetDocumentAnalysisDataAsync(compilation, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
                     if (result.FromCache)
                     {
                         RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var asyncToken = AnalyzerService.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
-                var _ = ReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).CompletesAsyncOperation(asyncToken);
+                var _ = ReportAnalyzerPerformanceAsync(document, compilation, cancellationToken).CompletesAsyncOperation(asyncToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
-                var analyzerDriverOpt = await CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDriverOpt = await CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,9 +22,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly HostAnalyzerManager _analyzerManager;
-
             private readonly HostStates _hostStates;
             private readonly ProjectStates _projectStates;
+
+            /// <summary>
+            /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
+            /// </summary>
+            public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
             public StateManager(HostAnalyzerManager analyzerManager)
             {
@@ -31,13 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _hostStates = new HostStates(this);
                 _projectStates = new ProjectStates(this);
             }
-
-            private HostAnalyzerManager AnalyzerManager => _analyzerManager;
-
-            /// <summary>
-            /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
-            /// </summary>
-            public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs> ProjectAnalyzerReferenceChanged;
 
             /// <summary>
             /// Return all <see cref="StateSet"/>.
@@ -271,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var packageName = analyzerManager.GetDiagnosticAnalyzerPackageName(language, analyzer);
                 if (packageName == null)
                 {
-                    return null;
+                    return analyzer.GetAnalyzerAssemblyName();
                 }
 
                 if (packageName == RoslynLanguageServices)

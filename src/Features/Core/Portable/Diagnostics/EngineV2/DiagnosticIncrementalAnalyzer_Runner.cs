@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) either from cache or by calculating them
         /// </summary>
         private async Task<DocumentAnalysisData> GetDocumentAnalysisDataAsync(
-            CompilationWithAnalyzers analyzerDriverOpt, Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
+            CompilationWithAnalyzers? compilation, Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
         {
             // get log title and functionId
             GetLogFunctionIdAndTitle(kind, out var functionId, out var title);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     var nullFilterSpan = (TextSpan?)null;
-                    var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await ComputeDiagnosticsAsync(compilation, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
 
                     // this is no-op in product. only run in test environment
                     Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
         /// </summary>
         private async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-            CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, bool forceAnalyzerRun, CancellationToken cancellationToken)
+            CompilationWithAnalyzers? compilation, Project project, IEnumerable<StateSet> stateSets, bool forceAnalyzerRun, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
             {
@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                     var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
-                    // we can't return here if we have open file only analyzers sine saved data for open file only analyzer
-                    // is wrong. (since it only contains info on open files rather than whole project)
-                    if (existingData.Version == version && !analyzerDriverOpt.ContainsOpenFileOnlyAnalyzers(project.Solution.Workspace))
+                    // We can't return here if we have open file only analyzers since saved data for open file only analyzer
+                    // is incomplete -- it only contains info on open files rather than whole project.
+                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilation, project.Solution.Workspace))
                     {
                         return existingData;
                     }
@@ -112,6 +112,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     throw ExceptionUtilities.Unreachable;
                 }
             }
+        }
+
+        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilation, Workspace workspace)
+        {
+            if (compilation == null)
+            {
+                return false;
+            }
+
+            foreach (var analyzer in compilation.Analyzers)
+            {
+                if (analyzer.IsOpenFileOnly(workspace))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> FilterOutCompilerSemanticErrorsIfNeccessaryAsync(
@@ -147,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
-           CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
+           CompilationWithAnalyzers? compilation, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
         {
-            return AnalyzerService.ComputeDiagnosticsAsync(analyzerDriverOpt, document, analyzer, kind, spanOpt, DiagnosticLogAggregator, cancellationToken);
+            return AnalyzerService.ComputeDiagnosticsAsync(compilation, document, analyzer, kind, spanOpt, DiagnosticLogAggregator, cancellationToken);
         }
 
         /// <summary>
@@ -184,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzers compilation, Project project, IEnumerable<StateSet> stateSets, bool forcedAnalysis,
+            CompilationWithAnalyzers? compilation, Project project, IEnumerable<StateSet> stateSets, bool forcedAnalysis,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
         {
             try
@@ -193,14 +211,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //       this can happen since caller could have created the driver with different set of analyzers that are different
                 //       than what we used to create the cache.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                if (TryReduceAnalyzersToRun(compilation, project, version, existing, out var analyzersToRun))
+
+                if (compilation != null && TryReduceAnalyzersToRun(compilation, project, version, existing, out var analyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                     // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
                     // since we might have up to date results for analyzers from compiler but not for 
                     // workspace analyzers.
                     var compilationWithReducedAnalyzers = (analyzersToRun.Length == 0) ? null :
-                        await CreateAnalyzerDriverAsync(project, analyzersToRun, compilation.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                        await CreateCompilationWithAnalyzersAsync(project, analyzersToRun, compilation.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                     var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, stateSets, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                     return MergeExistingDiagnostics(version, existing, result);
@@ -238,19 +257,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private bool TryReduceAnalyzersToRun(
-            CompilationWithAnalyzers analyzerDriverOpt, Project project, VersionStamp version,
+            CompilationWithAnalyzers compilation, Project project, VersionStamp version,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
             out ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             analyzers = default;
 
-            // we don't have analyzer driver, nothing to reduce.
-            if (analyzerDriverOpt == null)
-            {
-                return false;
-            }
-
-            var existingAnalyzers = analyzerDriverOpt.Analyzers;
+            var existingAnalyzers = compilation.Analyzers;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             foreach (var analyzer in existingAnalyzers)
             {

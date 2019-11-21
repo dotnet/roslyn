@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,7 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
-    internal class DiagnosticAnalyzerLogger
+    internal sealed class DiagnosticAnalyzerLogger
     {
         private const string Id = nameof(Id);
         private const string AnalyzerCount = nameof(AnalyzerCount);
@@ -21,18 +23,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
         private const string AnalyzerException = "Analyzer.Exception";
         private const string AnalyzerExceptionHashCode = "Analyzer.ExceptionHashCode";
 
-        private static readonly SHA256 s_sha256 = GetSha256();
         private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_telemetryCache = new ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>>();
 
         private static string ComputeSha256Hash(string name)
         {
-            if (s_sha256 == null)
-            {
-                return "Hash Provider Not Available";
-            }
-
-            var hash = s_sha256.ComputeHash(Encoding.UTF8.GetBytes(name));
-            return Convert.ToBase64String(hash);
+            using var sha256 = SHA256.Create();
+            return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(name)));
         }
 
         public static void LogWorkspaceAnalyzers(ImmutableArray<AnalyzerReference> analyzers)
@@ -43,17 +39,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }));
         }
 
-        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer analyzer, Exception ex, LogAggregator logAggregatorOpt)
+        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer? analyzer, Exception? ex, LogAggregator? logAggregator)
         {
-            if (logAggregatorOpt == null || analyzer == null || ex == null || ex is OperationCanceledException)
+            if (logAggregator == null || analyzer == null || ex == null || ex is OperationCanceledException)
             {
                 return;
             }
 
             // TODO: once we create description manager, pass that into here.
-            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, null);
-            var tuple = ValueTuple.Create(telemetry, analyzer.GetType(), ex.GetType());
-            logAggregatorOpt.IncreaseCount(tuple);
+            var telemetry = AllowsTelemetry(analyzer, null);
+            logAggregator.IncreaseCount((telemetry, analyzer.GetType(), ex.GetType()));
         }
 
         public static void LogAnalyzerCrashCountSummary(int correlationId, LogAggregator logAggregator)
@@ -136,17 +131,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
         }
 
-        public static bool AllowsTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService serviceOpt = null)
+        public static bool AllowsTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService? analyzerService = null)
         {
             if (s_telemetryCache.TryGetValue(analyzer, out var value))
             {
                 return value.Value;
             }
 
-            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(a, serviceOpt))).Value;
+            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(a, analyzerService))).Value;
         }
 
-        private static bool CheckTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService serviceOpt)
+        private static bool CheckTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService? analyzerService)
         {
             if (analyzer.IsCompilerAnalyzer())
             {
@@ -163,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             try
             {
                 // SupportedDiagnostics is potentially user code and can throw an exception.
-                diagDescriptors = serviceOpt != null ? serviceOpt.GetDiagnosticDescriptors(analyzer) : analyzer.SupportedDiagnostics;
+                diagDescriptors = analyzerService != null ? analyzerService.GetDiagnosticDescriptors(analyzer) : analyzer.SupportedDiagnostics;
             }
             catch (Exception)
             {
@@ -178,19 +173,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             // find if the first diagnostic in this analyzer allows telemetry
             var diagnostic = diagDescriptors.Length > 0 ? diagDescriptors[0] : null;
             return diagnostic == null ? false : diagnostic.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
-        }
-
-        private static SHA256 GetSha256()
-        {
-            try
-            {
-                // not all environment allows SHA256 encryption
-                return SHA256.Create();
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

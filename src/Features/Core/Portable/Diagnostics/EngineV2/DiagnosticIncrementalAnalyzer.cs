@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-        private ConditionalWeakTable<Project, CompilationWithAnalyzers> _analyzerDriverMap;
+        private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(AnalyzerService, HostDiagnosticUpdateSource);
-            _analyzerDriverMap = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
+            _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
@@ -214,10 +214,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 documentId));
         }
 
-        private static object CreateId(StateSet stateSet, object key, AnalysisKind kind)
-        {
-            return new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, key, (int)kind, stateSet.ErrorSourceName);
-        }
+        private static object CreateId(StateSet stateSet, object projectOrDocumentId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectOrDocumentId, (int)kind, stateSet.ErrorSourceName);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
         {

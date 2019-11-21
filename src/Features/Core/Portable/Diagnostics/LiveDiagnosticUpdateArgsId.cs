@@ -10,21 +10,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly string _analyzerPackageName;
 
-        public readonly object Key;
+        public readonly object ProjectOrDocumentId;
         public readonly int Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind, string analyzerPackageName)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, int kind, string analyzerPackageName)
             : base(analyzer)
         {
-            Contract.ThrowIfNull(key);
+            Contract.ThrowIfNull(projectOrDocumentId);
 
-            Key = key;
+            ProjectOrDocumentId = projectOrDocumentId;
             Kind = kind;
 
             _analyzerPackageName = analyzerPackageName;
         }
 
-        public override string BuildTool => _analyzerPackageName ?? base.BuildTool;
+        public override string BuildTool => _analyzerPackageName;
 
         public override bool Equals(object obj)
         {
@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            return Kind == other.Kind && Equals(Key, other.Key) && base.Equals(obj);
+            return Kind == other.Kind && Equals(ProjectOrDocumentId, other.ProjectOrDocumentId) && base.Equals(obj);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Key, Hash.Combine(Kind, base.GetHashCode()));
+            return Hash.Combine(ProjectOrDocumentId, Hash.Combine(Kind, base.GetHashCode()));
         }
     }
 }

@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
             void onAnalyzerException(Exception ex, DiagnosticAnalyzer a, Diagnostic diagnostic) =>
-                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, projectId);
+                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(a, diagnostic, _hostDiagnosticUpdateSource, projectId);
 
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
         }

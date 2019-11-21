@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdated?.Invoke(this, args);
         }
 
-        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId? projectId)
+        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace? workspace, ProjectId? projectId)
         {
             if (workspace != Workspace)
             {
