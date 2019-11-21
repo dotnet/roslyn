@@ -4,8 +4,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,7 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
             var syntax = (IfStatementSyntax)node.Syntax;
 
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            if (TryEliminateIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, out var eliminateConditionResult))
+            {
+                return VisitStatement(eliminateConditionResult);
+            }
+
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case
             // the containing method is edited while methods invoked in the condition are being executed.
             if (this.Instrument && !node.WasCompilerGenerated)
             {
@@ -93,6 +96,98 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
             }
 
+        }
+
+        /// <summary>
+        /// Tries to replace if statement with conditional operator to reuse conditional operator optimizations.
+        /// In particular:
+        ///
+        /// if (condition)
+        ///     return X;
+        /// else
+        ///     return Y;
+        ///
+        /// becomes
+        ///
+        /// return condition ? X : Y;
+        /// </summary>
+        private static bool TryEliminateIfStatement(
+            SyntaxNode syntax,
+            BoundExpression rewrittenCondition,
+            BoundStatement rewrittenConsequence,
+            BoundStatement rewrittenAlternativeOpt,
+            out BoundStatement result)
+        {
+            bool TryGetReturnStatement(BoundStatement statement, out BoundReturnStatement returnStatementResult)
+            {
+                if (statement is BoundReturnStatement returnStatement)
+                {
+                    returnStatementResult = returnStatement;
+                    return true;
+                }
+
+                if (statement is BoundSequencePoint sequencePoint)
+                {
+                    return TryGetReturnStatement(sequencePoint.StatementOpt, out returnStatementResult);
+                }
+
+                returnStatementResult = default;
+                return false;
+            }
+
+            if (syntax.HasErrors)
+            {
+                result = default;
+                return false;
+            }
+
+            if (rewrittenAlternativeOpt == null)
+            {
+                result = default;
+                return false;
+            }
+
+            if (TryGetReturnStatement(rewrittenConsequence, out var consequenceReturn) &&
+                TryGetReturnStatement(rewrittenAlternativeOpt, out var alternativeReturn))
+            {
+                var consequenceExpression = consequenceReturn.ExpressionOpt;
+                if (rewrittenConsequence is BoundSequencePoint)
+                {
+                    consequenceExpression = new BoundSequencePointExpression(
+                        consequenceExpression.Syntax,
+                        consequenceExpression,
+                        consequenceExpression.Type,
+                        consequenceExpression.HasErrors);
+                }
+
+                var alternativeExpression = alternativeReturn.ExpressionOpt;
+                if (rewrittenAlternativeOpt is BoundSequencePoint)
+                {
+                    alternativeExpression= new BoundSequencePointExpression(
+                        alternativeExpression.Syntax,
+                        alternativeExpression,
+                        alternativeExpression.Type,
+                        alternativeExpression.HasErrors);
+                }
+
+                Debug.Assert(TypeSymbol.Equals(consequenceExpression.Type, alternativeExpression.Type, TypeCompareKind.ConsiderEverything));
+                var resultType = consequenceExpression.Type;
+
+                var conditionalOperator = new BoundConditionalOperator(
+                    syntax,
+                    false,
+                    rewrittenCondition,
+                    consequenceExpression,
+                    alternativeExpression,
+                    null,
+                    resultType);
+
+                result = new BoundReturnStatement(syntax, RefKind.None, conditionalOperator);
+                return true;
+            }
+
+            result = default;
+            return false;
         }
     }
 }
