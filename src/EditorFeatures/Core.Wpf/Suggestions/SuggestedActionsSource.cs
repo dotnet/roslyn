@@ -155,23 +155,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
-                => GetSuggestedActions(requestedActionCategories, range, addOperationScope: null, cancellationToken);
+                => GetSuggestedActions(requestedActionCategories, range, addOperationScope: _ => new NoOpDisposable(), cancellationToken);
 
             public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 IUIThreadOperationContext operationContext)
             {
-                return GetSuggestedActions(requestedActionCategories, range, AddOperationScope, operationContext.UserCancellationToken);
-
-                IDisposable AddOperationScope(string description)
-                    => operationContext.AddScope(allowCancellation: true, string.Format(EditorFeaturesWpfResources.Gathering_Suggestions_0, description));
+                return GetSuggestedActions(
+                    requestedActionCategories,
+                    range,
+                    description => operationContext.AddScope(allowCancellation: true, string.Format(EditorFeaturesWpfResources.Gathering_Suggestions_0, description)),
+                    operationContext.UserCancellationToken);
             }
 
             public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
-                Func<string, IDisposable>? addOperationScope,
+                Func<string, IDisposable> addOperationScope,
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
@@ -183,17 +184,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (_workspaceStatusService != null)
                 {
-                    IDisposable? operationScope = null;
-                    try
+                    using (addOperationScope("WorkspaceStatusService"))
                     {
-                        operationScope = addOperationScope?.Invoke("WorkspaceStatusService");
-
                         // This needs to run under threading context otherwise, we can deadlock on VS
                         ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
-                    }
-                    finally
-                    {
-                        operationScope?.Dispose();
                     }
                 }
 
@@ -351,12 +345,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Workspace workspace,
                 Document document,
                 SnapshotSpan range,
-                Func<string, IDisposable>? addOperationScope,
+                Func<string, IDisposable> addOperationScope,
                 CancellationToken cancellationToken)
             {
+                RoslynDebug.Assert(_owner != null);
+
                 this.AssertIsForeground();
 
-                if (_owner?._codeFixService != null &&
+                if (_owner._codeFixService != null &&
                     supportsFeatureService.SupportsCodeFixes(_subjectBuffer) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
@@ -366,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var fixes = Task.Run(
                         () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, cancellationToken, addOperationScope),
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
@@ -740,9 +736,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Workspace workspace,
                 Document document,
                 TextSpan? selectionOpt,
-                Func<string, IDisposable>? addOperationScope,
+                Func<string, IDisposable> addOperationScope,
                 CancellationToken cancellationToken)
             {
+                RoslynDebug.Assert(_owner != null);
                 this.AssertIsForeground();
 
                 if (!selectionOpt.HasValue)
@@ -755,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var selection = selectionOpt.Value;
 
                 if (workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
-                    _owner?._codeRefactoringService != null &&
+                    _owner._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(_subjectBuffer) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
@@ -765,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // the UI thread.
                     var refactorings = Task.Run(
                         () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, isBlocking: true, cancellationToken, addOperationScope),
+                            document, selection, isBlocking: true, addOperationScope, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);

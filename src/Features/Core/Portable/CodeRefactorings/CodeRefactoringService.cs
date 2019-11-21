@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         private readonly Lazy<ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
 
-        /// <summary>
-        /// Cache from <see cref="CodeRefactoringProvider"/> instance to its type name.
-        /// </summary>
-        private readonly ConditionalWeakTable<CodeRefactoringProvider, string> _refactoringTypeNameCache;
-
         [ImportingConstructor]
         public CodeRefactoringService(
             [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
@@ -44,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             .Select(grp => new KeyValuePair<string, Lazy<IEnumerable<CodeRefactoringProvider>>>(
                                 grp.Key,
                                 new Lazy<IEnumerable<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value))))));
-
-            _refactoringTypeNameCache = new ConditionalWeakTable<CodeRefactoringProvider, string>();
         }
 
         private IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
@@ -103,14 +96,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan state,
             CancellationToken cancellationToken)
-            => ((ICodeRefactoringService)this).GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
+            => GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
 
-        async Task<ImmutableArray<CodeRefactoring>> ICodeRefactoringService.GetRefactoringsAsync(
+        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
             TextSpan state,
             bool isBlocking,
-            CancellationToken cancellationToken,
-            Func<string, IDisposable>? addOperationScope)
+            CancellationToken cancellationToken)
+            => GetRefactoringsAsync(document, state, isBlocking, addOperationScope: _ => new NoOpDisposable(), cancellationToken);
+
+        public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
+            Document document,
+            TextSpan state,
+            bool isBlocking,
+            Func<string, IDisposable> addOperationScope,
+            CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
@@ -122,19 +122,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     tasks.Add(Task.Run(
                         () =>
                         {
-                            IDisposable? operationScope = null;
-                            try
+                            var providerName = provider.GetType().Name;
+                            using (addOperationScope(providerName))
+                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
-                                var providerName = GetOrComputeCodeRefactoringTypeName(provider);
-                                operationScope = addOperationScope?.Invoke(providerName);
-                                using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
-                                {
-                                    return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
-                                }
-                            }
-                            finally
-                            {
-                                operationScope?.Dispose();
+                                return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -143,14 +135,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
                 return results.WhereNotNull().ToImmutableArray();
             }
-        }
-
-        private string GetOrComputeCodeRefactoringTypeName(CodeRefactoringProvider provider)
-        {
-            return _refactoringTypeNameCache.GetValue(provider, ComputeCodeRefactoringTypeName);
-
-            static string ComputeCodeRefactoringTypeName(CodeRefactoringProvider provider)
-                => provider.GetType().Name;
         }
 
         private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(

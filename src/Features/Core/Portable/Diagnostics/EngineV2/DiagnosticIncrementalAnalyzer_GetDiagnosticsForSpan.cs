@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             if (addOperationScopeOpt != null)
                             {
-                                var analyzerTypeName = this._owner.HostAnalyzerManager.GetAnalyzerTypeName(stateSet.Analyzer);
+                                var analyzerTypeName = stateSet.Analyzer.GetType().Name;
                                 disposableScope = addOperationScopeOpt.Invoke(analyzerTypeName);
                                 logBlock = RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken);
                             }
