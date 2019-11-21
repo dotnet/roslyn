@@ -2742,7 +2742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected static bool IsUnderscore(ExpressionSyntax node) =>
-            node is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
+            node is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken();
 
         private BoundExpression BindIsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
