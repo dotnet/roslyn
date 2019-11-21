@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         [InlineData("trueConstant", "1")]
         [InlineData("false", "2")]
         [InlineData("falseConstant", "2")]
+        [WorkItem(34726, "https://github.com/dotnet/roslyn/issues/34726")]
         public void IfStatement_ConstantCondition_ReplacedWithTheBranch(string condition, string ilConstant)
         {
             var source = @"
@@ -43,6 +45,7 @@ class TestClass
         }
 
         [Fact]
+        [WorkItem(34726, "https://github.com/dotnet/roslyn/issues/34726")]
         public void IfStatement_ConstantBoolBranches_ReplacedWithTheCondition()
         {
             var source = @"
