@@ -82,8 +82,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 project,
                 hierarchy,
                 itemid,
-                Me.LanguageServiceId,
-                SourceCodeKind.Regular)
+                Me.LanguageServiceId)
         End Function
     End Class
 End Namespace

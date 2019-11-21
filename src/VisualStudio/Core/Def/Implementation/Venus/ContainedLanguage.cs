@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -20,8 +22,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class ContainedLanguage
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
 
-        public VisualStudioProject Project { get; }
+        public VisualStudioProject? Project { get; }
 
         protected readonly ContainedDocument ContainedDocument;
 
@@ -66,23 +66,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
+        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
         internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
-            VisualStudioProject project,
+            VisualStudioProject? project,
             IVsHierarchy hierarchy,
             uint itemid,
-            VisualStudioProjectTracker projectTrackerOpt,
+            VisualStudioProjectTracker? projectTrackerOpt,
             ProjectId projectId,
             Guid languageServiceGuid,
-            AbstractFormattingRule vbHelperFormattingRule = null)
+            AbstractFormattingRule? vbHelperFormattingRule = null)
+            : this(bufferCoordinator,
+                   componentModel,
+                   projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>(),
+                   projectId,
+                   project,
+                   GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
+                   languageServiceGuid,
+                   vbHelperFormattingRule)
+        {
+        }
+
+        public static string GetFilePathFromHierarchyAndItemId(IVsHierarchy hierarchy, uint itemid)
+        {
+            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out string filePath)))
+            {
+                // we couldn't look up the document moniker from an hierarchy for an itemid.
+                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
+                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
+                if (!hierarchy.TryGetItemName(itemid, out filePath))
+                {
+                    FatalError.Report(new System.Exception("Failed to get document moniker for a contained document"));
+                }
+            }
+
+            return filePath;
+        }
+
+        internal ContainedLanguage(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            Workspace workspace,
+            ProjectId projectId,
+            VisualStudioProject? project,
+            string filePath,
+            Guid languageServiceGuid,
+            AbstractFormattingRule? vbHelperFormattingRule = null)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
             this.Project = project;
             _languageServiceGuid = languageServiceGuid;
 
-            this.Workspace = projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>();
+            this.Workspace = workspace;
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
@@ -99,17 +136,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // Create our tagger
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
-
-            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out var filePath)))
-            {
-                // we couldn't look up the document moniker from an hierarchy for an itemid.
-                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
-                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
-                if (!hierarchy.TryGetItemName(itemid, out filePath))
-                {
-                    FatalError.Report(new System.Exception("Failed to get document moniker for a contained document"));
-                }
-            }
 
             DocumentId documentId;
 
@@ -137,8 +163,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 bufferCoordinator,
                 this.Workspace,
                 project,
-                hierarchy,
-                itemid,
                 componentModel,
                 vbHelperFormattingRule);
 
@@ -168,7 +192,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             if (_bufferTagAggregator != null)
             {
                 _bufferTagAggregator.Dispose();
-                _bufferTagAggregator = null;
             }
         }
 

@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Exten
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
     internal sealed partial class VisualStudioProjectTracker
     {
         private readonly Workspace _workspace;

@@ -91,7 +91,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             return lifeTimeService;
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete.  This is the new liveshare layer.
         public VisualStudioProjectTracker ProjectTracker { get; private set; }
+#pragma warning restore CS0618 // Type or member is obsolete.  This is the new liveshare layer.
 
         public async Task InitializeProjectTrackerAsync()
         {

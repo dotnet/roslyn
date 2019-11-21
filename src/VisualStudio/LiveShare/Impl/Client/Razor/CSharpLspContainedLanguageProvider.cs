@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging;
@@ -18,19 +19,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly CSharpLspRazorProject _razorProject;
 
         [ImportingConstructor]
         public CSharpLspContainedLanguageProvider(IContentTypeRegistryService contentTypeRegistry,
             SVsServiceProvider serviceProvider,
-            CSharpLspRazorProject razorProject,
-            RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+            CSharpLspRazorProject razorProject)
         {
             _contentTypeRegistry = contentTypeRegistry ?? throw new ArgumentNullException(nameof(contentTypeRegistry));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _razorProject = razorProject ?? throw new ArgumentNullException(nameof(razorProject));
-            _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
         }
 
         public IContentType GetContentType(string filePath)
@@ -40,21 +38,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
 
         public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)
         {
-            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
             var project = _razorProject.GetProject(filePath);
 
-            var languageService = CSharpLspLanguageService.FromServiceProvider(_serviceProvider);
-#pragma warning disable CS0618 // Type or member is obsolete - this is liveshare.
-            return new ContainedLanguage<CSharpLspPackage, CSharpLspLanguageService>(bufferCoordinator,
+            return new ContainedLanguage(
+                bufferCoordinator,
                 componentModel,
-                project,
-                new RazorProjectHierarchy(filePath),
-                (uint)VSConstants.VSITEMID.Nil,
-                languageService,
-                CodeAnalysis.SourceCodeKind.Regular,
-                vbHelperFormattingRule: null,
-                workspace: _remoteLanguageServiceWorkspace);
-#pragma warning restore CS0618 // Type or member is obsolete - this is liveshare.
+                project.ProjectTracker.Workspace,
+                project.Id,
+                project.VisualStudioProject,
+                filePath,
+                CSharpLspLanguageService.LanguageServiceGuid);
         }
     }
 }

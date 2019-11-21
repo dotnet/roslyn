@@ -46,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
 
 #pragma warning disable CS0618 // Type or member is obsolete
     internal class CSharpLspProject : AbstractProject
-#pragma warning restore CS0618 // Type or member is obsolete
     {
         public CSharpLspProject(VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -63,4 +62,5 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
         {
         }
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 }
