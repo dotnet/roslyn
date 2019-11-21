@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
-        <target state="new">Go To Base</target>
+        <target state="translated">Zu Basis wechseln</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
-        <target state="new">Locating bases...</target>
+        <target state="translated">Basen werden gesucht...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
-        <target state="translated">Grobe Bearbeitung</target>
+        <target state="translated">Nicht unterstützte Bearbeitung</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_will_update_1_reference_in_1_file">
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
-        <target state="translated">Engine muss an das interaktive Fenster angefügt werden.</target>
+        <target state="translated">Engine muss an das Interactive-Fenster angefügt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changes_the_current_prompt_settings">

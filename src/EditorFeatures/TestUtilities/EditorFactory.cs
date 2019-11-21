@@ -3,6 +3,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -29,7 +30,11 @@ namespace Roslyn.Test.EditorUtilities
             params string[] lines)
         {
             var text = LinesToFullText(lines);
-            return exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(text, contentType);
+
+            // The overload of CreateTextBuffer that takes just a string doesn't initialize the whitespace tracking logic in the editor,
+            // so calls to IIndentationManagerService won't work correctly. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1005541.
+            using var reader = new StringReader(text);
+            return exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(reader, contentType);
         }
 
         public static DisposableTextView CreateView(
