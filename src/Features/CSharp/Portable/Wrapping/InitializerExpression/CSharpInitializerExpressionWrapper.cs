@@ -13,28 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression
             return listSyntax.Expressions;
         }
 
-        protected override bool PositionIsApplicable(SyntaxNode root, int position, SyntaxNode declaration, InitializerExpressionSyntax listSyntax)
-        {
-            var startToken = listSyntax.GetFirstToken();
-
-            var token = root.FindToken(position);
-            if (token.Parent.Ancestors().Contains(listSyntax))
-            {
-                var current = token.Parent;
-                while (current != listSyntax)
-                {
-                    if (CSharpSyntaxFactsService.Instance.IsAnonymousFunction(current))
-                    {
-                        return false;
-                    }
-
-                    current = current.Parent;
-                }
-            }
-
-            return true;
-        }
-
         protected override InitializerExpressionSyntax TryGetApplicableList(SyntaxNode node)
         {
             return node as InitializerExpressionSyntax;

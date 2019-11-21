@@ -287,6 +287,11 @@
         <target state="translated">Recuar todos os argumentos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">Recuar todos os parâmetros</target>
@@ -535,6 +540,11 @@
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
         <target state="translated">Desencapsular todos os argumentos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
