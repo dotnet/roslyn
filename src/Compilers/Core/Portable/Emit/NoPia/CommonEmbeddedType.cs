@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsBeforeFieldInit { get; }
             protected abstract bool IsComImport { get; }
             protected abstract bool IsInterface { get; }
+            protected abstract bool IsDelegate { get; }
             protected abstract bool IsSerializable { get; }
             protected abstract bool IsSpecialName { get; }
             protected abstract bool IsWindowsRuntimeImport { get; }
@@ -354,6 +355,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     return IsInterface;
+                }
+            }
+
+            bool Cci.ITypeDefinition.IsDelegate
+            {
+                get
+                {
+                    return IsDelegate;
                 }
             }
 
