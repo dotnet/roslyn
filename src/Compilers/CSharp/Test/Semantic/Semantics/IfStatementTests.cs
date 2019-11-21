@@ -17,9 +17,6 @@ class TestClass
 {
     int Method()
     {
-        var trueVariable = true;
-        var falseVariable = false;
-
         const bool trueConstant = true;
         const bool falseConstant = false;
 
@@ -39,6 +36,38 @@ class TestClass
   .maxstack  1
   IL_0000:  ldc.i4." + ilConstant + @"
   IL_0001:  ret
+}";
+
+            CompileAndVerify(source)
+                .VerifyIL("TestClass.Method", expectedIL);
+        }
+
+        [Fact]
+        public void IfStatement_ConstantBoolBranches_ReplacedWithTheCondition()
+        {
+            var source = @"
+class TestClass
+{
+    bool Method(object o)
+    {
+         if (o is object)
+         {
+             return true;
+         }
+         else
+         {
+             return false;
+         }
+    }
+}";
+
+            var expectedIL = @"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldnull
+  IL_0002:  cgt.un
+  IL_0004:  ret
 }";
 
             CompileAndVerify(source)

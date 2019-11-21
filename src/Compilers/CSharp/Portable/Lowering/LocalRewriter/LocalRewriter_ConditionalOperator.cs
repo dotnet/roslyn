@@ -9,8 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// If the condition has a constant value, then just use the selected branch.
-        /// e.g. "true ? x : y" becomes "x".
+        /// If the conditional operator matches to one of the following patterns replaces it with more optimal expression.
+        /// "true ? x : y" becomes "x"
+        /// "false" ? x : y" becomes "y"
+        /// "condition ? true : false" becomes "condition"
+        /// "condition ? false: true" becomes "!condition"
         /// </summary>
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
@@ -20,11 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenCondition = VisitExpression(node.Condition);
             var rewrittenConsequence = VisitExpression(node.Consequence);
             var rewrittenAlternative = VisitExpression(node.Alternative);
-
-            if (rewrittenCondition.ConstantValue == null)
-            {
-                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
-            }
 
             return RewriteConditionalOperator(
                 node.Syntax,
@@ -45,7 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType,
             bool isRef)
         {
-            if (TryRewriteConstantConditionalOperator(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, out var result))
+            BoundExpression result;
+
+            if (TryRewriteConstantConditionalOperator(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, out result))
+            {
+                return result;
+            }
+
+            if (TryRewriteBoolConditionalOperatorBranches(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, rewrittenType, out result))
             {
                 return result;
             }
@@ -80,6 +85,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conditionConstantValue == ConstantValue.False)
             {
                 result = alternative;
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        /// <summary>
+        /// If the conditional operator matches the pattern "condition ? true : false" or "condition ? false : true"
+        /// replaces it with "condition" or "!condition" respectively.
+        /// </summary>
+        private static bool TryRewriteBoolConditionalOperatorBranches(
+            SyntaxNode syntax,
+            BoundExpression condition,
+            BoundExpression consequence,
+            BoundExpression alternative,
+            TypeSymbol type,
+            out BoundExpression result)
+        {
+            var consequenceConstantValue = consequence.ConstantValue;
+            var alternativeConstantValue = alternative.ConstantValue;
+
+            if (consequenceConstantValue == ConstantValue.True && alternativeConstantValue == ConstantValue.False)
+            {
+                result = condition;
+                return true;
+            }
+
+            if (consequenceConstantValue == ConstantValue.False && alternativeConstantValue == ConstantValue.True)
+            {
+                result = new BoundUnaryOperator(
+                    syntax,
+                    UnaryOperatorKind.BoolLogicalNegation,
+                    condition,
+                    ConstantValue.NotAvailable,
+                    methodOpt: null,
+                    LookupResultKind.Empty,
+                    type);
                 return true;
             }
 

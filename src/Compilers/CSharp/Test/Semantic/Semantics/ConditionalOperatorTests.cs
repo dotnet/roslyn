@@ -1466,5 +1466,83 @@ Test
 
             CompileAndVerify(compilation, expectedOutput: "---");
         }
+
+        [Fact]
+        [WorkItem(34726, "https://github.com/dotnet/roslyn/issues/34726")]
+        public void ConditionalOperator_ConstantBoolBranches_ReplacedWithTheCondition()
+        {
+            var source = @"
+class TestClass
+{
+    public static bool Method(int i)
+    {
+        return i > 0 ? true : false;
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.Write(TestClass.Method(-1));
+        System.Console.Write(';');
+        System.Console.Write(TestClass.Method(0));
+        System.Console.Write(';');
+        System.Console.Write(TestClass.Method(1));
+     }
+}";
+
+            var expectedIL = @"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  cgt
+  IL_0004:  ret
+}";
+
+            CompileAndVerify(source, expectedOutput: "False;False;True")
+                .VerifyIL("TestClass.Method", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem(34726, "https://github.com/dotnet/roslyn/issues/34726")]
+        public void ConditionalOperator_ConstantBoolBranches_ReplacedWithTheInvertedCondition()
+        {
+            var source = @"
+class TestClass
+{
+    public static bool Method(int i)
+    {
+        return i > 0 ? false : true;
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.Write(TestClass.Method(-1));
+        System.Console.Write(';');
+        System.Console.Write(TestClass.Method(0));
+        System.Console.Write(';');
+        System.Console.Write(TestClass.Method(1));
+     }
+}";
+
+            var expectedIL = @"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  cgt
+  IL_0004:  ldc.i4.0
+  IL_0005:  ceq
+  IL_0007:  ret
+}";
+
+            CompileAndVerify(source, expectedOutput: "True;True;False")
+                .VerifyIL("TestClass.Method", expectedIL);
+        }
     }
 }
