@@ -76,5 +76,60 @@ class TestClass
             CompileAndVerify(source)
                 .VerifyIL("TestClass.Method", expectedIL);
         }
+
+        [Fact]
+        [WorkItem(34726, "https://github.com/dotnet/roslyn/issues/34726")]
+        public void IfStatement_LocalInABranch_PreservesLocalDuringLowering()
+        {
+            var source = @"
+class TestClass
+{
+    public static string Method(object obj)
+    {
+        if (obj != null)
+        {
+            return obj is string str ? str : ""not string"";
+        }
+        else
+        {
+            return ""null"";
+        }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.Write(TestClass.Method(null));
+        System.Console.Write(';');
+        System.Console.Write(TestClass.Method(1));
+        System.Console.Write(';');
+        System.Console.Write(TestClass.Method(""string""));
+     }
+}";
+
+            var expectedIL = @"{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (string V_0) //str
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  ldstr      ""null""
+  IL_0008:  ret
+  IL_0009:  ldarg.0
+  IL_000a:  isinst     ""string""
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  brtrue.s   IL_0019
+  IL_0013:  ldstr      ""not string""
+  IL_0018:  ret
+  IL_0019:  ldloc.0
+  IL_001a:  ret
+}";
+
+            CompileAndVerify(source, expectedOutput: "null;not string;string")
+                .VerifyIL("TestClass.Method", expectedIL);
+        }
     }
 }

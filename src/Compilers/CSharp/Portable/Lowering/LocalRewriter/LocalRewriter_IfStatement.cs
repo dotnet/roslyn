@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -133,6 +134,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            void FillLocals(BoundStatement statement, ImmutableArray<LocalSymbol>.Builder localsBuilder, ImmutableArray<LocalFunctionSymbol>.Builder localFunctionsBuilder)
+            {
+                if (statement is BoundBlock boundBlock)
+                {
+                    localsBuilder.AddRange(boundBlock.Locals);
+                    localFunctionsBuilder.AddRange(boundBlock.LocalFunctions);
+
+                    foreach (var childStatement in boundBlock.Statements)
+                    {
+                        FillLocals(childStatement, localsBuilder, localFunctionsBuilder);
+                    }
+                }
+            }
+
             if (node.Syntax.HasErrors)
             {
                 result = default;
@@ -168,7 +183,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConstantValue.NotAvailable,
                     resultType);
 
+                var localsBuilder = ImmutableArray.CreateBuilder<LocalSymbol>();
+                var localFunctionsBuilder = ImmutableArray.CreateBuilder<LocalFunctionSymbol>();
+
+                FillLocals(consequence, localsBuilder, localFunctionsBuilder);
+                FillLocals(alternative, localsBuilder, localFunctionsBuilder);
+
                 result = new BoundReturnStatement(node.Syntax, RefKind.None, conditionalOperator);
+
+                if (localsBuilder.Count > 0 || localFunctionsBuilder.Count > 0)
+                {
+                    result = new BoundBlock(
+                        result.Syntax,
+                        localsBuilder.ToImmutable(),
+                        localFunctionsBuilder.ToImmutable(),
+                        ImmutableArray.Create(result));
+                }
+
                 return true;
             }
 
