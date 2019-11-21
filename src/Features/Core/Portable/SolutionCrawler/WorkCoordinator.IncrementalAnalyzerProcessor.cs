@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Contract.ThrowIfNull(item.DocumentId);
 
                     var options = _registration.Workspace.Options;
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(options);
+                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(options, item.Language);
 
                     if (ShouldEnqueueForAllQueues(item, analysisScope))
                     {
