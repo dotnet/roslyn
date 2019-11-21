@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
             // state that will be only reset when source is disposed.
-            private SuggestedActionsSourceProvider? _owner;
-            private ITextView? _textView;
-            private ITextBuffer? _subjectBuffer;
-            private WorkspaceRegistration? _registration;
+            private SuggestedActionsSourceProvider _owner;
+            private ITextView _textView;
+            private ITextBuffer _subjectBuffer;
+            private WorkspaceRegistration _registration;
 
             // mutable state
             private Workspace? _workspace;
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     _textView.Closed -= OnTextViewClosed;
                 }
 
-                _owner = null;
+                _owner = null!;
                 _workspace = null;
                 _workspaceStatusService = null;
-                _registration = null;
-                _textView = null;
-                _subjectBuffer = null;
+                _registration = null!;
+                _textView = null!;
+                _subjectBuffer = null!;
             }
 
             private bool IsDisposed => _subjectBuffer == null;
@@ -348,8 +348,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable> addOperationScope,
                 CancellationToken cancellationToken)
             {
-                RoslynDebug.Assert(_owner != null);
-
                 this.AssertIsForeground();
 
                 if (_owner._codeFixService != null &&
@@ -739,7 +737,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable> addOperationScope,
                 CancellationToken cancellationToken)
             {
-                RoslynDebug.Assert(_owner != null);
                 this.AssertIsForeground();
 
                 if (!selectionOpt.HasValue)
@@ -1006,12 +1003,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     _workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
                 }
 
-                if (_registration != null)
-                {
-                    // REVIEW: why one need to get new workspace from registration? why not just pass in the new workspace?
-                    // add new event registration
-                    RegisterEventsToWorkspace(_registration.Workspace);
-                }
+                // REVIEW: why one need to get new workspace from registration? why not just pass in the new workspace?
+                // add new event registration
+                RegisterEventsToWorkspace(_registration.Workspace);
             }
 
             private void RegisterEventsToWorkspace(Workspace workspace)
@@ -1100,11 +1094,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 var provider = _owner;
-                if (provider == null)
-                {
-                    return null;
-                }
-
                 using var asyncToken = provider.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
                 var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
