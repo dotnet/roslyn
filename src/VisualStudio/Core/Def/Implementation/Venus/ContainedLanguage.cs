@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
-        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,

@@ -19,16 +19,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly CSharpLspRazorProject _razorProject;
+        private readonly CSharpLspRazorProjectFactory _razorProjectFactory;
 
         [ImportingConstructor]
         public CSharpLspContainedLanguageProvider(IContentTypeRegistryService contentTypeRegistry,
             SVsServiceProvider serviceProvider,
-            CSharpLspRazorProject razorProject)
+            CSharpLspRazorProjectFactory razorProjectFactory)
         {
             _contentTypeRegistry = contentTypeRegistry ?? throw new ArgumentNullException(nameof(contentTypeRegistry));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _razorProject = razorProject ?? throw new ArgumentNullException(nameof(razorProject));
+            _razorProjectFactory = razorProjectFactory ?? throw new ArgumentNullException(nameof(razorProjectFactory));
         }
 
         public IContentType GetContentType(string filePath)
@@ -39,14 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
         public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)
         {
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-            var project = _razorProject.GetProject(filePath);
+            var projectId = _razorProjectFactory.GetProject(filePath);
 
             return new ContainedLanguage(
                 bufferCoordinator,
                 componentModel,
-                project.ProjectTracker.Workspace,
-                project.Id,
-                project.VisualStudioProject,
+                _razorProjectFactory.Workspace,
+                projectId,
+                project: null,
                 filePath,
                 CSharpLspLanguageService.LanguageServiceGuid);
         }

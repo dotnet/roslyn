@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private ImmutableHashSet<DocumentId> _documentsNotFromFiles = ImmutableHashSet<DocumentId>.Empty;
 
-        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker _projectTracker;
 
         private OpenFileTracker _openFileTrackerOpt;

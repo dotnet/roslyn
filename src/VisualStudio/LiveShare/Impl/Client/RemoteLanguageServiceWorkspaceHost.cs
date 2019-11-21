@@ -3,15 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LiveShare;
@@ -43,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
 
-        public Workspace Workspace => _remoteLanguageServiceWorkspace;
+        public RemoteLanguageServiceWorkspace Workspace => _remoteLanguageServiceWorkspace;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspaceHost"/> class.
@@ -84,25 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             return lifeTimeService;
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete.  This is the new liveshare layer.
-        public VisualStudioProjectTracker ProjectTracker { get; private set; }
-#pragma warning restore CS0618 // Type or member is obsolete.  This is the new liveshare layer.
-
-        public async Task InitializeProjectTrackerAsync()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-#pragma warning disable CS0618 // Type or member is obsolete.  This is the new liveshare layer.
-            ProjectTracker = new VisualStudioProjectTracker(_serviceProvider, _remoteLanguageServiceWorkspace);
-
-
-            var documentProvider = (DocumentProvider)Activator.CreateInstance(typeof(DocumentProvider));
-            var metadataReferenceProvider = _remoteLanguageServiceWorkspace.Services.GetService<VisualStudioMetadataReferenceManager>();
-            var ruleSetFileProvider = _remoteLanguageServiceWorkspace.Services.GetService<VisualStudioRuleSetManager>();
-            ProjectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
-            ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(Enumerable.Empty<AbstractProject>());
-#pragma warning restore CS0618 // Type or member is obsolete.  This is the new liveshare layer.
-        }
         /// <summary>
         /// Ensures LoadProjectsAsync has completed
         /// </summary>
@@ -139,7 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             try
             {
-                await InitializeProjectTrackerAsync().ConfigureAwait(false);
                 var projectInfos = await _remoteProjectInfoProvider.GetRemoteProjectInfosAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var projectInfo in projectInfos)
                 {
