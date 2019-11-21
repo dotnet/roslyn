@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var stateSet in _stateSets)
                     {
                         IDisposable disposableScope = null;
-                        RoslynEventSource.LogBlock? logBlock = null;
+                        RoslynEventSource.LogBlock logBlock = default;
                         try
                         {
                             if (addOperationScopeOpt != null)
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                         finally
                         {
-                            logBlock?.Dispose();
+                            logBlock.Dispose();
                             disposableScope?.Dispose();
                         }
                     }

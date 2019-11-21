@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
         /// If diagnosticIdOpt is not null, it gets diagnostics only for this given diagnosticIdOpt value
         /// </summary>
-        Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable>? addOperationScopeOpt = null, CancellationToken cancellationToken = default);
+        Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScopeOpt = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a list of <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>

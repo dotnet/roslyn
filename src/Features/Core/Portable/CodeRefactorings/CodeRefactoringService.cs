@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan state,
             bool isBlocking,
-            Func<string, IDisposable> addOperationScope,
+            Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))

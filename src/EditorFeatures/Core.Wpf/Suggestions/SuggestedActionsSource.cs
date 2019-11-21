@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
-                => GetSuggestedActions(requestedActionCategories, range, addOperationScope: _ => new NoOpDisposable(), cancellationToken);
+                => GetSuggestedActions(requestedActionCategories, range, addOperationScope: _ => null, cancellationToken);
 
             public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
-                Func<string, IDisposable> addOperationScope,
+                Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Workspace workspace,
                 Document document,
                 SnapshotSpan range,
-                Func<string, IDisposable> addOperationScope,
+                Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Workspace workspace,
                 Document document,
                 TextSpan? selectionOpt,
-                Func<string, IDisposable> addOperationScope,
+                Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
