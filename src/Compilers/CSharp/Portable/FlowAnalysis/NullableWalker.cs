@@ -6017,10 +6017,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static FlowAnalysisAnnotations getFieldAnnotations(FieldSymbol field)
             {
-                var property = field.AssociatedSymbol as PropertySymbol;
-                return property is null ?
-                    field.FlowAnalysisAnnotations :
-                    getSetterAnnotations(property);
+                return field.AssociatedSymbol is PropertySymbol property ?
+                    getSetterAnnotations(property) :
+                    field.FlowAnalysisAnnotations;
             }
 
             static FlowAnalysisAnnotations getSetterAnnotations(PropertySymbol property)
