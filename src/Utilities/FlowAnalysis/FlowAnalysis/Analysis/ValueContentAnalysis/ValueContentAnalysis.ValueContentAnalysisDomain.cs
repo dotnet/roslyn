@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
@@ -13,10 +14,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         private sealed class ValueContentAnalysisDomain : PredicatedAnalysisDataDomain<ValueContentAnalysisData, ValueContentAbstractValue>
         {
-            public static readonly ValueContentAnalysisDomain Instance = new ValueContentAnalysisDomain();
-
-            private ValueContentAnalysisDomain()
-                : base(CoreAnalysisDataDomain.Instance)
+            public ValueContentAnalysisDomain(PointsToAnalysisResult pointsToAnalysisResult)
+                : base(new CoreAnalysisDataDomain(ValueContentAbstractValueDomain.Default, pointsToAnalysisResult))
             {
             }
 

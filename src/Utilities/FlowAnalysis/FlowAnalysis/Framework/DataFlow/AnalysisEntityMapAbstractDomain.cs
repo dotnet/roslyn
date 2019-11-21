@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -11,13 +13,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public abstract class AnalysisEntityMapAbstractDomain<TValue> : MapAbstractDomain<AnalysisEntity, TValue>
     {
-        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain)
+        private static readonly Func<AnalysisEntity, bool> s_defaultIsTrackedEntity = new Func<AnalysisEntity, bool>(_ => true);
+        private readonly Func<AnalysisEntity, bool> _isTrackedEntity;
+
+        private protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, Func<AnalysisEntity, bool> isTrackedEntity)
             : base(valueDomain)
+        {
+            _isTrackedEntity = isTrackedEntity ?? throw new ArgumentNullException(nameof(isTrackedEntity));
+        }
+
+        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult pointsToAnalysisResultOpt)
+            : this(valueDomain, pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedEntity : s_defaultIsTrackedEntity)
         {
         }
 
         protected abstract TValue GetDefaultValue(AnalysisEntity analysisEntity);
         protected abstract bool CanSkipNewEntry(AnalysisEntity analysisEntity, TValue value);
+        private bool IsNonTrackedEntityOrCanSkipNewEntry(AnalysisEntity analysisEntity, TValue value)
+            => !_isTrackedEntity(analysisEntity) || CanSkipNewEntry(analysisEntity, value);
 
         protected abstract void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, TValue value);
         protected virtual void AssertValidAnalysisData(DictionaryAnalysisData<AnalysisEntity, TValue> map)
@@ -125,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             Debug.Assert(ValueDomain.Compare(mergedValue, newMergedValue) <= 0);
                             mergedValue = newMergedValue;
 
-                            if (!isExistingKeyInInput && !isExistingKeyInResult && CanSkipNewEntry(mergedKey, mergedValue))
+                            if (!isExistingKeyInInput && !isExistingKeyInResult && IsNonTrackedEntityOrCanSkipNewEntry(mergedKey, mergedValue))
                             {
                                 // PERF: Do not add a new key-value pair to the resultMap if the value can be skipped.
                                 continue;

@@ -12,17 +12,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private readonly ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> _escapedLocationsThroughOperationsMap;
         private readonly ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> _escapedLocationsThroughReturnValuesMap;
         private readonly ImmutableDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>> _escapedLocationsThroughEntitiesMap;
+        private readonly ImmutableHashSet<AnalysisEntity> _trackedEntities;
 
         internal PointsToAnalysisResult(
             DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> corePointsToAnalysisResult,
             ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> escapedLocationsThroughOperationsMap,
             ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> escapedLocationsThroughReturnValuesMap,
-            ImmutableDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>> escapedLocationsThroughEntitiesMap)
+            ImmutableDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>> escapedLocationsThroughEntitiesMap,
+            ImmutableHashSet<AnalysisEntity> trackedEntities)
             : base(corePointsToAnalysisResult)
         {
             _escapedLocationsThroughOperationsMap = escapedLocationsThroughOperationsMap;
             _escapedLocationsThroughReturnValuesMap = escapedLocationsThroughReturnValuesMap;
             _escapedLocationsThroughEntitiesMap = escapedLocationsThroughEntitiesMap;
+            _trackedEntities = trackedEntities;
         }
 
         public ImmutableHashSet<AbstractLocation> GetEscapedAbstractLocations(IOperation operation)
@@ -44,5 +47,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             return ImmutableHashSet<AbstractLocation>.Empty;
         }
+
+        internal bool IsTrackedEntity(AnalysisEntity analysisEntity)
+            => _trackedEntities.Contains(analysisEntity);
     }
 }
