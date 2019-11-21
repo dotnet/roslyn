@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.PointerType(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         private static Syntax.InternalSyntax.FunctionPointerTypeSyntax GenerateFunctionPointerType()
-            => InternalSyntaxFactory.FunctionPointerType(InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken), null, InternalSyntaxFactory.Token(SyntaxKind.LessThanToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.FunctionPointerParameterOrReturnTypeSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+            => InternalSyntaxFactory.FunctionPointerType(InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken), null, InternalSyntaxFactory.Token(SyntaxKind.LessThanToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ModifiedType>(), InternalSyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
-        private static Syntax.InternalSyntax.FunctionPointerParameterOrReturnTypeSyntax GenerateFunctionPointerParameterOrReturnType()
-            => InternalSyntaxFactory.FunctionPointerParameterOrReturnType(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName());
+        private static Syntax.InternalSyntax.ModifiedType GenerateModifiedType()
+            => InternalSyntaxFactory.ModifiedType(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.NullableTypeSyntax GenerateNullableType()
             => InternalSyntaxFactory.NullableType(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.QuestionToken));
@@ -780,9 +780,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterOrReturnTypeFactoryAndProperties()
+        public void TestModifiedTypeFactoryAndProperties()
         {
-            var node = GenerateFunctionPointerParameterOrReturnType();
+            var node = GenerateModifiedType();
 
             Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Type);
@@ -3690,9 +3690,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterOrReturnTypeTokenDeleteRewriter()
+        public void TestModifiedTypeTokenDeleteRewriter()
         {
-            var oldNode = GenerateFunctionPointerParameterOrReturnType();
+            var oldNode = GenerateModifiedType();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -3706,9 +3706,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterOrReturnTypeIdentityRewriter()
+        public void TestModifiedTypeIdentityRewriter()
         {
-            var oldNode = GenerateFunctionPointerParameterOrReturnType();
+            var oldNode = GenerateModifiedType();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -9104,10 +9104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.PointerType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         private static FunctionPointerTypeSyntax GenerateFunctionPointerType()
-            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.LessThanToken), new SeparatedSyntaxList<FunctionPointerParameterOrReturnTypeSyntax>(), SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.LessThanToken), new SeparatedSyntaxList<ModifiedType>(), SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
-        private static FunctionPointerParameterOrReturnTypeSyntax GenerateFunctionPointerParameterOrReturnType()
-            => SyntaxFactory.FunctionPointerParameterOrReturnType(new SyntaxTokenList(), GenerateIdentifierName());
+        private static ModifiedType GenerateModifiedType()
+            => SyntaxFactory.ModifiedType(new SyntaxTokenList(), GenerateIdentifierName());
 
         private static NullableTypeSyntax GenerateNullableType()
             => SyntaxFactory.NullableType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.QuestionToken));
@@ -9846,9 +9846,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterOrReturnTypeFactoryAndProperties()
+        public void TestModifiedTypeFactoryAndProperties()
         {
-            var node = GenerateFunctionPointerParameterOrReturnType();
+            var node = GenerateModifiedType();
 
             Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Type);
@@ -12756,9 +12756,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterOrReturnTypeTokenDeleteRewriter()
+        public void TestModifiedTypeTokenDeleteRewriter()
         {
-            var oldNode = GenerateFunctionPointerParameterOrReturnType();
+            var oldNode = GenerateModifiedType();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -12772,9 +12772,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerParameterOrReturnTypeIdentityRewriter()
+        public void TestModifiedTypeIdentityRewriter()
         {
-            var oldNode = GenerateFunctionPointerParameterOrReturnType();
+            var oldNode = GenerateModifiedType();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

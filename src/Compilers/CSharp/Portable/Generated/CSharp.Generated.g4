@@ -337,10 +337,10 @@ array_rank_specifier
   ;
 
 function_pointer_type
-  : 'delegate' '*' identifier_token? '<' function_pointer_parameter_or_return_type (',' function_pointer_parameter_or_return_type)* '>'
+  : 'delegate' '*' identifier_token? '<' modified_type (',' modified_type)* '>'
   ;
 
-function_pointer_parameter_or_return_type
+modified_type
   : modifier* type
   ;
 

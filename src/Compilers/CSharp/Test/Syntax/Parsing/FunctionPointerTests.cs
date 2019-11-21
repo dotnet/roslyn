@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.FunctionPointerType);
                             {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                 N(SyntaxKind.AsteriskToken);
                                 N(SyntaxKind.IdentifierToken);
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                N(SyntaxKind.ModifiedType);
                                 {
                                     N(SyntaxKind.PointerType);
                                     {
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                     }
                                 }
                                 N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                N(SyntaxKind.ModifiedType);
                                 {
                                     N(SyntaxKind.PointerType);
                                     {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.FunctionPointerType);
                             {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                 N(SyntaxKind.AsteriskToken);
                                 N(SyntaxKind.IdentifierToken);
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                N(SyntaxKind.ModifiedType);
                                 {
                                     N(SyntaxKind.PointerType);
                                     {
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.IdentifierName);
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.InKeyword);
                             N(SyntaxKind.IdentifierName);
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.OutKeyword);
                             N(SyntaxKind.IdentifierName);
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.ReadOnlyKeyword);
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.RefKeyword);
                             M(SyntaxKind.IdentifierName);
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.IdentifierName);
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.IdentifierName);
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.TupleType);
                             {
@@ -915,7 +915,7 @@ class C
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -923,7 +923,7 @@ class C
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -943,7 +943,7 @@ class C
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                    N(SyntaxKind.ModifiedType);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
@@ -951,7 +951,7 @@ class C
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                    N(SyntaxKind.ModifiedType);
                                     {
                                         N(SyntaxKind.PredefinedType);
                                         {
@@ -971,7 +971,7 @@ class C
                                     N(SyntaxKind.AsteriskToken);
                                     N(SyntaxKind.IdentifierToken);
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                    N(SyntaxKind.ModifiedType);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
@@ -1010,7 +1010,7 @@ class C
                     N(SyntaxKind.AsteriskToken);
                     N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1018,7 +1018,7 @@ class C
                         }
                     }
                     N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
@@ -1053,7 +1053,7 @@ class C
                     N(SyntaxKind.AsteriskToken);
                     N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1061,7 +1061,7 @@ class C
                         }
                     }
                     N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1091,7 +1091,7 @@ class C
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -1099,7 +1099,7 @@ class C
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -1119,7 +1119,7 @@ class C
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.IdentifierToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -1127,7 +1127,7 @@ class C
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -1168,7 +1168,7 @@ class C
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.IdentifierToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -1183,7 +1183,7 @@ class C
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -1191,7 +1191,7 @@ class C
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -1226,7 +1226,7 @@ class C
                     N(SyntaxKind.AsteriskToken);
                     N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.PredefinedType);
@@ -1235,7 +1235,7 @@ class C
                         }
                     }
                     N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.RefKeyword);
@@ -1266,7 +1266,7 @@ class C
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.IdentifierName);
@@ -1321,7 +1321,7 @@ class C
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.IdentifierToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -1341,7 +1341,7 @@ class C
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                    N(SyntaxKind.ModifiedType);
                                     {
                                         N(SyntaxKind.RefKeyword);
                                         N(SyntaxKind.IdentifierName);
@@ -1350,7 +1350,7 @@ class C
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                    N(SyntaxKind.ModifiedType);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
@@ -1388,7 +1388,7 @@ class C
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -1449,7 +1449,7 @@ public void M()
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                    N(SyntaxKind.ModifiedType);
                                     {
                                         N(SyntaxKind.PredefinedType);
                                         {
@@ -1472,7 +1472,7 @@ public void M()
                                 N(SyntaxKind.DelegateKeyword);
                                 N(SyntaxKind.AsteriskToken);
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                N(SyntaxKind.ModifiedType);
                                 {
                                     N(SyntaxKind.PredefinedType);
                                     {
@@ -1502,7 +1502,7 @@ public void M()
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                    N(SyntaxKind.ModifiedType);
                                     {
                                         N(SyntaxKind.PredefinedType);
                                         {
@@ -1542,7 +1542,7 @@ public void M()
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
                     N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1573,7 +1573,7 @@ public void M()
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -1624,7 +1624,7 @@ switch (o)
                                 N(SyntaxKind.DelegateKeyword);
                                 N(SyntaxKind.AsteriskToken);
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                N(SyntaxKind.ModifiedType);
                                 {
                                     N(SyntaxKind.PredefinedType);
                                     {
@@ -1655,7 +1655,7 @@ switch (o)
                                 N(SyntaxKind.DelegateKeyword);
                                 N(SyntaxKind.AsteriskToken);
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                                N(SyntaxKind.ModifiedType);
                                 {
                                     N(SyntaxKind.PredefinedType);
                                     {
@@ -1733,7 +1733,7 @@ o switch
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -1763,7 +1763,7 @@ o switch
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                            N(SyntaxKind.ModifiedType);
                             {
                                 N(SyntaxKind.PredefinedType);
                                 {
@@ -1831,7 +1831,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -1885,7 +1885,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -1935,7 +1935,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -1984,7 +1984,7 @@ o switch
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
                     N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
@@ -2024,7 +2024,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -2071,7 +2071,7 @@ o switch
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
                     N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                    N(SyntaxKind.ModifiedType);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
@@ -2104,7 +2104,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -2112,7 +2112,7 @@ o switch
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -2120,7 +2120,7 @@ o switch
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
@@ -2167,7 +2167,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -2211,7 +2211,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -2258,7 +2258,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        M(SyntaxKind.ModifiedType);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
@@ -2290,7 +2290,7 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.FunctionPointerParameterOrReturnType);
+                        N(SyntaxKind.ModifiedType);
                         {
                             N(SyntaxKind.ThisKeyword);
                             N(SyntaxKind.ParamsKeyword);
@@ -2311,6 +2311,278 @@ o switch
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AsyncInParameterList_InAsyncFunction()
+        {
+            UsingNode(@"
+async void M()
+{
+    delegate*<async, async> ptr;
+}", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "async");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "async");
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ptr");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AsyncInParameterList_InNonAsyncFunction()
+        {
+            UsingNode(@"
+void M()
+{
+    delegate*<async, async> ptr;
+}", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "async");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "async");
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ptr");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AwaitInParameterList_InAsyncFunction()
+        {
+            UsingNode(@"
+async void M()
+{
+    delegate*<await, await> ptr;
+}", options: TestOptions.RegularPreview,
+                    // (4,15): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                    //     delegate*<await, await> ptr;
+                    Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(4, 15),
+                    // (4,22): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                    //     delegate*<await, await> ptr;
+                    Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(4, 22));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ptr");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AwaitInParameterList_InNonAsyncFunction()
+        {
+            UsingNode(@"
+void M()
+{
+    delegate*<await, await> ptr;
+}", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.ModifiedType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ptr");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }

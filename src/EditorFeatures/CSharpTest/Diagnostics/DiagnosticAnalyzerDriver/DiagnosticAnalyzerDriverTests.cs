@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             {
                 // PROTOYPE(func-ptr): Remove
                 SyntaxKind.FunctionPointerType,
-                SyntaxKind.FunctionPointerParameterOrReturnType,
+                SyntaxKind.ModifiedType,
             };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

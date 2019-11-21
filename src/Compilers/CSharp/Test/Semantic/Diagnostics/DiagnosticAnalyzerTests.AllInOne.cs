@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 // PROTOYPE(func-ptr): Remove
                 SyntaxKind.FunctionPointerType,
-                SyntaxKind.FunctionPointerParameterOrReturnType
+                SyntaxKind.ModifiedType
             };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
