@@ -1539,7 +1539,7 @@ class C
 }", CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946")]
         public async Task ExtractLocalFunctionCall_3()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1569,6 +1569,59 @@ class C
                 Local();
             }
         }
+    }
+}", CodeActionIndex);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946")]
+        public async Task ExtractFunctionUnderLocalFunctionCall()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Test
+{
+    int Testing;
+
+    void ClassTest()
+    {
+        ExistingLocalFunction();
+        [|NewMethod();|]
+        Testing = 5;
+
+        void ExistingLocalFunction()
+        {
+
+        }
+    }
+
+    void NewMethod()
+    {
+
+    }
+}", @"
+class Test
+{
+    int Testing;
+
+    void ClassTest()
+    {
+        ExistingLocalFunction();
+        {|Rename:NewMethod1|}();
+        Testing = 5;
+
+        void ExistingLocalFunction()
+        {
+
+        }
+
+        void NewMethod1()
+        {
+            NewMethod();
+        }
+    }
+
+    void NewMethod()
+    {
+
     }
 }", CodeActionIndex);
         }
