@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
                 New VisualBasicParameterWrapper(),
                 New VisualBasicBinaryExpressionWrapper(),
                 New VisualBasicChainedExpressionWrapper(),
-                New VisualBasicCollectionCreationExpression())
+                New VisualBasicCollectionCreationExpressionWrapper())
 
         <ImportingConstructor>
         Public Sub New()

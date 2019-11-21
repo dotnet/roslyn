@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -15,9 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 {
-    internal abstract partial class AbstractInitializerExpression<TListSyntax, TListItemSyntax>
+    internal abstract partial class AbstractInitializerExpressionWrapper<TListSyntax, TListItemSyntax>
     {
-        private class InitializerExpressionCodeActionComputer : AbstractCodeActionComputer<AbstractInitializerExpression<TListSyntax, TListItemSyntax>>
+        private class InitializerExpressionCodeActionComputer : AbstractCodeActionComputer<AbstractInitializerExpressionWrapper<TListSyntax, TListItemSyntax>>
         {
             private readonly TListSyntax _listSyntax;
             private readonly SeparatedSyntaxList<TListItemSyntax> _listItems;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             private readonly bool _doWrapInitializerOpenBrace;
 
             public InitializerExpressionCodeActionComputer(
-                AbstractInitializerExpression<TListSyntax, TListItemSyntax> service,
+                AbstractInitializerExpressionWrapper<TListSyntax, TListItemSyntax> service,
                 Document document, SourceText sourceText, DocumentOptionSet options,
                 TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems,
                 bool doWrapInitializerOpenBrace, CancellationToken cancellationToken)
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 _listSyntax = listSyntax;
                 _listItems = listItems;
 
-                var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
+                var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
             private string GetBraceTokenIndentation()
             {
-                var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
+                var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
                 var initialStatement = generator.GetDeclaration(_listSyntax);
 
                 if (initialStatement == null)
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 if (_doWrapInitializerOpenBrace)
                 {
-                    int position = FindEndOfParentPosition();
+                    var position = FindEndOfParentPosition();
 
                     var token = _listSyntax.Parent.FindToken(position);
                     result.Add(Edit.UpdateBetween(token, NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));

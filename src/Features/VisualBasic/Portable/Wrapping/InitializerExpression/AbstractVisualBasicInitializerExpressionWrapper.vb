@@ -1,10 +1,12 @@
-﻿Imports Microsoft.CodeAnalysis
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
-Friend MustInherit Class AbstractVisualBasicInitializerExpression(
+Friend MustInherit Class AbstractVisualBasicInitializerExpressionWrapper(
     Of TListSyntax As SyntaxNode, TListItemSyntax As SyntaxNode)
-    Inherits AbstractInitializerExpression(Of TListSyntax, TListItemSyntax)
+    Inherits AbstractInitializerExpressionWrapper(Of TListSyntax, TListItemSyntax)
 
     Protected Overrides ReadOnly Property Indent_all_items As String = FeaturesResources.Indent_all_arguments
     Protected Overrides ReadOnly Property Unwrap_all_items As String = FeaturesResources.Unwrap_all_arguments

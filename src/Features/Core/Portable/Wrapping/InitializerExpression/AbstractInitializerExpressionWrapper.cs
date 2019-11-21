@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 {
-    internal abstract partial class AbstractInitializerExpression<
+    internal abstract partial class AbstractInitializerExpressionWrapper<
         TListSyntax,
         TListItemSyntax>
         : AbstractSyntaxWrapper
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
         protected abstract bool DoWrapInitializerOpenBrace { get; }
 
-        protected AbstractInitializerExpression(IIndentationService indentationService)
+        protected AbstractInitializerExpressionWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
         }

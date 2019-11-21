@@ -3,11 +3,11 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
-using Microsoft.CodeAnalysis.Wrapping;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression;
+using Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
+using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
 {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
                 new CSharpParameterWrapper(),
                 new CSharpBinaryExpressionWrapper(),
                 new CSharpChainedExpressionWrapper(),
-                new CSharpInitializerExpression());
+                new CSharpInitializerExpressionWrapper());
 
         [ImportingConstructor]
         public CSharpWrappingCodeRefactoringProvider()
