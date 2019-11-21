@@ -472,6 +472,11 @@
         <target state="translated">Składnia „var” dla wzorca nie może odwoływać się do typu, ale element „{0}” należy tutaj do zakresu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">Dopasowanie typu krotki „{0}” wymaga „{1}” wzorców podrzędnych, ale istnieje następująca liczba wzorców podrzędnych: „{2}”.</target>

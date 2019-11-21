@@ -472,6 +472,11 @@
         <target state="translated">型を参照するためにパターンに構文 'var' を使用することは許可されていませんが、ここでは '{0}' がスコープ内にあります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">タプル型 '{0}' のマッチングには '{1}' サブパターンが必要ですが、'{2}' サブパターンが指定されています。</target>

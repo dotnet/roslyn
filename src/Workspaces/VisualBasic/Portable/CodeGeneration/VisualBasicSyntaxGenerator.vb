@@ -3032,7 +3032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of IMethodSymbol)) As SyntaxNode
+        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of ISymbol)) As SyntaxNode
             If TypeOf declaration Is MethodStatementSyntax Then
                 Dim methodStatement = DirectCast(declaration, MethodStatementSyntax)
 
@@ -3044,12 +3044,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim methodBlock = DirectCast(declaration, MethodBlockSyntax)
                 Return methodBlock.WithSubOrFunctionStatement(
                     DirectCast(WithExplicitInterfaceImplementations(methodBlock.SubOrFunctionStatement, explicitInterfaceImplementations), MethodStatementSyntax))
+            Else
+                Debug.Fail("Unhandled kind to add explicit implementations for: " & declaration.Kind())
             End If
 
             Return declaration
         End Function
 
-        Private Function GenerateInterfaceMember(method As IMethodSymbol) As QualifiedNameSyntax
+        Private Function GenerateInterfaceMember(method As ISymbol) As QualifiedNameSyntax
             Dim interfaceName = method.ContainingType.GenerateTypeSyntax()
             Return SyntaxFactory.QualifiedName(
                 DirectCast(interfaceName, NameSyntax),
