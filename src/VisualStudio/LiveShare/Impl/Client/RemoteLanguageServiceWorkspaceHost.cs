@@ -40,8 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly RemoteProjectInfoProvider _remoteProjectInfoProvider;
 
-        // TODO: remove this project language to extension map with the switch to LSP
-        private readonly ImmutableDictionary<string, string[]> _projectLanguageToExtensionMap;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
 
@@ -61,11 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _remoteProjectInfoProvider = Requires.NotNull(remoteProjectInfoProvider, nameof(remoteProjectInfoProvider));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _threadingContext = Requires.NotNull(threadingContext, nameof(threadingContext));
-
-            var builder = ImmutableDictionary.CreateBuilder<string, string[]>(StringComparer.OrdinalIgnoreCase);
-            builder.Add("TypeScript", new string[] { ".js", ".jsx", ".ts", ".tsx" });
-            builder.Add("C#_Remote", new string[] { ".cs" });
-            _projectLanguageToExtensionMap = builder.ToImmutable();
         }
 
         public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
