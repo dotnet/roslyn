@@ -374,12 +374,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 switch (CurrentToken.ContextualKind)
                 {
-                    // PROTOTYPE(ngafter): document breaking change that we now disallow these identifiers for a pattern designation.
                     case SyntaxKind.WhenKeyword:
                         return !whenIsKeyword;
                     case SyntaxKind.AndKeyword:
                     case SyntaxKind.OrKeyword:
-                        return false;
+                        var tk = PeekToken(1).Kind;
+                        switch (tk)
+                        {
+                            case SyntaxKind.CloseBraceToken:
+                            case SyntaxKind.CloseBracketToken:
+                            case SyntaxKind.CloseParenToken:
+                            case SyntaxKind.CommaToken:
+                            case SyntaxKind.SemicolonToken:
+                            case SyntaxKind.QuestionToken:
+                            case SyntaxKind.ColonToken:
+                                return true;
+                            case SyntaxKind.LessThanEqualsToken:
+                            case SyntaxKind.LessThanToken:
+                            case SyntaxKind.GreaterThanEqualsToken:
+                            case SyntaxKind.GreaterThanToken:
+                            case SyntaxKind.IdentifierToken:
+                                return false;
+                            default:
+                                if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator
+
+                                // If the following token could start an expression, it may be a constant pattern after a combinator.
+                                var resetPoint = this.GetResetPoint();
+                                _ = this.EatToken();
+                                var result = !CanStartExpression();
+                                this.Reset(ref resetPoint);
+                                this.Release(ref resetPoint);
+                                return result;
+                        }
                     case SyntaxKind.UnderscoreToken: // discard is a valid pattern designation
                     default:
                         return true;
