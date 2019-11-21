@@ -1133,6 +1133,38 @@ class C2
         }
 
         [Fact]
+        [WorkItem(32728, "https://github.com/dotnet/roslyn/issues/32728")]
+        public void UsingPatternWithLangVer7_3()
+        {
+            var source = @"
+ref struct S1
+{
+    public void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (S1 s = new S1())
+        {
+        }
+    }
+}
+";
+            var expected = new[]
+            {
+                // (11,16): error CS8370: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("using declarations", "8.0").WithLocation(11, 16)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Lambda()
         {
             var source = @"

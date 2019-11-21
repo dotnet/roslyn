@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, diagnostics);
                     if (disposeMethodOpt is object)
                     {
+                        MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
                         if (hasAwait)
                         {
                             awaitableTypeOpt = disposeMethodOpt.ReturnType;
