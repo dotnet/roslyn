@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             var cacheResult = await GetCacheForProject(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
 
-            // We always force create cache for current project.
+            // We always force create a cache for current project.
             Debug.Assert(cacheResult.HasValue);
             builder.Add(cacheResult!.Value);
 
