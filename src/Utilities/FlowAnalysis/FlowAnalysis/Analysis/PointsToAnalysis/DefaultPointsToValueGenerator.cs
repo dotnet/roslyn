@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
-                _trackedEntitiesBuilder.AllEntities.Add(analysisEntity);
+                _trackedEntitiesBuilder.AddEntity(analysisEntity);
                 _defaultPointsToValueMapBuilder.Add(analysisEntity, value);
             }
 

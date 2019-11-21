@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     return;
                 }
 
-                foreach (var entity in TrackedEntitiesBuilder.AllEntities)
+                foreach (var entity in TrackedEntitiesBuilder.EnumerateEntities())
                 {
                     if (analysisData.HasAbstractValue(entity) ||
                         !forInterproceduralAnalysis && _defaultPointsToValueGenerator.IsTrackedEntity(entity))
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     }
 
                     SetAbstractValueCore(CurrentAnalysisData, analysisEntity, value);
-                    TrackedEntitiesBuilder.AllEntities.Add(analysisEntity);
+                    TrackedEntitiesBuilder.AddEntity(analysisEntity);
                 }
             }
 

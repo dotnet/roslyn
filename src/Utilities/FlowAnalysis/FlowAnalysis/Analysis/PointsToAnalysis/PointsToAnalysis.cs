@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 operationVisitor.GetEscapedLocationsThroughOperationsMap(),
                 operationVisitor.GetEscapedLocationsThroughReturnValuesMap(),
                 operationVisitor.GetEscapedLocationsThroughEntitiesMap(),
-                operationVisitor.TrackedEntitiesBuilder.AllEntities.ToImmutableHashSet());
+                operationVisitor.TrackedEntitiesBuilder.ToImmutable());
         }
         protected override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
             => new PointsToBlockAnalysisResult(basicBlock, blockAnalysisData);
