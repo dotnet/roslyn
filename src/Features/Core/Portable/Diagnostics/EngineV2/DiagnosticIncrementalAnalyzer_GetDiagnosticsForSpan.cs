@@ -24,16 +24,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             var blockForData = false;
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, diagnosticIdOpt: null, cancellationToken).ConfigureAwait(false);
-            return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
+            return await getter.TryGetAsync(result, addOperationScopeOpt: null, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, string diagnosticIdOpt = null, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, string diagnosticIdOpt = null, Func<string, IDisposable> addOperationScopeOpt = null, CancellationToken cancellationToken = default)
         {
             var blockForData = true;
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, diagnosticIdOpt, cancellationToken).ConfigureAwait(false);
 
             var list = new List<DiagnosticData>();
-            var result = await getter.TryGetAsync(list, cancellationToken).ConfigureAwait(false);
+            var result = await getter.TryGetAsync(list, addOperationScopeOpt, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
 
             return list;
@@ -106,15 +106,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
             }
 
-            public async Task<bool> TryGetAsync(List<DiagnosticData> list, CancellationToken cancellationToken)
+            public async Task<bool> TryGetAsync(List<DiagnosticData> list, Func<string, IDisposable> addOperationScopeOpt, CancellationToken cancellationToken)
             {
                 try
                 {
                     var containsFullResult = true;
                     foreach (var stateSet in _stateSets)
                     {
-                        using (RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, stateSet.Analyzer, cancellationToken))
+                        IDisposable disposableScope = null;
+                        RoslynEventSource.LogBlock? logBlock = null;
+                        try
                         {
+                            if (addOperationScopeOpt != null)
+                            {
+                                var analyzerTypeName = this._owner.HostAnalyzerManager.GetAnalyzerTypeName(stateSet.Analyzer);
+                                disposableScope = addOperationScopeOpt.Invoke(analyzerTypeName);
+                                logBlock = RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken);
+                            }
+
                             cancellationToken.ThrowIfCancellationRequested();
 
                             containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
@@ -141,6 +150,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
 
                             containsFullResult &= await TryGetProjectDiagnosticsAsync(stateSet, GetProjectDiagnosticsAsync, list, cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            logBlock?.Dispose();
+                            disposableScope?.Dispose();
                         }
                     }
 

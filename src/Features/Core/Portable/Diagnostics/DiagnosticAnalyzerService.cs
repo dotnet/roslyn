@@ -147,12 +147,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.False;
         }
 
-        public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable> addOperationScopeOpt = null, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, diagnosticIdOpt, cancellationToken), cancellationToken);
+                return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, diagnosticIdOpt, addOperationScopeOpt, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<DiagnosticData>();

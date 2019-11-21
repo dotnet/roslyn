@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
 
+        /// <summary>
+        /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its type name.
+        /// </summary>
+        private readonly ConditionalWeakTable<DiagnosticAnalyzer, string> _analyzerTypeNameCache;
+
         public HostAnalyzerManager(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace)
             : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages.Value, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader), isThreadSafe: true),
                    hostAnalyzerPackages, hostDiagnosticUpdateSource)
@@ -96,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
             _descriptorCache = new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>>();
+            _analyzerTypeNameCache = new ConditionalWeakTable<DiagnosticAnalyzer, string>();
         }
 
         // this is for testing
@@ -152,6 +158,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return descriptors;
+        }
+
+        /// <summary>
+        /// Returns cached type name for the given <paramref name="analyzer"/>.
+        /// </summary>
+        public string GetAnalyzerTypeName(DiagnosticAnalyzer analyzer)
+        {
+            return _analyzerTypeNameCache.GetValue(analyzer, ComputeAnalyzerTypeName);
+
+            static string ComputeAnalyzerTypeName(DiagnosticAnalyzer analyzer)
+                => analyzer.GetType().Name;
         }
 
         /// <summary>
