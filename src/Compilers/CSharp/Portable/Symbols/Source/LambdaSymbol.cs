@@ -159,11 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-        {
-            return ImmutableArray<string>.Empty;
-        }
-
         public override bool ReturnsVoid
         {
             get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }

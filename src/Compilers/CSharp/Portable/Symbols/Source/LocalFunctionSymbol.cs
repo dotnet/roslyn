@@ -129,6 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAttributes();
             GetReturnTypeAttributes();
 
+            if (IsExtern && _syntax.Body is null && _syntax.ExpressionBody is null)
+            {
+                GenerateExternalMethodWarnings(addTo);
+            }
+
             addTo.AddRange(_declarationDiagnostics);
         }
 
@@ -213,12 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyReturnType!.Value;
             }
         }
-
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
-
-        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override RefKind RefKind => _refKind;
 
@@ -347,11 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
-
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
-
-        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
 
         internal override CallingConvention CallingConvention => CallingConvention.Default;
 
@@ -388,10 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Method | AttributeLocation.Return;
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Method;
-
-        public override DllImportData? GetDllImportData() => null;
-
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
@@ -510,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeParameterConstraints;
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        protected override CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             var lazyCustomAttributesBag = _lazyCustomAttributesBag;
             if (lazyCustomAttributesBag == null)
@@ -519,10 +510,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 lazyCustomAttributesBag = _lazyCustomAttributesBag;
             }
 
-            return lazyCustomAttributesBag.Attributes;
+            return lazyCustomAttributesBag;
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        protected override CustomAttributesBag<CSharpAttributeData> GetReturnTypeAttributesBag()
         {
             var lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
             if (lazyReturnTypeCustomAttributesBag == null)
@@ -534,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
             }
 
-            return lazyReturnTypeCustomAttributesBag.Attributes;
+            return lazyReturnTypeCustomAttributesBag;
         }
 
         public override int GetHashCode()

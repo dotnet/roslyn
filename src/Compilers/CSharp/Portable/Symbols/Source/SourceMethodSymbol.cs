@@ -31,11 +31,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        {
+            return CustomAttributesBag<CSharpAttributeData>.Empty;
+        }
+
+        protected virtual CustomAttributesBag<CSharpAttributeData> GetReturnTypeAttributesBag()
+        {
+            return CustomAttributesBag<CSharpAttributeData>.Empty;
+        }
+
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations =>
             DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull
             => GetDecodedReturnTypeWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
+
+        internal void GenerateExternalMethodWarnings(DiagnosticBag diagnostics)
+        {
+            if (this.GetAttributes().IsEmpty && !this.ContainingType.IsComImport)
+            {
+                // external method with no attributes
+                var errorCode = (this.MethodKind == MethodKind.Constructor || this.MethodKind == MethodKind.StaticConstructor) ?
+                    ErrorCode.WRN_ExternCtorNoImplementation :
+                    ErrorCode.WRN_ExternMethodNoImplementation;
+                diagnostics.Add(errorCode, this.Locations[0], this);
+            }
+        }
+
+#nullable enable
+        public override DllImportData? GetDllImportData() => ((MethodWellKnownAttributeData?)GetAttributesBag().DecodedWellKnownAttributeData)?.DllImportPlatformInvokeData;
+#nullable restore
 
         /// <summary>
         /// Returns data decoded from special early bound well-known attributes applied to the symbol or null if there are no applied attributes.
@@ -45,12 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonMethodEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
-            if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
-            {
-                attributesBag = this.GetAttributesBag();
-            }
-
+            var attributesBag = GetAttributesBag();
             return (CommonMethodEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
@@ -62,12 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         protected MethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
-            if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
-            {
-                attributesBag = this.GetAttributesBag();
-            }
-
+            var attributesBag = GetAttributesBag();
             return (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
@@ -79,12 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal ReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
         {
-            var attributesBag = _lazyReturnTypeCustomAttributesBag;
-            if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
-            {
-                attributesBag = this.GetReturnTypeAttributesBag();
-            }
-
+            var attributesBag = GetReturnTypeAttributesBag();
             return (ReturnTypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
@@ -106,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
 
@@ -291,6 +302,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
+                else if (this.MethodKind is MethodKind.LocalFunction)
+                {
+                    // CS8760: Attribute '{0}' is not valid on local functions.
+                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnLocalFunction, arguments.AttributeSyntaxOpt.Name.Location, description.FullName);
+                }
 
                 return true;
             }
@@ -300,8 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
         {
-            Debug.Assert(this.IsConditional);
-
             if (this.IsAccessor())
             {
                 // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
@@ -428,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
-            if (this.IsGenericMethod || (object)_containingType != null && _containingType.IsGenericType)
+            if (this.IsGenericMethod || ContainingType?.IsGenericType == true)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -446,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Default value of charset is inherited from the module (only if specified).
             // This might be different from ContainingType.DefaultMarshallingCharSet. If the charset is not specified on module
-            // ContainingType.DefaultMarshallingCharSet would be Ansi (the class is emitted with "Ansi" charset metadata flag) 
+            // ContainingType.DefaultMarshallingCharSet would be Ansi (the class is emitted with "Ansi" charset metadata flag)
             // while the charset in P/Invoke metadata should be "None".
             CharSet charSet = this.GetEffectiveDefaultMarshallingCharSet() ?? Cci.Constants.CharSet_None;
 
@@ -537,10 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (symbolPart != AttributeLocation.Return)
             {
-                Debug.Assert(_lazyCustomAttributesBag != null);
-                Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
-
-                if (_containingType.IsComImport && _containingType.TypeKind == TypeKind.Class)
+                if (ContainingType.IsComImport && ContainingType.TypeKind == TypeKind.Class)
                 {
                     switch (this.MethodKind)
                     {
@@ -558,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsAbstract && !this.IsExtern)
                             {
                                 // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, _containingType);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, ContainingType);
                             }
 
                             break;
@@ -586,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return annotations;
         }
 
-        internal sealed override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get
             {

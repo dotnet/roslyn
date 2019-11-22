@@ -129,6 +129,9 @@
   <data name="IDS_FeatureLocalFunctionAttributes" xml:space="preserve">
     <value>local function attributes</value>
   </data>
+  <data name="IDS_FeatureExternLocalFunctions" xml:space="preserve">
+    <value>extern local functions</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -5508,7 +5511,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Local function is declared but never used</value>
   </data>
   <data name="ERR_LocalFunctionMissingBody" xml:space="preserve">
-    <value>'{0}' is a local function and must therefore always have a body.</value>
+    <value>Local function '{0}' must either have a body or be marked 'static extern'.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
@@ -5932,5 +5935,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
     <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
+  </data>
+  <data name="ERR_AttributeNotOnLocalFunction" xml:space="preserve">
+    <value>Attribute '{0}' is not valid on local functions.</value>
   </data>
 </root>

@@ -781,6 +781,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on local functions..
+        /// </summary>
+        internal static string ERR_AttributeNotOnLocalFunction {
+            get {
+                return ResourceManager.GetString("ERR_AttributeNotOnLocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on this declaration type. It is only valid on &apos;{1}&apos; declarations..
         /// </summary>
         internal static string ERR_AttributeOnBadSymbolType {
@@ -6550,7 +6559,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a local function and must therefore always have a body..
+        ///   Looks up a localized string similar to Local function &apos;{0}&apos; must either have a body or be marked &apos;static extern&apos;..
         /// </summary>
         internal static string ERR_LocalFunctionMissingBody {
             get {
@@ -11371,6 +11380,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureExternAlias {
             get {
                 return ResourceManager.GetString("IDS_FeatureExternAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extern local functions.
+        /// </summary>
+        internal static string IDS_FeatureExternLocalFunctions {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExternLocalFunctions", resourceCulture);
             }
         }
         

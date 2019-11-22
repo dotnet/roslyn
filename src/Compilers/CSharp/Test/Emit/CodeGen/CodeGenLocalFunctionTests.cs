@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -5363,7 +5365,7 @@ class C
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(local-function-attributes)")]
+        [Fact]
         public void LocalFunctionConditionalAttribute()
         {
             var source = @"
@@ -5387,14 +5389,13 @@ class C
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG"),
                 symbolValidator: validate,
                 expectedOutput: "hello");
 
-            // PROTOTYPE(local-function-attributes): local functions with conditional attribute should not run in release mode
             CompileAndVerify(
                 source,
-                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: validate,
                 expectedOutput: "");
@@ -5472,6 +5473,187 @@ class C
     		IL_0001: ret
     	} // end of method C::'<M>g__local1|0_0'
     } // end of class C");
+        }
+
+        [Fact]
+        public void ExternLocalFunction()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    public void M()
+    {
+        local1();
+
+        [DllImport(""something.dll"")]
+        static extern void local1();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate,
+                verify: Verification.Skipped);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                Assert.True(localFn1.IsExtern);
+
+                var attrs1 = localFn1.GetAttributes().As<CSharpAttributeData>();
+                Assert.Equal(
+                    expected: new[] { "CompilerGeneratedAttribute" },
+                    actual: GetAttributeNames(attrs1));
+
+                var importData = localFn1.GetDllImportData();
+                Assert.NotNull(importData);
+                Assert.Equal("something.dll", importData.ModuleName);
+            }
+        }
+
+        [Fact]
+        public void ExternLocalFunction_ComplexDllImport()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    public void M()
+    {
+        local1();
+
+        [DllImport(
+            ""something.dll"",
+            EntryPoint = ""a"",
+            CharSet = CharSet.Ansi,
+            SetLastError = true,
+            ExactSpelling = true,
+            PreserveSig = false,
+            CallingConvention = CallingConvention.Cdecl,
+            BestFitMapping = false,
+            ThrowOnUnmappableChar = true)]
+        static extern void local1();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate,
+                verify: Verification.Skipped);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                Assert.True(localFn1.IsExtern);
+
+                var attrs1 = localFn1.GetAttributes().As<CSharpAttributeData>();
+                Assert.Equal(
+                    expected: new[] { "CompilerGeneratedAttribute" },
+                    actual: GetAttributeNames(attrs1));
+
+                var importData = localFn1.GetDllImportData();
+                Assert.NotNull(importData);
+                Assert.Equal("something.dll", importData.ModuleName);
+                Assert.Equal("a", importData.EntryPointName);
+                Assert.Equal(CharSet.Ansi, importData.CharacterSet);
+                Assert.True(importData.SetLastError);
+                Assert.True(importData.ExactSpelling);
+                Assert.Equal(MethodImplAttributes.IL, localFn1.ImplementationAttributes);
+                Assert.Equal(CallingConvention.Cdecl, importData.CallingConvention);
+                Assert.False(importData.BestFitMapping);
+                Assert.True(importData.ThrowOnUnmappableCharacter);
+            }
+        }
+
+        [Fact]
+        public void LocalFunction_MethodImpl()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+
+        [MethodImpl(MethodImplOptions.ForwardRef)]
+        static void forwardRef()  { System.Console.WriteLine(0); }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void noInlining() { System.Console.WriteLine(1); }
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        static void noOptimization() { System.Console.WriteLine(2); }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        static void synchronized() { System.Console.WriteLine(3); }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        extern static void internalCallStatic();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                assemblyValidator: validateAssembly,
+                verify: Verification.Skipped);
+
+            var comp = verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var localFunctions = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToList();
+
+            checkImplAttributes(localFunctions[0], MethodImplAttributes.ForwardRef);
+            checkImplAttributes(localFunctions[1], MethodImplAttributes.NoInlining);
+            checkImplAttributes(localFunctions[2], MethodImplAttributes.NoOptimization);
+            checkImplAttributes(localFunctions[3], MethodImplAttributes.Synchronized);
+            checkImplAttributes(localFunctions[4], MethodImplAttributes.InternalCall);
+
+            void checkImplAttributes(LocalFunctionStatementSyntax localFunctionStatement, MethodImplAttributes expectedFlags)
+            {
+                var localFunction = semanticModel.GetDeclaredSymbol(localFunctionStatement).GetSymbol<LocalFunctionSymbol>();
+                Assert.Equal(expectedFlags, localFunction.ImplementationAttributes);
+            }
+
+            void validateAssembly(PEAssembly assembly)
+            {
+                var peReader = assembly.GetMetadataReader();
+
+                foreach (var methodHandle in peReader.MethodDefinitions)
+                {
+                    var methodDef = peReader.GetMethodDefinition(methodHandle);
+                    var actualFlags = methodDef.ImplAttributes;
+
+                    var methodName = peReader.GetString(methodDef.Name);
+                    var expectedFlags = methodName switch
+                    {
+                        "<M>g__forwardRef|0_0" => MethodImplAttributes.ForwardRef,
+                        "<M>g__noInlining|0_1" => MethodImplAttributes.NoInlining,
+                        "<M>g__noOptimization|0_2" => MethodImplAttributes.NoOptimization,
+                        "<M>g__synchronized|0_3" => MethodImplAttributes.Synchronized,
+                        "<M>g__internalCallStatic|0_4" => MethodImplAttributes.InternalCall,
+                        ".ctor" => MethodImplAttributes.IL,
+                        "M" => MethodImplAttributes.IL,
+                        _ => throw TestExceptionUtilities.UnexpectedValue(methodName)
+                    };
+
+                    Assert.Equal(expectedFlags, actualFlags);
+                }
+            }
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)

@@ -398,14 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool IsMetadataVirtualLocked
-        {
-            get
-            {
-                return this.flags.IsMetadataVirtualLocked;
-            }
-        }
-
         // TODO (tomat): sealed
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
@@ -859,7 +851,7 @@ done:
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source method symbols.
         /// </summary>
         /// <remarks>
-        /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method. 
+        /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method.
         /// The bound attribute data are then applied to both accessors.
         /// </remarks>
         protected virtual SourceMemberMethodSymbol BoundAttributesSource
@@ -931,7 +923,7 @@ done:
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        protected override CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             var bag = _lazyCustomAttributesBag;
             if (bag != null && bag.IsSealed)
@@ -948,7 +940,7 @@ done:
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private CustomAttributesBag<CSharpAttributeData> GetReturnTypeAttributesBag()
+        protected override CustomAttributesBag<CSharpAttributeData> GetReturnTypeAttributesBag()
         {
             var bag = _lazyReturnTypeCustomAttributesBag;
             if (bag != null && bag.IsSealed)
@@ -1111,7 +1103,7 @@ done:
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
         }
 
-        public sealed override DllImportData GetDllImportData()
+        public override DllImportData GetDllImportData()
         {
             var data = this.GetDecodedWellKnownAttributeData();
             return data != null ? data.DllImportPlatformInvokeData : null;

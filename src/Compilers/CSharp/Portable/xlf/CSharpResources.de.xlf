@@ -42,6 +42,11 @@
         <target state="translated">Das Attribut "{0}" ist für Ereignisaccessoren nicht gültig. Es gilt nur für {1}-Deklarationen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnLocalFunction">
+        <source>Attribute '{0}' is not valid on local functions.</source>
+        <target state="new">Attribute '{0}' is not valid on local functions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Die automatisch implementierte Eigenschaft "{0}" kann nicht als "readonly" markiert werden, weil sie einen set-Accessor aufweist.</target>
@@ -832,6 +837,11 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">Erweiterbare fixed-Anweisung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -9561,8 +9571,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'"{0}" ist eine lokale Funktion und muss daher immer Text enthalten.</target>
+        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <target state="needs-review-translation">'"{0}" ist eine lokale Funktion und muss daher immer Text enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

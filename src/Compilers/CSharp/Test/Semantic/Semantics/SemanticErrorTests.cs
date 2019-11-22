@@ -14536,9 +14536,9 @@ class MakeAnError
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (15,18): error CS1618: Cannot create delegate with 'MakeAnError.ConditionalMethod()' because it has a Conditional attribute
+                // (15,10): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Goo(new del(ConditionalMethod))] // CS1618
-                Diagnostic(ErrorCode.ERR_DelegateOnConditional, "ConditionalMethod").WithArguments("MakeAnError.ConditionalMethod()").WithLocation(15, 18));
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new del(ConditionalMethod)").WithLocation(15, 10));
         }
 
         [Fact]

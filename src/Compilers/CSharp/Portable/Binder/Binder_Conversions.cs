@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (selectedMethod.IsConditional)
+            if (!Flags.Includes(BinderFlags.InContextualAttributeBinder) && selectedMethod.IsConditional)
             {
                 // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
                 Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
