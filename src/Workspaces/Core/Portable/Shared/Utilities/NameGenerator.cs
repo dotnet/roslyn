@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            EnsureUniquenessInPlace(names, isFixed, canUse: Functions<string>.True, isCaseSensitive: isCaseSensitive);
+            EnsureUniquenessInPlace(names, isFixed, isCaseSensitive: isCaseSensitive);
             return names.First();
         }
 
