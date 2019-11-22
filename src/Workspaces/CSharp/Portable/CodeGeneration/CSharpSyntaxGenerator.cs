@@ -1942,6 +1942,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return DeclarationKind.AddAccessor;
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return DeclarationKind.RemoveAccessor;
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.ReturnStatement:
+                    return DeclarationKind.Return;
             }
 
             return DeclarationKind.None;
