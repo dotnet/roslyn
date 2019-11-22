@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExplicitOrImplicitType;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -20,32 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
 {
     using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
 
-    public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
+    public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractUseTypeRefactoringTests
     {
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
-        private TestParameters CSharp6Implicit => CSharp6.WithOptions(ImplicitTypingEverywhere());
-        private TestParameters CSharp6Explicit => CSharp6.WithOptions(ExplicitTypingEverywhere());
-
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-
-        private IDictionary<OptionKey, object> ExplicitTypingEverywhere() =>
-            OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
-
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
-            OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
-
+        private TestParameters CSharp6Implicit => CSharp6.WithOptions(PreferImplicitTypeWithInfo());
+        private TestParameters CSharp6Explicit => CSharp6.WithOptions(PreferExplicitTypeWithInfo());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -170,7 +151,7 @@ class Program
     {
         return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
     }
-}", index: 1, options: ImplicitTypingEverywhere());
+}", index: 1, options: PreferImplicitTypeWithInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
