@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
             TypeImportCompletionCacheMissCount,
+            CommitsOfTypeImportCompletionItem,
 
             TargetTypeCompletionTicks,
 
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionGetSymbolTicks,
             ExtensionMethodCompletionTypesChecked,
             ExtensionMethodCompletionMethodsChecked,
+            CommitsOfExtensionMethodImportCompletionItem,
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count)
@@ -50,6 +52,9 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogTypeImportCompletionCacheMiss() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionCacheMissCount);
+
+        internal static void LogCommitOfTypeImportCompletionItem() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
 
         internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
@@ -79,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogExtensionMethodCompletionMethodsCheckedDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsChecked, count);
 
+        internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
 
         internal static void ReportTelemetry()
         {
