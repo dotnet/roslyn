@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -1539,7 +1538,7 @@ class C
 }", CodeActionIndex);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractLocalFunctionCall_3()
         {
             await TestInRegularAndScriptAsync(@"
@@ -1573,7 +1572,7 @@ class C
 }", CodeActionIndex);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task ExtractFunctionUnderLocalFunctionCall()
         {
             await TestInRegularAndScriptAsync(@"
@@ -3234,7 +3233,7 @@ class Program
             return b != true;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3289,6 +3288,36 @@ class Program
         }
     }
 }", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestPartialSelection_CSharp5NotApplicable()
+        {
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method }, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestPartialSelection_CSharp6NotApplicable()
+        {
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method }, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]

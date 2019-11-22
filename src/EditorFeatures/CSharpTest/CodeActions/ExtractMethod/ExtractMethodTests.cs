@@ -3153,5 +3153,38 @@ class C
     }
 }", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSuggestionEnforcement));
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task ExtractLocalFunctionCallAndDeclaration()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main()
+    {
+        static void LocalParent()
+        {
+            [|void Local() { }
+            Local();|]
+        }
+    }
+}", @"
+class C
+{
+    public static void Main()
+    {
+        static void LocalParent()
+        {
+            {|Rename:NewMethod|}();
+        }
+    }
+
+    private static void NewMethod()
+    {
+        void Local() { }
+        Local();
+    }
+}");
+        }
     }
 }

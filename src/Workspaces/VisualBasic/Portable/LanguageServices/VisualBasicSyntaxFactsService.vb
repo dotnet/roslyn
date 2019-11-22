@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function SupportsLocalFunctionDeclaration() As Boolean Implements ISyntaxFactsService.SupportsLocalFunctionDeclaration
+        Public Function SupportsLocalFunctionDeclaration(options As ParseOptions) As Boolean Implements ISyntaxFactsService.SupportsLocalFunctionDeclaration
             Return False
         End Function
 

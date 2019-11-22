@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -9,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -62,23 +62,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             }
         }
 
-        protected virtual async Task<ImmutableArray<CodeAction>> GetCodeActionAsync(
+        private async Task<ImmutableArray<CodeAction>> GetCodeActionAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var actions = ImmutableArray.CreateBuilder<CodeAction>();
+            var actions = ArrayBuilder<CodeAction>.GetInstance();
             var methodAction = await ExtractMethod(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (methodAction != default)
-            {
-                actions.Add(methodAction);
-            }
+            actions.AddIfNotNull(methodAction);
 
             var localFunctionAction = await ExtractLocalFunction(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (localFunctionAction != default)
-            {
-                actions.Add(localFunctionAction);
-            }
+            actions.AddIfNotNull(localFunctionAction);
 
             return actions.ToImmutable();
         }
@@ -111,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!syntaxFacts.SupportsLocalFunctionDeclaration())
+            if (!syntaxFacts.SupportsLocalFunctionDeclaration(syntaxTree.Options))
             {
                 return default;
             }
@@ -132,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return default;
         }
 
-        protected async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
+        private async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -143,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return document.WithSyntaxRoot(finalRoot);
         }
 
-        protected class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)

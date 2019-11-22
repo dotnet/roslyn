@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -32,39 +33,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode method)
             {
-                if (callsite == null)
+                var isMethodOrLocalFunction = method is MethodDeclarationSyntax || method is LocalFunctionStatementSyntax;
+                if (callsite == null || !isMethodOrLocalFunction)
                 {
                     return null;
                 }
 
-                if (method is MethodDeclarationSyntax methodDefinition)
-                {
-                    return (node, location, annotation) => AnnotationResolver(node, location, annotation, callsite, methodDefinition.Body, methodDefinition.ExpressionBody, methodDefinition.SemicolonToken);
-                }
-                else if (method is LocalFunctionStatementSyntax localMethodDefinition)
-                {
-                    return (node, location, annotation) => AnnotationResolver(node, location, annotation, callsite, localMethodDefinition.Body, localMethodDefinition.ExpressionBody, localMethodDefinition.SemicolonToken);
-                }
-                else
-                {
-                    return null;
-                }
+                return (node, location, annotation) => AnnotationResolver(node, location, annotation, callsite, method);
             }
 
             protected override TriviaResolver GetTriviaResolver(SyntaxNode method)
             {
-                if (method is MethodDeclarationSyntax methodDefinition)
-                {
-                    return (location, tokenPair, triviaMap) => TriviaResolver(location, tokenPair, triviaMap, methodDefinition.Body, methodDefinition.ExpressionBody, methodDefinition.SemicolonToken);
-                }
-                else if (method is LocalFunctionStatementSyntax localMethodDefinition)
-                {
-                    return (location, tokenPair, triviaMap) => TriviaResolver(location, tokenPair, triviaMap, localMethodDefinition.Body, localMethodDefinition.ExpressionBody, localMethodDefinition.SemicolonToken);
-                }
-                else
+                var isMethodOrLocalFunction = method is MethodDeclarationSyntax || method is LocalFunctionStatementSyntax;
+                if (!isMethodOrLocalFunction)
                 {
                     return null;
                 }
+
+                return (location, tokenPair, triviaMap) => TriviaResolver(location, tokenPair, triviaMap, method);
             }
 
             private SyntaxToken AnnotationResolver(
@@ -72,9 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 TriviaLocation location,
                 SyntaxAnnotation annotation,
                 SyntaxNode callsite,
-                BlockSyntax methodBody,
-                ArrowExpressionClauseSyntax expressionBody,
-                SyntaxToken semicolonToken)
+                SyntaxNode method)
             {
                 var token = node.GetAnnotatedNodesAndTokens(annotation).FirstOrDefault().AsToken();
                 if (token.RawKind != 0)
@@ -82,15 +66,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return token;
                 }
 
+                var (body, expressionBody, semicolonToken) = GetResolverElements(method);
                 return location switch
                 {
                     TriviaLocation.BeforeBeginningOfSpan => callsite.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true),
                     TriviaLocation.AfterEndOfSpan => callsite.GetLastToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true),
-                    TriviaLocation.AfterBeginningOfSpan => methodBody != null
-                        ? methodBody.OpenBraceToken.GetNextToken(includeZeroWidth: true)
+                    TriviaLocation.AfterBeginningOfSpan => body != null
+                        ? body.OpenBraceToken.GetNextToken(includeZeroWidth: true)
                         : expressionBody.ArrowToken.GetNextToken(includeZeroWidth: true),
-                    TriviaLocation.BeforeEndOfSpan => methodBody != null
-                        ? methodBody.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
+                    TriviaLocation.BeforeEndOfSpan => body != null
+                        ? body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
                         : semicolonToken,
                     _ => Contract.FailWithReturn<SyntaxToken>("can't happen"),
                 };
@@ -100,19 +85,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 TriviaLocation location,
                 PreviousNextTokenPair tokenPair,
                 Dictionary<SyntaxToken, LeadingTrailingTriviaPair> triviaMap,
-                BlockSyntax methodBody,
-                ArrowExpressionClauseSyntax methodExpressionBody,
-                SyntaxToken methodSemicolonToken)
+                SyntaxNode method)
             {
                 // Resolve trivia at the edge of the selection. simple case is easy to deal with, but complex cases where
                 // elastic trivia and user trivia are mixed (hybrid case) and we want to preserve some part of user coding style
                 // but not others can be dealt with here.
 
+                var (body, expressionBody, semicolonToken) = GetResolverElements(method);
+
                 // method has no statement in them. so basically two trivia list now pointing to same thing. "{" and "}"
-                if (methodBody != null)
+                if (body != null)
                 {
-                    if (tokenPair.PreviousToken == methodBody.OpenBraceToken &&
-                        tokenPair.NextToken == methodBody.CloseBraceToken)
+                    if (tokenPair.PreviousToken == body.OpenBraceToken &&
+                        tokenPair.NextToken == body.CloseBraceToken)
                     {
                         return (location == TriviaLocation.AfterBeginningOfSpan)
                             ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
@@ -121,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
                 else
                 {
-                    if (tokenPair.PreviousToken == methodExpressionBody.ArrowToken &&
-                        tokenPair.NextToken.GetPreviousToken() == methodSemicolonToken)
+                    if (tokenPair.PreviousToken == expressionBody.ArrowToken &&
+                        tokenPair.NextToken.GetPreviousToken() == semicolonToken)
                     {
                         return (location == TriviaLocation.AfterBeginningOfSpan)
                             ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
@@ -146,6 +131,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     TriviaLocation.BeforeEndOfSpan => FilterTriviaList(tokenPair.PreviousToken.TrailingTrivia.Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
                     _ => Contract.FailWithReturn<IEnumerable<SyntaxTrivia>>("Shouldn't reach here"),
                 };
+            }
+
+            private (BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken) GetResolverElements(SyntaxNode method)
+            {
+                if (method is MethodDeclarationSyntax methodDeclaration)
+                {
+                    return (methodDeclaration.Body, methodDeclaration.ExpressionBody, methodDeclaration.SemicolonToken);
+                }
+
+                var localFunctionDeclaration = (LocalFunctionStatementSyntax)method;
+                return (localFunctionDeclaration.Body, localFunctionDeclaration.ExpressionBody, localFunctionDeclaration.SemicolonToken);
             }
 
             private IEnumerable<SyntaxTrivia> FilterBeforeBeginningOfSpan(PreviousNextTokenPair tokenPair, IEnumerable<SyntaxTrivia> list)

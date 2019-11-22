@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 
-        bool SupportsLocalFunctionDeclaration();
+        bool SupportsLocalFunctionDeclaration(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
 

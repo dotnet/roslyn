@@ -155,6 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                                                                       methodName As SyntaxToken,
                                                                                       methodDefinition As SyntaxNode,
                                                                                       cancellationToken As CancellationToken) As Task(Of (document As Document, methodName As SyntaxToken, methodDefinition As SyntaxNode))
+            ' VB doesn't need to do any correction, so we just return the values untouched
             Return Task.FromResult((document, methodName, methodDefinition))
         End Function
     End Class
