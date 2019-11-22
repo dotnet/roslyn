@@ -113,17 +113,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var containsFullResult = true;
                     foreach (var stateSet in _stateSets)
                     {
-                        IDisposable disposableScope = null;
-                        RoslynEventSource.LogBlock logBlock = default;
-                        try
+                        var analyzerTypeName = stateSet.Analyzer.GetType().Name;
+                        using (addOperationScopeOpt?.Invoke(analyzerTypeName))
+                        using (addOperationScopeOpt is object ? RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken) : default)
                         {
-                            if (addOperationScopeOpt != null)
-                            {
-                                var analyzerTypeName = stateSet.Analyzer.GetType().Name;
-                                disposableScope = addOperationScopeOpt.Invoke(analyzerTypeName);
-                                logBlock = RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken);
-                            }
-
                             cancellationToken.ThrowIfCancellationRequested();
 
                             containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
@@ -150,11 +143,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
 
                             containsFullResult &= await TryGetProjectDiagnosticsAsync(stateSet, GetProjectDiagnosticsAsync, list, cancellationToken).ConfigureAwait(false);
-                        }
-                        finally
-                        {
-                            logBlock.Dispose();
-                            disposableScope?.Dispose();
                         }
                     }
 

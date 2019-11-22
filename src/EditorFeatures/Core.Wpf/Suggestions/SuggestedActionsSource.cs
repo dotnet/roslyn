@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
-                => GetSuggestedActions(requestedActionCategories, range, addOperationScope: _ => null, cancellationToken);
+                => GetSuggestedActions(requestedActionCategories, range, operationContext: null, cancellationToken);
 
             public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -165,14 +165,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return GetSuggestedActions(
                     requestedActionCategories,
                     range,
-                    description => operationContext.AddScope(allowCancellation: true, string.Format(EditorFeaturesWpfResources.Gathering_Suggestions_0, description)),
+                    operationContext,
                     operationContext.UserCancellationToken);
             }
 
             public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
-                Func<string, IDisposable?> addOperationScope,
+                IUIThreadOperationContext? operationContext,
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (_workspaceStatusService != null)
                 {
-                    using (addOperationScope("WorkspaceStatusService"))
+                    using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesWpfResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                     {
                         // This needs to run under threading context otherwise, we can deadlock on VS
                         ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
@@ -205,6 +205,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
                     var selectionOpt = TryGetCodeRefactoringSelection(range);
+
+                    Func<string, IDisposable?> addOperationScope =
+                        description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesWpfResources.Gathering_Suggestions_0, description));
 
                     var fixes = GetCodeFixes(supportsFeatureService, requestedActionCategories, workspace, document, range, addOperationScope, cancellationToken);
                     var refactorings = GetRefactorings(supportsFeatureService, requestedActionCategories, workspace, document, selectionOpt, addOperationScope, cancellationToken);
@@ -958,7 +961,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
                 Debug.Assert(!this.IsDisposed);
-                RoslynDebug.Assert(_textView != null);
 
                 var selectedSpans = _textView.Selection.SelectedSpans
                     .SelectMany(ss => _textView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, _subjectBuffer))
@@ -1044,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private void OnWorkspaceStatusChanged(object sender, EventArgs args)
             {
-                var document = _subjectBuffer?.AsTextContainer().GetOpenDocumentInCurrentContext();
+                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 if (document == null)
                 {
                     // document is already closed
