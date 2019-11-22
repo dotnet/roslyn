@@ -149,10 +149,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 if (_doWrapInitializerOpenBrace)
                 {
-                    var position = FindEndOfParentPosition();
-
-                    var token = _listSyntax.Parent.FindToken(position);
-                    result.Add(Edit.UpdateBetween(token, NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
                 }
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
@@ -177,22 +174,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
-            }
-
-            private int FindEndOfParentPosition()
-            {
-                var position = _listSyntax.GetFirstToken().SpanStart;
-                var endOfParent = 1;
-                var syntaxTriviaList = _listSyntax.GetLeadingTrivia();
-                if (_listSyntax != null)
-                {
-                    foreach (var syntax in syntaxTriviaList)
-                    {
-                        endOfParent += syntax.Width();
-                    }
-                }
-
-                return position - endOfParent;
             }
 
             private void AddTextChangeBetweenOpenAndFirstItem(
@@ -229,9 +210,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 if (_doWrapInitializerOpenBrace)
                 {
-                    var position = FindEndOfParentPosition();
-                    var token = _listSyntax.Parent.FindToken(position);
-                    result.Add(Edit.DeleteBetween(token, _listSyntax.GetFirstToken()));
+                    result.Add(Edit.DeleteBetween(_listSyntax.GetFirstToken().GetPreviousToken(), _listSyntax.GetFirstToken()));
                 }
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
@@ -275,9 +254,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 if (_doWrapInitializerOpenBrace)
                 {
-                    var position = FindEndOfParentPosition();
-                    var token = _listSyntax.Parent.FindToken(position);
-                    result.Add(Edit.UpdateBetween(token, NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
                 }
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);

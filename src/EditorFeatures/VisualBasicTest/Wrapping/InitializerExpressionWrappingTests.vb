@@ -76,6 +76,45 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrappingMultiLineLongIntializerExpression() As Task
+            Await TestAllWrappingCasesAsync("Class C
+    Public Sub Bar()
+        Dim test() As String = New String() [||]{""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"", ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog""}
+    End Sub
+}", "Class C
+    Public Sub Bar()
+        Dim test() As String = New String() {
+            ""the"",
+            ""quick"",
+            ""brown"",
+            ""fox"",
+            ""jumps"",
+            ""over"",
+            ""the"",
+            ""lazy"",
+            ""dog"",
+            ""the"",
+            ""quick"",
+            ""brown"",
+            ""fox"",
+            ""jumps"",
+            ""over"",
+            ""the"",
+            ""lazy"",
+            ""dog""
+        }
+    End Sub
+}", "Class C
+    Public Sub Bar()
+        Dim test() As String = New String() {
+            ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"", ""the"", ""quick"", ""brown"", ""fox"",
+            ""jumps"", ""over"", ""the"", ""lazy"", ""dog""
+        }
+    End Sub
+}")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestShortInitializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()

@@ -89,6 +89,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrappingMultiLineLongIntializerExpression()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||]{ ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"", ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"" };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[]
+        {
+            ""the"",
+            ""quick"",
+            ""brown"",
+            ""fox"",
+            ""jumps"",
+            ""over"",
+            ""the"",
+            ""lazy"",
+            ""dog"",
+            ""the"",
+            ""quick"",
+            ""brown"",
+            ""fox"",
+            ""jumps"",
+            ""over"",
+            ""the"",
+            ""lazy"",
+            ""dog""
+        };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[]
+        {
+            ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"", ""the"", ""quick"", ""brown"", ""fox"",
+            ""jumps"", ""over"", ""the"", ""lazy"", ""dog""
+        };
+     }
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestShortInitializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
