@@ -1257,7 +1257,7 @@ End Module|}          </Document>)
 
                 ' verify we can commit even when unmapped
                 projection.ReplaceSpans(0, projection.CurrentSnapshot.GetSourceSpans.Count, {projection.CurrentSnapshot.GetText()}, EditOptions.DefaultMinimalChange, editTag:=Nothing)
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Assert.Contains(<text>
 Imports System
 Module Program
