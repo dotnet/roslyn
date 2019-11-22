@@ -365,6 +365,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.ActiveFile, false, 0)]
+        [InlineData(BackgroundAnalysisScope.ActiveFile, true, 1)]
+        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false, 5)]
+        [InlineData(BackgroundAnalysisScope.FullSolution, false, 5)]
+        [Theory]
+        internal async Task Project_RunAnalyzers_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
+        {
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
+            if (firstDocumentActive)
+            {
+                MakeFirstDocumentActive(project);
+            }
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            Assert.True(project.State.RunAnalyzers);
+
+            var newSolution = workspace.CurrentSolution.WithRunAnalyzers(project.Id, false);
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
+
+            project = workspace.CurrentSolution.GetProject(project.Id);
+            Assert.False(project.State.RunAnalyzers);
+
+            Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
+        }
+
         [Fact]
         public async Task Test_NeedsReanalysisOnOptionChanged()
         {
