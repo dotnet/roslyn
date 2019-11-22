@@ -44,7 +44,7 @@ Push-Location $PSScriptRoot
 try {
     $HeaderColor = 'Green'
 
-    if (!$NoRestore) {
+    if (!$NoRestore -and $PSCmdlet.ShouldProcess("NuGet packages", "Restore")) {
         Write-Host "Restoring NuGet packages" -ForegroundColor $HeaderColor
         dotnet restore src
         if ($lastexitcode -ne 0) {
