@@ -466,13 +466,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            if (destinationMember is MemberDeclarationSyntax memberDeclaration)
+            if (destinationMember is MemberDeclarationSyntax || destinationMember is LocalFunctionStatementSyntax)
             {
-                return AddStatementsToMemberDeclaration<TDeclarationNode>(destinationMember, statements, memberDeclaration);
-            }
-            else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
-            {
-                return AddStatementsToLocalFunction<TDeclarationNode>(destinationMember, statements, localFunctionDeclaration);
+                return AddStatementsToMemberOrLocalFunctionDeclaration<TDeclarationNode>(destinationMember, statements);
             }
             else
             {
@@ -520,34 +516,44 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             throw new ArgumentException(CSharpWorkspaceResources.No_available_location_found_to_add_statements_to);
         }
 
-        private static TDeclarationNode AddStatementsToMemberDeclaration<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, MemberDeclarationSyntax memberDeclaration) where TDeclarationNode : SyntaxNode
+        private static TDeclarationNode AddStatementsToMemberOrLocalFunctionDeclaration<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements) where TDeclarationNode : SyntaxNode
         {
-            var body = memberDeclaration.GetBody();
+            if (destinationMember is MemberDeclarationSyntax memberDeclaration)
+            {
+                var finalBody = GetFinalBody(memberDeclaration.GetBody(), statements);
+                if (finalBody == null)
+                {
+                    return destinationMember;
+                }
+
+                var finalMember = memberDeclaration.WithBody(finalBody);
+                return Cast<TDeclarationNode>(finalMember);
+            }
+            else
+            {
+                var localFunctionDeclaration = Cast<LocalFunctionStatementSyntax>(destinationMember);
+                var finalBody = GetFinalBody(localFunctionDeclaration.Body, statements);
+                if (finalBody == null)
+                {
+                    return destinationMember;
+                }
+
+                var finalMember = localFunctionDeclaration.WithBody(finalBody);
+                return Cast<TDeclarationNode>(finalMember);
+            }
+        }
+
+        private static BlockSyntax GetFinalBody(BlockSyntax body, IEnumerable<SyntaxNode> statements)
+        {
             if (body == null)
             {
-                return destinationMember;
+                return null;
             }
 
             var statementNodes = body.Statements.ToList();
             statementNodes.AddRange(StatementGenerator.GenerateStatements(statements));
 
-            var finalBody = body.WithStatements(SyntaxFactory.List<StatementSyntax>(statementNodes));
-            var finalMember = memberDeclaration.WithBody(finalBody);
-
-            return Cast<TDeclarationNode>(finalMember);
-        }
-
-        private static TDeclarationNode AddStatementsToLocalFunction<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, LocalFunctionStatementSyntax localFunctionDeclaration) where TDeclarationNode : SyntaxNode
-        {
-            var body = localFunctionDeclaration.Body;
-
-            var statementNodes = body.Statements.ToList();
-            statementNodes.AddRange(StatementGenerator.GenerateStatements(statements));
-
-            var finalBody = body.WithStatements(SyntaxFactory.List<StatementSyntax>(statementNodes));
-            var finalMember = localFunctionDeclaration.WithBody(finalBody);
-
-            return Cast<TDeclarationNode>(finalMember);
+            return body.WithStatements(SyntaxFactory.List<StatementSyntax>(statementNodes));
         }
 
         public override SyntaxNode CreateEventDeclaration(
