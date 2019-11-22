@@ -129,12 +129,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             _lazyOthers.Add(data);
         }
 
-        public void AddSyntaxDiagnostics(SyntaxTree? tree, IEnumerable<Diagnostic> diagnostics)
+        public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
         {
             AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
         }
 
-        public void AddSemanticDiagnostics(SyntaxTree? tree, IEnumerable<Diagnostic> diagnostics)
+        public void AddSemanticDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
         {
             AddDiagnostics(ref _lazySemanticLocals, tree, diagnostics);
         }

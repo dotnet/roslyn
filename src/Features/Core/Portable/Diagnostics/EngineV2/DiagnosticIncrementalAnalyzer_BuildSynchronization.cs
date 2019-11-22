@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             foreach (var stateSet in stateSets)
             {
                 var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
-                var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
+                var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), oldAnalysisData.GetResult(stateSet.Analyzer).GetAllDiagnostics());
 
                 var result = DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics);
 
@@ -103,20 +103,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             return builder.ToImmutable();
-        }
-
-        private ImmutableArray<DiagnosticData> GetDiagnostics(DiagnosticAnalysisResult result)
-        {
-            // PERF: don't allocation anything if not needed
-            if (result.IsAggregatedForm || result.IsEmpty)
-            {
-                return ImmutableArray<DiagnosticData>.Empty;
-            }
-
-            return result.SyntaxLocals.Values.SelectMany(v => v).Concat(
-                   result.SemanticLocals.Values.SelectMany(v => v)).Concat(
-                   result.NonLocals.Values.SelectMany(v => v)).Concat(
-                   result.Others).ToImmutableArray();
         }
 
         private static bool PreferBuildErrors(Workspace workspace)

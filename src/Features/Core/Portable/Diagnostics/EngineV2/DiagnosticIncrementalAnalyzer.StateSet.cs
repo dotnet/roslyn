@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // put project state to active file state
                 var activeFileState = GetActiveFileState(document.Id);
 
-                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SyntaxLocals, document.Id)));
-                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SemanticLocals, document.Id)));
+                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
+                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
 
                 return true;
             }

@@ -234,22 +234,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
 
-        private static ImmutableArray<DiagnosticData> GetResult(DiagnosticAnalysisResult result, AnalysisKind kind, DocumentId id)
-        {
-            if (result.IsEmpty || !result.DocumentIds.Contains(id) || result.IsAggregatedForm)
-            {
-                return ImmutableArray<DiagnosticData>.Empty;
-            }
-
-            return kind switch
-            {
-                AnalysisKind.Syntax => result.GetResultOrEmpty(result.SyntaxLocals, id),
-                AnalysisKind.Semantic => result.GetResultOrEmpty(result.SemanticLocals, id),
-                AnalysisKind.NonLocal => result.GetResultOrEmpty(result.NonLocals, id),
-                _ => throw ExceptionUtilities.UnexpectedValue(kind)
-            };
-        }
-
         public void LogAnalyzerCountSummary()
         {
             DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);

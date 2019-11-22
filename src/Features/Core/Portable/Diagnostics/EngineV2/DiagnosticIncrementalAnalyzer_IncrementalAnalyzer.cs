@@ -394,8 +394,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // but since this optimization saves us a lot of refresh between live errors analysis we want to disable this only in this condition.
             var forceUpdate = oldResult.FromBuild && oldResult.IsAggregatedForm;
 
-            var oldItems = GetResult(oldResult, kind, document.Id);
-            var newItems = GetResult(newResult, kind, document.Id);
+            var oldItems = oldResult.GetDocumentDiagnostics(document.Id, kind);
+            var newItems = newResult.GetDocumentDiagnostics(document.Id, kind);
 
             RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, raiseEvents, forceUpdate);
         }
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 RaiseDocumentDiagnosticsIfNeeded(document, stateSet, AnalysisKind.Semantic, oldAnalysisResult, newAnalysisResult, raiseEvents);
             }
 
-            RaiseDiagnosticsCreated(project, stateSet, newAnalysisResult.Others, raiseEvents);
+            RaiseDiagnosticsCreated(project, stateSet, newAnalysisResult.GetOtherDiagnostics(), raiseEvents);
         }
 
         private void RaiseProjectDiagnosticsRemoved(StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, Action<DiagnosticsUpdatedArgs> raiseEvents)

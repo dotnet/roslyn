@@ -313,9 +313,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         foreach (var document in project.Documents)
                         {
-                            if (document.SupportsSyntaxTree)
+                            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                            if (tree != null)
                             {
-                                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                                 builder.AddSyntaxDiagnostics(tree, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
                                 builder.AddSemanticDiagnostics(tree, await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
                             }

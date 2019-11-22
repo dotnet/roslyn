@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!stateSet.TryGetProjectState(project.Id, out var state))
                 {
                     // never analyzed this project yet.
-                    return default;
+                    return ImmutableArray<DiagnosticData>.Empty;
                 }
 
                 if (documentId != null)
@@ -269,12 +269,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    return GetResult(result, kind, documentId);
+                    return result.GetDocumentDiagnostics(documentId, kind);
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
                 var nonLocalResult = await state.GetProjectAnalysisDataAsync(project, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return nonLocalResult.Others;
+                return nonLocalResult.GetOtherDiagnostics();
             }
         }
 
@@ -352,15 +352,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var documentId in documentIds)
                     {
-                        AppendDiagnostics(GetResult(analysisResult, AnalysisKind.Syntax, documentId));
-                        AppendDiagnostics(GetResult(analysisResult, AnalysisKind.Semantic, documentId));
-                        AppendDiagnostics(GetResult(analysisResult, AnalysisKind.NonLocal, documentId));
+                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
+                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
+                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                     }
 
                     if (includeProjectNonLocalResult)
                     {
                         // include project diagnostics if there is no target document
-                        AppendDiagnostics(analysisResult.Others);
+                        AppendDiagnostics(analysisResult.GetOtherDiagnostics());
                     }
                 }
             }
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         case AnalysisKind.NonLocal:
                             var nonLocalDocumentResult = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                             var analysisResult = nonLocalDocumentResult.GetResult(stateSet.Analyzer);
-                            return GetResult(analysisResult, AnalysisKind.NonLocal, documentId);
+                            return analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal);
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
                 var projectResult = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
-                return projectResult.GetResult(stateSet.Analyzer).Others;
+                return projectResult.GetResult(stateSet.Analyzer).GetOtherDiagnostics();
             }
         }
     }

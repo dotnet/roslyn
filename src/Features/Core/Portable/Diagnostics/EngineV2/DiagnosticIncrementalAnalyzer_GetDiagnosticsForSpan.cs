@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (_lazyProjectResultCache.TryGetValue(analyzer, out var result))
                 {
-                    return GetResult(result, AnalysisKind.NonLocal, _document.Id);
+                    return result.GetDocumentDiagnostics(_document.Id, AnalysisKind.NonLocal);
                 }
 
                 return ImmutableArray<DiagnosticData>.Empty;
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
                 if (result.Version == version)
                 {
-                    var existingData = GetResult(result, AnalysisKind.NonLocal, _document.Id);
+                    var existingData = result.GetDocumentDiagnostics(_document.Id, AnalysisKind.NonLocal);
                     if (!existingData.IsEmpty)
                     {
                         list.AddRange(existingData.Where(ShouldInclude));
