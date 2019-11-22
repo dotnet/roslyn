@@ -137,8 +137,8 @@ stages:
     dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'NetCore_Tools_Latest_Publish'
-    channelName: '.NET Tools - Latest'
+    stageName: 'Net_Eng_Latest_Publish'
+    channelName: '.NET Eng - Latest'
     channelId: 2
     transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
     shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
@@ -150,8 +150,8 @@ stages:
     dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'PVR_Publish'
-    channelName: '.NET Tools - Validation'
+    stageName: 'Net_Eng_Validation_Publish'
+    channelName: '.NET Eng - Validation'
     channelId: 9
     transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
     shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
@@ -195,3 +195,16 @@ stages:
     transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json'
     shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json'
     symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-symbols/nuget/v3/index.json'
+
+- template: \eng\common\templates\post-build\channels\generic-internal-channel.yml
+  parameters:
+    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
+    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
+    stageName: 'NET_Internal_Tooling_Publishing'
+    channelName: '.NET Internal Tooling'
+    channelId: 551
+    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-internal/nuget/v3/index.json'
+    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-internal/nuget/v3/index.json'
+    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-internal-symbols/nuget/v3/index.json'
