@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionTicks,
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
-            TypeImportCompletionTimeoutCount,
+            TypeImportCompletionCacheMissCount,
 
             TargetTypeCompletionTicks,
 
             ExtensionMethodCompletionSuccessCount,
-            // following are only reported when sucessful (i.e. filter is available)
+            // following are only reported when successful (i.e. filter is available)
             ExtensionMethodCompletionTicks,
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetFilterTicks,
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogTypeImportCompletionReferenceCountDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionReferenceCount, count);
 
-        internal static void LogTypeImportCompletionTimeout() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTimeoutCount);
+        internal static void LogTypeImportCompletionCacheMiss() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionCacheMissCount);
 
         internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
