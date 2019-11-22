@@ -3253,7 +3253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         /// <summary>
         /// C# always requires a type to be present with a local declaration.  (Even if that type is
-        /// 'var').
+        /// <c>var</c>).
         /// </summary>
         internal override bool RequiresLocalDeclarationType() => true;
 
