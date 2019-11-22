@@ -235,7 +235,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution);
+                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
+                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution);
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 

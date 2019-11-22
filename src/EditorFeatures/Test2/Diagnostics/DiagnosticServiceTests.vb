@@ -1984,7 +1984,7 @@ class MyClass
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
-                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution)
+                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
 
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
