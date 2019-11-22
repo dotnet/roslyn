@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     };
 
                     newDocument = await newDocument.WithSyntaxRootAsync(
-                        root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);;
+                        root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
                 }
 
                 return await base.CreateGeneratedCodeAsync(status, newDocument, cancellationToken).ConfigureAwait(false);
