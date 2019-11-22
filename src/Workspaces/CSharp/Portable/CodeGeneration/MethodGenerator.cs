@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (localMethodDeclaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions).Value;
                 if (localMethodDeclaration.Body.TryConvertToArrowExpressionBody(
                         localMethodDeclaration.Kind(), options, expressionBodyPreference,
                         out var expressionBody, out var semicolonToken))

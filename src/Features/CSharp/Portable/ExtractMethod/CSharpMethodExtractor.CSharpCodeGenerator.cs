@@ -613,22 +613,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // indentation of inserted statements (from users code) with user code style preserved
                     var root = newDocument.Root;
                     var methodDefinition = root.GetAnnotatedNodes<SyntaxNode>(this.MethodDefinitionAnnotation).First();
-                    if (methodDefinition is MethodDeclarationSyntax method)
+
+                    SyntaxNode newMethodDefinition = methodDefinition switch
                     {
-                        var newMethodDefinition = TweakNewLinesInMethod(method);
-                        newDocument = await newDocument.WithSyntaxRootAsync(
-                            root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
-                    }
-                    else if (methodDefinition is LocalFunctionStatementSyntax localMethod)
-                    {
-                        var newMethodDefinition = TweakNewLinesInMethod(localMethod);
-                        newDocument = await newDocument.WithSyntaxRootAsync(
-                            root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        throw new NotSupportedException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax.");
-                    }
+                        MethodDeclarationSyntax method => TweakNewLinesInMethod(method),
+                        LocalFunctionStatementSyntax localFunction => TweakNewLinesInMethod(localFunction),
+                        _ => throw new NotSupportedException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax."),
+                    };
+
+                    newDocument = await newDocument.WithSyntaxRootAsync(
+                        root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);;
                 }
 
                 return await base.CreateGeneratedCodeAsync(status, newDocument, cancellationToken).ConfigureAwait(false);
@@ -688,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
                 var nodeIsMethodOrLocalFunction = syntaxNode is MethodDeclarationSyntax || syntaxNode is LocalFunctionStatementSyntax;
-                if (syntaxNode == null || !nodeIsMethodOrLocalFunction)
+                if (!nodeIsMethodOrLocalFunction)
                 {
                     return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
                 }

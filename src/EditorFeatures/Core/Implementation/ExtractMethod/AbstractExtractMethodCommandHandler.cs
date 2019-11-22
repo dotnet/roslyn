@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             {
                 options = options.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, true);
                 var newResult = ExtractMethodService.ExtractMethodAsync(
-                    document: document, textSpan: spans.Single().Span.ToTextSpan(), localFunction: false, options: options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, spans.Single().Span.ToTextSpan(), localFunction: false, options, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // retry succeeded, return new result
                 if (newResult.Succeeded || newResult.SucceededWithSuggestion)
