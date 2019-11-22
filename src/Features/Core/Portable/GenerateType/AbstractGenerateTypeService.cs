@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 ? default(Func<string, bool>)
                 : s => state.TypeToGenerateInOpt.GetAllTypeParameters().All(t => t.Name != s);
 
-            NameGenerator.EnsureUniquenessInPlace(names, isFixed, canUse, isCaseSensitive: true);
+            NameGenerator.EnsureUniquenessInPlace(names, isFixed, canUse);
             for (var i = 0; i < names.Count; i++)
             {
                 if (typeParameters[i] == null || typeParameters[i].Name != names[i])
