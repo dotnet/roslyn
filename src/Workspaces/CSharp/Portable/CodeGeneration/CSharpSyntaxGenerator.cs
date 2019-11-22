@@ -3251,6 +3251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override bool SupportsThrowExpression() => true;
 
+        /// <summary>
+        /// C# always requires a type to be present with a local declaration.  (Even if that type is
+        /// 'var').
+        /// </summary>
+        internal override bool RequiresLocalDeclarationType() => true;
+
         public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null)
         {
             if (falseStatements == null)
