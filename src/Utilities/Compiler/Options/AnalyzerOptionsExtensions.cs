@@ -2,10 +2,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -39,6 +40,12 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             CancellationToken cancellationToken)
             => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.OutputKind, rule, s_defaultOutputKinds, cancellationToken);
+
+        public static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken)
+            => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.EnumValuesPrefixTrigger, rule, EnumValuesPrefixTrigger.Heuristic, cancellationToken);
 
         private static TEnum GetFlagsEnumOptionValue<TEnum>(
             this AnalyzerOptions options,
@@ -184,7 +191,7 @@ namespace Analyzer.Utilities
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
             this AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists. 
+            // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists.
             if (s_cachedOptions.TryGetValue(options, out var categorizedAnalyzerConfigOptions))
             {
                 return categorizedAnalyzerConfigOptions;
