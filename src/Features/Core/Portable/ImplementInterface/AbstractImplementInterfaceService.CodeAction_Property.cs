@@ -44,11 +44,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
-                using var disposer = ArrayBuilder<string>.GetInstance(out var parameterNames);
-                NameGenerator.EnsureUniqueness(
+                var parameterNames = NameGenerator.EnsureUniqueness(
                     property.Parameters.SelectAsArray(p => p.Name),
-                    isCaseSensitive: syntaxFacts.IsCaseSensitive,
-                    parameterNames);
+                    isCaseSensitive: syntaxFacts.IsCaseSensitive);
 
                 var updatedProperty = property.RenameParameters(parameterNames);
 

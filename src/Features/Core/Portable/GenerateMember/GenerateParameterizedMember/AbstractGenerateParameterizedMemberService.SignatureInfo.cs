@@ -125,11 +125,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                                                  .Select(p => p.BestNameForParameter)
                                                  .ToSet(equalityComparer);
 
-                using var disposer = ArrayBuilder<string>.GetInstance(out var newTypeParameterNames);
-                NameGenerator.EnsureUniqueness(
+                var newTypeParameterNames = NameGenerator.EnsureUniqueness(
                     method.TypeParameters.SelectAsArray(t => t.Name),
-                    n => !reservedParameterNames.Contains(n),
-                    newTypeParameterNames);
+                    n => !reservedParameterNames.Contains(n));
 
                 return method.RenameTypeParameters(newTypeParameterNames);
             }

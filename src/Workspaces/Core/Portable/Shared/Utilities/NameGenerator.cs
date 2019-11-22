@@ -41,19 +41,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return names.First();
         }
 
-        public static void EnsureUniqueness(ImmutableArray<string> names, ArrayBuilder<string> result)
-            => EnsureUniqueness(names, canUse: Functions<string>.True, result);
-
-        public static void EnsureUniqueness(
+        public static ImmutableArray<string> EnsureUniqueness(
             ImmutableArray<string> names,
-            Func<string, bool> canUse,
-            ArrayBuilder<string> result)
+            Func<string, bool>? canUse = null,
+            bool isCaseSensitive = true)
         {
-            result.Clear();
-            result.AddRange(names);
-
             using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(names.Length, fillWithValue: false, out var isFixed);
-            EnsureUniquenessInPlace(result, isFixed, canUse, isCaseSensitive: true);
+
+            var result = ArrayBuilder<string>.GetInstance(names.Length);
+            result.AddRange(names);
+            EnsureUniquenessInPlace(result, isFixed, canUse, isCaseSensitive);
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -62,33 +60,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// that are the same, and both are fixed that you will end up with non-unique names at the
         /// end.
         /// </summary>
-        public static void EnsureUniqueness(ImmutableArray<string> names, ImmutableArray<bool> isFixed, ArrayBuilder<string> result)
-            => EnsureUniqueness(names, isFixed, canUse: Functions<string>.True, isCaseSensitive: true, result);
-
-        public static void EnsureUniqueness(
+        public static ImmutableArray<string> EnsureUniqueness(
             ImmutableArray<string> names,
             ImmutableArray<bool> isFixed,
-            Func<string, bool> canUse,
-            bool isCaseSensitive,
-            ArrayBuilder<string> result)
+            Func<string, bool>? canUse = null,
+            bool isCaseSensitive = true)
         {
-            result.Clear();
-            result.AddRange(names);
-
             using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(names.Length, out var isFixedBuilder);
             isFixedBuilder.AddRange(isFixed);
-            EnsureUniquenessInPlace(result, isFixedBuilder, canUse, isCaseSensitive);
-        }
 
-        public static void EnsureUniqueness(
-            ImmutableArray<string> names, bool isCaseSensitive, ArrayBuilder<string> result)
-        {
-            result.Clear();
+            var result = ArrayBuilder<string>.GetInstance(names.Length);
             result.AddRange(names);
 
-            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(names.Length, fillWithValue: false, out var isFixed);
-            EnsureUniquenessInPlace(
-                result, isFixed, canUse: Functions<string>.True, isCaseSensitive: isCaseSensitive);
+            EnsureUniquenessInPlace(result, isFixedBuilder, canUse, isCaseSensitive);
+
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -100,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static void EnsureUniquenessInPlace(
             ArrayBuilder<string> names,
             ArrayBuilder<bool> isFixed,
-            Func<string, bool> canUse,
-            bool isCaseSensitive)
+            Func<string, bool>? canUse = null,
+            bool isCaseSensitive = true)
         {
             canUse ??= Functions<string>.True;
 

@@ -228,12 +228,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToImmutableArray()
 
-            Dim uniqueNames As ArrayBuilder(Of String) = Nothing
-            Using ArrayBuilder(Of String).GetInstance(uniqueNames)
-                NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse, isCaseSensitive:=False, uniqueNames)
-                Return uniqueNames.Select(Function(name, index) New ParameterName(name, isFixed(index))).
-                                   ToImmutableArray()
-            End Using
+            Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
+                                 Select(Function(name, index) New ParameterName(name, isFixed(index))).
+                                 ToImmutableArray()
         End Function
 
         <Extension()>
@@ -254,12 +251,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToImmutableArray()
 
-            Dim uniqueNames As ArrayBuilder(Of String) = Nothing
-            Using ArrayBuilder(Of String).GetInstance(uniqueNames)
-                NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse, isCaseSensitive:=False, uniqueNames)
-                Return uniqueNames.Select(Function(name, index) New ParameterName(name, isFixed(index), parameterNamingRule)).
-                                   ToImmutableArray()
-            End Using
+            Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
+                                 Select(Function(name, index) New ParameterName(name, isFixed(index), parameterNamingRule)).
+                                 ToImmutableArray()
         End Function
 
         <Extension()>

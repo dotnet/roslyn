@@ -341,24 +341,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames)
-        {
-            var disposer = ArrayBuilder<string>.GetInstance(out var uniqueNames);
-            NameGenerator.EnsureUniqueness(parameterNames, isFixed, uniqueNames);
-
-            return uniqueNames
+            => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
                 .Select((name, index) => new ParameterName(name, isFixed[index]))
                 .Skip(reservedNames.Count).ToImmutableArray();
-        }
 
         private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames, NamingRule parameterNamingRule)
-        {
-            var disposer = ArrayBuilder<string>.GetInstance(out var uniqueNames);
-            NameGenerator.EnsureUniqueness(parameterNames, isFixed, uniqueNames);
-
-            return uniqueNames
+            => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
                 .Select((name, index) => new ParameterName(name, isFixed[index], parameterNamingRule))
                 .Skip(reservedNames.Count).ToImmutableArray();
-        }
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
