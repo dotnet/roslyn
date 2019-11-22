@@ -14,21 +14,50 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public abstract class AnalysisEntityMapAbstractDomain<TValue> : MapAbstractDomain<AnalysisEntity, TValue>
     {
         private static readonly Func<AnalysisEntity, bool> s_defaultIsTrackedEntity = new Func<AnalysisEntity, bool>(_ => true);
-        private readonly Func<AnalysisEntity, bool> _isTrackedEntity;
+        private static readonly Func<PointsToAbstractValue, bool> s_defaultIsTrackedPointsToValue = new Func<PointsToAbstractValue, bool>(_ => true);
 
-        private protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, Func<AnalysisEntity, bool> isTrackedEntity)
+        private readonly Func<AnalysisEntity, bool> _isTrackedEntity;
+        private readonly Func<PointsToAbstractValue, bool> _isTrackedPointsToValue;
+
+        private protected AnalysisEntityMapAbstractDomain(
+            AbstractValueDomain<TValue> valueDomain,
+            Func<AnalysisEntity, bool> isTrackedEntity,
+            Func<PointsToAbstractValue, bool> isTrackedPointsToValue)
             : base(valueDomain)
         {
             _isTrackedEntity = isTrackedEntity ?? throw new ArgumentNullException(nameof(isTrackedEntity));
+            _isTrackedPointsToValue = isTrackedPointsToValue ?? throw new ArgumentNullException(nameof(isTrackedPointsToValue));
         }
 
         protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult pointsToAnalysisResultOpt)
-            : this(valueDomain, pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedEntity : s_defaultIsTrackedEntity)
+            : this(valueDomain,
+                  pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedEntity : s_defaultIsTrackedEntity,
+                  pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedPointsToValue : s_defaultIsTrackedPointsToValue)
         {
         }
 
         protected abstract TValue GetDefaultValue(AnalysisEntity analysisEntity);
         protected abstract bool CanSkipNewEntry(AnalysisEntity analysisEntity, TValue value);
+        protected virtual void OnNewMergedValue(TValue value)
+        {
+        }
+
+        private bool CanSkipNewEntity(AnalysisEntity analysisEntity)
+        {
+            if (_isTrackedEntity(analysisEntity) ||
+                _isTrackedPointsToValue(analysisEntity.InstanceLocation))
+            {
+                return false;
+            }
+
+            if (analysisEntity.ParentOpt != null &&
+                !CanSkipNewEntity(analysisEntity.ParentOpt))
+            {
+                return false;
+            }
+
+            return true;
+        }
 
         protected abstract void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, TValue value);
         protected virtual void AssertValidAnalysisData(DictionaryAnalysisData<AnalysisEntity, TValue> map)
@@ -47,17 +76,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AssertValidAnalysisData(map1);
             Debug.Assert(map2 != null);
             AssertValidAnalysisData(map2);
-
-            TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)
-            {
-                if (key.HasConstantValue)
-                {
-                    return value;
-                }
-
-                var defaultValue = GetDefaultValue(key);
-                return ValueDomain.Merge(value, defaultValue);
-            }
 
             var resultMap = new DictionaryAnalysisData<AnalysisEntity, TValue>();
             using var newKeys = PooledHashSet<AnalysisEntity>.GetInstance();
@@ -78,8 +96,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
                         Debug.Assert(!map2.ContainsKey(key1));
                         Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
-                        AssertValidEntryForMergedMap(key1, mergedValue);
-                        resultMap.Add(key1, mergedValue);
+                        AddNewEntryToResultMap(key1, mergedValue);
                         continue;
                     }
 
@@ -101,8 +118,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         if (key1.InstanceLocation.Equals(key2.InstanceLocation))
                         {
                             var mergedValue = GetMergedValue(valuesToMergeBuilder);
-                            AssertValidEntryForMergedMap(key1, mergedValue);
-                            resultMap[key1] = mergedValue;
+                            AddNewEntryToResultMap(key1, mergedValue);
                         }
                         else
                         {
@@ -135,9 +151,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             }
 
                             var isCandidateToBeSkipped = !isExistingKeyInInput && !isExistingKeyInResult;
-                            if (isCandidateToBeSkipped && !_isTrackedEntity(mergedKey))
+                            if (isCandidateToBeSkipped && CanSkipNewEntity(mergedKey))
                             {
-                                // PERF: Do not add a new key-value pair to the resultMap if the key is not a valid tracked entity.
+                                // PERF: Do not add a new key-value pair to the resultMap if the key is not reachable from tracked entities and PointsTo values.
                                 continue;
                             }
 
@@ -157,8 +173,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 newKeys.Add(mergedKey);
                             }
 
-                            AssertValidEntryForMergedMap(mergedKey, mergedValue);
-                            resultMap[mergedKey] = mergedValue;
+
+                            AddNewEntryToResultMap(mergedKey, mergedValue, isNewKey: !isExistingKeyInInput);
                         }
                     }
                 }
@@ -167,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     TValue mergedValue = ValueDomain.Merge(value1, value2);
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
                     Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
-                    resultMap.Add(key1, mergedValue);
+                    AddNewEntryToResultMap(key1, mergedValue);
                     continue;
                 }
 
@@ -175,8 +191,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
-                    AssertValidEntryForMergedMap(key1, mergedValue);
-                    resultMap.Add(key1, mergedValue);
+                    AddNewEntryToResultMap(key1, mergedValue);
                 }
             }
 
@@ -188,8 +203,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key2, value2);
                     Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
-                    AssertValidEntryForMergedMap(key2, mergedValue);
-                    resultMap.Add(key2, mergedValue);
+                    AddNewEntryToResultMap(key2, mergedValue);
                 }
             }
 
@@ -197,9 +211,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(!map1.ContainsKey(newKey));
                 Debug.Assert(!map2.ContainsKey(newKey));
-                if (ReferenceEquals(resultMap[newKey], GetDefaultValue(newKey)))
+                var value = resultMap[newKey];
+                if (ReferenceEquals(value, GetDefaultValue(newKey)))
                 {
                     resultMap.Remove(newKey);
+                }
+                else
+                {
+                    OnNewMergedValue(value);
                 }
             }
 
@@ -210,6 +229,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return resultMap;
             static bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
                 => entity.SymbolOpt?.Kind == SymbolKind.Field || entity.SymbolOpt?.Kind == SymbolKind.Property;
+
+            TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)
+            {
+                if (key.HasConstantValue)
+                {
+                    return value;
+                }
+
+                var defaultValue = GetDefaultValue(key);
+                return ValueDomain.Merge(value, defaultValue);
+            }
 
             TValue GetMergedValue(ArrayBuilder<TValue> values)
             {
@@ -228,6 +258,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
                     Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
                     return mergedValue;
+                }
+            }
+
+            void AddNewEntryToResultMap(AnalysisEntity key, TValue value, bool isNewKey = false)
+            {
+                Debug.Assert(isNewKey == (!map1.ContainsKey(key) && !map2.ContainsKey(key)));
+                AssertValidEntryForMergedMap(key, value);
+                resultMap.Add(key, value);
+                if (!isNewKey)
+                {
+                    OnNewMergedValue(value);
                 }
             }
         }

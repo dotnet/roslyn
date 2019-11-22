@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private sealed class CorePointsToAnalysisDataDomain : AnalysisEntityMapAbstractDomain<PointsToAbstractValue>
         {
             public CorePointsToAnalysisDataDomain(DefaultPointsToValueGenerator defaultPointsToValueGenerator, AbstractValueDomain<PointsToAbstractValue> valueDomain)
-                : base(valueDomain, defaultPointsToValueGenerator.IsTrackedEntity)
+                : base(valueDomain, defaultPointsToValueGenerator.IsTrackedEntity, defaultPointsToValueGenerator.IsTrackedPointsToValue)
             {
                 DefaultPointsToValueGenerator = defaultPointsToValueGenerator;
             }
@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, PointsToAbstractValue value)
                 => value.Kind == PointsToAbstractValueKind.Unknown ||
                    value == GetDefaultValue(analysisEntity);
+
+            protected override void OnNewMergedValue(PointsToAbstractValue value)
+                => DefaultPointsToValueGenerator.AddTrackedPointsToValue(value);
 
             protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, PointsToAbstractValue value)
             {

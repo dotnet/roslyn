@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     }
 
                     SetAbstractValueCore(CurrentAnalysisData, analysisEntity, value);
-                    TrackedEntitiesBuilder.AddEntity(analysisEntity);
+                    TrackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
                 }
             }
 
