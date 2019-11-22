@@ -40,7 +40,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             EnumValuesPrefixTrigger defaultValue,
             CancellationToken cancellationToken)
-            => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.EnumValuesPrefixTrigger, rule, defaultValue, cancellationToken);
+            => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.EnumValuesPrefixTrigger, rule, defaultValue, cancellationToken);
 
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
