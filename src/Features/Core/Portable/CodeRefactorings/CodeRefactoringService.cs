@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan state,
             bool isBlocking,
             CancellationToken cancellationToken)
-            => GetRefactoringsAsync(document, state, isBlocking, addOperationScope: _ => new NoOpDisposable(), cancellationToken);
+            => GetRefactoringsAsync(document, state, isBlocking, addOperationScope: _ => null, cancellationToken);
 
         public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
