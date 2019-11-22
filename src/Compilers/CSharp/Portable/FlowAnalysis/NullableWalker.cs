@@ -6890,6 +6890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             TypeWithAnnotations sourceType;
+            FlowAnalysisAnnotations sourceAnnotations = FlowAnalysisAnnotations.None;
             if (node.EnumeratorInfoOpt == null)
             {
                 sourceType = default;
@@ -6917,12 +6918,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // set by VisitForEachExpression, called just before this.
                     Debug.Assert(ResultType.Type.Equals(node.EnumeratorInfoOpt.CollectionType, TypeCompareKind.AllNullableIgnoreOptions));
                     var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(inferredCollectionType, node.EnumeratorInfoOpt.GetEnumeratorMethod);
-                    var currentProperty = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
-                    sourceType = currentProperty.ReturnTypeWithAnnotations;
+                    var currentPropertyGetter = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
+                    sourceType = currentPropertyGetter.ReturnTypeWithAnnotations;
+                    sourceAnnotations = currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations;
                 }
             }
 
-            TypeWithState sourceState = sourceType.ToTypeWithState();
+            TypeWithState sourceState = ApplyUnconditionalAnnotations(sourceType.ToTypeWithState(), sourceAnnotations);
 
 #pragma warning disable IDE0055 // Fix formatting
             var variableLocation = node.Syntax switch
@@ -6983,7 +6985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sourceState,
                                 checkConversion: true,
                                 fromExplicitCast: !conversion.IsImplicit,
-                                useLegacyWarnings: false,
+                                useLegacyWarnings: true,
                                 AssignmentKind.ForEachIterationVariable,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
