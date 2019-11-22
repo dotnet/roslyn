@@ -100,15 +100,6 @@ namespace Microsoft.CodeAnalysis.Host
                 // build the current compilations without rebuilding the entire DeclarationTable
                 CancelBuild(releasePreviousCompilations: false);
 
-                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Options) == BackgroundAnalysisScope.ActiveFile)
-                {
-                    // Avoid performing any background compilation if the user has explicitly
-                    // set the background analysis scope to only analyze active files.
-                    // Note that we bail out after executing CancelBuild to ensure
-                    // all the current background compilation tasks are cancelled.
-                    return;
-                }
-
                 var allProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
 
                 // don't even get started if there is nothing to do
@@ -160,7 +151,13 @@ namespace Microsoft.CodeAnalysis.Host
 
             var logger = Logger.LogBlock(FunctionId.BackgroundCompiler_BuildCompilationsAsync, cancellationToken);
 
-            var compilationTasks = allProjectIds.Select(solution.GetProject).Where(p => p != null).Select(p => p.GetCompilationAsync(cancellationToken)).ToArray();
+            // Skip performing any background compilation for projects where user has explicitly
+            // set the background analysis scope to only analyze active files.
+            var compilationTasks = allProjectIds
+                .Select(solution.GetProject)
+                .Where(p => p != null && SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) != BackgroundAnalysisScope.ActiveFile)
+                .Select(p => p.GetCompilationAsync(cancellationToken))
+                .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
                 {
                     logger.Dispose();

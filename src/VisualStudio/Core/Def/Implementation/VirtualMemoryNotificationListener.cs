@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             // 3. Background analysis memory monitor is on (user can set it off using registry to prevent turning off background analysis)
 
             return availableMemory < MemoryThreshold &&
-                SolutionCrawlerOptions.GetBackgroundAnalysisScope(_workspace.Options) != BackgroundAnalysisScope.Minimal &&
+                !SolutionCrawlerOptions.LowMemoryForcedMinimalBackgroundAnalysis &&
                 _workspace.Options.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
         }
 
