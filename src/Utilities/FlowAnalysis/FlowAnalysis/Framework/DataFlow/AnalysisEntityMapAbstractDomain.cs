@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(isNewKey == (!map1.ContainsKey(key) && !map2.ContainsKey(key)));
                 AssertValidEntryForMergedMap(key, value);
-                resultMap.Add(key, value);
+                resultMap[key] = value;
                 if (!isNewKey)
                 {
                     OnNewMergedValue(value);
