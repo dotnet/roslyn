@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
         }
 
-        public static ImmutableArray<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, IList<string> parameterNames)
+        public static ImmutableArray<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, ArrayBuilder<string> parameterNames)
         {
             var result = ArrayBuilder<IParameterSymbol>.GetInstance();
             for (var i = 0; i < parameterNames.Count; i++)

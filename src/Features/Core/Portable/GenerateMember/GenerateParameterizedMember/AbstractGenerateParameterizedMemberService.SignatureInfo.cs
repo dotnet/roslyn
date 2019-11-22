@@ -124,8 +124,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var reservedParameterNames = DetermineParameterNames(cancellationToken)
                                                  .Select(p => p.BestNameForParameter)
                                                  .ToSet(equalityComparer);
-                var newTypeParameterNames = NameGenerator.EnsureUniqueness(
-                    method.TypeParameters.Select(t => t.Name).ToList(), n => !reservedParameterNames.Contains(n));
+
+                using var disposer = ArrayBuilder<string>.GetInstance(out var newTypeParameterNames);
+                NameGenerator.EnsureUniqueness(
+                    method.TypeParameters.SelectAsArray(t => t.Name),
+                    n => !reservedParameterNames.Contains(n),
+                    newTypeParameterNames);
 
                 return method.RenameTypeParameters(newTypeParameterNames);
             }

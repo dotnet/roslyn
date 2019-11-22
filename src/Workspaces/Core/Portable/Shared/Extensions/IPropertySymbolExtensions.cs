@@ -3,16 +3,16 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class IPropertySymbolExtensions
     {
-        public static IPropertySymbol RenameParameters(this IPropertySymbol property, IList<string> parameterNames)
+        public static IPropertySymbol RenameParameters(this IPropertySymbol property, ArrayBuilder<string> parameterNames)
         {
             var parameterList = property.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))

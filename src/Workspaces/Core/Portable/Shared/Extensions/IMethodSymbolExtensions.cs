@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
+        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, ArrayBuilder<string> newNames)
         {
             if (method.TypeParameters.Select(t => t.Name).SequenceEqual(newNames))
             {
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol RenameParameters(
-            this IMethodSymbol method, IList<string> parameterNames)
+            this IMethodSymbol method, ArrayBuilder<string> parameterNames)
         {
             var parameterList = method.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
             ImmutableArray<ITypeParameterSymbol> typeParameters,
-            IList<string> newNames,
+            ArrayBuilder<string> newNames,
             ITypeGenerator typeGenerator)
         {
             // We generate the type parameter in two passes.  The first creates the new type
@@ -181,8 +182,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             // The method's type parameters may conflict with the type parameters in the type
             // we're generating into.  In that case, rename them.
-            var parameterNames = NameGenerator.EnsureUniqueness(
-                method.Parameters.Select(p => p.Name).ToList(), isCaseSensitive: syntaxFacts.IsCaseSensitive);
+            using var parameterNamesDisposer = ArrayBuilder<string>.GetInstance(out var parameterNames);
+            NameGenerator.EnsureUniqueness(
+                method.Parameters.SelectAsArray(p => p.Name), isCaseSensitive: syntaxFacts.IsCaseSensitive, parameterNames);
 
             var outerTypeParameterNames =
                 containingType.GetAllTypeParameters()
@@ -193,9 +195,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var unusableNames = parameterNames.Concat(outerTypeParameterNames).ToSet(
                 syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
-            var newTypeParameterNames = NameGenerator.EnsureUniqueness(
-                method.TypeParameters.Select(tp => tp.Name).ToList(),
-                n => !unusableNames.Contains(n));
+            using var newTypeParameterNamesDisposer = ArrayBuilder<string>.GetInstance(out var newTypeParameterNames);
+            NameGenerator.EnsureUniqueness(
+                method.TypeParameters.SelectAsArray(tp => tp.Name),
+                n => !unusableNames.Contains(n),
+                newTypeParameterNames);
 
             var updatedMethod = method.RenameTypeParameters(newTypeParameterNames);
             return updatedMethod.RenameParameters(parameterNames);

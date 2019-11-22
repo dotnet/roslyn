@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -42,8 +43,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     propertyGenerationBehavior, attributesToRemove, cancellationToken);
 
                 var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
-                var parameterNames = NameGenerator.EnsureUniqueness(
-                    property.Parameters.Select(p => p.Name).ToList(), isCaseSensitive: syntaxFacts.IsCaseSensitive);
+
+                using var disposer = ArrayBuilder<string>.GetInstance(out var parameterNames);
+                NameGenerator.EnsureUniqueness(
+                    property.Parameters.SelectAsArray(p => p.Name),
+                    isCaseSensitive: syntaxFacts.IsCaseSensitive,
+                    parameterNames);
 
                 var updatedProperty = property.RenameParameters(parameterNames);
 
