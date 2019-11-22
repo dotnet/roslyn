@@ -249,7 +249,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,
@@ -271,7 +270,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,
