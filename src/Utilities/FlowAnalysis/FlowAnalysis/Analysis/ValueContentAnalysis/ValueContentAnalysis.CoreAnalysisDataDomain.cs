@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
@@ -15,9 +16,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         private sealed class CoreAnalysisDataDomain : AnalysisEntityMapAbstractDomain<ValueContentAbstractValue>
         {
-            public static readonly CoreAnalysisDataDomain Instance = new CoreAnalysisDataDomain(ValueContentAbstractValueDomain.Default);
-
-            private CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain) : base(valueDomain)
+            public CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain, PointsToAnalysisResult pointsToAnalysisResultOpt)
+                : base(valueDomain, pointsToAnalysisResultOpt)
             {
             }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -97,7 +98,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 dataFlowAnalysisResult,
                 operationVisitor.GetEscapedLocationsThroughOperationsMap(),
                 operationVisitor.GetEscapedLocationsThroughReturnValuesMap(),
-                operationVisitor.GetEscapedLocationsThroughEntitiesMap());
+                operationVisitor.GetEscapedLocationsThroughEntitiesMap(),
+                operationVisitor.TrackedEntitiesBuilder);
         }
         protected override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
             => new PointsToBlockAnalysisResult(basicBlock, blockAnalysisData);

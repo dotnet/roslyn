@@ -17,9 +17,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         private sealed class ValueContentDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
         {
-            public ValueContentDataFlowOperationVisitor(ValueContentAnalysisContext analysisContext)
+            private readonly ValueContentAnalysisDomain _valueContentAnalysisDomain;
+
+            public ValueContentDataFlowOperationVisitor(ValueContentAnalysisDomain valueContentAnalysisDomain, ValueContentAnalysisContext analysisContext)
                 : base(analysisContext)
             {
+                _valueContentAnalysisDomain = valueContentAnalysisDomain;
             }
 
             protected override void AddTrackedEntities(ValueContentAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
@@ -134,9 +137,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             #endregion
 
             protected override ValueContentAnalysisData MergeAnalysisData(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
-                => ValueContentAnalysisDomain.Instance.Merge(value1, value2);
+                => _valueContentAnalysisDomain.Merge(value1, value2);
             protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
-                => ValueContentAnalysisDomain.Instance.MergeAnalysisDataForBackEdge(value1, value2);
+                => _valueContentAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2);
             protected override void UpdateValuesForAnalysisData(ValueContentAnalysisData targetAnalysisData)
                 => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
             protected override ValueContentAnalysisData GetClonedAnalysisData(ValueContentAnalysisData analysisData)
