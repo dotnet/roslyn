@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly bool _implementIEquatable;
             private readonly bool _generateOperators;
             private readonly Document _document;
+            private readonly SyntaxNode _typeDeclaration;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers;
             private readonly TextSpan _textSpan;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             public GenerateEqualsAndGetHashCodeAction(
                 Document document,
                 TextSpan textSpan,
+                SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> selectedMembers,
                 bool generateEquals,
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 bool generateOperators)
             {
                 _document = document;
+                _typeDeclaration = typeDeclaration;
                 _containingType = containingType;
                 _selectedMembers = selectedMembers;
                 _textSpan = textSpan;
@@ -62,9 +65,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     methods.Add(await CreateEqualsMethodAsync(cancellationToken).ConfigureAwait(false));
                 }
 
-                if (_implementIEquatable)
+                var constructedTypeToImplement = await GetConstructedTypeToImplementAsync(cancellationToken).ConfigureAwait(false);
+
+                if (constructedTypeToImplement is object)
                 {
-                    methods.Add(await CreateIEquatableEqualsMethodAsync(cancellationToken).ConfigureAwait((bool)false));
+                    methods.Add(await CreateIEquatableEqualsMethodAsync(constructedTypeToImplement, cancellationToken).ConfigureAwait((bool)false));
                 }
 
                 if (_generateGetHashCode)
@@ -79,16 +84,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var (oldType, newType) = await AddMethodsAsync(methods, cancellationToken).ConfigureAwait(false);
 
-                if (_implementIEquatable)
+                if (constructedTypeToImplement is object)
                 {
-                    var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var equatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-                    var constructed = equatableType.Construct(_containingType);
-
                     var generator = _document.GetLanguageService<SyntaxGenerator>();
 
                     newType = generator.AddInterfaceType(newType,
-                        generator.TypeExpression(constructed));
+                        generator.TypeExpression(constructedTypeToImplement));
                 }
 
                 var newDocument = await UpdateDocumentAndAddImportsAsync(
@@ -99,6 +100,23 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     newDocument, cancellationToken).ConfigureAwait(false);
 
                 return formattedDocument;
+            }
+
+            private async Task<INamedTypeSymbol> GetConstructedTypeToImplementAsync(CancellationToken cancellationToken)
+            {
+                if (!_implementIEquatable)
+                    return null;
+
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+
+                var useNullableTypeArgument =
+                    !_containingType.IsValueType
+                    && semanticModel.GetNullableContext(_typeDeclaration.SpanStart).AnnotationsEnabled();
+
+                return useNullableTypeArgument
+                    ? equatableType.ConstructWithNullability(_containingType.WithNullability(NullableAnnotation.Annotated))
+                    : equatableType.Construct(_containingType);
             }
 
             private async Task<Document> UpdateDocumentAndAddImportsAsync(SyntaxNode oldType, SyntaxNode newType, CancellationToken cancellationToken)
@@ -201,11 +219,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     : service.GenerateEqualsMethodAsync(_document, _containingType, _selectedMembers, cancellationToken);
             }
 
-            private async Task<IMethodSymbol> CreateIEquatableEqualsMethodAsync(CancellationToken cancellationToken)
+            private async Task<IMethodSymbol> CreateIEquatableEqualsMethodAsync(INamedTypeSymbol constructedEquatableType, CancellationToken cancellationToken)
             {
                 var service = _document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
                 return await service.GenerateIEquatableEqualsMethodAsync(
-                    _document, _containingType, _selectedMembers, cancellationToken).ConfigureAwait(false);
+                    _document, _containingType, _selectedMembers, constructedEquatableType, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title

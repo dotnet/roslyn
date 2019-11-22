@@ -52,23 +52,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 statements: statements);
         }
 
-        public static IMethodSymbol CreateIEqutableEqualsMethod(
+        public static IMethodSymbol CreateIEquatableEqualsMethod(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
+            INamedTypeSymbol constructedEquatableType,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, compilation, containingType, symbols, cancellationToken);
+                factory, semanticModel.Compilation, containingType, symbols, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
-            var equatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            var constructed = equatableType.Construct(containingType);
-            var methodSymbol = constructed.GetMembers(EqualsName)
-                                          .OfType<IMethodSymbol>()
-                                          .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+            var methodSymbol = constructedEquatableType
+                .GetMembers(EqualsName)
+                .OfType<IMethodSymbol>()
+                .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+
+            var originalParameter = methodSymbol.Parameters.First();
+
+            // Replace `[AllowNull] Foo` with `Foo` or `Foo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
+            var parameters = ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                originalParameter,
+                type: constructedEquatableType.GetTypeArguments()[0],
+                attributes: ImmutableArray<AttributeData>.Empty));
 
             if (factory.RequiresExplicitImplementationForInterfaceMembers)
             {
@@ -76,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
                     explicitInterfaceImplementations: ImmutableArray.Create(methodSymbol),
+                    parameters: parameters,
                     statements: statements);
             }
             else
@@ -83,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
+                    parameters: parameters,
                     statements: statements);
             }
         }
@@ -208,12 +218,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 var memberType = member.GetSymbolType();
 
-                if (IsPrimitiveValueType(memberType))
+                if (ShouldUseEqualityOperator(memberType))
                 {
-                    // If we have one of the well known primitive types, then just use '==' to compare
-                    // the values.
-                    //
-                    //      this.a == other.a
                     expressions.Add(factory.ValueEqualsExpression(thisSymbol, otherSymbol));
                     continue;
                 }
@@ -221,8 +227,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var valueIEquatable = memberType?.IsValueType == true && ImplementsIEquatable(memberType, iequatableType);
                 if (valueIEquatable || memberType?.IsTupleType == true)
                 {
-                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then 
-                    // just call directly into .Equals. This keeps the code simple and avoids an 
+                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then
+                    // just call directly into .Equals. This keeps the code simple and avoids an
                     // unnecessary null check.
                     //
                     //      this.a.Equals(other.a)
@@ -325,10 +331,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        private static bool IsPrimitiveValueType(ITypeSymbol typeSymbol)
+        private static bool ShouldUseEqualityOperator(ITypeSymbol typeSymbol)
         {
             if (typeSymbol != null)
             {
+                if (typeSymbol.IsNullable(out var underlyingType))
+                {
+                    typeSymbol = underlyingType;
+                }
+
                 if (typeSymbol.IsEnumType())
                 {
                     return true;
@@ -350,7 +361,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_Single:
                     case SpecialType.System_Double:
                     case SpecialType.System_String:
-                    case SpecialType.System_Nullable_T:
                     case SpecialType.System_DateTime:
                         return true;
                 }

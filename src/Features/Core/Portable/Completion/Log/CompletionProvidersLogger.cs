@@ -20,9 +20,18 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionTicks,
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
-            TypeImportCompletionTimeoutCount,
+            TypeImportCompletionCacheMissCount,
 
-            TargetTypeCompletionTicks
+            TargetTypeCompletionTicks,
+
+            ExtensionMethodCompletionSuccessCount,
+            // following are only reported when successful (i.e. filter is available)
+            ExtensionMethodCompletionTicks,
+            ExtensionMethodCompletionMethodsProvided,
+            ExtensionMethodCompletionGetFilterTicks,
+            ExtensionMethodCompletionGetSymbolTicks,
+            ExtensionMethodCompletionTypesChecked,
+            ExtensionMethodCompletionMethodsChecked,
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count) =>
@@ -34,11 +43,34 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogTypeImportCompletionReferenceCountDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionReferenceCount, count);
 
-        internal static void LogTypeImportCompletionTimeout() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTimeoutCount);
+        internal static void LogTypeImportCompletionCacheMiss() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionCacheMissCount);
 
         internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
+
+
+        internal static void LogExtensionMethodCompletionSuccess() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionSuccessCount);
+
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+
+        internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
+
+        internal static void LogExtensionMethodCompletionGetFilterTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetFilterTicks, count);
+
+        internal static void LogExtensionMethodCompletionGetSymbolTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolTicks, count);
+
+        internal static void LogExtensionMethodCompletionTypesCheckedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTypesChecked, count);
+
+        internal static void LogExtensionMethodCompletionMethodsCheckedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsChecked, count);
+
 
         internal static void ReportTelemetry()
         {

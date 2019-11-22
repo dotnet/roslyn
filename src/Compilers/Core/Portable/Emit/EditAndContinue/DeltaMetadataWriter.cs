@@ -12,6 +12,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -601,18 +602,18 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeRef in GetTypeRefs())
             {
-                ReportReferencesToAddedSymbol(typeRef as ISymbol);
+                ReportReferencesToAddedSymbol(typeRef as ISymbolInternal);
             }
 
             foreach (var memberRef in GetMemberRefs())
             {
-                ReportReferencesToAddedSymbol(memberRef as ISymbol);
+                ReportReferencesToAddedSymbol(memberRef as ISymbolInternal);
             }
         }
 
-        private void ReportReferencesToAddedSymbol(ISymbol symbolOpt)
+        private void ReportReferencesToAddedSymbol(ISymbolInternal symbolOpt)
         {
-            if (symbolOpt != null && _changes.IsAdded(symbolOpt))
+            if (symbolOpt != null && _changes.IsAdded(symbolOpt.GetISymbol()))
             {
                 this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(
                     this.messageProvider.ERR_EncReferenceToAddedMember,
@@ -684,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // local type is already translated, but not recursively
             ITypeReference translatedType = localDef.Type;
-            ITypeSymbol typeSymbol = translatedType as ITypeSymbol;
+            ITypeSymbolInternal typeSymbol = translatedType as ITypeSymbolInternal;
             if (typeSymbol != null)
             {
                 translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);

@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
         }
 
-        protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, Compilation compilation, SyntaxNode syntax,
+        protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, CSharpCompilation compilation, SyntaxNode syntax,
             Conversion conversion, TypeSymbol sourceType, TypeSymbol targetType, ConstantValue sourceConstantValueOpt = null)
         {
             Debug.Assert(!conversion.IsImplicit || !conversion.IsValid);

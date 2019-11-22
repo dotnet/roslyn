@@ -1538,6 +1538,118 @@ parameters: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateLiftedOperators()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    [|public bool? BooleanValue { get; }
+    public decimal? DecimalValue { get; }
+    public Bar? EnumValue { get; }
+    public DateTime? DateTimeValue { get; }|]
+}
+
+enum Bar
+{
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    public bool? BooleanValue { get; }
+    public decimal? DecimalValue { get; }
+    public Bar? EnumValue { get; }
+    public DateTime? DateTimeValue { get; }
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               BooleanValue == foo.BooleanValue &&
+               DecimalValue == foo.DecimalValue &&
+               EnumValue == foo.EnumValue &&
+               DateTimeValue == foo.DateTimeValue;
+    }
+}
+
+enum Bar
+{
+}",
+index: 0,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task LiftedOperatorIsNotUsedWhenDirectOperatorWouldNotBeUsed()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    [|public Bar Value { get; }
+    public Bar? NullableValue { get; }|]
+}
+
+struct Bar : IEquatable<Bar>
+{
+    private readonly int value;
+
+    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+
+    public bool Equals(Bar other) => value == other.value;
+
+    public override int GetHashCode() => -1584136870 + value.GetHashCode();
+
+    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
+
+    public static bool operator !=(Bar left, Bar right) => !(left == right);
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Foo
+{
+    public Bar Value { get; }
+    public Bar? NullableValue { get; }
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               Value.Equals(foo.Value) &&
+               EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
+    }
+}
+
+struct Bar : IEquatable<Bar>
+{
+    private readonly int value;
+
+    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+
+    public bool Equals(Bar other) => value == other.value;
+
+    public override int GetHashCode() => -1584136870 + value.GetHashCode();
+
+    public static bool operator ==(Bar left, Bar right) => left.Equals(right);
+
+    public static bool operator !=(Bar left, Bar right) => !(left == right);
+}",
+index: 0,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestImplementIEquatableOnStruct()
         {
             await TestWithPickMembersDialogAsync(
@@ -1570,6 +1682,119 @@ struct Program : IEquatable<Program>
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, ImplementIEquatableId),
 parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"#nullable enable
+
+struct Foo
+{
+    public int Bar { get; }
+    [||]
+}",
+@"#nullable enable
+
+using System;
+
+struct Foo : IEquatable<Foo>
+{
+    public int Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Foo foo && Equals(foo);
+    }
+
+    public bool Equals(Foo other)
+    {
+        return Bar == other.Bar;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+struct Foo
+{
+    public bool Bar { get; }
+    [||]
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+@"
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+struct Foo : IEquatable<Foo>
+{
+    public bool Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Foo foo && Equals(foo);
+    }
+
+    public bool Equals(Foo other)
+    {
+        return Bar == other.Bar;
+    }
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8, retainNonFixableDiagnostics: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1606,6 +1831,121 @@ class Program : IEquatable<Program>
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, ImplementIEquatableId),
 parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClassInNullableContextWithUnannotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"#nullable enable
+
+class Foo
+{
+    public int Bar { get; }
+    [||]
+}",
+@"#nullable enable
+
+using System;
+
+class Foo : IEquatable<Foo?>
+{
+    public int Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as Foo);
+    }
+
+    public bool Equals(Foo? other)
+    {
+        return other != null &&
+               Bar == other.Bar;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class Foo
+{
+    public bool Bar { get; }
+    [||]
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+@"
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class Foo : IEquatable<Foo?>
+{
+    public bool Bar { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as Foo);
+    }
+
+    public bool Equals(Foo? other)
+    {
+        return other != null &&
+               Bar == other.Bar;
+    }
+}
+
+namespace System
+{
+    public class Object { }
+    public struct Boolean { }
+
+    public interface IEquatable<T>
+    {
+        bool Equals([AllowNull] T other);
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class AllowNullAttribute : Attribute { }
+}
+",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(TestOptions.Regular8, retainNonFixableDiagnostics: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]

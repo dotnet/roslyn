@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(Accessibility.ProtectedOrInternal, exceptionFromErrorCode.DeclaredAccessibility);
 
-            Assert.Same(module0, module0.GlobalNamespace.Locations.Single().MetadataModule);
-            Assert.Same(module0, system.Locations.Single().MetadataModule);
-            Assert.Same(module0, runtime.Locations.Single().MetadataModule);
-            Assert.Same(module0, obj.Locations.Single().MetadataModule);
+            Assert.Same(module0, module0.GlobalNamespace.Locations.Single().MetadataModuleInternal);
+            Assert.Same(module0, system.Locations.Single().MetadataModuleInternal);
+            Assert.Same(module0, runtime.Locations.Single().MetadataModuleInternal);
+            Assert.Same(module0, obj.Locations.Single().MetadataModuleInternal);
         }
     }
 }

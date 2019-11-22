@@ -69,12 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to handle loops properly, we must assume that every variable that flows in is
             // assigned at the beginning of the loop.  If it isn't, then it must be in a loop
             // and flow out of the region in that loop (and into the region inside the loop).
-            foreach (Symbol variable in _dataFlowsIn)
+            foreach (ISymbol variable in _dataFlowsIn)
             {
-                int slot = this.GetOrCreateSlot(variable);
+                Symbol variableSymbol = variable.GetSymbol();
+                int slot = this.GetOrCreateSlot(variableSymbol);
                 if (slot > 0 && !this.State.IsAssigned(slot))
                 {
-                    _dataFlowsOut.Add(variable);
+                    _dataFlowsOut.Add(variableSymbol);
                 }
             }
 

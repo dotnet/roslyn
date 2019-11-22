@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // to avoid clutter in the light bulb menu.
                     var wrappingSuggestedAction = new SuggestedActionWithNestedActions(
                         ThreadingContext, _owner, workspace, _subjectBuffer, this,
-                        codeAction: new SolutionChangeAction(EditorFeaturesWpfResources.Configure_or_Suppress_issues, createChangedSolution: _ => null),
+                        codeAction: new SolutionChangeAction(EditorFeaturesWpfResources.Suppress_or_Configure_issues, createChangedSolution: _ => null),
                         nestedActionSets: suppressionSets.ToImmutable());
 
                     // Combine the spans and the category of each of the nested suggested actions
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var wrappingSet = new SuggestedActionSet(
                         category,
                         actions: SpecializedCollections.SingletonEnumerable(wrappingSuggestedAction),
-                        title: EditorFeaturesWpfResources.Configure_or_Suppress_issues,
+                        title: EditorFeaturesWpfResources.Suppress_or_Configure_issues,
                         priority: SuggestedActionSetPriority.None,
                         applicableToSpan: span);
                     sets = sets.Add(wrappingSet);

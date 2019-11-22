@@ -567,7 +567,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         return ids.Contains(id);
                     }
 
-                    var fullSolutionAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
+                    var fullSolutionAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
                     if (!project.SupportsCompilation || fullSolutionAnalysis)
                     {
                         return IsSupportedDiagnosticId(project.Id, id);

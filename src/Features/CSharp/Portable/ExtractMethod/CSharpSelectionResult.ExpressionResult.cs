@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            public override SyntaxNode GetContainingScope()
+            public override SyntaxNode? GetContainingScope()
             {
                 Contract.ThrowIfNull(this.SemanticDocument);
                 Contract.ThrowIfFalse(this.SelectionInExpression);

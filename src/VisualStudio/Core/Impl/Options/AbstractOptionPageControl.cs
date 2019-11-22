@@ -81,22 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindTristateToOption(CheckBox checkbox, Option<int> optionKey)
-        {
-            Debug.Assert(checkbox.IsThreeState);
-
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<int>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new CheckBoxTristateCheckedToIntConverter(),
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
         protected void BindToOption(CheckBox checkbox, PerLanguageOption<bool> optionKey, string languageName)
         {
             var binding = new Binding()
@@ -136,6 +120,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        protected void BindToOption<T>(RadioButton radiobutton, Option<T> optionKey, T optionValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<T>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new RadioButtonCheckedConverter(),
+                ConverterParameter = optionValue
+            };
+
+            var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
@@ -148,21 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             };
 
             var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
-        protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
-        {
-            checkbox.Visibility = Visibility.Visible;
-
-            var binding = new Binding()
-            {
-                Source = new FullSolutionAnalysisOptionBinding(OptionStore, languageName),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
         }
 
@@ -209,29 +193,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public object ConvertBack(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
-            return value.Equals(true) ? 1 : -1;
-        }
-    }
-
-    public class CheckBoxTristateCheckedToIntConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null || value.Equals(0))
-            {
-                return null;
-            }
-
-            return !value.Equals(-1);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null)
-            {
-                return 0;
-            }
-
             return value.Equals(true) ? 1 : -1;
         }
     }
