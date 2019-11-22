@@ -841,11 +841,6 @@ namespace Microsoft.CodeAnalysis.Editing
                 attributeArguments: args.Count > 0 ? args : null);
         }
 
-        private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)
-        {
-            return symbol.GetAttributes().Select(a => Attribute(a));
-        }
-
         /// <summary>
         /// Creates an attribute argument.
         /// </summary>

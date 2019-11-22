@@ -27,11 +27,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
             string localNameOpt,
-            SyntaxAnnotation statementAnnotation,
-            CancellationToken cancellationToken)
+            SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateEqualsMethodStatements(
-                factory, compilation, parseOptions, containingType, symbols, localNameOpt, cancellationToken);
+                factory, compilation, parseOptions, containingType, symbols, localNameOpt);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CreateEqualsMethod(compilation, statements);
@@ -58,11 +57,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
             INamedTypeSymbol constructedEquatableType,
-            SyntaxAnnotation statementAnnotation,
-            CancellationToken cancellationToken)
+            SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, semanticModel.Compilation, containingType, symbols, cancellationToken);
+                factory, semanticModel.Compilation, containingType, symbols);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             var methodSymbol = constructedEquatableType
@@ -103,8 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ParseOptions parseOptions,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
-            string localNameOpt,
-            CancellationToken cancellationToken)
+            string localNameOpt)
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
@@ -257,8 +254,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> members,
-            CancellationToken cancellationToken)
+            ImmutableArray<ISymbol> members)
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
@@ -384,14 +380,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol field: return field.GetTypeWithAnnotatedNullability();
-                case IPropertySymbol property: return property.GetTypeWithAnnotatedNullability();
-                default: return compilation.GetSpecialType(SpecialType.System_Object);
-            }
-        }
+                IFieldSymbol field => field.GetTypeWithAnnotatedNullability(),
+                IPropertySymbol property => property.GetTypeWithAnnotatedNullability(),
+                _ => compilation.GetSpecialType(SpecialType.System_Object),
+            };
 
         private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType)
         {
