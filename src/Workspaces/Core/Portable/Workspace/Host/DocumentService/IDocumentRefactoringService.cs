@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Host
         /// Updates the contents of a document after some document info change, such as file name or path. May
         /// prompt a user for confirmation on the changes.
         /// </summary>
-        Task UpdateAfterInfoChangeAsync(Document current, Document previous, CancellationToken cancellation = default);
+        /// <returns>
+        /// Solution with the updated <paramref name="current"/> document
+        /// </returns> 
+        Task<Solution> UpdateAfterInfoChangeAsync(Document current, Document previous, CancellationToken cancellation = default);
     }
 }
