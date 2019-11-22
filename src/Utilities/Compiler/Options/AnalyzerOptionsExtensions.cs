@@ -35,17 +35,18 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.RequiredModifiers, rule, defaultValue, cancellationToken);
 
+        public static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            EnumValuesPrefixTrigger defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.EnumValuesPrefixTrigger, rule, defaultValue, cancellationToken);
+
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             CancellationToken cancellationToken)
             => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.OutputKind, rule, s_defaultOutputKinds, cancellationToken);
-
-        public static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
-            this AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            CancellationToken cancellationToken)
-            => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.EnumValuesPrefixTrigger, rule, EnumValuesPrefixTrigger.Heuristic, cancellationToken);
 
         private static TEnum GetFlagsEnumOptionValue<TEnum>(
             this AnalyzerOptions options,
