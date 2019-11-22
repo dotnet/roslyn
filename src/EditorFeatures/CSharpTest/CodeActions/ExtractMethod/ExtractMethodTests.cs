@@ -3186,5 +3186,55 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
+        {
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Local();|]
+        static void Local()
+        {
+        }
+    }
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Local();
+        var test = 5;
+        static void Local()
+        {
+        }|]
+    }
+}", @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private static void NewMethod()
+    {
+        Local();
+        var test = 5;
+        static void Local()
+        {
+        }
+    }
+}");
+        }
     }
 }
