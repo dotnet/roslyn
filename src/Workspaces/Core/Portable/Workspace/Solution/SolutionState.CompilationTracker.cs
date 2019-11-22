@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private static bool IsTouchDocumentActionForDocument(CompilationTranslationAction action, DocumentId id)
-                => action is CompilationTranslationAction.TouchDocumentAction touchDocumentAction && 
+                => action is CompilationTranslationAction.TouchDocumentAction touchDocumentAction &&
                    touchDocumentAction.DocumentId == id;
 
             /// <summary>
