@@ -23,14 +23,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly HostAnalyzerManager _hostAnalyzerManager;
         private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
-        private readonly IAsynchronousOperationListener _listener;
+
+        public IAsynchronousOperationListener Listener { get; }
 
         [ImportingConstructor]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             PrimaryWorkspace primaryWorkspace,
-            [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService? diagnosticAnalyzerProviderService = null,
+            [Import(AllowDefault = true)]IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource = null)
             : this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => GetHostDiagnosticAnalyzerPackage(diagnosticAnalyzerProviderService), isThreadSafe: true),
                    diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
@@ -38,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                    primaryWorkspace,
                    registrationService, listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
-            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test hardness otherwise, it should
-            // never be null
+            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test harness. Otherwise, it should never be null.
         }
 
         // protected for testing purposes.
@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public IAsynchronousOperationListener Listener => _listener;
-
         // protected for testing purposes.
         protected DiagnosticAnalyzerService(
             HostAnalyzerManager hostAnalyzerManager,
@@ -69,8 +67,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _hostAnalyzerManager = hostAnalyzerManager;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
+            Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }
+
+        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)
+            => (diagnosticAnalyzerProviderService != null) ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() :
+                ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
 
         public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
         {
@@ -305,11 +307,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
             };
-        }
-
-        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IWorkspaceDiagnosticAnalyzerProviderService? diagnosticAnalyzerProviderService)
-        {
-            return (diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages()).ToImmutableArrayOrEmpty();
         }
     }
 }

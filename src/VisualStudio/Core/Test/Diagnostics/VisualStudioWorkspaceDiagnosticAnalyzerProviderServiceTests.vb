@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub GetHostAnalyzerPackagesWithNameTest()
             Dim extensionManager = New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll")
-            Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackagesWithName(extensionManager, GetType(MockExtensionManager.MockContent))
+            Dim packages = VisualStudioDiagnosticAnalyzerProvider.GetHostAnalyzerPackagesWithName(extensionManager, GetType(MockExtensionManager.MockContent))
 
             Assert.Equal(packages.Count(), 3)
 
@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub GetHostAnalyzerPackagesTest()
             Dim extensionManager = New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "installPath1", "installPath2", "installPath3")
-            Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackages(extensionManager)
+            Dim packages = VisualStudioDiagnosticAnalyzerProvider.GetHostAnalyzerPackages(extensionManager)
 
             Assert.Equal(packages.Count(), 1)
 
@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "TestAnalyzer")
                 Dim analyzerPackage = New HostDiagnosticAnalyzerPackage("MyPackage", ImmutableArray.Create(analyzerFile.Path))
                 Dim analyzerPackages = ImmutableArray.Create(analyzerPackage)
-                Dim analyzerLoader = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetLoader()
+                Dim analyzerLoader = VisualStudioDiagnosticAnalyzerProvider.GetLoader()
                 Dim hostAnalyzerManager = New HostAnalyzerManager(New Lazy(Of ImmutableArray(Of HostDiagnosticAnalyzerPackage))(
                                                                   Function() analyzerPackages), analyzerLoader,
                                                                   hostDiagnosticUpdateSource:=Nothing,
