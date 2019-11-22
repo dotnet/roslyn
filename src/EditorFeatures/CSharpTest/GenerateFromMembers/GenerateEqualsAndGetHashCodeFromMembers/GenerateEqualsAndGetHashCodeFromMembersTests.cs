@@ -73,6 +73,7 @@ class Program
 parameters: CSharp6Implicit);
         }
 
+        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField_PreferExplicitType()
         {
@@ -2290,6 +2291,7 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
+        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeNineMembers_Explicit()
         {
