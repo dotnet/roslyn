@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">返されないコードのパスがあります</target>
+        <target state="translated">返されないコード パスがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="next_statement_control_variable_doesn_t_have_matching_declaration_statement">
         <source>next statement control variable doesn't have matching declaration statement</source>
-        <target state="translated">次のステートメントのコントロール変数に一致する宣言ステートメントがありません</target>
+        <target state="translated">次のステートメントの制御変数に一致する宣言ステートメントがありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
@@ -1347,7 +1347,7 @@ Return -or- Return &lt;expression&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">On に設定されている場合は、 暗黙的なデータ型の変換を上位変換のみに制限します。
+        <target state="translated">On に設定されている場合は、 暗黙的なデータ型の変換を拡大変換のみに制限します。
 Option Strict {On | Off}</target>
         <note />
       </trans-unit>

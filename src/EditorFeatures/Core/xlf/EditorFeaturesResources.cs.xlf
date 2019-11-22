@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
-        <target state="new">Go To Base</target>
+        <target state="translated">Přejít na základní typ</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
-        <target state="new">Locating bases...</target>
+        <target state="translated">Hledají se báze...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
-        <target state="translated">Úprava pravidla</target>
+        <target state="translated">Hrubá úprava</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_will_update_1_reference_in_1_file">
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
-        <target state="translated">Stroj musí být připojený k interaktivnímu oknu.</target>
+        <target state="translated">Stroj musí být připojený k oknu Interactive.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changes_the_current_prompt_settings">
