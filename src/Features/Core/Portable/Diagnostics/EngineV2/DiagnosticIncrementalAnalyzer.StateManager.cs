@@ -148,9 +148,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // now add analyzers that exist in both host and project
                 var analyzerMap = _analyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language);
-                foreach (var kv in analyzerMap)
+                foreach (var (identity, analyzers) in analyzerMap)
                 {
-                    var identity = kv.Key;
                     if (!referenceIdentities.Contains(identity))
                     {
                         // it is from host analyzer package rather than project analyzer reference
@@ -160,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // if same analyzer exists both in host (vsix) and in analyzer reference,
                     // we include it in build only analyzer.
-                    foreach (var analyzer in kv.Value)
+                    foreach (var analyzer in analyzers)
                     {
                         if (hostStateSetMap.TryGetValue(analyzer, out var stateSet) && stateSet != compilerStateSet)
                         {
@@ -247,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var analyzer in analyzers)
                     {
                         // TODO: 
-                        // #1, all de -duplication should move to HostAnalyzerManager
+                        // #1, all de-duplication should move to HostAnalyzerManager
                         // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
                         //     if user deliberately put same analyzer twice.
                         if (builder.ContainsKey(analyzer))

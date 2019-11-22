@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
                     }
 
-                    _stateMap.TryRemove(projectId, out var unused);
+                    _stateMap.TryRemove(projectId, out _);
                 }
 
                 private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateAnalyzerMap(Project project)
@@ -92,12 +92,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
 
                     // update cache. 
-                    var entry = new Entry(project.AnalyzerReferences, newAnalyzersPerReference, newMap);
-                    _stateMap[project.Id] = entry;
+                    _stateMap[project.Id] = new Entry(project.AnalyzerReferences, newAnalyzersPerReference, newMap);
 
-                    VerifyDiagnosticStates(entry.AnalyzerMap.Values);
+                    VerifyDiagnosticStates(newMap.Values);
 
-                    return entry.AnalyzerMap;
+                    return newMap;
                 }
 
                 private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetCachedAnalyzerMap(ProjectId projectId)

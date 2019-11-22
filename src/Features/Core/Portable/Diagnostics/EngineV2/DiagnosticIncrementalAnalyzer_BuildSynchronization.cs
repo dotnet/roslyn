@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        public async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
         {
-            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, (w, m) => LogSynchronizeWithBuild(w, m), workspace, map, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, (w, m) => LogSynchronizeWithBuild(w, m), workspace, buildDiagnostics, CancellationToken.None))
             {
-                DebugVerifyDiagnosticLocations(map);
+                DebugVerifyDiagnosticLocations(buildDiagnostics);
 
                 if (!PreferBuildErrors(workspace))
                 {
@@ -31,17 +31,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var solution = workspace.CurrentSolution;
-                foreach (var projectEntry in map)
+                foreach (var (projectId, diagnostics) in buildDiagnostics)
                 {
-                    var project = solution.GetProject(projectEntry.Key);
+                    var project = solution.GetProject(projectId);
                     if (project == null)
                     {
                         continue;
                     }
 
-                    // REVIEW: is build diagnostic contains suppressed diagnostics?
+                    // REVIEW: do build diagnostics include suppressed diagnostics?
                     var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
-                    var result = await CreateProjectAnalysisDataAsync(project, stateSets, projectEntry.Value).ConfigureAwait(false);
+                    var result = await CreateProjectAnalysisDataAsync(project, stateSets, diagnostics).ConfigureAwait(false);
 
                     foreach (var stateSet in stateSets)
                     {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // if we have updated errors, refresh open files
-                if (map.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
+                if (buildDiagnostics.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
                 {
                     // enqueue re-analysis of open documents.
                     AnalyzerService.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         [Conditional("DEBUG")]
-        private void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        private void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
         {
-            foreach (var diagnostic in map.Values.SelectMany(v => v))
+            foreach (var diagnostic in buildDiagnostics.Values.SelectMany(v => v))
             {
                 // errors from build shouldn't have any span set.
                 // this is debug check since it gets data from us only not from third party unlike one in compiler
@@ -95,11 +95,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             foreach (var stateSet in stateSets)
             {
                 var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
-                var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), oldAnalysisData.GetResult(stateSet.Analyzer).GetAllDiagnostics());
 
-                var result = DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics);
+                var liveDiagnostics = MergeDiagnostics(
+                    ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object),
+                    oldAnalysisData.GetResult(stateSet.Analyzer).GetAllDiagnostics());
 
-                builder.Add(stateSet.Analyzer, result);
+                builder.Add(stateSet.Analyzer, DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics));
             }
 
             return builder.ToImmutable();
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
         }
 
-        private ImmutableArray<DiagnosticData> MergeDiagnostics(ImmutableArray<DiagnosticData> newDiagnostics, ImmutableArray<DiagnosticData> existingDiagnostics)
+        private static ImmutableArray<DiagnosticData> MergeDiagnostics(ImmutableArray<DiagnosticData> newDiagnostics, ImmutableArray<DiagnosticData> existingDiagnostics)
         {
             ImmutableArray<DiagnosticData>.Builder? builder = null;
 

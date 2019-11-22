@@ -315,7 +315,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (CurrentProjectId != null)
                 {
                     var includeProjectNonLocalResult = true;
-                    await AppendDiagnosticsAsync(CurrentProject, SpecializedCollections.EmptyEnumerable<DocumentId>(), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+                    if (CurrentProject != null)
+                    {
+                        await AppendDiagnosticsAsync(CurrentProject, SpecializedCollections.EmptyEnumerable<DocumentId>(), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+                    }
+
                     return GetDiagnosticData();
                 }
 
@@ -328,14 +332,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
             }
 
-            protected override async Task AppendDiagnosticsAsync(Project? project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
+            protected override async Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
-                // when we return cached result, make sure we at least return something that exist in current solution
-                if (project == null)
-                {
-                    return;
-                }
-
                 // get analyzers that are not suppressed.
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
@@ -343,8 +341,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
                 var compilation = await Owner.CreateCompilationWithAnalyzersAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var forceAnalyzerRun = true;
-                var result = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                var result = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun: true, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -389,7 +386,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = SpecializedCollections.SingletonCollection(stateSet);
 
                 // Here, we don't care what kind of analyzer (StateSet) is given. 
-                // We just create and use AnalyzerDriver with the given analyzer (StateSet). 
                 var forceAnalyzerRun = true;
                 var compilation = await Owner.CreateCompilationWithAnalyzersAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 

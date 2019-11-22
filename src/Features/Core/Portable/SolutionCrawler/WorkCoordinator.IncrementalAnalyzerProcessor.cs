@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private static SyntaxNode? GetMemberNode(ISyntaxFactsService service, SyntaxNode root, SyntaxPath memberPath)
+                private static SyntaxNode? GetMemberNode(ISyntaxFactsService service, SyntaxNode? root, SyntaxPath? memberPath)
                 {
                     if (root == null || memberPath == null)
                     {

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                     }
 
-                    var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, existingData.Result, cancellationToken).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsAsync(compilation, project, stateSets, forceAnalyzerRun, existingData.Result, cancellationToken).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
                     // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // check whether there is IDE specific project diagnostic analyzer
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer || a is DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
-                if (ideAnalyzers.Length <= 0)
+                if (ideAnalyzers.Length == 0)
                 {
                     return result;
                 }
@@ -381,13 +381,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) ||
-                !project.Solution.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
-            {
-                return false;
-            }
-
-            return true;
+            return SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
         }
 
         private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

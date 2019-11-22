@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// This class is responsible for anything related to <see cref="StateSet"/> for host level <see cref="DiagnosticAnalyzer"/>s.
             /// </summary>
-            private class HostStates
+            private sealed class HostStates
             {
                 private readonly StateManager _owner;
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return new DiagnosticAnalyzerMap(_owner._analyzerManager, language, analyzerMap);
                 }
 
-                private class DiagnosticAnalyzerMap
+                private sealed class DiagnosticAnalyzerMap
                 {
                     private const int BuiltInCompilerPriority = -2;
                     private const int RegularDiagnosticAnalyzerPriority = -1;

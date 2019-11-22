@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await LoadInitialAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
                 }
 
+                RoslynDebug.Assert(lastResult.DocumentIds != null);
+
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
@@ -199,6 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task SaveAsync(Project project, DiagnosticAnalysisResult result)
             {
                 Contract.ThrowIfTrue(result.IsAggregatedForm);
+                Contract.ThrowIfNull(result.DocumentIds);
 
                 RemoveInMemoryCache(_lastResult);
 
