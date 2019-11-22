@@ -227,7 +227,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                           Into ToImmutableArray()
 
             Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToImmutableArray()
-
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
                                  Select(Function(name, index) New ParameterName(name, isFixed(index))).
                                  ToImmutableArray()
