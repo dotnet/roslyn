@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
-            if (LooksLikeTypeOfPattern(tk))
+            if (LooksLikeTypeOfPattern())
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -126,8 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Given tk, the type of the current token, does this look like the type of a pattern?
         /// </summary>
-        private bool LooksLikeTypeOfPattern(SyntaxKind tk)
+        private bool LooksLikeTypeOfPattern()
         {
+            var tk = CurrentToken.Kind;
             if (SyntaxFacts.IsPredefinedType(tk))
             {
                 return true;
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 TypeSyntax type = null;
-                if (LooksLikeTypeOfPattern(tk))
+                if (LooksLikeTypeOfPattern())
                 {
                     type = this.ParseType(ParseTypeMode.DefinitePattern);
                     if (type.IsMissing || !CanTokenFollowTypeInPattern())

@@ -238,7 +238,6 @@
       </PropertyComment>
     </Field>
     <Field Name="CallingConvention" Type="SyntaxToken" Optional="true">
-      <Kind Name="IdentifierToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the optional calling convention.</summary>
       </PropertyComment>

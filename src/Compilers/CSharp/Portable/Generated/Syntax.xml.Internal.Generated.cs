@@ -31842,15 +31842,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken == null) throw new ArgumentNullException(nameof(asteriskToken));
             if (asteriskToken.Kind != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            if (callingConvention != null)
-            {
-                switch (callingConvention.Kind)
-                {
-                    case SyntaxKind.IdentifierToken:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(callingConvention));
-                }
-            }
             if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
             if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));
@@ -36450,15 +36441,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken == null) throw new ArgumentNullException(nameof(asteriskToken));
             if (asteriskToken.Kind != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            if (callingConvention != null)
-            {
-                switch (callingConvention.Kind)
-                {
-                    case SyntaxKind.IdentifierToken:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(callingConvention));
-                }
-            }
             if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
             if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));

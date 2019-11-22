@@ -6190,15 +6190,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid function pointer calling convention..
-        /// </summary>
-        internal static string ERR_InvalidFunctionPointerCallingConvention_Title {
-            get {
-                return ResourceManager.GetString("ERR_InvalidFunctionPointerCallingConvention_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid type specified as an argument for TypeForwardedTo attribute.
         /// </summary>
         internal static string ERR_InvalidFwdType {

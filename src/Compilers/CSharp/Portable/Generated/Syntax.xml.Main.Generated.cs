@@ -2111,12 +2111,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            switch (callingConvention.Kind())
-            {
-                case SyntaxKind.IdentifierToken:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(callingConvention));
-            }
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
             return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)callingConvention.Node, (Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ModifiedType>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();

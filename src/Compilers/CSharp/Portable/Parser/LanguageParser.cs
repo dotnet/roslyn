@@ -78,9 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfMethodSignature = 1 << 21,
             IsEndOfNameInExplicitInterface = 1 << 22,
             IsEndOfFunctionPointerParameterList = 1 << 23,
+            IsEndOfFunctionPointerParameterListErrored = 1 << 24,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfFunctionPointerParameterList;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfFunctionPointerParameterListErrored;
 
         private bool IsTerminator()
         {
@@ -116,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfTypeParameterList when this.IsEndOfTypeParameterList():
                     case TerminatorState.IsEndOfMethodSignature when this.IsEndOfMethodSignature():
                     case TerminatorState.IsEndOfNameInExplicitInterface when this.IsEndOfNameInExplicitInterface():
-                    case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList():
+                    case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
+                    case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
                         return true;
                 }
             }
@@ -2535,7 +2537,7 @@ parse_member_name:;
             return this.CurrentToken.Kind == SyntaxKind.DotToken || this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
         }
 
-        private bool IsEndOfFunctionPointerParameterList() => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
+        private bool IsEndOfFunctionPointerParameterList(bool errored) => this.CurrentToken.Kind == (errored ? SyntaxKind.CloseParenToken : SyntaxKind.GreaterThanToken);
 
         private MethodDeclarationSyntax ParseMethodDeclaration(
             SyntaxList<AttributeListSyntax> attributes,
@@ -3651,7 +3653,7 @@ tryAgain:
             }
         }
 
-        private static bool IsParameterModifier(SyntaxKind kind)
+        private static bool IsParameterModifier(SyntaxKind kind, bool isFunctionPointerParameter = false)
         {
             switch (kind)
             {
@@ -3660,15 +3662,16 @@ tryAgain:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
+                case SyntaxKind.ReadOnlyKeyword when isFunctionPointerParameter:
                     return true;
             }
 
             return false;
         }
 
-        private void ParseParameterModifiers(SyntaxListBuilder modifiers)
+        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter = false)
         {
-            while (IsParameterModifier(this.CurrentToken.Kind))
+            while (IsParameterModifier(this.CurrentToken.Kind, isFunctionPointerParameter))
             {
                 var modifier = this.EatToken();
 
@@ -5610,7 +5613,9 @@ tryAgain:
 
             /// <summary>
             /// Definitely a type name: either a predefined type (int, string, etc.) or an array
-            /// type (ending with a [] brackets), or a pointer type (ending with *s).
+            /// type (ending with a [] brackets), or a pointer type (ending with *s), or a function
+            /// pointer type (ending with > in valid cases, or a *, ), or calling convention
+            /// identifier, in invalid cases).
             /// </summary>
             MustBeType,
 
@@ -5887,31 +5892,41 @@ done:
         private ScanTypeFlags ScanFunctionPointerType(out SyntaxToken lastTokenOfType)
         {
             Debug.Assert(IsFunctionPointerStart());
-            _ = EatContextualToken(SyntaxKind.DelegateKeyword);
+            _ = EatToken(SyntaxKind.DelegateKeyword);
             lastTokenOfType = EatToken(SyntaxKind.AsteriskToken);
 
-            if (IsPossibleCallingConvention())
+            if (IsPossibleCallingConvention(lastTokenOfType))
             {
-                _ = EatToken();
+                lastTokenOfType = EatToken();
             }
 
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
             {
+                // Even though this function pointer type is incomplete, we know that it
+                // must be the start of a type, as there is no other possible interpretation
+                // of delegate*. By always treating it as a type, we ensure that any disambiguation
+                // done in later parsing treats this as a type, which will produce better
+                // errors at later stages.
                 return ScanTypeFlags.MustBeType;
             }
 
-            _ = EatToken(SyntaxKind.LessThanToken);
+            var validStartingToken = EatToken().Kind == SyntaxKind.LessThanToken;
 
             var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFunctionPointerParameterList;
+            _termState |= validStartingToken ? TerminatorState.IsEndOfFunctionPointerParameterList : TerminatorState.IsEndOfFunctionPointerParameterListErrored;
 
             try
             {
                 do
                 {
-                    while (IsFunctionPointerParameterModifier())
+                    var ignoredModifiers = _pool.Allocate<SyntaxToken>();
+                    try
                     {
-                        _ = EatToken();
+                        ParseParameterModifiers(ignoredModifiers, isFunctionPointerParameter: true);
+                    }
+                    finally
+                    {
+                        _pool.Free(ignoredModifiers);
                     }
 
                     _ = ScanType(out _);
@@ -5930,14 +5945,21 @@ done:
                 _termState = saveTerm;
             }
 
-            lastTokenOfType = EatToken(SyntaxKind.GreaterThanToken);
+            if (!validStartingToken && CurrentToken.Kind == SyntaxKind.CloseParenToken)
+            {
+                lastTokenOfType = EatTokenAsKind(SyntaxKind.GreaterThanToken);
+            }
+            else
+            {
+                lastTokenOfType = EatToken(SyntaxKind.GreaterThanToken);
+            }
 
             return ScanTypeFlags.MustBeType;
 
             PostSkipAction skipBadFunctionPointerParameterTokens()
             {
                 return SkipBadTokensWithExpectedKind(isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken,
-                                                     abortFunction: p => p.CurrentToken.Kind == SyntaxKind.CommaToken || p.IsTerminator(),
+                                                     abortFunction: p => p.IsTerminator(),
                                                      expected: SyntaxKind.CommaToken, trailingTrivia: out _);
             }
         }
@@ -6353,25 +6375,27 @@ done:;
             var @delegate = EatToken(SyntaxKind.DelegateKeyword);
             var asterisk = EatToken(SyntaxKind.AsteriskToken);
             // Invalid calling conventions will be reported at type binding time
-            var callingConvention = IsPossibleCallingConvention() ? EatTokenAsKind(SyntaxKind.IdentifierToken, reportError: false) : null;
+            var callingConvention = IsPossibleCallingConvention(asterisk) ? EatToken() : null;
 
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
             {
                 var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
-                var typesError = _pool.AllocateSeparated<ModifiedType>();
-                var identifierError = AddError(CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected);
-                var typeError = SyntaxFactory.ModifiedType(default, identifierError);
-                typesError.Add(typeError);
-                var greaterThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.GreaterThanToken), GetExpectedTokenError(SyntaxKind.GreaterThanToken, SyntaxKind.None));
+                var missingTypes = _pool.AllocateSeparated<ModifiedType>();
+                var missingTypeName = CreateMissingIdentifierName();
+                var missingType = SyntaxFactory.ModifiedType(default, missingTypeName);
+                missingTypes.Add(missingType);
+                // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
+                // we we don't know for sure that the expression isn't a relational with something else.
+                var greaterThanTokenError = TryEatToken(SyntaxKind.GreaterThanToken) ?? SyntaxFactory.MissingToken(SyntaxKind.GreaterThanToken);
 
-                var funcPtr = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, lessThanTokenError, typesError, greaterThanTokenError);
-                _pool.Free(typesError);
+                var funcPtr = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, lessThanTokenError, missingTypes, greaterThanTokenError);
+                _pool.Free(missingTypes);
                 return funcPtr;
             }
 
-            var lessThanToken = EatToken(SyntaxKind.LessThanToken);
+            var lessThanToken = EatTokenAsKind(SyntaxKind.LessThanToken);
             var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfFunctionPointerParameterList;
+            _termState |= (lessThanToken.IsMissing ? TerminatorState.IsEndOfFunctionPointerParameterListErrored : TerminatorState.IsEndOfFunctionPointerParameterList);
             var types = _pool.AllocateSeparated<ModifiedType>();
 
             try
@@ -6381,10 +6405,7 @@ done:;
                     var modifiers = _pool.Allocate<SyntaxToken>();
                     try
                     {
-                        while (IsFunctionPointerParameterModifier())
-                        {
-                            modifiers.Add(EatToken());
-                        }
+                        ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
 
                         var parameterType = ParseTypeOrVoid();
                         types.Add(SyntaxFactory.ModifiedType(modifiers, parameterType));
@@ -6403,7 +6424,16 @@ done:;
                     }
                 }
 
-                var greaterThanToken = EatToken(SyntaxKind.GreaterThanToken);
+                SyntaxToken greaterThanToken;
+                if (lessThanToken.IsMissing && CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                {
+                    greaterThanToken = EatTokenAsKind(SyntaxKind.GreaterThanToken);
+                }
+                else
+                {
+                    greaterThanToken = EatToken(SyntaxKind.GreaterThanToken);
+                }
+
                 var funcPointer = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, lessThanToken, types, greaterThanToken);
                 funcPointer = CheckFeatureAvailability(funcPointer, MessageID.IDS_FeatureFunctionPointers);
                 return funcPointer;
@@ -6426,37 +6456,69 @@ done:;
             }
         }
 
-        private bool IsFunctionPointerParameterModifier()
-            => IsParameterModifier(CurrentToken.Kind) || CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword;
-
         private bool IsFunctionPointerStart()
             => CurrentToken.Kind == SyntaxKind.DelegateKeyword && PeekToken(1).Kind == SyntaxKind.AsteriskToken;
 
-        // We attempt to make error recovery a little nicer here by only treating a single
-        // identifier token as a calling convention if the token afterwords is actually a
-        // possible start to the function pointer parameter list. The intuition is that, for
-        // some partial trees like this:
-        //
-        //  (delegate*MyProperty.MyMethod();
-        //
-        // The user is actually in the middle of adding a cast, and if we interpreted MyProperty
-        // as a calling convention, we'd get a much worse set of errors than if we treated the
-        // function pointer as having no calling convention.
-        // Also for nicer error recovery, we only treat predefined types as if they could be the
-        // calling convention. For any other keyword, they're almost certainly part of some other
-        // construct, and would produce better errors if parsed separately. The user could have this:
-        //
-        // delegate* // Declaration in progress
-        // while (true) {}
-        //
-        // The parse tree will look much better if the while(true) is considered a separate structure,
-        // even though it does look like it could be the start of an invalid function pointer definition.
-        private bool IsPossibleCallingConvention()
-            => !IsPossibleFunctionPointerParameterListStart(CurrentToken) &&
-               IsPossibleFunctionPointerParameterListStart(PeekToken(1)) &&
-               // Treat predefined types as possible calling conventions, as they're a single
-               // token. This will be a semantic error, but it'll result in a nicer parse tree.
-               (CurrentToken.Kind == SyntaxKind.IdentifierToken || IsPredefinedType(CurrentToken.Kind));
+        private bool IsPossibleCallingConvention(SyntaxToken asteriskToken)
+        {
+            if (IsPossibleFunctionPointerParameterListStart(CurrentToken))
+            {
+                return false;
+            }
+
+            // If the next token is a known function pointer calling convention, treat it as a
+            // calling convention no matter what. If it wasn't intended to be a calling convention
+            // we'd have an error anyway, and it's more likely the user intended for it to be a
+            // function pointer convention than not.
+            // PROTOTYPE(func-ptr): refactor this out into a helper method to share with binding
+            switch (CurrentToken.Text)
+            {
+                case "cdecl":
+                case "managed":
+                case "unmanaged":
+                case "thiscall":
+                case "stdcall":
+                    return true;
+            }
+
+            // For nicer error recovery, we only treat predefined types and identifiers as if they could be the
+            // calling convention. For any other keyword, they're almost certainly part of some other
+            // construct, and would produce better errors if parsed separately. The user could have this:
+            //
+            // delegate* /* Declaration in progress */ while (true) {}
+            //
+            // The parse tree will look much better if the while(true) is considered a separate structure,
+            // even though it does look like it could be the start of an invalid function pointer definition.
+            if (CurrentToken.Kind != SyntaxKind.IdentifierToken && !IsPredefinedType(CurrentToken.Kind))
+            {
+                return false;
+            }
+
+            // If the asterisk was at the end of the previous line and it's not a valid calling convention,
+            // chances are anything on a new line should not be considered part of the function pointer.
+            // For example:
+            //
+            // delegate*
+            // int myValue = 1;
+            //
+            // would be better interpreted if the int myValue = 1 is considered separately
+            if (asteriskToken.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
+            {
+                return false;
+            }
+
+            // We attempt to make error recovery a little nicer here by only treating a single
+            // identifier token as a calling convention if the token afterwards is actually a
+            // possible start to the function pointer parameter list. The intuition is that, for
+            // some partial trees like this:
+            //
+            //  (delegate*MyProperty.MyMethod();
+            //
+            // The user is actually in the middle of adding a cast, and if we interpreted MyProperty
+            // as a calling convention, we'd get a much worse set of errors than if we treated the
+            // function pointer as having no calling convention.
+            return IsPossibleFunctionPointerParameterListStart(PeekToken(1));
+        }
 
         private static bool IsPossibleFunctionPointerParameterListStart(SyntaxToken token)
             // We consider both ( and < to be possible starts, in order to make error recovery more graceful

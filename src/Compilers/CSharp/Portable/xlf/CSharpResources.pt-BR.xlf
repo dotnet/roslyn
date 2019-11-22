@@ -242,11 +242,6 @@
         <target state="new">'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'unmanaged', 'thiscall', and 'stdcall'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InvalidFunctionPointerCallingConvention_Title">
-        <source>Invalid function pointer calling convention.</source>
-        <target state="new">Invalid function pointer calling convention.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Nome de algoritmo de hash inválido: '{0}'</target>

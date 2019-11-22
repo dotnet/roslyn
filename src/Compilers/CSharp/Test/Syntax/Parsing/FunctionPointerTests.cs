@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken);
+                        N(conventionString == "void" ? SyntaxKind.VoidKeyword : SyntaxKind.IdentifierToken);
                         N(SyntaxKind.LessThanToken);
                         N(SyntaxKind.ModifiedType);
                         {
@@ -585,13 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("delegate* ptr;", options: TestOptions.RegularPreview,
                     // (1,11): error CS1003: Syntax error, '<' expected
                     // delegate* ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 11),
-                    // (1,11): error CS1031: Type expected
-                    // delegate* ptr;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "ptr").WithLocation(1, 11),
-                    // (1,11): error CS1003: Syntax error, '>' expected
-                    // delegate* ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments(">", "").WithLocation(1, 11));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 11));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -624,15 +618,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void Unterminated_06()
         {
             UsingStatement("delegate* cdecl ;", options: TestOptions.RegularPreview,
-                    // (1,11): error CS1003: Syntax error, '<' expected
+                    // (1,17): error CS1003: Syntax error, '<' expected
                     // delegate* cdecl ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "cdecl").WithArguments("<", "").WithLocation(1, 11),
-                    // (1,11): error CS1031: Type expected
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 17),
+                    // (1,17): error CS1001: Identifier expected
                     // delegate* cdecl ;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "cdecl").WithLocation(1, 11),
-                    // (1,11): error CS1003: Syntax error, '>' expected
-                    // delegate* cdecl ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "cdecl").WithArguments(">", "").WithLocation(1, 11));
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 17));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -641,6 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.IdentifierToken, "cdecl");
                         M(SyntaxKind.LessThanToken);
                         M(SyntaxKind.ModifiedType);
                         {
@@ -651,9 +643,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.VariableDeclarator);
+                    M(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken, "cdecl");
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -665,18 +657,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void Unterminated_07()
         {
             UsingStatement("delegate* cdecl ptr;", options: TestOptions.RegularPreview,
-                    // (1,11): error CS1003: Syntax error, '<' expected
+                    // (1,17): error CS1003: Syntax error, '<' expected
                     // delegate* cdecl ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "cdecl").WithArguments("<", "").WithLocation(1, 11),
-                    // (1,11): error CS1031: Type expected
-                    // delegate* cdecl ptr;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "cdecl").WithLocation(1, 11),
-                    // (1,11): error CS1003: Syntax error, '>' expected
-                    // delegate* cdecl ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "cdecl").WithArguments(">", "").WithLocation(1, 11),
-                    // (1,17): error CS1003: Syntax error, ',' expected
-                    // delegate* cdecl ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments(",", "").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 17));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -685,6 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.IdentifierToken, "cdecl");
                         M(SyntaxKind.LessThanToken);
                         M(SyntaxKind.ModifiedType);
                         {
@@ -697,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken, "cdecl");
+                        N(SyntaxKind.IdentifierToken, "ptr");
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -712,12 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     // (1,11): error CS1003: Syntax error, '<' expected
                     // delegate* ;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 11),
-                    // (1,11): error CS1031: Type expected
-                    // delegate* ;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 11),
-                    // (1,11): error CS1003: Syntax error, '>' expected
-                    // delegate* ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", "").WithLocation(1, 11),
                     // (1,11): error CS1001: Identifier expected
                     // delegate* ;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 11));
@@ -756,12 +734,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     // (1,11): error CS1003: Syntax error, '<' expected
                     // delegate* Dotted.Name<void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "Dotted").WithArguments("<", "").WithLocation(1, 11),
-                    // (1,11): error CS1031: Type expected
-                    // delegate* Dotted.Name<void> ptr;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "Dotted").WithLocation(1, 11),
-                    // (1,11): error CS1003: Syntax error, '>' expected
-                    // delegate* Dotted.Name<void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Dotted").WithArguments(">", "").WithLocation(1, 11),
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // delegate* Dotted.Name<void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(1, 17));
@@ -786,6 +758,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     N(SyntaxKind.VariableDeclarator);
                     {
                         N(SyntaxKind.IdentifierToken, "Dotted");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Unterminated_10()
+        {
+            UsingStatement("delegate*( ;", options: TestOptions.RegularPreview,
+                    // (1,10): error CS1003: Syntax error, '<' expected
+                    // delegate*( ;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
+                    // (1,12): error CS1031: Type expected
+                    // delegate*( ;
+                    Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
+                    // (1,12): error CS1003: Syntax error, '>' expected
+                    // delegate*( ;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 12),
+                    // (1,12): error CS1001: Identifier expected
+                    // delegate*( ;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 12));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        M(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.ModifiedType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -835,12 +851,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*(int, void)
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
-                    // (1,16): error CS1547: Keyword 'void' cannot be used in this context
+                    // (1,20): error CS1003: Syntax error, '>' expected
                     // delegate*(int, void)
-                    Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(1, 16),
-                    // (1,21): error CS1003: Syntax error, '>' expected
-                    // delegate*(int, void)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "").WithLocation(1, 21),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(">", ")").WithLocation(1, 20),
                     // (1,21): error CS1001: Identifier expected
                     // delegate*(int, void)
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 21),
@@ -858,25 +871,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         M(SyntaxKind.LessThanToken);
                         N(SyntaxKind.ModifiedType);
                         {
-                            N(SyntaxKind.TupleType);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.VoidKeyword);
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ModifiedType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
                             }
                         }
                         M(SyntaxKind.GreaterThanToken);
@@ -2146,12 +2151,6 @@ o switch
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 10),
-                    // (1,10): error CS1031: Type expected
-                    // delegate*void> ptr;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "void").WithLocation(1, 10),
-                    // (1,10): error CS1003: Syntax error, '>' expected
-                    // delegate*void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(">", "").WithLocation(1, 10),
                     // (1,10): error CS1001: Identifier expected
                     // delegate*void> ptr;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "void").WithLocation(1, 10),
@@ -2190,15 +2189,12 @@ o switch
         public void MissingListStart_02()
         {
             UsingStatement("delegate* cdecl void> ptr;", options: TestOptions.RegularPreview,
-                    // (1,11): error CS1003: Syntax error, '<' expected
+                    // (1,17): error CS1003: Syntax error, '<' expected
                     // delegate* cdecl void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "cdecl").WithArguments("<", "").WithLocation(1, 11),
-                    // (1,11): error CS1031: Type expected
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 17),
+                    // (1,17): error CS1001: Identifier expected
                     // delegate* cdecl void> ptr;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "cdecl").WithLocation(1, 11),
-                    // (1,11): error CS1003: Syntax error, '>' expected
-                    // delegate* cdecl void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "cdecl").WithArguments(">", "").WithLocation(1, 11),
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "void").WithLocation(1, 17),
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // delegate* cdecl void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",", "void").WithLocation(1, 17));
@@ -2210,53 +2206,7 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.ModifiedType);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.GreaterThanToken);
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
                         N(SyntaxKind.IdentifierToken, "cdecl");
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void MissingListStart_03()
-        {
-            UsingStatement("delegate*> ptr;", options: TestOptions.RegularPreview,
-                    // (1,10): error CS1003: Syntax error, '<' expected
-                    // delegate*> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("<", "").WithLocation(1, 10),
-                    // (1,10): error CS1031: Type expected
-                    // delegate*> ptr;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(1, 10),
-                    // (1,10): error CS1003: Syntax error, '>' expected
-                    // delegate*> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(">", "").WithLocation(1, 10),
-                    // (1,10): error CS1001: Identifier expected
-                    // delegate*> ptr;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 10),
-                    // (1,10): error CS1003: Syntax error, ',' expected
-                    // delegate*> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(1, 10));
-            N(SyntaxKind.LocalDeclarationStatement);
-            {
-                N(SyntaxKind.VariableDeclaration);
-                {
-                    N(SyntaxKind.FunctionPointerType);
-                    {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
                         M(SyntaxKind.ModifiedType);
                         {
@@ -2270,6 +2220,41 @@ o switch
                     M(SyntaxKind.VariableDeclarator);
                     {
                         M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingListStart_03()
+        {
+            UsingStatement("delegate*> ptr;", options: TestOptions.RegularPreview,
+                    // (1,10): error CS1003: Syntax error, '<' expected
+                    // delegate*> ptr;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("<", "").WithLocation(1, 10));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        M(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.ModifiedType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -2575,6 +2560,341 @@ void M()
                                 N(SyntaxKind.VariableDeclarator);
                                 {
                                     N(SyntaxKind.IdentifierToken, "ptr");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IncompleteAtEndOfFile()
+        {
+            UsingStatement("delegate*", options: TestOptions.RegularPreview,
+                    // (1,10): error CS1003: Syntax error, '<' expected
+                    // delegate*
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 10),
+                    // (1,10): error CS1001: Identifier expected
+                    // delegate*
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
+                    // (1,10): error CS1002: ; expected
+                    // delegate*
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        M(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.ModifiedType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IncompleteAtEndOfFileWithIdentifier()
+        {
+            UsingStatement("delegate* cdecl", options: TestOptions.RegularPreview,
+                    // (1,11): error CS1003: Syntax error, '<' expected
+                    // delegate* cdecl
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 16),
+                    // (1,16): error CS1001: Identifier expected
+                    // delegate* cdecl
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                    // (1,16): error CS1002: ; expected
+                    // delegate* cdecl
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.IdentifierToken, "cdecl");
+                        M(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.ModifiedType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MixedParensAndAngles_01()
+        {
+            UsingStatement("delegate* cdecl<void) ptr;", options: TestOptions.RegularPreview,
+                    // (1,21): error CS1003: Syntax error, ',' expected
+                    // delegate* cdecl<void) ptr;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(1, 21),
+                    // (1,26): error CS1003: Syntax error, '>' expected
+                    // delegate* cdecl<void) ptr;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 26),
+                    // (1,26): error CS1001: Identifier expected
+                    // delegate* cdecl<void) ptr;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.IdentifierToken, "cdecl");
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.ModifiedType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MixedParensAndAngles_02()
+        {
+            UsingStatement("delegate* cdecl(void> ptr;", options: TestOptions.RegularPreview,
+                    // (1,16): error CS1003: Syntax error, '<' expected
+                    // delegate* cdecl(void> ptr;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 16),
+                    // (1,21): error CS1003: Syntax error, ',' expected
+                    // delegate* cdecl(void> ptr;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(1, 21),
+                    // (1,26): error CS1003: Syntax error, '>' expected
+                    // delegate* cdecl(void> ptr;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 26),
+                    // (1,26): error CS1001: Identifier expected
+                    // delegate* cdecl(void> ptr;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.IdentifierToken, "cdecl");
+                        M(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.ModifiedType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [InlineData("cdecl")]
+        [InlineData("unmanaged")]
+        [InlineData("managed")]
+        [InlineData("stdcall")]
+        [InlineData("thiscall")]
+        [Theory]
+        public void ValidCallingConventionNextLine(string convention)
+        {
+            UsingNode($@"
+void C()
+{{
+    delegate*
+    {convention}
+}}", options: TestOptions.RegularPreview,
+                    // (5,10): error CS1003: Syntax error, '<' expected
+                    //     {convention}
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(5, convention.Length + 5),
+                    // (5,10): error CS1001: Identifier expected
+                    //     {convention}
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, convention.Length + 5),
+                    // (5,10): error CS1002: ; expected
+                    //     {convention}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, convention.Length + 5));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.IdentifierToken, convention);
+                                    M(SyntaxKind.LessThanToken);
+                                    M(SyntaxKind.ModifiedType);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                                M(SyntaxKind.VariableDeclarator);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void InvalidCallingConventionNextLine()
+        {
+            UsingNode(@"
+void C()
+{
+    delegate*
+    int ptr = 1;
+}", options: TestOptions.RegularPreview,
+                    // (4,14): error CS1003: Syntax error, '<' expected
+                    //     delegate*
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(4, 14),
+                    // (4,14): error CS1001: Identifier expected
+                    //     delegate*
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 14),
+                    // (4,14): error CS1002: ; expected
+                    //     delegate*
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 14));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    M(SyntaxKind.LessThanToken);
+                                    M(SyntaxKind.ModifiedType);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                                M(SyntaxKind.VariableDeclarator);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ptr");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                    }
                                 }
                             }
                             N(SyntaxKind.SemicolonToken);
