@@ -205,6 +205,6 @@ stages:
     stageName: 'NET_Internal_Tooling_Publishing'
     channelName: '.NET Internal Tooling'
     channelId: 551
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-internal/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-internal/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-internal-symbols/nuget/v3/index.json'
+    transportFeed: 'https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet-tools-internal/nuget/v3/index.json'
+    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet-tools-internal/nuget/v3/index.json'
+    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet-tools-internal-symbols/nuget/v3/index.json'
