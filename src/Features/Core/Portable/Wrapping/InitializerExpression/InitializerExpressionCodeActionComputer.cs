@@ -63,7 +63,17 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     return string.Empty;
                 }
 
-                var afterInitialStatementOffset = OriginalSourceText.GetOffset(initialStatement.SpanStart);
+                var initialStatementOffset = initialStatement.SpanStart;
+                if (generator.GetDeclarationKind(initialStatement) == DeclarationKind.Method)
+                {
+                    // If we didn't find some form of declaration and are in a method body
+                    // the initializer must be in a return statement. Therefore, add a tab
+                    // to align the end brace with the return keyword
+                    initialStatementOffset += TabSize;
+                }
+
+
+                var afterInitialStatementOffset = OriginalSourceText.GetOffset(initialStatementOffset);
 
                 var indentString = afterInitialStatementOffset.CreateIndentationString(UseTabs, TabSize);
                 return indentString;

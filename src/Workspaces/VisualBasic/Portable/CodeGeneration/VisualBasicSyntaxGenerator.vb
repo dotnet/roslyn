@@ -1989,9 +1989,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DeclarationKind.RemoveAccessor
                 Case SyntaxKind.RaiseEventAccessorBlock
                     Return DeclarationKind.RaiseAccessor
-                Case SyntaxKind.ReturnKeyword
-                Case SyntaxKind.ReturnStatement
-                    Return DeclarationKind.Return
             End Select
             Return DeclarationKind.None
         End Function
