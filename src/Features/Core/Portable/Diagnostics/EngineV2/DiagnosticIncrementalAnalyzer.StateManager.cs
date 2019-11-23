@@ -22,25 +22,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private partial class StateManager
         {
-            private readonly HostAnalyzerManager _analyzerManager;
+            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
-            // maps language name to analyzers and their state:
-            private ImmutableDictionary<string, HostAnalyzerStateSets> _hostStateMap;
+            /// <summary>
+            /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
+            /// Maps language name to the analyzers and their state.
+            /// </summary>
+            private ImmutableDictionary<string, HostAnalyzerStateSets> _hostAnalyzerStateMap;
 
-            // project level analyzers
-            private readonly ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets> _projectStateMap;
+            /// <summary>
+            /// Analyzers referenced by the project via a PackageReference.
+            /// </summary>
+            private readonly ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
 
             /// <summary>
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(HostAnalyzerManager analyzerManager)
+            public StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
-                _analyzerManager = analyzerManager;
+                _analyzerInfoCache = analyzerInfoCache;
 
-                _hostStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
-                _projectStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
+                _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
+                _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
             }
 
             /// <summary>
@@ -60,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var hostStateSets = GetAllHostStateSets();
 
-                return _projectStateMap.TryGetValue(projectId, out var entry) ?
+                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry) ?
                     hostStateSets.Concat(entry.StateSetMap.Values) :
                     hostStateSets;
             }
@@ -142,13 +147,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var hostStateSetMap = hostStateSets.ToDictionary(s => s.Analyzer, s => s);
 
                 // create project analyzer reference identity map
-                var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerManager.GetAnalyzerReferenceIdentity(r)).ToSet();
+                var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerInfoCache.GetAnalyzerReferenceIdentity(r)).ToSet();
 
                 // create build only stateSet array
                 var stateSets = ImmutableArray.CreateBuilder<StateSet>();
 
                 // we always include compiler analyzer in build only state
-                var compilerAnalyzer = _analyzerManager.GetCompilerDiagnosticAnalyzer(project.Language);
+                var compilerAnalyzer = _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer == null)
                 {
                     // only way to get here is if MEF is corrupted.
@@ -164,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets.AddRange(GetOrUpdateProjectAnalyzerMap(project).Values);
 
                 // now add analyzers that exist in both host and project
-                var analyzerMap = _analyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language);
+                var analyzerMap = _analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
                 foreach (var (identity, analyzers) in analyzerMap)
                 {
                     if (!referenceIdentities.Contains(identity))
@@ -243,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     removed |= stateSet.OnProjectRemoved(projectId);
                 }
 
-                _projectStateMap.TryRemove(projectId, out _);
+                _projectAnalyzerStateMap.TryRemove(projectId, out _);
                 return removed;
             }
 
@@ -253,9 +258,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                HostAnalyzerManager analyzerManager, string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
+                DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
             {
-                var compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
+                var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
 
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
                 foreach (var analyzers in analyzerCollection)
@@ -263,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var analyzer in analyzers)
                     {
                         // TODO: 
-                        // #1, all de-duplication should move to HostAnalyzerManager
+                        // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
                         // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
                         //     if user deliberately put same analyzer twice.
                         if (builder.ContainsKey(analyzer))
@@ -272,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         var buildToolName = analyzer == compilerAnalyzer ?
-                            PredefinedBuildTools.Live : GetBuildToolName(analyzerManager, language, analyzer);
+                            PredefinedBuildTools.Live : GetBuildToolName(analyzerInfoCache, language, analyzer);
 
                         builder.Add(analyzer, new StateSet(language, analyzer, buildToolName));
                     }
@@ -281,9 +286,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToImmutable();
             }
 
-            private static string GetBuildToolName(HostAnalyzerManager analyzerManager, string language, DiagnosticAnalyzer analyzer)
+            private static string GetBuildToolName(DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, DiagnosticAnalyzer analyzer)
             {
-                var packageName = analyzerManager.GetDiagnosticAnalyzerPackageName(language, analyzer);
+                var packageName = analyzerInfoCache.GetDiagnosticAnalyzerPackageName(language, analyzer);
                 if (packageName == null)
                 {
                     return analyzer.GetAnalyzerAssemblyName();

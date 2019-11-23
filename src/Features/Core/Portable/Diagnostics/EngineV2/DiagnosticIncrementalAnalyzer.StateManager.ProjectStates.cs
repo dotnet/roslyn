@@ -42,12 +42,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetAllProjectStateSets()
             {
                 // return existing state sets
-                return _projectStateMap.Values.SelectMany(e => e.StateSetMap.Values).ToImmutableArray();
+                return _projectAnalyzerStateMap.Values.SelectMany(e => e.StateSetMap.Values).ToImmutableArray();
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, StateSet>? TryGetProjectStateSetMap(Project project)
             {
-                if (_projectStateMap.TryGetValue(project.Id, out var entry) && entry.AnalyzerReferences.Equals(project.AnalyzerReferences))
+                // check if the analyzer references have changed since the last time we updated the map:
+                if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry) &&
+                    entry.AnalyzerReferences.Equals(project.AnalyzerReferences))
                 {
                     return entry.StateSetMap;
                 }
@@ -70,27 +72,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
                 }
 
-                var analyzersPerReference = _analyzerManager.CreateProjectDiagnosticAnalyzersPerReference(project);
+                var analyzersPerReference = _analyzerInfoCache.CreateProjectDiagnosticAnalyzersPerReference(project);
                 if (analyzersPerReference.Count == 0)
                 {
                     return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
                 }
 
-                return CreateStateSetMap(_analyzerManager, project.Language, analyzersPerReference.Values);
+                return CreateStateSetMap(_analyzerInfoCache, project.Language, analyzersPerReference.Values);
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateProjectAnalyzerMap(Project project)
                 => TryGetProjectStateSetMap(project) ?? UpdateProjectAnalyzerMap(project);
 
+            /// <summary>
+            /// Updates the map to the given project snapshot.
+            /// </summary>
             private ImmutableDictionary<DiagnosticAnalyzer, StateSet> UpdateProjectAnalyzerMap(Project project)
             {
-                var newAnalyzersPerReference = _analyzerManager.CreateProjectDiagnosticAnalyzersPerReference(project);
-                var newMap = CreateStateSetMap(_analyzerManager, project.Language, newAnalyzersPerReference.Values);
+                var newAnalyzersPerReference = _analyzerInfoCache.CreateProjectDiagnosticAnalyzersPerReference(project);
+                var newMap = CreateStateSetMap(_analyzerInfoCache, project.Language, newAnalyzersPerReference.Values);
 
                 RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
 
                 // update cache. 
-                _projectStateMap[project.Id] = new ProjectAnalyzerStateSets(project.AnalyzerReferences, newAnalyzersPerReference, newMap);
+                _projectAnalyzerStateMap[project.Id] = new ProjectAnalyzerStateSets(project.AnalyzerReferences, newAnalyzersPerReference, newMap);
 
                 VerifyProjectDiagnosticStates(newMap.Values);
 
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference,
                 ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
             {
-                if (!_projectStateMap.TryGetValue(project.Id, out var entry))
+                if (!_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
                 {
                     // no previous references and we still don't have any references
                     if (newMap.Count == 0)
@@ -146,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var builder = ImmutableArray.CreateBuilder<StateSet>();
                 foreach (var reference in references)
                 {
-                    var referenceIdentity = _analyzerManager.GetAnalyzerReferenceIdentity(reference);
+                    var referenceIdentity = _analyzerInfoCache.GetAnalyzerReferenceIdentity(reference);
                     // check duplication
                     if (!mapPerReference.TryGetValue(referenceIdentity, out var analyzers))
                     {

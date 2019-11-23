@@ -37,27 +37,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
         internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
-        internal HostAnalyzerManager HostAnalyzerManager { get; }
+        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
         internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
 
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
             int correlationId,
             Workspace workspace,
-            HostAnalyzerManager hostAnalyzerManager,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             Contract.ThrowIfNull(analyzerService);
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            HostAnalyzerManager = hostAnalyzerManager;
+            DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             DiagnosticLogAggregator = new DiagnosticLogAggregator(analyzerService);
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(hostAnalyzerManager);
+            _stateManager = new StateManager(analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(AnalyzerService, HostDiagnosticUpdateSource);

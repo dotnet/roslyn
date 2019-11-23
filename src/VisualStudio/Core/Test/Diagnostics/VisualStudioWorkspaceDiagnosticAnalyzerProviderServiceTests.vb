@@ -52,11 +52,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim analyzerPackage = New HostDiagnosticAnalyzerPackage("MyPackage", ImmutableArray.Create(analyzerFile.Path))
                 Dim analyzerPackages = ImmutableArray.Create(analyzerPackage)
                 Dim analyzerLoader = VisualStudioDiagnosticAnalyzerProvider.GetLoader()
-                Dim hostAnalyzerManager = New HostAnalyzerManager(New Lazy(Of ImmutableArray(Of HostDiagnosticAnalyzerPackage))(
+                Dim hostAnalyzerManager = New DiagnosticAnalyzerInfoCache(New Lazy(Of ImmutableArray(Of HostDiagnosticAnalyzerPackage))(
                                                                   Function() analyzerPackages), analyzerLoader,
                                                                   hostDiagnosticUpdateSource:=Nothing,
                                                                   primaryWorkspace:=Nothing)
-                Dim analyzerReferenceMap = hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(LanguageNames.CSharp)
+                Dim analyzerReferenceMap = hostAnalyzerManager.GetOrCreateHostDiagnosticAnalyzersPerReference(LanguageNames.CSharp)
                 Assert.Single(analyzerReferenceMap)
                 Dim analyzers = analyzerReferenceMap.Single().Value
                 Assert.Single(analyzers)

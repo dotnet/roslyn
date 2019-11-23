@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             public IEnumerable<StateSet> GetAllHostStateSets()
-                => _hostStateMap.Values.SelectMany(v => v.OrderedStateSets);
+                => _hostAnalyzerStateMap.Values.SelectMany(v => v.OrderedStateSets);
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(string language)
             {
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, HostAnalyzerManager analyzerManager)
+                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, DiagnosticAnalyzerInfoCache analyzerInfoCache)
                 {
-                    var analyzersPerReference = analyzerManager.GetHostDiagnosticAnalyzersPerReference(language);
+                    var analyzersPerReference = analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(analyzerManager, language, analyzersPerReference.Values);
+                    var analyzerMap = CreateStateSetMap(analyzerInfoCache, language, analyzersPerReference.Values);
                     VerifyUniqueStateNames(analyzerMap.Values);
 
-                    return new HostAnalyzerStateSets(analyzerManager, language, analyzerMap);
+                    return new HostAnalyzerStateSets(analyzerInfoCache, language, analyzerMap);
                 }
 
-                return ImmutableInterlocked.GetOrAdd(ref _hostStateMap, language, CreateLanguageSpecificAnalyzerMap, _analyzerManager);
+                return ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _analyzerInfoCache);
             }
 
             private sealed class HostAnalyzerStateSets
@@ -37,18 +37,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private const int BuiltInCompilerPriority = -2;
                 private const int RegularDiagnosticAnalyzerPriority = -1;
 
-                private readonly DiagnosticAnalyzer _compilerAnalyzer;
+                private readonly DiagnosticAnalyzer? _compilerAnalyzer;
 
                 // ordered by priority
                 public readonly ImmutableArray<StateSet> OrderedStateSets;
 
                 public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
 
-                public HostAnalyzerStateSets(HostAnalyzerManager analyzerManager, string language, ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
+                public HostAnalyzerStateSets(DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
                 {
                     StateSetMap = analyzerMap;
 
-                    _compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
+                    _compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
 
                     // order statesets
                     // order will be in this order

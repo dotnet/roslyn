@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly HostAnalyzerManager _hostAnalyzerManager;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
         private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
 
         public IAsynchronousOperationListener Listener { get; }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             PrimaryWorkspace primaryWorkspace,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener = null)
-            : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
+            : this(new DiagnosticAnalyzerInfoCache(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
                    hostDiagnosticUpdateSource,
                    registrationService,
                    listener)
@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // protected for testing purposes.
         protected DiagnosticAnalyzerService(
-            HostAnalyzerManager hostAnalyzerManager,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
             AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener = null)
             : this(registrationService)
         {
-            _hostAnalyzerManager = hostAnalyzerManager;
+            _analyzerInfoCache = analyzerInfoCache;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
         {
-            var map = _hostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project);
+            var map = _analyzerInfoCache.CreateDiagnosticAnalyzersPerReference(project);
             return map.Values.SelectMany(v => v).ToImmutableArray();
         }
 
@@ -84,16 +84,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (projectOpt == null)
             {
-                return ConvertReferenceIdentityToName(_hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference());
+                return ConvertReferenceIdentityToName(_analyzerInfoCache.GetHostDiagnosticDescriptorsPerReference());
             }
 
-            return ConvertReferenceIdentityToName(_hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt), projectOpt);
+            return ConvertReferenceIdentityToName(_analyzerInfoCache.CreateDiagnosticDescriptorsPerReference(projectOpt), projectOpt);
         }
 
         private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(
             ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference, Project? project = null)
         {
-            var map = _hostAnalyzerManager.CreateAnalyzerReferencesMap(project);
+            var map = _analyzerInfoCache.CreateAnalyzerReferencesMap(project);
 
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
 
@@ -127,12 +127,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            return _hostAnalyzerManager.GetDiagnosticDescriptors(analyzer);
+            return _analyzerInfoCache.GetDiagnosticDescriptors(analyzer);
         }
 
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
-            return _hostAnalyzerManager.IsAnalyzerSuppressed(analyzer, project);
+            return _analyzerInfoCache.IsAnalyzerSuppressed(analyzer, project);
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
@@ -258,17 +258,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
         {
-            return _hostAnalyzerManager.IsCompilerDiagnostic(language, diagnostic);
+            return _analyzerInfoCache.IsCompilerDiagnostic(language, diagnostic);
         }
 
-        public DiagnosticAnalyzer GetCompilerDiagnosticAnalyzer(string language)
+        public DiagnosticAnalyzer? GetCompilerDiagnosticAnalyzer(string language)
         {
-            return _hostAnalyzerManager.GetCompilerDiagnosticAnalyzer(language);
+            return _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
         }
 
         public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
         {
-            return _hostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer);
+            return _analyzerInfoCache.IsCompilerDiagnosticAnalyzer(language, analyzer);
         }
 
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IEnumerable<AnalyzerReference> GetHostAnalyzerReferences()
         {
             // CreateAnalyzerReferencesMap will return only host analyzer reference map if project is not specified.
-            return _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt: null).Values;
+            return _analyzerInfoCache.CreateAnalyzerReferencesMap(project: null).Values;
         }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)

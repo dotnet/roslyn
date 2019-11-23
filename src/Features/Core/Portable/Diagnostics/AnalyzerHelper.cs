@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static void OnAnalyzerExceptionForSupportedDiagnostics(DiagnosticAnalyzer analyzer, Exception exception, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        internal static void OnAnalyzerExceptionForSupportedDiagnostics(DiagnosticAnalyzer analyzer, Exception exception, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
         {
             if (exception is OperationCanceledException)
             {

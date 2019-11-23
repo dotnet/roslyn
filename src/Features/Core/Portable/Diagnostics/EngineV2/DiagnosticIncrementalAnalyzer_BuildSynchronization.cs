@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
             foreach (var stateSet in stateSets)
             {
-                var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
+                var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer);
 
                 var liveDiagnostics = MergeDiagnostics(
                     ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object),

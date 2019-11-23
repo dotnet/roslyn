@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// State for diagnostics that belong to a project at given time.
         /// </summary>
-        private class ProjectState
+        private sealed class ProjectState
         {
             private static readonly Task<StrongBox<ImmutableArray<DiagnosticData>>> s_emptyResultTaskCache =
                 Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty));

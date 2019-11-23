@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly IEnumerable<StateSet> _stateSets;
             private readonly CompilationWithAnalyzers? _compilation;
-            private readonly DiagnosticAnalyzer _compilerAnalyzer;
+            private readonly DiagnosticAnalyzer? _compilerAnalyzer;
 
             private readonly TextSpan _range;
             private readonly bool _blockForData;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _stateSets = stateSets;
                 _diagnosticId = diagnosticId;
                 _compilation = compilation;
-                _compilerAnalyzer = _owner.HostAnalyzerManager.GetCompilerDiagnosticAnalyzer(_document.Project.Language);
+                _compilerAnalyzer = _owner.DiagnosticAnalyzerInfoCache.GetCompilerDiagnosticAnalyzer(_document.Project.Language);
 
                 _range = range;
                 _blockForData = blockForData;

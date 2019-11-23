@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            var compilerAnalyzer = HostAnalyzerManager.GetCompilerDiagnosticAnalyzer(project.Language);
+            var compilerAnalyzer = DiagnosticAnalyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
             if (compilerAnalyzer == null)
             {
                 // this language doesn't support compiler analyzer
