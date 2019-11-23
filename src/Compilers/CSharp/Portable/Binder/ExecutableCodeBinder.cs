@@ -166,6 +166,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
                 }
+
+                var returnType = iterator.ReturnType;
+                bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(Compilation, iterator.RefKind, returnType);
+                if (asyncInterface && !iterator.IsAsync)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IteratorMustBeAsync, iterator.Locations[0], iterator, returnType);
+                }
             }
         }
     }

@@ -1053,18 +1053,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod, hasTrailingExpression: hasTrailingExpression, originalBodyNested: originalBodyNested);
                 }
 
+                bool hasErrors = _hasDeclarationErrors || diagsForCurrentMethod.HasAnyErrors() || processedInitializers.HasErrors;
+
+                // Record whether or not the bound tree for the lowered method body (including any initializers) contained any
+                // errors (note: errors, not diagnostics).
+                SetGlobalErrorIfTrue(hasErrors);
+
                 bool diagsWritten = false;
                 var actualDiagnostics = diagsForCurrentMethod.ToReadOnly();
                 if (sourceMethod != null)
                 {
                     actualDiagnostics = sourceMethod.SetDiagnostics(actualDiagnostics, out diagsWritten);
                 }
-
-                bool hasErrors = _hasDeclarationErrors || actualDiagnostics.HasAnyErrors() || processedInitializers.HasErrors;
-
-                // Record whether or not the bound tree for the lowered method body (including any initializers) contained any
-                // errors (note: errors, not diagnostics).
-                SetGlobalErrorIfTrue(hasErrors);
 
                 if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
                 {
