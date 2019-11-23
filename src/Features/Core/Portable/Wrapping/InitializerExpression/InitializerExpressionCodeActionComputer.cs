@@ -123,9 +123,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 var indentationTrivia = GetIndentationTrivia(wrappingStyle);
 
                 var edits = GetWrapEachEdits(wrappingStyle, indentationTrivia);
-                var title = GetNestedCodeActionTitle(wrappingStyle);
 
-                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+                return await TryCreateCodeActionAsync(edits, parentTitle, Wrapper.Indent_all_items).ConfigureAwait(false);
             }
 
             private SyntaxTrivia GetIndentationTrivia(WrappingStyle wrappingStyle)
@@ -134,13 +133,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     ? _afterOpenTokenIndentationTrivia
                     : _singleIndentationTrivia;
             }
-
-            private string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
-                => wrappingStyle switch
-                {
-                    WrappingStyle.WrapFirst_IndentRest => Wrapper.Indent_all_items,
-                    _ => throw ExceptionUtilities.UnexpectedValue(wrappingStyle),
-                };
 
             private ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
@@ -242,9 +234,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 var indentationTrivia = GetIndentationTrivia(wrappingStyle);
 
                 var edits = GetWrapLongLinesEdits(wrappingStyle, indentationTrivia);
-                var title = GetNestedCodeActionTitle(wrappingStyle);
 
-                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+                return await TryCreateCodeActionAsync(edits, parentTitle, Wrapper.Indent_all_items).ConfigureAwait(false);
             }
 
             private ImmutableArray<Edit> GetWrapLongLinesEdits(
