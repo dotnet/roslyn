@@ -94,11 +94,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
-                // Checks to see if selection includes a non-static local function call + if the given local function declaration is not included in the selection.
-                var containsNonStaticLocalFunctionCallNotWithinSpan = symbolMap.Keys.Any(s => s.IsLocalFunction() && !s.IsStatic && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
+                var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
 
-                // Checks to see if selection includes any local function calls and the associated declaration is not included in the selection.
-                var containsAnyLocalFunctionCallNotWithinSpan = symbolMap.Keys.Any(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
+                // Checks to see if selection includes a local function call + if the given local function declaration is not included in the selection.
+                var containsAnyLocalFunctionCallNotWithinSpan = localFunctionCallsNotWithinSpan.Any();
+                // Checks to see if selection includes a non-static local function call + if the given local function declaration is not included in the selection.
+                var containsNonStaticLocalFunctionCallNotWithinSpan = containsAnyLocalFunctionCallNotWithinSpan && localFunctionCallsNotWithinSpan.Where(s => !s.IsStatic).Any();
 
                 var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten || containsNonStaticLocalFunctionCallNotWithinSpan;
                 var shouldBeReadOnly = !isThisParameterWritten
@@ -953,15 +954,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return OperationStatus.Succeeded;
-            }
-
-            private bool IsInstanceMemberUsedInSelectedCode(DataFlowAnalysis dataFlowAnalysisData)
-            {
-                Contract.ThrowIfNull(dataFlowAnalysisData);
-
-                // "this" can be used as a lvalue in a struct, check WrittenInside as well
-                return dataFlowAnalysisData.ReadInside.Any(s => s.IsThisParameter()) ||
-                       dataFlowAnalysisData.WrittenInside.Any(s => s.IsThisParameter());
             }
 
             protected VariableInfo CreateFromSymbolCommon<T>(

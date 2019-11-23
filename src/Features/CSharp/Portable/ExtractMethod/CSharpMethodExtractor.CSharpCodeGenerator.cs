@@ -711,12 +711,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return enclosingMethod == methodSyntax;
                 }
 
-                async Task<SemanticDocument> CheckReturnOperations<TDeclarationNode>(
-                    TDeclarationNode node,
+                async Task<SemanticDocument> CheckReturnOperations(
+                    SyntaxNode node,
                     OperationStatus<IMethodSymbol> methodSymbolResult,
                     SemanticDocument originalDocument,
                     CancellationToken cancellationToken)
-                    where TDeclarationNode : SyntaxNode
                 {
                     var semanticModel = originalDocument.SemanticModel;
 
@@ -762,7 +761,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected SyntaxToken CreateMethodNameForStatementGenerators(bool localFunction)
             {
-                // change this to more smarter one.
                 var semanticModel = this.SemanticDocument.SemanticModel;
                 var nameGenerator = new UniqueNameGenerator(semanticModel);
                 var scope = this.CSharpSelectionResult.GetContainingScope();

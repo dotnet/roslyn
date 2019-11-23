@@ -3387,6 +3387,21 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInFieldInitializer_2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int [|a = 10;|]
+    int b = 5;
+
+    static void Main(string[] args)
+    {
+    }
+}", new TestParameters(index: CodeActionIndex));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInPropertyInitializer_Get()
         {
             var code = @"
