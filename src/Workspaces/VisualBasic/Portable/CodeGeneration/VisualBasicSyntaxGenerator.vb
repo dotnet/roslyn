@@ -4196,6 +4196,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return False
         End Function
 
+        Friend Overrides Function RequiresLocalDeclarationType() As Boolean
+            ' VB supports `dim x = ...` as well as `dim x as Y = ...`.  The local declaration type
+            ' is not required.
+            Return False
+        End Function
+
         Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
