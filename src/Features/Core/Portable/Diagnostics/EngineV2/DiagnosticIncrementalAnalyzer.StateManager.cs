@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,8 +23,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly HostAnalyzerManager _analyzerManager;
-            private readonly HostStates _hostStates;
-            private readonly ProjectStates _projectStates;
+
+            // maps language name to analyzers and their state:
+            private ImmutableDictionary<string, HostAnalyzerStateSets> _hostStateMap;
+
+            // project level analyzers
+            private readonly ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets> _projectStateMap;
 
             /// <summary>
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
@@ -34,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 _analyzerManager = analyzerManager;
 
-                _hostStates = new HostStates(this);
-                _projectStates = new ProjectStates(this);
+                _hostStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
+                _projectStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
             }
 
             /// <summary>
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetStateSets()
             {
-                return _hostStates.GetStateSets().Concat(_projectStates.GetStateSets());
+                return GetHostStateSets().Concat(GetProjectStateSets());
             }
 
             /// <summary>
@@ -53,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetStateSets(ProjectId projectId)
             {
-                return _hostStates.GetStateSets().Concat(_projectStates.GetStateSets(projectId));
+                return GetHostStateSets().Concat(GetProjectStateSets(projectId));
             }
 
             /// <summary>
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetOrUpdateStateSets(Project project)
             {
-                return _hostStates.GetOrCreateStateSets(project.Language).Concat(_projectStates.GetOrUpdateStateSets(project));
+                return GetOrCreateHostStateSets(project.Language).Concat(GetOrUpdateProjectStateSets(project));
             }
 
             /// <summary>
@@ -87,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetOrCreateStateSets(Project project)
             {
-                return _hostStates.GetOrCreateStateSets(project.Language).Concat(_projectStates.GetOrCreateStateSets(project));
+                return GetOrCreateHostStateSets(project.Language).Concat(GetOrCreateProjectStateSets(project));
             }
 
             /// <summary>
@@ -98,13 +103,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public StateSet GetOrCreateStateSet(Project project, DiagnosticAnalyzer analyzer)
             {
-                var stateSet = _hostStates.GetOrCreateStateSet(project.Language, analyzer);
+                var stateSet = GetOrCreateHostStateSet(project.Language, analyzer);
                 if (stateSet != null)
                 {
                     return stateSet;
                 }
 
-                return _projectStates.GetOrCreateStateSet(project, analyzer);
+                return GetOrCreateProjectStateSet(project, analyzer);
             }
 
             /// <summary>
@@ -118,14 +123,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // languages which don't use our compilation model but diagnostic framework,
                     // all their analyzer should be host analyzers. return all host analyzers
                     // for the language
-                    return _hostStates.GetOrCreateStateSets(project.Language).ToImmutableArray();
+                    return GetOrCreateHostStateSets(project.Language).ToImmutableArray();
                 }
 
                 // create project analyzer reference identity map
                 var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerManager.GetAnalyzerReferenceIdentity(r)).ToSet();
 
                 // now create analyzer to host stateset map
-                var hostStateSetMap = _hostStates.GetOrCreateStateSets(project.Language).ToDictionary(s => s.Analyzer, s => s);
+                var hostStateSetMap = GetOrCreateHostStateSets(project.Language).ToDictionary(s => s.Analyzer, s => s);
 
                 // create build only stateSet array
                 var stateSets = ImmutableArray.CreateBuilder<StateSet>();
@@ -144,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // now add all project analyzers
-                stateSets.AddRange(_projectStates.GetOrUpdateStateSets(project));
+                stateSets.AddRange(GetOrUpdateProjectStateSets(project));
 
                 // now add analyzers that exist in both host and project
                 var analyzerMap = _analyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language);
@@ -226,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     removed |= stateSet.OnProjectRemoved(projectId);
                 }
 
-                _projectStates.RemoveStateSet(projectId);
+                RemoveProjectStateSet(projectId);
                 return removed;
             }
 
@@ -281,18 +286,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             [Conditional("DEBUG")]
-            private static void VerifyDiagnosticStates(IEnumerable<StateSet> stateSets)
+            private static void VerifyUniqueStateNames(IEnumerable<StateSet> stateSets)
             {
                 // Ensure diagnostic state name is indeed unique.
                 var set = new HashSet<ValueTuple<string, string>>();
 
                 foreach (var stateSet in stateSets)
                 {
-                    if (!(set.Add(ValueTuple.Create(stateSet.Language, stateSet.StateName))))
-                    {
-                        Contract.Fail();
-                    }
+                    Contract.ThrowIfFalse(set.Add((stateSet.Language, stateSet.StateName)));
                 }
+            }
+
+            [Conditional("DEBUG")]
+            private void VerifyProjectDiagnosticStates(IEnumerable<StateSet> stateSets)
+            {
+                // We do not de-duplicate analyzer instances across host and project analyzers.
+                var projectAnalyzers = stateSets.Select(state => state.Analyzer).ToImmutableHashSet();
+
+                var hostStates = GetHostStateSets().Where(state => !projectAnalyzers.Contains(state.Analyzer));
+
+                VerifyUniqueStateNames(hostStates.Concat(stateSets));
             }
         }
     }
