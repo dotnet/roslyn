@@ -466,9 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            if (destinationMember is MemberDeclarationSyntax || destinationMember is LocalFunctionStatementSyntax)
+            if (destinationMember is MemberDeclarationSyntax memberDeclaration)
             {
-                return AddStatementsToMemberOrLocalFunctionDeclaration<TDeclarationNode>(destinationMember, statements);
+                return AddStatementsToMemberDeclaration<TDeclarationNode>(destinationMember, statements, memberDeclaration);
+            }
+            else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
+            {
+                return Cast<TDeclarationNode>(localFunctionDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
             }
             else
             {
@@ -516,44 +520,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             throw new ArgumentException(CSharpWorkspaceResources.No_available_location_found_to_add_statements_to);
         }
 
-        private static TDeclarationNode AddStatementsToMemberOrLocalFunctionDeclaration<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements) where TDeclarationNode : SyntaxNode
+        private static TDeclarationNode AddStatementsToMemberDeclaration<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, MemberDeclarationSyntax memberDeclaration) where TDeclarationNode : SyntaxNode
         {
-            if (destinationMember is MemberDeclarationSyntax memberDeclaration)
-            {
-                var finalBody = GetFinalBody(memberDeclaration.GetBody(), statements);
-                if (finalBody == null)
-                {
-                    return destinationMember;
-                }
-
-                var finalMember = memberDeclaration.WithBody(finalBody);
-                return Cast<TDeclarationNode>(finalMember);
-            }
-            else
-            {
-                var localFunctionDeclaration = Cast<LocalFunctionStatementSyntax>(destinationMember);
-                var finalBody = GetFinalBody(localFunctionDeclaration.Body, statements);
-                if (finalBody == null)
-                {
-                    return destinationMember;
-                }
-
-                var finalMember = localFunctionDeclaration.WithBody(finalBody);
-                return Cast<TDeclarationNode>(finalMember);
-            }
-        }
-
-        private static BlockSyntax GetFinalBody(BlockSyntax body, IEnumerable<SyntaxNode> statements)
-        {
+            var body = memberDeclaration.GetBody();
             if (body == null)
             {
-                return null;
+                return destinationMember;
             }
 
             var statementNodes = body.Statements.ToList();
             statementNodes.AddRange(StatementGenerator.GenerateStatements(statements));
 
-            return body.WithStatements(SyntaxFactory.List<StatementSyntax>(statementNodes));
+            var finalBody = body.WithStatements(SyntaxFactory.List<StatementSyntax>(statementNodes));
+            var finalMember = memberDeclaration.WithBody(finalBody);
+
+            return Cast<TDeclarationNode>(finalMember);
         }
 
         public override SyntaxNode CreateEventDeclaration(
