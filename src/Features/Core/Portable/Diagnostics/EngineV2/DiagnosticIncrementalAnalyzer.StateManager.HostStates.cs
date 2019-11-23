@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,28 +14,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         private partial class StateManager
         {
-            public IEnumerable<StateSet> GetHostStateSets()
-            {
-                return _hostStateMap.Values.SelectMany(v => v.GetStateSets());
-            }
+            public IEnumerable<StateSet> GetAllHostStateSets()
+                => _hostStateMap.Values.SelectMany(v => v.OrderedStateSets);
 
-            public IEnumerable<StateSet> GetOrCreateHostStateSets(string language)
-            {
-                return GetHostAnalyzerMap(language).GetStateSets();
-            }
-
-            public StateSet GetOrCreateHostStateSet(string language, DiagnosticAnalyzer analyzer)
-            {
-                return GetHostAnalyzerMap(language).GetStateSet(analyzer);
-            }
-
-            private HostAnalyzerStateSets GetHostAnalyzerMap(string language)
+            private HostAnalyzerStateSets GetOrCreateHostStateSets(string language)
             {
                 static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, HostAnalyzerManager analyzerManager)
                 {
                     var analyzersPerReference = analyzerManager.GetHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateAnalyzerMap(analyzerManager, language, analyzersPerReference.Values);
+                    var analyzerMap = CreateStateSetMap(analyzerManager, language, analyzersPerReference.Values);
                     VerifyUniqueStateNames(analyzerMap.Values);
 
                     return new HostAnalyzerStateSets(analyzerManager, language, analyzerMap);
@@ -49,31 +39,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private readonly DiagnosticAnalyzer _compilerAnalyzer;
 
-                private readonly ImmutableArray<StateSet> _orderedSet;
-                private readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> _map;
+                // ordered by priority
+                public readonly ImmutableArray<StateSet> OrderedStateSets;
+
+                public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
 
                 public HostAnalyzerStateSets(HostAnalyzerManager analyzerManager, string language, ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
                 {
-                    _map = analyzerMap;
+                    StateSetMap = analyzerMap;
 
                     _compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
 
                     // order statesets
                     // order will be in this order
                     // BuiltIn Compiler Analyzer (C#/VB) < Regular DiagnosticAnalyzers < Document/ProjectDiagnosticAnalyzers
-                    _orderedSet = _map.Values.OrderBy(PriorityComparison).ToImmutableArray();
-                }
-
-                public ImmutableArray<StateSet> GetStateSets() => _orderedSet;
-
-                public StateSet GetStateSet(DiagnosticAnalyzer analyzer)
-                {
-                    if (_map.TryGetValue(analyzer, out var stateSet))
-                    {
-                        return stateSet;
-                    }
-
-                    return null;
+                    OrderedStateSets = StateSetMap.Values.OrderBy(PriorityComparison).ToImmutableArray();
                 }
 
                 private int PriorityComparison(StateSet state1, StateSet state2)

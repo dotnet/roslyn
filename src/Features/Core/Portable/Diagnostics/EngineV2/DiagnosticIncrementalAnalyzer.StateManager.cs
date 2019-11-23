@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// Return all <see cref="StateSet"/>.
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>
-            public IEnumerable<StateSet> GetStateSets()
+            public IEnumerable<StateSet> GetAllStateSets()
             {
-                return GetHostStateSets().Concat(GetProjectStateSets());
+                return GetAllHostStateSets().Concat(GetAllProjectStateSets());
             }
 
             /// <summary>
@@ -58,7 +58,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetStateSets(ProjectId projectId)
             {
-                return GetHostStateSets().Concat(GetProjectStateSets(projectId));
+                var hostStateSets = GetAllHostStateSets();
+
+                return _projectStateMap.TryGetValue(projectId, out var entry) ?
+                    hostStateSets.Concat(entry.StateSetMap.Values) :
+                    hostStateSets;
             }
 
             /// <summary>
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetOrUpdateStateSets(Project project)
             {
-                return GetOrCreateHostStateSets(project.Language).Concat(GetOrUpdateProjectStateSets(project));
+                return GetOrCreateHostStateSets(project.Language).OrderedStateSets.Concat(GetOrUpdateProjectAnalyzerMap(project).Values);
             }
 
             /// <summary>
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public IEnumerable<StateSet> GetOrCreateStateSets(Project project)
             {
-                return GetOrCreateHostStateSets(project.Language).Concat(GetOrCreateProjectStateSets(project));
+                return GetOrCreateHostStateSets(project.Language).OrderedStateSets.Concat(GetOrCreateProjectStateSetMap(project).Values);
             }
 
             /// <summary>
@@ -101,15 +105,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// It will create new <see cref="StateSet"/> for the <see cref="Project"/>.
             /// This will not have any side effect.
             /// </summary>
-            public StateSet GetOrCreateStateSet(Project project, DiagnosticAnalyzer analyzer)
+            public StateSet? GetOrCreateStateSet(Project project, DiagnosticAnalyzer analyzer)
             {
-                var stateSet = GetOrCreateHostStateSet(project.Language, analyzer);
-                if (stateSet != null)
+                var hostStateSets = GetOrCreateHostStateSets(project.Language).StateSetMap;
+                if (hostStateSets.TryGetValue(analyzer, out var stateSet))
                 {
                     return stateSet;
                 }
 
-                return GetOrCreateProjectStateSet(project, analyzer);
+                var map = GetOrCreateProjectStateSetMap(project);
+                if (map.TryGetValue(analyzer, out var set))
+                {
+                    return set;
+                }
+
+                return null;
             }
 
             /// <summary>
@@ -118,19 +128,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
             {
+                var hostStateSets = GetOrCreateHostStateSets(project.Language).OrderedStateSets;
+
                 if (!project.SupportsCompilation)
                 {
                     // languages which don't use our compilation model but diagnostic framework,
                     // all their analyzer should be host analyzers. return all host analyzers
                     // for the language
-                    return GetOrCreateHostStateSets(project.Language).ToImmutableArray();
+                    return hostStateSets;
                 }
+
+                // now create analyzer to host stateset map
+                var hostStateSetMap = hostStateSets.ToDictionary(s => s.Analyzer, s => s);
 
                 // create project analyzer reference identity map
                 var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerManager.GetAnalyzerReferenceIdentity(r)).ToSet();
-
-                // now create analyzer to host stateset map
-                var hostStateSetMap = GetOrCreateHostStateSets(project.Language).ToDictionary(s => s.Analyzer, s => s);
 
                 // create build only stateSet array
                 var stateSets = ImmutableArray.CreateBuilder<StateSet>();
@@ -149,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // now add all project analyzers
-                stateSets.AddRange(GetOrUpdateProjectStateSets(project));
+                stateSets.AddRange(GetOrUpdateProjectAnalyzerMap(project).Values);
 
                 // now add analyzers that exist in both host and project
                 var analyzerMap = _analyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language);
@@ -231,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     removed |= stateSet.OnProjectRemoved(projectId);
                 }
 
-                RemoveProjectStateSet(projectId);
+                _projectStateMap.TryRemove(projectId, out _);
                 return removed;
             }
 
@@ -240,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ProjectAnalyzerReferenceChanged?.Invoke(this, args);
             }
 
-            private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateAnalyzerMap(
+            private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
                 HostAnalyzerManager analyzerManager, string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
             {
                 var compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
@@ -303,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // We do not de-duplicate analyzer instances across host and project analyzers.
                 var projectAnalyzers = stateSets.Select(state => state.Analyzer).ToImmutableHashSet();
 
-                var hostStates = GetHostStateSets().Where(state => !projectAnalyzers.Contains(state.Analyzer));
+                var hostStates = GetAllHostStateSets().Where(state => !projectAnalyzers.Contains(state.Analyzer));
 
                 VerifyUniqueStateNames(hostStates.Concat(stateSets));
             }

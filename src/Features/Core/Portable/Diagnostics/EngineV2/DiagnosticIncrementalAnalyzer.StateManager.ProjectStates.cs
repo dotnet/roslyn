@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,107 +15,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         private partial class StateManager
         {
-            public IEnumerable<StateSet> GetProjectStateSets()
+            private readonly struct ProjectAnalyzerStateSets
+            {
+                public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
+
+                // maps analyzer reference id to list of analyzers loaded from the reference
+                public readonly ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;
+
+                public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
+
+                public ProjectAnalyzerStateSets(
+                    IReadOnlyList<AnalyzerReference> analyzerReferences,
+                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
+                    ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
+                {
+                    Contract.ThrowIfNull(analyzerReferences);
+                    Contract.ThrowIfNull(mapPerReferences);
+                    Contract.ThrowIfNull(analyzerMap);
+
+                    AnalyzerReferences = analyzerReferences;
+                    MapPerReferences = mapPerReferences;
+                    StateSetMap = analyzerMap;
+                }
+            }
+
+            public IEnumerable<StateSet> GetAllProjectStateSets()
             {
                 // return existing state sets
-                return _projectStateMap.Values.SelectMany(e => e.AnalyzerMap.Values).ToImmutableArray();
+                return _projectStateMap.Values.SelectMany(e => e.StateSetMap.Values).ToImmutableArray();
             }
 
-            public IEnumerable<StateSet> GetProjectStateSets(ProjectId projectId)
+            private ImmutableDictionary<DiagnosticAnalyzer, StateSet>? TryGetProjectStateSetMap(Project project)
             {
-                var map = GetCachedProjectAnalyzerMap(projectId);
-                return map.Values;
-            }
-
-            public IEnumerable<DiagnosticAnalyzer> GetOrCreateProjectAnalyzers(Project project)
-            {
-                var map = GetOrCreateProjectAnalyzerMap(project);
-                return map.Keys;
-            }
-
-            public IEnumerable<StateSet> GetOrUpdateProjectStateSets(Project project)
-            {
-                var map = GetOrUpdateProjectAnalyzerMap(project);
-                return map.Values;
-            }
-
-            public IEnumerable<StateSet> GetOrCreateProjectStateSets(Project project)
-            {
-                var map = GetOrCreateProjectAnalyzerMap(project);
-                return map.Values;
-            }
-
-            public StateSet GetOrCreateProjectStateSet(Project project, DiagnosticAnalyzer analyzer)
-            {
-                var map = GetOrCreateProjectAnalyzerMap(project);
-                if (map.TryGetValue(analyzer, out var set))
+                if (_projectStateMap.TryGetValue(project.Id, out var entry) && entry.AnalyzerReferences.Equals(project.AnalyzerReferences))
                 {
-                    return set;
+                    return entry.StateSetMap;
                 }
 
                 return null;
             }
 
-            public void RemoveProjectStateSet(ProjectId projectId)
-            {
-                if (projectId == null)
-                {
-                    return;
-                }
-
-                _projectStateMap.TryRemove(projectId, out _);
-            }
-
-            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateProjectAnalyzerMap(Project project)
-            {
-                var map = GetProjectAnalyzerMap(project);
-                if (map != null)
-                {
-                    return map;
-                }
-
-                var newAnalyzersPerReference = _analyzerManager.CreateProjectDiagnosticAnalyzersPerReference(project);
-                var newMap = CreateAnalyzerMap(_analyzerManager, project.Language, newAnalyzersPerReference.Values);
-
-                RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
-
-                // update cache. 
-                _projectStateMap[project.Id] = new ProjectAnalyzerStateSets(project.AnalyzerReferences, newAnalyzersPerReference, newMap);
-
-                VerifyProjectDiagnosticStates(newMap.Values);
-
-                return newMap;
-            }
-
-            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetCachedProjectAnalyzerMap(ProjectId projectId)
-            {
-                if (_projectStateMap.TryGetValue(projectId, out var entry))
-                {
-                    return entry.AnalyzerMap;
-                }
-
-                return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
-            }
-
-            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrCreateProjectAnalyzerMap(Project project)
+            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrCreateProjectStateSetMap(Project project)
             {
                 // if we can't use cached one, we will create a new analyzer map. which is a bit of waste since
                 // we will create new StateSet for all analyzers. but since this only happens when project analyzer references
                 // are changed, I believe it is acceptable to have a bit of waste for simplicity.
-                return GetProjectAnalyzerMap(project) ?? CreateProjectAnalyzerMap(project);
+                return TryGetProjectStateSetMap(project) ?? CreateProjectStateSetMap(project);
             }
 
-            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetProjectAnalyzerMap(Project project)
-            {
-                if (_projectStateMap.TryGetValue(project.Id, out var entry) && entry.AnalyzerReferences.Equals(project.AnalyzerReferences))
-                {
-                    return entry.AnalyzerMap;
-                }
-
-                return null;
-            }
-
-            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateProjectAnalyzerMap(Project project)
+            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateProjectStateSetMap(Project project)
             {
                 if (project.AnalyzerReferences.Count == 0)
                 {
@@ -126,7 +76,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
                 }
 
-                return CreateAnalyzerMap(_analyzerManager, project.Language, analyzersPerReference.Values);
+                return CreateStateSetMap(_analyzerManager, project.Language, analyzersPerReference.Values);
+            }
+
+            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateProjectAnalyzerMap(Project project)
+                => TryGetProjectStateSetMap(project) ?? UpdateProjectAnalyzerMap(project);
+
+            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> UpdateProjectAnalyzerMap(Project project)
+            {
+                var newAnalyzersPerReference = _analyzerManager.CreateProjectDiagnosticAnalyzersPerReference(project);
+                var newMap = CreateStateSetMap(_analyzerManager, project.Language, newAnalyzersPerReference.Values);
+
+                RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
+
+                // update cache. 
+                _projectStateMap[project.Id] = new ProjectAnalyzerStateSets(project.AnalyzerReferences, newAnalyzersPerReference, newMap);
+
+                VerifyProjectDiagnosticStates(newMap.Values);
+
+                return newMap;
             }
 
             private void RaiseProjectAnalyzerReferenceChangedIfNeeded(
@@ -152,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // there has been change. find out what has changed
                 var addedStates = DiffStateSets(project.AnalyzerReferences.Except(entry.AnalyzerReferences), newMapPerReference, newMap);
-                var removedStates = DiffStateSets(entry.AnalyzerReferences.Except(project.AnalyzerReferences), entry.MapPerReferences, entry.AnalyzerMap);
+                var removedStates = DiffStateSets(entry.AnalyzerReferences.Except(project.AnalyzerReferences), entry.MapPerReferences, entry.StateSetMap);
 
                 // nothing has changed
                 if (addedStates.Length == 0 && removedStates.Length == 0)
@@ -198,27 +166,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return builder.ToImmutable();
-            }
-
-            private readonly struct ProjectAnalyzerStateSets
-            {
-                public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
-                public readonly ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;
-                public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> AnalyzerMap;
-
-                public ProjectAnalyzerStateSets(
-                    IReadOnlyList<AnalyzerReference> analyzerReferences,
-                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
-                    ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
-                {
-                    Contract.ThrowIfNull(analyzerReferences);
-                    Contract.ThrowIfNull(mapPerReferences);
-                    Contract.ThrowIfNull(analyzerMap);
-
-                    AnalyzerReferences = analyzerReferences;
-                    MapPerReferences = mapPerReferences;
-                    AnalyzerMap = analyzerMap;
-                }
             }
         }
     }

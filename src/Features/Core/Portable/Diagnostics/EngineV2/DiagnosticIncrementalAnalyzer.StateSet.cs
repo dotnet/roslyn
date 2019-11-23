@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// this contains all states regarding a <see cref="DiagnosticAnalyzer"/>
         /// </summary>
-        private class StateSet
+        private sealed class StateSet
         {
             private readonly string _language;
             private readonly DiagnosticAnalyzer _analyzer;
