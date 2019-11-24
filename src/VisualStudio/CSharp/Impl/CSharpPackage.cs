@@ -69,6 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ProvideAutomationProperties("TextEditor", "CSharp-Specific", packageGuid: Guids.CSharpPackageIdString, profileNodeLabelId: 104, profileNodeDescriptionId: 105)]
     [ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service", IsAsyncQueryable = true)]
     [ProvideService(typeof(ICSharpTempPECompilerService), ServiceName = "C# TempPE Compiler Service", IsAsyncQueryable = true)]
+
+    [ProvideSetting("TextEditor.CSharp.*", SettingScope.Private, SettingStorage.Registry, IsRemotable = true, IsWritableByGuests = false)]
     internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
         private ObjectBrowserLibraryManager _libraryManager;
