@@ -841,11 +841,6 @@ namespace Microsoft.CodeAnalysis.Editing
                 attributeArguments: args.Count > 0 ? args : null);
         }
 
-        private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)
-        {
-            return symbol.GetAttributes().Select(a => Attribute(a));
-        }
-
         /// <summary>
         /// Creates an attribute argument.
         /// </summary>
@@ -1442,6 +1437,14 @@ namespace Microsoft.CodeAnalysis.Editing
         /// True if <see cref="ThrowExpression"/> can be used
         /// </summary>
         internal abstract bool SupportsThrowExpression();
+
+        /// <summary>
+        /// <see langword="true"/> if the language requires a <see cref="TypeExpression(ITypeSymbol)"/>
+        /// (including <see langword="var"/>) to be stated when making a 
+        /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
+        /// <see langword="false"/> if the language allows the type node to be entirely elided.
+        /// </summary>
+        internal abstract bool RequiresLocalDeclarationType();
 
         /// <summary>
         /// Creates a statement that declares a single local variable.

@@ -228,14 +228,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
             Contract.ThrowIfNull(wpfTextView, "Could not get IWpfTextView for IVsTextView");
 
-            Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter<TPackage, TLanguageService>)));
+            Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter)));
 
             var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
 
             // The lifetime of CommandFilter is married to the view
             wpfTextView.GetOrCreateAutoClosingProperty(v =>
-                new StandaloneCommandFilter<TPackage, TLanguageService>(
-                    (TLanguageService)this, v, EditorAdaptersFactoryService).AttachToVsTextView());
+                new StandaloneCommandFilter(
+                    v, Package.ComponentModel).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
@@ -387,9 +387,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
-            return new ContainedLanguage<TPackage, TLanguageService>(
+            return new ContainedLanguage(
                 bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid, projectTrackerOpt: null, project.Id,
-                (TLanguageService)this);
+                this.LanguageServiceId);
         }
     }
 }

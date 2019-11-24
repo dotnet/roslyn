@@ -73,9 +73,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetFullSolutionAnalysis(bool value)
         {
-            SetOption(
+            SetPerLanguageOption(
                 optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
                 feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
+                language: LanguageNames.CSharp,
+                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
+
+            SetPerLanguageOption(
+                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
+                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
+                language: LanguageNames.VisualBasic,
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
