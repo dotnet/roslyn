@@ -71,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ProvideService(typeof(ICSharpTempPECompilerService), ServiceName = "C# TempPE Compiler Service", IsAsyncQueryable = true)]
 
     [ProvideSetting("TextEditor.CSharp.*", SettingScope.Private, SettingStorage.Registry, IsRemotable = true, IsWritableByGuests = false)]
+    [ProvideSetting("TextEditor.CSharp.Specific.QualifyFieldAccess", SettingScope.Private, SettingStorage.Registry, IsRemotable = true, IsWritableByGuests = true)]
     internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
         private ObjectBrowserLibraryManager _libraryManager;
