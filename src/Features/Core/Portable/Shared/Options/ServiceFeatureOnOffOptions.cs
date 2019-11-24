@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Shared.Options
 {
@@ -9,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// This option is used by TypeScript.
         /// </summary>
         [Obsolete("Currently used by TypeScript - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
-        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(
-            "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
+        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = SolutionCrawlerOptions.ClosedFileDiagnostic;
     }
 }
