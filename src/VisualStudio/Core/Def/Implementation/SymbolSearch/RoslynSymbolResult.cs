@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids, IResultWithKind, IResultInNamedCode, IResultWithReferenceDefinitionRelationship, IResultWithIcon
+    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultHasContext, IResultHasNamedProject, IResultHasVSGuids, IResultHasKind, IResultHasAncestors, IResultIsReferenceOrDefinition, IResultHasIcon
     {
         private DefinitionItem DefinitionItem { get; set; }
         private SourceReferenceItem ReferenceItem { get; set; }
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(result.ReferenceItem.SourceSpan, token).ConfigureAwait(false);
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                 var docText = await result.ReferenceItem.SourceSpan.Document.GetTextAsync(token).ConfigureAwait(false);
-                result.ClassifiedContext = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
+                result.ContextText = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
                 result.ContextHighlightSpan = AsSpan(classifiedSpansAndHighlightSpan.HighlightSpan);
 
                 if (result.ReferenceItem.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 result.Icon = new ImageElement(result.DefinitionItem.Tags.GetFirstGlyph().GetImageId());
 
                 // TODO: Use DocumentSpanEntry
-                result.ClassifiedContext = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
+                result.ContextText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
                     new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
 
                 result.ContextHighlightSpan = AsSpan(excerptResult.MappedSpan);
@@ -153,6 +153,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             if (mappedDocumentSpan.HasValue)
             {
                 var location = mappedDocumentSpan.Value;
+
+                result.RelativePath = documentSpan.Document.FilePath;
+                result.LineNumber = location.LinePositionSpan.Start.Line;
+                result.CharacterNumber = location.LinePositionSpan.Start.Character;
+
                 result.PersistentSpan = result.SourceInternal.ServiceProvider.PersistentSpanFactory.Create(
                     documentSpan.Document.FilePath,
                     location.LinePositionSpan.Start.Line,
@@ -162,6 +167,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     SpanTrackingMode.EdgeInclusive);
             }
         }
+
+        public string RelativePath { get; private set; }
+
+        public int LineNumber { get; private set; }
+
+        public int CharacterNumber { get; private set; }
 
         public IPersistentSpan PersistentSpan { get; private set; }
 
@@ -173,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public string ProjectId { get; private set; }
 
-        public ClassifiedTextElement ClassifiedContext { get; private set; }
+        public ClassifiedTextElement ContextText { get; private set; }
 
         public ImageElement Icon { get; private set; }
 
