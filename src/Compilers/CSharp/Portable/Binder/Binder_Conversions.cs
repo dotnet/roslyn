@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case ConversionKind.StackAllocToSpanType:
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
-                    stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
+                    stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T, recordUsage: false).Construct(elementType);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);

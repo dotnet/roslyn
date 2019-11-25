@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     disposeMethod = enumeratorInfoOpt.IsAsync
-                    ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                    ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, recordUsage: false)
                     : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                 }
             }

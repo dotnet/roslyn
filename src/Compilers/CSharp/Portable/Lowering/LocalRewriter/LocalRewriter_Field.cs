@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2))
             {
                 WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);
-                var tupleRestField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
+                var tupleRestField = (FieldSymbol)GetWellKnownMemberInTuple(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
 
                 if ((object)tupleRestField == null)
                 {
@@ -94,6 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // make a field access for the most local access
             return _factory.Field(rewrittenReceiver, underlyingField);
+        }
+
+        private Symbol GetWellKnownMemberInTuple(NamedTypeSymbol type, WellKnownMember relativeMember, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            _compilation.AddUsedAssembly(type.ContainingAssembly);
+            return TupleTypeSymbol.GetWellKnownMemberInType(type, relativeMember, diagnostics, syntax);
         }
 
         private BoundExpression MakeTupleFieldAccessAndReportUseSiteDiagnostics(BoundExpression tuple, SyntaxNode syntax, FieldSymbol field)

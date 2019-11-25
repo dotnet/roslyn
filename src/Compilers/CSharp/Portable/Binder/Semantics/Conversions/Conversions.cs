@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
-            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything2) ||
-                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything2))
+            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable, recordUsage: false), TypeCompareKind.ConsiderEverything2) ||
+                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString, recordUsage: false), TypeCompareKind.ConsiderEverything2))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
+                    var spanType = _binder.GetWellKnownTypeWithoutRecordingUsage(WellKnownType.System_Span_T, ref useSiteDiagnostics);
                     if (spanType.TypeKind == TypeKind.Struct && spanType.IsRefLikeType)
                     {
                         var spanType_T = spanType.Construct(sourceExpression.ElementType);

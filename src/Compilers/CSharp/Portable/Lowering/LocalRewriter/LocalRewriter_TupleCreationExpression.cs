@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<BoundExpression> smallestCtorArguments = ImmutableArray.Create(rewrittenArguments,
                                                                                               underlyingTupleTypeChain.Count * (TupleTypeSymbol.RestPosition - 1),
                                                                                               smallestType.Arity);
-                var smallestCtor = (MethodSymbol)TupleTypeSymbol.GetWellKnownMemberInType(smallestType.OriginalDefinition,
-                                                                                            TupleTypeSymbol.GetTupleCtor(smallestType.Arity),
-                                                                                            _diagnostics,
-                                                                                            syntax);
+                var smallestCtor = (MethodSymbol)GetWellKnownMemberInTuple(smallestType.OriginalDefinition,
+                                                                           TupleTypeSymbol.GetTupleCtor(smallestType.Arity),
+                                                                           _diagnostics,
+                                                                           syntax);
                 if ((object)smallestCtor == null)
                 {
                     return _factory.BadExpression(type);
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingTupleTypeChain.Count > 0)
                 {
                     NamedTypeSymbol tuple8Type = underlyingTupleTypeChain.Peek();
-                    var tuple8Ctor = (MethodSymbol)TupleTypeSymbol.GetWellKnownMemberInType(tuple8Type.OriginalDefinition,
-                                                                                            TupleTypeSymbol.GetTupleCtor(TupleTypeSymbol.RestPosition),
-                                                                                            _diagnostics,
-                                                                                            syntax);
+                    var tuple8Ctor = (MethodSymbol)GetWellKnownMemberInTuple(tuple8Type.OriginalDefinition,
+                                                                             TupleTypeSymbol.GetTupleCtor(TupleTypeSymbol.RestPosition),
+                                                                             _diagnostics,
+                                                                             syntax);
                     if ((object)tuple8Ctor == null)
                     {
                         return _factory.BadExpression(type);

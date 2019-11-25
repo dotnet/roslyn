@@ -669,6 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void ReportUseSiteDiagnosticForSynthesizedAttribute(
             CSharpCompilation compilation,
             WellKnownMember attributeMember,
+            bool recordUsage,
             DiagnosticBag diagnostics,
             Location location = null,
             CSharpSyntaxNode syntax = null)
@@ -679,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (comes from an unified assembly). When the symbol is not found no error is reported. See test VersionUnification_UseSiteDiagnostics_OptionalAttributes.
             bool isOptional = WellKnownMembers.IsSynthesizedAttributeOptional(attributeMember);
 
-            GetWellKnownTypeMember(compilation, attributeMember, diagnostics, location, syntax, isOptional);
+            GetWellKnownTypeMember(compilation, attributeMember, recordUsage, diagnostics, location, syntax, isOptional);
         }
 
 #if DEBUG

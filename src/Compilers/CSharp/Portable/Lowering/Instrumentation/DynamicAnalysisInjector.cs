@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static MethodSymbol GetCreatePayloadOverload(CSharpCompilation compilation, WellKnownMember overload, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, overload, diagnostics, syntax: syntax);
+            return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, overload, recordUsage: true, diagnostics, syntax: syntax);
         }
 
         private static SyntaxNode MethodDeclarationIfAvailable(SyntaxNode body)

@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversionFromType(
                 loweredAwaiterType,
-                F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
+                F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion, recordUsage: false),
                 ref useSiteDiagnostics).IsImplicit;
 
             var onCompleted = (useUnsafeOnCompleted ?

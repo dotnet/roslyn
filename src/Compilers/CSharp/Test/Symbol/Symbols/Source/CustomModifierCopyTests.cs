@@ -1750,6 +1750,8 @@ class Derived : Base
 
             Assert.Equal(int16Type, baseIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
             Assert.Equal(int16Type, derivedIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
+
+            CompileAndVerify(comp);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1947,6 +1949,8 @@ class Implementation : I
 
             Assert.Equal(int16Type, interfaceIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
             Assert.Equal(int16Type, implementationIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
+
+            CompileAndVerify(comp);
         }
 
         private static Func<Symbol, bool> IsPropertyWithSingleParameter(SpecialType paramSpecialType, bool isArrayType = false)

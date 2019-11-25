@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
                 if ((object)ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
                 {
-                    MethodSymbol arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
+                    MethodSymbol arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty, recordUsage: true) as MethodSymbol;
                     if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
                     {
                         // return an invocation of "Array.Empty<T>()"
@@ -1488,21 +1488,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (parameter.IsIUnknownConstant)
             {
                 // new UnknownWrapper(default(object))
-                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
+                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor, recordUsage: true);
                 var argument = new BoundDefaultExpression(syntax, parameter.Type) { WasCompilerGenerated = true };
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument) { WasCompilerGenerated = true };
             }
             else if (parameter.IsIDispatchConstant)
             {
                 // new DispatchWrapper(default(object))
-                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
+                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor, recordUsage: true);
                 var argument = new BoundDefaultExpression(syntax, parameter.Type) { WasCompilerGenerated = true };
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument) { WasCompilerGenerated = true };
             }
             else
             {
                 // Type.Missing
-                var fieldSymbol = (FieldSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing);
+                var fieldSymbol = (FieldSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing, recordUsage: true);
                 defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             }
 

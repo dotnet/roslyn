@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol EnsureWellKnownMember(WellKnownMember member, DiagnosticBag bag)
         {
-            return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
+            return Binder.GetWellKnownTypeMember(F.Compilation, member, recordUsage: true, bag, body.Syntax.Location);
         }
 
         protected override bool PreserveInitialParameterValuesAndThreadId

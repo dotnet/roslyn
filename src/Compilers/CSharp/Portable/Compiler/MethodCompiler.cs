@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CancellationToken _cancellationToken;
         private readonly DiagnosticBag _diagnostics;
         private readonly bool _hasDeclarationErrors;
+        private readonly bool _emitMethodBodies;
         private readonly PEModuleBuilder _moduleBeingBuiltOpt; // Null if compiling for diagnostics
         private readonly Predicate<Symbol> _filterOpt;         // If not null, limit analysis to specific symbols
         private readonly DebugDocumentProvider _debugDocumentProvider;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Internal for testing only.
-        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool emitTestCoverageData, bool hasDeclarationErrors,
+        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool emitTestCoverageData, bool hasDeclarationErrors, bool emitMethodBodies,
             DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
@@ -100,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _emitTestCoverageData = emitTestCoverageData;
+            _emitMethodBodies = emitMethodBodies;
         }
 
         public static void CompileMethodBodies(
@@ -108,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool emittingPdb,
             bool emitTestCoverageData,
             bool hasDeclarationErrors,
+            bool emitMethodBodies,
             DiagnosticBag diagnostics,
             Predicate<Symbol> filterOpt,
             CancellationToken cancellationToken)
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol entryPoint = null;
             if (filterOpt is null)
             {
-                entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
+                entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, emitMethodBodies, diagnostics, cancellationToken);
             }
 
             var methodCompiler = new MethodCompiler(
@@ -138,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 emittingPdb,
                 emitTestCoverageData,
                 hasDeclarationErrors,
+                emitMethodBodies,
                 diagnostics,
                 filterOpt,
                 entryPoint as SynthesizedEntryPointSymbol.AsyncForwardEntryPoint,
@@ -161,8 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var embeddedTypes = moduleBeingBuiltOpt.GetEmbeddedTypes(diagnostics);
                 methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
 
-                // By this time we have processed all types reachable from module's global namespace
-                compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(methodCompiler, moduleBeingBuiltOpt, diagnostics);
+                if (emitMethodBodies)
+                {
+                    // By this time we have processed all types reachable from module's global namespace
+                    compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(methodCompiler, moduleBeingBuiltOpt, diagnostics);
+                }
+
                 methodCompiler.WaitForWorkers();
 
                 var privateImplClass = moduleBeingBuiltOpt.PrivateImplClass;
@@ -200,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Returns the MethodSymbol for the assembly entrypoint.  If the user has a Task returning main,
         // this function returns the synthesized Main MethodSymbol.
-        private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, bool emitMethodBodies, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
             if (entryPointAndDiagnostics == null)
@@ -276,23 +284,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaDebugInfoBuilder.Free();
                 closureDebugInfoBuilder.Free();
 
-                var emittedBody = GenerateMethodBody(
-                    moduleBeingBuilt,
-                    synthesizedEntryPoint,
-                    methodOrdinal,
-                    loweredBody,
-                    ImmutableArray<LambdaDebugInfo>.Empty,
-                    ImmutableArray<ClosureDebugInfo>.Empty,
-                    stateMachineTypeOpt: null,
-                    variableSlotAllocatorOpt: null,
-                    diagnostics: diagnostics,
-                    debugDocumentProvider: null,
-                    importChainOpt: null,
-                    emittingPdb: false,
-                    emitTestCoverageData: false,
-                    dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty,
-                    entryPointOpt: null);
-                moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
+                if (emitMethodBodies)
+                {
+                    var emittedBody = GenerateMethodBody(
+                        moduleBeingBuilt,
+                        synthesizedEntryPoint,
+                        methodOrdinal,
+                        loweredBody,
+                        ImmutableArray<LambdaDebugInfo>.Empty,
+                        ImmutableArray<ClosureDebugInfo>.Empty,
+                        stateMachineTypeOpt: null,
+                        variableSlotAllocatorOpt: null,
+                        diagnostics: diagnostics,
+                        debugDocumentProvider: null,
+                        importChainOpt: null,
+                        emittingPdb: false,
+                        emitTestCoverageData: false,
+                        dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty,
+                        entryPointOpt: null);
+                    moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
+                }
             }
 
             return entryPoint;
@@ -723,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
-                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
+                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors && _emitMethodBodies)
                         {
                             emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
@@ -828,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we cannot rely on GlobalHasErrors since that can be changed concurrently by other methods compiling
                 // we however do not want to continue with generating method body if we have errors in this particular method - generating may crash
                 // or if had declaration errors - we will fail anyways, but if some types are bad enough, generating may produce duplicate errors about that.
-                if (!hasErrors && !_hasDeclarationErrors)
+                if (!hasErrors && !_hasDeclarationErrors && _emitMethodBodies)
                 {
                     const int accessorOrdinal = -1;
 
@@ -1228,28 +1239,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+                        if (_emitMethodBodies)
+                        {
+                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
-                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+                            var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
-                        var emittedBody = GenerateMethodBody(
-                            _moduleBeingBuiltOpt,
-                            methodSymbol,
-                            methodOrdinal,
-                            boundBody,
-                            lambdaDebugInfoBuilder.ToImmutable(),
-                            closureDebugInfoBuilder.ToImmutable(),
-                            stateMachineTypeOpt,
-                            lazyVariableSlotAllocator,
-                            diagsForCurrentMethod,
-                            _debugDocumentProvider,
-                            importChain,
-                            _emittingPdb,
-                            _emitTestCoverageData,
-                            dynamicAnalysisSpans,
-                            entryPointOpt: null);
+                            var emittedBody = GenerateMethodBody(
+                                _moduleBeingBuiltOpt,
+                                methodSymbol,
+                                methodOrdinal,
+                                boundBody,
+                                lambdaDebugInfoBuilder.ToImmutable(),
+                                closureDebugInfoBuilder.ToImmutable(),
+                                stateMachineTypeOpt,
+                                lazyVariableSlotAllocator,
+                                diagsForCurrentMethod,
+                                _debugDocumentProvider,
+                                importChain,
+                                _emittingPdb,
+                                _emitTestCoverageData,
+                                dynamicAnalysisSpans,
+                                entryPointOpt: null);
 
-                        _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        }
                     }
 
                     _diagnostics.AddRange(diagsForCurrentMethod);

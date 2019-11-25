@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task, recordUsage: false))
             {
                 return true;
             }
@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T, recordUsage: false))
             {
                 return true;
             }
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T, recordUsage: false);
         }
 
         internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T, recordUsage: false);
         }
 
         /// <summary>
@@ -1644,8 +1644,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(arity < 2);
                 var taskType = compilation.GetWellKnownType(
                     arity == 0 ?
-                    WellKnownType.System_Threading_Tasks_Task :
-                    WellKnownType.System_Threading_Tasks_Task_T);
+                        WellKnownType.System_Threading_Tasks_Task :
+                        WellKnownType.System_Threading_Tasks_Task_T,
+                    recordUsage: false);
                 if (taskType.TypeKind == TypeKind.Error)
                 {
                     // Skip if Task types are not available.

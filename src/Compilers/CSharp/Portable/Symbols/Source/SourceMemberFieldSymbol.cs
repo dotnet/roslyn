@@ -390,17 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            foreach (var singleVariable in declaration.Variables)
-            {
-                var argList = singleVariable.ArgumentList;
-                if (argList != null && argList.Arguments.Count != 0)
-                {
-                    // public int Blah[10];     // fixed buffer
-                    return true;
-                }
-            }
-
-            return false;
+            return IsFixedSizeBuffer;
         }
 
         internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
@@ -430,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 EventSymbol @event = (EventSymbol)associatedPropertyOrEvent;
                 if (@event.IsWindowsRuntimeEvent)
                 {
-                    NamedTypeSymbol tokenTableType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T);
+                    NamedTypeSymbol tokenTableType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T, recordUsage: true);
                     Binder.ReportUseSiteDiagnostics(tokenTableType, diagnosticsForFirstDeclarator, this.ErrorLocation);
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
@@ -528,6 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
+            Debug.Assert(type.DefaultType.IsPointerType() == IsPointerFieldSyntactically());
 
             // update the lazyType only if it contains value last seen by the current thread:
             if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)

@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
-                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                _compilation.GetWellKnownType(WellKnownType.System_Index, recordUsage: false),
                 TypeCompareKind.ConsiderEverything))
             {
                 return VisitIndexPatternIndexerAccess(
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(TypeSymbol.Equals(
                     node.Argument.Type,
-                    _compilation.GetWellKnownType(WellKnownType.System_Range),
+                    _compilation.GetWellKnownType(WellKnownType.System_Range, recordUsage: false),
                     TypeCompareKind.ConsiderEverything));
                 return VisitRangePatternIndexerAccess(
                     node.Receiver,
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(TypeSymbol.Equals(
                 unloweredExpr.Type,
-                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                _compilation.GetWellKnownType(WellKnownType.System_Index, recordUsage: false),
                 TypeCompareKind.ConsiderEverything));
 
             var F = _factory;
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(TypeSymbol.Equals(
                 rangeArg.Type,
-                _compilation.GetWellKnownType(WellKnownType.System_Range),
+                _compilation.GetWellKnownType(WellKnownType.System_Range, false),
                 TypeCompareKind.ConsiderEverything));
 
             // Lowered code without optimizations:

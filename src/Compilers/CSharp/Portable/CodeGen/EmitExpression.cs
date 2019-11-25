@@ -1996,14 +1996,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             if (originalDef.ContainingType.Name == TupleTypeSymbol.TupleTypeName &&
-                    (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
-                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
-                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
-                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T5__ctor) ||
-                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T6__ctor) ||
-                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T7__ctor) ||
-                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__ctor) ||
-                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__ctor)))
+                    (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor, recordUsage: false) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor, recordUsage: false) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor, recordUsage: false) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T5__ctor, recordUsage: false) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T6__ctor, recordUsage: false) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T7__ctor, recordUsage: false) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__ctor, recordUsage: false) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__ctor, recordUsage: false)))
             {
                 return true;
             }

@@ -996,13 +996,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool needsReporting()
             {
-                if (!Type.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken)))
+                if (!Type.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken, recordUsage: false)))
                 {
                     return true;
                 }
                 else if (this.ContainingSymbol is MethodSymbol method &&
                     method.IsAsync &&
-                    method.ReturnType.OriginalDefinition.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T)))
+                    method.ReturnType.OriginalDefinition.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T, recordUsage: false)))
                 {
                     // Note: async methods that return this type must be iterators. This is enforced elsewhere
                     return false;

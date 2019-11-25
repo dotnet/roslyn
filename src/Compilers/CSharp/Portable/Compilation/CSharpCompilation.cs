@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1756,8 +1757,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Early bail so we only ever check things that are System.Threading.Tasks.Task(<T>)
-            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
-                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
+            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task, recordUsage: false), TypeCompareKind.ConsiderEverything2) ||
+                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T, recordUsage: false), TypeCompareKind.ConsiderEverything2)))
             {
                 return false;
             }
@@ -2298,6 +2299,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = DiagnosticBag.GetInstance();
 
+            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, builder, cancellationToken);
+
+            // Before returning diagnostics, we filter warnings
+            // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
+            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
+        }
+
+        private void GetDiagnosticsWithoutFiltering(CompilationStage stage, bool includeEarlierStages, DiagnosticBag builder, CancellationToken cancellationToken)
+        {
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
                 var syntaxTrees = this.SyntaxTrees;
@@ -2375,13 +2385,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
             {
                 var methodBodyDiagnostics = DiagnosticBag.GetInstance();
-                GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, cancellationToken);
+                GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
                 builder.AddRangeAndFree(methodBodyDiagnostics);
             }
-
-            // Before returning diagnostics, we filter warnings
-            // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
-            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
         }
 
         private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>> locationFilterOpt = null)
@@ -2404,14 +2410,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Do the steps in compilation to get the method body diagnostics, but don't actually generate
         // IL or emit an assembly.
-        private void GetDiagnosticsForAllMethodBodies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void GetDiagnosticsForAllMethodBodies(DiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
         {
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
-                moduleBeingBuiltOpt: null,
+                moduleBeingBuiltOpt: doLowering ? (PEModuleBuilder)CreateModuleBuilder(
+                                                                       emitOptions: EmitOptions.Default,
+                                                                       debugEntryPoint: null,
+                                                                       manifestResources: null,
+                                                                       sourceLinkStream: null,
+                                                                       embeddedTexts: null,
+                                                                       testData: null,
+                                                                       diagnostics: diagnostics,
+                                                                       cancellationToken: cancellationToken)
+                                                : null,
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
+                emitMethodBodies: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: cancellationToken);
@@ -2446,6 +2462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
+                emitMethodBodies: false,
                 diagnostics: diagnostics,
                 filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
                 cancellationToken: cancellationToken);
@@ -2757,6 +2774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emittingPdb,
                     emitTestCoverageData,
                     hasDeclarationErrors,
+                    emitMethodBodies: moduleBeingBuilt is object,
                     diagnostics: methodBodyDiagnosticBag,
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
@@ -3144,7 +3162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation: this,
                 shouldCheckConstraints: false,
                 includeNullability: false,
-                errorPositions: default(ImmutableArray<bool>)).GetPublicSymbol();
+                errorPositions: default(ImmutableArray<bool>),
+                recordUsage: false).GetPublicSymbol();
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
@@ -3341,15 +3360,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// dynamic types.
         /// </summary>
         /// <returns></returns>
-        internal bool HasDynamicEmitAttributes()
+        internal bool HasDynamicEmitAttributes(bool recordUsage)
         {
             return
-                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null &&
-                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
+                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor, recordUsage) != null &&
+                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, recordUsage) != null;
         }
 
-        internal bool HasTupleNamesAttributes =>
-            (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) != null;
+        internal bool HasTupleNamesAttributes(bool recordUsage) =>
+            (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, recordUsage) != null;
 
         /// <summary>
         /// Returns whether the compilation has the Boolean type and if it's good.
@@ -3432,24 +3451,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
             EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
-        }
-
-        /// <summary>
-        /// Determine if enum arrays can be initialized using block initialization.
-        /// </summary>
-        /// <returns>True if it's safe to use block initialization for enum arrays.</returns>
-        /// <remarks>
-        /// In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
-        /// This is fixed in 4.5 thus enabling block array initialization for a very common case.
-        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
-        /// </remarks>
-        internal bool EnableEnumArrayBlockInitialization
-        {
-            get
-            {
-                var sustainedLowLatency = GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
-                return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
-            }
         }
 
         private abstract class AbstractSymbolSearcher

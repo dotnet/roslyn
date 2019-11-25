@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool shouldCheckConstraints,
             bool includeNullability,
             ImmutableArray<bool> errorPositions,
+            bool recordUsage,
             CSharpSyntaxNode syntax = null,
             DiagnosticBag diagnostics = null)
         {
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
+            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, recordUsage, diagnostics);
 
             if (numElements >= RestPosition && diagnostics != null && !underlyingType.IsErrorType())
             {
@@ -350,13 +351,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///
         /// Pass a null diagnostic bag and syntax node if you don't care about diagnostics.
         /// </summary>
-        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeWithAnnotations> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeWithAnnotations> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, bool recordUsage, DiagnosticBag diagnostics)
         {
             int numElements = elementTypes.Length;
             int remainder;
             int chainLength = NumberOfValueTuples(numElements, out remainder);
 
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage);
             if ((object)diagnostics != null && (object)syntax != null)
             {
                 ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
@@ -365,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol chainedTupleType = null;
             if (chainLength > 1)
             {
-                chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage);
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
                     ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
@@ -404,19 +405,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
         /// </summary>
-        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, bool recordUsage, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)diagnostics != null && (object)syntax != null);
 
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
 
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage);
             ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
 
             if (chainLength > 1)
             {
-                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage);
                 ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
             }
         }

@@ -819,6 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Compilation,
                             shouldCheckConstraints: false,
                             includeNullability: false,
+                            recordUsage: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
                         return new BoundConvertedTupleLiteral(syntax, sourceTuple: null, wasTargetTyped: true, subExpressions, tupleNames, inferredPositions, tupleType);
@@ -897,11 +898,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
-                    includeNullability: false, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+                    includeNullability: false, recordUsage: !IsSemanticModelBinder, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
-                TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
+                TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, recordUsage: !IsSemanticModelBinder, diagnostics);
             }
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
@@ -1100,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = argument.HasAnyErrors;
 
             TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
-            TypeSymbol typeType = this.Compilation.GetWellKnownType(WellKnownType.System_Type);
+            TypeSymbol typeType = this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(argument, typedReferenceType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -2074,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
-            MethodSymbol symbolOpt = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
+            MethodSymbol symbolOpt = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
 
             return new BoundFromEndIndexExpression(node, boundConversion, symbolOpt, indexType);
         }
@@ -2110,7 +2111,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (memberOpt is object)
                 {
                     symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
-                        Compilation,
                         memberOpt.GetValueOrDefault(),
                         diagnostics,
                         syntax: node,
@@ -2120,7 +2120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbolOpt is null)
                 {
                     symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
-                        Compilation,
                         WellKnownMember.System_Range__ctor,
                         diagnostics,
                         syntax: node);
@@ -6136,10 +6135,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var namedType = ((NamedTypeSymbol)type).ConstructedFrom;
             return
-                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncAction), TypeCompareKind.ConsiderEverything2) ||
-                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncActionWithProgress_T), TypeCompareKind.ConsiderEverything2) ||
-                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncOperation_T), TypeCompareKind.ConsiderEverything2) ||
-                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncOperationWithProgress_T2), TypeCompareKind.ConsiderEverything2);
+                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncAction, recordUsage: false), TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncActionWithProgress_T, recordUsage: false), TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncOperation_T, recordUsage: false), TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals(namedType, Compilation.GetWellKnownType(WellKnownType.Windows_Foundation_IAsyncOperationWithProgress_T2, recordUsage: false), TypeCompareKind.ConsiderEverything2);
         }
 
         private BoundExpression BindMemberAccessBadResult(BoundMethodGroup node)
@@ -7070,7 +7069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol resultType = rank == 1 &&
                 TypeSymbol.Equals(
                     convertedArguments[0].Type,
-                    Compilation.GetWellKnownType(WellKnownType.System_Range),
+                    Compilation.GetWellKnownType(WellKnownType.System_Range, recordUsage: false),
                     TypeCompareKind.ConsiderEverything)
                 ? arrayType
                 : arrayType.ElementType;
@@ -7110,7 +7109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // This member is needed for lowering and should produce an error if not present
                         _ = GetWellKnownTypeMember(
-                            Compilation,
                             WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                             diagnostics,
                             syntax: node);
@@ -7120,7 +7118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This member is needed for lowering and should produce an error if not present
                     _ = GetWellKnownTypeMember(
-                        Compilation,
                         WellKnownMember.System_Index__GetOffset,
                         diagnostics,
                         syntax: node);
@@ -7146,7 +7143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, WellKnownType wellKnownType, SyntaxNode node, DiagnosticBag diagnostics)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol type = GetWellKnownType(wellKnownType, ref useSiteDiagnostics);
+            TypeSymbol type = GetWellKnownTypeWithoutRecordingUsage(wellKnownType, ref useSiteDiagnostics);
 
             if (type.IsErrorType())
             {
@@ -7157,6 +7154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
             if (result is object)
             {
+                if (!IsSemanticModelBinder)
+                {
+                    Compilation.AddUsedAssembly(type.ContainingAssembly);
+                }
+
+                diagnostics.Add(node, useSiteDiagnostics);
                 diagnostics.AddRange(attemptDiagnostics);
             }
             attemptDiagnostics.Free();
@@ -7577,10 +7580,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var argType = arguments[0].Type;
             bool argIsIndex = TypeSymbol.Equals(argType,
-                Compilation.GetWellKnownType(WellKnownType.System_Index),
+                Compilation.GetWellKnownType(WellKnownType.System_Index, recordUsage: false),
                 TypeCompareKind.ConsiderEverything);
             bool argIsRange = !argIsIndex && TypeSymbol.Equals(argType,
-                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                Compilation.GetWellKnownType(WellKnownType.System_Range, recordUsage: false),
                 TypeCompareKind.ConsiderEverything);
 
             if ((!argIsIndex && !argIsRange) ||
@@ -7741,7 +7744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check required well-known member. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
                 // the user from getting surprising errors when optimizations fail
-                _ = GetWellKnownTypeMember(Compilation, member, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
             }
 
             bool tryLookupLengthOrCount(string propertyName, out PropertySymbol valid)

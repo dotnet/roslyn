@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public NamedTypeSymbol WellKnownType(WellKnownType wt)
         {
-            NamedTypeSymbol wellKnownType = Compilation.GetWellKnownType(wt);
+            NamedTypeSymbol wellKnownType = Compilation.GetWellKnownType(wt, recordUsage: true);
             Binder.ReportUseSiteDiagnostics(wellKnownType, Diagnostics, Syntax);
             return wellKnownType;
         }
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A symbol for the well-known member, or null if it is missing and isOptions == true</returns>
         public Symbol WellKnownMember(WellKnownMember wm, bool isOptional = false)
         {
-            Symbol wellKnownMember = Binder.GetWellKnownTypeMember(Compilation, wm, Diagnostics, syntax: Syntax, isOptional: true);
+            Symbol wellKnownMember = Binder.GetWellKnownTypeMember(Compilation, wm, recordUsage: true, Diagnostics, syntax: Syntax, isOptional: true);
             if (wellKnownMember == null && !isOptional)
             {
                 RuntimeMembers.MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(wm);
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement ThrowNull()
         {
-            return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)));
+            return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception, recordUsage: true)));
         }
 
         public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)

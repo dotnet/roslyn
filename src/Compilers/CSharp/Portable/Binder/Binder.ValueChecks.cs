@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (boundAccess.Indices.Length == 1 &&
                             TypeSymbol.Equals(
                                 boundAccess.Indices[0].Type,
-                                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                                Compilation.GetWellKnownType(WellKnownType.System_Range, recordUsage: false),
                                 TypeCompareKind.ConsiderEverything))
                         {
                             // Range indexer is an rvalue

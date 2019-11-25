@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Report diagnostics if System.String doesn't exist
                 this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
 
-                if (!Compilation.HasTupleNamesAttributes)
+                if (!Compilation.HasTupleNamesAttributes(recordUsage: !IsSemanticModelBinder))
                 {
                     var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
                         AttributeDescription.TupleElementNamesAttribute.FullName);
@@ -671,6 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           this.Compilation,
                                           this.ShouldCheckConstraints,
                                           includeNullability: this.ShouldCheckConstraints && includeNullability,
+                                          recordUsage: !IsSemanticModelBinder,
                                           errorPositions: default(ImmutableArray<bool>),
                                           syntax: syntax,
                                           diagnostics: diagnostics);
@@ -861,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsTypeInContextWhichNeedsDynamicAttribute())
             {
-                if (!Compilation.HasDynamicEmitAttributes())
+                if (!Compilation.HasDynamicEmitAttributes(recordUsage: !IsSemanticModelBinder))
                 {
                     // CONSIDER:    Native compiler reports error CS1980 for each syntax node which binds to dynamic type, we do the same by reporting a diagnostic here.
                     //              However, this means we generate multiple duplicate diagnostics, when a single one would suffice.
@@ -1411,7 +1412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
+            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type, recordUsage: !IsSemanticModelBinder);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
             ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
             return typeSymbol;
@@ -1421,24 +1422,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         /// type isn't found.
         /// </summary>
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol GetWellKnownTypeWithoutRecordingUsage(WellKnownType type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
+            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type, recordUsage: false);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
             HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, typeSymbol.GetUseSiteDiagnostic());
             return typeSymbol;
+        }
+
+        internal Symbol GetWellKnownTypeMember(WellKnownMember member, DiagnosticBag diagnostics, Location location = null, SyntaxNode syntax = null, bool isOptional = false)
+        {
+            return GetWellKnownTypeMember(Compilation, member, recordUsage: !IsSemanticModelBinder, diagnostics, location, syntax, isOptional);
         }
 
         /// <summary>
         /// Retrieves a well-known type member and reports diagnostics.
         /// </summary>
         /// <returns>Null if the symbol is missing.</returns>
-        internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, DiagnosticBag diagnostics, Location location = null, SyntaxNode syntax = null, bool isOptional = false)
+        internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, bool recordUsage, DiagnosticBag diagnostics, Location location = null, SyntaxNode syntax = null, bool isOptional = false)
         {
             Debug.Assert((syntax != null) ^ (location != null));
 
             DiagnosticInfo useSiteDiagnostic;
-            Symbol memberSymbol = GetWellKnownTypeMember(compilation, member, out useSiteDiagnostic, isOptional);
+            Symbol memberSymbol = GetWellKnownTypeMemberWithoutRecordingUsage(compilation, member, out useSiteDiagnostic, isOptional);
 
             if (useSiteDiagnostic != null)
             {
@@ -1446,12 +1452,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, location ?? syntax.Location);
             }
 
+            if (memberSymbol is object && recordUsage)
+            {
+                compilation.AddUsedAssembly(memberSymbol.ContainingAssembly);
+            }
+
             return memberSymbol;
         }
 
-        internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, out DiagnosticInfo diagnosticInfo, bool isOptional = false)
+        internal static Symbol GetWellKnownTypeMemberWithoutRecordingUsage(CSharpCompilation compilation, WellKnownMember member, out DiagnosticInfo diagnosticInfo, bool isOptional = false)
         {
-            Symbol memberSymbol = compilation.GetWellKnownTypeMember(member);
+            Symbol memberSymbol = compilation.GetWellKnownTypeMember(member, recordUsage: false);
 
             if ((object)memberSymbol != null)
             {
