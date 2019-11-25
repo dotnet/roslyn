@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private sealed class PointsToDataFlowOperationVisitor :
             AnalysisEntityDataFlowOperationVisitor<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue>
         {
-            private readonly TrackedEntitiesBuilder _trackedEntitiesBuilder;
             private readonly DefaultPointsToValueGenerator _defaultPointsToValueGenerator;
             private readonly PointsToAnalysisDomain _pointsToAnalysisDomain;
             private readonly PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder> _escapedOperationLocationsBuilder;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 PointsToAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                _trackedEntitiesBuilder = trackedEntitiesBuilder;
+                TrackedEntitiesBuilder = trackedEntitiesBuilder;
                 _defaultPointsToValueGenerator = defaultPointsToValueGenerator;
                 _pointsToAnalysisDomain = pointsToAnalysisDomain;
                 _escapedOperationLocationsBuilder = PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
@@ -43,6 +42,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData.AssertValidPointsToAnalysisData();
             }
+
+            internal TrackedEntitiesBuilder TrackedEntitiesBuilder { get; }
 
             public ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> GetEscapedLocationsThroughOperationsMap()
                 => GetEscapedAbstractLocationsMapAndFreeBuilder(_escapedOperationLocationsBuilder);
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     return;
                 }
 
-                foreach (var entity in _trackedEntitiesBuilder.AllEntities)
+                foreach (var entity in TrackedEntitiesBuilder.EnumerateEntities())
                 {
                     if (analysisData.HasAbstractValue(entity) ||
                         !forInterproceduralAnalysis && _defaultPointsToValueGenerator.IsTrackedEntity(entity))
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     }
 
                     SetAbstractValueCore(CurrentAnalysisData, analysisEntity, value);
-                    _trackedEntitiesBuilder.AllEntities.Add(analysisEntity);
+                    TrackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
                 }
             }
 

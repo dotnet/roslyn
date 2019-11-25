@@ -17,10 +17,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
     internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
-        private static readonly TaintedDataAnalysisDomain TaintedDataAnalysisDomainInstance = new TaintedDataAnalysisDomain(CoreTaintedDataAnalysisDataDomain.Instance);
-
-        private TaintedDataAnalysis(TaintedDataOperationVisitor operationVisitor)
-            : base(TaintedDataAnalysisDomainInstance, operationVisitor)
+        private TaintedDataAnalysis(TaintedDataAnalysisDomain analysisDomain, TaintedDataOperationVisitor operationVisitor)
+            : base(analysisDomain, operationVisitor)
         {
         }
 
@@ -116,8 +114,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         private static TaintedDataAnalysisResult? TryGetOrComputeResultForAnalysisContext(TaintedDataAnalysisContext analysisContext)
         {
-            TaintedDataOperationVisitor visitor = new TaintedDataOperationVisitor(analysisContext);
-            TaintedDataAnalysis analysis = new TaintedDataAnalysis(visitor);
+            TaintedDataAnalysisDomain analysisDomain = new TaintedDataAnalysisDomain(new CoreTaintedDataAnalysisDataDomain(analysisContext.PointsToAnalysisResultOpt));
+            TaintedDataOperationVisitor visitor = new TaintedDataOperationVisitor(analysisDomain, analysisContext);
+            TaintedDataAnalysis analysis = new TaintedDataAnalysis(analysisDomain, visitor);
             return analysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 

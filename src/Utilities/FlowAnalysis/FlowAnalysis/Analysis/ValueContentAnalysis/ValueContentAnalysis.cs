@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// </summary>
     public partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
     {
-        private ValueContentAnalysis(ValueContentDataFlowOperationVisitor operationVisitor)
-            : base(ValueContentAnalysisDomain.Instance, operationVisitor)
+        private ValueContentAnalysis(ValueContentAnalysisDomain analysisDomain, ValueContentDataFlowOperationVisitor operationVisitor)
+            : base(analysisDomain, operationVisitor)
         {
         }
 
@@ -98,8 +98,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         private static ValueContentAnalysisResult? TryGetOrComputeResultForAnalysisContext(ValueContentAnalysisContext analysisContext)
         {
-            var operationVisitor = new ValueContentDataFlowOperationVisitor(analysisContext);
-            var nullAnalysis = new ValueContentAnalysis(operationVisitor);
+            var analysisDomain = new ValueContentAnalysisDomain(analysisContext.PointsToAnalysisResultOpt);
+            var operationVisitor = new ValueContentDataFlowOperationVisitor(analysisDomain, analysisContext);
+            var nullAnalysis = new ValueContentAnalysis(analysisDomain, operationVisitor);
             return nullAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 

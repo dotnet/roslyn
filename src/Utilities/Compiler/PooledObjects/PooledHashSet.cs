@@ -49,6 +49,9 @@ namespace Analyzer.Utilities.PooledObjects
             return result;
         }
 
+        public ImmutableHashSet<T> ToImmutable()
+            => Count == 0 ? ImmutableHashSet<T>.Empty : this.ToImmutableHashSet(Comparer);
+
         // global pool
         private static readonly ObjectPool<PooledHashSet<T>> s_poolInstance = CreatePool();
         private static readonly ConcurrentDictionary<IEqualityComparer<T>, ObjectPool<PooledHashSet<T>>> s_poolInstancesByComparer
