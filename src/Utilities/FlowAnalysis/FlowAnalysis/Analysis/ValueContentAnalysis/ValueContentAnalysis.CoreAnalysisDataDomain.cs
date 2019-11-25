@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         private sealed class CoreAnalysisDataDomain : AnalysisEntityMapAbstractDomain<ValueContentAbstractValue>
         {
-            public CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain, PointsToAnalysisResult pointsToAnalysisResultOpt)
+            public CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResultOpt)
                 : base(valueDomain, pointsToAnalysisResultOpt)
             {
             }

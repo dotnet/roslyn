@@ -9,7 +9,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     {
         private sealed class CoreTaintedDataAnalysisDataDomain : AnalysisEntityMapAbstractDomain<TaintedDataAbstractValue>
         {
-            public CoreTaintedDataAnalysisDataDomain(PointsToAnalysisResult pointsToAnalysisResultOpt)
+            public CoreTaintedDataAnalysisDataDomain(PointsToAnalysisResult? pointsToAnalysisResultOpt)
                 : base(TaintedDataAbstractValueDomain.Default, pointsToAnalysisResultOpt)
             {
             }
