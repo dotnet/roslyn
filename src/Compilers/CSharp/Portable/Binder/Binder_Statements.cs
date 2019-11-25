@@ -207,19 +207,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected virtual void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            Next?.ValidateYield(node, diagnostics);
+        }
+
         private BoundStatement BindYieldReturnStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = this;
-
-            TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics).Type;
+            ValidateYield(node, diagnostics);
+            TypeSymbol elementType = GetIteratorElementType().Type;
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
-                : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+                : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
-                argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
             else
             {
@@ -261,7 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            GetIteratorElementType(node, diagnostics);
+            ValidateYield(node, diagnostics);
+            GetIteratorElementType();
             CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
             return new BoundYieldBreakStatement(node);
         }
@@ -1706,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
-                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType(null, diagnostics);
+                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType();
                 }
                 else
                 {

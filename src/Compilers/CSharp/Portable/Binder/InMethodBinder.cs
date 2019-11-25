@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A binder for a method body, which places the method's parameters in scope
     /// and notes if the method is an iterator method.
+    /// Note: instances of this type can be re-used across different attempts at compiling the same method (caching by binder factory).
     /// </summary>
     internal sealed class InMethodBinder : LocalScopeBinder
     {
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
         {
             RefKind refKind = _methodSymbol.RefKind;
             TypeSymbol returnType = _methodSymbol.ReturnType;
@@ -137,13 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node?.Location ?? Location.None, diagnostics: null);
+                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
             if (_iteratorInfo == IteratorInfo.Empty)
             {
-                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node?.Location ?? Location.None, diagnostics: null);
+                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
                 if (elementType.IsDefault)
                 {
                     elementType = TypeWithAnnotations.Create(CreateErrorType());

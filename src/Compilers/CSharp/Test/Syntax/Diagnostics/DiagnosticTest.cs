@@ -2225,7 +2225,6 @@ class Program
         }
 
         [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
-        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {
@@ -2245,11 +2244,38 @@ public class Test
     }
 }";
             var compilation = CreateCompilation(text);
-            compilation.GetDiagnostics();
-            compilation.GetEmitDiagnostics();
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
+        }
+
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
+        [Fact]
+        public void GetDiagnosticsCalledTwice_GetEmitDiagnostics()
+        {
+            var text = @"
+interface IMyEnumerator { }
+
+public class Test
+{
+    static IMyEnumerator Goo()
+    {
+        yield break;
+    }
+
+    public static int Main()
+    {
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(text);
+            var expected = new DiagnosticDescription[] {
+                // (6,26): error CS1624: The body of 'Test.Goo()' cannot be an iterator block because 'IMyEnumerator' is not an iterator interface type
+                //     static IMyEnumerator Goo()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "Goo").WithArguments("Test.Goo()", "IMyEnumerator").WithLocation(6, 26)
+            };
+            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
