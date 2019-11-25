@@ -47,6 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
+            if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
+            {
+                var accessorNode = basePosition.GetAncestor<AccessorDeclarationSyntax>();
+                if (accessorNode is object)
+                {
+                    return await InsertionPoint.CreateAsync(document, accessorNode, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
             if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out

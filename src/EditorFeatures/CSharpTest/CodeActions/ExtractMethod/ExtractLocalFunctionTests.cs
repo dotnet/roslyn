@@ -3291,6 +3291,412 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInPropertyInitializer_Get()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get { [|return _seconds / 3600;|] }
+        set 
+        { 
+            if (value < 0 || value > 24)
+                throw new ArgumentOutOfRangeException(""test"");
+            _seconds = value * 3600;
+        }
+    }
+}",
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get
+        {
+            return {|Rename:NewMethod|}();
+
+            double NewMethod()
+            {
+                return _seconds / 3600;
+            }
+        }
+        set 
+        { 
+            if (value < 0 || value > 24)
+                throw new ArgumentOutOfRangeException(""test"");
+            _seconds = value * 3600;
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInPropertyInitializer_Get2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get { return [|_seconds / 3600;|] }
+        set 
+        { 
+            if (value < 0 || value > 24)
+                throw new ArgumentOutOfRangeException(""test"");
+            _seconds = value * 3600;
+        }
+    }
+}",
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get
+        {
+            return {|Rename:NewMethod|}();
+
+            double NewMethod()
+            {
+                return _seconds / 3600;
+            }
+        }
+        set 
+        { 
+            if (value < 0 || value > 24)
+                throw new ArgumentOutOfRangeException(""test"");
+            _seconds = value * 3600;
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInPropertyInitializer_Set()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get { return _seconds / 3600; }
+        set 
+        {
+            [|if (value < 0 || value > 24)
+                throw new ArgumentOutOfRangeException(""test"");|]
+            _seconds = value * 3600;
+        }
+    }
+}",
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get { return _seconds / 3600; }
+        set
+        {
+            {|Rename:NewMethod|}(value);
+            _seconds = value * 3600;
+
+            static void NewMethod(double value)
+            {
+                if (value < 0 || value > 24)
+                    throw new ArgumentOutOfRangeException(""test"");
+            }
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInPropertyInitializer_Set2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get { return _seconds / 3600; }
+        set 
+        {
+            if (value < 0 || value > 24)
+                throw new ArgumentOutOfRangeException(""test"");
+            [|_seconds = value * 3600;|]
+        }
+    }
+}",
+@"using System;
+
+class TimePeriod
+{
+    private double _seconds;
+
+    public double Hours
+    {
+        get { return _seconds / 3600; }
+        set
+        {
+            if (value < 0 || value > 24)
+                throw new ArgumentOutOfRangeException(""test"");
+            {|Rename:NewMethod|}(value);
+
+            void NewMethod(double value)
+            {
+                _seconds = value * 3600;
+            }
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInIndexer_Get()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            [|if (index < 0 && index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");|]
+            return testArr[index];
+        }
+        set
+        {
+            if (index < 0 || index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            testArr[index] = value;
+        }
+    }
+}",
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            {|Rename:NewMethod|}(index);
+            return testArr[index];
+
+            void NewMethod(int index)
+            {
+                if (index < 0 && index >= testArr.Length)
+                    throw new IndexOutOfRangeException(""test"");
+            }
+        }
+        set
+        {
+            if (index < 0 || index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            testArr[index] = value;
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInIndexer_Get2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            if (index < 0 && index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            [|return testArr[index];|]
+        }
+        set
+        {
+            if (index < 0 || index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            testArr[index] = value;
+        }
+    }
+}",
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            if (index < 0 && index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            return {|Rename:NewMethod|}(index);
+
+            string NewMethod(int index)
+            {
+                return testArr[index];
+            }
+        }
+        set
+        {
+            if (index < 0 || index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            testArr[index] = value;
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInIndexer_Set()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            if (index < 0 && index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            return testArr[index];
+        }
+        set
+        {
+            [|if (index < 0 || index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");|]
+            testArr[index] = value;
+        }
+    }
+}",
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            if (index < 0 && index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            return testArr[index];
+        }
+        set
+        {
+            {|Rename:NewMethod|}(index);
+            testArr[index] = value;
+
+            void NewMethod(int index)
+            {
+                if (index < 0 || index >= testArr.Length)
+                    throw new IndexOutOfRangeException(""test"");
+            }
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInIndexer_Set2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            if (index < 0 && index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            return testArr[index];
+        }
+        set
+        {
+            if (index < 0 || index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            [|testArr[index] = value;|]
+        }
+    }
+}",
+@"using System;
+
+class Indexer
+{
+    private readonly string[] testArr = new string[1];
+
+    public string this[int index]
+    {
+        get
+        {
+            if (index < 0 && index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            return testArr[index];
+        }
+        set
+        {
+            if (index < 0 || index >= testArr.Length)
+                throw new IndexOutOfRangeException(""test"");
+            {|Rename:NewMethod|}(index, value);
+
+            void NewMethod(int index, string value)
+            {
+                testArr[index] = value;
+            }
+        }
+    }
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestPartialSelection_CSharp5NotApplicable()
         {
             var code = @"
@@ -3399,137 +3805,6 @@ class C
     {
     }
 }", new TestParameters(index: CodeActionIndex));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInPropertyInitializer_Get()
-        {
-            var code = @"
-using System;
-
-class TimePeriod
-{
-   private double _seconds;
-
-   public double Hours
-   {
-       get { [|return _seconds / 3600;|] }
-       set { 
-          if (value < 0 || value > 24)
-             throw new ArgumentOutOfRangeException(
-                   $""{ nameof(value)}
-            must be between 0 and 24."");
-
-          _seconds = value * 3600;
-        }
-    }
-}";
-
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInPropertyInitializer_Get2()
-        {
-            var code = @"
-using System;
-
-class TimePeriod
-{
-   private double _seconds;
-
-   public double Hours
-   {
-       get { return [|_seconds / 3600|]; }
-       set { 
-          if (value < 0 || value > 24)
-             throw new ArgumentOutOfRangeException(
-                   $""{ nameof(value)}
-            must be between 0 and 24."");
-
-          _seconds = value * 3600;
-        }
-    }
-}";
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInPropertyInitializer_Set()
-        {
-            var code = @"
-using System;
-
-class TimePeriod
-{
-   private double _seconds;
-
-   public double Hours
-   {
-       get { return _seconds / 3600; }
-       set { 
-          [|if (value < 0 || value > 24)
-             throw new ArgumentOutOfRangeException(
-                   $""{ nameof(value)}
-            must be between 0 and 24."");|]
-
-          _seconds = value * 3600;
-        }
-    }
-}";
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInPropertyInitializer_Set2()
-        {
-            var code = @"
-using System;
-
-class TimePeriod
-{
-   private double _seconds;
-
-   public double Hours
-   {
-       get { return _seconds / 3600; }
-       set { 
-          if (value < 0 || value > 24)
-             throw new ArgumentOutOfRangeException(
-                   $""{ nameof(value)}
-            must be between 0 and 24."");
-
-          [|_seconds = value * 3600;|]
-        }
-    }
-}";
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInPropertyInitializer_Set3()
-        {
-            var code = @"
-using System;
-
-class TimePeriod
-{
-   private double _seconds;
-
-   public double Hours
-   {
-       get { return _seconds / 3600; }
-       set { 
-          if (value < 0 || value > 24)
-             throw new ArgumentOutOfRangeException(
-                   $""{ nameof(value)}
-            must be between 0 and 24."");
-
-          _seconds = [|value * 3600|];
-        }
-    }
-}";
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]

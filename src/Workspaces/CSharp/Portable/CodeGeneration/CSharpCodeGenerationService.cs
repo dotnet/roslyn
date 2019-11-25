@@ -472,7 +472,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
             {
-                return Cast<TDeclarationNode>(localFunctionDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+                return (localFunctionDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(localFunctionDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            }
+            else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
+            {
+                return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
             }
             else
             {
