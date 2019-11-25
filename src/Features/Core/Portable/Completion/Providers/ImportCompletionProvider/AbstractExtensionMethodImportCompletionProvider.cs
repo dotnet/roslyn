@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext)
             => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(document);
+
+        protected override void LogCommit()
+            => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
         protected async override Task AddCompletionItemsAsync(
             CompletionContext completionContext,
