@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             await _remoteLanguageServiceWorkspace.SetSession(collaborationSession).ConfigureAwait(false);
 
-            await InitOptionsAsync(cancellationToken).ConfigureAwait(false);
+            await LoadRoslynPackage(cancellationToken).ConfigureAwait(false);
             _remoteLanguageServiceWorkspace.Init();
 
             // Kick off loading the projects in the background.
@@ -95,19 +96,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
         }
 
-        /// <summary>
-        /// Initialize the options.  This must be done on the UI thread because
-        /// multiple <see cref="IOptionPersister"/> are required to be initialized on the UI thread.
-        /// Typically this is done by <see cref="RoslynPackage"/> but this is not to guaranteed
-        /// to precede liveshare initialization.
-        /// TODO - https://github.com/dotnet/roslyn/issues/37377
-        /// </summary>
-        private async Task InitOptionsAsync(CancellationToken cancellationToken)
+        private async Task LoadRoslynPackage(CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-            // Ensure the options persisters are loaded since we have to fetch options from the shell
-            componentModel.GetExtensions<IOptionPersister>();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Explicitly trigger the load of the Roslyn package. This ensures that UI-bound services are appropriately prefetched,
+            // that FatalError is correctly wired up, etc. Ideally once the things happening in the package initialize are cleaned up with
+            // better patterns, this would go away.
+            var shellService = (IVsShell7)_serviceProvider.GetService(typeof(SVsShell));
+            await shellService.LoadPackageAsync(Guids.RoslynPackageId);
         }
 
         /// <summary>
