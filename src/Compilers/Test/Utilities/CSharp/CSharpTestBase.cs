@@ -1321,9 +1321,9 @@ namespace System.Runtime.CompilerServices
             return null;
         }
 
-#endregion
+        #endregion
 
-#region Semantic Model Helpers
+        #region Semantic Model Helpers
 
         public Tuple<TNode, SemanticModel> GetBindingNodeAndModel<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
@@ -1458,9 +1458,9 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(bindText, node.ToString());
             return ((TNode)node);
         }
-#endregion
+        #endregion
 
-#region Attributes
+        #region Attributes
 
         internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
@@ -1477,9 +1477,9 @@ namespace System.Runtime.CompilerServices
             return attributes.Select(a => a.ToString());
         }
 
-#endregion
+        #endregion
 
-#region Documentation Comments
+        #region Documentation Comments
 
         internal static string GetDocumentationCommentText(CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
@@ -1541,9 +1541,9 @@ namespace System.Runtime.CompilerServices
             }
         }
 
-#endregion
+        #endregion
 
-#region IL Validation
+        #region IL Validation
 
         internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
         {
@@ -1675,9 +1675,9 @@ namespace System.Runtime.CompilerServices
             }
         }
 
-#endregion
+        #endregion
 
-#region IOperation tree validation
+        #region IOperation tree validation
 
         protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
             where TSyntaxNode : SyntaxNode
@@ -1894,9 +1894,9 @@ namespace System.Runtime.CompilerServices
             return ilReference;
         }
 
-#endregion
+        #endregion
 
-#region Span
+        #region Span
 
         protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree, CSharpCompilationOptions options = null)
         {
@@ -2150,9 +2150,9 @@ namespace System
             }
         }
     }";
-#endregion
+        #endregion
 
-#region Index and Range
+        #region Index and Range
         protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
@@ -2185,9 +2185,9 @@ namespace System
                 options: options,
                 parseOptions: parseOptions);
         }
-#endregion
+        #endregion
 
-#region Theory Helpers
+        #region Theory Helpers
 
         public static IEnumerable<object[]> NonNullTypesTrueAndFalseDebugDll
         {
@@ -2212,7 +2212,7 @@ namespace System
                 };
             }
         }
-#endregion
+        #endregion
 
         protected static readonly string s_IAsyncEnumerable = @"
 namespace System.Collections.Generic
