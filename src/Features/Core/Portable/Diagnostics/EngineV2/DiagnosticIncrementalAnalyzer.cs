@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -142,20 +143,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                var handleActiveFile = true;
                 var documentSet = PooledHashSet<DocumentId>.GetInstance();
 
                 foreach (var stateSet in stateSets)
                 {
-                    // PERF: don't fire events for ones that we dont have any diagnostics on
-                    if (!stateSet.ContainsAnyDocumentOrProjectDiagnostics(projectId))
-                    {
-                        continue;
-                    }
+                    Debug.Assert(documentSet.Count == 0);
 
                     stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
-                    RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile, raiseEvents);
-                    documentSet.Clear();
+
+                    // PERF: don't fire events for ones that we dont have any diagnostics on
+                    if (documentSet.Count > 0)
+                    {
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile: true, raiseEvents);
+                        documentSet.Clear();
+                    }
                 }
 
                 documentSet.Free();

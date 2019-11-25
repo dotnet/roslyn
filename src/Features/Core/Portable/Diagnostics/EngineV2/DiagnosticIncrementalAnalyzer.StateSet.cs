@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Collect active documents with diagnostics
 
-                foreach (var (documentId, _) in _activeFileStates)
+                foreach (var (documentId, state) in _activeFileStates)
                 {
-                    if (documentId.ProjectId == projectId)
+                    if (documentId.ProjectId == projectId && !state.IsEmpty)
                     {
                         set.Add(documentId);
                     }
