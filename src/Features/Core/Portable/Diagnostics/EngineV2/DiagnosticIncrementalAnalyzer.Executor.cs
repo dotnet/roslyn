@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) by calculating them
         /// </summary>
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzers? compilation, Project project, IEnumerable<StateSet> stateSets, bool forcedAnalysis, CancellationToken cancellationToken)
+            CompilationWithAnalyzers? compilation, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, bool forcedAnalysis, CancellationToken cancellationToken)
         {
             try
             {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // check whether there is IDE specific project diagnostic analyzer
-                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, stateSets, compilation?.Compilation, result, cancellationToken).ConfigureAwait(false);
+                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilation?.Compilation, result, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -212,6 +212,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //       than what we used to create the cache.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
+                var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer || a is DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
+
                 if (compilation != null && TryReduceAnalyzersToRun(compilation, project, version, existing, out var analyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
@@ -221,12 +223,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var compilationWithReducedAnalyzers = (analyzersToRun.Length == 0) ? null :
                         await CreateCompilationWithAnalyzersAsync(project, analyzersToRun, compilation.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                    var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, stateSets, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                     return MergeExistingDiagnostics(version, existing, result);
                 }
 
                 // we couldn't reduce the set.
-                return await ComputeDiagnosticsAsync(compilation, project, stateSets, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                return await ComputeDiagnosticsAsync(compilation, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -243,14 +245,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            foreach (var kv in existing)
+            foreach (var (analyzer, results) in existing)
             {
-                if (kv.Value.Version != version)
+                if (results.Version != version)
                 {
                     continue;
                 }
 
-                result = result.SetItem(kv.Key, kv.Value);
+                result = result.SetItem(analyzer, results);
             }
 
             return result;
@@ -291,17 +293,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
-            Project project, IEnumerable<StateSet> stateSets, Compilation? compilation, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result, CancellationToken cancellationToken)
+            Project project,
+            ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
+            Compilation? compilation,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // check whether there is IDE specific project diagnostic analyzer
-                var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer || a is DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
-                if (ideAnalyzers.Length == 0)
-                {
-                    return result;
-                }
-
                 // create result map
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
