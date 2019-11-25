@@ -14,9 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        private static (DocumentId?, ProjectId?) GetDocumentAndProjectIdFromBuildToolId(LiveDiagnosticUpdateArgsId id)
-            => (id.ProjectOrDocumentId is DocumentId documentId) ? (documentId, documentId.ProjectId) : (null, (ProjectId)id.ProjectOrDocumentId);
-
         public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (!(id is LiveDiagnosticUpdateArgsId argsId))
@@ -24,20 +21,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return Task.FromResult(ImmutableArray<DiagnosticData>.Empty);
             }
 
-            var (documentId, projectId) = GetDocumentAndProjectIdFromBuildToolId(argsId);
+            var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);
             return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, (AnalysisKind)argsId.Kind, cancellationToken);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-        {
-            if (!(id is LiveDiagnosticUpdateArgsId argsId))
-            {
-                return Task.FromResult(ImmutableArray<DiagnosticData>.Empty);
-            }
-
-            var (documentId, projectId) = GetDocumentAndProjectIdFromBuildToolId(argsId);
-            return new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds: null, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, (AnalysisKind)argsId.Kind, cancellationToken);
-        }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
