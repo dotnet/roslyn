@@ -69,12 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static bool HasNonHiddenDescriptor(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
-        {
-            // most of analyzers, number of descriptor is quite small, so this should be cheap.
-            return service.GetDiagnosticDescriptors(analyzer).Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
-        }
-
         public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
         {
             return options == null

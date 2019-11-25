@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 try
                 {
                     var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                    var state = stateSet.GetActiveFileState(document.Id);
+                    var state = stateSet.GetOrCreateActiveFileState(document.Id);
                     var existingData = state.GetAnalysisData(kind);
 
                     if (existingData.Version == version)

@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             if (_blockForData && _document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic))
                             {
                                 var avoidLoadingData = true;
-                                var state = stateSet.GetProjectState(_project.Id);
+                                var state = stateSet.GetOrCreateProjectState(_project.Id);
                                 var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
                                 // no previous compilation end diagnostics in this file.
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // make sure we get state even when none of our analyzer has ran yet.
                 // but this shouldn't create analyzer that doesn't belong to this project (language)
-                var state = stateSet.GetActiveFileState(_document.Id);
+                var state = stateSet.GetOrCreateActiveFileState(_document.Id);
 
                 // see whether we can use existing info
                 var existingData = state.GetAnalysisData(kind);
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // make sure we get state even when none of our analyzer has ran yet.
                 // but this shouldn't create analyzer that doesn't belong to this project (language)
-                var state = stateSet.GetProjectState(_document.Project.Id);
+                var state = stateSet.GetOrCreateProjectState(_document.Project.Id);
 
                 // see whether we can use existing info
                 var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData: true, cancellationToken: cancellationToken).ConfigureAwait(false);

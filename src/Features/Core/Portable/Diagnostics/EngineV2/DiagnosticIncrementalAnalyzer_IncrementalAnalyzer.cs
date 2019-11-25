@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // no cancellation after this point.
-                    var state = stateSet.GetActiveFileState(document.Id);
+                    var state = stateSet.GetOrCreateActiveFileState(document.Id);
                     state.Save(kind, result.ToPersistData());
 
                     RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // which means we will remove those from error list
                 foreach (var stateSet in stateSets)
                 {
-                    var state = stateSet.GetProjectState(project.Id);
+                    var state = stateSet.GetOrCreateProjectState(project.Id);
 
                     await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
                     stateSet.ComputeCompilationEndAnalyzer(project, compilation);
@@ -256,12 +256,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return document.IsOpen() && document.SupportsDiagnostics();
         }
 
+        /// <summary>
+        /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
+        /// </summary>
         private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
         {
-            // Get stateSets that should be run for full analysis
-
-            // if full analysis is off, remove state that is from build.
-            // this will make sure diagnostics (converted from build to live) from build will never be cleared
+            // If full analysis is off, remove state that is created from build.
+            // this will make sure diagnostics from build (converted from build to live) will never be cleared
             // until next build.
             if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) != BackgroundAnalysisScope.FullSolution)
             {
@@ -274,8 +275,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets;
             }
 
-            // Include only one we want to run for full solution analysis.
-            // stateSet not included here will never be saved because result is unknown.
+            // Include only analyzers we want to run for full solution analysis.
+            // Analyzers not included here will never be saved because result is unknown.
             return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project));
         }
 
@@ -301,7 +302,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            return AnalyzerService.HasNonHiddenDescriptor(analyzer, project);
+            // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
+            var descriptors = AnalyzerService.GetDiagnosticDescriptors(analyzer);
+            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var stateSet in stateSets)
                     {
-                        var state = stateSet.GetProjectState(project.Id);
+                        var state = stateSet.GetOrCreateProjectState(project.Id);
                         await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
                     }
 

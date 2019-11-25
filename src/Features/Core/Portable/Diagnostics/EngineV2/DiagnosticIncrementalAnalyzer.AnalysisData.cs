@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
                 foreach (var stateSet in stateSets)
                 {
-                    var state = stateSet.GetProjectState(project.Id);
+                    var state = stateSet.GetOrCreateProjectState(project.Id);
                     var result = await state.GetAnalysisDataAsync(project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(project.Id == result.ProjectId);
 

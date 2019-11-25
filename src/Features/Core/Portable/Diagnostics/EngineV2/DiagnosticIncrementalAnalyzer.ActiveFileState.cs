@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// state that is responsible to hold onto local diagnostics data regarding active/opened files (depends on host)
         /// in memory.
         /// </summary>
-        private class ActiveFileState
+        private sealed class ActiveFileState
         {
             // file state this is for
             public readonly DocumentId DocumentId;
@@ -36,19 +36,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public DocumentAnalysisData GetAnalysisData(AnalysisKind kind)
-            {
-                switch (kind)
+                => kind switch
                 {
-                    case AnalysisKind.Syntax:
-                        return _syntax;
-
-                    case AnalysisKind.Semantic:
-                        return _semantic;
-
-                    default:
-                        return Contract.FailWithReturn<DocumentAnalysisData>("Shouldn't reach here");
-                }
-            }
+                    AnalysisKind.Syntax => _syntax,
+                    AnalysisKind.Semantic => _semantic,
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
 
             public void Save(AnalysisKind kind, DocumentAnalysisData data)
             {
@@ -65,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
 
                     default:
-                        Contract.Fail("Shouldn't reach here");
-                        return;
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                 }
             }
         }
