@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
@@ -3337,189 +3338,226 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Overrides for lowered IOperations
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitUsing(IUsingOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IUsingOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IUsingOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitWhileLoop(IWhileLoopOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IWhileLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IWhileLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitForEachLoop(IForEachLoopOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IForEachLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IForEachLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitForLoop(IForLoopOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IForLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IForLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitForToLoop(IForToLoopOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IForToLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IForToLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitCoalesce(ICoalesceOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ICoalesceOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ICoalesceOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitConditional(IConditionalOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IConditionalOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IConditionalOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitConditionalAccess(IConditionalAccessOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IConditionalAccessOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IConditionalAccessOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IConditionalAccessInstanceOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IConditionalAccessInstanceOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitThrow(IThrowOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IThrowOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IThrowOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableDeclarator(IVariableDeclaratorOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableDeclaratorOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableDeclaratorOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitTry(ITryOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ITryOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ITryOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitCatchClause(ICatchClauseOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ICatchClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ICatchClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public override TAbstractAnalysisValue VisitLock(ILockOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ILockOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ILockOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitBranch(IBranchOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IBranchOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IBranchOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitLabeled(ILabeledOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ILabeledOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ILabeledOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitSwitch(ISwitchOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ISwitchOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ISwitchOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitSwitchCase(ISwitchCaseOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ISwitchCaseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ISwitchCaseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IDefaultCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IDefaultCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IPatternCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IPatternCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitRangeCaseClause(IRangeCaseClauseOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IRangeCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IRangeCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IRelationalCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IRelationalCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ISingleValueCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ISingleValueCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IObjectOrCollectionInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IObjectOrCollectionInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitMemberInitializer(IMemberInitializerOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IMemberInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IMemberInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitBlock(IBlockOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IBlockOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IBlockOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableInitializer(IVariableInitializerOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IFieldInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IFieldInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IParameterInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IParameterInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitPropertyInitializer(IPropertyInitializerOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IPropertyInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IPropertyInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitEnd(IEndOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IEndOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IEndOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitEmpty(IEmptyOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IEmptyOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IEmptyOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitNameOf(INameOfOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(INameOfOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(INameOfOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitAnonymousFunction(IAnonymousFunctionOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(IAnonymousFunctionOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IAnonymousFunctionOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitLocalFunction(ILocalFunctionOperation operation, object argument)
         {
-            throw new InvalidProgramException($"'{nameof(ILocalFunctionOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ILocalFunctionOperation)}' must have been lowered in the CFG");
         }
 
         #endregion
