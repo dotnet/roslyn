@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
+        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
+            new ConditionalWeakTable<SyntaxTree, DocumentId>();
+
         private readonly HostLanguageServices _languageServices;
         private readonly ParseOptions? _options;
         private readonly ValueSource<AnalyzerConfigSet> _analyzerConfigSetSource;
@@ -773,9 +776,6 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer);
             }
         }
-
-        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new ConditionalWeakTable<global::Microsoft.CodeAnalysis.SyntaxTree, DocumentId>();
 
         private static void BindSyntaxTreeToId(SyntaxTree tree, DocumentId id)
         {

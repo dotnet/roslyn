@@ -266,52 +266,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzerPerf.Select(kv => new AnalyzerPerformanceInfo(kv.analyzer.GetAnalyzerId(), DiagnosticAnalyzerLogger.AllowsTelemetry(kv.analyzer, analyzerService), kv.timeSpan));
         }
 
-        /// <summary>
-        /// Get diagnostics for the given analyzers for the given document.
-        /// 
-        /// this is a simple API to get all diagnostics for the given document.
-        /// 
-        /// the intended audience for this API is for ones that pefer simplicity over performance such as document that belong to misc project.
-        /// this doesn't cache nor use cache for anything. it will re-caculate new diagnostics every time for the given document.
-        /// it will not persist any data on disk nor use OOP to calcuate the data.
-        /// 
-        /// this should never be used when performance is a big concern. for such context, use much complex API from IDiagnosticAnalyzerService
-        /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity
-        /// </summary>
-        public static async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-           this IDiagnosticAnalyzerService service, Document document, AnalysisKind kind, CancellationToken cancellationToken)
-        {
-            // given service must be DiagnosticAnalyzerService
-            var diagnosticService = (DiagnosticAnalyzerService)service;
-
-            var analyzers = GetAnalyzers(service, document.Project);
-
-            var compilation = await diagnosticService.CreateCompilationWithAnalyzers(
-                document.Project, analyzers, includeSuppressedDiagnostics: false, logAggregator: null, cancellationToken).ConfigureAwait(false);
-
-            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
-            foreach (var analyzer in analyzers)
-            {
-                builder.AddRange(await diagnosticService.ComputeDiagnosticsAsync(
-                    compilation, document, analyzer, kind, spanOpt: null, logAggregator: null, cancellationToken).ConfigureAwait(false));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(IDiagnosticAnalyzerService service, Project project)
-        {
-            // C# or VB document that supports compiler
-            var compilerAnalyzer = service.GetCompilerDiagnosticAnalyzer(project.Language);
-            if (compilerAnalyzer != null)
-            {
-                return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
-            }
-
-            // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-            return service.GetDiagnosticAnalyzers(project);
-        }
-
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzers(
             this DiagnosticAnalyzerService service,
             Project project,
@@ -384,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
             this DiagnosticAnalyzerService service,
-            CompilationWithAnalyzers? compilation,
+            CompilationWithAnalyzers? compilationWithAnalyzers,
             Document document,
             DiagnosticAnalyzer analyzer,
             AnalysisKind kind,
@@ -395,18 +349,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
                 var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                    service, document, documentAnalyzer, kind, compilation?.Compilation, logAggregator, cancellationToken).ConfigureAwait(false);
+                    service, document, documentAnalyzer, kind, compilationWithAnalyzers?.Compilation, logAggregator, cancellationToken).ConfigureAwait(false);
 
                 return diagnostics.ConvertToLocalDiagnostics(document);
             }
 
             // quick optimization to reduce allocations.
-            if (compilation == null || !service.SupportAnalysisKind(analyzer, document.Project.Language, kind))
+            if (compilationWithAnalyzers == null || !service.SupportAnalysisKind(analyzer, document.Project.Language, kind))
             {
                 if (kind == AnalysisKind.Syntax)
                 {
                     Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
-                        (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", compilation, document, analyzer, kind);
+                        (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", compilationWithAnalyzers, document, analyzer, kind);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
@@ -438,14 +392,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
 
-                    var diagnostics = await compilation.GetAnalyzerSyntaxDiagnosticsAsync(tree, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, singleAnalyzer, cancellationToken).ConfigureAwait(false);
 
                     if (diagnostics.IsDefaultOrEmpty)
                     {
                         Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic, (d, a, t) => $"{d.Id}, {d.Project.Id}, {a}, {t.Length}", document, analyzer, tree);
                     }
 
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation.Compilation).Count());
+                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
                     return diagnostics.ConvertToLocalDiagnostics(document);
 
                 case AnalysisKind.Semantic:
@@ -455,9 +409,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
 
-                    diagnostics = await compilation.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+                    diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, singleAnalyzer, cancellationToken).ConfigureAwait(false);
 
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation.Compilation).Count());
+                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
                     return diagnostics.ConvertToLocalDiagnostics(document);
 
                 default:

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -184,10 +185,29 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             Contract.ThrowIfNull(_nonLocals);
             Contract.ThrowIfTrue(_others.IsDefault);
 
-            return _syntaxLocals.Values.SelectMany(v => v).Concat(
-                   _semanticLocals.Values.SelectMany(v => v)).Concat(
-                   _nonLocals.Values.SelectMany(v => v)).Concat(
-                   _others).ToImmutableArray();
+            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+
+            foreach (var data in _syntaxLocals.Values)
+            {
+                builder.AddRange(data);
+            }
+
+            foreach (var data in _semanticLocals.Values)
+            {
+                builder.AddRange(data);
+            }
+
+            foreach (var data in _nonLocals.Values)
+            {
+                builder.AddRange(data);
+            }
+
+            foreach (var data in _others)
+            {
+                builder.AddRange(data);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         public ImmutableArray<DiagnosticData> GetDocumentDiagnostics(DocumentId documentId, AnalysisKind kind)
