@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -102,17 +104,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                                     !a.IsOpenFileOnly(project.Solution.Workspace));
 
                 // get driver only with active analyzers.
-                var includeSuppressedDiagnostics = true;
-                var analyzerDriverOpt = await CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
-                var result = await GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
-                if (result.FromCache)
+                var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                if (result.OldResult == null)
                 {
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
                     return;
                 }
 
-                var compilation = await GetCompilationAsync(analyzerDriverOpt).ConfigureAwait(false);
+                // we might not have compilationWithAnalyzers even if project supports compilation if we are called with no analyzers. 
+                var compilation = compilationWithAnalyzers?.Compilation ??
+                    (project.SupportsCompilation ? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false) : null);
 
                 // no cancellation after this point.
                 // any analyzer that doesn't have result will be treated as returned empty set
@@ -131,14 +134,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 throw ExceptionUtilities.Unreachable;
             }
-
-            async Task<Compilation> GetCompilationAsync(CompilationWithAnalyzers analyzerDriverOpt)
-            {
-                // we might not have analyzerDriver even if project supports compilation if we are called with
-                // no analyzers. 
-                return analyzerDriverOpt?.Compilation ??
-                    (project.SupportsCompilation ? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false) : null);
-            }
         }
 
         public async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
@@ -148,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(document.Project);
 
                 // let other component knows about this event
-                ClearAnalyzerDriverMap();
+                ClearCompilationsWithAnalyzersCache();
                 await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
@@ -160,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(document.Project);
 
                 // let other components knows about this event
-                ClearAnalyzerDriverMap();
+                ClearCompilationsWithAnalyzersCache();
                 await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
@@ -172,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(document.Project);
 
                 // let other components knows about this event
-                ClearAnalyzerDriverMap();
+                ClearCompilationsWithAnalyzersCache();
                 _stateManager.OnDocumentReset(stateSets, document);
             }
 
@@ -186,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
 
                 // let other components knows about this event
-                ClearAnalyzerDriverMap();
+                ClearCompilationsWithAnalyzersCache();
                 var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
 
                 // if there was no diagnostic reported for this document, nothing to clean up
@@ -199,13 +194,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // remove all diagnostics for the document
                 AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
                 {
-                    Solution nullSolution = null;
                     foreach (var stateSet in stateSets)
                     {
-                        // clear all doucment diagnostics
-                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
+                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
+                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
                     }
                 });
             }
@@ -218,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetStateSets(projectId);
 
                 // let other components knows about this event
-                ClearAnalyzerDriverMap();
+                ClearCompilationsWithAnalyzersCache();
                 var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
 
                 // if there was no diagnostic reported for this project, nothing to clean up
@@ -231,11 +224,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // remove all diagnostics for the project
                 AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
                 {
-                    Solution nullSolution = null;
                     foreach (var stateSet in stateSets)
                     {
                         // clear all project diagnostics
-                        RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+                        RaiseDiagnosticsRemoved(projectId, solution: null, stateSet, raiseEvents);
                     }
                 });
             }
@@ -244,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             // let other components knows about this event
-            ClearAnalyzerDriverMap();
+            ClearCompilationsWithAnalyzersCache();
 
             return Task.CompletedTask;
         }
@@ -347,8 +339,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     if (!oldAnalysisResult.IsEmpty && newAnalysisResult.IsEmpty)
                     {
+                        RoslynDebug.Assert(oldAnalysisResult.DocumentIds != null);
+
                         // remove old diagnostics
-                        RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds, raiseEvents);
+                        RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds, handleActiveFile: false, raiseEvents);
                         continue;
                     }
 
@@ -360,10 +354,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // both old and new has items in them. update existing items
+                    RoslynDebug.Assert(oldAnalysisResult.DocumentIds != null);
 
                     // first remove ones no longer needed.
                     var documentsToRemove = oldAnalysisResult.DocumentIds.Except(newAnalysisResult.DocumentIds);
-                    RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, documentsToRemove, raiseEvents);
+                    RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false, raiseEvents);
 
                     // next update or create new ones
                     RaiseProjectDiagnosticsCreated(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents);
@@ -420,6 +415,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
+            RoslynDebug.Assert(newAnalysisResult.DocumentIds != null);
+
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
                 var document = project.GetDocument(documentId);
@@ -450,37 +447,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsCreated(project, stateSet, newAnalysisResult.GetOtherDiagnostics(), raiseEvents);
         }
 
-        private void RaiseProjectDiagnosticsRemoved(StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, Action<DiagnosticsUpdatedArgs> raiseEvents)
-        {
-            var handleActiveFile = false;
-            RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentIds, handleActiveFile, raiseEvents);
-        }
-
         private void RaiseProjectDiagnosticsRemoved(StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, bool handleActiveFile, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
-            Solution nullSolution = null;
             foreach (var documentId in documentIds)
             {
-                RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
 
-                // we don't raise events for active file. it will be taken cared by active file analysis
+                // we don't raise events for active file. it will be taken care of by active file analysis
                 if (!handleActiveFile && stateSet.IsActiveFile(documentId))
                 {
                     continue;
                 }
 
-                RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
-                RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
+                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
+                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
             }
 
-            RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet, raiseEvents);
         }
 
-        private async Task ReportAnalyzerPerformanceAsync(Document document, CompilationWithAnalyzers analyzerDriverOpt, CancellationToken cancellationToken)
+        private async Task ReportAnalyzerPerformanceAsync(Document document, CompilationWithAnalyzers? compilation, CancellationToken cancellationToken)
         {
             try
             {
-                if (analyzerDriverOpt == null)
+                if (compilation == null)
                 {
                     return;
                 }
@@ -497,9 +487,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject();
 
                 var containsData = false;
-                foreach (var analyzer in analyzerDriverOpt.Analyzers)
+                foreach (var analyzer in compilation.Analyzers)
                 {
-                    var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    var telemetryInfo = await compilation.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
                     if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
                     {
                         // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked

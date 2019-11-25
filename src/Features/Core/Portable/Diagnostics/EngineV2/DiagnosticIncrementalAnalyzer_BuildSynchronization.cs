@@ -41,16 +41,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // REVIEW: do build diagnostics include suppressed diagnostics?
                     var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
-                    var result = await CreateProjectAnalysisDataAsync(project, stateSets, diagnostics).ConfigureAwait(false);
+
+                    // we load data since we don't know right version.
+                    var oldAnalysisData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
+                    var newResult = CreateAnalysisResults(project, stateSets, oldAnalysisData, diagnostics);
 
                     foreach (var stateSet in stateSets)
                     {
                         var state = stateSet.GetOrCreateProjectState(project.Id);
-                        await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                        var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
+                        await state.SaveAsync(project, result).ConfigureAwait(false);
                     }
 
                     // REVIEW: this won't handle active files. might need to tweak it later.
-                    RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
+                    RaiseProjectDiagnosticsIfNeeded(project, stateSets, oldAnalysisData.Result, newResult);
                 }
 
                 // if we have updated errors, refresh open files
@@ -72,16 +76,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // that checks span for third party reported diagnostics
                 Debug.Assert(!diagnostic.HasTextSpan);
             }
-        }
-
-        private async Task<ProjectAnalysisData> CreateProjectAnalysisDataAsync(Project project, ImmutableArray<StateSet> stateSets, ImmutableArray<DiagnosticData> diagnostics)
-        {
-            // we always load data since we don't know right version.
-            var avoidLoadingData = false;
-            var oldAnalysisData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
-            var newResult = CreateAnalysisResults(project, stateSets, oldAnalysisData, diagnostics);
-
-            return new ProjectAnalysisData(project.Id, VersionStamp.Default, oldAnalysisData.Result, newResult);
         }
 
         private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(

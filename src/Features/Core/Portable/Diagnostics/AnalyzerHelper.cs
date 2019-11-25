@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static bool? IsCompilationEndAnalyzer(this DiagnosticAnalyzer analyzer, Project project, Compilation compilation)
+        public static bool? IsCompilationEndAnalyzer(this DiagnosticAnalyzer analyzer, Project project, Compilation? compilation)
         {
             if (!project.SupportsCompilation)
             {

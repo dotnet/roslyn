@@ -112,11 +112,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
             }
 
-            public bool FromCache
-            {
-                get { return OldResult == null; }
-            }
-
             public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 VersionStamp? version = null;

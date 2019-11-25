@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.DropCache(Analyzer);
             }
 
-            public void ComputeCompilationEndAnalyzer(Project project, Compilation compilation)
+            public void ComputeCompilationEndAnalyzer(Project project, Compilation? compilation)
             {
                 if (_compilationEndAnalyzer != -1)
                 {

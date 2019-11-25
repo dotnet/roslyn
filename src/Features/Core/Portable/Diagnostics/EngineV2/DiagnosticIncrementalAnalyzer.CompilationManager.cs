@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => AnalyzerService.CreateCompilationWithAnalyzers(project, analyzers, includeSuppressedDiagnostics, DiagnosticLogAggregator, cancellationToken);
 
-        private void ClearAnalyzerDriverMap()
+        private void ClearCompilationsWithAnalyzersCache()
         {
             // we basically eagarly clear the cache on some known changes
             // to let CompilationWithAnalyzer go.
