@@ -245,16 +245,6 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Gets the <see cref="DisposeMethodKind"/> for the given method.
         /// </summary>
-        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
-        {
-            INamedTypeSymbol iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
-            INamedTypeSymbol task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
-            return method.GetDisposeMethodKind(iDisposable, task);
-        }
-
-        /// <summary>
-        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
-        /// </summary>
         public static DisposeMethodKind GetDisposeMethodKind(
             this IMethodSymbol method,
             INamedTypeSymbol iDisposable,

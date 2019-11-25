@@ -265,11 +265,6 @@ namespace Test.Utilities
             Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), validationMode, false, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
         }
 
-        protected void VerifyBasic(string source, TestValidationMode validationMode, CompilationOptions compilationOptions = null, ParseOptions parseOptions = null, params DiagnosticResult[] expected)
-        {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), validationMode, false, ReferenceFlags.None, compilationOptions, parseOptions, additionalFiles: null, expected: expected);
-        }
-
         protected void VerifyBasic(string source, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
         {
             Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), referenceFlags, DefaultTestValidationMode, compilationOptions: null, parseOptions: null, expected: expected);
@@ -283,11 +278,6 @@ namespace Test.Utilities
         protected void VerifyBasic(string[] sources, params DiagnosticResult[] expected)
         {
             Verify(sources.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyBasic(string[] sources, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
-        {
-            Verify(sources.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, false, referenceFlags, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
         }
 
         protected void VerifyBasic(FileAndSource[] sources, params DiagnosticResult[] expected)
@@ -309,11 +299,6 @@ namespace Test.Utilities
         protected void VerifyBasicAcrossTwoAssemblies(string dependencySource, string source, params DiagnosticResult[] expected)
         {
             VerifyAcrossTwoAssemblies(dependencySource, source, LanguageNames.VisualBasic, additionalFileOpt: null, expected);
-        }
-
-        protected void VerifyBasicAcrossTwoAssemblies(string dependencySource, string source, FileAndSource additionalFile, params DiagnosticResult[] expected)
-        {
-            VerifyAcrossTwoAssemblies(dependencySource, source, LanguageNames.VisualBasic, additionalFile, expected);
         }
 
         protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
@@ -399,11 +384,6 @@ namespace Test.Utilities
         protected static Document CreateDocument(string source, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false)
         {
             return CreateProject(new[] { source }.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.First();
-        }
-
-        protected static Document[] CreateDocuments(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false)
-        {
-            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.ToArray();
         }
 
         protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null, string projectName = TestProjectName)
