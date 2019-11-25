@@ -57,8 +57,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
             public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)
             {
-                return _activeFileStates.Values.Any(state => state.DocumentId.ProjectId == projectId && !state.IsEmpty) ||
-                       _projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty();
+                foreach (var (documentId, state) in _activeFileStates)
+                {
+                    if (documentId.ProjectId == projectId && !state.IsEmpty)
+                    {
+                        return true;
+                    }
+                }
+
+                return _projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty();
             }
 
             public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
@@ -72,14 +79,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
                 {
                     // see whether we actually have diagnostics
-                    var kv = _activeFileStates.First();
-                    if (kv.Value.IsEmpty)
+                    var (documentId, state) = _activeFileStates.First();
+                    if (state.IsEmpty)
                     {
                         return SpecializedCollections.EmptyEnumerable<ProjectId>();
                     }
 
                     // we do have diagnostics
-                    return SpecializedCollections.SingletonEnumerable(kv.Key.ProjectId);
+                    return SpecializedCollections.SingletonEnumerable(documentId.ProjectId);
                 }
 
                 return new HashSet<ProjectId>(
@@ -96,9 +103,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Collect active documents with diagnostics
 
-                foreach (var state in _activeFileStates.Values)
+                foreach (var (documentId, _) in _activeFileStates)
                 {
-                    var documentId = state.DocumentId;
                     if (documentId.ProjectId == projectId)
                     {
                         set.Add(documentId);
