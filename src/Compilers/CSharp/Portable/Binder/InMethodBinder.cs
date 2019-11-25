@@ -23,15 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class IteratorInfo
         {
-            public static readonly IteratorInfo Empty = new IteratorInfo(default, default(ImmutableArray<Diagnostic>));
+            public static readonly IteratorInfo Empty = new IteratorInfo(default);
 
             public readonly TypeWithAnnotations ElementType;
-            public readonly ImmutableArray<Diagnostic> ElementTypeDiagnostics;
 
-            public IteratorInfo(TypeWithAnnotations elementType, ImmutableArray<Diagnostic> elementTypeDiagnostics)
+            public IteratorInfo(TypeWithAnnotations elementType)
             {
                 this.ElementType = elementType;
-                this.ElementTypeDiagnostics = elementTypeDiagnostics;
             }
         }
 
@@ -139,43 +137,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, diagnostics);
+                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node?.Location ?? Location.None, diagnostics: null);
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
             if (_iteratorInfo == IteratorInfo.Empty)
             {
-                DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
-                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, elementTypeDiagnostics);
-
-                Location errorLocation = _methodSymbol.Locations[0];
+                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node?.Location ?? Location.None, diagnostics: null);
                 if (elementType.IsDefault)
                 {
-                    if (refKind != RefKind.None)
-                    {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, errorLocation, _methodSymbol);
-                    }
-                    else if (!returnType.IsErrorType())
-                    {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, _methodSymbol, returnType);
-                    }
                     elementType = TypeWithAnnotations.Create(CreateErrorType());
                 }
 
-                var info = new IteratorInfo(elementType, elementTypeDiagnostics.ToReadOnlyAndFree());
-
-                var oldInfo = Interlocked.CompareExchange(ref _iteratorInfo, info, IteratorInfo.Empty);
-                if (oldInfo == IteratorInfo.Empty)
-                {
-                    diagnostics.AddRange(_iteratorInfo.ElementTypeDiagnostics);
-                }
+                Interlocked.CompareExchange(ref _iteratorInfo, new IteratorInfo(elementType), IteratorInfo.Empty);
             }
 
             return _iteratorInfo.ElementType;
         }
 
         internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
-            RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+            RefKind refKind, TypeSymbol returnType, Location errorLocation, DiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -187,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
                         if (diagnostics != null)
                         {
-                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocationNode);
+                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocation);
                         }
                         return TypeWithAnnotations.Create(objectType);
 

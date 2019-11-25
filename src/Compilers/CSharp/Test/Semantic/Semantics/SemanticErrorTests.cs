@@ -14594,6 +14594,7 @@ class C : IEnumerable
                 //     public IEnumerator GetEnumerator()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "GetEnumerator").WithArguments("C.GetEnumerator()")
                 );
+            comp.GetEmitDiagnostics();
         }
 
         [Fact]
