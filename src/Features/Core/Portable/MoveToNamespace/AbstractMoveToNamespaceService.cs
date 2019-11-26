@@ -253,21 +253,16 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 moveSpan,
                 MoveTypeOperationKind.MoveTypeNamespaceScope,
                 cancellationToken).ConfigureAwait(false);
+            var modifiedDocument = modifiedSolution.GetDocument(document.Id);
 
             // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
             // otherwise, we will end up with multiple linked documents with different content.
-            // Also, because merge-diff is text based, need to make sure elastic trivia is formatted properly before merge.
-            var formattedDocument = await Formatter.FormatAsync(modifiedSolution.GetDocument(document.Id), SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var formattedSolution = formattedDocument.Project.Solution;
+            var mergedSolution = await PropagateChangeToLinkedDocuments(modifiedDocument, cancellationToken).ConfigureAwait(false);
+            var mergedDocument = mergedSolution.GetDocument(document.Id);
 
-            var diffMergingSession = new LinkedFileDiffMergingSession(document.Project.Solution, formattedSolution, formattedSolution.GetChanges(document.Project.Solution), logSessionInfo: false);
-            var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var mergedSolution = mergeResult.MergedSolution;
-
-            var modifiedDocument = mergedSolution.GetDocument(document.Id);
-            var syntaxRoot = await modifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
+            var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
+
             if (syntaxNode == null)
             {
                 // The type might be declared in global namespace
@@ -275,10 +270,25 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             }
 
             return await MoveItemsInNamespaceAsync(
-                modifiedDocument,
+                mergedDocument,
                 syntaxNode,
                 targetNamespace,
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Solution> PropagateChangeToLinkedDocuments(Document document, CancellationToken cancellationToken)
+        {
+            // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
+            var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattedText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var solution = formattedDocument.Project.Solution;
+
+            foreach (var documentId in formattedDocument.GetLinkedDocumentIds())
+            {
+                solution = solution.WithDocumentText(documentId, formattedText);
+            }
+
+            return solution;
         }
 
         private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)
