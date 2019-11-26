@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext)
             => syntaxContext.IsTypeContext;
 
+        protected override void LogCommit()
+            => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
+
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))

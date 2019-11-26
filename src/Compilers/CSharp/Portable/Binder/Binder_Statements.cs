@@ -716,12 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr.Type is object);
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
-            // Don't try and lookup if we're not enabled
-            if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
-            {
-                return null;
-            }
-
             var result = PerformPatternMethodLookup(expr,
                                                     hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
                                                     syntaxNode,
