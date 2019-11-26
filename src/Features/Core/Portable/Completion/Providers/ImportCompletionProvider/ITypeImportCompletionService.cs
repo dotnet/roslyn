@@ -13,25 +13,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
     internal interface ITypeImportCompletionService : ILanguageService
     {
         /// <summary>
-        /// Get approperiate completion items for all the visible top level types from given project. 
-        /// This method is intended to be used for getting types from source only, so the project must support compilation. 
-        /// For getting types from PE, use <see cref="GetTopLevelTypesFromPEReference"/>.
+        /// Get completion items for all the accessible top level types from the given project and all its references. 
+        /// Each array returned contains all items from one of the reachable entities (i.e. projects and PE references.)
+        /// Returns null if we don't have all the items cached and <paramref name="forceCacheCreation"/> is false.
         /// </summary>
-        Task<ImmutableArray<CompletionItem>> GetTopLevelTypesAsync(
+        /// <remarks>
+        /// Because items from each entity are cached as a separate array, we simply return them as is instead of an 
+        /// aggregated array to avoid unnecessary allocations.
+        /// </remarks>
+        Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
             Project project,
             SyntaxContext syntaxContext,
-            bool isInternalsVisible,
-            CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Get approperiate completion items for all the visible top level types from given PE reference.
-        /// </summary>
-        ImmutableArray<CompletionItem> GetTopLevelTypesFromPEReference(
-            Solution solution,
-            Compilation compilation,
-            PortableExecutableReference peReference,
-            SyntaxContext syntaxContext,
-            bool isInternalsVisible,
+            bool forceCacheCreation,
             CancellationToken cancellationToken);
     }
 }

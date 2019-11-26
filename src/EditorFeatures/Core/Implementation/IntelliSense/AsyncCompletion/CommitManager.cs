@@ -143,11 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TypeImportCompletionEnabled, out bool isTyperImportCompletionEnabled) && isTyperImportCompletionEnabled)
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
-
-                if (roslynItem.Flags.IsCached())
-                {
-                    AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
-                }
             }
 
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)

@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         AsyncStreams,
         NullableReferenceTypes,
         DefaultInterfaceImplementation,
+        LambdaDiscardParameters,
         AnonymousFunctions,
     }
 }

@@ -1604,8 +1604,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
-        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8427,
-        ERR_StaticAnonymousFunctionCannotCaptureThis = 8428,
+        ERR_VarianceInterfaceNesting = 8427,
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8428,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8429,
 
         // available range
 
@@ -1663,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitNullableAttribute = 8623,
         WRN_NullabilityMismatchInArgumentForOutput = 8624,
         WRN_NullAsNonNullable = 8625,
-        WRN_AsOperatorMayReturnNull = 8626,
+        //WRN_AsOperatorMayReturnNull = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
@@ -1675,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TripleDotNotAllowed = 8635,
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
-        WRN_ConditionalAccessMayReturnNull = 8638,
+        //WRN_ConditionalAccessMayReturnNull = 8638,
         ERR_BadNullableTypeof = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
@@ -1690,8 +1691,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IsNullableType = 8650,
         ERR_AsNullableType = 8651,
         ERR_FeatureInPreview = 8652,
-        WRN_DefaultExpressionMayIntroduceNullT = 8653,
-        WRN_NullLiteralMayIntroduceNullT = 8654,
+        //WRN_DefaultExpressionMayIntroduceNullT = 8653,
+        //WRN_NullLiteralMayIntroduceNullT = 8654,
         WRN_SwitchExpressionNotExhaustiveForNull = 8655,
 
         WRN_ImplicitCopyInReadOnlyMember = 8656,
@@ -1732,7 +1733,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DuplicateNullSuppression = 8715,
         ERR_DefaultLiteralNoTargetType = 8716,
-        WRN_ExpressionMayIntroduceNullT = 8717,
 
         ERR_ReAbstractionInNoPIAType = 8750,
 

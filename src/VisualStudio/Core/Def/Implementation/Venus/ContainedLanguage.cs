@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -23,13 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-    internal partial class ContainedLanguage<TPackage, TLanguageService>
-        where TPackage : AbstractPackage<TPackage, TLanguageService>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
+    internal partial class ContainedLanguage
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private readonly TLanguageService _languageService;
+        private readonly Guid _languageServiceGuid;
 
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
@@ -69,53 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
-        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
-        public ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            AbstractProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            TLanguageService languageService,
-            SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule,
-            Workspace workspace)
-            : this(bufferCoordinator,
-                   componentModel,
-                   project.VisualStudioProject,
-                   hierarchy,
-                   itemid,
-                   project.ProjectTracker,
-                   project.Id,
-                   languageService,
-                   vbHelperFormattingRule: null)
-        {
-            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        public ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            AbstractProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            TLanguageService languageService,
-            SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule)
-            : this(bufferCoordinator,
-                   componentModel,
-                   project.VisualStudioProject,
-                   hierarchy,
-                   itemid,
-                   projectTrackerOpt: null,
-                   project.VisualStudioProject.Id,
-                   languageService,
-                   vbHelperFormattingRule: null)
-        {
-            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
-        }
-
         internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
@@ -124,13 +74,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemid,
             VisualStudioProjectTracker projectTrackerOpt,
             ProjectId projectId,
-            TLanguageService languageService,
+            Guid languageServiceGuid,
             AbstractFormattingRule vbHelperFormattingRule = null)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
             this.Project = project;
-            _languageService = languageService;
+            _languageServiceGuid = languageServiceGuid;
 
             this.Workspace = projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>();
 

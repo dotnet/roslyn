@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis
             return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
         }
 
+        internal static bool IsUnderscoreToken(this SyntaxToken identifier)
+        {
+            return identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
+        }
+
         /// <summary>
         /// Returns the index of the first node of a specified kind in the node list.
         /// </summary>
