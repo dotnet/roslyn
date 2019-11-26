@@ -6487,6 +6487,7 @@ class C
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        [WorkItem(39961, "https://github.com/dotnet/roslyn/issues/39961")]
         public void CancellationTokenParameter_WrongParameterType()
         {
             string source = @"
@@ -6499,13 +6500,21 @@ class C
         yield return value++;
         await Task.Yield();
     }
+    static async Task Main()
+    {
+        await foreach (var i in Iter(42))
+        {
+            System.Console.Write(i);
+        }
+    }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,73): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value)
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(6, 73)
                 );
+            CompileAndVerify(comp, expectedOutput: "42");
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
