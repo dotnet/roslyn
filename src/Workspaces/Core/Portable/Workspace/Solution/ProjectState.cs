@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ValueSource<AnalyzerConfigSet> _lazyAnalyzerConfigSet;
 
-        // this will be initialized lazily.
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
         private ProjectState(
