@@ -158,7 +158,7 @@ namespace Analyzer.Utilities
         private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,
             string optionName,
-            string namePrefixOpt,
+            string? namePrefixOpt,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)

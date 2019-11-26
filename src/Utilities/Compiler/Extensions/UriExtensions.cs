@@ -61,7 +61,7 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            string word;
+            string? word;
             var parser = new WordParser(symbol.Name, WordParserOptions.SplitCompoundWords);
             while ((word = parser.NextWord()) != null)
             {

@@ -30,7 +30,7 @@ namespace Test.Utilities
         internal static readonly MetadataReference SystemWebExtensions = MetadataReference.CreateFromFile(typeof(System.Web.Script.Serialization.JavaScriptSerializer).Assembly.Location);
         internal static readonly MetadataReference SystemGlobalization = MetadataReference.CreateFromFile(Assembly.Load("System.Globalization, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location);
 
-        private static MetadataReference s_systemRuntimeFacadeRef;
+        private static MetadataReference? s_systemRuntimeFacadeRef;
         public static MetadataReference SystemRuntimeFacadeRef
         {
             get
@@ -46,7 +46,7 @@ namespace Test.Utilities
             }
         }
 
-        private static MetadataReference s_systemThreadingFacadeRef;
+        private static MetadataReference? s_systemThreadingFacadeRef;
         public static MetadataReference SystemThreadingFacadeRef
         {
             get
@@ -62,7 +62,7 @@ namespace Test.Utilities
             }
         }
 
-        private static MetadataReference s_systemThreadingTasksFacadeRef;
+        private static MetadataReference? s_systemThreadingTasksFacadeRef;
         public static MetadataReference SystemThreadingTaskFacadeRef
         {
             get

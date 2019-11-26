@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly ImmutableDictionary<IOperation, PredicateValueKind> _predicateValueKindMap;
         private readonly ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> _interproceduralResultsMap;
         private readonly TAbstractAnalysisValue _defaultUnknownValue;
-        private readonly object _analysisDataForUnhandledThrowOperationsOpt;
+        private readonly object? _analysisDataForUnhandledThrowOperationsOpt;
 
         internal DataFlowAnalysisResult(
             ImmutableDictionary<BasicBlock, TBlockAnalysisResult> basicBlockStateMap,
@@ -34,20 +34,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TBlockAnalysisResult entryBlockOutput,
             TBlockAnalysisResult exitBlockOutput,
-            TBlockAnalysisResult exceptionPathsExitBlockOutputOpt,
-            TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
-            object analysisDataForUnhandledThrowOperationsOpt,
-            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> taskWrappedValuesMapOpt,
+            TBlockAnalysisResult? exceptionPathsExitBlockOutputOpt,
+            TBlockAnalysisResult? mergedStateForUnhandledThrowOperationsOpt,
+            object? analysisDataForUnhandledThrowOperationsOpt,
+            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? taskWrappedValuesMapOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
         {
-            Debug.Assert(basicBlockStateMap != null);
-            Debug.Assert(operationStateMap != null);
-            Debug.Assert(predicateValueKindMap != null);
-            Debug.Assert(interproceduralResultsMap != null);
-            Debug.Assert(entryBlockOutput != null);
-            Debug.Assert(exitBlockOutput != null);
-
             _basicBlockStateMap = basicBlockStateMap;
             _operationStateMap = operationStateMap;
             _predicateValueKindMap = predicateValueKindMap;
@@ -75,9 +68,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
             object analysisDataForUnhandledThrowOperations)
         {
-            Debug.Assert(mergedStateForUnhandledThrowOperationsOpt != null);
-            Debug.Assert(analysisDataForUnhandledThrowOperations != null);
-
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
                 _basicBlockStateMap, _operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKindOpt,
                 _interproceduralResultsMap, EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutputOpt, mergedStateForUnhandledThrowOperationsOpt,
@@ -127,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> TryGetInterproceduralResult(IOperation operation)
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>? TryGetInterproceduralResult(IOperation operation)
         {
             if (_interproceduralResultsMap.TryGetValue(operation, out var result))
             {
@@ -141,16 +131,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }
         public TBlockAnalysisResult EntryBlockOutput { get; }
         public TBlockAnalysisResult ExitBlockOutput { get; }
-        public TBlockAnalysisResult ExceptionPathsExitBlockOutputOpt { get; }
+        public TBlockAnalysisResult? ExceptionPathsExitBlockOutputOpt { get; }
 
-        object IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperationsOpt
+        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperationsOpt
             => _analysisDataForUnhandledThrowOperationsOpt;
 
-        object IDataFlowAnalysisResult<TAbstractAnalysisValue>.TaskWrappedValuesMapOpt
+        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.TaskWrappedValuesMapOpt
             => TaskWrappedValuesMapOpt;
 
-        public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt { get; }
+        public TBlockAnalysisResult? MergedStateForUnhandledThrowOperationsOpt { get; }
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
-        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> TaskWrappedValuesMapOpt { get; }
+        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? TaskWrappedValuesMapOpt { get; }
     }
 }

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _isTrackedPointsToValue = isTrackedPointsToValue ?? throw new ArgumentNullException(nameof(isTrackedPointsToValue));
         }
 
-        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult pointsToAnalysisResultOpt)
+        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResultOpt)
             : this(valueDomain,
                   pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedEntity : s_defaultIsTrackedEntity,
                   pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedPointsToValue : s_defaultIsTrackedPointsToValue)
@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> map1, DictionaryAnalysisData<AnalysisEntity, TValue> map2)
         {
-            Debug.Assert(map1 != null);
             AssertValidAnalysisData(map1);
-            Debug.Assert(map2 != null);
             AssertValidAnalysisData(map2);
 
             var resultMap = new DictionaryAnalysisData<AnalysisEntity, TValue>();

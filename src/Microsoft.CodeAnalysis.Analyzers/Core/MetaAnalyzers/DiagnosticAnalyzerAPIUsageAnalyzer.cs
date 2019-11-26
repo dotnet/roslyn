@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                INamedTypeSymbol diagnosticAnalyzer = compilationStartContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerTypeFullName);
+                INamedTypeSymbol? diagnosticAnalyzer = compilationStartContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerTypeFullName);
                 if (diagnosticAnalyzer == null)
                 {
                     // Does not contain any diagnostic analyzers.

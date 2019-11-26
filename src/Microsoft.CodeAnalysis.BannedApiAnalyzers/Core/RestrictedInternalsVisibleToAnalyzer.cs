@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         }
 
         private static void VerifySymbol(
-            ISymbol symbol,
+            ISymbol? symbol,
             SyntaxNode node,
             Action<Diagnostic> reportDiagnostic,
             ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>> restrictedInternalsVisibleToMap,
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         }
 
         private static void MarkIsBanned(
-            INamespaceSymbol startNamespace,
-            INamespaceSymbol uptoNamespace,
+            INamespaceSymbol? startNamespace,
+            INamespaceSymbol? uptoNamespace,
             ConcurrentDictionary<INamespaceSymbol, bool> namespaceToIsBannedMap,
             bool banned)
         {

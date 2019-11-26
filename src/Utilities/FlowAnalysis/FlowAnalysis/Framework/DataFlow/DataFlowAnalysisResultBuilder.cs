@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisData : AbstractAnalysisData
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly PooledDictionary<BasicBlock, TAnalysisData> _info;
+        private readonly PooledDictionary<BasicBlock, TAnalysisData?> _info;
 #pragma warning restore
 
         public DataFlowAnalysisResultBuilder()
         {
-            _info = PooledDictionary<BasicBlock, TAnalysisData>.GetInstance();
+            _info = PooledDictionary<BasicBlock, TAnalysisData?>.GetInstance();
         }
 
-        public TAnalysisData this[BasicBlock block] => _info[block];
-        public TAnalysisData EntryBlockOutputData { get; set; }
-        public TAnalysisData ExitBlockOutputData { get; set; }
+        public TAnalysisData? this[BasicBlock block] => _info[block];
+        public TAnalysisData? EntryBlockOutputData { get; set; }
+        public TAnalysisData? ExitBlockOutputData { get; set; }
 
         internal void Add(BasicBlock block)
         {
@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TAnalysisData entryBlockOutputData,
             TAnalysisData exitBlockData,
-            TAnalysisData exceptionPathsExitBlockDataOpt,
-            TAnalysisData mergedDataForUnhandledThrowOperationsOpt,
-            Dictionary<ThrownExceptionInfo, TAnalysisData> analysisDataForUnhandledThrowOperationsOpt,
-            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> taskWrappedValuesMapOpt,
+            TAnalysisData? exceptionPathsExitBlockDataOpt,
+            TAnalysisData? mergedDataForUnhandledThrowOperationsOpt,
+            Dictionary<ThrownExceptionInfo, TAnalysisData>? analysisDataForUnhandledThrowOperationsOpt,
+            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? taskWrappedValuesMapOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
             where TBlockAnalysisResult : AbstractBlockAnalysisResult
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var block = kvp.Key;
                 var blockAnalysisData = kvp.Value;
-                var result = getBlockResult(block, blockAnalysisData);
+                var result = getBlockResult(block, blockAnalysisData!);
                 resultBuilder.Add(block, result);
             }
 

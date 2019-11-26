@@ -16,7 +16,7 @@ namespace Test.Utilities
             this TCompilation c,
             DiagnosticAnalyzer[] analyzers,
             TestValidationMode validationMode,
-            AnalyzerOptions options = null)
+            AnalyzerOptions? options = null)
             where TCompilation : Compilation
         {
             var compilationWithAnalyzers = c.WithAnalyzers(analyzers.ToImmutableArray(), options, CancellationToken.None);

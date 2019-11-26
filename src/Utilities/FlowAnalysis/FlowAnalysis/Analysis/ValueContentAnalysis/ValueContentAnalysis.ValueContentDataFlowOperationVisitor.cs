@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
                 ValueContentAbstractValue currentAssignedValue = GetCachedAbstractValue(assignedValue);
                 if (currentAssignedValue.IsLiteralState &&
-                    AnalysisEntityFactory.TryCreate(target, out AnalysisEntity targetEntity))
+                    AnalysisEntityFactory.TryCreate(target, out var targetEntity))
                 {
                     if (CurrentAnalysisData.TryGetValue(targetEntity, out ValueContentAbstractValue existingTargetValue) &&
                         existingTargetValue.IsLiteralState)
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData.CoreAnalysisData, SetAbstractValue);
 
             #region Visitor methods
-            public override ValueContentAbstractValue DefaultVisit(IOperation operation, object argument)
+            public override ValueContentAbstractValue DefaultVisit(IOperation operation, object? argument)
             {
                 _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     return ValueContentAbstractValue.ContainsNullLiteralState;
                 }
 
-                if (ValueContentAbstractValue.IsSupportedType(operation.Type, out ITypeSymbol valueTypeSymbol))
+                if (ValueContentAbstractValue.IsSupportedType(operation.Type, out var valueTypeSymbol))
                 {
                     if (operation.ConstantValue.HasValue)
                     {
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 return ValueDomain.UnknownOrMayBeValue;
             }
 
-            public override ValueContentAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+            public override ValueContentAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object? argument)
             {
                 var leftValue = Visit(operation.LeftOperand, argument);
                 var rightValue = Visit(operation.RightOperand, argument);
@@ -215,14 +215,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 return targetValue.MergeBinaryOperation(incrementValue, operationKind, operation.Target.Type, incrementValueType, operation.Type);
             }
 
-            public override ValueContentAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+            public override ValueContentAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 // TODO: Analyze string constructor
                 // https://github.com/dotnet/roslyn-analyzers/issues/1547
                 return base.VisitObjectCreation(operation, argument);
             }
 
-            public override ValueContentAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object argument)
+            public override ValueContentAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object? argument)
             {
                 var value = base.VisitFieldReference(operation, argument);
 
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             public override ValueContentAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
                 IMethodSymbol method,
-                IOperation visitedInstance,
+                IOperation? visitedInstance,
                 ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
                 IOperation originalOperation,
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 return base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
             }
 
-            public override ValueContentAbstractValue VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
+            public override ValueContentAbstractValue VisitInterpolatedString(IInterpolatedStringOperation operation, object? argument)
             {
                 if (operation.Parts.IsEmpty)
                 {

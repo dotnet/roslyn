@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         private sealed class CoreAnalysisDataDomain : AnalysisEntityMapAbstractDomain<ValueContentAbstractValue>
         {
-            public CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain, PointsToAnalysisResult pointsToAnalysisResultOpt)
+            public CoreAnalysisDataDomain(AbstractValueDomain<ValueContentAbstractValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResultOpt)
                 : base(valueDomain, pointsToAnalysisResultOpt)
             {
             }
@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             public CoreValueContentAnalysisData MergeAnalysisDataForBackEdge(CoreValueContentAnalysisData forwardEdgeAnalysisData, CoreValueContentAnalysisData backEdgeAnalysisData)
             {
-                Debug.Assert(forwardEdgeAnalysisData != null);
-                Debug.Assert(backEdgeAnalysisData != null);
-
                 // Stop tracking values present in both branches if their is an assignment to different literal values from the back edge.
                 // Clone the input forwardEdgeAnalysisData to ensure we don't overwrite the input dictionary.
                 using (forwardEdgeAnalysisData = new CoreValueContentAnalysisData(forwardEdgeAnalysisData))

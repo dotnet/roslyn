@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -31,13 +32,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
-            Lazy<PointsToAnalysisResult> pointsToFactory,
-            Lazy<(PointsToAnalysisResult p, ValueContentAnalysisResult v)> valueContentFactory,
-            out PooledHashSet<string> allTaintedTargets)
+            Lazy<PointsToAnalysisResult?> pointsToFactory,
+            Lazy<(PointsToAnalysisResult? p, ValueContentAnalysisResult? v)> valueContentFactory,
+            [NotNullWhen(returnValue: true)] out PooledHashSet<string>? allTaintedTargets)
         {
             allTaintedTargets = null;
-            PointsToAnalysisResult pointsToAnalysisResult = null;
-            ValueContentAnalysisResult valueContentAnalysisResult = null;
+            PointsToAnalysisResult? pointsToAnalysisResult = null;
+            ValueContentAnalysisResult? valueContentAnalysisResult = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
                 foreach ((MethodMatcher methodMatcher, ImmutableHashSet<string> taintedTargets) in sourceInfo.TaintedMethods)
@@ -164,7 +165,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
             ImmutableArray<string> taintedParameterNames,
-            out PooledHashSet<(string, string)> taintedParameterPairs)
+            [NotNullWhen(returnValue: true)] out PooledHashSet<(string, string)>? taintedParameterPairs)
         {
             taintedParameterPairs = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))

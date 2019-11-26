@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         private sealed class ValueContentAnalysisDomain : PredicatedAnalysisDataDomain<ValueContentAnalysisData, ValueContentAbstractValue>
         {
-            public ValueContentAnalysisDomain(PointsToAnalysisResult pointsToAnalysisResult)
+            public ValueContentAnalysisDomain(PointsToAnalysisResult? pointsToAnalysisResult)
                 : base(new CoreAnalysisDataDomain(ValueContentAbstractValueDomain.Default, pointsToAnalysisResult))
             {
             }
