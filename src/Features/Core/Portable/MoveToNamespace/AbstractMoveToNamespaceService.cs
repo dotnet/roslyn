@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return null;
             }
 
-            // The underlying ChangeNamespace service doesn't support nested namespace decalration.
+            // The underlying ChangeNamespace service doesn't support nested namespace declaration.
             if (GetNamespaceInSpineCount(declarationSyntax) == 1)
             {
                 var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
