@@ -22,18 +22,17 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool TryGetOption(this AnalyzerConfigOptions analyzerConfigOptions, OptionKey optionKey, out object value)
         {
-            var valueType = optionKey.Option.GetType().GenericTypeArguments[0];
-            var parameters = new object[]
+            foreach (var storageLocation in optionKey.Option.StorageLocations)
             {
-                analyzerConfigOptions,
-                optionKey.Option,
-                null
-            };
+                if (storageLocation is IEditorConfigStorageLocation editorConfigStorageLocation &&
+                    editorConfigStorageLocation.TryGetOption(analyzerConfigOptions, optionKey.Option.Type, out value))
+                {
+                    return true;
+                }
+            }
 
-            var optionAvailable = (bool)_tryGetEditorConfigOptionMethodInfo.MakeGenericMethod(valueType).Invoke(null, parameters);
-            value = parameters[2];
-
-            return optionAvailable;
+            value = default;
+            return false;
         }
 
         private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
