@@ -1320,11 +1320,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetSlotUnassigned(int slot)
         {
-            if (_tryState.HasValue)
+            if (NonMonotonicState.HasValue)
             {
-                var state = _tryState.Value;
+                var state = NonMonotonicState.Value;
                 SetSlotUnassigned(slot, ref state);
-                _tryState = state;
+                NonMonotonicState = state;
             }
 
             SetSlotUnassigned(slot, ref this.State);
@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 id.Symbol.Name);
         }
 
-        protected override void Meet(ref LocalState self, ref LocalState other)
+        protected override bool Meet(ref LocalState self, ref LocalState other)
         {
             if (self.Assigned.Capacity != other.Assigned.Capacity)
             {
@@ -2112,15 +2112,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Normalize(ref other);
             }
 
-            if (!other.Reachable) self.Assigned[0] = true;
+            if (!other.Reachable)
+            {
+                self.Assigned[0] = true;
+                return true;
+            }
 
+            bool changed = false;
             for (int slot = 1; slot < self.Assigned.Capacity; slot++)
             {
                 if (other.Assigned[slot] && !self.Assigned[slot])
                 {
                     SetSlotAssigned(slot, ref self);
+                    changed = true;
                 }
             }
+            return changed;
         }
 
         protected override bool Join(ref LocalState self, ref LocalState other)

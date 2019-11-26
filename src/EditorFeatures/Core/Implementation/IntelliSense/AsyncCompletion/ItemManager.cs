@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -206,16 +205,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
-            var experimentationService = document?.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
-
-            if (experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch) == true)
-            {
-                // Sort the items by pattern matching results.
-                // Note that we want to preserve the original alphabetical order for items with same pattern match score,
-                // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
-                // to `MatchResult` to archieve this.
-                builder.Sort(MatchResult.SortingComparer);
-            }
+            // Sort the items by pattern matching results.
+            // Note that we want to preserve the original alphabetical order for items with same pattern match score,
+            // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
+            // to `MatchResult` to archieve this.
+            builder.Sort(MatchResult.SortingComparer);
 
             var initialListOfItemsToBeIncluded = builder.ToImmutableAndFree();
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.VisualStudio
             ThreadHelper.ThrowIfNotOnUIThread();
             var workspace = (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>();
             workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-            return new ProjectExternalErrorReporter(projectId, errorCodePrefix, workspace);
+            return new ProjectExternalErrorReporter(projectId, errorCodePrefix, LanguageNames.FSharp, workspace);
         }
     }
 }

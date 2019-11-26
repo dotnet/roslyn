@@ -8,6 +8,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
+      Note: This package is deprecated. Please use Microsoft.Net.Compilers.Toolset instead
       CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
     </PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>

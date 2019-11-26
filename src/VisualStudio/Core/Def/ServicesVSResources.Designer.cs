@@ -435,6 +435,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Background analysis scope:.
+        /// </summary>
+        internal static string Background_analysis_scope_colon {
+            get {
+                return ResourceManager.GetString("Background_analysis_scope_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -584,6 +593,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Close {
             get {
                 return ResourceManager.GetString("Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for &apos;{0}&apos;..
+        /// </summary>
+        internal static string Code_analysis_completed_for_0 {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code analysis completed for Solution..
+        /// </summary>
+        internal static string Code_analysis_completed_for_Solution {
+            get {
+                return ResourceManager.GetString("Code_analysis_completed_for_Solution", resourceCulture);
             }
         }
         
@@ -741,6 +768,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current Document.
+        /// </summary>
+        internal static string Current_Document {
+            get {
+                return ResourceManager.GetString("Current_Document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Debugger.
         /// </summary>
         internal static string Debugger {
@@ -869,15 +905,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable full solution _analysis.
-        /// </summary>
-        internal static string Enable_full_solution_analysis {
-            get {
-                return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enable navigation to decompiled sources (experimental).
         /// </summary>
         internal static string Enable_navigation_to_decompiled_sources {
@@ -928,6 +955,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enter_a_title_for_this_Symbol_Specification {
             get {
                 return ResourceManager.GetString("Enter_a_title_for_this_Symbol_Specification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Entire Solution.
+        /// </summary>
+        internal static string Entire_Solution {
+            get {
+                return ResourceManager.GetString("Entire_Solution", resourceCulture);
             }
         }
         
@@ -2056,6 +2092,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open Documents and Projects.
+        /// </summary>
+        internal static string Open_Documents_and_Projects {
+            get {
+                return ResourceManager.GetString("Open_Documents_and_Projects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Options.
         /// </summary>
         internal static string Options {
@@ -2787,6 +2832,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Review_Changes {
             get {
                 return ResourceManager.GetString("Review_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run Code Analysis on {0}.
+        /// </summary>
+        internal static string Run_Code_Analysis_on_0 {
+            get {
+                return ResourceManager.GetString("Run_Code_Analysis_on_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for &apos;{0}&apos;....
+        /// </summary>
+        internal static string Running_code_analysis_for_0 {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running code analysis for Solution....
+        /// </summary>
+        internal static string Running_code_analysis_for_Solution {
+            get {
+                return ResourceManager.GetString("Running_code_analysis_for_Solution", resourceCulture);
             }
         }
         

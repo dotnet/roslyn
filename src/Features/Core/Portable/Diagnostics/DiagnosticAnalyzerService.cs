@@ -188,6 +188,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
+        public async Task ForceAnalyzeAsync(Solution solution, ProjectId projectId = null, CancellationToken cancellationToken = default)
+        {
+            if (_map.TryGetValue(solution.Workspace, out var analyzer))
+            {
+                if (projectId != null)
+                {
+                    var project = solution.GetProject(projectId);
+                    if (project != null)
+                    {
+                        await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    var tasks = new Task[solution.ProjectIds.Count];
+                    var index = 0;
+                    foreach (var project in solution.Projects)
+                    {
+                        var localProject = project;
+                        tasks[index++] = Task.Run(
+                            () => analyzer.ForceAnalyzeProjectAsync(project, cancellationToken));
+                    }
+
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
+            }
+        }
+
         public Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))

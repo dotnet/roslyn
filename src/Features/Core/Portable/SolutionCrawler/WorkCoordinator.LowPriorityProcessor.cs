@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                     using (Processor.EnableCaching(project.Id))
                                     {
-                                        await Processor.RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
+                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                                 else

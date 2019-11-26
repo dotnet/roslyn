@@ -359,13 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             ThisCanBeCalledOnAnyThread();
 
-            if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out var fwLink))
-            {
-                // We're providing a constant, known-good link. This should be impossible.
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            BrowserHelper.StartBrowser(fwLink);
+            BrowserHelper.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
             _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);

@@ -249,6 +249,36 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a parameter symbol that can be used to describe a parameter declaration.
         /// </summary>
+        internal static IParameterSymbol CreateParameterSymbol(
+            IParameterSymbol parameter,
+            ImmutableArray<AttributeData>? attributes = null,
+            RefKind? refKind = null,
+            bool? isParams = null,
+            ITypeSymbol type = null,
+            Optional<string> name = default,
+            bool? isOptional = null,
+            bool? hasDefaultValue = null,
+            Optional<object> defaultValue = default)
+        {
+            return new CodeGenerationParameterSymbol(
+                containingType: null,
+                attributes ?? parameter.GetAttributes(),
+                refKind ?? parameter.RefKind,
+                isParams ?? parameter.IsParams,
+                type ?? parameter.Type,
+                name.HasValue ? name.Value : parameter.Name,
+                isOptional ?? parameter.IsOptional,
+                hasDefaultValue ?? parameter.HasExplicitDefaultValue,
+                defaultValue.HasValue
+                    ? defaultValue.Value
+                    : parameter.HasExplicitDefaultValue
+                        ? parameter.ExplicitDefaultValue
+                        : null);
+        }
+
+        /// <summary>
+        /// Creates a parameter symbol that can be used to describe a parameter declaration.
+        /// </summary>
         public static ITypeParameterSymbol CreateTypeParameterSymbol(string name, int ordinal = 0)
         {
             return CreateTypeParameter(

@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 warningLevel: 0,
                 projectId: projectId,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty);
+                properties: ImmutableDictionary<string, string>.Empty,
+                language: language);
         }
 
         private static bool TryGetErrorMessage(

@@ -504,6 +504,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsInterface => false;
 
+        public bool IsDelegate => false;
+
         public bool IsRuntimeSpecial => false;
 
         public bool IsSerializable => false;

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -303,15 +304,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
                     getFixes: dxs =>
                     {
-                        if (fixAllForInSpan)
+                        using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixer, cancellationToken))
                         {
-                            var primaryDiagnostic = dxs.First();
-                            return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
-
-                        }
-                        else
-                        {
-                            return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
+                            if (fixAllForInSpan)
+                            {
+                                var primaryDiagnostic = dxs.First();
+                                return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
+                            }
+                            else
+                            {
+                                return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
+                            }
                         }
                     },
                     cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -357,12 +360,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // append CodeFixCollection for each CodeFixProvider
             foreach (var provider in lazyConfigurationProviders.Value)
             {
-                await AppendFixesOrConfigurationsAsync(
-                    document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
-                    hasFix: d => provider.IsFixableDiagnostic(d),
-                    getFixes: dxs => provider.GetFixesAsync(
-                        document, diagnosticsSpan, dxs, cancellationToken),
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, provider, cancellationToken))
+                {
+                    await AppendFixesOrConfigurationsAsync(
+                        document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
+                        hasFix: d => provider.IsFixableDiagnostic(d),
+                        getFixes: dxs => provider.GetFixesAsync(
+                            document, diagnosticsSpan, dxs, cancellationToken),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 

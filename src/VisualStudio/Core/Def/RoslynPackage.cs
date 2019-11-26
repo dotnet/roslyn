@@ -127,6 +127,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>().Initialize(this);
             this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
 
+            this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
+
             LoadAnalyzerNodeComponents();
 
             LoadComponentsBackgroundAsync(cancellationToken).Forget();
