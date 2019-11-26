@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentClosed();
-                var closed = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
-                RaiseDiagnosticsRemovedForClosedOrResetDocument(document, stateSets, closed);
+                var documentHadDiagnostics = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
 
@@ -174,17 +174,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentReset();
-                var reset = _stateManager.OnDocumentReset(stateSets, document);
-                RaiseDiagnosticsRemovedForClosedOrResetDocument(document, stateSets, reset);
+                var documentHadDiagnostics = _stateManager.OnDocumentReset(stateSets, document);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
             return Task.CompletedTask;
         }
 
-        private void RaiseDiagnosticsRemovedForClosedOrResetDocument(Document document, IEnumerable<StateSet> stateSets, bool changed)
+        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(Document document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
             // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
-            if (!changed ||
+            if (!documentHadDiagnostics ||
                 Executor.FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
             {
                 // this is Perf to reduce raising events unnecessarily.
