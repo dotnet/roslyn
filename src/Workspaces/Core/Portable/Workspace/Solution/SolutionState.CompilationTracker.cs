@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
                 // we can use current state as it is since we will replace the document with latest document anyway.
                 if (inProgressState != null &&
                     inProgressCompilation != null &&
-                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.Action, id)))
+                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
                 {
                     inProgressProject = this.ProjectState;
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().State : this.ProjectState;
+                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().state : this.ProjectState;
 
                 // if we already have a final compilation we are done.
                 if (inProgressCompilation != null && state is FinalState)
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        inProgressCompilation = await intermediateProjects[0].Action.InvokeAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                        inProgressCompilation = await intermediateProjects[0].action.InvokeAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
                         this.WriteState(State.Create(inProgressCompilation, intermediateProjects), solution);
