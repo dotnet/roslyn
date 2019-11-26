@@ -114,6 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected override void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        {
+        }
+
         internal override TypeWithAnnotations GetIteratorElementType()
         {
             RefKind refKind = _methodSymbol.RefKind;
