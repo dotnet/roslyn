@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
         {
-            var _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
             if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) &&
                 _compilerDiagnosticAnalyzerDescriptorMap.TryGetValue(compilerAnalyzer, out var idMap) &&
                 idMap.Contains(diagnostic.Id))
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public DiagnosticAnalyzer? GetCompilerDiagnosticAnalyzer(string language)
         {
-            var _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
             if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer))
             {
                 return compilerAnalyzer;
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
         {
-            var _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
             return _compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) && compilerAnalyzer == analyzer;
         }
 
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public string? GetDiagnosticAnalyzerPackageName(string language, DiagnosticAnalyzer analyzer)
         {
-            var _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
             if (_hostDiagnosticAnalyzerPackageNameMap.TryGetValue(analyzer, out var name))
             {
                 return name;
