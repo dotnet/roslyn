@@ -161,13 +161,13 @@ class Program2
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
 
-            // Close the current document and verify diagnostics for closed document are removed from error list.
+            // Close the current document and verify diagnostics for closed document are not removed from error list.
             VisualStudio.SolutionExplorer.SaveAll();
             VisualStudio.Editor.SendExplicitFocus();
             VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.F4, ShiftState.Ctrl));
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Empty(actualContents);
+            Assert.Equal(expectedContents, actualContents);
         }
     }
 }
