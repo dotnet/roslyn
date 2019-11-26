@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -53,14 +54,14 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         {
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var options = context.Options;
 
             var semanticModel = context.SemanticModel;
             var language = semanticModel.Language;
 
             // if the user never prefers this style, do not analyze at all.
             // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
-            if (!IsStylePreferred(optionSet, language))
+            if (!IsStylePreferred(options, language, syntaxTree, cancellationToken))
             {
                 return;
             }
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language,
+            if (ShouldReportDiagnostic(predefinedTypeNode, options, language, syntaxTree, cancellationToken,
                     out var diagnosticSeverity))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -95,27 +96,40 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         /// Detects the context of this occurrence of predefined type and determines if we should report it.
         /// </summary>
         private bool ShouldReportDiagnostic(
-            TPredefinedTypeSyntax predefinedTypeNode, OptionSet optionSet,
-            string language, out ReportDiagnostic severity)
+            TPredefinedTypeSyntax predefinedTypeNode,
+            AnalyzerOptions options,
+            string language,
+            SyntaxTree syntaxTree,
+            CancellationToken cancellationToken,
+            out ReportDiagnostic severity)
         {
             // we have a predefined type syntax that is either in a member access context or a declaration context. 
             // check the appropriate option and determine if we should report a diagnostic.
             var isMemberAccessOrCref = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode);
 
             var option = isMemberAccessOrCref ? GetOptionForMemberAccessContext : GetOptionForDeclarationContext;
-            var optionValue = optionSet.GetOption(option, language);
+            var optionValue = options.GetOption(option, language, syntaxTree, cancellationToken);
 
             severity = optionValue.Notification.Severity;
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
-        private bool IsStylePreferred(OptionSet optionSet, string language)
-            => IsFrameworkTypePreferred(optionSet, GetOptionForDeclarationContext, language) ||
-               IsFrameworkTypePreferred(optionSet, GetOptionForMemberAccessContext, language);
+        private bool IsStylePreferred(
+            AnalyzerOptions options,
+            string language,
+            SyntaxTree syntaxTree,
+            CancellationToken cancellationToken)
+            => IsFrameworkTypePreferred(options, GetOptionForDeclarationContext, language, syntaxTree, cancellationToken) ||
+               IsFrameworkTypePreferred(options, GetOptionForMemberAccessContext, language, syntaxTree, cancellationToken);
 
-        private bool IsFrameworkTypePreferred(OptionSet optionSet, PerLanguageOption<CodeStyleOption<bool>> option, string language)
+        private bool IsFrameworkTypePreferred(
+            AnalyzerOptions options,
+            PerLanguageOption<CodeStyleOption<bool>> option,
+            string language,
+            SyntaxTree syntaxTree,
+            CancellationToken cancellationToken)
         {
-            var optionValue = optionSet.GetOption(option, language);
+            var optionValue = options.GetOption(option, language, syntaxTree, cancellationToken);
             return OptionSettingPrefersFrameworkType(optionValue, optionValue.Notification.Severity);
         }
 

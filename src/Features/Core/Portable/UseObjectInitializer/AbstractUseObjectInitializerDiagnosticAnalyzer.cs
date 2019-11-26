@@ -2,10 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var options = context.Options;
 
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var option = optionSet.GetOption(CodeStyleOptions.PreferObjectInitializer, language);
+            var option = options.GetOption(CodeStyleOptions.PreferObjectInitializer, language, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -90,19 +90,20 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 additionalLocations: locations,
                 properties: null));
 
-            FadeOutCode(context, optionSet, matches.Value, locations);
+            FadeOutCode(context, options, matches.Value, locations, cancellationToken);
         }
 
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
-            OptionSet optionSet,
+            AnalyzerOptions options,
             ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
-            ImmutableArray<Location> locations)
+            ImmutableArray<Location> locations,
+            CancellationToken cancellationToken)
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = optionSet.GetOption(
-                CodeStyleOptions.PreferObjectInitializer_FadeOutCode, context.Node.Language);
+            var fadeOutCode = options.GetOption(
+                CodeStyleOptions.PreferObjectInitializer_FadeOutCode, context.Node.Language, syntaxTree, cancellationToken);
             if (!fadeOutCode)
             {
                 return;

@@ -1,8 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UseInferredMemberName
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -21,27 +21,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 SyntaxKind.NameColonEquals, SyntaxKind.NamedFieldInitializer)
         End Sub
 
-        Protected Overrides Sub LanguageSpecificAnalyzeSyntax(context As SyntaxNodeAnalysisContext, syntaxTree As SyntaxTree, optionSet As OptionSet)
+        Protected Overrides Sub LanguageSpecificAnalyzeSyntax(context As SyntaxNodeAnalysisContext,
+                syntaxTree As SyntaxTree,
+                options As AnalyzerOptions,
+                cancellationToken As CancellationToken)
             Dim parseOptions = DirectCast(syntaxTree.Options, VisualBasicParseOptions)
             Select Case context.Node.Kind()
                 Case SyntaxKind.NameColonEquals
-                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context, optionSet, syntaxTree, parseOptions)
+                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context, options, syntaxTree, parseOptions, cancellationToken)
                     Exit Select
                 Case SyntaxKind.NamedFieldInitializer
-                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NamedFieldInitializerSyntax), context, optionSet, syntaxTree)
+                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NamedFieldInitializerSyntax), context, options, syntaxTree, cancellationToken)
                     Exit Select
             End Select
         End Sub
 
-        Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax, context As SyntaxNodeAnalysisContext,
-                                              optionSet As OptionSet, syntaxTree As SyntaxTree, parseOptions As VisualBasicParseOptions)
+        Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax,
+                context As SyntaxNodeAnalysisContext,
+                options As AnalyzerOptions,
+                syntaxTree As SyntaxTree,
+                parseOptions As VisualBasicParseOptions,
+                cancellationToken As CancellationToken)
 
             If Not nameColonEquals.IsParentKind(SyntaxKind.SimpleArgument) Then
                 Return
             End If
 
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
-            If Not optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Value OrElse
+            Dim preference = options.GetOption(
+                CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken)
+            If Not preference.Value OrElse
                 Not VisualBasicInferredMemberNameReducer.CanSimplifyTupleName(argument, parseOptions) Then
                 Return
             End If
@@ -51,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 DiagnosticHelper.Create(
                     Descriptor,
                     nameColonEquals.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
+                    preference.Notification.Severity,
                     additionalLocations:=Nothing,
                     properties:=Nothing))
 
@@ -63,13 +72,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     syntaxTree.GetLocation(fadeSpan)))
         End Sub
 
-        Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext,
-                                              optionSet As OptionSet, syntaxTree As SyntaxTree)
+        Private Sub ReportDiagnosticsIfNeeded(
+                fieldInitializer As NamedFieldInitializerSyntax,
+                context As SyntaxNodeAnalysisContext,
+                options As AnalyzerOptions,
+                syntaxTree As SyntaxTree,
+                cancellationToken As CancellationToken)
             If Not fieldInitializer.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
                 Return
             End If
 
-            If Not optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Value OrElse
+            Dim preference = options.GetOption(
+                CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken)
+            If Not preference.Value OrElse
                 Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer) Then
 
                 Return
@@ -82,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 DiagnosticHelper.Create(
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
+                    preference.Notification.Severity,
                     additionalLocations:=Nothing,
                     properties:=Nothing))
 
