@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
             }
 
+            // TODO add here a span to be typed in
             return new ChangeSignatureAnalyzedContext(
                 document, symbol, parameterConfiguration);
         }
