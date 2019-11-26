@@ -1920,7 +1920,6 @@ class Program1
     }
 }
         </Document>
-
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[Parent*r/Fil*.cs]
 dotnet_style_object_initializer = true:error
 </AnalyzerConfigDocument>
@@ -1954,7 +1953,6 @@ class Program1
     }
 }
         </Document>
-
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[Parent*r/Fil*.cs]
 dotnet_style_object_initializer = true:warning
 </AnalyzerConfigDocument>
