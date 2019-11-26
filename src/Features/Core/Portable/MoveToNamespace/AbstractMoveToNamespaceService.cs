@@ -253,7 +253,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 MoveTypeOperationKind.MoveTypeNamespaceScope,
                 cancellationToken).ConfigureAwait(false);
 
-            var modifiedDocument = modifiedSolution.GetDocument(document.Id);
+            // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
+            // otherwise, we will end up with multiple linked documents with different content.
+            var diffMergingSession = new LinkedFileDiffMergingSession(document.Project.Solution, modifiedSolution, modifiedSolution.GetChanges(document.Project.Solution), logSessionInfo: false);
+            var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var mergedSolution = mergeResult.MergedSolution;
+
+            var modifiedDocument = mergedSolution.GetDocument(document.Id);
             var syntaxRoot = await modifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
