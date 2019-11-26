@@ -6385,7 +6385,7 @@ done:;
                 var missingType = SyntaxFactory.ModifiedType(default, missingTypeName);
                 missingTypes.Add(missingType);
                 // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
-                // we we don't know for sure that the expression isn't a relational with something else.
+                // we don't know for sure that the expression isn't a relational with something else.
                 var greaterThanTokenError = TryEatToken(SyntaxKind.GreaterThanToken) ?? SyntaxFactory.MissingToken(SyntaxKind.GreaterThanToken);
 
                 var funcPtr = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, lessThanTokenError, missingTypes, greaterThanTokenError);
@@ -6471,7 +6471,7 @@ done:;
             // we'd have an error anyway, and it's more likely the user intended for it to be a
             // function pointer convention than not.
             // PROTOTYPE(func-ptr): refactor this out into a helper method to share with binding
-            switch (CurrentToken.Text)
+            switch (CurrentToken.ValueText)
             {
                 case "cdecl":
                 case "managed":
