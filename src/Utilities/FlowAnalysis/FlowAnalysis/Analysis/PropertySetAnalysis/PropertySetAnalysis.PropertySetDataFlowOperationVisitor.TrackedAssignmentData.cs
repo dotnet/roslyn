@@ -16,13 +16,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// </summary>
             private class TrackedAssignmentData
             {
-                public PooledHashSet<IAssignmentOperation> AssignmentsWithUnknownLocation
+                public PooledHashSet<IAssignmentOperation>? AssignmentsWithUnknownLocation
                 {
                     get;
                     private set;
                 }
 
-                public PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>> AbstractLocationsToAssignments
+                public PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>? AbstractLocationsToAssignments
                 {
                     get;
                     private set;

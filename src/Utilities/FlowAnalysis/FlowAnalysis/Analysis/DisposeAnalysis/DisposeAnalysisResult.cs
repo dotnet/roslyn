@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     {
         internal DisposeAnalysisResult(
             DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> coreDisposeAnalysisResult,
-            ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue> trackedInstanceFieldPointsToMap)
+            ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue>? trackedInstanceFieldPointsToMap)
             : base(coreDisposeAnalysisResult)
         {
             TrackedInstanceFieldPointsToMap = trackedInstanceFieldPointsToMap;
         }
 
-        public ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue> TrackedInstanceFieldPointsToMap { get; }
+        public ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue>? TrackedInstanceFieldPointsToMap { get; }
     }
 }

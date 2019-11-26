@@ -86,37 +86,33 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            INamedTypeSymbol codeFixProviderSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeFixProviderMetadataName);
+            INamedTypeSymbol? codeFixProviderSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeFixProviderMetadataName);
             if (codeFixProviderSymbol == null)
             {
                 return;
             }
 
-            IMethodSymbol getFixAllProviderMethod = codeFixProviderSymbol.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
+            IMethodSymbol? getFixAllProviderMethod = codeFixProviderSymbol.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
             if (getFixAllProviderMethod == null)
             {
                 return;
             }
 
-            INamedTypeSymbol codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName);
+            INamedTypeSymbol? codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName);
             if (codeActionSymbol == null)
             {
                 return;
             }
 
-            IEnumerable<IMethodSymbol> createSymbols = codeActionSymbol.GetMembers(CreateMethodName).OfType<IMethodSymbol>();
-            if (createSymbols == null)
-            {
-                return;
-            }
-
-            IPropertySymbol equivalenceKeyProperty = codeActionSymbol.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().FirstOrDefault();
+            IPropertySymbol? equivalenceKeyProperty = codeActionSymbol.GetMembers(EquivalenceKeyPropertyName).OfType<IPropertySymbol>().FirstOrDefault();
             if (equivalenceKeyProperty == null)
             {
                 return;
             }
 
-            CompilationAnalyzer compilationAnalyzer = new CompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, context.Compilation.Assembly, createMethods: ImmutableHashSet.CreateRange(createSymbols));
+            var createMethods = codeActionSymbol.GetMembers(CreateMethodName).OfType<IMethodSymbol>().ToImmutableHashSet();
+
+            CompilationAnalyzer compilationAnalyzer = new CompilationAnalyzer(codeFixProviderSymbol, codeActionSymbol, context.Compilation.Assembly, createMethods);
 
             context.RegisterSymbolAction(compilationAnalyzer.AnalyzeNamedTypeSymbol, SymbolKind.NamedType);
             context.RegisterOperationBlockStartAction(compilationAnalyzer.OperationBlockStart);

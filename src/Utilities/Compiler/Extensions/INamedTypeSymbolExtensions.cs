@@ -48,7 +48,7 @@ namespace Analyzer.Utilities.Extensions
                 throw new ArgumentException($"The type {nameof(parentType)} is not a definition; it is a constructed type", nameof(parentType));
             }
 
-            for (INamedTypeSymbol baseType = type.OriginalDefinition;
+            for (INamedTypeSymbol? baseType = type.OriginalDefinition;
                 baseType != null;
                 baseType = baseType.BaseType?.OriginalDefinition)
             {

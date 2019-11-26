@@ -201,11 +201,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static SyntaxNode GenerateDescriptionArgument(SyntaxGenerator generator, SemanticModel semanticModel)
         {
-            var mefConstructionType = semanticModel.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisHostMefMefConstruction);
-            var knownConstant = mefConstructionType?.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any();
-
             SyntaxNode attributeArgument;
-            if (knownConstant is object)
+            if (semanticModel.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisHostMefMefConstruction, out var mefConstructionType) &&
+                mefConstructionType.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any())
             {
                 attributeArgument = generator.MemberAccessExpression(
                     generator.TypeExpressionForStaticMemberAccess(mefConstructionType),

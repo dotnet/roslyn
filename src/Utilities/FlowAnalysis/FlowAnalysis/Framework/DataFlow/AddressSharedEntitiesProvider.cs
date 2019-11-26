@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// </summary>
     internal sealed class AddressSharedEntitiesProvider<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         /// <summary>
         /// Map builder from entity to set of entities that share the same instance location.
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             SetAddressSharedEntities(analysisContext.InterproceduralAnalysisDataOpt?.AddressSharedEntities);
         }
 
-        public void SetAddressSharedEntities(ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntitiesOpt)
+        public void SetAddressSharedEntities(ImmutableDictionary<AnalysisEntity, CopyAbstractValue>? addressSharedEntitiesOpt)
         {
             _addressSharedEntitiesBuilder.Clear();
             if (addressSharedEntitiesOpt != null)
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             }
         }
 
-        public void UpdateAddressSharedEntitiesForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
+        public void UpdateAddressSharedEntitiesForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValueOpt)
         {
             if (parameter.RefKind != RefKind.None &&
                 assignedValueOpt?.AnalysisEntityOpt != null)
@@ -52,6 +53,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             ImmutableHashSet<AnalysisEntity> ComputeAddressSharedEntities()
             {
+                RoslynDebug.Assert(assignedValueOpt?.AnalysisEntityOpt != null);
+
                 var builder = PooledHashSet<AnalysisEntity>.GetInstance();
                 AddIfHasKnownInstanceLocation(analysisEntity, builder);
                 AddIfHasKnownInstanceLocation(assignedValueOpt.AnalysisEntityOpt, builder);
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
             => TryGetAddressSharedCopyValue(analysisEntity) ?? new CopyAbstractValue(analysisEntity);
 
-        public CopyAbstractValue TryGetAddressSharedCopyValue(AnalysisEntity analysisEntity)
+        public CopyAbstractValue? TryGetAddressSharedCopyValue(AnalysisEntity analysisEntity)
             => _addressSharedEntitiesBuilder.TryGetValue(analysisEntity, out var addressSharedEntities) ?
             addressSharedEntities :
             null;

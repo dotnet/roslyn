@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override int Compare(PointsToAbstractValue oldValue, PointsToAbstractValue newValue, bool assertMonotonicity)
             {
-                Debug.Assert(oldValue != null);
-                Debug.Assert(newValue != null);
-
                 if (ReferenceEquals(oldValue, newValue))
                 {
                     return 0;
@@ -69,9 +66,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override PointsToAbstractValue Merge(PointsToAbstractValue value1, PointsToAbstractValue value2)
             {
-                Debug.Assert(value1 != null);
-                Debug.Assert(value2 != null);
-
                 PointsToAbstractValue result;
                 if (value1 == value2)
                 {

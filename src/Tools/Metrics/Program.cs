@@ -39,7 +39,7 @@ namespace Metrics
         private static async Task<ErrorCode> RunAsync(string[] args, CancellationToken cancellationToken)
         {
             var projectsOrSolutions = new List<string>();
-            string outputFile = null;
+            string? outputFile = null;
             bool quiet = false;
 
             if (args.Length == 0)
@@ -219,7 +219,7 @@ Display this help message.");
 
             ErrorCode writeOutput()
             {
-                XmlTextWriter metricFile = null;
+                XmlTextWriter? metricFile = null;
                 try
                 {
                     // Create the writer

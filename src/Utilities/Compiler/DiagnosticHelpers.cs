@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -88,12 +86,10 @@ namespace Analyzer.Utilities
         public static string GetMemberName(ISymbol symbol)
         {
             // For Types
-            if (symbol.Kind == SymbolKind.NamedType)
+            if (symbol is INamedTypeSymbol namedType &&
+                namedType.IsGenericType)
             {
-                if ((symbol as INamedTypeSymbol).IsGenericType)
-                {
-                    return symbol.MetadataName;
-                }
+                return symbol.MetadataName;
             }
 
             // For other language constructs
