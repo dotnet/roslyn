@@ -1279,11 +1279,17 @@ namespace B
             var (_, action) = await GetCodeActionsAsync(workspace, default);
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
             var result = ApplyOperationsAndGetSolution(workspace, operations);
-            var changedDocument = result.Item2.GetDocument(testDocument.Id);
-            var changedRoot = await changedDocument.GetSyntaxRootAsync();
-            var actualText = changedRoot.ToFullString();
 
-            Assert.Equal(expected, actualText);
+            // Make sure both linked documents are changed.
+            foreach (var id in workspace.Documents.Select(d => d.Id))
+            {
+                var changedDocument = result.Item2.GetDocument(id);
+                var changedRoot = await changedDocument.GetSyntaxRootAsync();
+                var actualText = changedRoot.ToFullString();
+                Assert.Equal(expected, actualText);
+            }
+
+
         }
     }
 }

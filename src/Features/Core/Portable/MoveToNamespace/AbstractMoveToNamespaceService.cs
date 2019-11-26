@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -255,7 +256,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
             // otherwise, we will end up with multiple linked documents with different content.
-            var diffMergingSession = new LinkedFileDiffMergingSession(document.Project.Solution, modifiedSolution, modifiedSolution.GetChanges(document.Project.Solution), logSessionInfo: false);
+            // Also, because merge-diff is text based, need to make sure elastic trivia is formatted properly before merge.
+            var formattedDocument = await Formatter.FormatAsync(modifiedSolution.GetDocument(document.Id), SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattedSolution = formattedDocument.Project.Solution;
+
+            var diffMergingSession = new LinkedFileDiffMergingSession(document.Project.Solution, formattedSolution, formattedSolution.GetChanges(document.Project.Solution), logSessionInfo: false);
             var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
             var mergedSolution = mergeResult.MergedSolution;
 
