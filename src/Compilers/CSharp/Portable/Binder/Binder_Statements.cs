@@ -266,7 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ValidateYield(node, diagnostics);
-            GetIteratorElementType();
             CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
             return new BoundYieldBreakStatement(node);
         }
