@@ -20,19 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
-        private IteratorInfo _iteratorInfo;
-
-        private class IteratorInfo
-        {
-            public static readonly IteratorInfo Empty = new IteratorInfo(default);
-
-            public readonly TypeWithAnnotations ElementType;
-
-            public IteratorInfo(TypeWithAnnotations elementType)
-            {
-                this.ElementType = elementType;
-            }
-        }
+        private TypeWithAnnotations.Boxed _iteratorElementType;
+        private readonly static TypeWithAnnotations.Boxed SentinelElementType = new TypeWithAnnotations.Boxed(default);
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -87,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void MakeIterator()
         {
-            if (_iteratorInfo == null)
+            if (_iteratorElementType == null)
             {
-                _iteratorInfo = IteratorInfo.Empty;
+                _iteratorElementType = SentinelElementType;
             }
         }
 
@@ -97,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _iteratorInfo != null;
+                return _iteratorElementType != null;
             }
         }
 
@@ -142,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
-            if (_iteratorInfo == IteratorInfo.Empty)
+            if (_iteratorElementType == SentinelElementType)
             {
                 TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
                 if (elementType.IsDefault)
@@ -150,10 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementType = TypeWithAnnotations.Create(CreateErrorType());
                 }
 
-                Interlocked.CompareExchange(ref _iteratorInfo, new IteratorInfo(elementType), IteratorInfo.Empty);
+                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), SentinelElementType);
             }
 
-            return _iteratorInfo.ElementType;
+            return _iteratorElementType.Value;
         }
 
         internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
