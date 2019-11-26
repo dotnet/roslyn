@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.Extensions
         public static Diagnostic CreateDiagnostic(
             this SyntaxNode node,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?> properties,
             params object[] args)
             => node
                 .GetLocation()
@@ -63,18 +63,18 @@ namespace Analyzer.Utilities.Extensions
             => location
                 .CreateDiagnostic(
                     rule: rule,
-                    properties: ImmutableDictionary<string, string>.Empty,
+                    properties: ImmutableDictionary<string, string?>.Empty,
                     args: args);
 
         public static Diagnostic CreateDiagnostic(
             this Location location,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?> properties,
             params object[] args)
         {
             if (!location.IsInSource)
             {
-                location = null;
+                location = Location.None;
             }
 
             return Diagnostic.Create(
@@ -95,7 +95,7 @@ namespace Analyzer.Utilities.Extensions
         public static Diagnostic CreateDiagnostic(
             this IEnumerable<Location> locations,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
         {
             IEnumerable<Location> inSource = locations.Where(l => l.IsInSource);
@@ -127,7 +127,7 @@ namespace Analyzer.Utilities.Extensions
             this Compilation compilation,
             DiagnosticDescriptor rule,
             Action<Diagnostic> addDiagnostic,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
         {
             var effectiveSeverity = GetEffectiveSeverity();

@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
@@ -38,9 +39,9 @@ namespace Analyzer.Utilities
 
         private readonly WellKnownTypeProvider _wellKnownTypeProvider;
         private readonly ImmutableHashSet<INamedTypeSymbol> _disposeOwnershipTransferLikelyTypes;
-        private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>> _lazyDisposableFieldsMap;
-        public INamedTypeSymbol IDisposable { get; }
-        public INamedTypeSymbol Task { get; }
+        private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>>? _lazyDisposableFieldsMap;
+        public INamedTypeSymbol? IDisposable { get; }
+        public INamedTypeSymbol? Task { get; }
 
         private DisposeAnalysisHelper(Compilation compilation)
         {
@@ -49,10 +50,9 @@ namespace Analyzer.Utilities
             IDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             Task = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
 
-            if (IDisposable != null)
-            {
-                _disposeOwnershipTransferLikelyTypes = GetDisposeOwnershipTransferLikelyTypes(compilation);
-            }
+            _disposeOwnershipTransferLikelyTypes = IDisposable != null ?
+                GetDisposeOwnershipTransferLikelyTypes(compilation) :
+                ImmutableHashSet<INamedTypeSymbol>.Empty;
         }
 
         private static ImmutableHashSet<INamedTypeSymbol> GetDisposeOwnershipTransferLikelyTypes(Compilation compilation)
@@ -60,7 +60,7 @@ namespace Analyzer.Utilities
             var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
             foreach (var typeName in s_disposeOwnershipTransferLikelyTypes)
             {
-                INamedTypeSymbol typeSymbol = compilation.GetOrCreateTypeByMetadataName(typeName);
+                INamedTypeSymbol? typeSymbol = compilation.GetOrCreateTypeByMetadataName(typeName);
                 if (typeSymbol != null)
                 {
                     builder.Add(typeSymbol);
@@ -78,7 +78,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public static bool TryGetOrCreate(Compilation compilation, out DisposeAnalysisHelper disposeHelper)
+        public static bool TryGetOrCreate(Compilation compilation, [NotNullWhen(returnValue: true)] out DisposeAnalysisHelper? disposeHelper)
         {
             disposeHelper = s_DisposeHelperCache.GetOrCreateValue(compilation, CreateDisposeAnalysisHelper);
             if (disposeHelper.IDisposable == null)
@@ -102,13 +102,13 @@ namespace Analyzer.Utilities
             bool trackInstanceFields,
             bool trackExceptionPaths,
             CancellationToken cancellationToken,
-            out DisposeAnalysisResult disposeAnalysisResult,
-            out PointsToAnalysisResult pointsToAnalysisResult,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null,
+            [NotNullWhen(returnValue: true)] out DisposeAnalysisResult? disposeAnalysisResult,
+            [NotNullWhen(returnValue: true)] out PointsToAnalysisResult? pointsToAnalysisResult,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt = null,
             bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
             var cfg = operationBlocks.GetControlFlowGraph();
-            if (cfg != null)
+            if (cfg != null && IDisposable != null)
             {
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                     analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
@@ -144,6 +144,8 @@ namespace Analyzer.Utilities
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
         {
             EnsureDisposableFieldsMap();
+            RoslynDebug.Assert(_lazyDisposableFieldsMap != null);
+
             if (_lazyDisposableFieldsMap.TryGetValue(namedType, out ImmutableHashSet<IFieldSymbol> disposableFields))
             {
                 return disposableFields;

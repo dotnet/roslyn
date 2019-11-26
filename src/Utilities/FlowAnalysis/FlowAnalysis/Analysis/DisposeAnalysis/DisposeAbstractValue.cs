@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         [Conditional("DEBUG")]
         private static void VerifyArguments(ImmutableHashSet<IOperation> disposingOrEscapingOperations, DisposeAbstractValueKind kind)
         {
-            Debug.Assert(disposingOrEscapingOperations != null);
-
             switch (kind)
             {
                 case DisposeAbstractValueKind.NotDisposable:

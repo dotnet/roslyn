@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
         }
 
-        public static CopyAnalysisResult TryGetOrComputeResult(
+        public static CopyAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis = true,
             bool performPointsToAnalysis = true,
             bool exceptionPathsAnalysis = false)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static CopyAnalysisResult TryGetOrComputeResultForAnalysisContext(CopyAnalysisContext analysisContext)
+        private static CopyAnalysisResult? TryGetOrComputeResultForAnalysisContext(CopyAnalysisContext analysisContext)
         {
             var operationVisitor = new CopyDataFlowOperationVisitor(analysisContext);
             var copyAnalysis = new CopyAnalysis(operationVisitor);

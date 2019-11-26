@@ -11,7 +11,7 @@ namespace Test.Utilities
     {
         private readonly string _filePath;
         private readonly string _fileName;
-        private readonly SourceText _sourceText;
+        private readonly SourceText? _sourceText;
 
         public TestAdditionalDocument(string fileName, string text)
             : this(fileName, fileName, text)
@@ -37,7 +37,7 @@ namespace Test.Utilities
         public override string Path => _filePath;
         public string Name => _fileName;
 
-        public override SourceText GetText(CancellationToken cancellationToken = default)
+        public override SourceText? GetText(CancellationToken cancellationToken = default)
             => _sourceText;
     }
 }

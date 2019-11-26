@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
@@ -117,35 +118,35 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             StartActionWithNoRegisteredActionsRule,
             StartActionWithOnlyEndActionRule);
 
-        protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+        protected override DiagnosticAnalyzerSymbolAnalyzer? GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
             Compilation compilation = compilationContext.Compilation;
 
-            INamedTypeSymbol analysisContext = compilation.GetOrCreateTypeByMetadataName(AnalysisContextFullName);
+            INamedTypeSymbol? analysisContext = compilation.GetOrCreateTypeByMetadataName(AnalysisContextFullName);
             if (analysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol compilationStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CompilationStartAnalysisContextFullName);
+            INamedTypeSymbol? compilationStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CompilationStartAnalysisContextFullName);
             if (compilationStartAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol codeBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CodeBlockStartAnalysisContextFullName);
+            INamedTypeSymbol? codeBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CodeBlockStartAnalysisContextFullName);
             if (codeBlockStartAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol operationBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(OperationBlockStartAnalysisContextFullName);
+            INamedTypeSymbol? operationBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(OperationBlockStartAnalysisContextFullName);
             if (operationBlockStartAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol symbolKind = compilation.GetOrCreateTypeByMetadataName(SymbolKindFullName);
+            INamedTypeSymbol? symbolKind = compilation.GetOrCreateTypeByMetadataName(SymbolKindFullName);
             if (symbolKind == null)
             {
                 return null;
@@ -200,18 +201,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             /// <summary>
             /// Map from declared analysis context type parameters to invocations of Register methods on them.
             /// </summary>
-            private Dictionary<IParameterSymbol, List<NodeAndSymbol>> _nestedActionsMap;
+            private Dictionary<IParameterSymbol, List<NodeAndSymbol>>? _nestedActionsMap;
 
             /// <summary>
             /// Set of declared start analysis context parameters that need to be analyzed for <see cref="StartActionWithNoRegisteredActionsRule"/> and <see cref="StartActionWithOnlyEndActionRule"/>.
             /// </summary>
-            private HashSet<IParameterSymbol> _declaredStartAnalysisContextParams;
+            private HashSet<IParameterSymbol>? _declaredStartAnalysisContextParams;
 
             /// <summary>
             /// Set of declared start analysis context parameters that need to be skipped for <see cref="StartActionWithNoRegisteredActionsRule"/> and <see cref="StartActionWithOnlyEndActionRule"/>.
             /// This is to avoid false positives where context types are passed as arguments to a different invocation, and hence the registration responsibility is not on the current method.
             /// </summary>
-            private HashSet<IParameterSymbol> _startAnalysisContextParamsToSkip;
+            private HashSet<IParameterSymbol>? _startAnalysisContextParamsToSkip;
 
             protected RegisterActionCodeBlockAnalyzer(
                 INamedTypeSymbol analysisContext,
@@ -231,10 +232,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 _startAnalysisContextParamsToSkip = null;
             }
 
-            protected abstract IEnumerable<SyntaxNode> GetArgumentExpressions(TInvocationExpressionSyntax invocation);
+            protected abstract IEnumerable<SyntaxNode>? GetArgumentExpressions(TInvocationExpressionSyntax invocation);
             protected abstract SyntaxNode GetArgumentExpression(TArgumentSyntax argument);
             protected abstract SyntaxNode GetInvocationExpression(TInvocationExpressionSyntax invocation);
-            protected abstract SyntaxNode GetInvocationReceiver(TInvocationExpressionSyntax invocation);
+            protected abstract SyntaxNode? GetInvocationReceiver(TInvocationExpressionSyntax invocation);
             protected abstract bool IsSyntaxKind(ITypeSymbol type);
             protected abstract TLanguageKindEnum InvocationExpressionKind { get; }
             protected abstract TLanguageKindEnum ArgumentSyntaxKind { get; }
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 codeBlockContext.RegisterCodeBlockEndAction(CodeBlockEndAction);
             }
 
-            private bool ShouldAnalyze(IMethodSymbol method)
+            private bool ShouldAnalyze([NotNullWhen(returnValue: true)] IMethodSymbol? method)
             {
                 if (method == null)
                 {
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private static bool IsContextType(ITypeSymbol type, params INamedTypeSymbol[] allowedContextTypes)
             {
-                INamedTypeSymbol namedType = (type as INamedTypeSymbol)?.OriginalDefinition;
+                INamedTypeSymbol? namedType = (type as INamedTypeSymbol)?.OriginalDefinition;
                 if (namedType != null)
                 {
                     foreach (INamedTypeSymbol contextType in allowedContextTypes)
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
             {
-                var invocation = context.Node as TInvocationExpressionSyntax;
+                var invocation = (TInvocationExpressionSyntax)context.Node;
                 SemanticModel semanticModel = context.SemanticModel;
 
                 ISymbol symbol = semanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol;
@@ -332,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     if (method.Parameters.Length == 2 && method.Parameters[1].IsParams)
                     {
-                        IEnumerable<SyntaxNode> arguments = GetArgumentExpressions(invocation);
+                        IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
                         if (arguments != null)
                         {
                             int argumentCount = arguments.Count();
@@ -385,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 if (method.TypeParameters.Length > 0 &&
                     (isRegisterSyntaxNodeAction || isRegisterCodeBlockStartAction))
                 {
-                    ITypeSymbol typeArgument = null;
+                    ITypeSymbol? typeArgument = null;
                     if (method.TypeParameters.Length == 1)
                     {
                         if (method.TypeParameters[0].Name == TLanguageKindEnumName)
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                SyntaxNode receiver = GetInvocationReceiver(invocation);
+                SyntaxNode? receiver = GetInvocationReceiver(invocation);
                 if (receiver == null)
                 {
                     return;

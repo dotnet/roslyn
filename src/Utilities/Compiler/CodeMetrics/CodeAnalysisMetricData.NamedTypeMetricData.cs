@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                 ImmutableHashSet<IFieldSymbol> getFilteredFieldsForComplexity()
                 {
-                    ImmutableHashSet<IFieldSymbol>.Builder builderOpt = null;
+                    ImmutableHashSet<IFieldSymbol>.Builder? builderOpt = null;
                     var orderedFieldDatas = children.Where(c => c.Symbol.Kind == SymbolKind.Field).OrderBy(c => c.MaintainabilityIndex);
                     var indexThreshold = 99;
                     foreach (CodeAnalysisMetricData fieldData in orderedFieldDatas)

@@ -53,7 +53,7 @@ namespace Analyzer.Utilities
         private readonly WordParserOptions _options;
         private readonly StringBuilder _buffer;
         private readonly string _text;
-        private string _peekedWord;
+        private string? _peekedWord;
         private int _index;
         private char _prefix;
 
@@ -164,7 +164,7 @@ namespace Analyzer.Utilities
             WordParser parser = new WordParser(text, options, prefix);
             Collection<string> words = new Collection<string>();
 
-            string word;
+            string? word;
             while ((word = parser.NextWord()) != null)
             {
                 words.Add(word);
@@ -241,7 +241,7 @@ namespace Analyzer.Utilities
 
             WordParser parser = new WordParser(text, options, prefix);
 
-            string parsedWord;
+            string? parsedWord;
             while ((parsedWord = parser.NextWord()) != null)
             {
                 foreach (string word in words)
@@ -262,14 +262,14 @@ namespace Analyzer.Utilities
         /// <returns>
         ///     A <see cref="String"/> containing the next word or <see langword="null"/> if there are no more words.
         /// </returns>
-        public string NextWord()
+        public string? NextWord()
         {
             if (_peekedWord == null)
             {
                 return NextWordCore();
             }
 
-            string word = _peekedWord;
+            string? word = _peekedWord;
             _peekedWord = null;
             return word;
         }
@@ -280,7 +280,7 @@ namespace Analyzer.Utilities
         /// <returns>
         ///     A <see cref="String"/> containing the next word or <see langword="null"/> if there are no more words.
         /// </returns>
-        public string PeekWord()
+        public string? PeekWord()
         {
             if (_peekedWord == null)
             {
@@ -290,7 +290,7 @@ namespace Analyzer.Utilities
             return _peekedWord;
         }
 
-        private string NextWordCore()
+        private string? NextWordCore()
         {
             // Reset buffer
             _buffer.Length = 0;

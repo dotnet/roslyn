@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             int? depthOfInheritance,
             ImmutableArray<CodeAnalysisMetricData> children)
         {
-            Debug.Assert(symbol != null);
             Debug.Assert(
                 symbol.Kind == SymbolKind.Assembly ||
                 symbol.Kind == SymbolKind.Namespace ||

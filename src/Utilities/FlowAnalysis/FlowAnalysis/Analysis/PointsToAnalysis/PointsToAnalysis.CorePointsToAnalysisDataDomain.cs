@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private sealed class CorePointsToAnalysisDataDomain : AnalysisEntityMapAbstractDomain<PointsToAbstractValue>
         {
             public CorePointsToAnalysisDataDomain(DefaultPointsToValueGenerator defaultPointsToValueGenerator, AbstractValueDomain<PointsToAbstractValue> valueDomain)
-                : base(valueDomain)
+                : base(valueDomain, defaultPointsToValueGenerator.IsTrackedEntity, defaultPointsToValueGenerator.IsTrackedPointsToValue)
             {
                 DefaultPointsToValueGenerator = defaultPointsToValueGenerator;
             }
@@ -29,8 +29,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, PointsToAbstractValue value)
                 => value.Kind == PointsToAbstractValueKind.Unknown ||
-                    !DefaultPointsToValueGenerator.IsTrackedEntity(analysisEntity) ||
-                    value == GetDefaultValue(analysisEntity);
+                   value == GetDefaultValue(analysisEntity);
+
+            protected override void OnNewMergedValue(PointsToAbstractValue value)
+                => DefaultPointsToValueGenerator.AddTrackedPointsToValue(value);
 
             protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, PointsToAbstractValue value)
             {
@@ -48,11 +50,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 Func<PointsToAbstractValue, ImmutableHashSet<AnalysisEntity>> getChildAnalysisEntities,
                 Action<AnalysisEntity, PointsToAnalysisData> resetAbstractValue)
             {
-                Debug.Assert(forwardEdgeAnalysisData != null);
-                Debug.Assert(backEdgeAnalysisData != null);
-                Debug.Assert(forwardEdgeAnalysisData.CoreAnalysisData != null);
-                Debug.Assert(backEdgeAnalysisData.CoreAnalysisData != null);
-
                 // Stop tracking points to values present in both branches if their is an assignment to a may-be null value from the back edge.
                 // Clone the input forwardEdgeAnalysisData to ensure we don't overwrite the input dictionary.
                 forwardEdgeAnalysisData = (PointsToAnalysisData)forwardEdgeAnalysisData.Clone();

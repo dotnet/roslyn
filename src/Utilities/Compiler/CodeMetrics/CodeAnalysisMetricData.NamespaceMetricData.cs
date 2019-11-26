@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, child.CoupledNamedTypes);
                     maintainabilityIndexTotal += child.MaintainabilityIndex;
                     cyclomaticComplexity += child.CyclomaticComplexity;
-                    depthOfInheritance = Math.Max(child.DepthOfInheritance.Value, depthOfInheritance);
+                    depthOfInheritance = Math.Max(child.DepthOfInheritance.GetValueOrDefault(), depthOfInheritance);
 
                     // Avoid double counting lines for nested types.
                     if (child.Symbol.ContainingType == null)

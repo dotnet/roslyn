@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             {
             }
 
-            protected override IEnumerable<SyntaxNode> GetArgumentExpressions(InvocationExpressionSyntax invocation)
+            protected override IEnumerable<SyntaxNode>? GetArgumentExpressions(InvocationExpressionSyntax invocation)
             {
                 if (invocation.ArgumentList != null)
                 {

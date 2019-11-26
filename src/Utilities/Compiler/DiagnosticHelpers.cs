@@ -88,12 +88,10 @@ namespace Analyzer.Utilities
         public static string GetMemberName(ISymbol symbol)
         {
             // For Types
-            if (symbol.Kind == SymbolKind.NamedType)
+            if (symbol is INamedTypeSymbol namedType &&
+                namedType.IsGenericType)
             {
-                if ((symbol as INamedTypeSymbol).IsGenericType)
-                {
-                    return symbol.MetadataName;
-                }
+                return symbol.MetadataName;
             }
 
             // For other language constructs

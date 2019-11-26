@@ -66,9 +66,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <returns>Tainted abstract value containing both sets of source origins.</returns>
         internal static TaintedDataAbstractValue MergeTainted(TaintedDataAbstractValue value1, TaintedDataAbstractValue value2)
         {
-            Debug.Assert(value1 != null);
             Debug.Assert(value1.Kind == TaintedDataAbstractValueKind.Tainted);
-            Debug.Assert(value2 != null);
             Debug.Assert(value2.Kind == TaintedDataAbstractValueKind.Tainted);
 
             return new TaintedDataAbstractValue(

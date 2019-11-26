@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities.PooledObjects;
 
 #pragma warning disable CA1710 // Rename DictionaryAnalysisData to end in 'Dictionary'
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return Remove(item.Key);
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             Debug.Assert(!IsDisposed);
             return _coreAnalysisData.TryGetValue(key, out value);
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (disposing)
             {
                 _coreAnalysisData.Free();
-                _coreAnalysisData = null;
+                _coreAnalysisData = null!;
             }
 
             base.Dispose(disposing);
