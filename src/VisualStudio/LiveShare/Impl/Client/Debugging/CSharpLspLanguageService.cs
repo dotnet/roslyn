@@ -15,8 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2302:FlagServiceProviders")]
     internal class CSharpLspLanguageService : AbstractLanguageService<CSharpLspPackage, CSharpLspLanguageService>
     {
-        public static readonly Guid LanguageServiceGuid = new Guid(StringConstants.CSharpLspLanguageServiceGuidString);
-
         internal CSharpLspLanguageService(CSharpLspPackage package)
             : base(package)
         {
@@ -26,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 
         protected override Guid DebuggerLanguageId { get; } = new Guid(StringConstants.CSharpLspDebuggerLanguageGuidString);
 
-        public override Guid LanguageServiceId { get; } = LanguageServiceGuid;
+        public override Guid LanguageServiceId { get; } = new Guid(StringConstants.CSharpLspLanguageServiceGuidString);
 
         protected override string ContentTypeName => StringConstants.CSharpLspContentTypeName;
 
