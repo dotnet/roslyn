@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
                 this.IsSubmission,
                 this.HostObjectType,
-                hasAllInformation: true)
+                hasAllInformation: true,
+                runAnalyzers: true)
                 .WithDefaultNamespace(this.DefaultNamespace);
         }
 

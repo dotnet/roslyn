@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1148,6 +1147,14 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(3, state.ReturnValue);
         }
 
+        [Fact, WorkItem(39548, "https://github.com/dotnet/roslyn/issues/39548")]
+        public async Task PatternVariableDeclaration()
+        {
+            var state = await CSharpScript.RunAsync("var x = (false, 4);");
+            state = await state.ContinueWithAsync("x is (false, var y)");
+            Assert.Equal(true, state.ReturnValue);
+        }
+
         #endregion
 
         #region References
@@ -1774,6 +1781,95 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
                         break;
                 }
             }
+        }
+
+        public class E
+        {
+            public bool TryGetValue(out object obj)
+            {
+                obj = new object();
+                return true;
+            }
+        }
+
+        [Fact]
+        [WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
+        public async Task MethodCallWithImplicitReceiverAndOutVar()
+        {
+            var code = @"
+if(TryGetValue(out var result)){
+    _ = result;
+}
+return true;
+";
+
+            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(E), globals: new E());
+            Assert.True(result);
+        }
+
+        public class F
+        {
+            public bool Value = true;
+        }
+
+        [Fact]
+        public void StaticMethodCannotAccessGlobalInstance()
+        {
+            var code = @"
+static bool M()
+{
+	return Value;
+}
+return M();
+";
+
+            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
+                    // (4,9): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // 				return Value;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 9));
+        }
+
+        [Fact]
+        [WorkItem(39581, "https://github.com/dotnet/roslyn/issues/39581")]
+        public void StaticLocalFunctionCannotAccessGlobalInstance()
+        {
+            var code = @"
+bool M()
+{
+	return Inner();
+	static bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
+
+            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
+                    // (7,10): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // 					return Value;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(7, 10));
+        }
+
+        [Fact]
+        public async Task LocalFunctionCanAccessGlobalInstance()
+        {
+            var code = @"
+bool M()
+{
+	return Inner();
+	bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
+
+            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(F), globals: new F());
+            Assert.True(result);
         }
 
         #endregion

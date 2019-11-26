@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal static class PooledDictionaryIgnoringNullableModifiersForReferenceTypes
     {
         private static readonly ObjectPool<PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>> s_poolInstance
-            = PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>.CreatePool(TypeSymbol.EqualsIgnoringNullableComparer);
+            = PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>.CreatePool(Symbols.SymbolEqualityComparer.IgnoringNullable);
 
         internal static PooledDictionary<NamedTypeSymbol, NamedTypeSymbol> GetInstance()
         {

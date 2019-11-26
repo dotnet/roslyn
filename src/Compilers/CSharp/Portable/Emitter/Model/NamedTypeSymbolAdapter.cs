@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (seen == null)
                 {
                     // Don't allocate until we see at least one interface.
-                    seen = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsCLRSignatureComparer);
+                    seen = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.CLRSignature);
                 }
                 if (seen.Add(@interface))
                 {
@@ -589,6 +589,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
                 return this.IsInterface;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsDelegate
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.IsDelegateType();
             }
         }
 

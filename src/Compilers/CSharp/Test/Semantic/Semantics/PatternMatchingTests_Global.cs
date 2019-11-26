@@ -831,7 +831,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
-                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl)).TypeWithAnnotations.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((IFieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl)).Type.ToTestDisplayString());
 
                 var x2Decl = GetPatternDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
@@ -1338,7 +1338,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
-                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl)).TypeWithAnnotations.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((IFieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl)).Type.ToTestDisplayString());
 
                 var x2Decl = GetPatternDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();

@@ -187,7 +187,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <remarks>Default value is true.</remarks>
         protected bool LastDesignTimeBuildSucceeded { get; private set; }
 
-        public VisualStudioProject VisualStudioProject { get; internal set; }
+#nullable enable
+
+        public VisualStudioProject? VisualStudioProject { get; internal set; }
+
+#nullable restore
 
         internal void UpdateVisualStudioProjectProperties()
         {

@@ -58,6 +58,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameLambdaDiscard() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        C _ = null;
+        System.Func<int, string, int> f = (int _, string [|$$_|]) => { _ = null; return 1; };
+    }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="_", renameTextPrefix:="change", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
         Public Async Function RenameDeconstructionForeachCollection() As Task
             Using workspace = CreateWorkspaceWithWaiter(

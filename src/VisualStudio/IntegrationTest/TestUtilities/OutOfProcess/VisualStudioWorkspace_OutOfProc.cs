@@ -4,6 +4,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -73,16 +74,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetFullSolutionAnalysis(bool value)
         {
             SetPerLanguageOption(
-                optionName: "Closed File Diagnostic",
-                feature: "ServiceFeaturesOnOff",
+                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
+                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
                 language: LanguageNames.CSharp,
-                value: value ? "true" : "false");
+                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
 
             SetPerLanguageOption(
-                optionName: "Closed File Diagnostic",
-                feature: "ServiceFeaturesOnOff",
+                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
+                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
                 language: LanguageNames.VisualBasic,
-                value: value ? "true" : "false");
+                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
         public void SetFeatureOption(string feature, string optionName, string language, string valueString)

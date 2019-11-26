@@ -4,10 +4,15 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
-    internal interface IAssemblySymbolInternal : IAssemblySymbol
+    internal interface IAssemblySymbolInternal : ISymbolInternal
     {
         Version? AssemblyVersionPattern { get; }
+
+        /// <summary>
+        /// Gets the name of this assembly.
+        /// </summary>
+        AssemblyIdentity Identity { get; }
     }
 }

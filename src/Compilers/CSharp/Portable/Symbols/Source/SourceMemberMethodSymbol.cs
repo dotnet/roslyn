@@ -1458,7 +1458,7 @@ done:
                 switch (namedArg.Key)
                 {
                     case "EntryPoint":
-                        importName = namedArg.Value.Value as string;
+                        importName = namedArg.Value.ValueInternal as string;
                         if (!MetadataHelpers.IsValidMetadataIdentifier(importName))
                         {
                             // Dev10 reports CS0647: "Error emitting attribute ..."

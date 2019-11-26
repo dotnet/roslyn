@@ -436,6 +436,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        internal Solution WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            var newState = _state.WithRunAnalyzers(projectId, runAnalyzers);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to include
         /// the specified project reference.
         /// </summary>

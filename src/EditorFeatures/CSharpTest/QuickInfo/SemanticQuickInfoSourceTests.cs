@@ -2581,7 +2581,7 @@ class C
         $$_ = M();
     }
 }",
-                MainDescription("int _"));
+                MainDescription($"({FeaturesResources.discard}) int _"));
         }
 
         [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
@@ -2612,7 +2612,7 @@ class C
         i = 0;
     }
 }",
-                MainDescription($"int _"));
+                MainDescription($"({FeaturesResources.discard}) int _"));
         }
 
         [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
@@ -2660,6 +2660,34 @@ class C
         }
     }
 }"); // No quick info (see issue #16667)
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestLambdaDiscardParameter_FirstDiscard()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        System.Func<string, int, int> f = ($$_, _) => 1;
+    }
+}",
+                MainDescription($"({FeaturesResources.discard}) string _"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestLambdaDiscardParameter_SecondDiscard()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        System.Func<string, int, int> f = (_, $$_) => 1;
+    }
+}",
+                MainDescription($"({FeaturesResources.discard}) int _"));
         }
 
         [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
@@ -6663,6 +6691,48 @@ void $$M(int x, int y) { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocCycle1()
+        {
+            var markup =
+@"
+/// <inheritdoc cref=""M(int, int)""/>
+void M(int x) { }
+
+/// <inheritdoc cref=""M(int)""/>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocCycle2()
+        {
+            var markup =
+@"
+/// <inheritdoc cref=""M(int)""/>
+void $$M(int x) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x)"),
+                Documentation(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocCycle3()
+        {
+            var markup =
+@"
+/// <inheritdoc cref=""M""/>
+void $$M(int x) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x)"),
+                Documentation(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
         public async Task TestLinqGroupVariableDeclaration()
         {
@@ -6677,6 +6747,56 @@ void M(string[] a)
 
             await TestInClassAsync(code,
                 MainDescription($"({FeaturesResources.range_variable}) IGrouping<int, string> g"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")]
+        public async Task QuickInfoOnIndexerCloseBracket()
+        {
+            await TestAsync(@"
+class C
+{
+    public int this[int x] { get { return 1; } }
+
+    void M()
+    {
+        var x = new C()[5$$];
+    }
+}",
+            MainDescription("int C.this[int x] { get; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")]
+        public async Task QuickInfoOnIndexerOpenBracket()
+        {
+            await TestAsync(@"
+class C
+{
+    public int this[int x] { get { return 1; } }
+
+    void M()
+    {
+        var x = new C()$$[5];
+    }
+}",
+            MainDescription("int C.this[int x] { get; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")]
+        public async Task QuickInfoOnIndexer_NotOnArrayAccess()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        int[] x = new int[4];
+        int y = x[3$$];
+    }
+}",
+                MainDescription("struct System.Int32"));
         }
     }
 }

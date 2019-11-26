@@ -17,6 +17,26 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         protected abstract int GetKeywordKind(string trimmed);
 
+        public static bool IsOrdered(Dictionary<int, int> preferredOrder, SyntaxTokenList modifiers)
+        {
+            if (modifiers.Count >= 2)
+            {
+                var lastOrder = int.MinValue;
+                foreach (var modifier in modifiers)
+                {
+                    var currentOrder = preferredOrder.TryGetValue(modifier.RawKind, out var value) ? value : int.MaxValue;
+                    if (currentOrder < lastOrder)
+                    {
+                        return false;
+                    }
+
+                    lastOrder = currentOrder;
+                }
+            }
+
+            return true;
+        }
+
         public bool TryGetOrComputePreferredOrder(string value, out Dictionary<int, int> preferredOrder)
         {
             if (string.IsNullOrWhiteSpace(value))
