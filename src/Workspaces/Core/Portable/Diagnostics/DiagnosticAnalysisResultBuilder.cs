@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                         // ignore
                         continue;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(diagnostic.Location.Kind);
+                    case var kind:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                 }
             }
         }

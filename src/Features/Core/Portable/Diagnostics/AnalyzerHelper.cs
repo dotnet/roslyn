@@ -173,17 +173,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
 
-        public static DiagnosticData? CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)
+        public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId? projectId, string? language)
         {
-            return CreateAnalyzerLoadFailureDiagnostic(projectId: null, language: null, fullPath, e);
-        }
+            static string GetLanguageSpecificId(string? language, string noLanguageId, string csharpId, string vbId)
+                => language == null ? noLanguageId : (language == LanguageNames.CSharp) ? csharpId : vbId;
 
-        public static DiagnosticData? CreateAnalyzerLoadFailureDiagnostic(ProjectId? projectId, string? language, string fullPath, AnalyzerLoadFailureEventArgs e)
-        {
-            if (!TryGetErrorMessage(language, fullPath, e, out var id, out var message, out var messageFormat, out var description))
+            string id, messageFormat, message;
+
+            switch (e.ErrorCode)
             {
-                return null;
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
+                    id = GetLanguageSpecificId(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
+                    messageFormat = FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1;
+                    message = string.Format(FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1, fullPath, e.Message);
+                    break;
+
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
+                    id = GetLanguageSpecificId(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
+                    messageFormat = FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2;
+                    message = string.Format(FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2, e.TypeName, fullPath, e.Message);
+                    break;
+
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
+                    id = GetLanguageSpecificId(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
+                    messageFormat = FeaturesResources.The_assembly_0_does_not_contain_any_analyzers;
+                    message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(e.ErrorCode);
             }
+
+            var description = e.Exception.CreateDiagnosticDescription();
 
             return new DiagnosticData(
                 id,
@@ -199,52 +220,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
                 language: language);
-        }
-
-        private static bool TryGetErrorMessage(
-            string? language, string fullPath, AnalyzerLoadFailureEventArgs e,
-            out string id, out string message, out string messageFormat, out string description)
-        {
-            switch (e.ErrorCode)
-            {
-                case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
-                    id = Choose(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
-                    messageFormat = FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1;
-                    message = string.Format(FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1, fullPath, e.Message);
-                    description = e.Exception.CreateDiagnosticDescription();
-                    break;
-                case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
-                    id = Choose(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
-                    messageFormat = FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2;
-                    message = string.Format(FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2, e.TypeName, fullPath, e.Message);
-                    description = e.Exception.CreateDiagnosticDescription();
-                    break;
-                case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
-                    id = Choose(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
-                    messageFormat = FeaturesResources.The_assembly_0_does_not_contain_any_analyzers;
-                    message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
-                    description = e.Exception.CreateDiagnosticDescription();
-                    break;
-                case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
-                default:
-                    id = string.Empty;
-                    message = string.Empty;
-                    messageFormat = string.Empty;
-                    description = string.Empty;
-                    return false;
-            }
-
-            return true;
-        }
-
-        private static string Choose(string? language, string noLanguageMessage, string csharpMessage, string vbMessage)
-        {
-            if (language == null)
-            {
-                return noLanguageMessage;
-            }
-
-            return language == LanguageNames.CSharp ? csharpMessage : vbMessage;
         }
 
         public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<DiagnosticAnalyzer> analyzers)

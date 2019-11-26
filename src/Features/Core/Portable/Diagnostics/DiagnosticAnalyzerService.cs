@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)
-            => (diagnosticAnalyzerProviderService != null) ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() :
-                ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
+            => diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages() ?? ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
 
         public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
         {
@@ -97,10 +96,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
 
-            foreach (var kv in descriptorsPerReference)
+            foreach (var (id, descriptors) in descriptorsPerReference)
             {
-                var id = kv.Key;
-                var descriptors = kv.Value;
                 if (!map.TryGetValue(id, out var reference) || reference == null)
                 {
                     continue;

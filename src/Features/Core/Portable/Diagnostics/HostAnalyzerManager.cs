@@ -503,8 +503,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                var diagnostic = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(reference.FullPath, e);
-                RoslynDebug.Assert(diagnostic != null);
+                var diagnostic = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(e, reference.FullPath, projectId: null, language: null);
 
                 // diagnostic from host analyzer can never go away
                 var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(

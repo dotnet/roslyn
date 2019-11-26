@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers compilation, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
-                Debug.Assert(compilation.Analyzers.Length != 0);
+                Contract.ThrowIfFalse(compilation.Analyzers.Length != 0);
 
                 var workspace = project.Solution.Workspace;
                 var service = workspace.Services.GetService<IRemoteHostClientService>();

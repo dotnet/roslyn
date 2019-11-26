@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
             ImmutableArray<DiagnosticData> others,
-            ImmutableHashSet<DocumentId>? documentIds = null)
+            ImmutableHashSet<DocumentId>? documentIds)
         {
             VerifyDocumentMap(project, syntaxLocalMap);
             VerifyDocumentMap(project, semanticLocalMap);
@@ -222,8 +222,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
             if (map.TryGetValue(documentId, out var diagnostics))
             {
-                Contract.ThrowIfNull(DocumentIds);
-                Contract.ThrowIfFalse(DocumentIds.Contains(documentId));
+                Debug.Assert(DocumentIds != null && DocumentIds.Contains(documentId));
                 return diagnostics;
             }
 

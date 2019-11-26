@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // analyzer version this state belong to
             public readonly VersionStamp AnalyzerVersion;
-            private readonly PersistentNames _persistantNames;
+            private readonly PersistentNames _persistentNames;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
@@ -43,16 +43,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var (_, version) = Analyzer.GetAnalyzerIdAndVersion();
                 AnalyzerVersion = version;
 
-                _persistantNames = PersistentNames.Create(Analyzer);
+                _persistentNames = PersistentNames.Create(Analyzer);
 
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public string StateName => _persistantNames.StateName;
-            public string SyntaxStateName => _persistantNames.SyntaxStateName;
-            public string SemanticStateName => _persistantNames.SemanticStateName;
-            public string NonLocalStateName => _persistantNames.NonLocalStateName;
+            public string StateName => _persistentNames.StateName;
+            public string SyntaxStateName => _persistentNames.SyntaxStateName;
+            public string SemanticStateName => _persistentNames.SemanticStateName;
+            public string NonLocalStateName => _persistentNames.NonLocalStateName;
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
             public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)

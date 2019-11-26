@@ -217,8 +217,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 documentId));
         }
 
-        private static object CreateId(StateSet stateSet, object projectOrDocumentId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectOrDocumentId, (int)kind, stateSet.ErrorSourceName);
+        private static object CreateId(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, (int)kind, stateSet.ErrorSourceName);
+
+        private static object CreateId(StateSet stateSet, ProjectId projectId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, (int)kind, stateSet.ErrorSourceName);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
         {

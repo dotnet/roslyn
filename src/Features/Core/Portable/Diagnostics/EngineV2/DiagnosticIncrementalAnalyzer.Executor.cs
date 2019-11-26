@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         /// <summary>
-        /// Return all diagnostics that belong to given project for the given StateSets (analyzers) by calculating them
+        /// Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
         /// </summary>
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
             CompilationWithAnalyzers? compilation, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, bool forcedAnalysis, CancellationToken cancellationToken)

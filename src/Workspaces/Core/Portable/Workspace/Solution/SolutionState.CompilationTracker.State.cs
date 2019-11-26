@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class InProgressState : State
             {
-                public ImmutableArray<(ProjectState State, CompilationTranslationAction Action)> IntermediateProjects { get; }
+                public ImmutableArray<(ProjectState state, CompilationTranslationAction action)> IntermediateProjects { get; }
 
                 public InProgressState(
                     Compilation inProgressCompilation,
-                    ImmutableArray<(ProjectState State, CompilationTranslationAction Action)> intermediateProjects)
+                    ImmutableArray<(ProjectState state, CompilationTranslationAction action)> intermediateProjects)
                     : base(compilation: new ConstantValueSource<Compilation>(inProgressCompilation), declarationOnlyCompilation: null)
                 {
                     Contract.ThrowIfNull(inProgressCompilation);

@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ProjectId = projectId ?? documentId?.ProjectId;
 
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
-
             }
 
             protected StateManager StateManager => Owner._stateManager;
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var document = project.Solution.GetDocument(documentId);
                     if (document == null)
                     {
-                        return default;
+                        return ImmutableArray<DiagnosticData>.Empty;
                     }
 
                     var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);

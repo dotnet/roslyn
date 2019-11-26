@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     foreach (var document in project.Documents)
                     {
-                        list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, false, EmptyAsyncToken.Instance));
+                        list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
                     }
                 }
 

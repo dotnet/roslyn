@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -73,6 +74,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     bool retry,
                     IAsyncToken asyncToken)
                 {
+                    Debug.Assert(documentId == null || documentId.ProjectId == projectId);
+
                     DocumentId = documentId;
                     ProjectId = projectId;
                     Language = language;
@@ -87,33 +90,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     AsyncToken = asyncToken;
                 }
 
-                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, null, ImmutableHashSet.Create<IIncrementalAnalyzer>(), false, asyncToken)
+                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, SyntaxPath activeMember, IAsyncToken asyncToken)
+                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IIncrementalAnalyzer>(), retry: false, asyncToken)
                 {
                 }
 
-                public WorkItem(
-                    DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority,
-                    SyntaxPath activeMember, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority,
-                           activeMember, ImmutableHashSet.Create<IIncrementalAnalyzer>(),
-                           false, asyncToken)
+                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
+                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
+                           analyzer == null ? ImmutableHashSet.Create<IIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
+                           retry: false, asyncToken)
                 {
                 }
 
-                public WorkItem(
-                    DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority,
-                    IIncrementalAnalyzer analyzer, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority,
-                           null, analyzer == null ? ImmutableHashSet.Create<IIncrementalAnalyzer>() : ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer),
-                           false, asyncToken)
-                {
-                }
-
-                public object Key
-                {
-                    get { return DocumentId ?? (object)ProjectId; }
-                }
+                public object Key => DocumentId ?? (object)ProjectId;
 
                 private ImmutableHashSet<IIncrementalAnalyzer> Union(ImmutableHashSet<IIncrementalAnalyzer> analyzers)
                 {
@@ -186,7 +175,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public override string ToString()
                 {
-                    return $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons.ToString()}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", SpecificAnalyzers.Select(a => a.GetType().Name))})";
+                    return $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", SpecificAnalyzers.Select(a => a.GetType().Name))})";
                 }
             }
         }
