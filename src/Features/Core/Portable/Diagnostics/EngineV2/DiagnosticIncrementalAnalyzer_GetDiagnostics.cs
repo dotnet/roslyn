@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
 
-                _lazyDataBuilder = null;
             }
 
             protected StateManager StateManager => Owner._stateManager;
