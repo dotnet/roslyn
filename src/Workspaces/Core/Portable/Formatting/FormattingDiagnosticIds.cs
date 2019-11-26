@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public const string FormattingDiagnosticId = "IDE0055";
 
         /// <summary>
-        /// This spacial diagnostic can be suppressed via <c>#pragma</c> to prevent the formatter from making changes to
+        /// This special diagnostic can be suppressed via <c>#pragma</c> to prevent the formatter from making changes to
         /// code formatting within the span where the diagnostic is suppressed.
         /// </summary>
         public const string FormatDocumentControlDiagnosticId = "format";

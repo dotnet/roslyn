@@ -1723,4 +1723,22 @@ This version used in: {2}</value>
   <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
     <value>'GetHashCode' implementation can be simplified</value>
   </data>
+  <data name="Implement_0_implicitly" xml:space="preserve">
+    <value>Implement '{0}' implicitly</value>
+  </data>
+  <data name="Implement_all_interfaces_implicitly" xml:space="preserve">
+    <value>Implement all interfaces implicitly</value>
+  </data>
+  <data name="Implement_implicitly" xml:space="preserve">
+    <value>Implement implicitly</value>
+  </data>
+  <data name="Implement all interfaces explicitly" xml:space="preserve">
+    <value>Implement all interfaces explicitly</value>
+  </data>
+  <data name="Implement explicitly" xml:space="preserve">
+    <value>Implement explicitly</value>
+  </data>
+  <data name="Implement_0_explicitly" xml:space="preserve">
+    <value>Implement '{0}' explicitly</value>
+  </data>
 </root>

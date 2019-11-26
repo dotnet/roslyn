@@ -3,13 +3,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
@@ -34,14 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
-        // -1 would disable timebox, whereas 0 means always timeout.
-        private int TimeoutInMilliseconds { get; set; } = -1;
+        private bool IsExpandedCompletion { get; set; } = true;
 
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds);
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
         protected override ExportProvider GetExportProvider()
@@ -73,6 +68,7 @@ class Bar
         public async Task OptionSetToNull_ExpDisabled()
         {
             ShowImportCompletionItemsOptionValue = null;
+            IsExpandedCompletion = false;
             var markup = @"
 class Bar
 {
@@ -90,6 +86,7 @@ class Bar
             SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
 
             ShowImportCompletionItemsOptionValue = false;
+            IsExpandedCompletion = false;
 
             var markup = @"
 class Bar
@@ -1250,32 +1247,6 @@ namespace Foo
 
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
             await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(36624, "https://github.com/dotnet/roslyn/issues/36624")]
-        public async Task DoNotShowImportItemsIfTimeout()
-        {
-            // Set timeout to 0 so it always timeout
-            TimeoutInMilliseconds = 0;
-
-            var file1 = $@"
-namespace NS1
-{{
-    public class Bar
-    {{}}
-}}";
-            var file2 = @"
-namespace NS2
-{
-    class C
-    {
-         $$
-    }
-}";
-
-            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "NS1");
         }
 
         [Fact]

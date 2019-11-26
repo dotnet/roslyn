@@ -102,25 +102,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IEventSymbol @event: return ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations);
-                case IMethodSymbol method: return ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations);
-                case IPropertySymbol property: return ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations);
-                default: return ImmutableArray.Create<ISymbol>();
-            }
-        }
+                IEventSymbol @event => ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations),
+                IMethodSymbol method => ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations),
+                IPropertySymbol property => ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations),
+                _ => ImmutableArray.Create<ISymbol>(),
+            };
 
-        public static ImmutableArray<TSymbol> ExplicitOrImplicitInterfaceImplementations<TSymbol>(this TSymbol symbol)
-            where TSymbol : ISymbol
+        public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
         {
             var containingType = symbol.ContainingType;
-            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers().OfType<TSymbol>());
-            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
-                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
-            return membersImplementingAnInterfaceMember.Cast<TSymbol>().ToImmutableArrayOrEmpty();
+            var query = from iface in containingType.AllInterfaces
+                        from interfaceMember in iface.GetMembers()
+                        let impl = containingType.FindImplementationForInterfaceMember(interfaceMember)
+                        where symbol.Equals(impl)
+                        select interfaceMember;
+            return query.ToImmutableArray();
         }
+
+        public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
+            => symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations()).ToImmutableArray();
 
         public static bool IsOverridable([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
