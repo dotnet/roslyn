@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
         }
 
         private bool IsSupported(Workspace workspace)
-            => workspace.Services.GetService<IPersistentStorageLocationService>().IsSupported(workspace);
+            => workspace.Services.GetRequiredService<IPersistentStorageLocationService>().IsSupported(workspace);
 
         /// <summary>
         /// Get approximate solution size at the point of call.
