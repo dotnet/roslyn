@@ -216,6 +216,50 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_NetCoreMultiTFM_ExtensionWithConditionOnTFM()
+        {
+            CreateFiles(GetNetCoreMultiTFMFiles_ExtensionWithConditionOnTFM());
+
+            var projectFilePath = GetSolutionFileName("Project.csproj");
+
+            DotNetRestore("Project.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that three projects have been loaded, one for each TFM.
+                Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+
+                // Assert the TFM is accessible from project extensions.
+                // The test project extension sets the default namespace based on the TFM.  
+                foreach (var project in workspace.CurrentSolution.Projects)
+                {
+                    switch (project.Name)
+                    {
+                        case "Project(netcoreapp2.1)":
+                            Assert.Equal("Project.NetCore", project.DefaultNamespace);
+                            break;
+
+                        case "Project(netstandard2.0)":
+                            Assert.Equal("Project.NetStandard", project.DefaultNamespace);
+                            break;
+
+                        case "Project(net461)":
+                            Assert.Equal("Project.NetFramework", project.DefaultNamespace);
+                            break;
+
+                        default:
+                            Assert.True(false, $"Unexpected project: {project.Name}");
+                            break;
+                    }
+                }
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReference()
         {
             CreateFiles(GetNetCoreMultiTFMFiles_ProjectReference());
@@ -393,6 +437,30 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 Assert.Empty(workspace.Diagnostics);
 
                 var compilation = await project.GetCompilationAsync();
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_OverrideTFM()
+        {
+            CreateFiles(GetNetCoreApp2AndLibraryFiles());
+
+            var projectFilePath = GetSolutionFileName(@"Library\Library.csproj");
+
+            DotNetRestore(@"Library\Library.csproj");
+
+            // Override the TFM properties defined in the file
+            using (var workspace = CreateMSBuildWorkspace((PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "netcoreapp2.1;net461")))
+            {
+                await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that two projects have been loaded, one for each TFM.
+                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+
+                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(netcoreapp2.1)");
+                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net461)");
             }
         }
     }

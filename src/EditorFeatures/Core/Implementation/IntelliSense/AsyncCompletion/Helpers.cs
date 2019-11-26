@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using EditorAsyncCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -81,6 +82,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static bool IsFilterCharacter(RoslynCompletionItem item, char ch, string textTypedSoFar)
         {
+            // Exclude standard commit character upfront because TextTypedSoFarMatchesItem can miss them on non-Windows platforms.
+            if (IsStandardCommitCharacter(ch))
+            {
+                return false;
+            }
+
             // First see if the item has any specific filter rules it wants followed.
             foreach (var rule in item.Rules.FilterCharacterRules)
             {
@@ -106,13 +113,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (CommitManager.TextTypedSoFarMatchesItem(item, textTypedSoFar))
+            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
             {
                 return true;
             }
 
             return false;
         }
+
+        internal static bool TextTypedSoFarMatchesItem(RoslynCompletionItem item, string textTypedSoFar)
+        {
+            if (textTypedSoFar.Length > 0)
+            {
+                // Note that StartsWith ignores \0 at the end of textTypedSoFar on VS Mac and Mono.
+                return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
+            }
+
+            return false;
+        }
+
+        // Tab, Enter and Null (call invoke commit) are always commit characters. 
+        internal static bool IsStandardCommitCharacter(char c)
+            => c == '\t' || c == '\n' || c == '\0';
 
         internal static bool TryGetInitialTriggerLocation(EditorAsyncCompletion.IAsyncCompletionSession session, out SnapshotPoint initialTriggerLocation)
         {

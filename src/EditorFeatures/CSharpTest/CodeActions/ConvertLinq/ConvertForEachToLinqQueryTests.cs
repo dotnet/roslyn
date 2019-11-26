@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
@@ -465,7 +466,7 @@ class C
     IEnumerable<int> M()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        return nums.Where(x => x > 2).Select(x => x);
+        return nums.Where(x => x > 2);
     }
 }";
 
@@ -1327,6 +1328,44 @@ partial class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        [WorkItem(31784, "https://github.com/dotnet/roslyn/issues/31784")]
+        public async Task QueryWhichRequiresSelectManyWithIdentityLambda()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [|foreach (var x in new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } })
+        {
+            foreach (var y in x)
+            {
+                yield return y;
+            }
+        }|]
+    }
+}
+";
+
+            var linqInvocationOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        return (new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } }).SelectMany(x => x);
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+        }
+
         #endregion
 
         #region In foreach
@@ -1612,7 +1651,7 @@ class C
 
     IEnumerable<C> Test()
     {
-        return (new[] { 1, 2, 3 }).Select(x => x);
+        return new[] { 1, 2, 3 };
     }
 }
 ";
@@ -1661,7 +1700,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -1707,7 +1746,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -3864,7 +3903,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        int c = (nums.AsQueryable().Select(n1 => n1)).Count();
+        int c = (nums.AsQueryable()).Count();
     }
 }";
 
@@ -4126,11 +4165,10 @@ class C
         /*21*/
         return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
 /*23*/
-(nums /* 12 */.Select(
-/* 6 *//* 7 *//* 14 */// 15
-/* 9 */x /* 10 */ => x/* 10 *//*19*///20
+(nums /* 12 *//* 6 *//* 7 *//* 14 */// 15
+/* 9 *//* 10 *//* 10 *//*19*///20
 /* 8 *//* 11 */// 13
-)).Count()/* 16 *//* 17 *///18
+).Count()/* 16 *//* 17 *///18
 ; //24
     }
 }";
@@ -4244,11 +4282,11 @@ class C
         /* 10 *//* 11 *//* 8*/// 9
         n1 =>
 /* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
-        ).Select(
+        )
         /* 1 *//* 2 *//* 17 */// 18
-        /* 3 */n1 /* 4 */=> n1/* 4 *//* 21 */// 22
+        /* 3 *//* 4 *//* 4 *//* 21 */// 22
         /*23*//*24*//* 5 */// 7
-        ))
+        )
         {
             /*19*/
             Console.WriteLine(n1);//20

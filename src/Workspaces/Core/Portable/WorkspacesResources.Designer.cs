@@ -575,6 +575,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation is required to accomplish the task but is not supported by project {0}..
+        /// </summary>
+        internal static string Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0 {
+            get {
+                return ResourceManager.GetString("Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
         internal static string Core_EditorConfig_Options {
@@ -1372,6 +1381,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Project_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Project_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project of ID {0} is required to accomplish the task but is not available from the solution.
+        /// </summary>
+        internal static string Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution {
+            get {
+                return ResourceManager.GetString("Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_" +
+                        "solution", resourceCulture);
             }
         }
         
@@ -3372,6 +3391,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Symbol_specifications {
             get {
                 return ResourceManager.GetString("Symbol_specifications", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax tree is required to accomplish the task but is not supported by document {0}..
+        /// </summary>
+        internal static string SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0 {
+            get {
+                return ResourceManager.GetString("SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0", resourceCulture);
             }
         }
         
