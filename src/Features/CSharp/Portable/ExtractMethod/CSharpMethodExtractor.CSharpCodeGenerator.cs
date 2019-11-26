@@ -578,6 +578,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return invocation;
                 }
 
+                if (this.CSharpSelectionResult.ShouldCallConfigureAwaitFalse())
+                {
+                    if (this.AnalyzerResult.ReturnType.GetMembers().Any(x => x is IMethodSymbol
+                    {
+                        Name: nameof(Task.ConfigureAwait),
+                        Parameters: { Length: 1 } parameters
+                    } && parameters[0].Type.SpecialType == SpecialType.System_Boolean))
+                    {
+                        invocation = SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                invocation,
+                                SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
+                    }
+                }
+
                 return SyntaxFactory.AwaitExpression(invocation);
             }
 

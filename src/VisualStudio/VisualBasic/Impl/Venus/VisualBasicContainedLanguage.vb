@@ -18,7 +18,7 @@ Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
     Friend Class VisualBasicContainedLanguage
-        Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService)
+        Inherits ContainedLanguage
         Implements IVsContainedLanguageStaticEventBinding
 
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
@@ -26,9 +26,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 project As VisualStudioProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
-                languageService As VisualBasicLanguageService,
+                languageServiceGuid As Guid,
                 sourceCodeKind As SourceCodeKind)
-            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, projectTrackerOpt:=Nothing, project.Id, languageService, VisualBasicHelperFormattingRule.Instance)
+            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, projectTrackerOpt:=Nothing, project.Id, languageServiceGuid, VisualBasicHelperFormattingRule.Instance)
         End Sub
 
         Public Function AddStaticEventBinding(pszClassName As String,

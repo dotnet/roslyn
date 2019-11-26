@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
+                    private readonly object _gate;
 
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
@@ -37,11 +39,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
+                        _gate = new object();
 
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
+                    }
+
+                    public ImmutableArray<IIncrementalAnalyzer> Analyzers
+                    {
+                        get
+                        {
+                            lock (_gate)
+                            {
+                                return _lazyAnalyzers.Value;
+                            }
+                        }
                     }
 
                     public Task Running => _running;
@@ -51,14 +65,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public void AddAnalyzer(IIncrementalAnalyzer analyzer)
                     {
-                        var analyzers = _lazyAnalyzers.Value;
-
-                        _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                        lock (_gate)
+                        {
+                            var analyzers = _lazyAnalyzers.Value;
+                            _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                        }
                     }
 
                     public void Enqueue(WorkItem item)
                     {
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
+
+                        // Don't enqueue item if we don't have any high priority analyzers
+                        if (this.Analyzers.IsEmpty)
+                        {
+                            return;
+                        }
 
                         // we only put workitem in high priority queue if there is a text change.
                         // this is to prevent things like opening a file, changing in other files keep enqueuing
@@ -95,6 +117,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override async Task ExecuteAsync()
                     {
+                        Debug.Assert(!Analyzers.IsEmpty);
+
                         if (CancellationToken.IsCancellationRequested)
                         {
                             return;
@@ -112,7 +136,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var solution = _processor.CurrentSolution;
 
                             // okay now we have work to do
-                            await ProcessDocumentAsync(solution, _lazyAnalyzers.Value, workItem, documentCancellation).ConfigureAwait(false);
+                            await ProcessDocumentAsync(solution, Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

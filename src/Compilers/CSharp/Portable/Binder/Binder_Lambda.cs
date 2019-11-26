@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
 
-        private (ImmutableArray<RefKind>, ImmutableArray<TypeWithAnnotations>, ImmutableArray<string>, bool isAsync, bool isStatic) AnalyzeAnonymousFunction(
+        private UnboundLambda AnalyzeAnonymousFunction(
             AnonymousFunctionExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var types = default(ImmutableArray<TypeWithAnnotations>);
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
+            ImmutableArray<bool> discardsOpt = default;
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
             bool hasSignature;
 
@@ -93,8 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, we still want to give errors on every bad type in the list, even if one
                 // is missing.
 
+                int underscoresCount = 0;
                 foreach (var p in parameterSyntaxList.Value)
                 {
+                    if (p.Identifier.IsUnderscoreToken())
+                    {
+                        underscoresCount++;
+                    }
+
                     foreach (var attributeList in p.AttributeLists)
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
@@ -160,6 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKindsBuilder.Add(refKind);
                 }
 
+                discardsOpt = computeDiscards(parameterSyntaxList.Value, underscoresCount);
+
                 if (hasExplicitlyTypedParameterList)
                 {
                     types = typesBuilder.ToImmutable();
@@ -181,7 +190,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return (refKinds, types, names, isAsync, isStatic);
+            return new UnboundLambda(syntax, this, refKinds, types, names, discardsOpt, isAsync, isStatic);
+
+            static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
+            {
+                if (underscoresCount <= 1)
+                {
+                    return default;
+                }
+
+                // When there are two or more underscores, they are discards
+                var discardsBuilder = ArrayBuilder<bool>.GetInstance(parameters.Count);
+                foreach (var p in parameters)
+                {
+                    discardsBuilder.Add(p.Identifier.IsUnderscoreToken());
+                }
+
+                return discardsBuilder.ToImmutableAndFree();
+            }
         }
 
         private void CheckParenthesizedLambdaParameters(
@@ -215,12 +241,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var (refKinds, types, names, isAsync, isStatic) = AnalyzeAnonymousFunction(syntax, diagnostics);
-            if (!types.IsDefault)
+            var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
+            var data = lambda.Data;
+            if (data.HasExplicitlyTypedParameterList)
             {
-                foreach (var type in types)
+                for (int i = 0; i < lambda.ParameterCount; i++)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
+                    var type = lambda.Data.ParameterTypeWithAnnotations(i);
                     if (type.HasType && type.IsStatic)
                     {
                         Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type.Type);
@@ -233,12 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // are reported now.
             ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics);
 
-            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync: isAsync, isStatic: isStatic);
-            if (!names.IsDefault)
+            if (data.HasNames)
             {
                 var binder = new LocalScopeBinder(this);
                 bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
                 var pNames = PooledHashSet<string>.GetInstance();
+                bool seenDiscard = false;
 
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
@@ -246,6 +274,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (string.IsNullOrEmpty(name))
                     {
+                        continue;
+                    }
+
+                    if (lambda.ParameterIsDiscard(i))
+                    {
+                        if (seenDiscard)
+                        {
+                            // We only report the diagnostic on the second and subsequent underscores
+                            MessageID.IDS_FeatureLambdaDiscardParameters.CheckFeatureAvailability(
+                                diagnostics,
+                                binder.Compilation,
+                                lambda.ParameterLocation(i));
+                        }
+
+                        seenDiscard = true;
                         continue;
                     }
 
