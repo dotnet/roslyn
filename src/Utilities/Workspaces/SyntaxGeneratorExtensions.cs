@@ -434,8 +434,13 @@ namespace Analyzer.Utilities
                     compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
         }
 
-        public static SyntaxNode TryGetContainingDeclaration(this SyntaxGenerator generator, SyntaxNode node, DeclarationKind kind)
+        public static SyntaxNode? TryGetContainingDeclaration(this SyntaxGenerator generator, SyntaxNode? node, DeclarationKind kind)
         {
+            if (node is null)
+            {
+                return null;
+            }
+
             var declarationKind = generator.GetDeclarationKind(node);
             while (declarationKind != kind)
             {

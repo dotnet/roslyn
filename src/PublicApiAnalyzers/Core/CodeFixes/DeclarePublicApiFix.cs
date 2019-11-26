@@ -261,8 +261,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var diagnosticsToFix = new List<KeyValuePair<Project, ImmutableArray<Diagnostic>>>();
-                string? title = null;
-
+                string? title;
                 switch (fixAllContext.Scope)
                 {
                     case FixAllScope.Document:
@@ -295,7 +294,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
 
                     case FixAllScope.Custom:
+                        return null;
+
                     default:
+                        Debug.Fail($"Unknown FixAllScope '{fixAllContext.Scope}'");
                         return null;
                 }
 

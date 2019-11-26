@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Text;
 
 namespace Analyzer.Utilities

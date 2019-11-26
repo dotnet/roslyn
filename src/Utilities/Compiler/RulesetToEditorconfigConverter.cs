@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig
 
                 Debug.Assert(rulesetNode.Name == RuleSetNodeName);
                 var currentXmlComment = new StringBuilder();
-                string currentRuleId = null;
+                string? currentRuleId = null;
                 foreach (var childNode in rulesetNode.Nodes().OfType<XElement>())
                 {
                     if (childNode.Name != RulesNodeName)

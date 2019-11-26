@@ -625,7 +625,7 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        public static ITypeSymbol GetThrownExceptionType(this IThrowOperation operation)
+        public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
         {
             var thrownObject = operation.Exception;
 

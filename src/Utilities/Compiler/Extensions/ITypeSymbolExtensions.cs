@@ -292,11 +292,12 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="invocationTarget">The type to check</param>
         /// <param name="wellKnownTypeProvider">An instance of the <see cref="WellKnownTypeProvider"/> used to access the three described known types.</param>
         /// <returns><c>true</c> when the type contains one of the supported collection count property; otherwise <c>false</c>.</returns>
-        public static bool HasAnyCollectionCountProperty(this ITypeSymbol invocationTarget, WellKnownTypeProvider wellKnownTypeProvider)
+        public static bool HasAnyCollectionCountProperty([NotNullWhen(returnValue: true)] this ITypeSymbol? invocationTarget, WellKnownTypeProvider wellKnownTypeProvider)
         {
             const string countPropertyName = "Count";
 
-            if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection, out var iCollection)
+            if (invocationTarget == null
+                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection, out var iCollection)
                 || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1, out var iCollectionOfT)
                 || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1, out var iReadOnlyCollectionOfT))
             {
@@ -338,9 +339,17 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
 
-            bool isAnySupportedCollectionType(ITypeSymbol type) =>
-                type?.OriginalDefinition is INamedTypeSymbol originalDefinition &&
-                (iCollection.Equals(originalDefinition) || iCollectionOfT.Equals(originalDefinition) || iReadOnlyCollectionOfT.Equals(originalDefinition));
+            bool isAnySupportedCollectionType(ITypeSymbol type)
+            {
+                RoslynDebug.Assert(iCollection != null);
+                RoslynDebug.Assert(iCollectionOfT != null);
+                RoslynDebug.Assert(iReadOnlyCollectionOfT != null);
+
+                return type.OriginalDefinition is INamedTypeSymbol originalDefinition &&
+                    (iCollection.Equals(originalDefinition) ||
+                     iCollectionOfT.Equals(originalDefinition) ||
+                     iReadOnlyCollectionOfT.Equals(originalDefinition));
+            }
         }
     }
 }
