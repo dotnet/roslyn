@@ -6471,7 +6471,7 @@ done:;
             // we'd have an error anyway, and it's more likely the user intended for it to be a
             // function pointer convention than not.
             // PROTOTYPE(func-ptr): refactor this out into a helper method to share with binding
-            switch (CurrentToken.ValueText)
+            switch (CurrentToken.Text)
             {
                 case "cdecl":
                 case "managed":

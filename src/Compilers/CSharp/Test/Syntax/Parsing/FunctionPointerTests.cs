@@ -810,6 +810,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
+        public void Unterminated_11()
+        {
+            UsingStatement("delegate* @cdecl>", options: TestOptions.RegularPreview,
+                // (1,11): error CS1003: Syntax error, '<' expected
+                // delegate* @cdecl>
+                Diagnostic(ErrorCode.ERR_SyntaxError, "@cdecl").WithArguments("<", "").WithLocation(1, 11),
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // delegate* @cdecl>
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(1, 17),
+                // (1,18): error CS1002: ; expected
+                // delegate* @cdecl>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 18));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        M(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.ModifiedType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "@cdecl");
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void NoParamOrReturnTypes()
         {
             UsingStatement("delegate*<> ptr;", options: TestOptions.RegularPreview,
