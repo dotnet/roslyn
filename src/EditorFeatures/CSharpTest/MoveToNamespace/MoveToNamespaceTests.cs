@@ -1288,8 +1288,6 @@ namespace B
                 var actualText = changedRoot.ToFullString();
                 Assert.Equal(expected, actualText);
             }
-
-
         }
     }
 }
