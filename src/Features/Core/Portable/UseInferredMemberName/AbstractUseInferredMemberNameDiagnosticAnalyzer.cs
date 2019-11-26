@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
         public AbstractUseInferredMemberNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,
                    options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, CodeStyleOptions.PreferInferredTupleNames),
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_inferred_member_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_inferred_member_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Member_name_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
