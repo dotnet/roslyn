@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class CSharpCodeGenerationHelpers
     {
-        public static void AdjustNullableAnnotationByAttributes(ITypeSymbol type, ref ImmutableArray<AttributeData> attributes, ref NullableAnnotation nullableAnnotation, bool isParameter)
+        public static (ImmutableArray<AttributeData>, NullableAnnotation) AdjustNullableAnnotationByAttributes(ITypeSymbol type, ImmutableArray<AttributeData> attributes, NullableAnnotation nullableAnnotation, bool isParameter)
         {
             if (type.IsReferenceType)
             {
@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     ? attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute)
                     : attributes.RemoveAll(IsNullableFlowAnalysisAttribute);
             }
+
+            return (attributes, nullableAnnotation);
         }
 
         public static TDeclarationSyntax ConditionallyAddFormattingAnnotationTo<TDeclarationSyntax>(

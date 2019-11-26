@@ -189,21 +189,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static (SyntaxList<AttributeListSyntax>, NullableAnnotation) GenerateAttributes(
             IMethodSymbol method, CodeGenerationOptions options, bool isExplicit)
         {
-            var returnNullableAnnotation = method.ReturnNullableAnnotation;
-
             if (isExplicit)
             {
-                return (default, returnNullableAnnotation);
+                return (default, method.ReturnNullableAnnotation);
             }
+
+            var returnTypeAttributes = method.GetReturnTypeAttributes();
+            var returnNullableAnnotation = method.ReturnNullableAnnotation;
+
+            (returnTypeAttributes, returnNullableAnnotation) = AdjustNullableAnnotationByAttributes(
+                method.ReturnType, returnTypeAttributes, returnNullableAnnotation, isParameter: false);
 
             using var _ = ArrayBuilder<AttributeListSyntax>.GetInstance(out var attributes);
 
             attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options));
-
-            var returnTypeAttributes = method.GetReturnTypeAttributes();
-
-            AdjustNullableAnnotationByAttributes(method.ReturnType, ref returnTypeAttributes, ref returnNullableAnnotation, isParameter: false);
-
             attributes.AddRange(AttributeGenerator.GenerateAttributeLists(returnTypeAttributes, options, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
 
             return (attributes.ToSyntaxList(), returnNullableAnnotation);

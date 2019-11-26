@@ -146,16 +146,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static (SyntaxList<AttributeListSyntax>, NullableAnnotation) GenerateAttributes(
             IParameterSymbol parameter, bool isExplicit, CodeGenerationOptions options)
         {
-            var nullableAnnotation = parameter.NullableAnnotation;
-
             if (isExplicit)
             {
-                return (default, nullableAnnotation);
+                return (default, parameter.NullableAnnotation);
             }
 
             var attributes = parameter.GetAttributes();
+            var nullableAnnotation = parameter.NullableAnnotation;
 
-            AdjustNullableAnnotationByAttributes(parameter.Type, ref attributes, ref nullableAnnotation, isParameter: true);
+            (attributes, nullableAnnotation) = AdjustNullableAnnotationByAttributes(
+                parameter.Type, attributes, nullableAnnotation, isParameter: true);
 
             if (attributes.Length == 0)
             {
