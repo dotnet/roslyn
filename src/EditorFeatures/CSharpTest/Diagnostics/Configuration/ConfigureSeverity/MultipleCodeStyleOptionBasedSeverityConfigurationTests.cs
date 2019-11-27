@@ -35,6 +35,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
 
             [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
             [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_Empty_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+using System;
+
+namespace ConsoleApp5
+{
+    class Foo 
+    {
+        public string RuleName = ""test"";
+    }
+
+    class Bar
+    {
+        static void Main(string[] args)
+        {
+            var foo = new Foo();
+
+            var bar = new { [|RuleName|] = foo.RuleName };
+
+            Console.WriteLine(bar.RuleName);
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig""></AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+using System;
+
+namespace ConsoleApp5
+{
+    class Foo 
+    {
+        public string RuleName = ""test"";
+    }
+
+    class Bar
+    {
+        static void Main(string[] args)
+        {
+            var foo = new Foo();
+
+            var bar = new { RuleName = foo.RuleName };
+
+            Console.WriteLine(bar.RuleName);
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+
+# IDE0037: Use inferred member name
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+
+# IDE0037: Use inferred member name
+dotnet_style_prefer_inferred_tuple_names = true:error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")]
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_BothRulesExist_Error()
             {
                 var input = @"
