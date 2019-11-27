@@ -75,11 +75,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string inlineDescription, List<CompletionFilter> matchingFilters);
 
-        internal static CompletionHelper GetCompletionHelper(Document document)
-        {
-            return CompletionHelper.GetHelper(document);
-        }
-
         internal Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document, int position, RoslynCompletion.CompletionTrigger triggerInfo, OptionSet options = null)
@@ -417,7 +412,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             if (service.GetProvider(firstItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var completionRules = GetCompletionHelper(document);
                 var textView = WorkspaceFixture.CurrentDocument.GetTextView();
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
@@ -530,7 +524,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var items = completionList.Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText + i.DisplayTextSuffix, itemToCommit));
 
-            var completionRules = GetCompletionHelper(document);
             var commitChar = commitCharOpt ?? '\t';
 
             var text = await document.GetTextAsync();
