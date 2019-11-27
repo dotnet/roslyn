@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
         {
             int hash = _keyComparer.GetHashCode(key);
             int idx = hash & mask;
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            value = default(TValue);
+            value = default!;
             return false;
         }
     }

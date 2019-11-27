@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Collections
         private int _v2;
         private int _v3;
         private int _v4;
-        private SmallConcurrentSetOfInts _next;
+        private SmallConcurrentSetOfInts? _next;
 
         private const int unoccupied = int.MinValue;
 
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     return true;
                 }
 
-                set = set._next;
+                set = set._next!;
             }
             while (set != null);
 

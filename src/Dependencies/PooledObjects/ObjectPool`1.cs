@@ -16,10 +16,15 @@ using System.Threading;
 
 #if DETECT_LEAKS
 using System.Runtime.CompilerServices;
-
 #endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
+#if NET20
+    internal delegate TReturn Func<TArg, TReturn>(TArg arg);
+#endif
+
+
     /// <summary>
     /// Generic implementation of object pooling pattern with predefined pool size limit. The main
     /// purpose is that limited number of frequently used objects can be kept in the pool for
@@ -110,6 +115,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             Debug.Assert(size >= 1);
             _factory = factory;
+            _items = new Element[size - 1];
+        }
+
+        internal ObjectPool(Func<ObjectPool<T>, T> factory, int size)
+        {
+            Debug.Assert(size >= 1);
+            _factory = () => factory(this);
             _items = new Element[size - 1];
         }
 
