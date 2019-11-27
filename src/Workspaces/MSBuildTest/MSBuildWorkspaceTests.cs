@@ -964,7 +964,7 @@ class C1
                     var getTextTask = doc.GetTextAsync();
 
                     // wait 1 unit of retry delay then close file
-                    var delay = TextDocumentState.RetryDelay;
+                    var delay = TextLoader.RetryDelay;
                     await Task.Delay(delay).ContinueWith(t => file.Close(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
                     // finish reading text
