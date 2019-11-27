@@ -61,7 +61,7 @@ namespace Metrics
                 switch (data.Symbol.Kind)
                 {
                     case SymbolKind.NamedType:
-                        writer.WriteAttributeString("Name", data.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                        writer.WriteAttributeString("Name", data.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
                         break;
 
                     case SymbolKind.Method:
