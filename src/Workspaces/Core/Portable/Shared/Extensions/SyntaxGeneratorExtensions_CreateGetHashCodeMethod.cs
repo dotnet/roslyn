@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
@@ -51,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             const string hashName = "hash";
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
-            statements.Add(factory.LocalDeclarationStatement(hashName,
-                factory.ObjectCreationExpression(hashCodeType)));
+            statements.Add(factory.SimpleLocalDeclarationStatement(
+                hashCodeType, hashName, factory.ObjectCreationExpression(hashCodeType)));
 
             var localReference = factory.IdentifierName(hashName);
             foreach (var member in memberReferences)
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             const string HashCodeName = "hashCode";
             statements.Add(!useInt64
-                ? factory.LocalDeclarationStatement(HashCodeName, CreateLiteralExpression(factory, initHash))
+                ? factory.SimpleLocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int32), HashCodeName, CreateLiteralExpression(factory, initHash))
                 : factory.LocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int64), HashCodeName, CreateLiteralExpression(factory, initHash)));
 
             var hashCodeNameExpression = factory.IdentifierName(HashCodeName);
@@ -164,6 +165,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         hashCodeNameExpression)));
 
             return statements.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// In VB it's more idiomatic to write things like <c>Dim t = TryCast(obj, SomeType)</c>
+        /// instead of <c>Dim t As SomeType = TryCast(obj, SomeType)</c>, so we just elide the type
+        /// from the decl.  For C# we don't want to do this though.  We want to always include the
+        /// type and let the simplifier decide if it should be <c>var</c> or not.
+        /// </summary>
+        private static SyntaxNode SimpleLocalDeclarationStatement(
+            this SyntaxGenerator generator, INamedTypeSymbol namedTypeSymbol,
+            string name, SyntaxNode initializer)
+        {
+            return generator.RequiresLocalDeclarationType()
+                ? generator.LocalDeclarationStatement(namedTypeSymbol, name, initializer)
+                : generator.LocalDeclarationStatement(name, initializer);
         }
 
         private static SyntaxNode CreateLiteralExpression(SyntaxGenerator factory, int value)

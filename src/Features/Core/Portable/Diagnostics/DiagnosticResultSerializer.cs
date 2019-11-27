@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     syntaxLocalMap,
                     semanticLocalMap,
                     nonLocalMap,
-                    GetOrDefault(others));
+                    GetOrDefault(others),
+                    documentIds: null);
 
                 analysisMap.Add(analyzer, analysisResult);
             }

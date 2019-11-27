@@ -472,6 +472,11 @@
         <target state="translated">不允許模式的語法 'var' 參考類型，但 '{0}' 在此處的範圍中。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">需要 '{1}' 子模式才能比對元組類型 '{0}'，但此處為 '{2}' 子模式。</target>
@@ -837,6 +842,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">對可移動的固定緩衝區編製索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1329,16 +1339,6 @@
         <target state="translated">因為 SyntaxTree 不屬於編譯的一部份，所以無法將其移除</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 是不可為 null 的參考型別時，'as' 運算子可能會產生 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">對於型別參數，'as' 運算子可能會產生 null 值。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">名稱 '_' 參考常數而非捨棄模式。請使用 'var _' 來捨棄值，或使用 '@_' 來依該名稱參考常數。</target>
@@ -1349,16 +1349,6 @@
         <target state="translated">不可對 case 常數使用 '_'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 為不可為 null 的參考型別時，條件式存取可能會產生 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">條件式存取可能會針對型別參數產生 null 值。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">正在將 Null 常值或可能的 Null 值轉換為不可為 Null 的型別。</target>
@@ -1367,16 +1357,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">正在將 Null 常值或可能的 Null 值轉換為不可為 Null 的型別。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 為不可為 null 的參考型別時，預設運算式會引入 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">預設運算式會針對型別參數引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1467,16 +1447,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">無法將 null 常值轉換成不可為 Null 的參考型別。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 為不可為 null 的參考型別時，null 常值會引入 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">null 常值會針對型別參數引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

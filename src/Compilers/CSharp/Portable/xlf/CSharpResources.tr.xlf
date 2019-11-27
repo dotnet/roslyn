@@ -472,6 +472,11 @@
         <target state="translated">Bir desene yönelik 'var' söz diziminin bir türe başvurmasına izin verilmez, ancak burada '{0}' kapsam dahilinde.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">'{0}' demet türünün eşleştirilmesi '{1}' alt desenlerini gerektirir, ancak '{2}' alt desenleri var.</target>
@@ -837,6 +842,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">taşınabilir sabit arabellekler dizine alınıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1329,16 +1339,6 @@
         <target state="translated">SyntaxTree derlemenin bir parçası olmadığından kaldırılamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda 'as' işleci null bir değer üretebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">'as' işleci bir tür parametresi için null bir değer üretebilir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">'_' adı atma desenine değil sabite başvuruyor. Değeri atmak için 'var _' adını ya da bu ada sahip bir sabite başvurmak için '@_' adını kullanın.</target>
@@ -1349,16 +1349,6 @@
         <target state="translated">Bir case sabiti için '_' adını kullanmayın.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda koşullu erişim null bir değer üretebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">Koşullu erişim, tür parametresi için null bir değer üretebilir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Null sabit değeri veya olası null değeri, boş değer atanamaz türe dönüştürülüyor.</target>
@@ -1367,16 +1357,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Null sabit değeri veya olası null değeri, boş değer atanamaz türe dönüştürülüyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda varsayılan bir ifade null değer sağlar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">Varsayılan bir ifade, bir tür parametresi için null değer sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1467,16 +1447,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Null sabit değer, boş değer atanamayan başvuru türüne dönüştürülemiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda null sabit değer, bir null değer sağlar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">Null sabit değer, tür parametresi için bir null değer sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
