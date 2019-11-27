@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
-                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.GetTypeWithFlowNullability());
+                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type);
 
                         // If it bound to a method, try to get the Action/Func form of that method.
                         if (typeInferenceInfo.InferredType == null)
