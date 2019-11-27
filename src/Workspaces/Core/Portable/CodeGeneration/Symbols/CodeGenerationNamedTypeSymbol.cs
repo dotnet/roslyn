@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override INamedTypeSymbol EnumUnderlyingType => _enumUnderlyingType;
 
-        public override INamedTypeSymbol ConstructedFrom
+        protected override CodeGenerationNamedTypeSymbol ConstructedFrom
         {
             get
             {

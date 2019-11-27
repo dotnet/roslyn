@@ -8,11 +8,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
-        private readonly CodeGenerationAbstractNamedTypeSymbol _constructedFrom;
+        private readonly CodeGenerationNamedTypeSymbol _constructedFrom;
         private readonly ImmutableArray<ITypeSymbol> _typeArguments;
 
         public CodeGenerationConstructedNamedTypeSymbol(
-            CodeGenerationAbstractNamedTypeSymbol constructedFrom,
+            CodeGenerationNamedTypeSymbol constructedFrom,
             ImmutableArray<ITypeSymbol> typeArguments,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
             : base(constructedFrom.ContainingType, constructedFrom.GetAttributes(),
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
                 null;
 
-        public override INamedTypeSymbol ConstructedFrom => _constructedFrom;
+        protected override CodeGenerationNamedTypeSymbol ConstructedFrom => _constructedFrom;
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
         {

@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             return new CodeGenerationConstructedNamedTypeSymbol(
-                this, typeArguments.ToImmutableArray(), this.TypeMembers);
+                ConstructedFrom, typeArguments.ToImmutableArray(), this.TypeMembers);
         }
 
         public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
         {
             return new CodeGenerationConstructedNamedTypeSymbol(
-                this, typeArguments, this.TypeMembers);
+                ConstructedFrom, typeArguments, this.TypeMembers);
         }
 
         public abstract int Arity { get; }
@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IEnumerable<string> MemberNames { get; }
         public abstract IMethodSymbol DelegateInvokeMethod { get; }
         public abstract INamedTypeSymbol EnumUnderlyingType { get; }
-        public abstract INamedTypeSymbol ConstructedFrom { get; }
+        protected abstract CodeGenerationNamedTypeSymbol ConstructedFrom { get; }
+        INamedTypeSymbol INamedTypeSymbol.ConstructedFrom => this.ConstructedFrom;
         public abstract INamedTypeSymbol ConstructUnboundGenericType();
         public abstract ImmutableArray<IMethodSymbol> InstanceConstructors { get; }
         public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }
