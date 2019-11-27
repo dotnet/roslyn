@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         {
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Node.SyntaxTree;
-            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var preference = context.Options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, syntaxTree, cancellationToken);
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
-            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, optionSet, context.SemanticModel, cancellationToken))
+            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preference.Value, context.SemanticModel, cancellationToken))
             {
                 return;
             }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 DiagnosticHelper.Create(
                     Descriptor,
                     defaultExpression.GetLocation(),
-                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Severity,
+                    preference.Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 
