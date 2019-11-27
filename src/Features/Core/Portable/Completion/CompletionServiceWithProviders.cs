@@ -85,18 +85,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return _importedProviders;
         }
 
-        private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
-
-        internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
-        {
-            lock (_gate)
-            {
-                _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
-                _rolesToProviders.Clear();
-                _nameToProvider.Clear();
-            }
-        }
-
         private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
         {
             var providers = GetAllProviders(roles);
@@ -121,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
                 .Select(lz => lz.Value);
 
-            var providers = builtin.Concat(imported).Concat(_testProviders);
+            var providers = builtin.Concat(imported);
             return providers.ToImmutableArray();
         }
 
@@ -561,6 +549,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             internal ImmutableArray<CompletionProvider>? ExclusiveProviders
                 => _completionServiceWithProviders._exclusiveProviders;
+
+            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders.GetAllProviders(roles);
 
             internal Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

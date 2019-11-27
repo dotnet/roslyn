@@ -187,46 +187,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             return Workspace.ExportProvider.GetExportedValues<T>();
         }
-
-        protected static IEnumerable<Lazy<TProvider, OrderableLanguageMetadata>> CreateLazyProviders<TProvider>(
-            TProvider[] providers,
-            string languageName)
-        {
-            if (providers == null)
-            {
-                return Array.Empty<Lazy<TProvider, OrderableLanguageMetadata>>();
-            }
-
-            return providers.Select(p =>
-                new Lazy<TProvider, OrderableLanguageMetadata>(
-                    () => p,
-                    new OrderableLanguageMetadata(
-                        new Dictionary<string, object> {
-                            {"Language", languageName },
-                            {"Name", string.Empty }}),
-                    true));
-        }
-
-        protected static IEnumerable<Lazy<TProvider, OrderableLanguageAndRoleMetadata>> CreateLazyProviders<TProvider>(
-            TProvider[] providers,
-            string languageName,
-            string[] roles)
-        {
-            if (providers == null)
-            {
-                return Array.Empty<Lazy<TProvider, OrderableLanguageAndRoleMetadata>>();
-            }
-
-            return providers.Select(p =>
-                new Lazy<TProvider, OrderableLanguageAndRoleMetadata>(
-                    () => p,
-                    new OrderableLanguageAndRoleMetadata(
-                        new Dictionary<string, object> {
-                            {"Language", languageName },
-                            {"Name", string.Empty },
-                            {"Roles", roles }}),
-                    true));
-        }
         #endregion
 
         #region editor related operation

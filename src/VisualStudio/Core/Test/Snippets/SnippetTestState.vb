@@ -2,7 +2,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -12,10 +11,10 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.TextManager.Interop
-Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 Imports MSXML
 
@@ -27,8 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             ' Remove the default completion presenters to prevent them from conflicting with the test one
             ' that we are adding.
             MyBase.New(workspaceElement,
-                       extraCompletionProviders:=Nothing,
-                       extraExportedTypes:={GetType(TestSignatureHelpPresenter), GetType(IntelliSenseTestState), GetType(MockCompletionPresenterProvider)}.Concat(If(extraParts, {})).ToList(),
+                       extraExportedTypes:={GetType(TestSignatureHelpPresenter), GetType(SnippetCompletionProvider), GetType(IntelliSenseTestState), GetType(MockCompletionPresenterProvider)}.Concat(If(extraParts, {})).ToList(),
                        workspaceKind:=workspaceKind,
                        excludedTypes:={GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), GetType(FormatCommandHandler)}.Concat(If(excludedTypes, {})).ToList(),
                        includeFormatCommandHandler:=False)
@@ -40,14 +38,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
-
-            If languageName = LanguageNames.VisualBasic Then
-                Dim snippetProvider As CompletionProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Nothing)
-                Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
-                Dim language = languageServices.Language
-                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
-                completionService.SetTestProviders({snippetProvider})
-            End If
 
             SnippetExpansionClient = New MockSnippetExpansionClient(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), startActiveSession)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
