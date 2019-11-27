@@ -71,10 +71,10 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+dotnet_style_prefer_inferred_tuple_names = true:error
 
 # IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_tuple_names = true:error
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
