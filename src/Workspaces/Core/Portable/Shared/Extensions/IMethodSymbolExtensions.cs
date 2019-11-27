@@ -89,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var updatedTypeParameters = RenameTypeParameters(
                 method.TypeParameters, newNames, typeGenerator);
 
-            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default);
             for (var i = 0; i < method.TypeParameters.Length; i++)
             {
                 mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
@@ -101,13 +100,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.GetAttributes(),
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
-                method.GetReturnTypeWithAnnotatedNullability().SubstituteTypes(mapping, typeGenerator),
+                method.ReturnType.SubstituteTypes(mapping, typeGenerator),
                 method.RefKind,
                 method.ExplicitInterfaceImplementations,
                 method.Name,
                 updatedTypeParameters,
                 method.Parameters.SelectAsArray(p =>
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability().SubstituteTypes(mapping, typeGenerator), p.Name, p.IsOptional,
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type.SubstituteTypes(mapping, typeGenerator), p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)));
         }
 
@@ -144,8 +143,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
 
-            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default);
             for (var i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
@@ -229,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 parameters: method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
                         p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
-                        p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability(), p.Name, p.IsOptional,
+                        p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
         }

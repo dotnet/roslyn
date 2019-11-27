@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 if (SelectionResult.SelectionInExpression)
                 {
-                    returnType = genericTaskType.ConstructWithNullability(returnType);
+                    returnType = genericTaskType.Construct(returnType);
                     return;
                 }
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 // okay, wrap the return type in Task<T>
-                returnType = genericTaskType.ConstructWithNullability(returnType);
+                returnType = genericTaskType.Construct(returnType);
             }
 
             private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
@@ -637,8 +637,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
             => symbol switch
             {
-                ILocalSymbol local => local.GetTypeWithAnnotatedNullability(),
-                IParameterSymbol parameter => parameter.GetTypeWithAnnotatedNullability(),
+                ILocalSymbol local => local.Type,
+                IParameterSymbol parameter => parameter.Type,
                 IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
                 _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
             };

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (symbol is ITypeSymbol typeSymbol)
             {
-                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullability(NullableAnnotation.None), context);
+                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullableAnnotation(NullableAnnotation.None), context);
             }
 
             return base.GetDisplayAndSuffixAndInsertionText(symbol, context);

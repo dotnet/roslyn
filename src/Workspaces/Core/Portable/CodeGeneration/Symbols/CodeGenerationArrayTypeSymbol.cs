@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public NullableAnnotation ElementNullableAnnotation => ElementType.GetNullability();
+        public NullableAnnotation ElementNullableAnnotation => ElementType.NullableAnnotation;
 
         public bool Equals(IArrayTypeSymbol other)
         {
