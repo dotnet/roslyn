@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             // Checking to see if there is already an empty line before the local method declaration.
             var leadingTrivia = methodDefinition.GetLeadingTrivia();
-            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)))
+            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) && !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
             {
                 var originalMethodDefinition = methodDefinition;
                 methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));

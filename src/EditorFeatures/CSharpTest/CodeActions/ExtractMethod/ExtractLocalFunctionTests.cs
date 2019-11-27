@@ -3727,6 +3727,70 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInIntegerExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MethodExtraction
+{
+    void TestMethod()
+    {
+        int a = [|1 + 1|];
+    }
+}",
+@"class MethodExtraction
+{
+    void TestMethod()
+    {
+        int a = {|Rename:GetA|}();
+
+        static int GetA()
+        {
+            return 1 + 1;
+        }
+    }
+}", CodeActionIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestInBaseIntegerParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class B
+{
+    protected B(int test)
+    {
+
+    }
+}
+
+class C : B
+{
+    public C(int test) : base([|1 + 1|])
+    {
+
+    }
+}",
+@"class B
+{
+    protected B(int test)
+    {
+
+    }
+}
+
+class C : B
+{
+    public C(int test) : base({|Rename:NewMethod|}())
+    {
+        static int NewMethod()
+        {
+            return 1 + 1;
+        }
+    }
+}", CodeActionIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInLocalFunctionDeclaration_ExpressionBody()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -3913,6 +3977,21 @@ class C
     public class SampleClass
     {
         // Objects of this type can be serialized.
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingInAttributeInitializerParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Runtime.InteropServices;
+
+class C
+{
+    [ComVisible([|true|])]
+    public class SampleClass
+    {
     }
 }");
         }

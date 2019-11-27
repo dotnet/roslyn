@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 constraintClauses: GenerateConstraintClauses(method),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                 expressionBody: default,
-                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
             methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, parseOptions);
             return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 constraintClauses: GenerateConstraintClauses(method),
                 body: StatementGenerator.GenerateBlock(method),
                 expressionBody: default,
-                semicolonToken: new SyntaxToken());
+                semicolonToken: default);
 
             localMethodDeclaration = UseExpressionBodyIfDesired(workspace, localMethodDeclaration, parseOptions);
             return AddFormatterAndCodeGeneratorAnnotationsTo(localMethodDeclaration);
