@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.GetAttributes(),
                     typeParameter.Variance,
                     newNames[i],
+                    typeParameter.NullableAnnotation,
                     typeParameter.ConstraintTypes,
                     typeParameter.HasConstructorConstraint,
                     typeParameter.HasReferenceTypeConstraint,

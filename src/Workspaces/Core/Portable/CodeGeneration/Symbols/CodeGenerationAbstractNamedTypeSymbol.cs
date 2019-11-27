@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             string name,
             SpecialType specialType,
+            NullableAnnotation nullableAnnotation,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType)
+            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation)
         {
             this.TypeMembers = typeMembers;
 
@@ -110,6 +111,5 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool IsUnmanagedType => throw new NotImplementedException();
 
         public bool IsRefLikeType => Modifiers.IsRef;
-
     }
 }
