@@ -42,47 +42,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
 
         <WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")>
         <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-        Public Async Function ConfigureEditorconfig_Empty_Error() As Task
-            Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class C
-    Sub M()
-        Dim a As Integer = 1
-        Dim t = ([||]a:= a, 2)
-    End Sub
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig""></AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-            Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class C
-    Sub M()
-        Dim a As Integer = 1
-        Dim t = (a:= a, 2)
-    End Sub
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_tuple_names = true:error
-
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-            Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-        End Function
-
-        <WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")>
-        <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
         Public Async Function ConfigureEditorconfig_BothRulesExist_Error() As Task
             Dim input = "
 <Workspace>
