@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
                     {
-                        return model.GetTypeInfo(variableDeclExpression.Type).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(variableDeclExpression.Type).Type;
                     }
                 }
 
