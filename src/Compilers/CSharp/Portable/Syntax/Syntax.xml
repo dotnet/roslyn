@@ -223,6 +223,56 @@
       <summary>Creates a PointerTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="FunctionPointerTypeSyntax" Base="TypeSyntax">
+    <Kind Name="FunctionPointerType"/>
+    <Field Name="DelegateKeyword" Type="SyntaxToken">
+      <Kind Name="DelegateKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the delegate keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the asterisk.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CallingConvention" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>SyntaxToken representing the optional calling convention.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the less than token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ModifiedType&gt;" MinCount="1">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ModifiedTypes representing the list of parameters and return type.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the greater than token.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="ModifiedType" Base="CSharpSyntaxNode">
+    <Kind Name="ModifiedType"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>SyntaxList of the optional modifier keywords.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>TypeSyntax representing the modified type.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
   <Node Name="NullableTypeSyntax" Base="TypeSyntax">
     <Kind Name="NullableType"/>
     <Field Name="ElementType" Type="TypeSyntax">

@@ -318,6 +318,7 @@ namespace_declaration
 
 type
   : array_type
+  | function_pointer_type
   | name
   | nullable_type
   | omitted_type_argument
@@ -333,6 +334,14 @@ array_type
 
 array_rank_specifier
   : '[' (expression (',' expression)*)? ']'
+  ;
+
+function_pointer_type
+  : 'delegate' '*' syntax_token? '<' modified_type (',' modified_type)* '>'
+  ;
+
+modified_type
+  : modifier* type
   ;
 
 nullable_type
