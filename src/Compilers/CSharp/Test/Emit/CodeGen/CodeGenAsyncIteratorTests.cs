@@ -1881,6 +1881,7 @@ public class C
 
         [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
+        [WorkItem(39970, "https://github.com/dotnet/roslyn/issues/39970")]
         public void AsyncIterator_WithoutAwait_WithoutAsync()
         {
             string source = @"
@@ -1892,11 +1893,13 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
+            var expected = new DiagnosticDescription[] {
                 // (4,61): error CS8403: Method 'C.M()' with an iterator block must be 'async' to return 'IAsyncEnumerable<int>'
                 //     static System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 61)
-                );
+            };
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

@@ -3,11 +3,10 @@
 using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
-    internal partial class VisualStudioWorkspaceDiagnosticAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
+    internal partial class VisualStudioDiagnosticAnalyzerProvider
     {
         private sealed class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
         {
