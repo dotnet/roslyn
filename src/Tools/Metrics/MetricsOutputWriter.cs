@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeMetrics;
@@ -61,7 +62,16 @@ namespace Metrics
                 switch (data.Symbol.Kind)
                 {
                     case SymbolKind.NamedType:
-                        writer.WriteAttributeString("Name", data.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                        var minimalTypeName = new StringBuilder(data.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+
+                        var containingType = data.Symbol.ContainingType;
+                        while (containingType != null)
+                        {
+                            minimalTypeName.Insert(0, ".");
+                            minimalTypeName.Insert(0, containingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                        }
+
+                        writer.WriteAttributeString("Name", minimalTypeName.ToString());
                         break;
 
                     case SymbolKind.Method:
