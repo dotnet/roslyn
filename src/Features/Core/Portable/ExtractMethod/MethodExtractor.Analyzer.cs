@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -202,7 +201,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 awaitTaskReturn = false;
 
-                var genericTaskType = model.Compilation.TaskOfTType();
                 var taskType = model.Compilation.TaskType();
 
                 if (taskType is object && returnType.Equals(model.Compilation.GetSpecialType(SpecialType.System_Void)))
@@ -213,21 +211,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return;
                 }
 
-                if (SelectionResult.SelectionInExpression)
-                {
-                    returnType = genericTaskType.Construct(returnType);
-                    return;
-                }
-
-                if (ContainsReturnStatementInSelectedCode(model))
+                if (!SelectionResult.SelectionInExpression && ContainsReturnStatementInSelectedCode(model))
                 {
                     // check whether we will use return type as it is or not.
                     awaitTaskReturn = returnType.Equals(taskType);
                     return;
                 }
 
-                // okay, wrap the return type in Task<T>
-                returnType = genericTaskType.Construct(returnType);
+                var genericTaskType = model.Compilation.TaskOfTType();
+
+                if (genericTaskType is object)
+                {
+                    // okay, wrap the return type in Task<T>
+                    returnType = genericTaskType.Construct(returnType);
+                }
             }
 
             private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
