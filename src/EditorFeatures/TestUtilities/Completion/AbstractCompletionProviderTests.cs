@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetProvider(firstItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var completionRules = GetCompletionHelper(document);
                 var textView = WorkspaceFixture.CurrentDocument.GetTextView();
