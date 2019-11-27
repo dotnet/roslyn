@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using Analyzer.Utilities;
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private static bool TryGetApiData(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
         {
-            if (!TryGetApiText(additionalTexts, cancellationToken, out AdditionalText shippedText, out AdditionalText unshippedText))
+            if (!TryGetApiText(additionalTexts, cancellationToken, out var shippedText, out var unshippedText))
             {
                 shippedData = default;
                 unshippedData = default;
@@ -223,7 +224,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return true;
         }
 
-        private static bool TryGetApiText(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out AdditionalText shippedText, out AdditionalText unshippedText)
+        private static bool TryGetApiText(
+            ImmutableArray<AdditionalText> additionalTexts,
+            CancellationToken cancellationToken,
+            [NotNullWhen(returnValue: true)] out AdditionalText? shippedText,
+            [NotNullWhen(returnValue: true)] out AdditionalText? unshippedText)
         {
             shippedText = null;
             unshippedText = null;

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -48,11 +47,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </remarks>
         public static PropertySetAbstractValueKind EvaluateLiteralValues(
             ValueContentAbstractValue valueContentAbstractValue,
-            Func<object, bool> badLiteralValuePredicate)
+            Func<object?, bool> badLiteralValuePredicate)
         {
-            Debug.Assert(valueContentAbstractValue != null);
-            Debug.Assert(badLiteralValuePredicate != null);
-
             switch (valueContentAbstractValue.NonLiteralState)
             {
                 case ValueContainsNonLiteralState.No:
@@ -63,7 +59,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                     bool allValuesBad = true;
                     bool someValuesBad = false;
-                    foreach (object literalValue in valueContentAbstractValue.LiteralValues)
+                    foreach (object? literalValue in valueContentAbstractValue.LiteralValues)
                     {
                         if (badLiteralValuePredicate(literalValue))
                         {

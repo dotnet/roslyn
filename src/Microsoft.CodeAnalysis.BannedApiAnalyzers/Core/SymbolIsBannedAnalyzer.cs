@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             return;
 
-            Dictionary<ISymbol, BanFileEntry> ReadBannedApis()
+            Dictionary<ISymbol, BanFileEntry>? ReadBannedApis()
             {
                 var query =
                     from additionalFile in compilationContext.Options.AdditionalFiles
@@ -253,14 +253,17 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
             }
 
-            bool VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode)
+            bool VerifyType(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode)
             {
+                RoslynDebug.Assert(entryBySymbol != null);
+
                 do
                 {
                     if (!VerifyTypeArguments(reportDiagnostic, type, syntaxNode, out type))
                     {
                         return false;
                     }
+
                     if (type == null)
                     {
                         // Type will be null for arrays and pointers.
@@ -285,7 +288,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return true;
             }
 
-            bool VerifyTypeArguments(Action<Diagnostic> reportDiagnostic, ITypeSymbol type, SyntaxNode syntaxNode, out ITypeSymbol originalDefinition)
+            bool VerifyTypeArguments(Action<Diagnostic> reportDiagnostic, ITypeSymbol? type, SyntaxNode syntaxNode, out ITypeSymbol? originalDefinition)
             {
                 switch (type)
                 {
@@ -311,7 +314,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                         return VerifyType(reportDiagnostic, pointerTypeSymbol.PointedAtType, syntaxNode);
 
                     default:
-                        originalDefinition = type.OriginalDefinition;
+                        originalDefinition = type?.OriginalDefinition;
                         break;
 
                 }
@@ -321,6 +324,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             void VerifySymbol(Action<Diagnostic> reportDiagnostic, ISymbol symbol, SyntaxNode syntaxNode)
             {
+                RoslynDebug.Assert(entryBySymbol != null);
+
                 symbol = symbol.OriginalDefinition;
 
                 if (entryBySymbol.TryGetValue(symbol, out var entry))

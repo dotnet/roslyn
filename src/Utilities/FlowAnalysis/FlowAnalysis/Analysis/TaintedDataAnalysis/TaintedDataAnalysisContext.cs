@@ -26,12 +26,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult copyAnalysisResultOpt,
-            PointsToAnalysisResult pointsToAnalysisResult,
-            ValueContentAnalysisResult valueContentAnalysisResult,
-            Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph parentControlFlowGraph,
-            InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt,
+            CopyAnalysisResult? copyAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
+            Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult?> tryGetOrComputeAnalysisResult,
+            ControlFlowGraph? parentControlFlowGraph,
+            InterproceduralTaintedDataAnalysisData? interproceduralAnalysisDataOpt,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
@@ -68,10 +68,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult copyAnalysisResultOpt,
-            PointsToAnalysisResult pointsToAnalysisResult,
-            ValueContentAnalysisResult valueContentAnalysisResult,
-            Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
+            CopyAnalysisResult? copyAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
+            Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult?> tryGetOrComputeAnalysisResult,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
@@ -101,10 +101,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
             IOperation operation,
-            PointsToAnalysisResult pointsToAnalysisResultOpt,
-            DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
-            DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue> valueContentAnalysisResultOpt,
-            InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
+            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>? copyAnalysisResultOpt,
+            DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>? valueContentAnalysisResultOpt,
+            InterproceduralTaintedDataAnalysisData? interproceduralAnalysisData)
         {
             return new TaintedDataAnalysisContext(
                 this.ValueDomain,

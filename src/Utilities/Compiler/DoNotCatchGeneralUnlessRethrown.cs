@@ -17,11 +17,11 @@ namespace Analyzer.Utilities
     internal abstract class DoNotCatchGeneralUnlessRethrownAnalyzer : DiagnosticAnalyzer
     {
         private readonly bool _shouldCheckLambdas;
-        private readonly string _enablingMethodAttributeFullyQualifiedName;
+        private readonly string? _enablingMethodAttributeFullyQualifiedName;
 
         private bool RequiresAttributeOnMethod => !string.IsNullOrEmpty(_enablingMethodAttributeFullyQualifiedName);
 
-        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string enablingMethodAttributeFullyQualifiedName = null)
+        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string? enablingMethodAttributeFullyQualifiedName = null)
         {
             _shouldCheckLambdas = shouldCheckLambdas;
             _enablingMethodAttributeFullyQualifiedName = enablingMethodAttributeFullyQualifiedName;
@@ -40,7 +40,7 @@ namespace Analyzer.Utilities
 
             analysisContext.RegisterCompilationStartAction(compilationStartAnalysisContext =>
             {
-                INamedTypeSymbol requiredAttributeType = null;
+                INamedTypeSymbol? requiredAttributeType = null;
                 if (RequiresAttributeOnMethod && (requiredAttributeType = GetRequiredAttributeType(compilationStartAnalysisContext.Compilation)) == null)
                 {
                     return;
@@ -61,7 +61,7 @@ namespace Analyzer.Utilities
 
                     var method = (IMethodSymbol)operationBlockAnalysisContext.OwningSymbol;
 
-                    if (RequiresAttributeOnMethod && !MethodHasAttribute(method, requiredAttributeType))
+                    if (RequiresAttributeOnMethod && !method.HasAttribute(requiredAttributeType))
                     {
                         return;
                     }
@@ -80,14 +80,10 @@ namespace Analyzer.Utilities
             });
         }
 
-        private INamedTypeSymbol GetRequiredAttributeType(Compilation compilation)
+        private INamedTypeSymbol? GetRequiredAttributeType(Compilation compilation)
         {
+            RoslynDebug.Assert(_enablingMethodAttributeFullyQualifiedName != null);
             return compilation.GetOrCreateTypeByMetadataName(_enablingMethodAttributeFullyQualifiedName);
-        }
-
-        private bool MethodHasAttribute(IMethodSymbol method, INamedTypeSymbol attributeType)
-        {
-            return method.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(attributeType));
         }
 
         private static IReadOnlyCollection<INamedTypeSymbol> GetDisallowedCatchTypes(Compilation compilation)
@@ -97,7 +93,7 @@ namespace Analyzer.Utilities
                     compilation.GetSpecialType(SpecialType.System_Object),
                     compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException),
                     compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemSystemException)
-                }.Where(x => x != null));
+                }.WhereNotNull());
         }
 
         /// <summary>

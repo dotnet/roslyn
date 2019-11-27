@@ -258,11 +258,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private class PublicSurfaceAreaFixAllProvider : FixAllProvider
         {
-            public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+            public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var diagnosticsToFix = new List<KeyValuePair<Project, ImmutableArray<Diagnostic>>>();
-                string title = null;
-
+                string? title;
                 switch (fixAllContext.Scope)
                 {
                     case FixAllScope.Document:
@@ -296,8 +295,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     case FixAllScope.Custom:
                         return null;
+
                     default:
-                        break;
+                        Debug.Fail($"Unknown FixAllScope '{fixAllContext.Scope}'");
+                        return null;
                 }
 
                 return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);

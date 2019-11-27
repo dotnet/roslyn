@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -89,19 +88,17 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         public static ComputationalComplexityMetrics Compute(IOperation operationBlock)
         {
-            Debug.Assert(operationBlock != null);
-
             bool hasSymbolInitializer = false;
             long executableLinesOfCode = 0;
             long operatorUsageCounts = 0;
             long symbolUsageCounts = 0;
             long constantUsageCounts = 0;
-            ImmutableHashSet<OperationKind>.Builder distinctOperatorKindsBuilder = null;
-            ImmutableHashSet<BinaryOperatorKind>.Builder distinctBinaryOperatorKindsBuilder = null;
-            ImmutableHashSet<UnaryOperatorKind>.Builder distinctUnaryOperatorKindsBuilder = null;
-            ImmutableHashSet<CaseKind>.Builder distinctCaseKindsBuilder = null;
-            ImmutableHashSet<ISymbol>.Builder distinctReferencedSymbolsBuilder = null;
-            ImmutableHashSet<object>.Builder distinctReferencedConstantsBuilder = null;
+            ImmutableHashSet<OperationKind>.Builder? distinctOperatorKindsBuilder = null;
+            ImmutableHashSet<BinaryOperatorKind>.Builder? distinctBinaryOperatorKindsBuilder = null;
+            ImmutableHashSet<UnaryOperatorKind>.Builder? distinctUnaryOperatorKindsBuilder = null;
+            ImmutableHashSet<CaseKind>.Builder? distinctCaseKindsBuilder = null;
+            ImmutableHashSet<ISymbol>.Builder? distinctReferencedSymbolsBuilder = null;
+            ImmutableHashSet<object>.Builder? distinctReferencedConstantsBuilder = null;
 
             // Explicit user applied attribute.
             if (operationBlock.Kind == OperationKind.None &&

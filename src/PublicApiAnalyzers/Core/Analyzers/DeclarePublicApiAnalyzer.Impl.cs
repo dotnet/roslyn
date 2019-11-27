@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// <param name="reportDiagnostic">Action called to actually report a diagnostic.</param>
             /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
             /// the location of the symbol will be used.</param>
-            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, Location explicitLocation = null)
+            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, Location? explicitLocation = null)
             {
                 if (!IsPublicAPI(symbol))
                 {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// <param name="isImplicitlyDeclaredConstructor">If the symbol is an implicitly declared constructor.</param>
             /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
             /// the location of the symbol will be used.</param>
-            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor, Location explicitLocation = null)
+            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor, Location? explicitLocation = null)
             {
                 Debug.Assert(IsPublicAPI(symbol));
 
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 string publicApiName = symbol.ToDisplayString(s_publicApiFormat);
 
-                ITypeSymbol memberType = null;
+                ITypeSymbol? memberType = null;
                 if (symbol is IMethodSymbol)
                 {
                     memberType = ((IMethodSymbol)symbol).ReturnType;

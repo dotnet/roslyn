@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -32,7 +33,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool Inherits(this ITypeSymbol type, ITypeSymbol possibleBase)
+        public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)]  ITypeSymbol? possibleBase)
         {
             if (type == null || possibleBase == null)
             {
@@ -77,7 +78,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool DerivesFrom(this ITypeSymbol symbol, ITypeSymbol candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
+        public static bool DerivesFrom([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol, [NotNullWhen(returnValue: true)] ITypeSymbol? candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
         {
             if (candidateBaseType == null || symbol == null)
             {
@@ -127,13 +128,13 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Indicates if the given <paramref name="type"/> implements <paramref name="iDisposable"/>.
         /// </summary>
-        public static bool ImplementsIDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+        public static bool ImplementsIDisposable(this ITypeSymbol type, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
             => iDisposable != null && type.AllInterfaces.Contains(iDisposable);
 
         /// <summary>
         /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or is <see cref="IDisposable"/> type itself.
         /// </summary>
-        public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+        public static bool IsDisposable(this ITypeSymbol type, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
             => type.IsReferenceType && (Equals(type, iDisposable) || type.ImplementsIDisposable(iDisposable));
 
         /// <summary>
@@ -141,7 +142,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="type">The type symbol.</param>
         /// <param name="attributeUsageAttribute">The compilation symbol for <see cref="AttributeUsageAttribute"/>.</param>
-        public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type, INamedTypeSymbol attributeUsageAttribute)
+        public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type, INamedTypeSymbol? attributeUsageAttribute)
         {
             var attributes = new List<AttributeData>();
             var onlyIncludeInherited = false;
@@ -208,7 +209,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static IEnumerable<AttributeData> GetApplicableExportAttributes(this INamedTypeSymbol type, INamedTypeSymbol exportAttributeV1, INamedTypeSymbol exportAttributeV2, INamedTypeSymbol inheritedExportAttribute)
+        public static IEnumerable<AttributeData> GetApplicableExportAttributes(this INamedTypeSymbol? type, INamedTypeSymbol? exportAttributeV1, INamedTypeSymbol? exportAttributeV2, INamedTypeSymbol? inheritedExportAttribute)
         {
             var attributes = new List<AttributeData>();
             var onlyIncludeInherited = false;
@@ -265,27 +266,22 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
 
-        public static bool IsNonNullableValueType(this ITypeSymbol typeSymbol)
+        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
 
-        public static bool IsNullableValueType(this ITypeSymbol typeSymbol)
+        public static bool IsNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
-        public static bool IsReferenceTypeOrNullableValueType(this ITypeSymbol typeSymbol)
+        public static bool IsReferenceTypeOrNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
 
-        public static bool IsNullableOfBoolean(this ITypeSymbol typeSymbol)
+        public static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
 
 #if HAS_IOPERATION
         public static ITypeSymbol GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol typeSymbol)
             => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
 #endif
-
-        public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
-        }
 
         /// <summary>
         /// Checks whether the current type contains one of the following count property:
@@ -296,11 +292,12 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="invocationTarget">The type to check</param>
         /// <param name="wellKnownTypeProvider">An instance of the <see cref="WellKnownTypeProvider"/> used to access the three described known types.</param>
         /// <returns><c>true</c> when the type contains one of the supported collection count property; otherwise <c>false</c>.</returns>
-        public static bool HasAnyCollectionCountProperty(this ITypeSymbol invocationTarget, WellKnownTypeProvider wellKnownTypeProvider)
+        public static bool HasAnyCollectionCountProperty([NotNullWhen(returnValue: true)] this ITypeSymbol? invocationTarget, WellKnownTypeProvider wellKnownTypeProvider)
         {
             const string countPropertyName = "Count";
 
-            if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection, out var iCollection)
+            if (invocationTarget == null
+                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection, out var iCollection)
                 || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1, out var iCollectionOfT)
                 || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1, out var iReadOnlyCollectionOfT))
             {
@@ -342,61 +339,16 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
 
-            bool isAnySupportedCollectionType(ITypeSymbol type) =>
-                type?.OriginalDefinition is INamedTypeSymbol originalDefinition &&
-                (iCollection.Equals(originalDefinition) || iCollectionOfT.Equals(originalDefinition) || iReadOnlyCollectionOfT.Equals(originalDefinition));
-        }
-
-        private class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
-        {
-            public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
-
-            public override Accessibility DefaultVisit(ISymbol node)
+            bool isAnySupportedCollectionType(ITypeSymbol type)
             {
-                throw new NotImplementedException();
-            }
+                RoslynDebug.Assert(iCollection != null);
+                RoslynDebug.Assert(iCollectionOfT != null);
+                RoslynDebug.Assert(iReadOnlyCollectionOfT != null);
 
-            public override Accessibility VisitAlias(IAliasSymbol symbol)
-            {
-                return symbol.Target.Accept(this);
-            }
-
-            public override Accessibility VisitArrayType(IArrayTypeSymbol symbol)
-            {
-                return symbol.ElementType.Accept(this);
-            }
-
-            public override Accessibility VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return Accessibility.Public;
-            }
-
-            public override Accessibility VisitNamedType(INamedTypeSymbol symbol)
-            {
-                Accessibility accessibility = symbol.DeclaredAccessibility;
-
-                foreach (ITypeSymbol arg in symbol.TypeArguments)
-                {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, arg.Accept(this));
-                }
-
-                if (symbol.ContainingType != null)
-                {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, symbol.ContainingType.Accept(this));
-                }
-
-                return accessibility;
-            }
-
-            public override Accessibility VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                return symbol.PointedAtType.Accept(this);
-            }
-
-            public override Accessibility VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                // TODO(cyrusn): Do we have to consider the constraints?
-                return Accessibility.Public;
+                return type.OriginalDefinition is INamedTypeSymbol originalDefinition &&
+                    (iCollection.Equals(originalDefinition) ||
+                     iCollectionOfT.Equals(originalDefinition) ||
+                     iReadOnlyCollectionOfT.Equals(originalDefinition));
             }
         }
     }

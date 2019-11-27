@@ -2,10 +2,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -33,6 +34,13 @@ namespace Analyzer.Utilities
             SymbolModifiers defaultValue,
             CancellationToken cancellationToken)
             => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.RequiredModifiers, rule, defaultValue, cancellationToken);
+
+        public static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            EnumValuesPrefixTrigger defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.EnumValuesPrefixTrigger, rule, defaultValue, cancellationToken);
 
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
@@ -158,7 +166,7 @@ namespace Analyzer.Utilities
         private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,
             string optionName,
-            string namePrefixOpt,
+            string? namePrefixOpt,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
@@ -184,7 +192,7 @@ namespace Analyzer.Utilities
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
             this AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists. 
+            // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists.
             if (s_cachedOptions.TryGetValue(options, out var categorizedAnalyzerConfigOptions))
             {
                 return categorizedAnalyzerConfigOptions;
