@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static ObjectPool<OrderPreservingMultiDictionary<K, V>> CreatePool()
         {
             var pool = new ObjectPool<OrderPreservingMultiDictionary<K, V>>(
-                pool => new OrderPreservingMultiDictionary<K, V>(pool), 
+                pool => new OrderPreservingMultiDictionary<K, V>(pool),
                 16); // Size is a guess.
             return pool;
         }
