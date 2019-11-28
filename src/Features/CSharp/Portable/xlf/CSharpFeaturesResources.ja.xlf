@@ -757,11 +757,6 @@
         <target state="translated">this' を追加します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
-        <source>Warning: Extracting a local function reference may produce invalid code</source>
-        <target state="translated">警告: ローカル関数参照を抽出すると無効なコードが生成される可能性があります</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;名前&gt;</target>
