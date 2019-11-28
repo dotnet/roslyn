@@ -41,9 +41,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public void Report(WorkspaceDiagnostic diagnostic)
+        internal void AddDiagnostic(WorkspaceDiagnostic diagnostic)
         {
             ImmutableInterlocked.Update(ref Diagnostics, d => d.Add(diagnostic));
+        }
+
+        public void Report(WorkspaceDiagnostic diagnostic)
+        {
             _workspace.OnWorkspaceFailed(diagnostic);
         }
 

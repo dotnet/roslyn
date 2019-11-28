@@ -101,6 +101,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public ImmutableList<WorkspaceDiagnostic> Diagnostics => _reporter.Diagnostics;
 
+        protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
+        {
+            _reporter.AddDiagnostic(diagnostic);
+            base.OnWorkspaceFailed(diagnostic);
+        }
+
         /// <summary>
         /// Determines if metadata from existing output assemblies is loaded instead of opening referenced projects.
         /// If the referenced project is already opened, the metadata will not be loaded.

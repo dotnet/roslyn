@@ -1282,7 +1282,7 @@ class C1
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
 
-                Assert.Empty(workspace.Diagnostics);
+                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
@@ -1318,7 +1318,7 @@ class C1
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
 
-                Assert.Empty(workspace.Diagnostics);
+                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
@@ -1355,7 +1355,7 @@ class C1
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
 
-                Assert.Empty(workspace.Diagnostics);
+                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
