@@ -18,9 +18,13 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using System;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Composition;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
+    [Shared]
     internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";

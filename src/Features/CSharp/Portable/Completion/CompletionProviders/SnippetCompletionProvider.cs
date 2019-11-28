@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +22,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(SnippetCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(CrefCompletionProvider))]
+    [Shared]
     internal sealed class SnippetCompletionProvider : CommonCompletionProvider
     {
         // If null, the document's language service will be used.
         private readonly ISnippetInfoService _snippetInfoService;
 
         internal override bool IsSnippetProvider => true;
+
+        [ImportingConstructor]
+        public SnippetCompletionProvider()
+        {
+        }
 
         public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
         {

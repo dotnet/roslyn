@@ -3,8 +3,10 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -12,6 +14,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(TypeImportCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(PropertySubpatternCompletionProvider))]
+    [Shared]
     internal sealed class TypeImportCompletionProvider : AbstractTypeImportCompletionProvider
     {
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     using static DocumentationCommentXmlNames;
 
+    [ExportCompletionProvider(nameof(XmlDocCommentCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(PartialTypeCompletionProvider))]
+    [Shared]
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
         public XmlDocCommentCompletionProvider() : base(s_defaultRules)

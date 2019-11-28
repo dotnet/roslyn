@@ -1,24 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using System;
-using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(CrefCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(EnumAndCompletionListTagCompletionProvider))]
+    [Shared]
     internal sealed class CrefCompletionProvider : AbstractCrefCompletionProvider
     {
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
@@ -55,6 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
         private readonly Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
+
+        [ImportingConstructor]
+        public CrefCompletionProvider()
+        {
+        }
 
         public CrefCompletionProvider(Action<SyntaxNode> testSpeculativeNodeCallbackOpt = null)
         {
