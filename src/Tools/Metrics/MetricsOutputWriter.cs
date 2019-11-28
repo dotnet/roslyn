@@ -69,6 +69,7 @@ namespace Metrics
                         {
                             minimalTypeName.Insert(0, ".");
                             minimalTypeName.Insert(0, containingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                            containingType = containingType.ContainingType;
                         }
 
                         writer.WriteAttributeString("Name", minimalTypeName.ToString());
