@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CreateProjectFile(project, buildManager, log);
         }
 
-        public static IProjectFileLoader GetLoaderForProjectFileExtension(Workspace workspace, string extension)
+        public static IProjectFileLoader GetLoaderForProjectFileExtension(HostWorkspaceServices workspaceServices, string extension)
         {
-            return workspace.Services.FindLanguageServices<IProjectFileLoader>(
+            return workspaceServices.FindLanguageServices<IProjectFileLoader>(
                 d => d.GetEnumerableMetadata<string>("ProjectFileExtension").Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
                 .FirstOrDefault();
         }
