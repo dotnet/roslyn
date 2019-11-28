@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
             if (!documentHadDiagnostics ||
-                Executor.FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
+                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
             {
                 // this is Perf to reduce raising events unnecessarily.
                 return;
