@@ -665,6 +665,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}..
+        /// </summary>
+        internal static string Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4 {
+            get {
+                return ResourceManager.GetString("Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination type must be a {0}, {1} or {2}, but given one is {3}..
         /// </summary>
         internal static string Destination_type_must_be_a_0_1_or_2_but_given_one_is_3 {

@@ -18,8 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public MultipleStatementsCodeGenerator(
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult)
-                    : base(insertionPoint, selectionResult, analyzerResult)
+                    AnalyzerResult analyzerResult,
+                    bool localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, localFunction)
                 {
                 }
 
@@ -40,14 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return false;
                 }
 
-                protected override SyntaxToken CreateMethodName()
-                {
-                    // change this to more smarter one.
-                    var semanticModel = this.SemanticDocument.SemanticModel;
-                    var nameGenerator = new UniqueNameGenerator(semanticModel);
-                    var scope = this.CSharpSelectionResult.GetContainingScope();
-                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod"));
-                }
+                protected override SyntaxToken CreateMethodName(bool localFunction) => CreateMethodNameForStatementGenerators(localFunction);
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {

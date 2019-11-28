@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,14 +23,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected readonly CancellationToken CancellationToken;
             protected readonly SelectionResult SelectionResult;
+            protected readonly bool LocalFunction;
 
-            protected Analyzer(SelectionResult selectionResult, CancellationToken cancellationToken)
+            protected Analyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 
                 SelectionResult = selectionResult;
                 _semanticDocument = selectionResult.SemanticDocument;
                 CancellationToken = cancellationToken;
+                LocalFunction = localFunction;
             }
 
             /// <summary>
@@ -91,7 +94,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
-                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten;
+                var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
+
+                // Checks to see if selection includes a local function call + if the given local function declaration is not included in the selection.
+                var containsAnyLocalFunctionCallNotWithinSpan = localFunctionCallsNotWithinSpan.Any();
+                // Checks to see if selection includes a non-static local function call + if the given local function declaration is not included in the selection.
+                var containsNonStaticLocalFunctionCallNotWithinSpan = containsAnyLocalFunctionCallNotWithinSpan && localFunctionCallsNotWithinSpan.Where(s => !s.IsStatic).Any();
+
+                var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten || containsNonStaticLocalFunctionCallNotWithinSpan;
                 var shouldBeReadOnly = !isThisParameterWritten
                     && thisParameterBeingRead != null
                     && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
@@ -121,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // check various error cases
                 var operationStatus = GetOperationStatus(
-                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType);
+                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType, containsAnyLocalFunctionCallNotWithinSpan);
 
                 return new AnalyzerResult(
                     newDocument,
@@ -266,7 +276,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private OperationStatus GetOperationStatus(
                 SemanticModel model, Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 IList<VariableInfo> parameters, IList<ISymbol> failedVariables,
-                bool unsafeAddressTakenUsed, bool returnTypeHasAnonymousType)
+                bool unsafeAddressTakenUsed, bool returnTypeHasAnonymousType,
+                bool containsAnyLocalFunctionCallNotWithinSpan)
             {
                 var readonlyFieldStatus = CheckReadOnlyFields(model, symbolMap);
 
@@ -296,10 +307,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             FeaturesResources.Failed_to_analyze_data_flow_for_0,
                             string.Join(", ", failedVariables.Select(v => v.Name))));
 
+                var localFunctionStatus = (containsAnyLocalFunctionCallNotWithinSpan && !LocalFunction)
+                    ? OperationStatus.LocalFunctionCallWithoutDeclaration
+                    : OperationStatus.Succeeded;
+
                 return readonlyFieldStatus.With(anonymousTypeStatus)
                                           .With(unsafeAddressStatus)
                                           .With(asyncRefOutParameterStatus)
-                                          .With(variableMapStatus);
+                                          .With(variableMapStatus)
+                                          .With(localFunctionStatus);
             }
 
             private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)
@@ -938,15 +954,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return OperationStatus.Succeeded;
-            }
-
-            private bool IsInstanceMemberUsedInSelectedCode(DataFlowAnalysis dataFlowAnalysisData)
-            {
-                Contract.ThrowIfNull(dataFlowAnalysisData);
-
-                // "this" can be used as a lvalue in a struct, check WrittenInside as well
-                return dataFlowAnalysisData.ReadInside.Any(s => s.IsThisParameter()) ||
-                       dataFlowAnalysisData.WrittenInside.Any(s => s.IsThisParameter());
             }
 
             protected VariableInfo CreateFromSymbolCommon<T>(

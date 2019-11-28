@@ -578,7 +578,7 @@ class Program
                 "Introduce constant for all occurrences of '2'",
                 "Introduce local constant for '2'",
                 "Introduce local constant for all occurrences of '2'",
-                "Extract Method",
+                "Extract method",
                 generateImplicitTitle,
                 "Suppress or Configure issues",
                 "Suppress CS0612",
