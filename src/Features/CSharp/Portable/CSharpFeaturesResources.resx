@@ -523,9 +523,6 @@
   <data name="Convert_to_switch_expression" xml:space="preserve">
     <value>Convert to 'switch' expression</value>
   </data>
-  <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
-    <value>Warning: Extracting a local function reference may produce invalid code</value>
-  </data>
   <data name="Name" xml:space="preserve">
     <value>&lt;Name&gt;</value>
   </data>

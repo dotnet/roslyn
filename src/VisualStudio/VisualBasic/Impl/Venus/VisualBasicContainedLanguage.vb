@@ -26,9 +26,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 project As VisualStudioProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
-                languageServiceGuid As Guid,
-                sourceCodeKind As SourceCodeKind)
-            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, projectTrackerOpt:=Nothing, project.Id, languageServiceGuid, VisualBasicHelperFormattingRule.Instance)
+                languageServiceGuid As Guid)
+
+            MyBase.New(
+                bufferCoordinator,
+                componentModel,
+                componentModel.GetService(Of VisualStudioWorkspace)(),
+                project.Id,
+                project,
+                ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
+                languageServiceGuid,
+                VisualBasicHelperFormattingRule.Instance)
         End Sub
 
         Public Function AddStaticEventBinding(pszClassName As String,

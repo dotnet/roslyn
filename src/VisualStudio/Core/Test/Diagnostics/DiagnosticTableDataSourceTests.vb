@@ -814,7 +814,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     analyzersMap As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)),
                     registrationService As IDiagnosticUpdateSourceRegistrationService,
                     listener As IAsynchronousOperationListener)
-                MyBase.New(New HostAnalyzerManager(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource:=Nothing),
+                MyBase.New(New DiagnosticAnalyzerInfoCache(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource:=Nothing),
                       hostDiagnosticUpdateSource:=Nothing,
                       registrationService:=registrationService,
                       listener:=listener)

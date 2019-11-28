@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool SupportsThrowExpression(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public bool SupportsLocalFunctionDeclaration(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 

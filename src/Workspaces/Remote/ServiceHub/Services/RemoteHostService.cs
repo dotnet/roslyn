@@ -19,13 +19,11 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
-using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -96,15 +94,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return _host;
-            }, cancellationToken);
-        }
-
-        public void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
-        {
-            RunService(() =>
-            {
-                var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService.UpdateStorageLocation(solutionId, storageLocation);
             }, cancellationToken);
         }
 
@@ -242,11 +231,6 @@ namespace Microsoft.CodeAnalysis.Remote
             session?.Start();
 
             return session;
-        }
-
-        private RemotePersistentStorageLocationService GetPersistentStorageService()
-        {
-            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
         }
 
         private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
