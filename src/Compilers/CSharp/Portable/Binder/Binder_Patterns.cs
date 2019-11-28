@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            iTupleType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ITuple);
+            iTupleType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ITuple, recordUsage: false);
             if (iTupleType.TypeKind != TypeKind.Interface)
             {
                 // When compiling to a platform that lacks the interface ITuple (i.e. it is an error type), we simply do not match using it.
@@ -784,8 +784,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Ensure ITuple has a Length and indexer
-            iTupleGetLength = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length);
-            iTupleGetItem = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item);
+            iTupleGetLength = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length, recordUsage: false);
+            iTupleGetItem = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item, recordUsage: false);
             if (iTupleGetLength is null || iTupleGetItem is null)
             {
                 // This might not result in an ideal diagnostic
@@ -793,6 +793,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // passed all the filters; permit using ITuple
+            if (!IsSemanticModelBinder)
+            {
+                Compilation.AddUsedAssembly(iTupleType.ContainingAssembly);
+            }
+
             return true;
 
             bool hasBaseInterface(TypeSymbol type, NamedTypeSymbol possibleBaseInterface)

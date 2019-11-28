@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((syntax != null) ^ (location != null));
 
-            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
+            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, recordUsage: true, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
             return ((object)symbol != null);
         }
 
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode resultExpr;
             if (TypeSymbol.Equals(
                 indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                _compilation.GetWellKnownType(WellKnownType.System_Index, recordUsage: false),
                 TypeCompareKind.ConsiderEverything))
             {
                 // array[Index] is treated like a pattern-based System.Index indexing
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (TypeSymbol.Equals(
                 indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Range),
+                _compilation.GetWellKnownType(WellKnownType.System_Range, recordUsage: false),
                 TypeCompareKind.ConsiderEverything))
             {
                 // array[Range] is compiled to:

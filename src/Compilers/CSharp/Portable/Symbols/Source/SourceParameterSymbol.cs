@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // touch the constructor in order to generate proper use-site diagnostics
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(context.Compilation,
-                    WellKnownMember.System_ParamArrayAttribute__ctor,
+                    WellKnownMember.System_ParamArrayAttribute__ctor, recordUsage: !context.IsSemanticModelBinder,
                     declarationDiagnostics,
                     identifier.Parent.GetLocation());
             }

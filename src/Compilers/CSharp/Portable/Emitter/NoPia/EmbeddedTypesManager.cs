@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             if ((object)lazyMethod == (object)ErrorMethodSymbol.UnknownMethod)
             {
                 DiagnosticInfo info;
-                var symbol = (MethodSymbol)Binder.GetWellKnownTypeMember(ModuleBeingBuilt.Compilation,
+                var symbol = (MethodSymbol)Binder.GetWellKnownTypeMemberWithoutRecordingUsage(ModuleBeingBuilt.Compilation,
                                                                          member,
                                                                          out info,
                                                                          isOptional: false);

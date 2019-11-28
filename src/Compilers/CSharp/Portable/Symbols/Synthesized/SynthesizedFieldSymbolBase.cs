@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.SuppressDynamicAttribute &&
                 type.ContainsDynamic() &&
-                compilation.HasDynamicEmitAttributes() &&
+                compilation.HasDynamicEmitAttributes(recordUsage: false) &&
                 compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
             if (type.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
+                compilation.HasTupleNamesAttributes(recordUsage: false) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,

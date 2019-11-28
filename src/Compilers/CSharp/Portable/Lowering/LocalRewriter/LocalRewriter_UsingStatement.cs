@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IAsyncDisposable temp = (IAsyncDisposable) expr;
                 TypeSymbol iDisposableType = node.AwaitOpt is null ?
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
-                    _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+                    _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable, recordUsage: true);
 
                 BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol iDisposableType = awaitOpt is null ?
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
-                    _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+                    _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable, recordUsage: true);
 
                 BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,

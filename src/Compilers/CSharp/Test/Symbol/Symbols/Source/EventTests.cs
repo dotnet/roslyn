@@ -848,7 +848,8 @@ class C
         #endregion
 
         #region Error cases
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(UsedAssemblyReferences): The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979")]
+        [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {
             var text =

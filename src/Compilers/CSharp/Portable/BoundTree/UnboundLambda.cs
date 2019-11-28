@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // or infer type Task if delegate type not available.
                 var resultType = (object)taskType != null && taskType.Arity == 0 ?
                     taskType :
-                    compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                    compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task, recordUsage: false);
                 return TypeWithAnnotations.Create(resultType);
             }
 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or infer type Task<T> if delegate type not available.
             var taskTypeT = (object)taskType != null && taskType.Arity == 1 ?
                 taskType :
-                compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T, recordUsage: false);
             return TypeWithAnnotations.Create(taskTypeT.Construct(ImmutableArray.Create(bestResultType)));
         }
 

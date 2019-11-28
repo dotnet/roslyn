@@ -827,4 +827,14 @@ internal static class Extensions
     {
         return method.TypeArguments.Select(t => t.NullableAnnotation);
     }
+
+    public static NamedTypeSymbol GetWellKnownType(this CSharpCompilation compilation, WellKnownType type)
+    {
+        return compilation.GetWellKnownType(type, recordUsage: false);
+    }
+
+    public static Symbol GetWellKnownTypeMember(this CSharpCompilation compilation, WellKnownMember member)
+    {
+        return compilation.GetWellKnownTypeMember(member, recordUsage: false);
+    }
 }

@@ -655,24 +655,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                              needDeclaration: true);
         }
 
-        internal sealed override Cci.INamedTypeReference GetSystemType(SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
-        {
-            NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
-
-            DiagnosticInfo info = systemTypeSymbol.GetUseSiteDiagnostic();
-            if (info != null)
-            {
-                Symbol.ReportUseSiteDiagnostic(info,
-                                               diagnostics,
-                                               syntaxOpt != null ? syntaxOpt.Location : NoLocation.Singleton);
-            }
-
-            return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration: true);
-        }
-
         public sealed override Cci.IMethodReference GetInitArrayHelper()
         {
-            return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle);
+            return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle, recordUsage: false);
         }
 
         public sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
@@ -682,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 if (platformType == Cci.PlatformType.SystemType)
                 {
-                    return (object)namedType == (object)Compilation.GetWellKnownType(WellKnownType.System_Type);
+                    return (object)namedType == (object)Compilation.GetWellKnownType(WellKnownType.System_Type, recordUsage: false);
                 }
 
                 return namedType.SpecialType == (SpecialType)platformType;
@@ -1559,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt: null, locationOpt: null))
+            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, recordUsage: false, diagnosticsOpt: null, locationOpt: null))
             {
                 SetNeedsGeneratedAttributes(attribute);
             }

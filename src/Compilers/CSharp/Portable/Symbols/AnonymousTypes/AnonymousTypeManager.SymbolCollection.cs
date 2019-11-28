@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public NamedTypeSymbol System_Diagnostics_DebuggerBrowsableState
         {
-            get { return Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerBrowsableState); }
+            get { return Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerBrowsableState, recordUsage: false); }
         }
 
         public MethodSymbol System_Object__Equals
@@ -142,22 +142,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public MethodSymbol System_Collections_Generic_EqualityComparer_T__Equals
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals, recordUsage: false) as MethodSymbol; }
         }
 
         public MethodSymbol System_Collections_Generic_EqualityComparer_T__GetHashCode
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode, recordUsage: false) as MethodSymbol; }
         }
 
         public MethodSymbol System_Collections_Generic_EqualityComparer_T__get_Default
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default, recordUsage: false) as MethodSymbol; }
         }
 
         public MethodSymbol System_String__Format_IFormatProvider
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider, recordUsage: false) as MethodSymbol; }
         }
 
         #endregion

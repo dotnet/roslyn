@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lengthGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
                 indexerGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T))
+            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T, recordUsage: false))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
                 lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
                 indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
+            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, recordUsage: false))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
                 lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (enumeratorInfo.IsAsync)
             {
-                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, _diagnostics, syntax: forEachSyntax);
+                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, recordUsage: true, _diagnostics, syntax: forEachSyntax);
                 return (object)disposeMethod != null;
             }
 
@@ -240,6 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (disposeMethod is null)
             {
                 TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
+
+                // PROTOTYPE(UsedAssemblyReferences): This is a temporary workaround for https://github.com/dotnet/roslyn/issues/39948
+                if (disposeMethod is null)
+                {
+                    return rewrittenBody;
+                }
 
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);

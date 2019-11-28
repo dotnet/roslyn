@@ -13231,6 +13231,7 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
+                emitMethodBodies: true,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 entryPointOpt: null,

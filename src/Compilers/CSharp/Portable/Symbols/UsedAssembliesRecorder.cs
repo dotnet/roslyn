@@ -48,10 +48,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitFieldAccess(node);
         }
 
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            AddAssembliesUsedBySymbolReference(node.ReceiverOpt, node.PropertySymbol);
+            return base.VisitPropertyAccess(node);
+        }
+
+        public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
+        {
+            AddAssembliesUsedBySymbolReference(node.ReceiverOpt, node.Indexer);
+            return base.VisitIndexerAccess(node);
+        }
+
         public override BoundNode VisitCall(BoundCall node)
         {
             AddAssembliesUsedBySymbolReference(node.ReceiverOpt, node.Method);
             return base.VisitCall(node);
+        }
+
+        public override BoundNode VisitEventAccess(BoundEventAccess node)
+        {
+            AddAssembliesUsedBySymbolReference(node.ReceiverOpt, node.EventSymbol);
+            return base.VisitEventAccess(node);
+        }
+
+        public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
+        {
+            AddAssembliesUsedBySymbolReference(node.ReceiverOpt, node.Event);
+            return base.VisitEventAssignmentOperator(node);
         }
 
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)

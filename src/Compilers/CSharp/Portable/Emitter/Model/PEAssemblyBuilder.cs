@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmbeddableAttributes needsAttributes = GetNeedsGeneratedAttributes();
 
             if (ShouldEmitNullablePublicOnlyAttribute() &&
-                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.NullablePublicOnlyAttribute, diagnostics, Location.None))
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.NullablePublicOnlyAttribute, recordUsage: true, diagnostics, Location.None))
             {
                 needsAttributes |= EmbeddableAttributes.NullablePublicOnlyAttribute;
             }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics)
         {
-            var result = _sourceAssembly.DeclaringCompilation.GetWellKnownType(type);
+            var result = _sourceAssembly.DeclaringCompilation.GetWellKnownType(type, recordUsage: true);
             Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
             return result;
         }
@@ -449,9 +449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private void EnsureAttributeUsageAttributeMembersAvailable(DiagnosticBag diagnostics)
         {
             var compilation = _sourceAssembly.DeclaringCompilation;
-            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__ctor, diagnostics, Location.None);
-            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__AllowMultiple, diagnostics, Location.None);
-            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__Inherited, diagnostics, Location.None);
+            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__ctor, recordUsage: true, diagnostics, Location.None);
+            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__AllowMultiple, recordUsage: true, diagnostics, Location.None);
+            Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_AttributeUsageAttribute__Inherited, recordUsage: true, diagnostics, Location.None);
         }
     }
 

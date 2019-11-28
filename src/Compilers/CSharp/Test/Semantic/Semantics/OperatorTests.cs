@@ -7237,7 +7237,8 @@ public class RubyTime
             Assert.Null(symbol2);
         }
 
-        [Fact()]
+        [Fact(Skip = "PROTOTYPE(UsedAssemblyReferences): The test hook is blocked by https://github.com/dotnet/roslyn/issues/39975")]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void CheckedUnaryIntrinsicSymbols()
         {
             var source =
@@ -7456,7 +7457,8 @@ class Module1
             Assert.Equal(n, nodes.Length);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), AlwaysSkip = "PROTOTYPE(UsedAssemblyReferences): The test hook is blocked by https://github.com/dotnet/roslyn/issues/39975")]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =

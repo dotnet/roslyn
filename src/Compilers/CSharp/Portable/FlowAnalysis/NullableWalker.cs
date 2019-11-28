@@ -2319,7 +2319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations result;
             if (node.Indices.Length == 1 &&
-                TypeSymbol.Equals(node.Indices[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
+                TypeSymbol.Equals(node.Indices[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range, recordUsage: false), TypeCompareKind.ConsiderEverything2))
             {
                 result = TypeWithAnnotations.Create(type);
             }
@@ -3221,7 +3221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, WellKnownMember wellKnownMember)
             {
-                var wellKnownMethod = compilation.GetWellKnownTypeMember(wellKnownMember);
+                var wellKnownMethod = compilation.GetWellKnownTypeMember(wellKnownMember, recordUsage: false);
                 if (wellKnownMethod is null)
                 {
                     return false;
@@ -3284,8 +3284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LearnFromCompareExchangeMethod(MethodSymbol method, BoundCall node, ImmutableArray<VisitArgumentResult> results)
         {
-            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange), SymbolEqualityComparer.ConsiderEverything.CompareKind)
-                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T), SymbolEqualityComparer.ConsiderEverything.CompareKind);
+            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange, recordUsage: false), SymbolEqualityComparer.ConsiderEverything.CompareKind)
+                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T, recordUsage: false), SymbolEqualityComparer.ConsiderEverything.CompareKind);
             if (!isCompareExchangeMethod)
             {
                 return;

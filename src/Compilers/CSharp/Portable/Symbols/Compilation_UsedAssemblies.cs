@@ -29,10 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var reference in References)
             {
-                if (reference.Properties.Kind == MetadataImageKind.Assembly &&
-                    usedAssemblies.Contains((AssemblySymbol)GetAssemblyOrModuleSymbol(reference)))
+                if (reference.Properties.Kind == MetadataImageKind.Assembly)
                 {
-                    builder.Add(reference);
+                    Symbol symbol = GetAssemblyOrModuleSymbol(reference);
+                    if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol))
+                    {
+                        builder.Add(reference);
+                    }
                 }
             }
 
@@ -47,9 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //                                    and we either already encountered errors, or have done all the work 
                 //                                    to record usage.
                 var diagnostics = DiagnosticBag.GetInstance();
-                GetDiagnostics(CompilationStage.Compile, includeEarlierStages: true, diagnostics, cancellationToken);
+                GetDiagnosticsWithoutFiltering(CompilationStage.Declare, includeEarlierStages: true, diagnostics, cancellationToken);
 
-                completeTheSetOfUsedAssemblies(diagnostics, cancellationToken);
+                bool seenErrors = diagnostics.HasAnyErrors();
+                if (!seenErrors)
+                {
+                    diagnostics.Clear();
+                    // PROTOTYPE(UsedAssemblyReferences): Might want to suppress nullable analysis for this call.
+                    GetDiagnosticsForAllMethodBodies(diagnostics, doLowering: true, cancellationToken);
+                    seenErrors = diagnostics.HasAnyErrors();
+                }
+
+                completeTheSetOfUsedAssemblies(seenErrors, cancellationToken);
 
                 diagnostics.Free();
             }
@@ -75,14 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void completeTheSetOfUsedAssemblies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
+            void completeTheSetOfUsedAssemblies(bool seenErrors, CancellationToken cancellationToken)
             {
                 if (_usedAssemblyReferencesFrozen || Volatile.Read(ref _usedAssemblyReferencesFrozen))
                 {
                     return;
                 }
 
-                if (diagnostics.HasAnyErrors())
+                if (seenErrors)
                 {
                     // Add all referenced assemblies
                     foreach (var assembly in SourceModule.ReferencedAssemblySymbols)

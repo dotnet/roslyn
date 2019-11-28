@@ -145,13 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
             var type = this.TypeWithAnnotations;
-            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
+            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes(recordUsage: false) && compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
             if (type.Type.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
+                compilation.HasTupleNamesAttributes(recordUsage: false) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,

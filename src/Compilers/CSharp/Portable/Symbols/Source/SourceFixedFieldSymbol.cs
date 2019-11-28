@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
-            var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
+            var systemType = compilation.GetWellKnownType(WellKnownType.System_Type, recordUsage: false);
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
             var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
             var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);

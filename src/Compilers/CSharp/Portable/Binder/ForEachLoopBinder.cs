@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(isAsync ? ErrorCode.ERR_MultipleIAsyncEnumOfT : ErrorCode.ERR_MultipleIEnumOfT, errorLocationSyntax.Location, collectionExprType,
                         isAsync ?
-                            this.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T) :
+                            this.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T, recordUsage: false) :
                             this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T));
                     return EnumeratorResult.FailedAndReported;
                 }
@@ -782,9 +782,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isAsync)
                         {
-                            Debug.Assert(enumeratorType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)));
+                            Debug.Assert(enumeratorType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T, recordUsage: false)));
 
-                            MethodSymbol moveNextAsync = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
+                            MethodSymbol moveNextAsync = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
                                 diagnostics, errorLocationSyntax.Location, isOptional: false);
 
                             if ((object)moveNextAsync != null)
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         MethodSymbol currentPropertyGetter = isAsync ?
-                            (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, diagnostics, errorLocationSyntax.Location, isOptional: false) :
+                            (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, diagnostics, errorLocationSyntax.Location, isOptional: false) :
                             (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__get_Current, diagnostics, errorLocationSyntax);
 
                         if ((object)currentPropertyGetter != null)
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For async foreach, we don't do the runtime check
             if ((!enumeratorType.IsSealed && !isAsync) ||
                 this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
-                    isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable, recordUsage: false) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
                     ref useSiteDiagnostics).IsImplicit)
             {
                 builder.NeedsDisposal = true;
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(IsIAsyncEnumerable(collectionType.OriginalDefinition));
 
-                getEnumeratorMethod = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
+                getEnumeratorMethod = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                     diagnostics, errorLocationSyntax.Location, isOptional: false);
             }
             else
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsIAsyncEnumerable(TypeSymbol type)
         {
-            return type.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T));
+            return type.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T, recordUsage: false));
         }
 
         /// <summary>
@@ -1341,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isAsync)
             {
-                return type.Equals(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T));
+                return type.Equals(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T, recordUsage: false));
             }
             else
             {

@@ -563,19 +563,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
-            Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
-
-            Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
-            If useSiteError IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics,
-                                        If(syntaxOpt IsNot Nothing, syntaxOpt.GetLocation(), NoLocation.Singleton),
-                                        useSiteError)
-            End If
-
-            Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
-        End Function
-
         Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              needDeclaration:=True,

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         //issue a diagnostic if the compiler generated attribute ctor is not found.
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
-                        WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
+                            WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, recordUsage: !bodyBinder.IsSemanticModelBinder, diagnostics, syntax: syntax);
 
                         if (this._refKind != RefKind.None && !_containingType.IsInterface)
                         {

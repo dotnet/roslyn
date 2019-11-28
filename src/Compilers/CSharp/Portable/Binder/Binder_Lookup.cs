@@ -854,12 +854,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GetWellKnownWinRTMemberInterfaces(out NamedTypeSymbol idictSymbol, out NamedTypeSymbol iroDictSymbol, out NamedTypeSymbol iListSymbol, out NamedTypeSymbol iCollectionSymbol, out NamedTypeSymbol inccSymbol, out NamedTypeSymbol inpcSymbol)
         {
-            idictSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV);
-            iroDictSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV);
-            iListSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_IList);
-            iCollectionSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_ICollection);
-            inccSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_Specialized_INotifyCollectionChanged);
-            inpcSymbol = Compilation.GetWellKnownType(WellKnownType.System_ComponentModel_INotifyPropertyChanged);
+            idictSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV, recordUsage: false);
+            iroDictSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, recordUsage: false);
+            iListSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_IList, recordUsage: false);
+            iCollectionSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_ICollection, recordUsage: false);
+            inccSymbol = Compilation.GetWellKnownType(WellKnownType.System_Collections_Specialized_INotifyCollectionChanged, recordUsage: false);
+            inpcSymbol = Compilation.GetWellKnownType(WellKnownType.System_ComponentModel_INotifyPropertyChanged, recordUsage: false);
         }
 
         private static bool ShouldAddWinRTMembersForInterface(NamedTypeSymbol iface, NamedTypeSymbol idictSymbol, NamedTypeSymbol iroDictSymbol, NamedTypeSymbol iListSymbol, NamedTypeSymbol iCollectionSymbol, NamedTypeSymbol inccSymbol, NamedTypeSymbol inpcSymbol)

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (hasAwait)
                     {
-                        awaitableTypeOpt = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                        awaitableTypeOpt = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, recordUsage: !originalBinder.IsSemanticModelBinder);
                     }
                     return true;
                 }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol getDisposableInterface(bool isAsync)
             {
                 return isAsync
-                    ? originalBinder.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                    ? originalBinder.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable, recordUsage: !originalBinder.IsSemanticModelBinder)
                     : originalBinder.Compilation.GetSpecialType(SpecialType.System_IDisposable);
             }
         }

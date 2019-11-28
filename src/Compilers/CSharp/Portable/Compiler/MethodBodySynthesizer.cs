@@ -240,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getOrCreateMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(
                 compilation,
                 WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable,
+                recordUsage: true,
                 diagnostics,
                 syntax: syntax);
 
@@ -258,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol processHandlerMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(
                 compilation,
                 processHandlerMember,
+                recordUsage: false, // Recorded above, when looked for WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable
                 diagnostics,
                 syntax: syntax);
 
@@ -381,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression delegateUpdate;
 
-            MethodSymbol compareExchangeMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
+            MethodSymbol compareExchangeMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T, recordUsage: true);
 
             if ((object)compareExchangeMethod == null)
             {
