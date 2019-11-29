@@ -27,7 +27,7 @@ namespace RoslynSandbox
     {
     }
 }",
-                VerifyCS.Diagnostic().WithLocation(8, 20));
+                VerifyCS.Diagnostic().WithLocation(8, 20).WithArguments("Foo"));
 
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
@@ -38,7 +38,7 @@ Namespace RoslynSandbox
     Friend Class Foo
     End Class
 End Namespace",
-                VerifyVB.Diagnostic().WithLocation(7, 18));
+                VerifyVB.Diagnostic().WithLocation(7, 18).WithArguments("Foo"));
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace RoslynSandbox
     {
     }
 }",
-                VerifyCS.Diagnostic().WithLocation(8, 27));
+                VerifyCS.Diagnostic().WithLocation(8, 27).WithArguments("Foo"));
 
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
