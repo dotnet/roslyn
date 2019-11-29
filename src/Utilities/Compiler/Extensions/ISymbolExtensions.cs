@@ -282,11 +282,6 @@ namespace Analyzer.Utilities.Extensions
             return member != null && member.Kind == SymbolKind.Property && member.MatchMemberDerivedByName(type, name);
         }
 
-        public static bool MatchFieldDerivedByName([NotNullWhen(returnValue: true)] this ISymbol? member, INamedTypeSymbol type, string name)
-        {
-            return member != null && member.Kind == SymbolKind.Field && member.MatchMemberDerivedByName(type, name);
-        }
-
         public static bool MatchMemberByName([NotNullWhen(returnValue: true)] this ISymbol? member, INamedTypeSymbol type, string name)
         {
             return member != null && Equals(member.ContainingType, type) && member.MetadataName == name;
@@ -642,8 +637,8 @@ namespace Analyzer.Utilities.Extensions
         /// The attribute in question.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="symbol"/> has an attribute of type
-        /// <paramref name="attribute"/>; otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// If <paramref name="symbol"/> is a type, this method does not find attributes

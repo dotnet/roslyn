@@ -283,61 +283,72 @@ namespace Analyzer.Utilities.Extensions
             => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
 #endif
 
-        public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
+        /// <summary>
+        /// Checks whether the current type contains one of the following count property:
+        ///     - <see cref="System.Collections.ICollection.Count"/>
+        ///     - <see cref="System.Collections.Generic.ICollection{T}.Count"/>
+        ///     - <see cref="System.Collections.Generic.IReadOnlyCollection{T}.Count"/>
+        /// </summary>
+        /// <param name="invocationTarget">The type to check</param>
+        /// <param name="wellKnownTypeProvider">An instance of the <see cref="WellKnownTypeProvider"/> used to access the three described known types.</param>
+        /// <returns><c>true</c> when the type contains one of the supported collection count property; otherwise <c>false</c>.</returns>
+        public static bool HasAnyCollectionCountProperty([NotNullWhen(returnValue: true)] this ITypeSymbol? invocationTarget, WellKnownTypeProvider wellKnownTypeProvider)
         {
-            return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
-        }
+            const string countPropertyName = "Count";
 
-        private class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
-        {
-            public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
-
-            public override Accessibility DefaultVisit(ISymbol node)
+            if (invocationTarget == null
+                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection, out var iCollection)
+                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1, out var iCollectionOfT)
+                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1, out var iReadOnlyCollectionOfT))
             {
-                throw new NotImplementedException();
+                return false;
             }
 
-            public override Accessibility VisitAlias(IAliasSymbol symbol)
+            if (isAnySupportedCollectionType(invocationTarget))
             {
-                return symbol.Target.Accept(this);
+                return true;
             }
 
-            public override Accessibility VisitArrayType(IArrayTypeSymbol symbol)
+            if (invocationTarget.TypeKind == TypeKind.Interface)
             {
-                return symbol.ElementType.Accept(this);
-            }
-
-            public override Accessibility VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return Accessibility.Public;
-            }
-
-            public override Accessibility VisitNamedType(INamedTypeSymbol symbol)
-            {
-                Accessibility accessibility = symbol.DeclaredAccessibility;
-
-                foreach (ITypeSymbol arg in symbol.TypeArguments)
+                if (invocationTarget.GetMembers(countPropertyName).OfType<IPropertySymbol>().Any())
                 {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, arg.Accept(this));
+                    return false;
                 }
 
-                if (symbol.ContainingType != null)
+                foreach (var @interface in invocationTarget.AllInterfaces)
                 {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, symbol.ContainingType.Accept(this));
+                    if (isAnySupportedCollectionType(@interface))
+                    {
+                        return true;
+                    }
                 }
-
-                return accessibility;
+            }
+            else
+            {
+                foreach (var @interface in invocationTarget.AllInterfaces)
+                {
+                    if (isAnySupportedCollectionType(@interface)
+                        && invocationTarget.FindImplementationForInterfaceMember(@interface.GetMembers(countPropertyName)[0]) is IPropertySymbol propertyImplementation
+                        && !propertyImplementation.ExplicitInterfaceImplementations.Any())
+                    {
+                        return true;
+                    }
+                }
             }
 
-            public override Accessibility VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                return symbol.PointedAtType.Accept(this);
-            }
+            return false;
 
-            public override Accessibility VisitTypeParameter(ITypeParameterSymbol symbol)
+            bool isAnySupportedCollectionType(ITypeSymbol type)
             {
-                // TODO(cyrusn): Do we have to consider the constraints?
-                return Accessibility.Public;
+                RoslynDebug.Assert(iCollection != null);
+                RoslynDebug.Assert(iCollectionOfT != null);
+                RoslynDebug.Assert(iReadOnlyCollectionOfT != null);
+
+                return type.OriginalDefinition is INamedTypeSymbol originalDefinition &&
+                    (iCollection.Equals(originalDefinition) ||
+                     iCollectionOfT.Equals(originalDefinition) ||
+                     iReadOnlyCollectionOfT.Equals(originalDefinition));
             }
         }
     }

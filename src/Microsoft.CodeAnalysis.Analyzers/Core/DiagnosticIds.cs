@@ -30,5 +30,6 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string CompareSymbolsCorrectlyRuleId = "RS1024";
         public const string ConfigureGeneratedCodeAnalysisRuleId = "RS1025";
         public const string EnableConcurrentExecutionRuleId = "RS1026";
+        public const string TypeIsNotDiagnosticAnalyzerRuleId = "RS1027";
     }
 }

@@ -25,16 +25,6 @@ namespace Analyzer.Utilities.Extensions
             yield return value;
         }
 
-        public static ISet<T> ToSet<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            return new HashSet<T>(source, comparer);
-        }
-
         public static ISet<T> ToSet<T>(this IEnumerable<T> source)
         {
             if (source == null)

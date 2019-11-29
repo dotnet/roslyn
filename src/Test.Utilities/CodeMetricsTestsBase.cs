@@ -25,11 +25,6 @@ namespace Test.Utilities.CodeMetrics
 
         protected abstract string GetMetricsDataString(Compilation compilation);
 
-        protected Project CreateProject(string source, string language = LanguageNames.CSharp)
-        {
-            return CreateProject(new[] { source }, language);
-        }
-
         protected Project CreateProject(string[] sources, string language = LanguageNames.CSharp)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
@@ -67,9 +62,6 @@ namespace Test.Utilities.CodeMetrics
 
         protected void VerifyBasic(string source, string expectedMetricsText, bool expectDiagnostics = false)
             => Verify(new[] { source }, expectedMetricsText, expectDiagnostics, LanguageNames.VisualBasic);
-
-        protected void VerifyBasic(string[] sources, string expectedMetricsText, bool expectDiagnostics = false)
-            => Verify(sources, expectedMetricsText, expectDiagnostics, LanguageNames.VisualBasic);
 
         private void Verify(string[] sources, string expectedMetricsText, bool expectDiagnostics, string language)
         {
