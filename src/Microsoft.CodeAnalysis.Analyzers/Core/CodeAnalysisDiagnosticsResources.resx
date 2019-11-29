@@ -374,4 +374,10 @@
   <data name="EnableConcurrentExecutionFix" xml:space="preserve">
     <value>Enable concurrent execution</value>
   </data>
+  <data name="ClassIsNotDiagnosticAnalyzerMessage" xml:space="preserve">
+    <value>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</value>
+  </data>
+  <data name="ClassIsNotDiagnosticAnalyzerTitle" xml:space="preserve">
+    <value>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</value>
+  </data>
 </root>
