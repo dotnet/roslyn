@@ -450,5 +450,6 @@ namespace Analyzer.Utilities
         public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemRuntimeInteropServicesCoClassAttribute = "System.Runtime.InteropServices.CoClassAttribute";
         public const string SystemIProgress1 = "System.IProgress`1";
+        public const string SystemComponentModelDesignerAttribute = "System.ComponentModel.DesignerAttribute";
     }
 }
