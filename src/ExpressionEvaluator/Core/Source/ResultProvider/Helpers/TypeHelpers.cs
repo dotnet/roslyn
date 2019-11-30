@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool includeInherited,
             bool hideNonPublic,
             bool isProxyType,
-            bool includeCompilerGenerated)
+            bool includeCompilerGenerated,
+            bool supportsFavorites,
+            DkmClrObjectFavoritesInfo favoritesInfo)
         {
             Debug.Assert(!type.IsInterface);
 
@@ -49,6 +51,32 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 // Get the state from DebuggerBrowsableAttributes for the members of the current type.
                 var browsableState = DkmClrType.Create(appDomain, type).GetDebuggerBrowsableAttributeState();
+
+                // Disable favorites if any of the members have a browsable state of RootHidden
+                if (supportsFavorites && browsableState != null)
+                {
+                    foreach (var browsableStateValue in browsableState.Values)
+                    {
+                        if (browsableStateValue == DkmClrDebuggerBrowsableAttributeState.RootHidden)
+                        {
+                            supportsFavorites = false;
+                            break;
+                        }
+                    }
+                }
+
+                // Get the favorites information if it is supported.
+                // NOTE: Using a Dictionary since Hashset is not available in .net 2.0
+                Dictionary<string, object> favoritesMemberNames = null;
+                if (supportsFavorites && favoritesInfo?.Favorites != null)
+                {
+                    favoritesMemberNames = new Dictionary<string, object>(favoritesInfo.Favorites.Count);
+
+                    foreach (var favorite in favoritesInfo.Favorites)
+                    {
+                        favoritesMemberNames.Add(favorite, null);
+                    }
+                }
 
                 // Hide non-public members if hideNonPublic is specified (intended to reflect the
                 // DkmInspectionContext's DkmEvaluationFlags), and the type is from an assembly
@@ -137,7 +165,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                         previousDeclaration |= hideNonPublicBehavior;
 
-                        includedMembers.Add(new MemberAndDeclarationInfo(member, browsableStateValue, previousDeclaration, inheritanceLevel));
+                        includedMembers.Add(
+                            new MemberAndDeclarationInfo(
+                                member,
+                                browsableStateValue,
+                                previousDeclaration,
+                                inheritanceLevel,
+                                canFavorite: supportsFavorites,
+                                isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true));
                     }
                 }
 
@@ -539,7 +574,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         internal static bool TryGetDebuggerDisplayInfo(this DkmClrValue value, out DebuggerDisplayInfo displayInfo)
         {
-            displayInfo = default(DebuggerDisplayInfo);
+            displayInfo = null;
 
             // The native EE does not consider DebuggerDisplayAttribute
             // on null or error instances.
@@ -549,16 +584,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var clrType = value.Type;
+            displayInfo = new DebuggerDisplayInfo(clrType);
+
+            DkmClrObjectFavoritesInfo favoritesInfo = clrType.GetFavorites();
+            if (favoritesInfo != null)
+            {
+                displayInfo = displayInfo.WithFavoritesInfo(favoritesInfo);
+            }
 
             DkmClrType attributeTarget;
             DkmClrDebuggerDisplayAttribute attribute;
             if (clrType.TryGetEvalAttribute(out attributeTarget, out attribute)) // First, as in dev12.
             {
-                displayInfo = new DebuggerDisplayInfo(attributeTarget, attribute);
-                return true;
+                displayInfo = displayInfo.WithDebuggerDisplayAttribute(attribute, attributeTarget);
             }
 
-            return false;
+            return displayInfo.HasValues;
         }
 
         /// <summary>
@@ -839,7 +880,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var members = type.GetLmrType().GetMember(name, TypeHelpers.MemberBindingFlags);
             Debug.Assert(members.Length == 1);
-            return new MemberAndDeclarationInfo(members[0], browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0);
+            return new MemberAndDeclarationInfo(members[0], browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0, canFavorite: false, isFavorite: false);
         }
     }
 }

@@ -1347,7 +1347,7 @@ Return -oppure- Return &lt;espressione&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">Se impostata su On, limita le conversioni dei tipi di dati impliciti alle sole conversioni verso un tipo di dati più grande.
+        <target state="translated">Se impostata su On, limita le conversioni dei tipi di dati impliciti alle sole conversioni che supportano un maggior numero di dati.
 Option Strict {On | Off}</target>
         <note />
       </trans-unit>
@@ -1504,12 +1504,12 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Genera la conversione verso un tipo di dati più piccolo in '{0}'</target>
+        <target state="translated">Genera la conversione che supporta un minor numero di dati in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Genera la conversione verso un tipo di dati più grande in '{0}'</target>
+        <target state="translated">Genera la conversione che supporta un maggior numero di dati in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
