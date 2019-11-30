@@ -327,6 +327,11 @@
         <target state="translated">L'indicizzazione può essere semplificata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Introduci costante</target>
@@ -515,6 +520,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modifica non applicabile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">

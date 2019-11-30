@@ -2292,6 +2292,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interpolation can be simplified.
+        /// </summary>
+        internal static string Interpolation_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Interpolation_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce constant.
         /// </summary>
         internal static string Introduce_constant {
@@ -3707,6 +3716,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_default_expression {
             get {
                 return ResourceManager.GetString("Simplify_default_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify interpolation.
+        /// </summary>
+        internal static string Simplify_interpolation {
+            get {
+                return ResourceManager.GetString("Simplify_interpolation", resourceCulture);
             }
         }
         
