@@ -23,9 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 
             if (formatString != null)
             {
-                result = result.WithFormatClause(SyntaxFactory.InterpolationFormatClause(
-                    SyntaxFactory.Token(SyntaxKind.ColonToken),
-                    SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, formatString, formatString, default)));
+                if (formatString == "")
+                {
+                    result = result.WithFormatClause(null);
+                }
+                else
+                {
+                    result = result.WithFormatClause(SyntaxFactory.InterpolationFormatClause(
+                        SyntaxFactory.Token(SyntaxKind.ColonToken),
+                        SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, formatString, formatString, default)));
+                }
             }
 
             return result;

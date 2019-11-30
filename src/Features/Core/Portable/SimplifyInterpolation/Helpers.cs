@@ -58,12 +58,22 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             unwrapped = null;
             formatString = null;
 
-            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
-                invocation.Arguments.Length == 1 &&
-                invocation.Arguments[0].Value.ConstantValue is { HasValue: true, Value: string format })
+            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
-                unwrapped = invocation.Instance;
-                formatString = format;
+                if (invocation.Arguments.Length == 1 &&
+                    invocation.Arguments[0].Value.ConstantValue is { HasValue: true, Value: string format })
+                {
+                    unwrapped = invocation.Instance;
+                    formatString = format;
+                    return;
+                }
+
+                if (invocation.Arguments.Length == 0)
+                {
+                    unwrapped = invocation.Instance;
+                    formatString = "";
+                    return;
+                }
             }
         }
 
