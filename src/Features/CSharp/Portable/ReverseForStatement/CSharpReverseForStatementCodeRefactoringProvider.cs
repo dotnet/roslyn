@@ -35,22 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             //  for (...            ; ...       ; x -= 1)
 
             var declaration = forStatement.Declaration;
-            if (declaration == null)
-                return;
-
-            if (declaration.Variables.Count != 1)
-                return;
-
-            if (forStatement.Incrementors.Count != 1)
+            if (declaration == null ||
+                declaration.Variables.Count != 1 ||
+                forStatement.Incrementors.Count != 1)
                 return;
 
             var variable = declaration.Variables[0];
             var after = forStatement.Incrementors[0];
 
             if (!(forStatement.Condition is BinaryExpressionSyntax condition))
-                return;
-
-            if (after == null)
                 return;
 
             var (document, _, cancellationToken) = context;
