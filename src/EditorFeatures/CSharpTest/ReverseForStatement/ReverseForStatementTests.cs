@@ -316,5 +316,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestPostIncrementSwappedConditions()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (int i = 0; args.Length > i; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (int i = args.Length - 1; 0 <= i; i--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestPostIncrementEqualsSwappedConditions()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (int i = 0; args.Length >= i; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (int i = args.Length; 0 <= i; i--)
+        {
+        }
+    }
+}");
+        }
     }
 }
