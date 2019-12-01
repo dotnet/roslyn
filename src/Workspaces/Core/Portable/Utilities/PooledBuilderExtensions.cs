@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
             return dictionary;
         }
 
-        public static Dictionary<K, ImmutableArray<V>> ToDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
+        public static Dictionary<K, ImmutableArray<V>> ToMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
         {
             var dictionary = new Dictionary<K, ImmutableArray<V>>(builders.Count);
 
@@ -35,7 +35,7 @@ namespace Roslyn.Utilities
             return dictionary;
         }
 
-        public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
+        public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
         {
             var result = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
 

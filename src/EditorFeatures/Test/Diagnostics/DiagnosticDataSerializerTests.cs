@@ -91,10 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var version = VersionStamp.Create(utcTime.AddDays(1));
 
             var key = "document";
+
+            var persistentService = workspace.Services.GetRequiredService<IPersistentStorageService>();
             var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
-            Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
-            var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
+            Assert.True(await serializer.SerializeAsync(persistentService, document.Project, document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
+
+            var recovered = await serializer.DeserializeAsync(persistentService, document.Project, document, key, CancellationToken.None);
 
             AssertDiagnostics(diagnostics, recovered.Value);
         }
@@ -158,10 +161,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var version = VersionStamp.Create(utcTime.AddDays(1));
 
             var key = "project";
+            var persistentService = workspace.Services.GetRequiredService<IPersistentStorageService>();
             var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
-            Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
-            var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
+            Assert.True(await serializer.SerializeAsync(persistentService, document.Project, document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
+            var recovered = await serializer.DeserializeAsync(persistentService, document.Project, document, key, CancellationToken.None);
 
             AssertDiagnostics(diagnostics, recovered.Value);
         }

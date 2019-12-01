@@ -184,10 +184,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 using var reader = ObjectReader.TryGetReader(stream);
-                Debug.Assert(reader != null,
+                RoslynDebug.Assert(reader != null,
 @"We only ge a reader for data transmitted between live processes.
 This data should always be correct as we're never persisting the data between sessions.");
-                return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
+                return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, project, version, cancellationToken);
             }
 
             private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)

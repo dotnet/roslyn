@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Resources;
@@ -29,18 +32,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly IReadOnlyList<string> CustomTags;
         public readonly ImmutableDictionary<string, string> Properties;
 
-        public readonly ProjectId ProjectId;
-        public readonly DiagnosticDataLocation DataLocation;
+        public readonly ProjectId? ProjectId;
+        public readonly DiagnosticDataLocation? DataLocation;
         public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
 
         /// <summary>
         /// Language name (<see cref="LanguageNames"/>) or null if the diagnostic is not associated with source code.
         /// </summary>
-        public readonly string Language;
+        public readonly string? Language;
 
-        public readonly string Title;
-        public readonly string Description;
-        public readonly string HelpLink;
+        public readonly string? Title;
+        public readonly string? Description;
+        public readonly string? HelpLink;
         public readonly bool IsSuppressed;
 
         /// <summary>
@@ -60,13 +63,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             int warningLevel,
             IReadOnlyList<string> customTags,
             ImmutableDictionary<string, string> properties,
-            ProjectId projectId,
-            DiagnosticDataLocation location = null,
-            IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
-            string language = null,
-            string title = null,
-            string description = null,
-            string helpLink = null,
+            ProjectId? projectId,
+            DiagnosticDataLocation? location = null,
+            IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations = null,
+            string? language = null,
+            string? title = null,
+            string? description = null,
+            string? helpLink = null,
             bool isSuppressed = false)
         {
             Id = id;
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ProjectId = projectId;
             DataLocation = location;
-            AdditionalLocations = additionalLocations;
+            AdditionalLocations = additionalLocations ?? Array.Empty<DiagnosticDataLocation>();
 
             Language = language;
             Title = title;
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IsSuppressed = isSuppressed;
         }
 
-        public DocumentId DocumentId => DataLocation?.DocumentId;
+        public DocumentId? DocumentId => DataLocation?.DocumentId;
         public bool HasTextSpan => (DataLocation?.SourceSpan).HasValue;
 
         /// <summary>
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// some diagnostic data such as created from build will have original line/column but not text span
         /// in those cases, use GetTextSpan method instead to calculate one from original line/column
         /// </summary>
-        public TextSpan TextSpan => (DataLocation?.SourceSpan).Value;
+        public TextSpan TextSpan => (DataLocation?.SourceSpan)!.Value;
 
         public override bool Equals(object obj)
             => obj is DiagnosticData data && Equals(data);
@@ -206,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
+        public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
@@ -231,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
-        private static void AdjustBoundaries(DiagnosticDataLocation dataLocation,
+        private static void AdjustBoundaries(DiagnosticDataLocation? dataLocation,
             TextLineCollection lines, out int startLine, out int startColumn, out int endLine, out int endColumn)
         {
             startLine = dataLocation?.OriginalStartLine ?? 0;
@@ -270,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic, ProjectId projectId = null)
+        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic, ProjectId? projectId = null)
         {
             Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
@@ -293,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static DiagnosticDataLocation CreateLocation(Document document, Location location)
+        private static DiagnosticDataLocation? CreateLocation(Document? document, Location location)
         {
             if (document == null)
             {
@@ -367,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
         /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
         /// </summary>
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData)
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, [NotNullWhen(true)]out DiagnosticData? diagnosticData)
         {
             diagnosticData = null;
             var project = workspace.CurrentSolution.GetProject(projectId);

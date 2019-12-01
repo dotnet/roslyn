@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
-        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace)
+        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace? workspace)
         {
             // We use the ENU version of the message for bing search.
             return AllowPotentiallySensitiveInformationInBingHelpQuery(workspace) ?
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return descriptor.MessageFormat.ToString(s_USCultureInfo);
         }
 
-        private static bool AllowPotentiallySensitiveInformationInBingHelpQuery(Workspace workspace)
+        private static bool AllowPotentiallySensitiveInformationInBingHelpQuery(Workspace? workspace)
         {
             if (workspace == null)
             {
@@ -58,10 +60,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic.Location.IsInSource)
             {
-                return DiagnosticData.Create(project.GetDocument(diagnostic.Location.SourceTree), diagnostic);
+                var document = project.GetDocument(diagnostic.Location.SourceTree);
+                if (document != null)
+                {
+                    return DiagnosticData.Create(document, diagnostic);
+                }
             }
-
-            if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+            else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
             {
                 var document = project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
                 if (document != null)
@@ -87,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static async Task<IList<Location>> ConvertLocationsAsync(
             this IReadOnlyCollection<DiagnosticDataLocation> locations, Project project, CancellationToken cancellationToken)
         {
-            if (locations == null || locations.Count == 0)
+            if (locations.Count == 0)
             {
                 return SpecializedCollections.EmptyList<Location>();
             }
@@ -103,19 +108,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static async Task<Location> ConvertLocationAsync(
-            this DiagnosticDataLocation dataLocation, Project project, CancellationToken cancellationToken)
+            this DiagnosticDataLocation? dataLocation, Project project, CancellationToken cancellationToken)
         {
             if (dataLocation?.DocumentId == null)
             {
                 return Location.None;
             }
 
-            var document = project.GetDocument(dataLocation?.DocumentId);
+            var document = project.GetDocument(dataLocation.DocumentId);
             if (document == null)
             {
                 return Location.None;
             }
-
 
             if (document.SupportsSyntaxTree)
             {
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static Location ConvertLocation(
-            this DiagnosticDataLocation dataLocation, SyntacticDocument document = null)
+            this DiagnosticDataLocation dataLocation, SyntacticDocument? document = null)
         {
             if (dataLocation?.DocumentId == null)
             {
@@ -136,13 +140,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (document == null)
             {
-                if (dataLocation?.OriginalFilePath == null || dataLocation.SourceSpan == null)
+                if (dataLocation.OriginalFilePath == null || dataLocation.SourceSpan == null)
                 {
                     return Location.None;
                 }
 
                 var span = dataLocation.SourceSpan.Value;
-                return Location.Create(dataLocation?.OriginalFilePath, span, new LinePositionSpan(
+                return Location.Create(dataLocation.OriginalFilePath, span, new LinePositionSpan(
                     new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
                     new LinePosition(dataLocation.OriginalEndLine, dataLocation.OriginalEndColumn)));
             }
