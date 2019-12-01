@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim oldTypeDeclaration = expression.GetAncestorOrThis(Of TypeBlockSyntax)()
             Dim oldType = If(oldTypeDeclaration IsNot Nothing,
@@ -42,12 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     document, oldTypeDeclaration, newNameToken, expression, allOccurrences, isConstant, cancellationToken)
 
                 Dim insertionIndex = If(isConstant, DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members), DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members))
-                Dim destination As SyntaxNode = oldCompilationUnit
 
                 Dim newRoot = newCompilationUnit.WithMembers(
                     newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration))
 
-                Return Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex)
+                Return document.Document.WithSyntaxRoot(newRoot)
             End If
         End Function
 
@@ -60,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 newNameToken As SyntaxToken,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim oldToNewTypeBlockMap = New Dictionary(Of TypeBlockSyntax, TypeBlockSyntax)
 
@@ -101,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 updatedDocument = updatedDocument.Project.Solution.GetDocument(currentDocument.Id).WithSyntaxRoot(newRoot)
             Next
 
-            Return Tuple.Create(updatedDocument, destination, insertionIndex)
+            Return updatedDocument
         End Function
 
         Protected Shared Function DetermineConstantInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),

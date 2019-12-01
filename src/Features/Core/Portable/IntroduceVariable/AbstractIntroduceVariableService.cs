@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -39,14 +40,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool IsInExpressionBodiedMember(TExpressionSyntax expression);
 
         protected abstract IEnumerable<SyntaxNode> GetContainingExecutableBlocks(TExpressionSyntax expression);
-        protected abstract IList<bool> GetInsertionIndices(TTypeDeclarationSyntax destination, CancellationToken cancellationToken);
 
         protected abstract bool CanIntroduceVariableFor(TExpressionSyntax expression);
         protected abstract bool CanReplace(TExpressionSyntax expression);
 
         protected abstract Task<Document> IntroduceQueryLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
-        protected abstract Task<Tuple<Document, SyntaxNode, int>> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
+
+        protected abstract Task<Document> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
 
         protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
         {
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var state = await State.GenerateAsync((TService)this, semanticDocument, textSpan, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
-                    var (title, actions) = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
+                    var (title, actions) = CreateActions(state, cancellationToken);
                     if (actions.Length > 0)
                     {
                         // We may end up creating a lot of viable code actions for the selected
@@ -82,15 +83,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
         }
 
-        private async Task<(string title, ImmutableArray<CodeAction>)> CreateActionsAsync(State state, CancellationToken cancellationToken)
+        private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)
         {
             var actions = ArrayBuilder<CodeAction>.GetInstance();
-            var title = await AddActionsAndGetTitleAsync(state, actions, cancellationToken).ConfigureAwait(false);
+            var title = AddActionsAndGetTitle(state, actions, cancellationToken);
 
             return (title, actions.ToImmutableAndFree());
         }
 
-        private async Task<string> AddActionsAndGetTitleAsync(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
+        private string AddActionsAndGetTitle(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
         {
             if (state.InQueryContext)
             {
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             else if (state.InBlockContext)
             {
-                await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+                CreateConstantFieldActions(state, actions, cancellationToken);
 
                 var blocks = GetContainingExecutableBlocks(state.Expression);
                 var block = blocks.FirstOrDefault();
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             else if (state.InExpressionBodiedMemberContext)
             {
-                await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+                CreateConstantFieldActions(state, actions, cancellationToken);
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
 
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private static string GetConstantOrLocalResource(bool isConstant)
             => isConstant ? FeaturesResources.Introduce_constant : FeaturesResources.Introduce_local;
 
-        private async Task CreateConstantFieldActionsAsync(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
+        private void CreateConstantFieldActions(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
         {
             if (state.IsConstant &&
                 !state.GetSemanticMap(cancellationToken).AllReferencedSymbols.OfType<ILocalSymbol>().Any() &&
@@ -182,44 +183,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 // If something is a constant, and it doesn't access any other locals constants,
                 // then we prefer to offer to generate a constant field instead of a constant
                 // local.
-                if (await CanGenerateIntoContainerAsync(state, cancellationToken).ConfigureAwait(false))
+                if (CanGenerateIntoContainer(state, cancellationToken))
                 {
                     actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false));
                 }
 
-                if (await CanGenerateIntoContainerAsync(state, cancellationToken).ConfigureAwait(false))
+                if (CanGenerateIntoContainer(state, cancellationToken))
                 {
                     actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false));
                 }
             }
         }
 
-        private async Task<bool> CanGenerateIntoContainerAsync(State state, CancellationToken cancellationToken)
+        private bool CanGenerateIntoContainer(State state, CancellationToken cancellationToken)
         {
-            var result = await IntroduceFieldAsync(
-                state.Document, state.Expression,
-                allOccurrences: false, isConstant: state.IsConstant, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            var destination = result.Item2;
-            var insertionIndex = result.Item3;
-
-            if (!destination.OverlapsHiddenPosition(cancellationToken))
-            {
-                return true;
-            }
-
-            if (destination is TTypeDeclarationSyntax typeDecl)
-            {
-                var insertionIndices = GetInsertionIndices(typeDecl, cancellationToken);
-                if (insertionIndices != null &&
-                    insertionIndices.Count > insertionIndex &&
-                    insertionIndices[insertionIndex])
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            var destination = state.Expression.GetAncestorOrThis<TTypeDeclarationSyntax>();
+            return destination != null && !destination.OverlapsHiddenPosition(cancellationToken);
         }
 
         private CodeAction CreateAction(State state, bool allOccurrences, bool isConstant, bool isLocal, bool isQueryLocal)

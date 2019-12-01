@@ -21,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return expression.GetContainingExecutableBlocks()
         End Function
 
-        Protected Overrides Function GetInsertionIndices(destination As TypeBlockSyntax, cancellationToken As CancellationToken) As IList(Of Boolean)
-            Return destination.GetInsertionIndices(cancellationToken)
-        End Function
-
         Protected Overrides Function IsInAttributeArgumentInitializer(expression As ExpressionSyntax) As Boolean
             If expression.GetAncestorOrThis(Of ArgumentSyntax)() Is Nothing Then
                 Return False

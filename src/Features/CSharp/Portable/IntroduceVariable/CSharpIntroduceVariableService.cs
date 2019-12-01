@@ -136,11 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return expression.GetAncestorsOrThis<BlockSyntax>();
         }
 
-        protected override IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
-        {
-            return destination.GetInsertionIndices(cancellationToken);
-        }
-
         protected override bool CanReplace(ExpressionSyntax expression)
         {
             return true;

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     internal partial class CSharpIntroduceVariableService
     {
-        protected override Task<Tuple<Document, SyntaxNode, int>> IntroduceFieldAsync(
+        protected override Task<Document> IntroduceFieldAsync(
             SemanticDocument document,
             ExpressionSyntax expression,
             bool allOccurrences,
@@ -57,9 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
                 var finalTypeDeclaration = InsertMember(newTypeDeclaration, newFieldDeclaration, insertionIndex);
 
-                SyntaxNode destination = oldTypeDeclaration;
                 var newRoot = document.Root.ReplaceNode(oldTypeDeclaration, finalTypeDeclaration);
-                return Task.FromResult(Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex));
+                return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
             }
             else
             {
@@ -71,9 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members) :
                     DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
 
-                SyntaxNode destination = oldCompilationUnit;
                 var newRoot = newCompilationUnit.WithMembers(newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration));
-                return Task.FromResult(Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex));
+                return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
             }
         }
 
