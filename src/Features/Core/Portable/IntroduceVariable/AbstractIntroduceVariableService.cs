@@ -186,10 +186,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (CanGenerateIntoContainer(state, cancellationToken))
                 {
                     actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false));
-                }
-
-                if (CanGenerateIntoContainer(state, cancellationToken))
-                {
                     actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false));
                 }
             }
