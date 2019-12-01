@@ -15,9 +15,9 @@ Thank you for letting us know you are experiencing a similar situation. Due to t
 ### Crashes
  
 Based on the information provided so far, the most likely scenario to follow is for "Crashes". Please take a look at the following document to provide the feedback most relevant for the problems you would like to see fixed:
-https://github.com/dotnet/roslyn/wiki/Reporting-Visual-Studio-crashes-and-performance-issues#crashes
+https://docs.microsoft.com/en-us/visualstudio/ide/how-to-increase-chances-of-performance-issue-being-fixed?view=vs-2019#crashes
  
 ### Performance issues
  
 Based on the information provided so far, the most likely scenario to follow is for "Performance issues". Please look at the following document to provide the feedback most relevant for the problems you would like to see fixed:
-https://github.com/dotnet/roslyn/wiki/Reporting-Visual-Studio-crashes-and-performance-issues#performance-issues
+https://docs.microsoft.com/en-us/visualstudio/ide/how-to-increase-chances-of-performance-issue-being-fixed?view=vs-2019#slowness-and-high-cpu-issues
