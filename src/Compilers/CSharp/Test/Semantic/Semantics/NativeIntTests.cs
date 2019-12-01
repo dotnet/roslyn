@@ -82,7 +82,6 @@ interface I
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Test nint? and nuint?
         public static IEnumerable<object[]> ConversionsData()
         {
             string convNone =
@@ -437,7 +436,80 @@ $@"{{
   IL_0006:  ret
 }");
             getArgs(builder, "nint", "System.UIntPtr?", null, null);
-
+            getArgs(builder, "nint?", "object",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""nint?""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""nint?""
+  IL_0006:  ret
+}");
+            getArgs(builder, "nint?", "string", null, null);
+            getArgs(builder, "nint?", "void*", null,
+// PROTOTYPE: Should be conv.i.
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_000c:  ret
+}");
+            getArgs(builder, "nint?", "bool", null, null);
+            getArgs(builder, "nint?", "char", null, convFromNullableT("conv.u2", "nint"), convFromNullableT("conv.ovf.u2", "nint"));
+            getArgs(builder, "nint?", "sbyte", null, convFromNullableT("conv.i1", "nint"), convFromNullableT("conv.ovf.i1", "nint"));
+            getArgs(builder, "nint?", "byte", null, convFromNullableT("conv.u1", "nint"), convFromNullableT("conv.ovf.u1", "nint"));
+            getArgs(builder, "nint?", "short", null, convFromNullableT("conv.i2", "nint"), convFromNullableT("conv.ovf.i2", "nint"));
+            getArgs(builder, "nint?", "ushort", null, convFromNullableT("conv.u2", "nint"), convFromNullableT("conv.ovf.u2", "nint"));
+            getArgs(builder, "nint?", "int", null, convFromNullableT("conv.i4", "nint"), convFromNullableT("conv.ovf.i4", "nint"));
+            getArgs(builder, "nint?", "uint", null, convFromNullableT("conv.u4", "nint"), convFromNullableT("conv.ovf.u4", "nint"));
+            getArgs(builder, "nint?", "long", null, convFromNullableT("conv.i8", "nint"));
+            getArgs(builder, "nint?", "ulong", null, convFromNullableT("conv.i8", "nint"), convFromNullableT("conv.ovf.u8", "nint")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            getArgs(builder, "nint?", "float", null, convFromNullableT("conv.r4", "nint"));
+            getArgs(builder, "nint?", "double", null, convFromNullableT("conv.r8", "nint"));
+            getArgs(builder, "nint?", "decimal", null,
+// PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  call       ""long System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_000c:  call       ""decimal decimal.op_Implicit(long)""
+  IL_0011:  ret
+}");
+            getArgs(builder, "nint?", "System.IntPtr", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}");
+            getArgs(builder, "nint?", "System.UIntPtr", null, null);
+            getArgs(builder, "nint?", "bool?", null, null);
+            getArgs(builder, "nint?", "char?", null, convFromToNullableT("conv.u2", "nint", "char"), convFromToNullableT("conv.ovf.u2", "nint", "char"));
+            getArgs(builder, "nint?", "sbyte?", null, convFromToNullableT("conv.i1", "nint", "sbyte"), convFromToNullableT("conv.ovf.i1", "nint", "sbyte"));
+            getArgs(builder, "nint?", "byte?", null, convFromToNullableT("conv.u1", "nint", "byte"), convFromToNullableT("conv.ovf.u1", "nint", "byte"));
+            getArgs(builder, "nint?", "short?", null, convFromToNullableT("conv.i2", "nint", "short"), convFromToNullableT("conv.ovf.i2", "nint", "short"));
+            getArgs(builder, "nint?", "ushort?", null, convFromToNullableT("conv.u2", "nint", "ushort"), convFromToNullableT("conv.ovf.u2", "nint", "ushort"));
+            getArgs(builder, "nint?", "int?", null, convFromToNullableT("conv.i4", "nint", "int"), convFromToNullableT("conv.ovf.i4", "nint", "int"));
+            getArgs(builder, "nint?", "uint?", null, convFromToNullableT("conv.u4", "nint", "uint"), convFromToNullableT("conv.ovf.u4", "nint", "uint"));
+            getArgs(builder, "nint?", "long?", convFromToNullableT("conv.i8", "nint", "long"), convFromToNullableT("conv.i8", "nint", "long"));
+            getArgs(builder, "nint?", "ulong?", null, convFromToNullableT("conv.i8", "nint", "ulong"), convFromToNullableT("conv.ovf.u8", "nint", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            getArgs(builder, "nint?", "float?", convFromToNullableT("conv.r4", "nint", "float"), convFromToNullableT("conv.r4", "nint", "float"), null);
+            getArgs(builder, "nint?", "double?", convFromToNullableT("conv.r8", "nint", "double"), convFromToNullableT("conv.r8", "nint", "double"), null);
+            // PROTOTYPE:
+            //getArgs(builder, "nint?", "decimal?", null, null);
+            getArgs(builder, "nint?", "System.IntPtr?", convNone, convNone);
+            getArgs(builder, "nint?", "System.UIntPtr?", null, null);
             getArgs(builder, "object", "nuint", null,
 @"{
   // Code size        7 (0x7)
@@ -620,7 +692,6 @@ $@"{{
   IL_0001:  box        ""nuint""
   IL_0006:  ret
 }");
-
             getArgs(builder, "nuint", "string", null, null);
             getArgs(builder, "nuint", "void*", null,
 // PROTOTYPE: Should be conv.u.
@@ -694,6 +765,80 @@ $@"{{
   IL_0001:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
   IL_0006:  ret
 }");
+            getArgs(builder, "nuint?", "object",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""nuint?""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""nuint?""
+  IL_0006:  ret
+}");
+            getArgs(builder, "nuint?", "string", null, null);
+            getArgs(builder, "nuint?", "void*", null,
+// PROTOTYPE: Should be conv.u.
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
+  IL_000c:  ret
+}");
+            getArgs(builder, "nuint?", "bool", null, null);
+            getArgs(builder, "nuint?", "char", null, convFromNullableT("conv.u2", "nuint"), convFromNullableT("conv.ovf.u2.un", "nuint"));
+            getArgs(builder, "nuint?", "sbyte", null, convFromNullableT("conv.i1", "nuint"), convFromNullableT("conv.ovf.i1.un", "nuint"));
+            getArgs(builder, "nuint?", "byte", null, convFromNullableT("conv.u1", "nuint"), convFromNullableT("conv.ovf.u1.un", "nuint"));
+            getArgs(builder, "nuint?", "short", null, convFromNullableT("conv.i2", "nuint"), convFromNullableT("conv.ovf.i2.un", "nuint"));
+            getArgs(builder, "nuint?", "ushort", null, convFromNullableT("conv.u2", "nuint"), convFromNullableT("conv.ovf.u2.un", "nuint"));
+            getArgs(builder, "nuint?", "int", null, convFromNullableT("conv.i4", "nuint"), convFromNullableT("conv.ovf.i4.un", "nuint"));
+            getArgs(builder, "nuint?", "uint", null, convFromNullableT("conv.u4", "nuint"), convFromNullableT("conv.ovf.u4.un", "nuint"));
+            getArgs(builder, "nuint?", "long", null, convFromNullableT("conv.u8", "nuint"), convFromNullableT("conv.ovf.i8.un", "nuint")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            getArgs(builder, "nuint?", "ulong", null, convFromNullableT("conv.u8", "nuint"));
+            getArgs(builder, "nuint?", "float", null, convFromNullableT("conv.r4", "nuint"));
+            getArgs(builder, "nuint?", "double", null, convFromNullableT("conv.r8", "nuint"));
+            getArgs(builder, "nuint?", "decimal", null,
+// PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  call       ""ulong System.UIntPtr.op_Explicit(System.UIntPtr)""
+  IL_000c:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_0011:  ret
+}");
+            getArgs(builder, "nuint?", "System.IntPtr", null, null);
+            getArgs(builder, "nuint?", "System.UIntPtr", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}");
+            getArgs(builder, "nuint?", "bool?", null, null);
+            getArgs(builder, "nuint?", "char?", null, convFromToNullableT("conv.u2", "nuint", "char"), convFromToNullableT("conv.ovf.u2.un", "nuint", "char"));
+            getArgs(builder, "nuint?", "sbyte?", null, convFromToNullableT("conv.i1", "nuint", "sbyte"), convFromToNullableT("conv.ovf.i1.un", "nuint", "sbyte"));
+            getArgs(builder, "nuint?", "byte?", null, convFromToNullableT("conv.u1", "nuint", "byte"), convFromToNullableT("conv.ovf.u1.un", "nuint", "byte"));
+            getArgs(builder, "nuint?", "short?", null, convFromToNullableT("conv.i2", "nuint", "short"), convFromToNullableT("conv.ovf.i2.un", "nuint", "short"));
+            getArgs(builder, "nuint?", "ushort?", null, convFromToNullableT("conv.u2", "nuint", "ushort"), convFromToNullableT("conv.ovf.u2.un", "nuint", "ushort"));
+            getArgs(builder, "nuint?", "int?", null, convFromToNullableT("conv.i4", "nuint", "int"), convFromToNullableT("conv.ovf.i4.un", "nuint", "int"));
+            getArgs(builder, "nuint?", "uint?", null, convFromToNullableT("conv.u4", "nuint", "uint"), convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
+            getArgs(builder, "nuint?", "long?", null, convFromToNullableT("conv.u8", "nuint", "long"), convFromToNullableT("conv.ovf.i8.un", "nuint", "long")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            getArgs(builder, "nuint?", "ulong?", convFromToNullableT("conv.u8", "nuint", "ulong"), convFromToNullableT("conv.u8", "nuint", "ulong"));
+            getArgs(builder, "nuint?", "float?", convFromToNullableT("conv.r4", "nuint", "float"), convFromToNullableT("conv.r4", "nuint", "float"), null);
+            getArgs(builder, "nuint?", "double?", convFromToNullableT("conv.r8", "nuint", "double"), convFromToNullableT("conv.r8", "nuint", "double"), null);
+            // PROTOTYPE:
+            //getArgs(builder, "nuint?", "decimal?", null, null);
+            getArgs(builder, "nuint?", "System.IntPtr?", null, null);
+            getArgs(builder, "nuint?", "System.UIntPtr?", convNone, convNone);
 
             return builder.ToImmutableAndFree();
         }
