@@ -85,4 +85,4 @@ could be different than the one that compiler used to find.
     - `e is T t + c`
     - `delegate {} + c`
 
-    These all have in common that the left operand is of looser precedence than the `+` operator, but the left operand does not end in an expression so it cannot "consume" the addition.  Such expressions will no longer be permitted in Visual Studio 2019 version 16.4 (Update 4) and later.
+    These all have in common that the left operand is of looser precedence than the `+` operator, but the left operand does not end in an expression so it cannot "consume" the addition.  Such expressions will no longer be permitted in Visual Studio 2019 version 16.5 (Update 5) and later.
