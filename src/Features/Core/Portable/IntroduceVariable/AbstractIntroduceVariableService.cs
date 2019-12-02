@@ -208,12 +208,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             // location we wanted to insert into isn't legal (i.e. it's hidden).  Try to find a
             // non-hidden location.
-            for (var i = 0; i < legalInsertionIndices.Count; i++)
+            var legalIndex = legalInsertionIndices.IndexOf(true);
+            if (legalIndex >= 0)
             {
-                if (legalInsertionIndices[i])
-                {
-                    return i;
-                }
+                return legalIndex;
             }
 
             // Couldn't find a viable non-hidden position.  Fall back to the computed position we
@@ -223,7 +221,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         private bool CanGenerateIntoContainer(State state, CancellationToken cancellationToken)
         {
-            var destination = state.Expression.GetAncestor<TTypeDeclarationSyntax>();
+            var destination = state.Expression.GetAncestor<TTypeDeclarationSyntax>() ?? state.Document.Root;
             if (!destination.OverlapsHiddenPosition(cancellationToken))
             {
                 return true;
@@ -232,7 +230,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (destination is TTypeDeclarationSyntax typeDecl)
             {
                 var insertionIndices = GetInsertionIndices(typeDecl, cancellationToken);
-                if (insertionIndices?.Count >= 1)
+                if (insertionIndices.Contains(true))
                 {
                     return true;
                 }

@@ -1650,9 +1650,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestMissingInPartiallyHiddenMethod()
+        public async Task TestInPartiallyHiddenMethod()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
 #line hidden
@@ -1661,7 +1661,18 @@ class C
 #line default
         Goo([|1 + 1|]);
     }
-}", new TestParameters(Options.Regular));
+}",
+@"class Program
+{
+#line hidden
+    void Main()
+    {
+#line default
+        Goo(V);
+    }
+
+    private const int {|Rename:V|} = 1 + 1;
+}", parameters: new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
