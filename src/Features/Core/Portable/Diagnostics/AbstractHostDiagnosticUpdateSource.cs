@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ImmutableArray<DiagnosticData>.Empty;
         }
 
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdated?.Invoke(this, args);
         }
 
-        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
+        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace? workspace, ProjectId? projectId)
         {
             if (workspace != Workspace)
             {
@@ -43,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // check whether we are reporting project specific diagnostic or workspace wide diagnostic
-            var project = projectIdOpt != null ? workspace.CurrentSolution.GetProject(projectIdOpt) : null;
+            var project = (projectId != null) ? workspace.CurrentSolution.GetProject(projectId) : null;
 
             // check whether project the diagnostic belong to still exist
-            if (projectIdOpt != null && project == null)
+            if (projectId != null && project == null)
             {
                 // project the diagnostic belong to already removed from the solution.
                 // ignore the diagnostic
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
         }
 
-        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project project)
+        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project? project)
         {
             var raiseDiagnosticsUpdated = true;
 
@@ -130,19 +132,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
+        private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project? project)
         {
             return DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
         }
 
-        private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project project)
+        private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project? project)
         {
             return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
         }
 
-        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project project) => new HostArgsId(this, analyzer, project?.Id);
+        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new HostArgsId(this, analyzer, project?.Id);
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
@@ -172,15 +174,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private class HostArgsId : AnalyzerUpdateArgsId
+        private sealed class HostArgsId : AnalyzerUpdateArgsId
         {
             private readonly AbstractHostDiagnosticUpdateSource _source;
-            private readonly ProjectId _projectIdOpt;
+            private readonly ProjectId? _projectId;
 
-            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt) : base(analyzer)
+            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : base(analyzer)
             {
                 _source = source;
-                _projectIdOpt = projectIdOpt;
+                _projectId = projectId;
             }
 
             public override bool Equals(object obj)
@@ -190,12 +192,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return false;
                 }
 
-                return _source == other._source && _projectIdOpt == other._projectIdOpt && base.Equals(obj);
+                return _source == other._source && _projectId == other._projectId && base.Equals(obj);
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectIdOpt == null ? 1 : _projectIdOpt.GetHashCode(), base.GetHashCode()));
+                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId == null ? 1 : _projectId.GetHashCode(), base.GetHashCode()));
             }
         }
     }

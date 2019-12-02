@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 // some implemented interfaces are related
 // will have to instantiate interfaces and check
 hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
         }
 
         public static bool CheckConstraints(

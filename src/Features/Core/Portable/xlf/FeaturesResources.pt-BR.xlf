@@ -217,6 +217,26 @@
         <target state="translated">O valor da expressão nunca é usado</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_interface">
+        <source>Extract interface...</source>
+        <target state="new">Extract interface...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_local_function">
+        <source>Extract local function</source>
+        <target state="new">Extract local function</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method">
+        <source>Extract method</source>
+        <target state="new">Extract method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_plus_local">
+        <source>Extract method + local</source>
+        <target state="new">Extract method + local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Falha ao analisar o fluxo de dados para: {0}</target>
@@ -250,6 +270,36 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement all interfaces explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0_explicitly">
+        <source>Implement '{0}' explicitly</source>
+        <target state="new">Implement '{0}' explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0_implicitly">
+        <source>Implement '{0}' implicitly</source>
+        <target state="new">Implement '{0}' implicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_implicitly">
+        <source>Implement all interfaces implicitly</source>
+        <target state="new">Implement all interfaces implicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_implicitly">
+        <source>Implement implicitly</source>
+        <target state="new">Implement implicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -492,6 +542,11 @@
         <target state="translated">Correspondências de tipos de destino</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
+        <source>The selection contains a local function call without its declaration.</source>
+        <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">Atribuição desnecessária de um valor</target>
@@ -690,6 +745,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} pode ser simplificado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -1060,11 +1120,6 @@
       <trans-unit id="location_unknown">
         <source>location unknown</source>
         <target state="translated">local desconhecido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Interface">
-        <source>Extract Interface...</source>
-        <target state="translated">Extrair interface...</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
@@ -1450,16 +1505,6 @@
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">Desconhecido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Extrair Método</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method_plus_Local">
-        <source>Extract Method + Local</source>
-        <target state="translated">Extrair Método + Local</target>
         <note />
       </trans-unit>
       <trans-unit id="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket">

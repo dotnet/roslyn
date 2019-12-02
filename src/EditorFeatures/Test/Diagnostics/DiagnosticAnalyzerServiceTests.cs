@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestHasSuccessfullyLoadedBeingFalseFSAOn()
         {
             var workspace = new AdhocWorkspace();
-            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true);
+            workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
             var document = GetDocumentFromIncompleteProject(workspace);
 
             // open document
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestHasSuccessfullyLoadedBeingFalseWithCompilerAnalyzerFSAOn()
         {
             var workspace = new AdhocWorkspace();
-            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true);
+            workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
             var document = GetDocumentFromIncompleteProject(workspace);
 
             await TestAnalyzerAsync(workspace, document, new CSharpCompilerDiagnosticAnalyzer(), CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                       loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
                                       filePath: "test.cs")}));
 
-            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language, true);
+            workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             internal MyDiagnosticAnalyzerService(IEnumerable<DiagnosticAnalyzer> analyzers, IAsynchronousOperationListener listener, string language = LanguageNames.CSharp)
-                : base(new HostAnalyzerManager(
+                : base(new DiagnosticAnalyzerInfoCache(
                             ImmutableArray.Create<AnalyzerReference>(
                                 new TestAnalyzerReferenceByLanguage(
                                     ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(language, ImmutableArray.CreateRange(analyzers)))),
@@ -446,10 +446,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
 
-            public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                return ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0)))));
+                return Task.FromResult(ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0))))));
             }
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)

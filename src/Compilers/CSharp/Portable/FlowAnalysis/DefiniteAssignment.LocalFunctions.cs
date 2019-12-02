@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
             public BitVector ReadVars = BitVector.Empty;
-            public ref LocalState WrittenVars => ref State;
+            public ref LocalState WrittenVars => ref StateFromTop;
 
             public LocalFunctionState(LocalState unreachableState)
                 : base(unreachableState)
@@ -19,13 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
 
-        /// <summary>
-        /// At the local function's use site, checks that all variables read are assigned.
-        /// </summary>
-        protected override void VisitLocalFunctionUse(LocalFunctionSymbol localFunc, LocalFunctionState localFunctionState, SyntaxNode syntax)
+        protected override void VisitLocalFunctionUse(
+            LocalFunctionSymbol localFunc,
+            LocalFunctionState localFunctionState,
+            SyntaxNode syntax,
+            bool isCall)
         {
             _usedLocalFunctions.Add(localFunc);
 
+            // Check variables that were read before being definitely assigned.
             var reads = localFunctionState.ReadVars;
 
             // Start at slot 1 (slot 0 just indicates reachability)
@@ -37,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckIfAssignedDuringLocalFunctionReplay(symbol, syntax, slot);
                 }
             }
+
+            base.VisitLocalFunctionUse(localFunc, localFunctionState, syntax, isCall);
         }
 
         /// <summary>

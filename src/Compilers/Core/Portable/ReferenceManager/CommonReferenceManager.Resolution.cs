@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract AssemblyData CreateAssemblyDataForFile(
             PEAssembly assembly,
-            WeakList<IAssemblySymbol> cachedSymbols,
+            WeakList<IAssemblySymbolInternal> cachedSymbols,
             DocumentationProvider documentationProvider,
             string sourceAssemblySimpleName,
             MetadataImportOptions importOptions,
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MetadataImageKind.Assembly:
                             var assemblyMetadata = (AssemblyMetadata)metadata;
-                            WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
+                            WeakList<IAssemblySymbolInternal> cachedSymbols = assemblyMetadata.CachedSymbols;
 
                             if (assemblyMetadata.IsValidAssembly())
                             {

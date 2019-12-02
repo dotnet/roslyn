@@ -1509,6 +1509,18 @@ $$";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LambdaDiscardParameters()
+        {
+            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = (int _, string _) => 1 + $$", "_");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AnonymousMethodDiscardParameters()
+        {
+            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = delegate(int _, string _) { return 1 + $$ }; } }", "_");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommonTypesInNewExpressionContext()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class c { void M() { new $$"), "Exception");

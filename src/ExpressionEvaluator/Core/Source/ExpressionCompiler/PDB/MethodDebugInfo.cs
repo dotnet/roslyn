@@ -4,12 +4,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
-        where TTypeSymbol : class, ITypeSymbol
-        where TLocalSymbol : class
+        where TTypeSymbol : class, ITypeSymbolInternal
+        where TLocalSymbol : class, ILocalSymbolInternal
     {
         public static readonly MethodDebugInfo<TTypeSymbol, TLocalSymbol> None = new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
             ImmutableArray<HoistedLocalScopeRecord>.Empty,

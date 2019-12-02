@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ValueSource<AnalyzerConfigSet> _lazyAnalyzerConfigSet;
 
-        // this will be initialized lazily.
-        private AnalyzerOptions? _analyzerOptionsDoNotAccessDirectly;
+        private AnalyzerOptions? _lazyAnalyzerOptions;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -250,19 +249,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public AnalyzerOptions AnalyzerOptions
-        {
-            get
-            {
-                if (_analyzerOptionsDoNotAccessDirectly == null)
-                {
-                    _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(
-                        _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
-                        new WorkspaceAnalyzerConfigOptionsProvider(this));
-                }
-
-                return _analyzerOptionsDoNotAccessDirectly;
-            }
-        }
+            => _lazyAnalyzerOptions ??= new AnalyzerOptions(
+                additionalFiles: _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
+                optionsProvider: new WorkspaceAnalyzerConfigOptionsProvider(this));
 
         public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
         {
@@ -424,6 +413,9 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool HasAllInformation => this.ProjectInfo.HasAllInformation;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public bool RunAnalyzers => this.ProjectInfo.RunAnalyzers;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool HasDocuments => _documentIds.Count > 0;
@@ -608,6 +600,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.With(projectInfo: this.ProjectInfo.WithHasAllInformation(hasAllInformation).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateRunAnalyzers(bool runAnalyzers)
+        {
+            if (runAnalyzers == this.RunAnalyzers)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithRunAnalyzers(runAnalyzers).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)

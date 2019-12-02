@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For region analysis, we maintain some extra data.
         protected RegionPlace regionPlace; // tells whether we are currently analyzing code before, during, or after the region
         protected readonly BoundNode firstInRegion, lastInRegion;
-        private readonly bool _trackRegions;
+        protected readonly bool TrackingRegions;
 
         /// <summary>
         /// A cache of the state at the backward branch point of each loop.  This is not needed
@@ -204,11 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
             _loopHeadState = new Dictionary<BoundLoopStatement, TLocalState>(ReferenceEqualityComparer.Instance);
-            _trackRegions = trackRegions;
+            TrackingRegions = trackRegions;
             _nonMonotonicTransfer = nonMonotonicTransferFunction;
         }
-
-        protected bool TrackingRegions => _trackRegions;
 
         protected abstract string Dump(TLocalState state);
 
@@ -324,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We scan even expressions, because we must process lambdas contained within them.
             if (node != null)
             {
-                if (_trackRegions)
+                if (TrackingRegions)
                 {
                     if (node == this.firstInRegion && this.regionPlace == RegionPlace.Before)
                     {
@@ -402,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(methodMainNode);
             this.Unsplit();
             RestorePending(oldPending);
-            if (_trackRegions && regionPlace != RegionPlace.After)
+            if (TrackingRegions && regionPlace != RegionPlace.After)
             {
                 badRegion = true;
             }
@@ -529,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void VisitLvalue(BoundExpression node)
         {
-            if (_trackRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before)
+            if (TrackingRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before)
             {
                 EnterRegion();
             }
@@ -587,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (_trackRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside)
+            if (TrackingRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside)
             {
                 LeaveRegion();
             }
@@ -1172,17 +1170,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitLocalFunctionUse(LocalFunctionSymbol symbol, SyntaxNode syntax, bool isCall)
         {
             var localFuncState = GetOrCreateLocalFuncUsages(symbol);
-            VisitLocalFunctionUse(symbol, localFuncState, syntax);
-
-            if (isCall)
-            {
-                Meet(ref this.State, ref localFuncState.State);
-            }
+            VisitLocalFunctionUse(symbol, localFuncState, syntax, isCall);
             localFuncState.Visited = true;
         }
 
-        protected virtual void VisitLocalFunctionUse(LocalFunctionSymbol symbol, TLocalFunctionState localFunctionState, SyntaxNode syntax)
-        { }
+        protected virtual void VisitLocalFunctionUse(
+            LocalFunctionSymbol symbol,
+            TLocalFunctionState localFunctionState,
+            SyntaxNode syntax,
+            bool isCall)
+        {
+            if (isCall)
+            {
+                Join(ref State, ref localFunctionState.StateFromBottom);
+                Meet(ref State, ref localFunctionState.StateFromTop);
+            }
+        }
 
         private void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)
         {
@@ -1368,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)node.MethodOpt != null && node.MethodOpt.RequiresInstanceReceiver)
                 {
-                    if (_trackRegions)
+                    if (TrackingRegions)
                     {
                         if (methodGroup == this.firstInRegion && this.regionPlace == RegionPlace.Before)
                         {
@@ -1455,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression receiver = ((BoundMethodGroup)node.Operand).ReceiverOpt;
                     // A method group's "implicit this" is only used for instance methods.
-                    if (_trackRegions)
+                    if (TrackingRegions)
                     {
                         if (node.Operand == this.firstInRegion && this.regionPlace == RegionPlace.Before)
                         {
@@ -1576,16 +1579,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected Optional<TLocalState> _tryState;
+        protected Optional<TLocalState> NonMonotonicState;
 
         private void VisitTryBlockWithAnyTransferFunction(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
             if (_nonMonotonicTransfer)
             {
-                Optional<TLocalState> oldTryState = _tryState;
-                _tryState = ReachableBottomState();
+                Optional<TLocalState> oldTryState = NonMonotonicState;
+                NonMonotonicState = ReachableBottomState();
                 VisitTryBlock(tryBlock, node, ref tryState);
-                var tempTryStateValue = _tryState.Value;
+                var tempTryStateValue = NonMonotonicState.Value;
                 Join(ref tryState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
@@ -1594,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     oldTryState = oldTryStateValue;
                 }
 
-                _tryState = oldTryState;
+                NonMonotonicState = oldTryState;
             }
             else
             {
@@ -1611,10 +1614,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_nonMonotonicTransfer)
             {
-                Optional<TLocalState> oldTryState = _tryState;
-                _tryState = ReachableBottomState();
+                Optional<TLocalState> oldTryState = NonMonotonicState;
+                NonMonotonicState = ReachableBottomState();
                 VisitCatchBlock(catchBlock, ref finallyState);
-                var tempTryStateValue = _tryState.Value;
+                var tempTryStateValue = NonMonotonicState.Value;
                 Join(ref finallyState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
@@ -1623,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     oldTryState = oldTryStateValue;
                 }
 
-                _tryState = oldTryState;
+                NonMonotonicState = oldTryState;
             }
             else
             {
@@ -1651,10 +1654,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_nonMonotonicTransfer)
             {
-                Optional<TLocalState> oldTryState = _tryState;
-                _tryState = ReachableBottomState();
+                Optional<TLocalState> oldTryState = NonMonotonicState;
+                NonMonotonicState = ReachableBottomState();
                 VisitFinallyBlock(finallyBlock, ref stateMovedUp);
-                var tempTryStateValue = _tryState.Value;
+                var tempTryStateValue = NonMonotonicState.Value;
                 Join(ref stateMovedUp, ref tempTryStateValue);
                 if (oldTryState.HasValue)
                 {
@@ -1663,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     oldTryState = oldTryStateValue;
                 }
 
-                _tryState = oldTryState;
+                NonMonotonicState = oldTryState;
             }
             else
             {

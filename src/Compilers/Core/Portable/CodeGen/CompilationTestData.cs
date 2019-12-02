@@ -3,6 +3,7 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using System;
 using System.Collections.Concurrent;
@@ -18,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal struct MethodData
         {
             public readonly ILBuilder ILBuilder;
-            public readonly IMethodSymbol Method;
+            public readonly IMethodSymbolInternal Method;
 
-            public MethodData(ILBuilder ilBuilder, IMethodSymbol method)
+            public MethodData(ILBuilder ilBuilder, IMethodSymbolInternal method)
             {
                 this.ILBuilder = ilBuilder;
                 this.Method = method;
@@ -28,14 +29,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // The map is used for storing a list of methods and their associated IL.
-        public readonly ConcurrentDictionary<IMethodSymbol, MethodData> Methods = new ConcurrentDictionary<IMethodSymbol, MethodData>();
+        public readonly ConcurrentDictionary<IMethodSymbolInternal, MethodData> Methods = new ConcurrentDictionary<IMethodSymbolInternal, MethodData>();
 
         // The emitted module.
         public CommonPEModuleBuilder? Module;
 
         public Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? SymWriterFactory;
 
-        public ILBuilder GetIL(Func<IMethodSymbol, bool> predicate)
+        public ILBuilder GetIL(Func<IMethodSymbolInternal, bool> predicate)
         {
             return Methods.Single(p => predicate(p.Key)).Value.ILBuilder;
         }
@@ -101,12 +102,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
              _testDataKeyFormat.KindOptions,
              _testDataKeyFormat.MiscellaneousOptions);
 
-        private static string GetMethodName(IMethodSymbol methodSymbol)
+        private static string GetMethodName(IMethodSymbolInternal methodSymbol)
         {
-            var format = (methodSymbol.MethodKind == MethodKind.UserDefinedOperator) ?
+            IMethodSymbol iMethod = (IMethodSymbol)methodSymbol.GetISymbol();
+            var format = (iMethod.MethodKind == MethodKind.UserDefinedOperator) ?
                 _testDataOperatorKeyFormat :
                 _testDataKeyFormat;
-            return methodSymbol.ToDisplayString(format);
+            return iMethod.ToDisplayString(format);
         }
     }
 }

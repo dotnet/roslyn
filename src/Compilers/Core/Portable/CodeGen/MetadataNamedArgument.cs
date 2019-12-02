@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Cci = Microsoft.Cci;
 
@@ -12,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MetadataNamedArgument : Cci.IMetadataNamedArgument
     {
-        private readonly ISymbol _entity;
+        private readonly ISymbolInternal _entity;
         private readonly Cci.ITypeReference _type;
         private readonly Cci.IMetadataExpression _value;
 
-        public MetadataNamedArgument(ISymbol entity, Cci.ITypeReference type, Cci.IMetadataExpression value)
+        public MetadataNamedArgument(ISymbolInternal entity, Cci.ITypeReference type, Cci.IMetadataExpression value)
         {
             // entity must be one of INamedEntity or IFieldDefinition or IPropertyDefinition
             _entity = entity;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// True if the named argument provides the value of a field.
         /// </summary>
-        bool Cci.IMetadataNamedArgument.IsField => _entity is Cci.IFieldDefinition;
+        bool Cci.IMetadataNamedArgument.IsField => _entity.Kind == SymbolKind.Field;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {

@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
     /// <summary>
     /// Synthesized symbol that implements a method body feature (iterator, async, lambda, etc.)
@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface ISynthesizedMethodBodyImplementationSymbol
+    internal interface ISynthesizedMethodBodyImplementationSymbol : ISymbolInternal
     {
         /// <summary>
         /// The symbol whose body lowering produced this synthesized symbol, 
         /// or null if the symbol is synthesized based on declaration.
         /// </summary>
-        IMethodSymbol? Method { get; }
+        IMethodSymbolInternal? Method { get; }
 
         /// <summary>
         /// True if this symbol body needs to be updated when the <see cref="Method"/> body is updated.

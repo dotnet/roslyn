@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             if (analyzers.Length == 0)
             {
-                return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<string, DiagnosticAnalysisResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);
+                return DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>.Empty;
             }
 
             var cacheService = _project.Solution.Workspace.Services.GetService<IProjectCacheService>();
@@ -73,16 +73,17 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             // We need this to fork soluton, otherwise, option is cached at document.
             // all this can go away once we do this - https://github.com/dotnet/roslyn/issues/19284
-            using var temporaryWorksapce = new TemporaryWorkspace(_project.Solution);
+            using var temporaryWorkspace = new TemporaryWorkspace(_project.Solution);
+
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorksapce.CurrentSolution),
-                    onAnalyzerException: OnAnalyzerException,
-                    analyzerExceptionFilter: null,
-                    concurrentAnalysis: useConcurrent,
-                    logAnalyzerExecutionTime: logAnalyzerExecutionTime,
-                    reportSuppressedDiagnostics: reportSuppressedDiagnostics);
+                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorkspace.CurrentSolution),
+                onAnalyzerException: OnAnalyzerException,
+                analyzerExceptionFilter: null,
+                concurrentAnalysis: useConcurrent,
+                logAnalyzerExecutionTime: logAnalyzerExecutionTime,
+                reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 
             var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
 
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var referenceSet = pooledObject.Object;
             var analyzerMap = pooledMap.Object;
 
-            // this follow what we do in HostAnalyzerManager.CheckAnalyzerReferenceIdentity
+            // this follow what we do in DiagnosticAnalyzerInfoCache.CheckAnalyzerReferenceIdentity
             foreach (var reference in hostAnalyzers.Concat(project.AnalyzerReferences))
             {
                 if (!referenceSet.Add(reference.Id))

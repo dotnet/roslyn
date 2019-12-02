@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
 
             _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal)))
+                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(F.HiddenSequencePoint());
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
+
+            bodyBuilder.Add(GenerateHoistedLocalsCleanup(rootScopeHoistedLocals));
 
             bodyBuilder.Add(GenerateSetResultCall());
 
@@ -207,11 +209,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ImmutableArray<BoundExpression>.Empty));
         }
 
-        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
+        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal, ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
         {
             // catch (Exception ex)
             // {
             //     _state = finishedState;
+            //
+            //     for each hoisted local:
+            //     <>x__y = default
+            //
             //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
             //     return;
             // }
@@ -231,9 +237,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 exceptionFilterOpt: null,
                 body: F.Block(
                     assignFinishedState, // _state = finishedState;
+                    GenerateHoistedLocalsCleanup(hoistedLocals),
                     callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
                     GenerateReturn(false)), // return;
                 isSynthesizedAsyncCatchAll: true);
+        }
+
+        protected BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // Cleanup all hoisted local variables
+            // so that they can be collected by GC if needed
+            foreach (var hoistedLocal in hoistedLocals)
+            {
+                if (!hoistedLocal.Type.IsManagedType)
+                {
+                    continue;
+                }
+
+                builder.Add(F.Assignment(F.Field(F.This(), hoistedLocal), F.NullOrDefault(hoistedLocal.Type)));
+            }
+
+            return F.Block(builder.ToImmutableAndFree());
         }
 
         protected virtual BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)

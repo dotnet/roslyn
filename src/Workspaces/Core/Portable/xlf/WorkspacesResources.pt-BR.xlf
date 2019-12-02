@@ -27,6 +27,11 @@
         <target state="translated">Não há suporte para alterar o documento '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
+        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
+        <target state="new">Compilation is required to accomplish the task but is not supported by project {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">Opções Principais do EditorConfig</target>
@@ -35,6 +40,11 @@
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
         <target state="translated">DateTimeKind deve ser Utc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="new">Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
@@ -100,6 +110,11 @@
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
         <target state="translated">O prefixo '{0}' não é esperado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
+        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
+        <target state="new">Project of ID {0} is required to accomplish the task but is not available from the solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1310,6 +1325,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
         <target state="translated">Especificações de símbolo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
+        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
+        <target state="new">Syntax tree is required to accomplish the task but is not supported by document {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

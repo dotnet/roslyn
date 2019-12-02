@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a pointer type such as "int *". Pointer types
     /// are used only in unsafe code.
     /// </summary>
-    internal sealed partial class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
+    internal sealed partial class PointerTypeSymbol : TypeSymbol
     {
         private readonly TypeWithAnnotations _pointedAtType;
 
@@ -294,32 +294,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.PointedAtTypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
         }
 
-        #region IPointerTypeSymbol Members
-
-        ITypeSymbol IPointerTypeSymbol.PointedAtType
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.PointedAtType; }
+            return new PublicModel.PointerTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        ImmutableArray<CustomModifier> IPointerTypeSymbol.CustomModifiers
+        protected override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get { return this.PointedAtTypeWithAnnotations.CustomModifiers; }
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.PointerTypeSymbol(this, nullableAnnotation);
         }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitPointerType(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitPointerType(this);
-        }
-
-        #endregion
     }
 }
