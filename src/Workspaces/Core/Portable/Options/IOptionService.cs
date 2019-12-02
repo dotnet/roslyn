@@ -49,6 +49,10 @@ namespace Microsoft.CodeAnalysis.Options
 
         event EventHandler<OptionChangedEventArgs> OptionChanged;
 
+        /// <summary>
+        /// Registers a provider that can modify the result of <see cref="Document.GetOptionsAsync(CancellationToken)"/>. Providers registered earlier are queried first
+        /// for options, and the first provider to give a value wins.
+        /// </summary>
         void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider);
 
         /// <summary>

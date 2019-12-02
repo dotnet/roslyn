@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
                                 (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c), cancellationToken);
                         }, cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                    catch (Exception ex) when (ReportUnlessCanceled(ex))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -63,9 +63,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+            private bool ReportUnlessCanceled(Exception ex)
             {
-                if (!cancellationToken.IsCancellationRequested && _owner.IsDisposed)
+                // TODO: check !cancellationToken.IsCancellationRequeste instead (https://github.com/dotnet/roslyn/issues/39723)
+                if (!(ex is OperationCanceledException) && !(ex is TaskCanceledException) && _owner.IsDisposed)
                 {
                     // kill OOP if snapshot service got disconnected due to this exception.
                     FailFast.OnFatalException(ex);

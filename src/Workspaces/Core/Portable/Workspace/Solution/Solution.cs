@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the additional document in this solution with the specified document ID.
+        /// Gets the analyzer config document in this solution with the specified document ID.
         /// </summary>
         public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId? documentId)
         {
@@ -427,6 +427,21 @@ namespace Microsoft.CodeAnalysis
         internal Solution WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
             var newState = _state.WithHasAllInformation(projectId, hasAllInformation);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        internal Solution WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            var newState = _state.WithRunAnalyzers(projectId, runAnalyzers);
             if (newState == _state)
             {
                 return this;

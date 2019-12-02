@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
             {
                 Visit(node.IterationVariableType);
+                Visit(node.AwaitOpt);
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // special cases
             // case 1: token belongs to verbatim token literal
             // case 2: $@"$${0}"
-            // case 3: $@"Comment$$ inbetween{0}"
+            // case 3: $@"Comment$$ in-between{0}"
             // case 4: $@"{0}$$"
             if (token.IsVerbatimStringLiteral() ||
                 token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken) ||

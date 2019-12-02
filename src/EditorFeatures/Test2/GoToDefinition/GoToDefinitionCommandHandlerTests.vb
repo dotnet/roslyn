@@ -97,7 +97,7 @@ class C
                 Dim navigatedTo = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() navigatedTo = True)
 
-                Dim cursorBuffer = cursorDocument.TextBuffer
+                Dim cursorBuffer = cursorDocument.GetTextBuffer()
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
                 Dim goToDefService = New CSharpGoToDefinitionService(presenter)

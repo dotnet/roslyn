@@ -9,6 +9,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
         /// </remarks>
-        internal readonly WeakList<IAssemblySymbol> CachedSymbols = new WeakList<IAssemblySymbol>();
+        internal readonly WeakList<IAssemblySymbolInternal> CachedSymbols = new WeakList<IAssemblySymbolInternal>();
 
         // creates a copy
         private AssemblyMetadata(AssemblyMetadata other, bool shareCachedSymbols)

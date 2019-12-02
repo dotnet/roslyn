@@ -12,14 +12,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Analysis
             => ServicesVSResources.Analysis;
 
-        public static string Option_Enable_full_solution_analysis
-            => ServicesVSResources.Enable_full_solution_analysis;
+        public static string Option_Background_analysis_scope
+            => ServicesVSResources.Background_analysis_scope_colon;
+
+        public static string Option_Background_Analysis_Scope_Active_File
+            => ServicesVSResources.Current_Document;
+
+        public static string Option_Background_Analysis_Scope_Open_Files_And_Projects
+            => ServicesVSResources.Open_Documents_and_Projects;
+
+        public static string Option_Background_Analysis_Scope_Full_Solution
+            => ServicesVSResources.Entire_Solution;
 
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
-
-        public static string Option_use_nullable_reference_analysis_IDE_features
-            => ServicesVSResources.Enable_nullable_reference_analysis_IDE_features;
 
         public static string Option_use_editorconfig_compatibility_mode
             => ServicesVSResources.Use_editorconfig_compatibility_mode;

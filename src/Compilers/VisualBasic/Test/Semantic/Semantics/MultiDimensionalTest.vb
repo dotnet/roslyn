@@ -1564,7 +1564,7 @@ Test1
   IL_000b:  ldc.i4.s   15
   IL_000d:  newobj     "Double(*)..ctor"
   IL_0012:  dup
-  IL_0013:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=120 <PrivateImplementationDetails>.198EB999C0C49843F4C649E4F9C8292C86A60DC7"
+  IL_0013:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=120 <PrivateImplementationDetails>.834648CEAE9C31873542B1ADBC0668FB21039AD43C50A7D45318910DB18C1DCE"
   IL_0018:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_001d:  call       "Sub C.Print(System.Array)"
   IL_0022:  ret

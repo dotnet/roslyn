@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -111,32 +113,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var containsFullResult = true;
                     foreach (var stateSet in _stateSets)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
-
-                        // check whether compilation end code fix is enabled
-                        if (!_document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CompilationEndCodeFix))
+                        using (RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, stateSet.Analyzer, cancellationToken))
                         {
-                            continue;
-                        }
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                        // check whether heuristic is enabled
-                        if (_blockForData && _document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic))
-                        {
-                            var avoidLoadingData = true;
-                            var state = stateSet.GetProjectState(_project.Id);
-                            var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                            containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
 
-                            // no previous compilation end diagnostics in this file.
-                            var version = await GetDiagnosticVersionAsync(_project, cancellationToken).ConfigureAwait(false);
-                            if (state.IsEmpty(_document.Id) || result.Version != version)
+                            // check whether compilation end code fix is enabled
+                            if (!_document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CompilationEndCodeFix))
                             {
                                 continue;
                             }
-                        }
 
-                        containsFullResult &= await TryGetProjectDiagnosticsAsync(stateSet, GetProjectDiagnosticsAsync, list, cancellationToken).ConfigureAwait(false);
+                            // check whether heuristic is enabled
+                            if (_blockForData && _document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic))
+                            {
+                                var avoidLoadingData = true;
+                                var state = stateSet.GetProjectState(_project.Id);
+                                var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+
+                                // no previous compilation end diagnostics in this file.
+                                var version = await GetDiagnosticVersionAsync(_project, cancellationToken).ConfigureAwait(false);
+                                if (state.IsEmpty(_document.Id) || result.Version != version)
+                                {
+                                    continue;
+                                }
+                            }
+
+                            containsFullResult &= await TryGetProjectDiagnosticsAsync(stateSet, GetProjectDiagnosticsAsync, list, cancellationToken).ConfigureAwait(false);
+                        }
                     }
 
                     // if we are blocked for data, then we should always have full result.

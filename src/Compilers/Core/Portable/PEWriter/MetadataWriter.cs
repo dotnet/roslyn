@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -1444,10 +1445,10 @@ namespace Microsoft.Cci
 
         private static Location GetNamedEntityLocation(INamedEntity errorEntity)
         {
-            return GetSymbolLocation(errorEntity as ISymbol);
+            return GetSymbolLocation(errorEntity as ISymbolInternal);
         }
 
-        protected static Location GetSymbolLocation(ISymbol symbolOpt)
+        protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
             return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
         }

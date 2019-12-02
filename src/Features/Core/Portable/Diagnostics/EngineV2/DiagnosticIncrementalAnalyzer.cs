@@ -84,8 +84,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             return e.Option.Feature == nameof(SimplificationOptions) ||
                    e.Option.Feature == nameof(CodeStyleOptions) ||
-                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
-                   e.Option == RuntimeOptions.FullSolutionAnalysis;
+                   e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption ||
+#pragma warning disable CS0618 // Type or member is obsolete - TypeScript and F# are still on the older ClosedFileDiagnostic option.
+                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)

@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected override INamedTypeSymbol CommonAttributeClass
         {
-            get { return this.AttributeClass; }
+            get { return this.AttributeClass.GetPublicSymbol(); }
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected override IMethodSymbol CommonAttributeConstructor
         {
-            get { return this.AttributeConstructor; }
+            get { return this.AttributeConstructor.GetPublicSymbol(); }
         }
 
         /// <summary>
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 TypedConstant firstArg = ctorArgs.First();
-                TypeSymbol firstArgType = (TypeSymbol)firstArg.Type;
+                TypeSymbol firstArgType = (TypeSymbol)firstArg.TypeInternal;
                 if ((object)firstArgType != null && firstArgType.Equals(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction)))
                 {
                     return DecodeSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, out hasErrors);
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
 
-            int securityAction = (int)typedValue.Value;
+            int securityAction = (int)typedValue.ValueInternal;
             bool isPermissionRequestAction;
 
             switch (securityAction)
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (this.IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute))
                     {
                         // CS7052: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
-                        string displayString;
+                        object displayString;
                         Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                         diagnostics.Add(ErrorCode.ERR_PrincipalPermissionInvalidAction, syntaxLocation, displayString);
                         hasErrors = true;
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     {
                         // CS7049: Security attribute '{0}' has an invalid SecurityAction value '{1}'
-                        string displayString;
+                        object displayString;
                         Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                         diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidAction, syntaxLocation, nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "", displayString);
                         hasErrors = true;
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Types and methods cannot take permission requests.
 
                     // CS7051: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method
-                    string displayString;
+                    object displayString;
                     Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                     diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidActionTypeOrMethod, syntaxLocation, displayString);
                     hasErrors = true;
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Assemblies cannot take declarative security.
 
                     // CS7050: SecurityAction value '{0}' is invalid for security attributes applied to an assembly
-                    string displayString;
+                    object displayString;
                     Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                     diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidActionAssembly, syntaxLocation, displayString);
                     hasErrors = true;
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (DeclarativeSecurityAction)securityAction;
         }
 
-        private static Location GetSecurityAttributeActionSyntaxLocation(AttributeSyntax nodeOpt, TypedConstant typedValue, out string displayString)
+        private static Location GetSecurityAttributeActionSyntaxLocation(AttributeSyntax nodeOpt, TypedConstant typedValue, out object displayString)
         {
             if (nodeOpt == null)
             {
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (argList == null || argList.Arguments.IsEmpty())
             {
                 // Optional SecurityAction parameter with default value.
-                displayString = typedValue.Value.ToString();
+                displayString = (FormattableString)$"{typedValue.ValueInternal}";
                 return nodeOpt.Location;
             }
 
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     PermissionSetAttributeTypeHasRequiredProperty(attrType, filePropName))
                 {
                     // resolve file prop path
-                    var fileName = (string)namedArg.Value.Value;
+                    var fileName = (string)namedArg.Value.ValueInternal;
                     var resolver = compilation.Options.XmlReferenceResolver;
 
                     resolvedFilePath = (resolver != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!this.HasErrors);
 
-            var guidString = (string)this.CommonConstructorArguments[0].Value;
+            var guidString = (string)this.CommonConstructorArguments[0].ValueInternal;
 
             // Native compiler allows only a specific GUID format: "D" format (32 digits separated by hyphens)
             Guid guid;

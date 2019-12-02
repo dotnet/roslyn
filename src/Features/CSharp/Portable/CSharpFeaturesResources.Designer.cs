@@ -485,11 +485,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; expression.
         /// </summary>
-        internal static string Convert_to_switch {
+        internal static string Convert_to_switch_expression {
             get {
-                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
+                return ResourceManager.GetString("Convert_to_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; statement.
+        /// </summary>
+        internal static string Convert_to_switch_statement {
+            get {
+                return ResourceManager.GetString("Convert_to_switch_statement", resourceCulture);
             }
         }
         

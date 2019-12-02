@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editing
 {
@@ -147,12 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                     }
                 }
 
-                return base.VisitInvocationExpression(node);
+                return base.VisitInvocationExpression(node) ?? throw ExceptionUtilities.Unreachable;
             }
 
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                node = (MemberAccessExpressionSyntax)base.VisitMemberAccessExpression(node);
+                node = (MemberAccessExpressionSyntax)(base.VisitMemberAccessExpression(node) ?? throw ExceptionUtilities.Unreachable);
 
                 if (_extensionMethods.Contains(node.Name.Identifier.Text))
                 {

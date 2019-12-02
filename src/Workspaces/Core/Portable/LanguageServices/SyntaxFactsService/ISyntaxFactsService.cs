@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsUsingOrExternOrImport(SyntaxNode node);
+        bool IsUsingAliasDirective(SyntaxNode node);
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
@@ -174,6 +175,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsLeftSideOfDot(SyntaxNode node);
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
+
+        /// <summary>
+        /// Get the node on the left side of the dot if given a dotted expression. 
+        /// </summary>
+        /// <param name="allowImplicitTarget">
+        /// In VB, we have a member access expression with a null expression, this may be one of the
+        /// following forms:
+        ///     1) new With { .a = 1, .b = .a      .a refers to the anonymous type
+        ///     2) With obj : .m                   .m refers to the obj type
+        ///     3) new T() With { .a = 1, .b = .a  'a refers to the T type
+        /// If `allowImplicitTarget` is set to true, the returned node will be set to approperiate node, otherwise, it will return null.
+        /// This parameter has no affect on C# node.
+        /// </param>
+        SyntaxNode GetLeftSideOfDot(SyntaxNode node, bool allowImplicitTarget = false);
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);

@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var discardedDiagnostics = DiagnosticBag.GetInstance();
             var result =
                 (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
-                type is null ? BindToNaturalType(expression, discardedDiagnostics) :
+                type is null ? BindToNaturalType(expression, discardedDiagnostics, reportDefaultMissingType: false) :
                 GenerateConversionForAssignment(type, expression, discardedDiagnostics);
             discardedDiagnostics.Free();
             return result;
@@ -1235,6 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
+#nullable enable
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, DiagnosticBag diagnostics)
         {
@@ -1243,13 +1244,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ManagedKind.Managed:
                     diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);
                     return true;
-                case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfoOpt(compilation) is CSDiagnosticInfo diagnosticInfo:
+                case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(compilation) is CSDiagnosticInfo diagnosticInfo:
                     diagnostics.Add(diagnosticInfo, location);
                     return true;
                 default:
                     return false;
             }
         }
+#nullable restore
 
         internal static ConstantValue GetConstantSizeOf(TypeSymbol type)
         {
@@ -1422,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool FallBackOnDiscard(IdentifierNameSyntax node, DiagnosticBag diagnostics)
         {
-            if (node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
+            if (!node.Identifier.IsUnderscoreToken())
             {
                 return false;
             }
@@ -1439,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
         {
-            Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
+            Debug.Assert(node.Identifier.IsUnderscoreToken());
 
             CSharpSyntaxNode parent = node.Parent;
             return (parent?.Kind() == SyntaxKind.Argument &&
@@ -1535,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(syntax, ContainingMember(), currentType, declaringType);
+                return TryBindInteractiveReceiver(syntax, declaringType);
             }
         }
 
@@ -1793,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(node, ContainingMember(), currentType, declaringType);
+                return TryBindInteractiveReceiver(node, declaringType);
             }
         }
 
@@ -1808,9 +1810,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingMember;
         }
 
-        private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, Symbol currentMember, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
+        private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, NamedTypeSymbol memberDeclaringType)
         {
-            if (currentType.TypeKind == TypeKind.Submission && currentMember.RequiresInstanceReceiver())
+            if (this.ContainingType.TypeKind == TypeKind.Submission
+                // check we have access to `this`
+                && isInstanceContext())
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
@@ -1828,6 +1832,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            bool isInstanceContext()
+            {
+                var containingMember = this.ContainingMemberOrLambda;
+                do
+                {
+                    if (containingMember.IsStatic)
+                    {
+                        return false;
+                    }
+                    if (containingMember.Kind == SymbolKind.NamedType)
+                    {
+                        break;
+                    }
+                    containingMember = containingMember.ContainingSymbol;
+                } while ((object)containingMember != null);
+                return true;
+            }
         }
 
         public BoundExpression BindNamespaceOrTypeOrExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
@@ -2268,6 +2290,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var stackAllocExpression = (BoundStackAllocArrayCreation)operand;
                         Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
+                        return;
+                    }
+                case BoundKind.UnconvertedSwitchExpression when operand.Type is null:
+                    {
+                        GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
                         return;
                     }
             }

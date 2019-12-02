@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.Storage
                 return NoOpPersistentStorage.Instance;
             }
 
+            return GetStorageWorker(solution);
+        }
+
+        internal IChecksummedPersistentStorage GetStorageWorker(Solution solution)
+        {
             lock (_lock)
             {
                 // Do we already have storage for this?

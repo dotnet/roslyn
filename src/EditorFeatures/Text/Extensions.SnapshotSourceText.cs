@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Text
             /// </summary>
             public readonly ITextImage TextImage;
 
-            private readonly ITextBufferCloneService _textBufferCloneServiceOpt;
+            private readonly ITextBufferCloneService? _textBufferCloneServiceOpt;
 
-            private readonly Encoding _encodingOpt;
-            private readonly TextBufferContainer _containerOpt;
+            private readonly Encoding? _encodingOpt;
+            private readonly TextBufferContainer? _containerOpt;
 
-            private SnapshotSourceText(ITextBufferCloneService textBufferCloneServiceOpt, ITextSnapshot editorSnapshot, TextBufferContainer container)
+            private SnapshotSourceText(ITextBufferCloneService? textBufferCloneServiceOpt, ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
                 Contract.ThrowIfNull(editorSnapshot);
 
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Text
                 _containerOpt = container;
             }
 
-            public SnapshotSourceText(ITextBufferCloneService textBufferCloneServiceOpt, ITextImage textImage, Encoding encodingOpt, TextBufferContainer containerOpt)
+            public SnapshotSourceText(ITextBufferCloneService? textBufferCloneServiceOpt, ITextImage textImage, Encoding? encodingOpt, TextBufferContainer? containerOpt)
             {
                 Contract.ThrowIfNull(textImage);
 
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// </summary>
             private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_textImageToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
 
-            public static SourceText From(ITextBufferCloneService textBufferCloneServiceOpt, ITextSnapshot editorSnapshot)
+            public static SourceText From(ITextBufferCloneService? textBufferCloneServiceOpt, ITextSnapshot editorSnapshot)
             {
                 if (editorSnapshot == null)
                 {
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// This only exist to break circular dependency on creating buffer. nobody except extension itself should use it
             /// </summary>
-            internal static SourceText From(ITextBufferCloneService textBufferCloneServiceOpt, ITextSnapshot editorSnapshot, TextBufferContainer container)
+            internal static SourceText From(ITextBufferCloneService? textBufferCloneServiceOpt, ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
                 if (editorSnapshot == null)
                 {
@@ -101,12 +103,12 @@ namespace Microsoft.CodeAnalysis.Text
                 return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(textBufferCloneServiceOpt, s, container));
             }
 
-            public override Encoding Encoding
+            public override Encoding? Encoding
             {
                 get { return _encodingOpt; }
             }
 
-            public ITextSnapshot TryFindEditorSnapshot()
+            public ITextSnapshot? TryFindEditorSnapshot()
                 => TryFindEditorSnapshot(this.TextImage);
 
             public override SourceTextContainer Container
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return textImage;
             }
 
-            private static ITextSnapshot TryFindEditorSnapshot(ITextImage textImage)
+            private static ITextSnapshot? TryFindEditorSnapshot(ITextImage textImage)
             {
                 if (!s_textImageToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
                     !weakReference.TryGetTarget(out var editorSnapshot))
@@ -272,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// </summary>
             internal sealed class ClosedSnapshotSourceText : SnapshotSourceText
             {
-                public ClosedSnapshotSourceText(ITextBufferCloneService textBufferCloneServiceOpt, ITextImage textImage, Encoding encodingOpt)
+                public ClosedSnapshotSourceText(ITextBufferCloneService? textBufferCloneServiceOpt, ITextImage textImage, Encoding? encodingOpt)
                     : base(textBufferCloneServiceOpt, textImage, encodingOpt, containerOpt: null)
                 {
                 }
@@ -286,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Text
                 private readonly SnapshotSourceText _baseText;
                 private readonly ITextImage _baseSnapshot;
 
-                public ChangedSourceText(ITextBufferCloneService textBufferCloneServiceOpt, SnapshotSourceText baseText, ITextImage baseSnapshot, ITextImage currentSnapshot)
+                public ChangedSourceText(ITextBufferCloneService? textBufferCloneServiceOpt, SnapshotSourceText baseText, ITextImage baseSnapshot, ITextImage currentSnapshot)
                     : base(textBufferCloneServiceOpt, currentSnapshot, baseText.Encoding, containerOpt: null)
                 {
                     _baseText = baseText;
@@ -392,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var oldSnapshot = forward ? snapshot1 : snapshot2;
                 var newSnapshot = forward ? snapshot2 : snapshot1;
 
-                INormalizedTextChangeCollection changes = null;
+                INormalizedTextChangeCollection? changes = null;
                 for (var oldVersion = oldSnapshot.Version;
                     oldVersion != newSnapshot.Version;
                     oldVersion = oldVersion.Next)
@@ -432,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Text
                     range = range.Accumulate(changes);
                 }
 
-                Debug.Assert(range.HasValue);
+                RoslynDebug.Assert(range.HasValue);
                 return range.Value;
             }
 

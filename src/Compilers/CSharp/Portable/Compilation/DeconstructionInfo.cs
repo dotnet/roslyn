@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _conversion.Kind == ConversionKind.Deconstruction
-                    ? _conversion.Method
+                    ? _conversion.MethodSymbol
                     : null;
             }
         }

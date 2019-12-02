@@ -75,9 +75,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                        extraExportedTypes As List(Of Type),
                        includeFormatCommandHandler As Boolean,
                        workspaceKind As String,
-                       Optional cursorDocumentElement As XElement = Nothing,
+                       Optional makeSeparateBufferForCursor As Boolean = False,
                        Optional roles As ImmutableArray(Of String) = Nothing)
-            MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, cursorDocumentElement, roles)
+            MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, makeSeparateBufferForCursor, roles)
 
             ' The current default timeout defined in the Editor may not work on slow virtual test machines.
             ' Need to use a safe timeout there to follow real code paths.

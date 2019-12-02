@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
             // accesses to static members.  
-            if (IsStaticMemberOrTargetMethod(operation))
+            if (IsStaticMemberOrIsLocalFunction(operation))
             {
                 return;
             }
@@ -147,16 +147,21 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private bool IsStaticMemberOrTargetMethod(IOperation operation)
+        private bool IsStaticMemberOrIsLocalFunction(IOperation operation)
         {
             switch (operation)
             {
                 case IMemberReferenceOperation memberReferenceOperation:
-                    return memberReferenceOperation.Member == null || memberReferenceOperation.Member.IsStatic;
+                    return IsStaticMemberOrIsLocalFunctionHelper(memberReferenceOperation.Member);
                 case IInvocationOperation invocationOperation:
-                    return invocationOperation.TargetMethod == null || invocationOperation.TargetMethod.IsStatic;
+                    return IsStaticMemberOrIsLocalFunctionHelper(invocationOperation.TargetMethod);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(operation);
+            }
+
+            static bool IsStaticMemberOrIsLocalFunctionHelper(ISymbol symbol)
+            {
+                return symbol == null || symbol.IsStatic || symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction };
             }
         }
     }
