@@ -823,12 +823,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (node.Identifier.ValueText)
                 {
-                    case "dynamic":
-                        if (Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
-                        {
-                            bindingResult = Compilation.DynamicType;
-                            ReportUseSiteDiagnosticForDynamic(diagnostics, node);
-                        }
+                    case "dynamic" when Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion():
+                        bindingResult = Compilation.DynamicType;
+                        ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         break;
                     case "nint":
                         bindingResult = getNativeIntType(node, unsigned: false, diagnostics);
