@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis
     internal partial class DocumentState
     {
         /// <summary>
-        /// A source for TextAndVersion constructed from an syntax tree
+        /// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
         /// </summary>
-        private class TreeTextSource : ValueSource<TextAndVersion>, ITextVersionable
+        private sealed class TreeTextSource : ValueSource<TextAndVersion>, ITextVersionable
         {
             private readonly ValueSource<SourceText> _lazyText;
             private readonly VersionStamp _version;

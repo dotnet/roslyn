@@ -14586,14 +14586,16 @@ class C : IEnumerable
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
+            var expected = new DiagnosticDescription[] {
                 // (12,13): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //             yield return this; // CS1621
                 Diagnostic(ErrorCode.ERR_YieldInAnonMeth, "yield"),
                 // (8,24): error CS0161: 'C.GetEnumerator()': not all code paths return a value
                 //     public IEnumerator GetEnumerator()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "GetEnumerator").WithArguments("C.GetEnumerator()")
-                );
+            };
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

@@ -477,6 +477,11 @@
         <target state="translated">패턴의 'var' 구문은 형식 참조가 허용되지 않지만 '{0}'은(는) 여기서 범위 내에 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">튜플 형식 '{0}'을(를) 일치시키려면 '{1}' 하위 패턴이 필요하지만 '{2}' 하위 패턴이 있습니다.</target>
@@ -1344,16 +1349,6 @@
         <target state="translated">SyntaxTree는 컴파일의 일부가 아니므로 제거할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 'as' 연산자가 null 값을 생성할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">'as' 연산자가 형식 매개 변수의 null 값을 생성할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">'_' 이름은 상수를 참조하며, 무시 패턴은 참조하지 않습니다. 'var _'을 사용하여 값을 무시하거나 '@_'을 사용하여 해당 이름별 상수를 참조하세요.</target>
@@ -1364,16 +1359,6 @@
         <target state="translated">case 상수에 '_'을 사용하지 마세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 조건부 액세스가 null 값을 생성할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">조건부 액세스가 형식 매개 변수의 null 값을 생성할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">null 리터럴 또는 가능한 null 값을 nullable이 아닌 형식으로 변환하는 중입니다.</target>
@@ -1382,16 +1367,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">null 리터럴 또는 가능한 null 값을 nullable이 아닌 형식으로 변환하는 중입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 기본 식이 null 값을 지정합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">기본 식이 형식 매개 변수의 null 값을 지정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1482,16 +1457,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Null 리터럴을 nullable이 아닌 참조 형식으로 변환할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 null 리터럴이 null 값을 지정합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">null 리터럴이 형식 매개 변수의 null 값을 지정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

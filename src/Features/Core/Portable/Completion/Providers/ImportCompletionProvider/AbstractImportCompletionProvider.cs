@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
 
+        // For telemetry reporting
+        protected abstract void LogCommit();
+
         internal override bool IsExpandItemProvider => true;
 
         private bool? _isImportCompletionExperimentEnabled = null;
@@ -99,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, CancellationToken cancellationToken)
         {
+            LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))

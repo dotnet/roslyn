@@ -160,8 +160,9 @@ class Program
 
             VisualStudio.SolutionExplorer.CloseSolution();
 
-            // verify working folder has not set
-            Assert.Null(VisualStudio.Workspace.GetWorkingFolder());
+            // because the solution cache directory is stored in the user temp folder, 
+            // closing the solution has no effect on what is returned.
+            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
         }
     }
 }

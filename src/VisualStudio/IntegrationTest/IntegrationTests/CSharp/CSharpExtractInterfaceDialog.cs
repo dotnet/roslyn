@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -56,7 +56,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -118,7 +118,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -153,7 +153,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -189,7 +189,7 @@ class C : IC
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -225,7 +225,7 @@ class C : IC
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -261,7 +261,7 @@ class C : IC
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
