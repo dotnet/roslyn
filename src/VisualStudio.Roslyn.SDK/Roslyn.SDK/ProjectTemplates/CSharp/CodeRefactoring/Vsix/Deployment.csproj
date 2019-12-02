@@ -3,7 +3,7 @@
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RootNamespace>$saferootprojectname$.Vsix</RootNamespace>
     <AssemblyName>$saferootprojectname$</AssemblyName>
   </PropertyGroup>
