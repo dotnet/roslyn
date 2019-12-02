@@ -274,29 +274,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Diagnostic diagnostic, Project? project, OptionSet options)
-        {
-            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-
-            return new DiagnosticData(
-                diagnostic.Id,
-                diagnostic.Descriptor.Category,
-                diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(options),
-                diagnostic.Severity,
-                diagnostic.DefaultSeverity,
-                diagnostic.Descriptor.IsEnabledByDefault,
-                diagnostic.WarningLevel,
-                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                diagnostic.Properties,
-                project?.Id,
-                language: project?.Language,
-                title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
-                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                helpLink: diagnostic.Descriptor.HelpLinkUri,
-                isSuppressed: diagnostic.IsSuppressed);
-        }
-
         private static DiagnosticDataLocation? CreateLocation(Document? document, Location location)
         {
             if (document == null)
@@ -321,8 +298,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        public static DiagnosticData Create(Document document, Diagnostic diagnostic)
+        public static DiagnosticData Create(Diagnostic diagnostic, OptionSet options)
         {
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            return Create(diagnostic, projectId: null, language: null, options, location: null, additionalLocations: null, additionalProperties: null);
+        }
+
+        public static DiagnosticData Create(Diagnostic diagnostic, Project project)
+        {
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            return Create(diagnostic, project.Id, project.Language, project.Solution.Options, location: null, additionalLocations: null, additionalProperties: null);
+        }
+
+        public static DiagnosticData Create(Diagnostic diagnostic, Document document)
+        {
+            var project = document.Project;
             var location = CreateLocation(document, diagnostic.Location);
 
             var additionalLocations = diagnostic.AdditionalLocations.Count == 0
@@ -332,39 +322,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 .WhereNotNull()
                                                 .ToReadOnlyCollection();
 
-            var properties = GetProperties(document, diagnostic);
+            return Create(diagnostic,
+                project.Id,
+                project.Language,
+                project.Solution.Options,
+                location,
+                additionalLocations,
+                GetAdditionalProperties(document, diagnostic));
+        }
 
+        private static DiagnosticData Create(
+            Diagnostic diagnostic,
+            ProjectId? projectId,
+            string? language,
+            OptionSet options,
+            DiagnosticDataLocation? location,
+            IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations,
+            ImmutableDictionary<string, string>? additionalProperties)
+        {
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(document.Project.Solution.Options),
+                diagnostic.GetBingHelpMessage(options),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                properties,
-                document.Project.Id,
+                (additionalProperties == null) ? diagnostic.Properties : diagnostic.Properties.AddRange(additionalProperties),
+                projectId,
                 location,
                 additionalLocations,
-                language: document.Project.Language,
+                language: language,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static ImmutableDictionary<string, string> GetProperties(
-            Document document, Diagnostic diagnostic)
+        private static ImmutableDictionary<string, string>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
         {
-            var properties = diagnostic.Properties;
             var service = document.GetLanguageService<IDiagnosticPropertiesService>();
-            var additionalProperties = service?.GetAdditionalProperties(diagnostic);
-
-            return additionalProperties == null
-                ? properties
-                : properties.AddRange(additionalProperties);
+            return service?.GetAdditionalProperties(diagnostic);
         }
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-            diagnosticData = Create(diagnostic, project, project.Solution.Options);
+            diagnosticData = Create(diagnostic, project);
             return true;
         }
 

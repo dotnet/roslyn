@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             Contract.ThrowIfTrue(Project.SupportsCompilation);
 
-            var options = Project.Solution.Options;
-
             foreach (var diagnostic in diagnostics)
             {
                 // REVIEW: what is our plan for additional locations? 
@@ -88,14 +86,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             else
                             {
                                 // non local diagnostics without location
-                                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
+                                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                             }
 
                             break;
                         }
 
                     case LocationKind.None:
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
+                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                         break;
 
                     case LocationKind.SourceFile:
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
 
             map ??= new Dictionary<DocumentId, List<DiagnosticData>>();
-            map.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
+            map.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(diagnostic, document));
 
             _lazyDocumentsWithDiagnostics ??= new HashSet<DocumentId>();
             _lazyDocumentsWithDiagnostics.Add(document.Id);
@@ -152,8 +150,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private void AddDiagnostics(
             ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, SyntaxTree? tree, IEnumerable<Diagnostic> diagnostics)
         {
-            var options = Project.Solution.Options;
-
             foreach (var diagnostic in diagnostics)
             {
                 // REVIEW: what is our plan for additional locations? 
@@ -164,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                         break;
 
                     case LocationKind.None:
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
+                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                         break;
 
                     case LocationKind.SourceFile:
@@ -182,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                         else
                         {
                             // non local diagnostics without location
-                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
+                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
                         }
 
                         break;

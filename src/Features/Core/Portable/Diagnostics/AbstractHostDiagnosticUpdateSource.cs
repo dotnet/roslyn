@@ -50,7 +50,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagnosticData = DiagnosticData.Create(diagnostic, project, Workspace.Options);
+            var diagnosticData = (project != null) ?
+                DiagnosticData.Create(diagnostic, project) :
+                DiagnosticData.Create(diagnostic, Workspace.Options);
+
             ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
         }
 

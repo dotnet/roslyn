@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var document = Project.GetDocument(diagnostic.Location.SourceTree);
                 if (document != null)
                 {
-                    return DiagnosticData.Create(document, diagnostic);
+                    return DiagnosticData.Create(diagnostic, document);
                 }
             }
             else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var document = Project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
                 if (document != null)
                 {
-                    return DiagnosticData.Create(document, diagnostic);
+                    return DiagnosticData.Create(diagnostic, document);
                 }
             }
 
-            return DiagnosticData.Create(diagnostic, Project, Project.Solution.Options);
+            return DiagnosticData.Create(diagnostic, Project);
         }
     }
 }

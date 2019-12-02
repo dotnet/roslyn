@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 workspace,
                 ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
                     document.Project.Id,
-                    ImmutableArray.Create(DiagnosticData.Create(document, Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location)))));
+                    ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))));
 
             // wait for all events to raised
             await listener.CreateExpeditedWaitTask().ConfigureAwait(false);

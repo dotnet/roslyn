@@ -75,11 +75,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (document != null)
                 {
-                    documentDiagnosticData.Add(DiagnosticData.Create(document, diagnostic));
+                    documentDiagnosticData.Add(DiagnosticData.Create(diagnostic, document));
+                }
+                else if (project != null)
+                {
+                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(diagnostic, project));
                 }
                 else
                 {
-                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(diagnostic, project, options));
+                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(diagnostic, options));
                 }
             }
 

@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    yield return DiagnosticData.Create(targetDocument, diagnostic);
+                    yield return DiagnosticData.Create(diagnostic, targetDocument);
                 }
             }
 
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    yield return DiagnosticData.Create(document, diagnostic);
+                    yield return DiagnosticData.Create(diagnostic, document);
                 }
             }
         }
