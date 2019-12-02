@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 typeof(PropertySubpatternCompletionProvider),
                 typeof(TypeImportCompletionProvider),
                 typeof(ExtensionMethodImportCompletionProvider),
+                typeof(EmbeddedLanguageCompletionProvider),
 
                 // Built-in interactive providers
                 typeof(LoadDirectiveCompletionProvider),

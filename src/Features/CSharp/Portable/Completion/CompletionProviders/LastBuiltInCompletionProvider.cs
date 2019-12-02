@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Completion;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(LastBuiltInCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ExtensionMethodImportCompletionProvider))]
+    [ExtensionOrder(After = nameof(EmbeddedLanguageCompletionProvider))]
     [Shared]
     internal sealed class LastBuiltInCompletionProvider : CompletionProvider
     {
