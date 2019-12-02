@@ -949,7 +949,6 @@ $@"class Program
             }
         }
 
-        // PROTOTYPE: Test other ops.
         public static IEnumerable<object[]> BinaryOperatorsData()
         {
             static void getArgs(ArrayBuilder<object[]> builder, string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = null, DiagnosticDescription[] diagnostics1 = null, DiagnosticDescription[] diagnostics2 = null)
@@ -969,6 +968,157 @@ $@"class Program
 
             var builder = new ArrayBuilder<object[]>();
 
+            // Arithmetic
+            getArgs(builder, "*", "nint", "object");
+            getArgs(builder, "*", "nint", "string");
+            getArgs(builder, "*", "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") });
+            getArgs(builder, "*", "nint", "bool");
+            getArgs(builder, "*", "nint", "char", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "sbyte", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "byte", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "short", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "ushort", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "int", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "uint", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint", "nint", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "nuint", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint", "long", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint", "ulong", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint", "float", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nint", "double", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nint", "decimal");
+            getArgs(builder, "*", "nint", "System.IntPtr");
+            getArgs(builder, "*", "nint", "System.UIntPtr");
+            getArgs(builder, "*", "nint", "bool?");
+            getArgs(builder, "*", "nint", "char?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "sbyte?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "byte?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "short?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "ushort?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "int?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "uint?", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint", "nint?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint", "nuint?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint", "long?", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint", "ulong?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint", "float?", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nint", "double?", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nint", "decimal?");
+            getArgs(builder, "*", "nint", "System.IntPtr?");
+            getArgs(builder, "*", "nint", "System.UIntPtr?");
+            getArgs(builder, "*", "nint", "object");
+            getArgs(builder, "*", "nint?", "string");
+            getArgs(builder, "*", "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") });
+            getArgs(builder, "*", "nint?", "bool");
+            getArgs(builder, "*", "nint?", "char", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "sbyte", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "byte", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "short", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "ushort", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "int", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "uint", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint?", "nint", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "nuint", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint?", "long", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint?", "ulong", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint?", "float", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nint?", "double", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nint?", "decimal");
+            getArgs(builder, "*", "nint?", "System.IntPtr");
+            getArgs(builder, "*", "nint?", "System.UIntPtr");
+            getArgs(builder, "*", "nint?", "bool?");
+            getArgs(builder, "*", "nint?", "char?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "sbyte?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "byte?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "short?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "ushort?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "int?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "uint?", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint?", "nint?", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "*", "nint?", "nuint?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint?", "long?", "long long.op_Multiply(long left, long right)");
+            getArgs(builder, "*", "nint?", "ulong?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nint?", "float?", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nint?", "double?", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nint?", "decimal?");
+            getArgs(builder, "*", "nint?", "System.IntPtr?");
+            getArgs(builder, "*", "nint?", "System.UIntPtr?");
+            getArgs(builder, "*", "nuint", "object");
+            getArgs(builder, "*", "nuint", "string");
+            getArgs(builder, "*", "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") });
+            getArgs(builder, "*", "nuint", "bool");
+            getArgs(builder, "*", "nuint", "char", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "sbyte", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "byte", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "short", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "ushort", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "int", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint", "uint", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "nint", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint", "nuint", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "long", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint", "ulong", "ulong ulong.op_Multiply(ulong left, ulong right)");
+            getArgs(builder, "*", "nuint", "float", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nuint", "double", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nuint", "decimal");
+            getArgs(builder, "*", "nuint", "System.IntPtr");
+            getArgs(builder, "*", "nuint", "System.UIntPtr");
+            getArgs(builder, "*", "nuint", "bool?");
+            getArgs(builder, "*", "nuint", "char?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "sbyte?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "byte?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "short?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "ushort?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "int?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint", "uint?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "nint?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint", "nuint?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "long?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint", "ulong?", "ulong ulong.op_Multiply(ulong left, ulong right)");
+            getArgs(builder, "*", "nuint", "float?", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nuint", "double?", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nuint", "decimal?");
+            getArgs(builder, "*", "nuint", "System.IntPtr?");
+            getArgs(builder, "*", "nuint", "System.UIntPtr?");
+            getArgs(builder, "*", "nuint?", "object");
+            getArgs(builder, "*", "nuint?", "string");
+            getArgs(builder, "*", "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, "x * y") });
+            getArgs(builder, "*", "nuint?", "bool");
+            getArgs(builder, "*", "nuint?", "char", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "sbyte", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "byte", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "short", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "ushort", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "int", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint?", "uint", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "nint", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint?", "nuint", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "long", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint?", "ulong", "ulong ulong.op_Multiply(ulong left, ulong right)");
+            getArgs(builder, "*", "nuint?", "float", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nuint?", "double", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nuint?", "decimal");
+            getArgs(builder, "*", "nuint?", "System.IntPtr");
+            getArgs(builder, "*", "nuint?", "System.UIntPtr");
+            getArgs(builder, "*", "nuint?", "bool?");
+            getArgs(builder, "*", "nuint?", "char?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "sbyte?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "byte?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "short?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "ushort?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "int?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint?", "uint?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "nint?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint?", "nuint?", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint?", "long?", "float float.op_Multiply(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "*", "nuint?", "ulong?", "ulong ulong.op_Multiply(ulong left, ulong right)");
+            getArgs(builder, "*", "nuint?", "float?", "float float.op_Multiply(float left, float right)");
+            getArgs(builder, "*", "nuint?", "double?", "double double.op_Multiply(double left, double right)");
+            getArgs(builder, "*", "nuint?", "decimal?");
+            getArgs(builder, "*", "nuint?", "System.IntPtr?");
+            getArgs(builder, "*", "nuint?", "System.UIntPtr?");
+
+            // Addition
             getArgs(builder, "+", "nint", "object");
             getArgs(builder, "+", "nint", "string", "string string.op_Addition(object left, string right)", "string string.op_Addition(string left, object right)");
             getArgs(builder, "+", "nint", "void*", "void* void*.op_Addition(long left, void* right)", "void* void*.op_Addition(void* left, long right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
@@ -981,9 +1131,9 @@ $@"class Program
             getArgs(builder, "+", "nint", "int", "nint nint.op_Addition(nint left, nint right)");
             getArgs(builder, "+", "nint", "uint", "long long.op_Addition(long left, long right)");
             getArgs(builder, "+", "nint", "nint", "nint nint.op_Addition(nint left, nint right)");
-            getArgs(builder, "+", "nint", "nuint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "nuint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint", "long", "long long.op_Addition(long left, long right)");
-            getArgs(builder, "+", "nint", "ulong", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "ulong", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint", "float", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nint", "double", "double double.op_Addition(double left, double right)");
             getArgs(builder, "+", "nint", "decimal");
@@ -998,9 +1148,9 @@ $@"class Program
             getArgs(builder, "+", "nint", "int?", "nint nint.op_Addition(nint left, nint right)");
             getArgs(builder, "+", "nint", "uint?", "long long.op_Addition(long left, long right)");
             getArgs(builder, "+", "nint", "nint?", "nint nint.op_Addition(nint left, nint right)");
-            getArgs(builder, "+", "nint", "nuint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "nuint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint", "long?", "long long.op_Addition(long left, long right)");
-            getArgs(builder, "+", "nint", "ulong?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "ulong?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint", "float?", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nint", "double?", "double double.op_Addition(double left, double right)");
             getArgs(builder, "+", "nint", "decimal?");
@@ -1018,9 +1168,9 @@ $@"class Program
             getArgs(builder, "+", "nint?", "int", "nint nint.op_Addition(nint left, nint right)");
             getArgs(builder, "+", "nint?", "uint", "long long.op_Addition(long left, long right)");
             getArgs(builder, "+", "nint?", "nint", "nint nint.op_Addition(nint left, nint right)");
-            getArgs(builder, "+", "nint?", "nuint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint?", "nuint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint?", "long", "long long.op_Addition(long left, long right)");
-            getArgs(builder, "+", "nint?", "ulong", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint?", "ulong", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint?", "float", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nint?", "double", "double double.op_Addition(double left, double right)");
             getArgs(builder, "+", "nint?", "decimal");
@@ -1035,9 +1185,9 @@ $@"class Program
             getArgs(builder, "+", "nint?", "int?", "nint nint.op_Addition(nint left, nint right)");
             getArgs(builder, "+", "nint?", "uint?", "long long.op_Addition(long left, long right)");
             getArgs(builder, "+", "nint?", "nint?", "nint nint.op_Addition(nint left, nint right)");
-            getArgs(builder, "+", "nint?", "nuint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint?", "nuint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint?", "long?", "long long.op_Addition(long left, long right)");
-            getArgs(builder, "+", "nint?", "ulong?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint?", "ulong?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nint?", "float?", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nint?", "double?", "double double.op_Addition(double left, double right)");
             getArgs(builder, "+", "nint?", "decimal?");
@@ -1052,11 +1202,11 @@ $@"class Program
             getArgs(builder, "+", "nuint", "byte", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint", "short", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint", "ushort", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint", "int", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "int", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint", "uint", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint", "nint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "nint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint", "nuint", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint", "long", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "long", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint", "ulong", "ulong ulong.op_Addition(ulong left, ulong right)");
             getArgs(builder, "+", "nuint", "float", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nuint", "double", "double double.op_Addition(double left, double right)");
@@ -1069,11 +1219,11 @@ $@"class Program
             getArgs(builder, "+", "nuint", "byte?", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint", "short?", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint", "ushort?", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint", "int?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "int?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint", "uint?", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint", "nint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "nint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint", "nuint?", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint", "long?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "long?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint", "ulong?", "ulong ulong.op_Addition(ulong left, ulong right)");
             getArgs(builder, "+", "nuint", "float?", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nuint", "double?", "double double.op_Addition(double left, double right)");
@@ -1089,11 +1239,11 @@ $@"class Program
             getArgs(builder, "+", "nuint?", "byte", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint?", "short", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint?", "ushort", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint?", "int", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint?", "int", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint?", "uint", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint?", "nint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint?", "nint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint?", "nuint", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint?", "long", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint?", "long", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint?", "ulong", "ulong ulong.op_Addition(ulong left, ulong right)");
             getArgs(builder, "+", "nuint?", "float", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nuint?", "double", "double double.op_Addition(double left, double right)");
@@ -1106,17 +1256,171 @@ $@"class Program
             getArgs(builder, "+", "nuint?", "byte?", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint?", "short?", "nuint nuint.op_Addition(nuint left, nuint right)");
             getArgs(builder, "+", "nuint?", "ushort?", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint?", "int?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint?", "int?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint?", "uint?", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint?", "nint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint?", "nint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint?", "nuint?", "nuint nuint.op_Addition(nuint left, nuint right)");
-            getArgs(builder, "+", "nuint?", "long?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint?", "long?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
             getArgs(builder, "+", "nuint?", "ulong?", "ulong ulong.op_Addition(ulong left, ulong right)");
             getArgs(builder, "+", "nuint?", "float?", "float float.op_Addition(float left, float right)");
             getArgs(builder, "+", "nuint?", "double?", "double double.op_Addition(double left, double right)");
             getArgs(builder, "+", "nuint?", "decimal?");
             getArgs(builder, "+", "nuint?", "System.IntPtr?");
             getArgs(builder, "+", "nuint?", "System.UIntPtr?");
+
+            // PROTOTYPE: Shift
+
+            // Equality
+            getArgs(builder, "==", "nint", "object");
+            getArgs(builder, "==", "nint", "string");
+            getArgs(builder, "==", "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "nint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "void*", "nint") });
+            getArgs(builder, "==", "nint", "bool");
+            getArgs(builder, "==", "nint", "char", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "sbyte", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "byte", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "short", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "ushort", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "int", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "uint", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint", "nint", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "nuint", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint", "long", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint", "ulong", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint", "float", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nint", "double", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nint", "decimal"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            //getArgs(builder, "==", "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+            getArgs(builder, "==", "nint", "System.UIntPtr");
+            getArgs(builder, "==", "nint", "bool?");
+            getArgs(builder, "==", "nint", "char?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "sbyte?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "byte?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "short?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "ushort?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "int?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "uint?", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint", "nint?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint", "nuint?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint", "long?", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint", "ulong?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint", "float?", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nint", "double?", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nint", "decimal?"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            //getArgs(builder, "==", "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+            getArgs(builder, "==", "nint", "System.UIntPtr?");
+            getArgs(builder, "==", "nint", "object");
+            getArgs(builder, "==", "nint?", "string");
+            getArgs(builder, "==", "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "nint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "void*", "nint?") });
+            getArgs(builder, "==", "nint?", "bool");
+            getArgs(builder, "==", "nint?", "char", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "sbyte", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "byte", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "short", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "ushort", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "int", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "uint", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint?", "nint", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "nuint", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint?", "long", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint?", "ulong", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint?", "float", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nint?", "double", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nint?", "decimal"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            //getArgs(builder, "==", "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+            getArgs(builder, "==", "nint?", "System.UIntPtr");
+            getArgs(builder, "==", "nint?", "bool?");
+            getArgs(builder, "==", "nint?", "char?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "sbyte?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "byte?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "short?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "ushort?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "int?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "uint?", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint?", "nint?", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "==", "nint?", "nuint?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint?", "long?", "bool long.op_Equality(long left, long right)");
+            getArgs(builder, "==", "nint?", "ulong?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nint?", "float?", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nint?", "double?", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nint?", "decimal?"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            //getArgs(builder, "==", "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+            getArgs(builder, "==", "nint?", "System.UIntPtr?");
+            getArgs(builder, "==", "nuint", "object");
+            getArgs(builder, "==", "nuint", "string");
+            getArgs(builder, "==", "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "nuint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "void*", "nuint") });
+            getArgs(builder, "==", "nuint", "bool");
+            getArgs(builder, "==", "nuint", "char", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "sbyte", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "byte", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "short", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "ushort", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "int", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint", "uint", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "nint", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint", "nuint", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "long", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint", "ulong", "bool ulong.op_Equality(ulong left, ulong right)");
+            getArgs(builder, "==", "nuint", "float", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nuint", "double", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nuint", "decimal"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            getArgs(builder, "==", "nuint", "System.IntPtr");
+            //getArgs(builder, "==", "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            getArgs(builder, "==", "nuint", "bool?");
+            getArgs(builder, "==", "nuint", "char?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "sbyte?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "byte?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "short?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "ushort?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "int?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint", "uint?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "nint?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint", "nuint?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "long?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint", "ulong?", "bool ulong.op_Equality(ulong left, ulong right)");
+            getArgs(builder, "==", "nuint", "float?", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nuint", "double?", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nuint", "decimal?"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            getArgs(builder, "==", "nuint", "System.IntPtr?");
+            //getArgs(builder, "==", "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+            getArgs(builder, "==", "nuint?", "object");
+            getArgs(builder, "==", "nuint?", "string");
+            getArgs(builder, "==", "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "void*", "nuint?") });
+            getArgs(builder, "==", "nuint?", "bool");
+            getArgs(builder, "==", "nuint?", "char", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "sbyte", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "byte", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "short", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "ushort", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "int", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint?", "uint", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "nint", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint?", "nuint", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "long", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint?", "ulong", "bool ulong.op_Equality(ulong left, ulong right)");
+            getArgs(builder, "==", "nuint?", "float", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nuint?", "double", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nuint?", "decimal"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            getArgs(builder, "==", "nuint?", "System.IntPtr");
+            //getArgs(builder, "==", "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            getArgs(builder, "==", "nuint?", "bool?");
+            getArgs(builder, "==", "nuint?", "char?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "sbyte?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "byte?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "short?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "ushort?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "int?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint?", "uint?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "nint?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint?", "nuint?", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint?", "long?", "bool float.op_Equality(float left, float right)"); // PROTOTYPE: Is it correct to promote args to float?
+            getArgs(builder, "==", "nuint?", "ulong?", "bool ulong.op_Equality(ulong left, ulong right)");
+            getArgs(builder, "==", "nuint?", "float?", "bool float.op_Equality(float left, float right)");
+            getArgs(builder, "==", "nuint?", "double?", "bool double.op_Equality(double left, double right)");
+            getArgs(builder, "==", "nuint?", "decimal?"); // PROTOTYPE: bool decimal.op_Equality(decimal left, decimal right)
+            getArgs(builder, "==", "nuint?", "System.IntPtr?");
+            //getArgs(builder, "==", "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+
+            // PROTOTYPE: Logical
 
             return builder;
         }
