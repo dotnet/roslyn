@@ -12,6 +12,7 @@ using System.Linq;
 using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic, ProjectId? projectId = null)
+        public static DiagnosticData Create(Diagnostic diagnostic, Project? project, OptionSet options)
         {
             Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
@@ -281,15 +282,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(workspace),
+                diagnostic.GetBingHelpMessage(options),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
                 diagnostic.Properties,
-                projectId,
-                language: workspace.CurrentSolution.GetProject(projectId)?.Language,
+                project?.Id,
+                language: project?.Language,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(document.Project.Solution.Workspace),
+                diagnostic.GetBingHelpMessage(document.Project.Solution.Options),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -370,14 +371,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
         /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
         /// </summary>
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, [NotNullWhen(true)]out DiagnosticData? diagnosticData)
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, Project project, [NotNullWhen(true)]out DiagnosticData? diagnosticData)
         {
             diagnosticData = null;
-            var project = workspace.CurrentSolution.GetProject(projectId);
-            if (project == null)
-            {
-                return false;
-            }
 
             DiagnosticSeverity effectiveSeverity;
             if (project.SupportsCompilation)
@@ -399,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-            diagnosticData = diagnostic.ToDiagnosticData(project);
+            diagnosticData = Create(diagnostic, project, project.Solution.Options);
             return true;
         }
 

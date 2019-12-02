@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
                 var analyzerMap = pooledObject.Object;
 
-                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace)));
+                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Options)));
                 if (analyzerMap.Count == 0)
                 {
                     return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;

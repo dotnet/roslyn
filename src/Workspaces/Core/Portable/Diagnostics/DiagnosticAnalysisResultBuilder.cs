@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             Contract.ThrowIfTrue(Project.SupportsCompilation);
 
-            var workspace = Project.Solution.Workspace;
+            var options = Project.Solution.Options;
 
             foreach (var diagnostic in diagnostics)
             {
@@ -87,14 +88,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             else
                             {
                                 // non local diagnostics without location
-                                AddOtherDiagnostic(DiagnosticData.Create(workspace, diagnostic, Project.Id));
+                                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
                             }
 
                             break;
                         }
 
                     case LocationKind.None:
-                        AddOtherDiagnostic(DiagnosticData.Create(workspace, diagnostic, Project.Id));
+                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
                         break;
 
                     case LocationKind.SourceFile:
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private void AddDiagnostics(
             ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, SyntaxTree? tree, IEnumerable<Diagnostic> diagnostics)
         {
-            var workspace = Project.Solution.Workspace;
+            var options = Project.Solution.Options;
 
             foreach (var diagnostic in diagnostics)
             {
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                         break;
 
                     case LocationKind.None:
-                        AddOtherDiagnostic(DiagnosticData.Create(workspace, diagnostic, Project.Id));
+                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
                         break;
 
                     case LocationKind.SourceFile:
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                         else
                         {
                             // non local diagnostics without location
-                            AddOtherDiagnostic(DiagnosticData.Create(workspace, diagnostic, Project.Id));
+                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project, options));
                         }
 
                         break;

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -21,61 +22,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class Extensions
     {
-        public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
+        public static readonly CultureInfo USCultureInfo = new CultureInfo("en-US");
 
-        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace? workspace)
+        public static string GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
         {
             // We use the ENU version of the message for bing search.
-            return AllowPotentiallySensitiveInformationInBingHelpQuery(workspace) ?
-                diagnostic.GetMessage(s_USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
+            return options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch) ?
+                diagnostic.GetMessage(USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
         }
 
         public static string GetBingHelpMessage(this DiagnosticDescriptor descriptor)
         {
             // We use the ENU version of the message for bing search.
-            return descriptor.MessageFormat.ToString(s_USCultureInfo);
-        }
-
-        private static bool AllowPotentiallySensitiveInformationInBingHelpQuery(Workspace? workspace)
-        {
-            if (workspace == null)
-            {
-                return false;
-            }
-
-            return workspace.Options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch);
-        }
-
-        public static DiagnosticData GetPrimaryDiagnosticData(this CodeFix fix)
-        {
-            return fix.PrimaryDiagnostic.ToDiagnosticData(fix.Project);
-        }
-
-        public static ImmutableArray<DiagnosticData> GetDiagnosticData(this CodeFix fix)
-        {
-            return fix.Diagnostics.SelectAsArray(d => d.ToDiagnosticData(fix.Project));
-        }
-
-        public static DiagnosticData ToDiagnosticData(this Diagnostic diagnostic, Project project)
-        {
-            if (diagnostic.Location.IsInSource)
-            {
-                var document = project.GetDocument(diagnostic.Location.SourceTree);
-                if (document != null)
-                {
-                    return DiagnosticData.Create(document, diagnostic);
-                }
-            }
-            else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
-            {
-                var document = project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
-                if (document != null)
-                {
-                    return DiagnosticData.Create(document, diagnostic);
-                }
-            }
-
-            return DiagnosticData.Create(project.Solution.Workspace, diagnostic, project.Id);
+            return descriptor.MessageFormat.ToString(USCultureInfo);
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)

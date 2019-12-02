@@ -502,12 +502,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
 
                 ' check reporting diagnostic to a project that doesn't exist
-                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, ProjectId.CreateFromSerialized(Guid.NewGuid(), "dummy"))
+                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, ProjectId.CreateFromSerialized(Guid.NewGuid(), "dummy"))
                 Dim diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
                 Assert.Equal(0, diagnostics.Count())
 
                 ' check workspace diagnostic reporting
-                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, Nothing)
+                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, projectId:=Nothing)
                 diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
 
                 Assert.Equal(1, diagnostics.Count())
