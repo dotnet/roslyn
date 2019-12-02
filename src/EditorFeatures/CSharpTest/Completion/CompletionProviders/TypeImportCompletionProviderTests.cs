@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new TypeImportCompletionProvider();
+            return typeof(TypeImportCompletionProvider);
         }
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
@@ -44,11 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds);
         }
 
-        protected override ExportProvider GetExportProvider()
+        protected override ComposableCatalog GetExportCatalog()
         {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
+            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
         }
 
         #region "Option tests"

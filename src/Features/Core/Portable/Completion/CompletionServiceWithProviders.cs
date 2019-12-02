@@ -33,21 +33,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private readonly Workspace _workspace;
 
-        private readonly ImmutableArray<CompletionProvider>? _exclusiveProviders;
-
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
 
         protected CompletionServiceWithProviders(Workspace workspace)
-            : this(workspace, exclusiveProviders: null)
-        {
-        }
-
-        internal CompletionServiceWithProviders(
-            Workspace workspace,
-            ImmutableArray<CompletionProvider>? exclusiveProviders = null)
         {
             _workspace = workspace;
-            _exclusiveProviders = exclusiveProviders;
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
             _getProviderByName = GetProviderByName;
@@ -100,11 +90,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
         {
-            if (_exclusiveProviders.HasValue)
-            {
-                return _exclusiveProviders.Value;
-            }
-
             var imported = GetImportedProviders()
                 .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
                 .Select(lz => lz.Value);
@@ -545,9 +530,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 _completionServiceWithProviders = completionServiceWithProviders;
             }
-
-            internal ImmutableArray<CompletionProvider>? ExclusiveProviders
-                => _completionServiceWithProviders._exclusiveProviders;
 
             internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
                 => _completionServiceWithProviders.GetAllProviders(roles);

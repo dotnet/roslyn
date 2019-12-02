@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Composition
@@ -30,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Sub
 
-        Protected Overrides Function GetExportProvider() As ExportProvider
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService))).CreateExportProvider()
+        Protected Overrides Function GetExportCatalog() As ComposableCatalog
+            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New ExtensionMethodImportCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(ExtensionMethodImportCompletionProvider)
         End Function
 
         Public Enum ReferenceType

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider() => new TupleNameCompletionProvider();
+        internal override Type GetCompletionProviderType() => typeof(TupleNameCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterOpenParen()

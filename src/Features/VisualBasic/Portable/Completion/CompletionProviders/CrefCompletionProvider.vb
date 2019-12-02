@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private ReadOnly _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
+        Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
@@ -36,10 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         <ImportingConstructor>
         Public Sub New()
-        End Sub
-
-        Public Sub New(Optional testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode) = Nothing)
-            _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt
         End Sub
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
@@ -275,5 +271,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return s_defaultRules.WithCommitCharacterRules(commitRules)
         End Function
+
+        Friend Function GetTestAccessor() As TestAccessor
+            Return New TestAccessor(Me)
+        End Function
+
+        Friend Structure TestAccessor
+            Private ReadOnly _crefCompletionProvider As CrefCompletionProvider
+
+            Public Sub New(crefCompletionProvider As CrefCompletionProvider)
+                _crefCompletionProvider = crefCompletionProvider
+            End Sub
+
+            Public Sub SetSpeculativeNodeCallback(value As Action(Of SyntaxNode))
+                _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value
+            End Sub
+        End Structure
     End Class
 End Namespace

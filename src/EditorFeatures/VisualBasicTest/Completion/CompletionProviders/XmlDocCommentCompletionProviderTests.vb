@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -15,8 +14,8 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New XmlDocCommentCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(XmlDocCommentCompletionProvider)
         End Function
 
         Private Protected Overrides Async Function VerifyWorkerAsync(

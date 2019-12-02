@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -17,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new OverrideCompletionProvider();
+            return typeof(OverrideCompletionProvider);
         }
 
         protected override void SetWorkspaceOptions(TestWorkspace workspace)

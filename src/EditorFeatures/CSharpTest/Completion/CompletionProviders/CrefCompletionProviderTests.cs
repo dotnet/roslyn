@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new CrefCompletionProvider();
+            return typeof(CrefCompletionProvider);
         }
 
         private protected override async Task VerifyWorkerAsync(
@@ -439,9 +440,14 @@ class C
 class C
 {
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text });
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, ExportProvider);
             var called = false;
-            var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
+
+            var hostDocument = workspace.DocumentWithCursor;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var service = GetCompletionService(document.Project);
+            var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty).Single());
+            provider.GetTestAccessor().SetSpeculativeNodeCallback(n =>
             {
                 // asserts that we aren't be asked speculate on nodes inside documentation trivia.
                 // This verifies that the provider is asking for a speculative SemanticModel
@@ -452,10 +458,6 @@ class C
                 Assert.Null(parent);
             });
 
-            var hostDocument = workspace.DocumentWithCursor;
-            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            var service = CreateCompletionService(workspace,
-                ImmutableArray.Create<CompletionProvider>(provider));
             var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, RoslynTrigger.Invoke);
 
             Assert.True(called);

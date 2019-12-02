@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new OverrideCompletionProvider();
+            return typeof(OverrideCompletionProvider);
         }
 
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
@@ -2360,14 +2361,14 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
             var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
             var document = solution.GetDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
-            var service = GetCompletionService(testWorkspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
             var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
@@ -2614,14 +2615,14 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
             var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
             var document = solution.GetDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
-            var service = GetCompletionService(testWorkspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
             var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
@@ -2667,14 +2668,14 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
             var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
             var document = solution.GetDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
-            var service = GetCompletionService(testWorkspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, cursorPosition, triggerInfo);
             var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
@@ -2768,12 +2769,12 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, ExportProvider);
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
             var oldTree = await document.GetSyntaxTreeAsync();
@@ -2895,7 +2896,7 @@ namespace ClassLibrary7
             // P1 has a metadata reference to P3 and therefore doesn't get the transitive
             // reference to P2. If we try to override Goo, the missing "Missing" type will
             // prevent round tripping the symbolkey.
-            using var workspace = TestWorkspace.Create(text);
+            using var workspace = TestWorkspace.Create(text, exportProvider: ExportProvider);
             var compilation = await workspace.CurrentSolution.Projects.First(p => p.Name == "P3").GetCompilationAsync();
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
@@ -2909,7 +2910,7 @@ namespace ClassLibrary7
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
             Assert.True(completionList.Items.Any(c => c.DisplayText == "Bar()"));
@@ -2931,7 +2932,7 @@ public class SomeClass : Base
     </Project>
 </Workspace>");
 
-            using var workspace = TestWorkspace.Create(source);
+            using var workspace = TestWorkspace.Create(source, exportProvider: ExportProvider);
             var before = @"
 public abstract class Base
 {
@@ -2961,7 +2962,7 @@ public class SomeClass : Base
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
             var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 

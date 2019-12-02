@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -18,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new ObjectInitializerCompletionProvider();
+            return typeof(ObjectInitializerCompletionProvider);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -570,13 +571,13 @@ class D
     }
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
             var item = completionList.Items.First();
 
@@ -1138,13 +1139,13 @@ class Program
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
             if (completionList != null)

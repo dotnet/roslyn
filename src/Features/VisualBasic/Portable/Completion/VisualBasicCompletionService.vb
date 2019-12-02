@@ -30,9 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
         Private ReadOnly _workspace As Workspace
 
-        Public Sub New(workspace As Workspace,
-                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider)? = Nothing)
-            MyBase.New(workspace, exclusiveProviders)
+        Public Sub New(workspace As Workspace)
+            MyBase.New(workspace)
             _workspace = workspace
         End Sub
 

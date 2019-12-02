@@ -58,16 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-        private readonly Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
+        private Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
 
         [ImportingConstructor]
         public CrefCompletionProvider()
         {
-        }
-
-        public CrefCompletionProvider(Action<SyntaxNode> testSpeculativeNodeCallbackOpt = null)
-        {
-            _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt;
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
@@ -428,6 +423,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CrefCompletionProvider _crefCompletionProvider;
+
+            public TestAccessor(CrefCompletionProvider crefCompletionProvider)
+            {
+                _crefCompletionProvider = crefCompletionProvider;
+            }
+
+            public void SetSpeculativeNodeCallback(Action<SyntaxNode> value)
+                => _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value;
         }
     }
 }

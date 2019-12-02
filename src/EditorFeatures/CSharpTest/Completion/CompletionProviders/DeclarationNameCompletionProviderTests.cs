@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new DeclarationNameCompletionProvider();
+            return typeof(DeclarationNameCompletionProvider);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1264,7 +1264,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DisabledByOption()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             var originalOptions = WorkspaceFixture.GetWorkspace().Options;
             try
             {
@@ -1457,7 +1457,7 @@ public class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideClass()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             var originalOptions = workspace.Options;
 
             try
@@ -1490,7 +1490,7 @@ class Configuration
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideMethod()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             var originalOptions = workspace.Options;
 
             try

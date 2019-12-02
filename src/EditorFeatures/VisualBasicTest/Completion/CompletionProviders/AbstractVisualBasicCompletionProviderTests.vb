@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -19,11 +18,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(fileContents)
+            Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
         End Function
 
-        Friend Overrides Function CreateCompletionService(workspace As Workspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
-            Return New VisualBasicCompletionService(workspace, exclusiveProviders)
+        Friend Overrides Function GetCompletionService(project As Project) As CompletionServiceWithProviders
+            Return Assert.IsType(Of VisualBasicCompletionService)(MyBase.GetCompletionService(project))
         End Function
 
         Private Protected Overrides Function BaseVerifyWorkerAsync(
@@ -112,14 +111,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
-                initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
+                initialMarkup As String, textTypedSoFar As String, expected As Boolean, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular) As Task
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, exportProvider:=ExportProvider)
                 Dim hostDocument = workspace.DocumentWithCursor
+                workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind)
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim service = GetCompletionService(workspace)
+                Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 

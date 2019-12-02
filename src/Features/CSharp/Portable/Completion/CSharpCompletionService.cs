@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
@@ -15,10 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCompletionServiceFactory()
         {
         }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
@@ -29,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     {
         private readonly Workspace _workspace;
 
-        public CSharpCompletionService(
-            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
-            : base(workspace, exclusiveProviders)
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        public CSharpCompletionService(Workspace workspace)
+            : base(workspace)
         {
             _workspace = workspace;
         }

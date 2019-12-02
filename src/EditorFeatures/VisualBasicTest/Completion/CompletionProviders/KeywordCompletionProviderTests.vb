@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -12,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New KeywordCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(KeywordCompletionProvider)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

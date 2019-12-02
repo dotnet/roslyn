@@ -36,16 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ExportProvider GetExportProvider()
+        protected override ComposableCatalog GetExportCatalog()
         {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
+            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new ExtensionMethodImportCompletionProvider();
+            return typeof(ExtensionMethodImportCompletionProvider);
         }
 
         public enum ReferenceType
