@@ -14,12 +14,8 @@
   </PropertyGroup>
   <!-- Setting Template Content to None -->
   <ItemGroup>
-    <None Include="ProjectTemplates\CSharp\**\*.cs" />
-    <None Include="ProjectTemplates\CSharp\**\*.csproj" />
-    <None Include="ProjectTemplates\**\*.vsixmanifest" />
-    <None Include="ProjectTemplates\**\CodeRefactoring\**\*.vstemplate" />
-    <None Include="ProjectTemplates\**\Diagnostic\**\*.vstemplate" />
-    <None Include="ProjectTemplates\**\ConsoleApplication\**\*.vstemplate" />
+    <None Include="ItemTemplates\**\*" />
+    <None Include="ProjectTemplates\**\*" />
     <None Include="*.vstemplate" />
   </ItemGroup>
   <!-- C# Item Templates -->
