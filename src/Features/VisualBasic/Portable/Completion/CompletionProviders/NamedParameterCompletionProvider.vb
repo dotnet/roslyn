@@ -10,8 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(NamedParameterCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(EnumCompletionProvider))>
+    <[Shared]>
     Partial Friend Class NamedParameterCompletionProvider
         Inherits CommonCompletionProvider
 

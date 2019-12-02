@@ -7,8 +7,12 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Completion
+Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(KeywordCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(FirstBuiltInCompletionProvider))>
+    <[Shared]>
     Friend Class KeywordCompletionProvider
         Inherits AbstractKeywordCompletionProvider(Of VisualBasicSyntaxContext)
 

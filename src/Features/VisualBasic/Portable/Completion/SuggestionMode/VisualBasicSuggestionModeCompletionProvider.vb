@@ -1,14 +1,19 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.SuggestionMode
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
+    <ExportCompletionProvider(NameOf(VisualBasicSuggestionModeCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(NamedParameterCompletionProvider))>
+    <[Shared]>
     Friend Class VisualBasicSuggestionModeCompletionProvider
         Inherits SuggestionModeCompletionProvider
 

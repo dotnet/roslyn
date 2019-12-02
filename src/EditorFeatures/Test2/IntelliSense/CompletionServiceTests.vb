@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
-Imports System.Threading.Tasks
+Imports System.Composition
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -20,7 +19,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Document>
                 </Project>
             </Workspace>
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+
+            Dim exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestCompletionProvider))).CreateExportProvider()
+            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace)
 
@@ -46,14 +47,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     Return "NoCompilation"
                 End Get
             End Property
-
-            Private Shared s_providers As ImmutableArray(Of CompletionProvider) = ImmutableArray.Create(Of CompletionProvider)(New TestCompletionProvider())
-
-            Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
-                Return s_providers
-            End Function
         End Class
 
+        <ExportCompletionProvider(NameOf(TestCompletionProvider), "NoCompilation")>
+        <[Shared]>
+        <PartNotDiscoverable>
         Private Class TestCompletionProvider
             Inherits CompletionProvider
 

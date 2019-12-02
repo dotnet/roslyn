@@ -9,8 +9,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports System.Collections.Immutable
+Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(HandlesClauseCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(ImplementsClauseCompletionProvider))>
+    <[Shared]>
     Partial Friend Class HandlesClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -13,6 +14,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(CrefCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(PartialTypeCompletionProvider))>
+    <[Shared]>
     Partial Friend Class CrefCompletionProvider
         Inherits AbstractCrefCompletionProvider
 
@@ -29,6 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Sub New(Optional testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode) = Nothing)
             _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt
