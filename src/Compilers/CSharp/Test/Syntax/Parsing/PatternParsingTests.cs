@@ -7966,5 +7966,173 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithDeclarationPattern()
+        {
+            UsingExpression("o is C c + d",
+                // (1,10): error CS1073: Unexpected token '+'
+                // o is C c + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 10)
+                );
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithRecursivePattern()
+        {
+            UsingExpression("o is {} + d",
+                // (1,9): error CS1073: Unexpected token '+'
+                // o is {} + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 9)
+                );
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithTypeTest()
+        {
+            UsingExpression("o is int + d",
+                // (1,6): error CS1525: Invalid expression term 'int'
+                // o is int + d
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 6)
+                );
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithBlockLambda()
+        {
+            UsingExpression("()=>{} + d",
+                // (1,8): error CS1073: Unexpected token '+'
+                // ()=>{} + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 8)
+                );
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithAnonymousMethod()
+        {
+            UsingExpression("delegate {} + d",
+                // (1,13): error CS1073: Unexpected token '+'
+                // delegate {} + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 13)
+                );
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.AnonymousMethodExpression);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+            }
+            EOF();
+        }
     }
 }
