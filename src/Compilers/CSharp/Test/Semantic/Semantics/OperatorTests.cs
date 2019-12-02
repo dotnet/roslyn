@@ -10906,7 +10906,7 @@ class M
         }
 
         [Fact, WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
-        public void Bug39975()
+        public void EnsureOperandsConvertedInErrorExpression_01()
         {
             string source =
 @"class C
