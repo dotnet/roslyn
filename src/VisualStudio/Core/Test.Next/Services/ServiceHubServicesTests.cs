@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.Shared;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -337,7 +337,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static Solution UpdateSolution(Solution solution, string projectName, string documentName, string csAddition, string vbAddition)
         {
-            var (project, document) = GetProjectAndDocument(solution, projectName, documentName);
+            var (_, document) = GetProjectAndDocument(solution, projectName, documentName);
 
             return document.WithText(GetNewText(document, csAddition, vbAddition)).Project.Solution;
         }
