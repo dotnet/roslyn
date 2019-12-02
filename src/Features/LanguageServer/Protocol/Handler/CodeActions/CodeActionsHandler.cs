@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -48,56 +49,76 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var result = new ArrayBuilder<object>();
             foreach (var codeAction in codeActions)
             {
+                if (!clientSupportsWorkspaceEdits)
+                {
+                    AddCodeActionWithoutIncludingChanges(request, result, codeAction);
+                    continue;
+                }
+
                 // If we have a codeaction with a single applychangesoperation, we want to send the codeaction with the edits.
                 var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(keepThreadContext);
-                if (clientSupportsWorkspaceEdits && operations.Length == 1 && operations.First() is ApplyChangesOperation applyChangesOperation)
+                if (operations.Length == 1 && operations.First() is ApplyChangesOperation applyChangesOperation)
                 {
-                    var workspaceEdit = new LSP.WorkspaceEdit { Changes = new Dictionary<string, LSP.TextEdit[]>() };
-                    var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
-                    var changedDocuments = changes.GetProjectChanges().SelectMany(pc => pc.GetChangedDocuments());
-
-                    foreach (var docId in changedDocuments)
-                    {
-                        var newDoc = applyChangesOperation.ChangedSolution.GetDocument(docId);
-                        var oldDoc = solution.GetDocument(docId);
-                        var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
-                        var textChanges = await newDoc.GetTextChangesAsync(oldDoc).ConfigureAwait(keepThreadContext);
-
-                        var edits = textChanges.Select(tc => new LSP.TextEdit
-                        {
-                            NewText = tc.NewText,
-                            Range = ProtocolConversions.TextSpanToRange(tc.Span, oldText)
-                        });
-
-                        workspaceEdit.Changes.Add(newDoc.FilePath, edits.ToArray());
-                    }
-
-                    result.Add(new LSP.CodeAction { Title = codeAction.Title, Edit = workspaceEdit });
+                    await AddCodeActionIncludingChangesAsync(
+                        codeAction, applyChangesOperation, solution, result,
+                        keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext);
                 }
-                // Otherwise, send the original request to be executed on the host.
                 else
                 {
-                    // Note that we can pass through the params for this
-                    // request (like range, filename) because between getcodeaction and runcodeaction there can be no
-                    // changes on the IDE side (it will requery for codeactions if there are changes).
-                    result.Add(
-                        new LSP.Command
-                        {
-                            CommandIdentifier = RunCodeActionCommandName,
-                            Title = codeAction.Title,
-                            Arguments = new object[]
-                            {
+                    // Otherwise, send the original request to be executed on the host.
+                    AddCodeActionWithoutIncludingChanges(request, result, codeAction);
+                }
+            }
+
+            return result.ToArrayAndFree();
+        }
+
+        private static async Task AddCodeActionIncludingChangesAsync(
+            CodeActions.CodeAction codeAction, ApplyChangesOperation applyChangesOperation, Solution solution,
+            ArrayBuilder<object> result, bool keepThreadContext, CancellationToken cancellationToken)
+        {
+            var workspaceEdit = new LSP.WorkspaceEdit { Changes = new Dictionary<string, LSP.TextEdit[]>() };
+            var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
+            var changedDocuments = changes.GetProjectChanges().SelectMany(pc => pc.GetChangedDocuments());
+
+            foreach (var docId in changedDocuments)
+            {
+                var newDoc = applyChangesOperation.ChangedSolution.GetDocument(docId);
+                var oldDoc = solution.GetDocument(docId);
+                var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+                var textChanges = await newDoc.GetTextChangesAsync(oldDoc).ConfigureAwait(keepThreadContext);
+
+                var edits = textChanges.Select(tc => new LSP.TextEdit
+                {
+                    NewText = tc.NewText,
+                    Range = ProtocolConversions.TextSpanToRange(tc.Span, oldText)
+                });
+
+                workspaceEdit.Changes.Add(newDoc.FilePath, edits.ToArray());
+            }
+
+            result.Add(new LSP.CodeAction { Title = codeAction.Title, Edit = workspaceEdit });
+        }
+
+        private static void AddCodeActionWithoutIncludingChanges(CodeActionParams request, ArrayBuilder<object> result, CodeActions.CodeAction codeAction)
+        {
+            // Note that we can pass through the params for this
+            // request (like range, filename) because between getcodeaction and runcodeaction there can be no
+            // changes on the IDE side (it will requery for codeactions if there are changes).
+            result.Add(
+                new LSP.Command
+                {
+                    CommandIdentifier = RunCodeActionCommandName,
+                    Title = codeAction.Title,
+                    Arguments = new object[]
+                    {
                                 new RunCodeActionParams
                                 {
                                     CodeActionParams = request,
                                     Title = codeAction.Title
                                 }
-                            }
-                        });
-                }
-            }
-
-            return result.ToArrayAndFree();
+                    }
+                });
         }
     }
 }
