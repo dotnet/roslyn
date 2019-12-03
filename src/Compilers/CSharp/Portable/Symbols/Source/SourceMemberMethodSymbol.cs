@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceMemberMethodSymbol : SourceMethodSymbol, IAttributeTargetSymbol
+    internal abstract class SourceMemberMethodSymbol : SourceMethodSymbolWithAttributes, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
         protected struct Flags
@@ -179,9 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
-        // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
-        protected readonly SyntaxReference syntaxReferenceOpt;
-
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
         protected string lazyExpandedDocComment;
@@ -208,12 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, ImmutableArray<Location> locations)
+            : base(syntaxReferenceOpt)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
 
             _containingType = containingType;
-            this.syntaxReferenceOpt = syntaxReferenceOpt;
             this.locations = locations;
         }
 
@@ -392,14 +389,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.flags.IsExtensionMethod;
-            }
-        }
-
-        private bool IsMetadataVirtualLocked
-        {
-            get
-            {
-                return this.flags.IsMetadataVirtualLocked;
             }
         }
 
@@ -592,31 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Binder TryGetInMethodBinder(BinderFactory binderFactoryOpt = null)
         {
-            CSharpSyntaxNode contextNode = null;
-
-            CSharpSyntaxNode syntaxNode = this.SyntaxNode;
-
-            switch (syntaxNode)
-            {
-                case ConstructorDeclarationSyntax constructor:
-                    contextNode = constructor.Initializer ?? (CSharpSyntaxNode)constructor.Body ?? constructor.ExpressionBody;
-                    break;
-
-                case BaseMethodDeclarationSyntax method:
-                    contextNode = (CSharpSyntaxNode)method.Body ?? method.ExpressionBody;
-                    break;
-
-                case AccessorDeclarationSyntax accessor:
-                    contextNode = (CSharpSyntaxNode)accessor.Body ?? accessor.ExpressionBody;
-                    break;
-
-                case ArrowExpressionClauseSyntax arrowExpression:
-                    Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
-                                 arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
-                    contextNode = arrowExpression;
-                    break;
-            }
-
+            CSharpSyntaxNode contextNode = GetBinderContextNode();
             if (contextNode == null)
             {
                 return null;
@@ -824,6 +789,12 @@ done:
 // diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
+        }
+
+        protected sealed override void NoteAttributesComplete(bool forReturnType)
+        {
+            var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
+            state.NotePartComplete(part);
         }
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)

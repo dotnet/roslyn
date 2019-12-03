@@ -539,9 +539,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                private BoundNode VisitClosure(MethodSymbol closureSymbol, BoundBlock body)
+#nullable enable
+                private BoundNode? VisitClosure(MethodSymbol closureSymbol, BoundBlock? body)
                 {
-                    Debug.Assert((object)closureSymbol != null);
+                    RoslynDebug.Assert(closureSymbol is object);
+
+                    if (body is null)
+                    {
+                        // extern closure
+                        _currentScope.Closures.Add(new Closure(closureSymbol, blockSyntax: null));
+                        return null;
+                    }
+
 
                     // Closure is declared (lives) in the parent scope, but its
                     // variables are in a nested scope
@@ -567,6 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentClosure = oldClosure;
                     return result;
                 }
+#nullable restore
 
                 private void AddIfCaptured(Symbol symbol, SyntaxNode syntax)
                 {

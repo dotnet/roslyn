@@ -1737,6 +1737,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
+        #region diagnostics introduced for C# 9.0
+
+        ERR_AttributeNotOnLocalFunction = 8760,
+
+        #endregion diagnostics introduced for C# 9.0
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

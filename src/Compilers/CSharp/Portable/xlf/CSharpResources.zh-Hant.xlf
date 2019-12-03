@@ -42,6 +42,11 @@
         <target state="translated">屬性 '{0}' 在事件存取子上無效。其只有在 '{1}' 宣告上才有效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnLocalFunction">
+        <source>Attribute '{0}' is not valid on local functions.</source>
+        <target state="new">Attribute '{0}' is not valid on local functions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">因為自動實作屬性 '{0}' 有 'set' 存取子，所以無法將其標記為 'readonly'。</target>
@@ -832,6 +837,11 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">可延伸 fixed 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -9561,8 +9571,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'{0}' 是區域函式，因此必須具有主體。</target>
+        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <target state="needs-review-translation">'{0}' 是區域函式，因此必須具有主體。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

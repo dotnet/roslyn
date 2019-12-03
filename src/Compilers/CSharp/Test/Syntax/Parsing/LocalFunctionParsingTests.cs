@@ -570,6 +570,79 @@ class C
 
         [Fact]
         [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunction_NoBody()
+        {
+            UsingTree(@"
+class C
+{
+    void M()
+    {
+        void local();
+    }
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunction_Extern()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        extern void local();
+    }
+}";
+
+            UsingTree(code, TestOptions.RegularPreview).GetDiagnostics().Verify();
+
+            UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
+                // (6,9): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunction_Extern_Body()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        extern void local() { }
+    }
+}";
+
+            UsingTree(code, TestOptions.RegularPreview).GetDiagnostics().Verify();
+
+            UsingTree(code).GetDiagnostics().Verify(
+                // (6,9): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalVariable_Extern()
+        {
+            const string statement = "extern object obj;";
+            UsingStatement(statement, TestOptions.RegularPreview,
+                // (1,1): error CS0106: The modifier 'extern' is not valid for this item
+                // extern object obj;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(1, 1));
+
+            UsingStatement(statement,
+                // (1,1): error CS0106: The modifier 'extern' is not valid for this item
+                // extern object obj;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(1, 1));
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
         public void LocalFunctionAttribute_Error_LocalVariable()
         {
             var tree = UsingTree(@"

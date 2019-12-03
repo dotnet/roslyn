@@ -746,6 +746,203 @@ class C
         }
 
         [Fact]
+        public void LocalFunctionNoBody()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        local1();
+
+        void local1();
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,14): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
+                //         void local1();
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local1").WithArguments("local1()").WithLocation(8, 14));
+        }
+
+        [Fact]
+        public void LocalFunctionExtern()
+        {
+            const string text = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+
+        [DllImport(""a"")] extern void local1(); // 1, 2
+        [DllImport(""a"")] extern void local2() { } // 3, 4
+        [DllImport(""a"")] extern int local3() => 0; // 5, 6
+
+        static void local4(); // 7
+        static void local5() { }
+        static int local6() => 0;
+
+        [DllImport(""a"")] static extern void local7();
+        [DllImport(""a"")] static extern void local8() { } // 8
+        [DllImport(""a"")] static extern int local9() => 0; // 9
+
+        [DllImport(""a"")] extern static void local10();
+        [DllImport(""a"")] extern static void local11() { } // 10
+        [DllImport(""a"")] extern static int local12() => 0; // 11
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                //         [DllImport("a")] extern void local1(); // 1, 2
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(10, 10),
+                // (10,38): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
+                //         [DllImport("a")] extern void local1(); // 1, 2
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local1").WithArguments("local1()").WithLocation(10, 38),
+                // (11,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                //         [DllImport("a")] extern void local2() { } // 3, 4
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(11, 10),
+                // (11,38): error CS0179: 'local2()' cannot be extern and declare a body
+                //         [DllImport("a")] extern void local2() { } // 3, 4
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local2").WithArguments("local2()").WithLocation(11, 38),
+                // (12,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                //         [DllImport("a")] extern int local3() => 0; // 5, 6
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(12, 10),
+                // (12,37): error CS0179: 'local3()' cannot be extern and declare a body
+                //         [DllImport("a")] extern int local3() => 0; // 5, 6
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local3").WithArguments("local3()").WithLocation(12, 37),
+                // (14,21): error CS8112: Local function 'local4()' must either have a body or be marked 'static extern'.
+                //         static void local4(); // 7
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local4").WithArguments("local4()").WithLocation(14, 21),
+                // (19,45): error CS0179: 'local8()' cannot be extern and declare a body
+                //         [DllImport("a")] static extern void local8() { } // 8
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local8").WithArguments("local8()").WithLocation(19, 45),
+                // (20,44): error CS0179: 'local9()' cannot be extern and declare a body
+                //         [DllImport("a")] static extern int local9() => 0; // 9
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local9").WithArguments("local9()").WithLocation(20, 44),
+                // (23,45): error CS0179: 'local11()' cannot be extern and declare a body
+                //         [DllImport("a")] extern static void local11() { } // 10
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local11").WithArguments("local11()").WithLocation(23, 45),
+                // (24,44): error CS0179: 'local12()' cannot be extern and declare a body
+                //         [DllImport("a")] extern static int local12() => 0; // 11
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local12").WithArguments("local12()").WithLocation(24, 44));
+        }
+
+        [Fact]
+        public void LocalFunctionExtern_Generic()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C1
+{
+#pragma warning disable 8321 // Unreferenced local function
+
+    void M1()
+    {
+        [DllImport(""a"")] extern static void local1();
+        [DllImport(""a"")] extern static void local2<T>(); // 1
+    }
+
+    void M2<T>()
+    {
+        [DllImport(""a"")] extern static void local3<T2>(); // 2
+    }
+}
+
+class C2<T>
+{
+    void M3()
+    {
+        [DllImport(""a"")] extern static void local4(); // 3
+        [DllImport(""a"")] extern static void local5<T2>(); // 4
+    }
+
+    void M4<T1>()
+    {
+        [DllImport(""a"")] extern static void local6(); // 5
+        [DllImport(""a"")] extern static void local7<T2>(); // 6
+    }
+
+    class CInner1
+    {
+        void M5()
+        {
+            [DllImport(""a"")] extern static void local8(); // 7
+            [DllImport(""a"")] extern static void local9<T2>(); // 8
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //         [DllImport("a")] extern static void local2<T>(); // 1
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(11, 10),
+                // (16,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //         [DllImport("a")] extern static void local3<T2>(); // 2
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(16, 10),
+                // (24,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //         [DllImport("a")] extern static void local4(); // 3
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(24, 10),
+                // (25,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //         [DllImport("a")] extern static void local5<T2>(); // 4
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(25, 10),
+                // (30,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //         [DllImport("a")] extern static void local6(); // 5
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(30, 10),
+                // (31,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //         [DllImport("a")] extern static void local7<T2>(); // 6
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(31, 10),
+                // (38,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local8(); // 7
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(38, 14),
+                // (39,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local9<T2>(); // 8
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(39, 14));
+        }
+
+        [Fact]
+        public void LocalFunctionExtern_NoImplementationWarning_Attribute()
+        {
+            const string text = @"
+using System.Runtime.InteropServices;
+
+class Attr : System.Attribute { }
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+
+        static extern void local1(); // 1
+        static extern void local2() { } // 2
+
+        [DllImport(""a"")]
+        static extern void local3();
+
+        [Attr]
+        static extern void local4();
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,28): warning CS0626: Method, operator, or accessor 'local1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         static extern void local1(); // 1
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "local1").WithArguments("local1()").WithLocation(12, 28),
+                // (13,28): error CS0179: 'local2()' cannot be extern and declare a body
+                //         static extern void local2() { } // 2
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local2").WithArguments("local2()").WithLocation(13, 28));
+        }
+
+        [Fact]
         public void UnsafeLocal()
         {
             var source = @"
@@ -1317,6 +1514,90 @@ class C
                              .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
                 attrs[0].AttributeClass);
             comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
+        public void LocalFunctionDisallowedAttributes()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute { }
+    public class IsUnmanagedAttribute : System.Attribute { }
+    public class IsByRefLikeAttribute : System.Attribute { }
+    public class NullableContextAttribute : System.Attribute { public NullableContextAttribute(byte b) { } }
+}
+
+class C
+{
+    void M()
+    {
+        local1();
+
+        [IsReadOnly] // 1
+        [IsUnmanaged] // 2
+        [IsByRefLike] // 3
+        [Extension] // 4
+        [NullableContext(0)] // 5
+        void local1()
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (18,10): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //         [IsReadOnly] // 1
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(18, 10),
+                // (19,10): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
+                //         [IsUnmanaged] // 2
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(19, 10),
+                // (20,10): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
+                //         [IsByRefLike] // 3
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(20, 10),
+                // (21,10): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
+                //         [Extension] // 4
+                Diagnostic(ErrorCode.ERR_ExplicitExtension, "Extension").WithLocation(21, 10),
+                // (22,10): error CS8335: Do not use 'System.Runtime.CompilerServices.NullableContextAttribute'. This is reserved for compiler usage.
+                //         [NullableContext(0)] // 5
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullableContext(0)").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(22, 10));
+        }
+
+        [Fact]
+        public void LocalFunctionDisallowedSecurityAttributes()
+        {
+            var source = @"
+using System.Security;
+
+class C
+{
+    void M()
+    {
+        local1();
+
+        [SecurityCritical] // 1
+        [SecuritySafeCriticalAttribute] // 2
+        async void local1() // 3
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,10): error CS4030: Security attribute 'SecurityCritical' cannot be applied to an Async method.
+                //         [SecurityCritical] // 1
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical").WithLocation(10, 10),
+                // (11,10): error CS4030: Security attribute 'SecuritySafeCriticalAttribute' cannot be applied to an Async method.
+                //         [SecuritySafeCriticalAttribute] // 2
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(11, 10),
+                // (12,20): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async void local1() // 3
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local1").WithLocation(12, 20));
         }
 
         [Fact]
@@ -4950,6 +5231,123 @@ class B : A
                     //         static void F3() { F(_f); }
                     Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "_f").WithLocation(18, 30));
             }
+        }
+
+        [Fact]
+        public void LocalFunctionConditional_Errors()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+
+        [Conditional(""DEBUG"")] // 1
+        int local1() => 42;
+
+        [Conditional(""DEBUG"")] // 2
+        void local2(out int i) { i = 42; }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,10): error CS0578: The Conditional attribute is not valid on 'local1()' because its return type is not void
+                //         [Conditional("DEBUG")] // 1
+                Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""DEBUG"")").WithArguments("local1()").WithLocation(10, 10),
+                // (13,10): error CS0685: Conditional member 'local2(out int)' cannot have an out parameter
+                //         [Conditional("DEBUG")] // 2
+                Diagnostic(ErrorCode.ERR_ConditionalWithOutParam, @"Conditional(""DEBUG"")").WithArguments("local2(out int)").WithLocation(13, 10));
+        }
+
+        [Fact]
+        public void LocalFunctionObsolete()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+
+        [Obsolete] // 1
+        void local1() { }
+
+        [Obsolete(""hello"", true)] // 2
+        void local2() { }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,10): error CS8760: Attribute 'System.ObsoleteAttribute' is not valid on local functions.
+                //         [Obsolete] // 1
+                Diagnostic(ErrorCode.ERR_AttributeNotOnLocalFunction, "Obsolete").WithArguments("System.ObsoleteAttribute").WithLocation(10, 10),
+                // (13,10): error CS8760: Attribute 'System.ObsoleteAttribute' is not valid on local functions.
+                //         [Obsolete("hello", true)] // 2
+                Diagnostic(ErrorCode.ERR_AttributeNotOnLocalFunction, "Obsolete").WithArguments("System.ObsoleteAttribute").WithLocation(13, 10));
+        }
+
+        [Fact]
+        public void LocalFunction_NotNullIfNotNullAttribute()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+class C
+{
+    void M()
+    {
+        _ = local1(null).ToString(); // 1
+        _ = local1(""hello"").ToString();
+
+        [return: NotNullIfNotNull(""s1"")]
+        string? local1(string? s1) => s1;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { NotNullIfNotNullAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = local1(null).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "local1(null)").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void LocalFunction_MaybeNullAttribute()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+class C
+{
+    void M<T>([AllowNull] T t1, T t2)
+    {
+        local1(t1);
+        local1(t2);
+
+        local2(t1); // 1
+        local2(t2);
+
+        void local1([AllowNull] T t) { }
+        void local2(T t) { }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { AllowNullAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,16): warning CS8604: Possible null reference argument for parameter 't' in 'void local2(T t)'.
+                //         local2(t1); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t1").WithArguments("t", "void local2(T t)").WithLocation(13, 16));
         }
 
         [Fact]

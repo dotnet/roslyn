@@ -42,6 +42,11 @@
         <target state="translated">El atributo "{0}" no es válido en descriptores de acceso de eventos. Solo es válido en declaraciones "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnLocalFunction">
+        <source>Attribute '{0}' is not valid on local functions.</source>
+        <target state="new">Attribute '{0}' is not valid on local functions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">La propiedad implementada automáticamente "{0}" no se puede marcar como "readonly" porque tiene un descriptor de acceso "set".</target>
@@ -833,6 +838,11 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">declaración fija extensible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -9562,8 +9572,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'"{0}" es una función local y, por lo tanto, siempre debe tener un cuerpo.</target>
+        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <target state="needs-review-translation">'"{0}" es una función local y, por lo tanto, siempre debe tener un cuerpo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

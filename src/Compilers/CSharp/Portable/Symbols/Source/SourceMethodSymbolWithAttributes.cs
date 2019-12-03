@@ -26,6 +26,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.syntaxReferenceOpt = syntaxReferenceOpt;
         }
 
+        internal CSharpSyntaxNode GetBinderContextNode()
+        {
+            CSharpSyntaxNode syntaxNode = this.SyntaxNode;
+            CSharpSyntaxNode contextNode;
+
+            switch (syntaxNode)
+            {
+                case ConstructorDeclarationSyntax constructor:
+                    contextNode = constructor.Initializer ?? (CSharpSyntaxNode)constructor.Body ?? constructor.ExpressionBody;
+                    break;
+
+                case BaseMethodDeclarationSyntax method:
+                    contextNode = (CSharpSyntaxNode)method.Body ?? method.ExpressionBody;
+                    break;
+
+                case AccessorDeclarationSyntax accessor:
+                    contextNode = (CSharpSyntaxNode)accessor.Body ?? accessor.ExpressionBody;
+                    break;
+
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                                 arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
+                    contextNode = arrowExpression;
+                    break;
+
+                case LocalFunctionStatementSyntax localFunction:
+                    contextNode = (CSharpSyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                    break;
+
+                default:
+                    contextNode = null;
+                    break;
+            }
+
+            return contextNode;
+        }
+
         internal SyntaxReference SyntaxRef
         {
             get
@@ -60,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source method symbols.
         /// </summary>
         /// <remarks>
-        /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method. 
+        /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method.
         /// The bound attribute data are then applied to both accessors.
         /// </remarks>
-        protected virtual SourceMemberMethodSymbol BoundAttributesSource
+        protected virtual SourceMethodSymbolWithAttributes BoundAttributesSource
         {
             get
             {
@@ -213,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag(ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag, bool forReturnType)
         {
-            SourceMemberMethodSymbol copyFrom = this.BoundAttributesSource;
+            var copyFrom = this.BoundAttributesSource;
 
             // prevent infinite recursion:
             Debug.Assert(!ReferenceEquals(copyFrom, this));
@@ -238,12 +275,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (bagCreatedOnThisThread)
             {
-                var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
-                state.NotePartComplete(part);
+                NoteAttributesComplete(forReturnType);
+
+                if (!forReturnType
+                    && IsExtern
+                    && !IsAbstract
+                    && !this.IsPartialMethod()
+                    && GetBinderContextNode() is null
+                    && lazyCustomAttributesBag.Attributes.IsEmpty
+                    && !this.ContainingType.IsComImport)
+                {
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    // external method with no attributes
+                    var errorCode = (this.MethodKind == MethodKind.Constructor || this.MethodKind == MethodKind.StaticConstructor) ?
+                        ErrorCode.WRN_ExternCtorNoImplementation :
+                        ErrorCode.WRN_ExternMethodNoImplementation;
+                    diagnostics.Add(errorCode, this.Locations[0], this);
+                    AddDeclarationDiagnostics(diagnostics);
+                    diagnostics.Free();
+                }
             }
 
             return lazyCustomAttributesBag;
         }
+
+        /// <summary>
+        /// Called when this thread loaded the method's attributes. For method symbols with completion state.
+        /// </summary>
+        protected virtual void NoteAttributesComplete(bool forReturnType) { }
 
         /// <summary>
         /// Gets the attributes applied on this symbol.
@@ -327,8 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return data != null ? data.ObsoleteAttributeData : null;
                 }
 
-                var reference = this.syntaxReferenceOpt;
-                if (reference == null)
+                if (syntaxReferenceOpt is null)
                 {
                     // no references -> no attributes
                     return null;
@@ -480,6 +538,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
+                else if (this.MethodKind is MethodKind.LocalFunction)
+                {
+                    // CS8760: Attribute '{0}' is not valid on local functions.
+                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnLocalFunction, arguments.AttributeSyntaxOpt.Name.Location, description.FullName);
+                }
 
                 return true;
             }
@@ -617,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
-            if (this.IsGenericMethod || (object)_containingType != null && _containingType.IsGenericType)
+            if (this.IsGenericMethod || ContainingType?.IsGenericType == true)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -639,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // while the charset in P/Invoke metadata should be "None".
             CharSet charSet = this.GetEffectiveDefaultMarshallingCharSet() ?? Cci.Constants.CharSet_None;
 
-            string importName = null;
+            string importName = Name;
             bool preserveSig = true;
             CallingConvention callingConvention = System.Runtime.InteropServices.CallingConvention.Winapi;
             bool setLastError = false;
@@ -659,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Dev10 reports CS0647: "Error emitting attribute ..."
                             arguments.Diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
                             hasErrors = true;
-                            importName = null;
+                            importName = Name;
                         }
 
                         break;
@@ -729,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_lazyCustomAttributesBag != null);
                 Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (_containingType.IsComImport && _containingType.TypeKind == TypeKind.Class)
+                if (ContainingType is { IsComImport: true, TypeKind: TypeKind.Class })
                 {
                     switch (this.MethodKind)
                     {
@@ -747,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsAbstract && !this.IsExtern)
                             {
                                 // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, _containingType);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, ContainingType);
                             }
 
                             break;
@@ -861,13 +924,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
         }
 
-        public sealed override DllImportData GetDllImportData()
+        public override DllImportData GetDllImportData()
         {
             var data = this.GetDecodedWellKnownAttributeData();
             return data != null ? data.DllImportPlatformInvokeData : null;
         }
 
-        internal sealed override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get
             {

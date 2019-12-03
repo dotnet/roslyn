@@ -2601,7 +2601,7 @@ public class C
                 var info = m.GetDllImportData();
 
                 Assert.Equal("mscorlib", info.ModuleName);
-                Assert.Equal(isFromSource ? null : "M", info.EntryPointName);
+                Assert.Equal("M", info.EntryPointName);
                 Assert.Equal(CharSet.None, info.CharacterSet);
                 Assert.Equal(CallingConvention.Winapi, info.CallingConvention);
                 Assert.False(info.ExactSpelling);

@@ -2,10 +2,8 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LocalFunctionSymbol : SourceMethodSymbol, IAttributeTargetSymbol
+    internal sealed class LocalFunctionSymbol : SourceMethodSymbolWithAttributes
     {
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
@@ -30,9 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeWithAnnotations.Boxed? _lazyReturnType;
         private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 
-        private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
-        private CustomAttributesBag<CSharpAttributeData>? _lazyReturnTypeCustomAttributesBag;
-
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
         // diagnostics get added to the store exactly once
@@ -42,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol containingSymbol,
             LocalFunctionStatementSyntax syntax)
+            : base(syntax.GetReference())
         {
             _syntax = syntax;
             _containingSymbol = containingSymbol;
@@ -214,12 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
-
-        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
         public override RefKind RefKind => _refKind;
 
         internal void ComputeReturnType()
@@ -333,10 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public Binder SignatureBinder => _binder;
 
-        internal override bool HasSpecialName => false;
-
-        public override bool HidesBaseMethodsByName => false;
-
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
         public override ImmutableArray<Location> Locations => ImmutableArray.Create(_syntax.Identifier.GetLocation());
@@ -347,17 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
-
-        internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
-
-        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
-
         internal override CallingConvention CallingConvention => CallingConvention.Default;
 
-        internal override bool HasDeclarativeSecurity => false;
-
-        internal override bool RequiresSecurityObject => false;
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            return OneOrMany.Create(_syntax.AttributeLists);
+        }
 
         public override Symbol? AssociatedSymbol => null;
 
@@ -383,24 +364,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
-
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Method | AttributeLocation.Return;
-
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Method;
-
-        public override DllImportData? GetDllImportData() => null;
-
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
-
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
-
-        internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
@@ -508,33 +474,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazyTypeParameterConstraints;
-        }
-
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
-        {
-            var lazyCustomAttributesBag = _lazyCustomAttributesBag;
-            if (lazyCustomAttributesBag == null)
-            {
-                LoadAndValidateAttributes(OneOrMany.Create(_syntax.AttributeLists), ref _lazyCustomAttributesBag);
-                lazyCustomAttributesBag = _lazyCustomAttributesBag;
-            }
-
-            return lazyCustomAttributesBag.Attributes;
-        }
-
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
-        {
-            var lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
-            if (lazyReturnTypeCustomAttributesBag == null)
-            {
-                LoadAndValidateAttributes(
-                    OneOrMany.Create(_syntax.AttributeLists),
-                    ref _lazyReturnTypeCustomAttributesBag,
-                    symbolPart: AttributeLocation.Return);
-                lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
-            }
-
-            return lazyReturnTypeCustomAttributesBag.Attributes;
         }
 
         public override int GetHashCode()

@@ -42,6 +42,11 @@
         <target state="translated">이벤트 접근자에서 '{0}' 특성이 유효하지 않습니다. 이 특성은 '{1}' 선언에만 유효합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnLocalFunction">
+        <source>Attribute '{0}' is not valid on local functions.</source>
+        <target state="new">Attribute '{0}' is not valid on local functions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">'set' 접근자가 포함되어 있으므로 자동 구현 속성 '{0}'을(를) 'readonly'로 표시할 수 없습니다.</target>
@@ -832,6 +837,11 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">확장 가능한 fixed 문</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -9561,8 +9571,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'{0}'은(는) 로컬 함수이므로 항상 본문이 있어야 합니다.</target>
+        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <target state="needs-review-translation">'{0}'은(는) 로컬 함수이므로 항상 본문이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

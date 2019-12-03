@@ -314,6 +314,8 @@ class C3
                 // (17,24):
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Short2").WithArguments(s_longSymbolName + 1).WithLocation(17, 24),
                 // (25,24):
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(25, 24),
+                // (25,24):
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(25, 24));
         }
 

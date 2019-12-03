@@ -1111,6 +1111,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
+            if (node is null)
+            {
+                return null;
+            }
+
             // Test if this frame has captured variables and requires the introduction of a closure class.
             if (_frames.TryGetValue(node, out var frame))
             {
@@ -1360,19 +1365,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
 
             SyntaxNode lambdaOrLambdaBodySyntax;
-            var anonymousFunction = syntax as AnonymousFunctionExpressionSyntax;
-            var localFunction = syntax as LocalFunctionStatementSyntax;
             bool isLambdaBody;
 
-            if (anonymousFunction != null)
+            if (syntax is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 lambdaOrLambdaBodySyntax = anonymousFunction.Body;
                 isLambdaBody = true;
             }
-            else if (localFunction != null)
+            else if (syntax is LocalFunctionStatementSyntax localFunction)
             {
                 lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody?.Expression;
-                isLambdaBody = true;
+
+                if (lambdaOrLambdaBodySyntax is null)
+                {
+                    lambdaOrLambdaBodySyntax = localFunction;
+                    isLambdaBody = false;
+                }
+                else
+                {
+                    isLambdaBody = true;
+                }
             }
             else if (LambdaUtilities.IsQueryPairLambda(syntax))
             {
@@ -1500,6 +1512,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
         {
+            if (body == null)
+            {
+                return;
+            }
+
             if (_synthesizedMethods == null)
             {
                 _synthesizedMethods = ArrayBuilder<TypeCompilationState.MethodWithBody>.GetInstance();

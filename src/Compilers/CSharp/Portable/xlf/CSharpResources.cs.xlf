@@ -42,6 +42,11 @@
         <target state="translated">Atribut {0} není platný pro přístupové objekty události. Je platný jenom pro deklarace {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnLocalFunction">
+        <source>Attribute '{0}' is not valid on local functions.</source>
+        <target state="new">Attribute '{0}' is not valid on local functions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Automaticky implementovanou vlastnost {0} nelze označit modifikátorem readonly, protože má přístupový objekt set.</target>
@@ -832,6 +837,11 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">rozšiřitelný příkaz fixed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -9561,8 +9571,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'{0} je lokální funkce a musí proto vždy obsahovat text.</target>
+        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <target state="needs-review-translation">'{0} je lokální funkce a musí proto vždy obsahovat text.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

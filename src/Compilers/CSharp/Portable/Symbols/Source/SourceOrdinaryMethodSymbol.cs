@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override SourceMemberMethodSymbol BoundAttributesSource
+        protected override SourceMethodSymbolWithAttributes BoundAttributesSource
         {
             get
             {
