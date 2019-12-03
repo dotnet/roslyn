@@ -25,22 +25,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
-                RecordDefinitions(parameters);
+                recordDefinitions(parameters);
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    this.parameterMap.Add(parameter.Name, parameter);
+                    if (!parameter.IsDiscard)
+                    {
+                        this.parameterMap.Add(parameter.Name, parameter);
+                    }
                 }
             }
-        }
 
-        private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
-        {
-            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
-            foreach (var s in definitions)
+            void recordDefinitions(ImmutableArray<ParameterSymbol> definitions)
             {
-                if (!declarationMap.ContainsKey(s.Name))
+                var declarationMap = _definitionMap ??= new SmallDictionary<string, ParameterSymbol>();
+                foreach (var s in definitions)
                 {
-                    declarationMap.Add(s.Name, s);
+                    if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
+                    {
+                        declarationMap.Add(s.Name, s);
+                    }
                 }
             }
         }

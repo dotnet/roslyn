@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilaton are from fully loaded projects.
+        /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
         /// </summary>
         // TODO: make this public
         internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)

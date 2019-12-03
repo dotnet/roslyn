@@ -36,8 +36,8 @@ class C
             var nonNullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[0]).Symbol;
             var nullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
 
-            Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nonNullPlus);
-            Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nullPlus);
+            Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nonNullPlus.GetSymbol());
+            Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nullPlus.GetSymbol());
 
             Assert.Equal(nonNullPlus, nullPlus);
             Assert.Equal<object>(nonNullPlus, nullPlus);
@@ -82,8 +82,8 @@ class C
             var nullStringExt = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
             Assert.NotNull(nullStringExt);
 
-            Assert.IsType<ReducedExtensionMethodSymbol>(nonNullStringExt);
-            Assert.IsType<ReducedExtensionMethodSymbol>(nullStringExt);
+            Assert.IsType<ReducedExtensionMethodSymbol>(nonNullStringExt.GetSymbol());
+            Assert.IsType<ReducedExtensionMethodSymbol>(nullStringExt.GetSymbol());
 
             Assert.Equal(nonNullStringExt, nullStringExt);
             Assert.Equal<object>(nonNullStringExt, nullStringExt);
@@ -119,14 +119,14 @@ class C
             var nonNullM = model.GetSymbolInfo(invocations[0]).Symbol;
             var nullM = model.GetSymbolInfo(invocations[1]).Symbol;
 
-            Assert.IsType<ConstructedMethodSymbol>(nonNullM);
-            Assert.IsType<ConstructedMethodSymbol>(nullM);
+            Assert.IsType<ConstructedMethodSymbol>(nonNullM.GetSymbol());
+            Assert.IsType<ConstructedMethodSymbol>(nullM.GetSymbol());
 
             var nonNullOriginal = nonNullM.OriginalDefinition;
             var nullOriginal = nullM.OriginalDefinition;
 
-            Assert.IsType<LocalFunctionSymbol>(nonNullOriginal);
-            Assert.IsType<LocalFunctionSymbol>(nullOriginal);
+            Assert.IsType<LocalFunctionSymbol>(nonNullOriginal.GetSymbol());
+            Assert.IsType<LocalFunctionSymbol>(nullOriginal.GetSymbol());
 
             Assert.Equal(nonNullOriginal, nullOriginal);
             Assert.Equal<object>(nonNullOriginal, nullOriginal);
@@ -163,8 +163,8 @@ class B
             var nonNullSubstituted = nonNullM.ContainingType.GetMembers("M").Single();
             var nullSubstituted = nullM.ContainingType.GetMembers("M").Single();
 
-            Assert.IsType<SubstitutedMethodSymbol>(nonNullSubstituted);
-            Assert.IsType<SubstitutedMethodSymbol>(nullSubstituted);
+            Assert.IsType<SubstitutedMethodSymbol>(nonNullSubstituted.GetSymbol());
+            Assert.IsType<SubstitutedMethodSymbol>(nullSubstituted.GetSymbol());
 
             Assert.Equal(nonNullSubstituted, nullSubstituted);
             Assert.Equal<object>(nonNullSubstituted, nullSubstituted);
@@ -212,11 +212,11 @@ public class A
     public static A field2;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
-            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
+            var type1 = ((IFieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -237,15 +237,30 @@ public class A
     public static A? field2;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
-            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
+            var type1 = ((IFieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
+
+            VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
+                expectedDefault: true,
+                expectedIncludeNullability: true // We don't consider top-level nullability
+                );
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
-                expectedIncludeNullability: true // We don't consider top-level nullability
+                expectedIncludeNullability: false
+                );
+
+            VerifyEquality(type1, type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
                 );
         }
 
@@ -262,11 +277,11 @@ public class A<T>
     public static A<object?> field2;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
-            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
+            var type1 = ((IFieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -287,11 +302,11 @@ public class A<T>
     public static A<object?> field2;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
-            var type2 = ((FieldSymbol)comp.GetMember("A.field2")).Type;
+            var type1 = ((IFieldSymbol)comp.GetMember("A.field1")).Type;
+            var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
                 expectedDefault: true,
@@ -311,7 +326,7 @@ public class A<T>
     public static A<object?> field1;
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            var comp1 = (Compilation)CreateCompilation(source1);
             comp1.VerifyDiagnostics();
 
             var source2 =
@@ -323,13 +338,13 @@ public class B
     public static A<object?> field2;
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(comp1) });
+            var comp2 = (Compilation)CreateCompilation(source2, new[] { new CSharpCompilationReference((CSharpCompilation)comp1) });
             comp2.VerifyDiagnostics();
 
 
-            var type1comp1 = ((FieldSymbol)comp1.GetMember("A.field1")).Type;
-            var type1comp2 = ((FieldSymbol)comp2.GetMember("A.field1")).Type;
-            var type2 = ((FieldSymbol)comp2.GetMember("B.field2")).Type;
+            var type1comp1 = ((IFieldSymbol)comp1.GetMember("A.field1")).Type;
+            var type1comp2 = ((IFieldSymbol)comp2.GetMember("A.field1")).Type;
+            var type2 = ((IFieldSymbol)comp2.GetMember("B.field2")).Type;
 
             VerifyEquality(type1comp1, type1comp2,
                 expectedDefault: true,
@@ -359,10 +374,10 @@ public class A<T>
     public static A<object?> field1;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var symbol1 = ((FieldSymbol)comp.GetMember("A.field1")).Type;
+            var symbol1 = ((IFieldSymbol)comp.GetMember("A.field1")).Type;
             ISymbol symbol2 = null;
             ISymbol symbol3 = null;
 
@@ -410,8 +425,8 @@ public class A
             Assert.False(member1.Equals(member2));
             Assert.False(member2.Equals(member1));
 
-            var field1 = (FieldSymbol)member1;
-            var field2 = (FieldSymbol)member2;
+            var field1 = (IFieldSymbol)member1;
+            var field2 = (IFieldSymbol)member2;
 
             Assert.True(field1.Equals(field1));
             Assert.True(field2.Equals(field2));
@@ -475,9 +490,24 @@ public class A
             var type1 = ((IFieldSymbol)model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0])).Type;
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
-            VerifyEquality(type1, type2,
+            VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
                 expectedDefault: true,
                 expectedIncludeNullability: true // We don't consider top-level nullability
+                );
+
+            VerifyEquality(type1, type2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            VerifyEquality(type1, type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
+                expectedDefault: true,
+                expectedIncludeNullability: false
+                );
+
+            VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2,
+                expectedDefault: true,
+                expectedIncludeNullability: false
                 );
         }
 

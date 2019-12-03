@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Represents an anonymous type 'public' symbol which is used in binding and lowering.
         /// In emit phase it is being substituted with implementation symbol.
         /// </summary>
-        private sealed class AnonymousTypePublicSymbol : NamedTypeSymbol
+        internal sealed class AnonymousTypePublicSymbol : NamedTypeSymbol
         {
             private readonly ImmutableArray<Symbol> _members;
 

@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using System.Reflection.Metadata;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,9 +21,9 @@ namespace Microsoft.CodeAnalysis
 
         public AttributeDescription(string @namespace, string name, byte[][] signatures, bool matchIgnoringCase = false)
         {
-            Debug.Assert(@namespace != null);
-            Debug.Assert(name != null);
-            Debug.Assert(signatures != null);
+            RoslynDebug.Assert(@namespace != null);
+            RoslynDebug.Assert(name != null);
+            RoslynDebug.Assert(signatures != null);
 
             this.Namespace = @namespace;
             this.Name = name;

@@ -203,6 +203,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             #endregion
+
+            NullableAnnotation ITypeSymbol.NullableAnnotation => this.Nullability;
+
+            ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
+            {
+                return this.WithNullability(nullableAnnotation);
+            }
         }
     }
 }

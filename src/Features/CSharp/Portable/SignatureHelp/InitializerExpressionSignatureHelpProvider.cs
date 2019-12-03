@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             => ch == '}';
 
         private bool TryGetInitializerExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out InitializerExpressionSyntax expression)
-            => CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsInitializerExpressionToken, cancellationToken, out expression) && 
+            => CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsInitializerExpressionToken, cancellationToken, out expression) &&
                expression != null;
 
         private bool IsTriggerToken(SyntaxToken token)

@@ -124,6 +124,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             {
                 var testDocument = workspace.Documents.Single();
 
+                var options = workspace.Options;
+
+                options = options.WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs);
+                options = options.WithChangedOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
+                options = options.WithChangedOption(FormattingOptions.NewLine, testDocument.Project.Language, newLine);
+
+                workspace.Options = options;
+
+                setOptionsOpt?.Invoke(workspace);
+
                 Assert.True(testDocument.CursorPosition.HasValue, "No caret position set!");
                 var startCaretPosition = testDocument.CursorPosition.Value;
 
@@ -141,16 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 }
 
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
-
-                var options = workspace.Options;
-
-                options = options.WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs);
-                options = options.WithChangedOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
-                options = options.WithChangedOption(FormattingOptions.NewLine, testDocument.Project.Language, newLine);
-
-                workspace.Options = options;
-
-                setOptionsOpt?.Invoke(workspace);
 
                 execute(
                     view,

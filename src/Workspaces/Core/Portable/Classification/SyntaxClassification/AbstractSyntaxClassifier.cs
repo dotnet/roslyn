@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         {
         }
 
-        protected string GetClassificationForType(ITypeSymbol type)
+        protected string? GetClassificationForType(ITypeSymbol type)
             => type.GetClassification();
 
         public virtual void AddClassifications(Workspace workspace, SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

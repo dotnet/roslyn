@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var targetSpan = textView.BufferGraph.MapUpToSnapshot(
                 virtualSnapshotSpan.SnapshotSpan,
                 SpanTrackingMode.EdgeExclusive,
-                textView.TextSnapshot).FirstOrNullable();
+                textView.TextSnapshot).FirstOrNull();
 
             if (targetSpan.HasValue)
             {

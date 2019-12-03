@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (argument.IsNull)
             {
-                return CreateMetadataConstant(argument.Type, null, context);
+                return CreateMetadataConstant(argument.TypeInternal, null, context);
             }
 
             switch (argument.Kind)
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return CreateType(argument, context);
 
                 default:
-                    return CreateMetadataConstant(argument.Type, argument.Value, context);
+                    return CreateMetadataConstant(argument.TypeInternal, argument.ValueInternal, context);
             }
         }
 
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!argument.Values.IsDefault);
             var values = argument.Values;
-            var arrayType = Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)argument.Type);
+            var arrayType = Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)argument.TypeInternal);
 
             if (values.Length == 0)
             {
@@ -137,15 +138,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static MetadataTypeOf CreateType(TypedConstant argument, EmitContext context)
         {
-            Debug.Assert(argument.Value != null);
+            Debug.Assert(argument.ValueInternal != null);
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var syntaxNodeOpt = (CSharpSyntaxNode)context.SyntaxNodeOpt;
             var diagnostics = context.Diagnostics;
-            return new MetadataTypeOf(moduleBeingBuilt.Translate((TypeSymbol)argument.Value, syntaxNodeOpt, diagnostics),
-                                      moduleBeingBuilt.Translate((TypeSymbol)argument.Type, syntaxNodeOpt, diagnostics));
+            return new MetadataTypeOf(moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics),
+                                      moduleBeingBuilt.Translate((TypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics));
         }
 
-        private static MetadataConstant CreateMetadataConstant(ITypeSymbol type, object value, EmitContext context)
+        private static MetadataConstant CreateMetadataConstant(ITypeSymbolInternal type, object value, EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             return moduleBeingBuilt.CreateConstant((TypeSymbol)type, value, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);

@@ -302,15 +302,10 @@ class X
                         case ErrorCode.ERR_FeatureInPreview:
                         case ErrorCode.WRN_ThrowPossibleNull:
                         case ErrorCode.WRN_UnboxPossibleNull:
-                        case ErrorCode.WRN_ConditionalAccessMayReturnNull:
-                        case ErrorCode.WRN_AsOperatorMayReturnNull:
-                        case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
-                        case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
-                        case ErrorCode.WRN_ExpressionMayIntroduceNullT:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

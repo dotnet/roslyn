@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the location is in metadata.
         /// </summary>
-        public bool IsInMetadata { get { return MetadataModule != null; } }
+        public bool IsInMetadata { get { return MetadataModuleInternal != null; } }
 
         /// <summary>
         /// The syntax tree this location is located in or <c>null</c> if not in a syntax tree.
@@ -43,7 +44,9 @@ namespace Microsoft.CodeAnalysis
         /// Might return null even if <see cref="IsInMetadata"/> returns true. The module symbol might not be available anymore, 
         /// for example, if the location is serialized and deserialized.
         /// </remarks>
-        public virtual IModuleSymbol MetadataModule { get { return null; } }
+        public IModuleSymbol MetadataModule { get { return (IModuleSymbol)MetadataModuleInternal?.GetISymbol(); } }
+
+        internal virtual IModuleSymbolInternal MetadataModuleInternal { get { return null; } }
 
         /// <summary>
         /// The location within the syntax tree that this location is associated with.
@@ -94,9 +97,9 @@ namespace Microsoft.CodeAnalysis
             }
             else if (IsInMetadata)
             {
-                if (this.MetadataModule != null)
+                if (this.MetadataModuleInternal != null)
                 {
-                    result += "(" + this.MetadataModule.Name + ")";
+                    result += "(" + this.MetadataModuleInternal.Name + ")";
                 }
             }
             else

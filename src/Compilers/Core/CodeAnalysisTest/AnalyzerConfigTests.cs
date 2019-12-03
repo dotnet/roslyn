@@ -1460,6 +1460,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
                 new[] { "/a.cs", "/b.cs", "/c.cs" },
                 configs);
             configs.Free();
+            Assert.Equal(KeyValuePair.Create("cs000", ReportDiagnostic.Warn), options[0].TreeOptions.Single());
 
             Assert.Same(options[0].TreeOptions, options[1].TreeOptions);
             Assert.Same(options[0].AnalyzerOptions, options[1].AnalyzerOptions);

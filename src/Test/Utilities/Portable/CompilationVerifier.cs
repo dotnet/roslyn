@@ -427,8 +427,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 .Where(e => e.Key.ToString() == containingTypeName)
                 .Single()
                 .Value
-                .OfType<IFieldSymbol>()
-                .Select(f => $"{f.Type.ToString()} {f.Name}")
+                .Where(s => s.Kind == SymbolKind.Field)
+                .Select(f => $"{((IFieldSymbol)f.GetISymbol()).Type.ToString()} {f.Name}")
                 .ToList();
             AssertEx.SetEqual(expectedFields, members);
         }

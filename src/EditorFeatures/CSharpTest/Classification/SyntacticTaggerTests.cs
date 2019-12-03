@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 }";
             using var workspace = TestWorkspace.CreateCSharp(code);
             var document = workspace.Documents.First();
-            var subjectBuffer = document.TextBuffer;
+            var subjectBuffer = document.GetTextBuffer();
             var checkpoint = new Checkpoint();
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 subjectBuffer,

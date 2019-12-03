@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var editorOperations = new Mock<IEditorOperations>();
             editorOperationsFactory.Setup(x => x.GetEditorOperations(textView)).Returns(editorOperations.Object);
 
-            var snapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            var snapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
             var provider = new SmartIndent(textView);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
         protected void TestIndentation(TestWorkspace workspace, int indentationLine, int? expectedIndentation)
         {
-            var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
+            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
             bufferGraph.Setup(x => x.MapUpToSnapshot(It.IsAny<SnapshotPoint>(),
                                                      It.IsAny<PointTrackingMode>(),

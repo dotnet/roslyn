@@ -149,6 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public override object Id
                 => _underlying.Id;
 
+            public override string Display
+                => _underlying.Display;
+
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             {
                 // TODO: ensure the file watcher is subscribed

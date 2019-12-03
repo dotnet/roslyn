@@ -78,6 +78,7 @@ stages:
                 -officialSourceBranchName $(SourceBranchName)
                 -officialIbcSourceBranchName $(IbcSourceBranchName)
                 -officialIbcDropId $(IbcDropId)
+                -skipAnalyzers
                 /p:RepositoryName=$(Build.Repository.Name)
                 /p:VisualStudioDropAccessToken=$(System.AccessToken)
                 /p:VisualStudioDropName=$(VisualStudio.DropName)

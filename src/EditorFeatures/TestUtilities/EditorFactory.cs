@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text;
+#nullable enable
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -16,55 +18,53 @@ namespace Roslyn.Test.EditorUtilities
             ExportProvider exportProvider,
             params string[] lines)
         {
-            return CreateBuffer("text", exportProvider, lines);
+            var contentType = exportProvider.GetExportedValue<ITextBufferFactoryService>().TextContentType;
+
+            return CreateBuffer(exportProvider, contentType, lines);
         }
 
         public static ITextBuffer CreateBuffer(
-            string contentType,
             ExportProvider exportProvider,
+            IContentType contentType,
             params string[] lines)
         {
             var text = LinesToFullText(lines);
-            var intContentType = exportProvider.GetExportedValue<IContentTypeRegistryService>().GetContentType(contentType);
-            var buffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(intContentType);
-            buffer.Replace(new Span(0, 0), text);
-            return buffer;
+            return exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(text, contentType);
         }
 
         public static DisposableTextView CreateView(
             ExportProvider exportProvider,
             params string[] lines)
         {
-            return CreateView("text", exportProvider, lines);
+            var contentType = exportProvider.GetExportedValue<ITextBufferFactoryService>().TextContentType;
+            return CreateView(exportProvider, contentType, lines);
         }
 
         public static DisposableTextView CreateView(
-            string contentType,
             ExportProvider exportProvider,
+            IContentType contentType,
             params string[] lines)
         {
             WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(EditorFactory)}.{nameof(CreateView)}");
 
-            var buffer = CreateBuffer(contentType, exportProvider, lines);
+            var buffer = CreateBuffer(exportProvider, contentType, lines);
             return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(buffer);
+        }
+
+        public static DisposableTextView CreateView(
+            ExportProvider exportProvider,
+            IContentType contentType,
+            ImmutableArray<string> roles)
+        {
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(EditorFactory)}.{nameof(CreateView)}");
+
+            var buffer = CreateBuffer(exportProvider, contentType);
+            return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(buffer, roles);
         }
 
         public static string LinesToFullText(params string[] lines)
         {
-            var builder = new StringBuilder();
-            var isFirst = true;
-            foreach (var line in lines)
-            {
-                if (!isFirst)
-                {
-                    builder.AppendLine();
-                }
-
-                isFirst = false;
-                builder.Append(line);
-            }
-
-            return builder.ToString();
+            return string.Join("\r\n", lines);
         }
     }
 }

@@ -976,20 +976,30 @@ class C1
         public async Task BreakMode_RudeEdits_DocumentWithoutSequencePoints()
         {
             var source1 = "abstract class C { public abstract void M(); }";
+            var dir = Temp.CreateDirectory();
+            var sourceFile = dir.CreateFile("a.cs").WriteAllText(source1);
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = new TestWorkspace();
 
-            var project = workspace.CurrentSolution.Projects.Single();
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id);
-            var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
+            var document1 = workspace.CurrentSolution.
+                AddProject("test", "test", LanguageNames.CSharp).
+                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddDocument("test.cs", SourceText.From(source1, Encoding.UTF8), filePath: sourceFile.Path);
+
+            var project = document1.Project;
+            workspace.ChangeSolution(project.Solution);
+
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
 
+            // do not initialize the document state - we will detect the state based on the PDB content.
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession();
 
-            // change the source (rude edit):
+            // change the source (rude edit since the base document content matches the PDB checksum, so the document is not out-of-sync):
             workspace.ChangeDocument(document1.Id, SourceText.From("abstract class C { public abstract void M(); public abstract void N(); }"));
             var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
