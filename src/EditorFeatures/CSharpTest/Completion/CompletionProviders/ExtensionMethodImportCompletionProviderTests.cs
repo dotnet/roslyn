@@ -23,16 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
-        // -1 would disable timebox, whereas 0 means always timeout.
-        private int TimeoutInMilliseconds { get; set; } = -1;
-
         private bool IsExpandedCompletion { get; set; } = true;
 
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 

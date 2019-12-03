@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
                 try
                 {
-                    foreach (var option in options)
+                    foreach (var option in options.OrderBy(option => option.Name))
                     {
                         var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
                         if (editorConfigLocation != null)

@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The file is likely being updated by a background build. The debug session can&apos;t continue until the update is completed..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
@@ -1500,29 +1500,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Interface....
+        ///   Looks up a localized string similar to Extract interface....
         /// </summary>
-        internal static string Extract_Interface {
+        internal static string Extract_interface {
             get {
-                return ResourceManager.GetString("Extract_Interface", resourceCulture);
+                return ResourceManager.GetString("Extract_interface", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method.
+        ///   Looks up a localized string similar to Extract local function.
         /// </summary>
-        internal static string Extract_Method {
+        internal static string Extract_local_function {
             get {
-                return ResourceManager.GetString("Extract_Method", resourceCulture);
+                return ResourceManager.GetString("Extract_local_function", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method + Local.
+        ///   Looks up a localized string similar to Extract method.
         /// </summary>
-        internal static string Extract_Method_plus_Local {
+        internal static string Extract_method {
             get {
-                return ResourceManager.GetString("Extract_Method_plus_Local", resourceCulture);
+                return ResourceManager.GetString("Extract_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract method + local.
+        /// </summary>
+        internal static string Extract_method_plus_local {
+            get {
+                return ResourceManager.GetString("Extract_method_plus_local", resourceCulture);
             }
         }
         
@@ -1986,11 +1995,65 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; explicitly.
+        /// </summary>
+        internal static string Implement_0_explicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; implicitly.
+        /// </summary>
+        internal static string Implement_0_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string Implement_Abstract_Class {
             get {
                 return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces explicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_explicitly {
+            get {
+                return ResourceManager.GetString("Implement all interfaces explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces implicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_all_interfaces_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement explicitly.
+        /// </summary>
+        internal static string Implement_explicitly {
+            get {
+                return ResourceManager.GetString("Implement explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement implicitly.
+        /// </summary>
+        internal static string Implement_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_implicitly", resourceCulture);
             }
         }
         
@@ -3834,6 +3897,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_member_is_defined_in_metadata {
             get {
                 return ResourceManager.GetString("The_member_is_defined_in_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selection contains a local function call without its declaration..
+        /// </summary>
+        internal static string The_selection_contains_a_local_function_call_without_its_declaration {
+            get {
+                return ResourceManager.GetString("The_selection_contains_a_local_function_call_without_its_declaration", resourceCulture);
             }
         }
         
