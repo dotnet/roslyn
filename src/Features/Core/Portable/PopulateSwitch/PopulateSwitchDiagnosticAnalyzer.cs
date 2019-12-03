@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -9,15 +10,15 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class PopulateSwitchDiagnosticAnalyzer :
+    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperation> :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        where TSwitchOperation : IOperation
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Populate_switch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        public PopulateSwitchDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
+        protected AbstractPopulateSwitchDiagnosticAnalyzer(string diagnosticId)
+            : base(diagnosticId,
                    option: null,
                    s_localizableTitle, s_localizableMessage)
         {
@@ -25,12 +26,19 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         #region Interface methods
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Switch);
+        protected abstract OperationKind OperationKind { get; }
+
+        protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
+        protected abstract bool HasDefaultCase(TSwitchOperation operation);
+
+        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterOperationAction(AnalyzeOperation, this.OperationKind);
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var switchOperation = (ISwitchOperation)context.Operation;
+            var switchOperation = (TSwitchOperation)context.Operation;
             var switchBlock = switchOperation.Syntax;
             var tree = switchBlock.SyntaxTree;
 
@@ -54,18 +62,34 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         #endregion
 
         private bool SwitchIsIncomplete(
-            ISwitchOperation switchStatement,
+            TSwitchOperation operation,
             out bool missingCases, out bool missingDefaultCase)
         {
-            var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
+            var missingEnumMembers = GetMissingEnumMembers(operation);
 
             missingCases = missingEnumMembers.Count > 0;
-            missingDefaultCase = !PopulateSwitchHelpers.HasDefaultCase(switchStatement);
+            missingDefaultCase = !HasDefaultCase(operation);
 
             // The switch is incomplete if we're missing any cases or we're missing a default case.
             return missingDefaultCase || missingCases;
         }
+    }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal sealed class PopulateSwitchStatementDiagnosticAnalyzer :
+        AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchOperation>
+    {
+        public PopulateSwitchStatementDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.PopulateSwitchStatementDiagnosticId)
+        {
+        }
+
+        protected override OperationKind OperationKind => OperationKind.Switch;
+
+        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation operation)
+            => PopulateSwitchHelpers.GetMissingEnumMembers(operation);
+
+        protected override bool HasDefaultCase(ISwitchOperation operation)
+            => PopulateSwitchHelpers.HasDefaultCase(operation);
     }
 }

@@ -5,11 +5,11 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.PopulateSwitch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
-    Partial Public Class PopulateSwitchTests
+    Partial Public Class PopulateSwitchStatementTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New PopulateSwitchDiagnosticAnalyzer(), New PopulateSwitchCodeFixProvider())
+            Return (New PopulateSwitchStatementDiagnosticAnalyzer(), New PopulateSwitchStatementCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>

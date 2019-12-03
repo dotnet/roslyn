@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
-    public partial class PopulateSwitchTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class PopulateSwitchStatementTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new PopulateSwitchDiagnosticAnalyzer(), new PopulateSwitchCodeFixProvider());
+            => (new PopulateSwitchStatementDiagnosticAnalyzer(), new PopulateSwitchStatementCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task OnlyOnFirstToken()

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
-    public partial class PopulateSwitchTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class PopulateSwitchStatementTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
