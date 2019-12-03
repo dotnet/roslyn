@@ -5345,8 +5345,6 @@ class C
 
             public bool IsUnmanagedType => throw new NotImplementedException();
 
-            public bool IsNativeInt => false;
-
             #endregion
         }
 
