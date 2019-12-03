@@ -839,6 +839,11 @@
         <target state="translated">在嵌套函数中的名称映射</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNativeInt">
+        <source>native-sized integers</source>
+        <target state="new">native-sized integers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
         <target state="translated">嵌套表达式中的 stackalloc</target>

@@ -2302,6 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
+            // PROTOTYPE: Temporary approach for AsNativeInt().
             private PENamedTypeSymbolNonGeneric(PENamedTypeSymbolNonGeneric other) :
                 base(other)
             {
@@ -2336,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            public override bool IsNativeInt { get; }
+            internal override bool IsNativeInt { get; }
 
             internal override NamedTypeSymbol AsNativeInt()
             {
@@ -2345,6 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return IsNativeInt ? this : new PENamedTypeSymbolNonGeneric(this);
             }
 
+            // PROTOTYPE: Temporary approach for AsNativeInt().
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 if ((object)t2 == null) return false;

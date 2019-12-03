@@ -11501,6 +11501,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to native-sized integers.
+        /// </summary>
+        internal static string IDS_FeatureNativeInt {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNativeInt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to stackalloc in nested expressions.
         /// </summary>
         internal static string IDS_FeatureNestedStackalloc {

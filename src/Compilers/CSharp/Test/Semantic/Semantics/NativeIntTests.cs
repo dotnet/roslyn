@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (3,5): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,5): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(3, 5),
-                // (3,14): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 5),
+                // (3,14): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(3, 14),
-                // (3,22): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 14),
+                // (3,22): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(3, 22));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 22));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         // PROTOTYPE: Test:
         // - @nint
         // - Type.nint, Namespace.nint
-        // - All locations from SyntaxFacts.IsInTypeOnlyContext
         // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol has the comment "dynamic not allowed as an attribute type". Does that apply to "nint"?
         // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol checks IsViableType(result)
         // - Use-site diagnostics (basically any use-site diagnostics from IntPtr/UIntPtr)
@@ -80,6 +79,190 @@ interface I
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE: nint and nuint should be allowed.
+        [Fact]
+        public void MemberName()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        nint.ToString();
+        nuint.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,9): error CS0103: The name 'nint' does not exist in the current context
+                //         nint.ToString();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 9),
+                // (6,9): error CS0103: The name 'nuint' does not exist in the current context
+                //         nuint.ToString();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 9));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,9): error CS0103: The name 'nint' does not exist in the current context
+                //         nint.ToString();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 9),
+                // (6,9): error CS0103: The name 'nuint' does not exist in the current context
+                //         nuint.ToString();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 9));
+        }
+
+        // PROTOTYPE: nint and nuint should be allowed.
+        [Fact]
+        public void NameOf()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = nameof(nint);
+        _ = nameof(nuint);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 20),
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 20),
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
+        }
+
+        /// <summary>
+        /// sizeof(IntPtr) and sizeof(nint) require compiling with /unsafe.
+        /// </summary>
+        [Fact]
+        public void SizeOf_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = sizeof(System.IntPtr);
+        _ = sizeof(System.UIntPtr);
+        _ = sizeof(nint);
+        _ = sizeof(nuint);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0233: 'IntPtr' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         _ = sizeof(System.IntPtr);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(System.IntPtr)").WithArguments("System.IntPtr").WithLocation(5, 13),
+                // (6,13): error CS0233: 'UIntPtr' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         _ = sizeof(System.UIntPtr);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(System.UIntPtr)").WithArguments("System.UIntPtr").WithLocation(6, 13),
+                // (7,13): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         _ = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(7, 13),
+                // (8,13): error CS0233: 'nuint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         _ = sizeof(nuint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nuint)").WithArguments("nuint").WithLocation(8, 13));
+        }
+
+        // PROTOTYPE: PEVerify error: TypeRef has a duplicate.
+        [Fact(Skip = "PEVerify")]
+        public void SizeOf_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    unsafe static void Main()
+    {
+        Console.Write(sizeof(System.IntPtr));
+        Console.Write(sizeof(System.UIntPtr));
+        Console.Write(sizeof(nint));
+        Console.Write(sizeof(nuint));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularPreview);
+            int size = IntPtr.Size;
+            var verifier = CompileAndVerify(comp, expectedOutput: $"{size}{size}{size}{size}");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  IL_0000:  sizeof     ""System.IntPtr""
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  sizeof     ""System.UIntPtr""
+  IL_0011:  call       ""void System.Console.Write(int)""
+  IL_0016:  sizeof     ""System.IntPtr""
+  IL_001c:  call       ""void System.Console.Write(int)""
+  IL_0021:  sizeof     ""System.UIntPtr""
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
+        public void SizeOf_03()
+        {
+            var source =
+@"using System.Collections.Generic;
+unsafe class Program
+{
+    static IEnumerable<int> F()
+    {
+        yield return sizeof(nint);
+        yield return sizeof(nuint);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS1629: Unsafe code may not appear in iterators
+                //         yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(nint)").WithLocation(6, 22),
+                // (7,22): error CS1629: Unsafe code may not appear in iterators
+                //         yield return sizeof(nuint);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(nuint)").WithLocation(7, 22));
+        }
+
+        [Fact]
+        public void SizeOf_04()
+        {
+            var source =
+@"unsafe class Program
+{
+    const int A = sizeof(System.IntPtr);
+    const int B = sizeof(System.UIntPtr);
+    const int C = sizeof(nint);
+    const int D = sizeof(nuint);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0133: The expression being assigned to 'Program.A' must be constant
+                //     const int A = sizeof(System.IntPtr);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(System.IntPtr)").WithArguments("Program.A").WithLocation(3, 19),
+                // (4,19): error CS0133: The expression being assigned to 'Program.B' must be constant
+                //     const int B = sizeof(System.UIntPtr);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(System.UIntPtr)").WithArguments("Program.B").WithLocation(4, 19),
+                // (5,19): error CS0133: The expression being assigned to 'Program.C' must be constant
+                //     const int C = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nint)").WithArguments("Program.C").WithLocation(5, 19),
+                // (6,19): error CS0133: The expression being assigned to 'Program.D' must be constant
+                //     const int D = sizeof(nuint);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
         }
 
         public static IEnumerable<object[]> ConversionsData()
@@ -2325,96 +2508,6 @@ class Program
   IL_0002:  rem.un
   IL_0003:  ret
 }");
-        }
-
-        [Fact]
-        public void SizeOf_01()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void Main()
-    {
-        Console.Write(sizeof(IntPtr));
-        Console.Write(sizeof(UIntPtr));
-    }
-}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (6,23): error CS0233: 'IntPtr' does not have a predefined size, therefore sizeof can only be used in an unsafe context
-                //         Console.Write(sizeof(IntPtr));
-                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(IntPtr)").WithArguments("System.IntPtr").WithLocation(6, 23),
-                // (7,23): error CS0233: 'UIntPtr' does not have a predefined size, therefore sizeof can only be used in an unsafe context
-                //         Console.Write(sizeof(UIntPtr));
-                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(UIntPtr)").WithArguments("System.UIntPtr").WithLocation(7, 23));
-        }
-
-        /// <summary>
-        /// sizeof(IntPtr) requires compiling with /unsafe.
-        /// sizeof(nint) should not.
-        /// </summary>
-        [Fact]
-        public void SizeOf_02()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void Main()
-    {
-        Console.Write(sizeof(nint));
-        Console.Write(sizeof(nuint));
-    }
-}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, expectedOutput: $"{IntPtr.Size}{IntPtr.Size}");
-            verifier.VerifyIL("Program.Main",
-@"{
-  // Code size       23 (0x17)
-  .maxstack  1
-  IL_0000:  sizeof     ""nint""
-  IL_0006:  call       ""void System.Console.Write(int)""
-  IL_000b:  sizeof     ""nuint""
-  IL_0011:  call       ""void System.Console.Write(int)""
-  IL_0016:  ret
-}");
-        }
-
-        [Fact]
-        public void SizeOf_03()
-        {
-            var source =
-@"class Program
-{
-    const int C1 = sizeof(nint);
-    const int C2 = sizeof(nuint);
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (3,20): error CS0133: The expression being assigned to 'Program.C1' must be constant
-                //     const int C1 = sizeof(nint);
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nint)").WithArguments("Program.C1").WithLocation(3, 20),
-                // (4,20): error CS0133: The expression being assigned to 'Program.C2' must be constant
-                //     const int C2 = sizeof(nuint);
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.C2").WithLocation(4, 20));
-        }
-
-        [Fact]
-        public void SizeOf_04()
-        {
-            var source =
-@"using System.Collections.Generic;
-class Program
-{
-    static IEnumerable<int> F()
-    {
-        yield return sizeof(nint);
-        yield return sizeof(nuint);
-    }
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
         }
     }
 }

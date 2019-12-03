@@ -816,16 +816,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we were looking up "dynamic" or "nint" at the topmost level and didn't find anything good,
             // use that particular type (assuming the /langversion is supported).
             if ((object)qualifierOpt == null &&
-                (node.Parent == null ||
-                 node.Parent.Kind() != SyntaxKind.Attribute && // dynamic and nint not allowed as attribute type
-                 SyntaxFacts.IsInTypeOnlyContext(node)) &&
                 !IsViableType(result))
             {
                 switch (node.Identifier.ValueText)
                 {
-                    case "dynamic" when Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion():
-                        bindingResult = Compilation.DynamicType;
-                        ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                    case "dynamic":
+                        if ((node.Parent == null ||
+                             node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as attribute type
+                             SyntaxFacts.IsInTypeOnlyContext(node)) &&
+                            Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                        {
+                            bindingResult = Compilation.DynamicType;
+                            ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                        }
                         break;
                     case "nint":
                         bindingResult = getNativeIntType(node, unsigned: false, diagnostics);
@@ -858,10 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol getNativeIntType(SyntaxNode node, bool unsigned, DiagnosticBag diagnostics)
             {
-                if (Compilation.LanguageVersion < MessageID.IDS_FeatureNativeInt.RequiredVersion())
-                {
-                    return null;
-                }
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
                 return this.GetSpecialType(unsigned ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr, diagnostics, node).AsNativeInt();
             }
         }

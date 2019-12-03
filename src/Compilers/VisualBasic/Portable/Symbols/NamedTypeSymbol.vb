@@ -1212,12 +1212,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IsNativeInt As Boolean Implements INamedTypeSymbol.IsNativeInt
-            Get
-                Return False
-            End Get
-        End Property
-
 #End Region
 
 #Region "ISymbol"

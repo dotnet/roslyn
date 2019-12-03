@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis
             return ConstantValueTypeDiscriminator.Bad;
         }
 
-        // PROTOTYPE: Include NInt and NUint?
+        // PROTOTYPE: Include NInt and NUint.
         private static SpecialType GetSpecialType(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)
@@ -472,6 +472,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // PROTOTYPE: Include NInt and NUint.
         public static bool IsIntegralType(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)
@@ -499,6 +500,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // PROTOTYPE: Include NInt and NUint.
         public bool IsNegativeNumeric
         {
             get
@@ -526,6 +528,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // PROTOTYPE: Include NInt and NUint.
         public bool IsNumeric
         {
             get
@@ -551,6 +554,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // PROTOTYPE: Include NInt and NUint.
         public static bool IsUnsignedIntegralType(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)
@@ -678,6 +682,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // PROTOTYPE: Include NInt and NUint.
         public void Serialize(BlobBuilder writer)
         {
             switch (this.Discriminator)
