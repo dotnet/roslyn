@@ -14,9 +14,10 @@
     },
     {
         "label": "build skip analyzers",
-        "command": "./build.cmd -skipAnalyzers",
+        "command": "./build.cmd",
         "type": "shell",
         "args": [
+          "-skipAnalyzers"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
