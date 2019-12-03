@@ -8882,7 +8882,10 @@ tryAgain:
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
             var result = ParseSubExpressionCore(precedence);
-
+#if DEBUG
+            // Ensure every expression kind is handled in GetPrecedence
+            _ = GetPrecedence(result.Kind);
+#endif
             _recursionDepth--;
             return result;
         }
