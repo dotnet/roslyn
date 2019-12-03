@@ -40,7 +40,7 @@ param (
   [switch]$skipAnalyzers,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
-  [switch]$useGlobalNuGetCache = $true,
+  [switch]$useGlobalNuGetCache = $false,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
 
