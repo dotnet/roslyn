@@ -943,6 +943,46 @@ class C
         }
 
         [Fact]
+        public void LocalFunctionExtern_Errors()
+        {
+            const string text = @"
+class C
+{
+#pragma warning disable 8321 // Unreferenced local function
+
+    void M1()
+    {
+        void local1(); // 1
+        static extern void local1(); // 2, 3
+    }
+
+    void M2()
+    {
+        void local1(); // 4
+        static extern void local1() { } // 5
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,14): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
+                //         void local1(); // 1
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local1").WithArguments("local1()").WithLocation(8, 14),
+                // (9,28): error CS0128: A local variable or function named 'local1' is already defined in this scope
+                //         static extern void local1(); // 2, 3
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "local1").WithArguments("local1").WithLocation(9, 28),
+                // (9,28): warning CS0626: Method, operator, or accessor 'local1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         static extern void local1(); // 2, 3
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "local1").WithArguments("local1()").WithLocation(9, 28),
+                // (14,14): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
+                //         void local1(); // 4
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local1").WithArguments("local1()").WithLocation(14, 14),
+                // (15,28): error CS0128: A local variable or function named 'local1' is already defined in this scope
+                //         static extern void local1() { } // 5
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "local1").WithArguments("local1").WithLocation(15, 28));
+        }
+
+        [Fact]
         public void UnsafeLocal()
         {
             var source = @"

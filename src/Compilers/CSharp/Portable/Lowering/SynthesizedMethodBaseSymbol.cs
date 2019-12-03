@@ -158,11 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        public override DllImportData? GetDllImportData() => InheritsBaseMethodAttributes ? BaseMethod.GetDllImportData() : null;
+        public sealed override DllImportData? GetDllImportData() => InheritsBaseMethodAttributes ? BaseMethod.GetDllImportData() : null;
 
-        internal override MethodImplAttributes ImplementationAttributes => InheritsBaseMethodAttributes ? BaseMethod.ImplementationAttributes : default;
+        internal sealed override MethodImplAttributes ImplementationAttributes => InheritsBaseMethodAttributes ? BaseMethod.ImplementationAttributes : default;
 
-        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => InheritsBaseMethodAttributes ? BaseMethod.ReturnValueMarshallingInformation : null;
+        internal sealed override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => InheritsBaseMethodAttributes ? BaseMethod.ReturnValueMarshallingInformation : null;
 #nullable restore
 
         public sealed override RefKind RefKind

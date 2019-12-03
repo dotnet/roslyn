@@ -26,42 +26,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.syntaxReferenceOpt = syntaxReferenceOpt;
         }
 
-        internal CSharpSyntaxNode GetBinderContextNode()
+#nullable enable
+        internal CSharpSyntaxNode? GetBinderContextNode()
         {
-            CSharpSyntaxNode syntaxNode = this.SyntaxNode;
-            CSharpSyntaxNode contextNode;
-
-            switch (syntaxNode)
+            switch (SyntaxNode)
             {
                 case ConstructorDeclarationSyntax constructor:
-                    contextNode = constructor.Initializer ?? (CSharpSyntaxNode)constructor.Body ?? constructor.ExpressionBody;
-                    break;
-
+                    return constructor.Initializer ?? (CSharpSyntaxNode?)constructor.Body ?? constructor.ExpressionBody;
                 case BaseMethodDeclarationSyntax method:
-                    contextNode = (CSharpSyntaxNode)method.Body ?? method.ExpressionBody;
-                    break;
-
+                    return (CSharpSyntaxNode?)method.Body ?? method.ExpressionBody;
                 case AccessorDeclarationSyntax accessor:
-                    contextNode = (CSharpSyntaxNode)accessor.Body ?? accessor.ExpressionBody;
-                    break;
-
+                    return (CSharpSyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
                 case ArrowExpressionClauseSyntax arrowExpression:
                     Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
                                  arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
-                    contextNode = arrowExpression;
-                    break;
-
+                    return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
-                    contextNode = (CSharpSyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
-                    break;
-
+                    return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
                 default:
-                    contextNode = null;
-                    break;
+                    return null;
             }
-
-            return contextNode;
         }
+#nullable restore
 
         internal SyntaxReference SyntaxRef
         {
@@ -322,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
 
@@ -369,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
             get
             {
@@ -402,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(!arguments.Attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
@@ -780,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -846,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasRuntimeSpecialName
+        internal sealed override bool HasRuntimeSpecialName
         {
             get
             {
