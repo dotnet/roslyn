@@ -10,9 +10,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperation> :
+    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperation, TSwitchSyntax> :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSwitchOperation : IOperation
+        where TSwitchSyntax : SyntaxNode
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Populate_switch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
         protected abstract bool HasDefaultCase(TSwitchOperation operation);
-        protected abstract Location GetDiagnosticLocation(SyntaxNode switchBlock);
+        protected abstract Location GetDiagnosticLocation(TSwitchSyntax switchBlock);
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -40,7 +41,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var switchOperation = (TSwitchOperation)context.Operation;
-            var switchBlock = switchOperation.Syntax;
+            var switchBlock = switchOperation.Syntax as TSwitchSyntax;
+            if (switchBlock == null)
+                return;
+
             var tree = switchBlock.SyntaxTree;
 
             if (SwitchIsIncomplete(switchOperation, out var missingCases, out var missingDefaultCase) &&
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class PopulateSwitchStatementDiagnosticAnalyzer :
-        AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchOperation>
+        AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchOperation, SyntaxNode>
     {
         public PopulateSwitchStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.PopulateSwitchStatementDiagnosticId)

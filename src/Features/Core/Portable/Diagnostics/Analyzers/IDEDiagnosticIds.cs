@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseSystemHashCode = "IDE0070";
 
-        public const string PopulateExpressionStatementDiagnosticId = "IDE0071";
+        public const string PopulateSwitchExpressionDiagnosticId = "IDE0071";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return true;
         }
 
-        private static bool TryGetAllEnumMembers(
+        public static bool TryGetAllEnumMembers(
             ITypeSymbol enumType,
             Dictionary<long, ISymbol> enumValues)
         {

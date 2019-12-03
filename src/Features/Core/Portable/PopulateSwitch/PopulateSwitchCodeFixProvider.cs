@@ -22,9 +22,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchOperation>
+    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchOperation, TSwitchSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TSwitchOperation : IOperation
+        where TSwitchSyntax : SyntaxNode
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
@@ -128,7 +129,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchHelpers.MissingDefaultCase]);
 
             var switchLocation = diagnostic.AdditionalLocations[0];
-            var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSwitchSyntax;
+            if (switchNode == null)
+                return;
+
             var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken);
 
             FixOneDiagnostic(
@@ -140,12 +144,12 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             Document document, SyntaxEditor editor,
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             bool hasMissingCases, bool hasMissingDefaultCase,
-            SyntaxNode switchNode, TSwitchOperation switchStatement);
+            TSwitchSyntax switchNode, TSwitchOperation switchStatement);
 
         protected static void AddMissingBraces(
             Document document,
             ref SyntaxNode root,
-            ref SyntaxNode switchNode)
+            ref TSwitchSyntax switchNode)
         {
             // Parsing of the switch may have caused imbalanced braces.  i.e. the switch
             // may have consumed a brace that was intended for a higher level construct.
@@ -184,7 +188,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class PopulateSwitchStatementCodeFixProvider : AbstractPopulateSwitchCodeFixProvider<ISwitchOperation>
+    internal class PopulateSwitchStatementCodeFixProvider : AbstractPopulateSwitchCodeFixProvider<ISwitchOperation, SyntaxNode>
     {
         [ImportingConstructor]
         public PopulateSwitchStatementCodeFixProvider()
