@@ -1531,8 +1531,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             elementTypesBuilder.Add(patternType.InferredType);
                         }
 
+                        // Pass the nullable annotations explicitly to work around https://github.com/dotnet/roslyn/issues/40105
+                        var elementTypes = elementTypesBuilder.ToImmutableAndFree();
                         var type = Compilation.CreateTupleTypeSymbol(
-                            elementTypesBuilder.ToImmutableAndFree(), elementNamesBuilder.ToImmutableAndFree());
+                            elementTypes, elementNamesBuilder.ToImmutableAndFree(), elementNullableAnnotations: elementTypes.SelectAsArray(e => e.NullableAnnotation));
                         return CreateResult(type);
                     }
                 }
