@@ -5361,7 +5361,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunction_MaybeNullAttribute()
+        public void LocalFunction_AllowNullAttribute()
         {
             var source = @"
 using System.Diagnostics.CodeAnalysis;
