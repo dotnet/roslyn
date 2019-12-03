@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // be used here.
 
                 // NOTE: no overload resolution candidates.
+                left = BindToTypeForErrorRecovery(left);
+                right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                     Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.NotAVariable, CreateErrorType(), hasErrors: true);
             }
