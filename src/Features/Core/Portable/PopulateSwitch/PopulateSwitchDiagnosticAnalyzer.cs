@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
         protected abstract bool HasDefaultCase(TSwitchOperation operation);
+        protected abstract Location GetDiagnosticLocation(SyntaxNode switchBlock);
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
                 var diagnostic = Diagnostic.Create(
                     Descriptor,
-                    switchBlock.GetFirstToken().GetLocation(),
+                    GetDiagnosticLocation(switchBlock),
                     properties: properties,
                     additionalLocations: new[] { switchBlock.GetLocation() });
                 context.ReportDiagnostic(diagnostic);
@@ -91,5 +92,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected override bool HasDefaultCase(ISwitchOperation operation)
             => PopulateSwitchHelpers.HasDefaultCase(operation);
+
+        protected override Location GetDiagnosticLocation(SyntaxNode switchBlock)
+            => switchBlock.GetFirstToken().GetLocation();
     }
 }
