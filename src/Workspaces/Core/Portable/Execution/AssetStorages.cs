@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public async ValueTask<RemotableData?> GetRemotableData_TestOnly(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<RemotableData?> TestOnly_GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             foreach (var (scopeId, _) in _storages)
             {

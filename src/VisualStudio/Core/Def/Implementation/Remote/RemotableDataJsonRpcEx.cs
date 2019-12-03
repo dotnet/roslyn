@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
-            var remotableData = await _remotableDataService.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false) ?? RemotableData.Null;
+            var remotableData = (await _remotableDataService.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
             writer.WriteInt32(1);
 
             checksum.WriteTo(writer);

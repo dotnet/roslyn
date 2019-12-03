@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public async ValueTask<RemotableData?> TestOnly_GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
             {
-                return await _assetStorages.GetRemotableData_TestOnly(checksum, cancellationToken).ConfigureAwait(false);
+                return await _assetStorages.TestOnly_GetRemotableDataAsync(checksum, cancellationToken).ConfigureAwait(false);
             }
         }
     }

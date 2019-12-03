@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
-            public async ValueTask AppendAsync(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result)
+            public async Task AppendAsync(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result)
             {
                 using var resultPool = Creator.CreateResultSet();
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            private async ValueTask AppendAsync(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, object> result)
+            private async Task AppendAsync(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, object> result)
             {
                 // only solution with checksum can be in asset storage
                 Contract.ThrowIfFalse(_state.TryGetStateChecksums(out var stateChecksums));

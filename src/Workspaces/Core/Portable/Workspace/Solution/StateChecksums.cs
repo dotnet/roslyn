@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum Info => (Checksum)Children[0];
         public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[1];
 
-        public async ValueTask FindAsync(
+        public async Task FindAsync(
             SolutionState state,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[Projects.Checksum] = Projects;
             }
 
-            foreach (var projectState in state.ProjectStates.Values)
+            foreach (var (_, projectState) in state.ProjectStates)
             {
                 // solution state checksum can't be created without project state checksums created first
                 // check unsupported projects
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public TextDocumentChecksumCollection AdditionalDocuments => (TextDocumentChecksumCollection)Children[7];
         public AnalyzerConfigDocumentChecksumCollection AnalyzerConfigDocuments => (AnalyzerConfigDocumentChecksumCollection)Children[8];
 
-        public async ValueTask FindAsync(
+        public async Task FindAsync(
             ProjectState state,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
@@ -173,21 +173,22 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
             }
 
-            await FindAsync(state.DocumentStates.Values, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
-            await FindAsync(state.AdditionalDocumentStates.Values, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await FindAsync(state.AnalyzerConfigDocumentStates.Values, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+
+            await FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async ValueTask FindAsync(
-            IEnumerable<TextDocumentState> documentStates,
+        private static async Task FindAsync<TKey, TValue>(
+            ImmutableSortedDictionary<TKey, TValue> documentStates,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken) where TValue : TextDocumentState
         {
-            foreach (var state in documentStates)
+            foreach (var (_, state) in documentStates)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum Info => (Checksum)Children[0];
         public Checksum Text => (Checksum)Children[1];
 
-        public async ValueTask FindAsync(
+        public async Task FindAsync(
             TextDocumentState state,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,

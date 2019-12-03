@@ -3,8 +3,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Roslyn.Utilities
@@ -13,7 +11,7 @@ namespace Roslyn.Utilities
     {
         internal static T InterlockedStore<T>(ref T? target, T value) where T : class
         {
-            return Interlocked.CompareExchange(ref target, value, null!) ?? value;
+            return Interlocked.CompareExchange(ref target, value, null) ?? value;
         }
 
         /// <summary>
