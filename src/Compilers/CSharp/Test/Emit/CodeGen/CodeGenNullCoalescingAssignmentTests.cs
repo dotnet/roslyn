@@ -680,7 +680,10 @@ public class C
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "GetInt").WithArguments("GetInt", "method group").WithLocation(13, 9),
                 // (14,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         () => {} ??= null; // Non lvalue lambda
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "() => {}").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "() => {}").WithLocation(14, 9),
+                // (14,18): error CS1073: Unexpected token '??='
+                //         () => {} ??= null; // Non lvalue lambda
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "??=").WithArguments("??=").WithLocation(14, 18)
             );
         }
 
