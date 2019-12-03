@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     syntaxLocalMap,
                     semanticLocalMap,
                     nonLocalMap,
-                    others,
+                    others.NullToEmpty(),
                     documentIds: null);
 
                 analysisMap.Add(analyzer, analysisResult);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var analyzer = analyzerMap[reader.ReadString()];
 
                 var exceptions = diagnosticDataSerializer.ReadDiagnosticData(reader, project, document: null, cancellationToken);
-                if (!exceptions.IsEmpty)
+                if (!exceptions.IsDefault)
                 {
                     exceptionMap.Add(analyzer, exceptions);
                 }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostics = serializer.ReadDiagnosticData(reader, project, document, cancellationToken);
 
                 // drop diagnostics for non-null document that doesn't support diagnostics
-                if (diagnostics.IsEmpty || document?.SupportsDiagnostics() == false)
+                if (diagnostics.IsDefault || document?.SupportsDiagnostics() == false)
                 {
                     continue;
                 }

@@ -100,12 +100,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool HasTextSpan => (DataLocation?.SourceSpan).HasValue;
 
         /// <summary>
-        /// return TextSpan if it exists, otherwise it will throw
+        /// Get <see cref="TextSpan"/> if it exists, throws otherwise.
         /// 
-        /// some diagnostic data such as created from build will have original line/column but not text span
-        /// in those cases, use GetTextSpan method instead to calculate one from original line/column
+        /// Some diagnostic data such as those created from build have original line/column but not <see cref="TextSpan"/>.
+        /// In those cases use <see cref="GetTextSpan(DiagnosticDataLocation, SourceText)"/> method instead to calculate span from original line/column.
         /// </summary>
-        public TextSpan TextSpan => (DataLocation?.SourceSpan)!.Value;
+        public TextSpan GetTextSpan()
+        {
+            Contract.ThrowIfFalse(DataLocation != null && DataLocation.SourceSpan.HasValue);
+            return DataLocation.SourceSpan.Value;
+        }
 
         public override bool Equals(object obj)
             => obj is DiagnosticData data && Equals(data);
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-            => HasTextSpan ? EnsureInBounds(TextSpan, text) : GetTextSpan(DataLocation, text);
+            => HasTextSpan ? EnsureInBounds(GetTextSpan(), text) : GetTextSpan(DataLocation, text);
 
         private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
             => TextSpan.FromBounds(

@@ -1072,7 +1072,7 @@ public class B
 
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).
                     WaitAndGetResult(CancellationToken.None).
-                    OrderBy(Function(d) d.TextSpan.Start).ToArray
+                    OrderBy(Function(d) d.GetTextSpan().Start).ToArray
 
                 Assert.Equal(3, diagnostics.Count)
                 Assert.True(diagnostics.All(Function(d) d.Id = MethodSymbolAnalyzer.Descriptor.Id))
@@ -1184,7 +1184,7 @@ public class B
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).
                     WaitAndGetResult(CancellationToken.None).
-                    OrderBy(Function(d) d.TextSpan.Start).
+                    OrderBy(Function(d) d.GetTextSpan().Start).
                     ToArray()
                 Assert.Equal(4, diagnostics.Length)
                 Assert.Equal(4, diagnostics.Where(Function(d) d.Id = FieldDeclarationAnalyzer.Descriptor1.Id).Count)
@@ -1230,7 +1230,7 @@ public class B
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).
                     WaitAndGetResult(CancellationToken.None).
-                    OrderBy(Function(d) d.TextSpan.Start).
+                    OrderBy(Function(d) d.GetTextSpan().Start).
                     ToArray()
 
                 For Each diagnostic In diagnostics

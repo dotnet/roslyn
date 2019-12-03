@@ -52,7 +52,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             using var storage = persistentService.GetStorage(project.Solution);
 
             stream.Position = 0;
-            return await ((document != null) ? storage.WriteStreamAsync(document, key, stream, cancellationToken) : storage.WriteStreamAsync(project, key, stream, cancellationToken)).ConfigureAwait(false);
+
+            var writeTask = (document != null) ?
+                storage.WriteStreamAsync(document, key, stream, cancellationToken) :
+                storage.WriteStreamAsync(project, key, stream, cancellationToken);
+
+            return await writeTask.ConfigureAwait(false);
         }
 
         public async Task<StrongBox<ImmutableArray<DiagnosticData>>?> DeserializeAsync(IPersistentStorageService persistentService, Project project, Document? document, string key, CancellationToken cancellationToken)
@@ -60,7 +65,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             Contract.ThrowIfFalse(document == null || document.Project == project);
 
             using var storage = persistentService.GetStorage(project.Solution);
-            using var stream = await ((document != null) ? storage.ReadStreamAsync(document, key, cancellationToken) : storage.ReadStreamAsync(project, key, cancellationToken)).ConfigureAwait(false);
+
+            var readTask = (document != null) ?
+                storage.ReadStreamAsync(document, key, cancellationToken) :
+                storage.ReadStreamAsync(project, key, cancellationToken);
+
+            using var stream = await readTask.ConfigureAwait(false);
             using var reader = ObjectReader.TryGetReader(stream);
 
             if (reader == null)
@@ -172,27 +182,27 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 var format = reader.ReadInt32();
                 if (format != FormatVersion)
                 {
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return default;
                 }
 
                 // saved data is for same analyzer of different version of dll
                 var analyzerVersion = VersionStamp.ReadFrom(reader);
                 if (analyzerVersion != AnalyzerVersion)
                 {
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return default;
                 }
 
                 var version = VersionStamp.ReadFrom(reader);
                 if (version != VersionStamp.Default && version != Version)
                 {
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return default;
                 }
 
                 return ReadDiagnosticDataArray(reader, project, document, cancellationToken);
             }
             catch (Exception)
             {
-                return ImmutableArray<DiagnosticData>.Empty;
+                return default;
             }
         }
 

@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HasTextSpan, item2.HasTextSpan);
             if (item1.HasTextSpan)
             {
-                Assert.Equal(item1.TextSpan, item2.TextSpan);
+                Assert.Equal(item1.GetTextSpan(), item2.GetTextSpan());
             }
 
             Assert.Equal(item1.DataLocation?.MappedFilePath, item2.DataLocation?.MappedFilePath);
