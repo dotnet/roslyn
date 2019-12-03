@@ -147,14 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constantPattern = BindConstantPattern(node, inputType, expression, hasErrors, constantDiagnostics, out bool wasExpression);
 
             // fall back to a type pattern if it fails as a constant pattern.
-            if (!wasExpression && !IsUnderscore(innerExpression) &&
-                ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureTypePattern))
+            if (!wasExpression && !IsUnderscore(innerExpression))
             {
                 if (TryBindAsType(innerExpression, out DiagnosticBag bindAsTypeDiagnostics, out BoundTypeExpression boundType))
                 {
                     diagnostics.AddRangeAndFree(bindAsTypeDiagnostics);
                     constantDiagnostics.Free();
                     hasErrors |= CheckValidPatternType(innerExpression, inputType, boundType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
+                    CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                     return new BoundTypePattern(node, boundType, inputType, hasErrors);
                 }
                 else

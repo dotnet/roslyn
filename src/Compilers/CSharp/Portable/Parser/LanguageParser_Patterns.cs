@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal partial class LanguageParser : SyntaxParser
     {
-
         /// <summary>
         /// Parses the type, or pattern, right-hand operand of an is expression.
         /// Priority is the TypeSyntax. It may return a TypeSyntax which turns out in binding to
@@ -281,8 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
-                    subPatterns[0].NameColon == null
-                    )
+                    subPatterns[0].NameColon == null)
                 {
                     var subpattern = subPatterns[0].Pattern;
                     switch (subpattern)

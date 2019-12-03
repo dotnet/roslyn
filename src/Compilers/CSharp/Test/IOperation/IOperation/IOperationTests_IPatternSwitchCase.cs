@@ -604,10 +604,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISingleValueCaseClauseOperation (Label Id: 0) (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case /*</bind>*/')
-  Value: 
-    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-      Children(0)
+    IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case /*</bind>*/')
+      Pattern: 
+        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'case /*</bind>*/')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term 'const'

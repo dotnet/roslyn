@@ -456,7 +456,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+                    {
+                        // This is invalid syntax for a type.  This arises when a constant pattern that fails to bind
+                        // is attempted to be bound as a type pattern.
+                        diagnostics.Add(ErrorCode.ERR_TypeExpected, syntax.GetLocation());
+                        return TypeWithAnnotations.Create(CreateErrorType());
+                    }
             }
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)

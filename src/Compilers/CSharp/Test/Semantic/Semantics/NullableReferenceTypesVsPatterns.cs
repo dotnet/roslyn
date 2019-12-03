@@ -133,7 +133,7 @@ class C
         string nonConstant = ""hello"";
         if (x is nonConstant)
         {
-            x.ToString(); // warn
+            x.ToString();
         }
     }
 }

@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var sectionBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(switchSections.Length);
+            bool anyPreviousErrors = false;
             foreach (var oldSection in switchSections)
             {
                 var labelBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(oldSection.SwitchLabels.Length);
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (syntax)
                         {
                             case CasePatternSwitchLabelSyntax p:
-                                if (!p.Pattern.HasErrors)
+                                if (!p.Pattern.HasErrors && !anyPreviousErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
                                 }
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // We use the traditional diagnostic when possible
                                     diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());
                                 }
-                                else if (!label.Pattern.HasErrors)
+                                else if (!label.Pattern.HasErrors && !anyPreviousErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
                                 }
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         newLabel = new BoundSwitchLabel(label.Syntax, label.Label, label.Pattern, label.WhenClause, hasErrors: true);
                     }
 
+                    anyPreviousErrors |= label.HasErrors;
                     labelBuilder.Add(newLabel);
                 }
 

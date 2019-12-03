@@ -4664,7 +4664,6 @@ public class Program46
     }
     private static object M() => null;
 }";
-            // PROTOTYPE(ngafter): should avoid the unreachable warning.
             CreateCompilation(program).VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
@@ -4674,10 +4673,7 @@ public class Program46
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
                 // (11,18): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "((int)M())").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
                 );
         }
 
