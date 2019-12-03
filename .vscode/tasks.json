@@ -13,7 +13,7 @@
         "group": "build"
     },
     {
-        "label": "build fast",
+        "label": "build skip analyzers",
         "command": "./build.cmd -skipAnalyzers",
         "type": "shell",
         "args": [
