@@ -935,15 +935,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // It has already been subjected to a switch expression conversion.
                     return Conversion.NoConversion;
                 case BoundUnconvertedSwitchExpression switchExpression:
+                    var innerConversions = ArrayBuilder<Conversion>.GetInstance(switchExpression.SwitchArms.Length);
                     foreach (var arm in switchExpression.SwitchArms)
                     {
-                        if (!this.ClassifyConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics).IsImplicit)
+                        var nestedConversion = this.ClassifyImplicitConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics);
+                        if (!nestedConversion.Exists)
                         {
+                            innerConversions.Free();
                             return Conversion.NoConversion;
                         }
+
+                        innerConversions.Add(nestedConversion);
                     }
 
-                    return Conversion.SwitchExpression;
+                    return Conversion.MakeSwitchExpression(innerConversions.ToImmutableAndFree());
                 default:
                     return Conversion.NoConversion;
             }
