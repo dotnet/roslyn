@@ -177,6 +177,11 @@
         <target state="translated">Drzewo wyrażenia nie może zawierać operatora == ani != krotki.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">Funkcja „{0}” jest obecnie w wersji zapoznawczej i jest *nieobsługiwana*. Aby używać funkcji w wersji zapoznawczej, skorzystaj z wersji języka w wersji zapoznawczej.</target>

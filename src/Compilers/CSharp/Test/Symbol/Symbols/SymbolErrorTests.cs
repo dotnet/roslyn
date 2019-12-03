@@ -1059,6 +1059,26 @@ abstract class Test
         }
 
         [Fact]
+        public void ExternEventInitializer()
+        {
+            var text = @"
+delegate void D();
+
+class Test
+{
+    public extern event D e = null; // 1, 2
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,27): error CS8800: 'Test.e': extern event cannot have initializer
+                //     public extern event D e = null; // 1, 2
+                Diagnostic(ErrorCode.ERR_ExternEventInitializer, "e").WithArguments("Test.e").WithLocation(6, 27),
+                // (6,27): warning CS0414: The field 'Test.e' is assigned but its value is never used
+                //     public extern event D e = null; // 1, 2
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "e").WithArguments("Test.e").WithLocation(6, 27));
+        }
+
+        [Fact]
         public void CS0076ERR_ReservedEnumerator()
         {
             var text =

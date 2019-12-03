@@ -177,6 +177,11 @@
         <target state="translated">Eine Ausdrucksbaumstruktur darf keinen ==- oder !=-Tupeloperator enthalten.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">Das Feature "{0}" befindet sich zurzeit in der Vorschau und wird *nicht unterstützt*. Um Previewfunktionen zu nutzen, verwenden Sie die Sprachversion "Preview".</target>

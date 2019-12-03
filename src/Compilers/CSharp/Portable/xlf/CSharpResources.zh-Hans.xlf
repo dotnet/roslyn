@@ -177,6 +177,11 @@
         <target state="translated">表达式树不能包含元组 == 或 != 运算符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">功能“{0}”当前为预览版且*不受支持*。要使用预览版功能，请使用“预览”语言版本。</target>
