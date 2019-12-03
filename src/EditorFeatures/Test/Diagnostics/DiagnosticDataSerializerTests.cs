@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var recovered = await serializer.DeserializeAsync(persistentService, document.Project, document, key, CancellationToken.None);
 
-            AssertDiagnostics(diagnostics, recovered.Value);
+            AssertDiagnostics(diagnostics, recovered);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.True(await serializer.SerializeAsync(persistentService, document.Project, document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
             var recovered = await serializer.DeserializeAsync(persistentService, document.Project, document, key, CancellationToken.None);
 
-            AssertDiagnostics(diagnostics, recovered.Value);
+            AssertDiagnostics(diagnostics, recovered);
         }
 
         [WorkItem(6104, "https://github.com/dotnet/roslyn/issues/6104")]

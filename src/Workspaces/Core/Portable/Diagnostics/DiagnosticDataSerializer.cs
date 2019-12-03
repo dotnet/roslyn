@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return await writeTask.ConfigureAwait(false);
         }
 
-        public async Task<StrongBox<ImmutableArray<DiagnosticData>>?> DeserializeAsync(IPersistentStorageService persistentService, Project project, Document? document, string key, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<DiagnosticData>> DeserializeAsync(IPersistentStorageService persistentService, Project project, Document? document, string key, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document == null || document.Project == project);
 
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
             if (reader == null)
             {
-                return null;
+                return default;
             }
 
-            return new StrongBox<ImmutableArray<DiagnosticData>>(ReadDiagnosticData(reader, project, document, cancellationToken));
+            return ReadDiagnosticData(reader, project, document, cancellationToken);
         }
 
         public void WriteDiagnosticData(ObjectWriter writer, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)

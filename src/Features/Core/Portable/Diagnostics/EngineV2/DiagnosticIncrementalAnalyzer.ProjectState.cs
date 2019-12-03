@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private sealed class ProjectState
         {
-            private static readonly Task<StrongBox<ImmutableArray<DiagnosticData>>> s_emptyResultTaskCache =
-                Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty));
-
             // project id of this state
             private readonly StateSet _owner;
 
@@ -377,9 +374,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var documentId = document.Id;
 
                 var diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document, documentId, _owner.SyntaxStateName, cancellationToken).ConfigureAwait(false);
-                if (diagnostics != null)
+                if (!diagnostics.IsDefault)
                 {
-                    builder.AddSyntaxLocals(documentId, diagnostics.Value);
+                    builder.AddSyntaxLocals(documentId, diagnostics);
                 }
                 else
                 {
@@ -387,9 +384,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document, documentId, _owner.SemanticStateName, cancellationToken).ConfigureAwait(false);
-                if (diagnostics != null)
+                if (!diagnostics.IsDefault)
                 {
-                    builder.AddSemanticLocals(documentId, diagnostics.Value);
+                    builder.AddSemanticLocals(documentId, diagnostics);
                 }
                 else
                 {
@@ -397,9 +394,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document, documentId, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
-                if (diagnostics != null)
+                if (!diagnostics.IsDefault)
                 {
-                    builder.AddNonLocals(documentId, diagnostics.Value);
+                    builder.AddNonLocals(documentId, diagnostics);
                 }
                 else
                 {
@@ -412,43 +409,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<bool> TryDeserializeProjectDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, Builder builder, CancellationToken cancellationToken)
             {
                 var diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document: null, project.Id, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
-                if (diagnostics != null)
+                if (!diagnostics.IsDefault)
                 {
-                    builder.AddOthers(diagnostics.Value);
+                    builder.AddOthers(diagnostics);
                     return true;
                 }
 
                 return false;
             }
 
-            private Task<StrongBox<ImmutableArray<DiagnosticData>>?> DeserializeDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, Document? document, object key, string stateKey, CancellationToken cancellationToken)
+            private ValueTask<ImmutableArray<DiagnosticData>> DeserializeDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, Document? document, object key, string stateKey, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
-                // when VS is loading new solution, we will try to find out all diagnostics persisted from previous VS session.
-                // in that situation, it is possible that we have a lot of deserialization returning empty result. previously we used to
-                // return default(ImmutableArray) for such case, but it turns out async/await framework has allocation issues with returning
-                // default(value type), so we are using StrongBox to return no data as null. async/await has optimization where it will return
-                // cached empty task if given value is null for reference type. (see AsyncMethodBuilder.GetTaskForResult)
-                // 
-                // right now, we can't use Nullable either, since it is not one of value type the async/await will reuse cached task. in future,
-                // if they do, we can change it to return Nullable<ImmutableArray>
-                //
-                // after initial deserialization, we track actual document/project that actually have diagnostics so no data won't be a common
-                // case.
-                // check cache first
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializer.Version == entry.Version)
                 {
-                    if (entry.Diagnostics.Length == 0)
-                    {
-                        // if there is no result, use cached task
-                        return s_emptyResultTaskCache!;
-                    }
-
-                    return Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(entry.Diagnostics))!;
+                    return new ValueTask<ImmutableArray<DiagnosticData>>(entry.Diagnostics);
                 }
 
-                // try to deserialize it
                 return serializer.DeserializeAsync(persistentService, project, document, stateKey, cancellationToken);
             }
 
@@ -471,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private void RemoveInMemoryCacheEntry(object key, string stateKey)
             {
                 // remove in memory cache if entry exist
-                InMemoryStorage.Remove(_owner.Analyzer, ValueTuple.Create(key, stateKey));
+                InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));
             }
 
             private bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
