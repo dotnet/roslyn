@@ -101,6 +101,11 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
+        public bool IsDelegate
+        {
+            get { return false; }
+        }
+
         public bool IsRuntimeSpecial
         {
             get { return false; }

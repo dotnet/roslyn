@@ -214,12 +214,12 @@ struct S
                 // (3,16): warning CS0649: Field 'C<T>.F1' is never assigned to, and will always have its default value 
                 //     internal T F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16),
-                // (5,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (5,21): warning CS8601: Possible null reference assignment.
                 //     internal T F3 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(5, 21),
-                // (6,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(5, 21),
+                // (6,21): warning CS8601: Possible null reference assignment.
                 //     internal T F4 = default(T);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(6, 21));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default(T)").WithLocation(6, 21));
         }
 
         [Fact]
@@ -524,9 +524,9 @@ class C<T, U, V>
                 // (9,34): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
                 //     [MaybeNull] private static T P3 { get; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(9, 34),
-                // (10,48): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (10,48): warning CS8601: Possible null reference assignment.
                 //     [MaybeNull] private static T P4 { get; } = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(10, 48),
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(10, 48),
                 // (11,22): warning CS8618: Non-nullable property 'P5' is uninitialized. Consider declaring the property as nullable.
                 //     private static U P5 { get; set; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P5").WithArguments("property", "P5").WithLocation(11, 22));

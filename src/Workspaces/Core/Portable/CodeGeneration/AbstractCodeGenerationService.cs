@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 !(destination is TDeclarationNode4))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
-                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name),
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4,
+                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name, destination.GetType().Name),
                     nameof(destination));
             }
         }

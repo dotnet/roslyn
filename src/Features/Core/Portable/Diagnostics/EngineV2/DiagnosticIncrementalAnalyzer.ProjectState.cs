@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// State for diagnostics that belong to a project at given time.
         /// </summary>
-        private class ProjectState
+        private sealed class ProjectState
         {
             private static readonly Task<StrongBox<ImmutableArray<DiagnosticData>>> s_emptyResultTaskCache =
                 Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty));
@@ -65,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     return await LoadInitialAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
                 }
+
+                RoslynDebug.Assert(lastResult.DocumentIds != null);
 
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
@@ -196,6 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task SaveAsync(Project project, DiagnosticAnalysisResult result)
             {
                 Contract.ThrowIfTrue(result.IsAggregatedForm);
+                Contract.ThrowIfNull(result.DocumentIds);
 
                 RemoveInMemoryCache(_lastResult);
 
@@ -219,12 +225,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    await SerializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, GetResult(result, AnalysisKind.Syntax, document.Id)).ConfigureAwait(false);
-                    await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, GetResult(result, AnalysisKind.Semantic, document.Id)).ConfigureAwait(false);
-                    await SerializeAsync(serializer, document, document.Id, _owner.NonLocalStateName, GetResult(result, AnalysisKind.NonLocal, document.Id)).ConfigureAwait(false);
+                    await SerializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)).ConfigureAwait(false);
+                    await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)).ConfigureAwait(false);
+                    await SerializeAsync(serializer, document, document.Id, _owner.NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal)).ConfigureAwait(false);
                 }
 
-                await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.Others).ConfigureAwait(false);
+                await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.GetOtherDiagnostics()).ConfigureAwait(false);
             }
 
             public void ResetVersion()
@@ -246,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
 
                 // if project didn't successfully loaded, then it is same as FSA off
-                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) &&
+                var fullAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution &&
                                    await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // keep from build flag if full analysis is off
@@ -452,18 +458,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             // we have this builder to avoid allocating collections unnecessarily.
-            private class Builder
+            private sealed class Builder
             {
                 private readonly Project _project;
                 private readonly VersionStamp _version;
-                private readonly ImmutableHashSet<DocumentId> _documentIds;
+                private readonly ImmutableHashSet<DocumentId>? _documentIds;
 
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _syntaxLocals;
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _semanticLocals;
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _nonLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _syntaxLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _semanticLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _nonLocals;
                 private ImmutableArray<DiagnosticData> _others;
 
-                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId> documentIds = null)
+                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds = null)
                 {
                     _project = project;
                     _version = version;
@@ -490,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _others = diagnostics;
                 }
 
-                private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
+                private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {
                     if (_project.GetDocument(documentId)?.SupportsDiagnostics() == false)
                     {

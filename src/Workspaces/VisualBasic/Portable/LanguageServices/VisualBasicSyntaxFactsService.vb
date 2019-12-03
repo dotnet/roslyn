@@ -63,6 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Public Function SupportsLocalFunctionDeclaration(options As ParseOptions) As Boolean Implements ISyntaxFactsService.SupportsLocalFunctionDeclaration
+            Return False
+        End Function
+
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFactsService.ParseToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
