@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,11 +33,12 @@ namespace Microsoft.CodeAnalysis
     /// then regular Dictionary is a better choice.
     /// </summary>
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+        where K : notnull
     {
-        private AvlNode _root;
+        private AvlNode? _root;
         public readonly IEqualityComparer<K> Comparer;
 
-        public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null);
+        public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(EqualityComparer<K>.Default);
 
         public SmallDictionary() : this(EqualityComparer<K>.Default) { }
 
@@ -62,14 +67,14 @@ namespace Microsoft.CodeAnalysis
             return Comparer.GetHashCode(k);
         }
 
-        public bool TryGetValue(K key, out V value)
+        public bool TryGetValue(K key, [NotNullWhen(returnValue: true)] out V value)
         {
             if (_root != null)
             {
                 return TryGetValue(GetHashCode(key), key, out value);
             }
 
-            value = default(V);
+            value = default!;
             return false;
         }
 
@@ -122,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                 this.Value = value;
             }
 
-            public virtual Node Next => null;
+            public virtual Node? Next => null;
         }
 
         private sealed class NodeLinked : Node
@@ -166,15 +171,15 @@ namespace Microsoft.CodeAnalysis
 
         private class AvlNode : HashedNode
         {
-            public AvlNode Left;
-            public AvlNode Right;
+            public AvlNode? Left;
+            public AvlNode? Right;
 
             public AvlNode(int hashCode, K key, V value)
                 : base(hashCode, key, value)
             { }
 
 #if DEBUG
-            public static int AssertBalanced(AvlNode V)
+            public static int AssertBalanced(AvlNode? V)
             {
                 if (V == null) return 0;
 
@@ -192,9 +197,10 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        private bool TryGetValue(int hashCode, K key, out V value)
+        private bool TryGetValue(int hashCode, K key, [NotNullWhen(returnValue: true)] out V value)
         {
-            AvlNode b = _root;
+            RoslynDebug.Assert(_root is object);
+            AvlNode? b = _root;
 
             do
             {
@@ -212,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                 }
             } while (b != null);
 
-            value = default(V);
+            value = default!;
             return false;
 
 hasBucket:
@@ -225,7 +231,7 @@ hasBucket:
             return GetFromList(b.Next, key, out value);
         }
 
-        private bool GetFromList(Node next, K key, out V value)
+        private bool GetFromList(Node? next, K key, [NotNullWhen(returnValue: true)] out V value)
         {
             while (next != null)
             {
@@ -238,13 +244,13 @@ hasBucket:
                 next = next.Next;
             }
 
-            value = default(V);
+            value = default!;
             return false;
         }
 
         private void Insert(int hashCode, K key, V value, bool add)
         {
-            AvlNode currentNode = _root;
+            AvlNode? currentNode = _root;
 
             if (currentNode == null)
             {
@@ -252,9 +258,9 @@ hasBucket:
                 return;
             }
 
-            AvlNode currentNodeParent = null;
+            AvlNode? currentNodeParent = null;
             AvlNode unbalanced = currentNode;
-            AvlNode unbalancedParent = null;
+            AvlNode? unbalancedParent = null;
 
             // ====== insert new node
             // also make a note of the last unbalanced node and its parent (for rotation if needed)
@@ -316,12 +322,12 @@ hasBucket:
                 if (n.HashCode < hashCode)
                 {
                     n.Balance--;
-                    n = n.Right;
+                    n = n.Right!;
                 }
                 else
                 {
                     n.Balance++;
-                    n = n.Left;
+                    n = n.Left!;
                 }
             }
             while (n != currentNode);
@@ -331,13 +337,13 @@ hasBucket:
             var balance = unbalanced.Balance;
             if (balance == -2)
             {
-                rotated = unbalanced.Right.Balance < 0 ?
+                rotated = unbalanced.Right!.Balance < 0 ?
                     LeftSimple(unbalanced) :
                     LeftComplex(unbalanced);
             }
             else if (balance == 2)
             {
-                rotated = unbalanced.Left.Balance > 0 ?
+                rotated = unbalanced.Left!.Balance > 0 ?
                     RightSimple(unbalanced) :
                     RightComplex(unbalanced);
             }
@@ -363,6 +369,7 @@ hasBucket:
 
         private static AvlNode LeftSimple(AvlNode unbalanced)
         {
+            RoslynDebug.Assert(unbalanced.Right is object);
             var right = unbalanced.Right;
             unbalanced.Right = right.Left;
             right.Left = unbalanced;
@@ -374,6 +381,7 @@ hasBucket:
 
         private static AvlNode RightSimple(AvlNode unbalanced)
         {
+            RoslynDebug.Assert(unbalanced.Left is object);
             var left = unbalanced.Left;
             unbalanced.Left = left.Right;
             left.Right = unbalanced;
@@ -385,6 +393,8 @@ hasBucket:
 
         private static AvlNode LeftComplex(AvlNode unbalanced)
         {
+            RoslynDebug.Assert(unbalanced.Right != null);
+            RoslynDebug.Assert(unbalanced.Right.Left != null);
             var right = unbalanced.Right;
             var rightLeft = right.Left;
             right.Left = rightLeft.Right;
@@ -411,6 +421,8 @@ hasBucket:
 
         private static AvlNode RightComplex(AvlNode unbalanced)
         {
+            RoslynDebug.Assert(unbalanced.Left != null);
+            RoslynDebug.Assert(unbalanced.Left.Right != null);
             var left = unbalanced.Left;
             var leftRight = left.Right;
             left.Right = leftRight.Left;
@@ -436,9 +448,9 @@ hasBucket:
         }
 
 
-        private void HandleInsert(AvlNode node, AvlNode parent, K key, V value, bool add)
+        private void HandleInsert(AvlNode node, AvlNode? parent, K key, V value, bool add)
         {
-            Node currentNode = node;
+            Node? currentNode = node;
             do
             {
                 if (CompareKeys(currentNode.Key, key))
@@ -458,9 +470,9 @@ hasBucket:
             AddNode(node, parent, key, value);
         }
 
-        private void AddNode(AvlNode node, AvlNode parent, K key, V value)
+        private void AddNode(AvlNode node, AvlNode? parent, K key, V value)
         {
-            AvlNodeHead head = node as AvlNodeHead;
+            AvlNodeHead? head = node as AvlNodeHead;
             if (head != null)
             {
                 var newNext = new NodeLinked(key, value, head.next);
@@ -503,7 +515,7 @@ hasBucket:
             public struct Enumerator
             {
                 private readonly Stack<AvlNode> _stack;
-                private Node _next;
+                private Node? _next;
                 private Node _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
@@ -520,7 +532,7 @@ hasBucket:
                         else
                         {
                             _stack = new Stack<AvlNode>(dict.HeightApprox());
-                            _stack.Push(dict._root);
+                            _stack.Push(root);
                         }
                     }
                 }
@@ -551,7 +563,7 @@ hasBucket:
                     return true;
                 }
 
-                private void PushIfNotNull(AvlNode child)
+                private void PushIfNotNull(AvlNode? child)
                 {
                     if (child != null)
                     {
@@ -618,7 +630,7 @@ hasBucket:
             public struct Enumerator
             {
                 private readonly Stack<AvlNode> _stack;
-                private Node _next;
+                private Node? _next;
                 private Node _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
@@ -638,7 +650,7 @@ hasBucket:
                     else
                     {
                         _stack = new Stack<AvlNode>(dict.HeightApprox());
-                        _stack.Push(dict._root);
+                        _stack.Push(root);
                     }
                 }
 
@@ -668,7 +680,7 @@ hasBucket:
                     return true;
                 }
 
-                private void PushIfNotNull(AvlNode child)
+                private void PushIfNotNull(AvlNode? child)
                 {
                     if (child != null)
                     {
@@ -697,7 +709,7 @@ hasBucket:
                 {
                 }
 
-                object IEnumerator.Current => _e.Current;
+                object? IEnumerator.Current => _e.Current;
 
                 bool IEnumerator.MoveNext()
                 {
@@ -724,7 +736,7 @@ hasBucket:
         public struct Enumerator
         {
             private readonly Stack<AvlNode> _stack;
-            private Node _next;
+            private Node? _next;
             private Node _current;
 
             public Enumerator(SmallDictionary<K, V> dict)
@@ -739,12 +751,12 @@ hasBucket:
                 // left == right only if both are nulls
                 if (root.Left == root.Right)
                 {
-                    _next = dict._root;
+                    _next = root;
                 }
                 else
                 {
                     _stack = new Stack<AvlNode>(dict.HeightApprox());
-                    _stack.Push(dict._root);
+                    _stack.Push(root);
                 }
             }
 
@@ -774,7 +786,7 @@ hasBucket:
                 return true;
             }
 
-            private void PushIfNotNull(AvlNode child)
+            private void PushIfNotNull(AvlNode? child)
             {
                 if (child != null)
                 {

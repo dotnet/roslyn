@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -34,8 +36,8 @@ namespace Microsoft.CodeAnalysis
         public abstract ConstantValueTypeDiscriminator Discriminator { get; }
         internal abstract SpecialType SpecialType { get; }
 
-        public virtual string StringValue { get { throw new InvalidOperationException(); } }
-        internal virtual Rope RopeValue { get { throw new InvalidOperationException(); } }
+        public virtual string? StringValue { get { throw new InvalidOperationException(); } }
+        internal virtual Rope? RopeValue { get { throw new InvalidOperationException(); } }
 
         public virtual bool BooleanValue { get { throw new InvalidOperationException(); } }
 
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ConstantValue CreateFromRope(Rope value)
         {
-            Debug.Assert(value != null);
+            RoslynDebug.Assert(value != null);
             return new ConstantValueString(value);
         }
 
@@ -437,7 +439,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public object Value
+        public object? Value
         {
             get
             {
@@ -726,19 +728,19 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            string valueToDisplay = this.GetValueToDisplay();
+            string? valueToDisplay = this.GetValueToDisplay();
             return String.Format("{0}({1}: {2})", this.GetType().Name, valueToDisplay, this.Discriminator);
         }
 
-        internal virtual string GetValueToDisplay()
+        internal virtual string? GetValueToDisplay()
         {
-            return this.Value.ToString();
+            return this.Value?.ToString();
         }
 
         // equal constants must have matching discriminators
         // derived types override this if equivalence is more than just discriminators match. 
         // singletons also override this since they only need a reference compare.
-        public virtual bool Equals(ConstantValue other)
+        public virtual bool Equals(ConstantValue? other)
         {
             if (ReferenceEquals(other, this))
             {
@@ -753,7 +755,7 @@ namespace Microsoft.CodeAnalysis
             return this.Discriminator == other.Discriminator;
         }
 
-        public static bool operator ==(ConstantValue left, ConstantValue right)
+        public static bool operator ==(ConstantValue? left, ConstantValue? right)
         {
             if (ReferenceEquals(right, left))
             {
@@ -768,7 +770,7 @@ namespace Microsoft.CodeAnalysis
             return left.Equals(right);
         }
 
-        public static bool operator !=(ConstantValue left, ConstantValue right)
+        public static bool operator !=(ConstantValue? left, ConstantValue? right)
         {
             return !(left == right);
         }

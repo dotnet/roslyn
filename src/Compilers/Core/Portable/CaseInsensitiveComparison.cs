@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -290,7 +293,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static int GetHashCode(string value)
         {
-            Debug.Assert(value != null);
+            RoslynDebug.Assert(value != null);
 
             return s_comparer.GetHashCode(value);
         }
@@ -300,7 +303,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string ToLower(string value)
+        [return: NotNullIfNotNull(parameterName: "value")]
+        public static string? ToLower(string value)
         {
             if ((object)value == null)
                 return null;
