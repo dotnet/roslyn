@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeParameters = localFunction.TypeParameters;
             if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
             {
-                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists(recordUsage: true);
             }
 
             if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
                 {
-                    _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
+                    _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists(recordUsage: true);
                 }
             }
 
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.ReturnsByRefReadonly ||
                 symbol.Parameters.Any(p => p.RefKind == RefKind.In))
             {
-                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists(recordUsage: true);
             }
         }
 

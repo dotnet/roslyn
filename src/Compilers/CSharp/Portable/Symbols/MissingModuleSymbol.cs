@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool MightContainNoPiaLocalTypes()
+        {
+            return false;
+        }
+
         public override int GetHashCode()
         {
             return assembly.GetHashCode();

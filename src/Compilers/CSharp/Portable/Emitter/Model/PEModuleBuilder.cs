@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
-        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute)
+        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute, bool recordUsage)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
 
@@ -1544,25 +1544,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, recordUsage: false, diagnosticsOpt: null, locationOpt: null))
+            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, recordUsage, diagnosticsOpt: null, locationOpt: null))
             {
                 SetNeedsGeneratedAttributes(attribute);
             }
         }
 
-        internal void EnsureIsReadOnlyAttributeExists()
+        internal void EnsureIsReadOnlyAttributeExists(bool recordUsage)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, recordUsage);
         }
 
-        internal void EnsureIsUnmanagedAttributeExists()
+        internal void EnsureIsUnmanagedAttributeExists(bool recordUsage)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute, recordUsage);
         }
 
-        internal void EnsureNullableAttributeExists()
+        internal void EnsureNullableAttributeExists(bool recordUsage)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute, recordUsage);
         }
     }
 }
