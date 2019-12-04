@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -9,40 +10,56 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpCompilation
     {
-        private ConcurrentSet<AssemblySymbol> _lazyUsedAssemblyReferences;
+        private ConcurrentSet<AssemblySymbol>? _lazyUsedAssemblyReferences;
         private bool _usedAssemblyReferencesFrozen;
 
         internal override ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default)
         {
-            ConcurrentSet<AssemblySymbol> usedAssemblies = GetCompleteSetOfUsedAssemblies(cancellationToken);
+            ConcurrentSet<AssemblySymbol>? usedAssemblies = GetCompleteSetOfUsedAssemblies(cancellationToken);
 
             if (usedAssemblies is null)
             {
                 return ImmutableArray<MetadataReference>.Empty;
             }
 
-            var builder = ArrayBuilder<MetadataReference>.GetInstance(usedAssemblies.Count);
+            var setOfReferences = new HashSet<MetadataReference>(ReferenceEqualityComparer.Instance);
 
             foreach (var reference in References)
             {
                 if (reference.Properties.Kind == MetadataImageKind.Assembly)
                 {
                     Symbol symbol = GetAssemblyOrModuleSymbol(reference);
-                    if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol))
+                    if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol) &&
+                        setOfReferences.Add(reference) &&
+                        GetBoundReferenceManager().MergedAssemblyReferencesMap.TryGetValue(reference, out ImmutableArray<MetadataReference> merged))
                     {
-                        builder.Add(reference);
+                        // Include all "merged" references as well because they might "define" used extern aliases.
+                        setOfReferences.AddAll(merged);
                     }
+                }
+            }
+
+            // Use stable ordering for the result, matching the order in References.
+            var builder = ArrayBuilder<MetadataReference>.GetInstance(setOfReferences.Count);
+
+            foreach (var reference in References)
+            {
+                if (setOfReferences.Contains(reference))
+                {
+                    builder.Add(reference);
                 }
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private ConcurrentSet<AssemblySymbol> GetCompleteSetOfUsedAssemblies(CancellationToken cancellationToken)
+        private ConcurrentSet<AssemblySymbol>? GetCompleteSetOfUsedAssemblies(CancellationToken cancellationToken)
         {
             if (!_usedAssemblyReferencesFrozen && !Volatile.Read(ref _usedAssemblyReferencesFrozen))
             {
@@ -129,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             while (stack.Count != 0)
                             {
                                 AssemblySymbol current = stack.Pop();
-                                ConcurrentSet<AssemblySymbol> usedAssemblies;
+                                ConcurrentSet<AssemblySymbol>? usedAssemblies;
 
                                 switch (current)
                                 {
@@ -194,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool AddUsedAssembly(AssemblySymbol assembly)
+        internal bool AddUsedAssembly(AssemblySymbol? assembly)
         {
             if (assembly is null || assembly == SourceAssembly || assembly.IsMissing)
             {
@@ -217,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal void AddAssembliesUsedByTypeReference(TypeSymbol typeOpt)
+        internal void AddAssembliesUsedByTypeReference(TypeSymbol? typeOpt)
         {
             while (true)
             {

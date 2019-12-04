@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteDiagnostics);
             diagnostics.Add(identifierName, useSiteDiagnostics);
-            Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError, qualifierOpt: null);
+            Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError, qualifierOpt: null, basesBeingResolved: null);
             resultKind = result.Kind;
             result.Free();
             return resultSymbol;

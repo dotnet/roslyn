@@ -1652,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // binder.ResultSymbol is defined only for type/namespace lookups
                     bool wasError;
                     var diagnostics = DiagnosticBag.GetInstance();  // client code never expects a null diagnostic bag.
-                    Symbol singleSymbol = binder.ResultSymbol(lookupResult, name, arity, this.Root, diagnostics, true, out wasError, container, options);
+                    Symbol singleSymbol = binder.ResultSymbol(lookupResult, name, arity, this.Root, diagnostics, true, out wasError, container, basesBeingResolved: null, options);
                     diagnostics.Free();
 
                     if (!wasError)

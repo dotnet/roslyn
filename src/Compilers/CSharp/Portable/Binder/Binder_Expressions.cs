@@ -5811,7 +5811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (lookupResult.IsMultiViable)
                             {
                                 bool wasError;
-                                Symbol sym = ResultSymbol(lookupResult, rightName, rightArity, node, diagnostics, false, out wasError, ns, options);
+                                Symbol sym = ResultSymbol(lookupResult, rightName, rightArity, node, diagnostics, false, out wasError, ns, basesBeingResolved: null, options);
                                 if (wasError)
                                 {
                                     return new BoundBadExpression(node, LookupResultKind.Ambiguous, lookupResult.Symbols.AsImmutable(), ImmutableArray.Create(boundLeft), CreateErrorType(rightName), hasErrors: true);
@@ -6869,7 +6869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             methodOrPropertyGroup.Clear();
-            return ResultSymbol(result, plainName, arity, node, diagnostics, false, out wasError, qualifierOpt);
+            return ResultSymbol(result, plainName, arity, node, diagnostics, false, out wasError, qualifierOpt, basesBeingResolved: null);
         }
 
         private static bool IsMethodOrPropertyGroup(ArrayBuilder<Symbol> members)

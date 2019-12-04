@@ -232,7 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: resultDiagnostics,
                         suppressUseSiteDiagnostics: false,
                         wasError: out wasError,
-                        qualifierOpt: null);
+                        qualifierOpt: null,
+                        basesBeingResolved: null);
 
                     // Here, we're mimicking behavior of dev10.  If the identifier fails to bind
                     // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
@@ -354,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupSymbolsWithFallback(result, plainName, 0, ref useSiteDiagnostics, null, LookupOptions.NamespaceAliasesOnly);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                Symbol bindingResult = ResultSymbol(result, plainName, 0, node, diagnostics, false, out wasError, qualifierOpt: null, options: LookupOptions.NamespaceAliasesOnly);
+                Symbol bindingResult = ResultSymbol(result, plainName, 0, node, diagnostics, false, out wasError, qualifierOpt: null, basesBeingResolved: null, options: LookupOptions.NamespaceAliasesOnly);
                 result.Free();
 
                 return bindingResult;
@@ -831,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool wasError;
 
-                bindingResult = ResultSymbol(result, identifierValueText, 0, node, diagnostics, suppressUseSiteDiagnostics, out wasError, qualifierOpt, options);
+                bindingResult = ResultSymbol(result, identifierValueText, 0, node, diagnostics, suppressUseSiteDiagnostics, out wasError, qualifierOpt, basesBeingResolved, options);
                 if (bindingResult.Kind == SymbolKind.Alias)
                 {
                     var aliasTarget = ((AliasSymbol)bindingResult).GetAliasTarget(basesBeingResolved);
@@ -1097,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
 
             bool wasError;
-            Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out wasError, qualifierOpt, options);
+            Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out wasError, qualifierOpt, basesBeingResolved, options);
 
             // As we said in the method above, there are three cases here:
             //
@@ -1536,6 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool suppressUseSiteDiagnostics,
             out bool wasError,
             NamespaceOrTypeSymbol qualifierOpt,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options = default(LookupOptions))
         {
             Symbol symbol = resultSymbol(result, simpleName, arity, where, diagnostics, suppressUseSiteDiagnostics, out wasError, qualifierOpt, options);
@@ -1552,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SymbolKind.Alias:
-                    if (shouldRecordUsedAssemblyReferences() && ((AliasSymbol)symbol).Target is TypeSymbol type)
+                    if (shouldRecordUsedAssemblyReferences() && ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved) is TypeSymbol type)
                     {
                         AddAssembliesUsedByTypeReference(type);
                     }

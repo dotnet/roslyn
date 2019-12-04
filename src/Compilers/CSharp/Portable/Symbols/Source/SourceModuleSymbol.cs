@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool MightContainNoPiaLocalTypes()
+        internal override bool MightContainNoPiaLocalTypes()
         {
             return AnyReferencedAssembliesAreLinked ||
                 ContainsExplicitDefinitionOfNoPiaLocalTypes;

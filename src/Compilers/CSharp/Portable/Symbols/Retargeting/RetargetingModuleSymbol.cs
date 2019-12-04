@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override bool MightContainNoPiaLocalTypes()
+        {
+            return _underlyingModule.MightContainNoPiaLocalTypes();
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get { return _underlyingModule.IsImplicitlyDeclared; }

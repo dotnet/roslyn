@@ -762,13 +762,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _diagnostics.AddRange(diagnosticsThisMethod);
                     diagnosticsThisMethod.Free();
 
-                    // error while generating IL
-                    if (emittedBody == null)
+                    if (_emitMethodBodies)
                     {
-                        break;
-                    }
+                        // error while generating IL
+                        if (emittedBody == null)
+                        {
+                            break;
+                        }
 
-                    _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody);
+                        _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody);
+                    }
+                    else
+                    {
+                        Debug.Assert(emittedBody is null);
+                    }
                 }
             }
             finally
