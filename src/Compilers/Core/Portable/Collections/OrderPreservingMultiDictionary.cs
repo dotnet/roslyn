@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Collections
     /// </remarks>
     internal sealed class OrderPreservingMultiDictionary<K, V> :
         IEnumerable<KeyValuePair<K, OrderPreservingMultiDictionary<K, V>.ValueSet>>
+        where K: notnull
+        where V: notnull
     {
         #region Pooling
 
@@ -163,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Collections
             /// </summary>
             private readonly object _value;
 
-            internal ValueSet([DisallowNull] V value)
+            internal ValueSet(V value)
             {
-                _value = value!;
+                _value = value;
             }
 
             internal ValueSet(ArrayBuilder<V> values)
@@ -179,7 +181,6 @@ namespace Microsoft.CodeAnalysis.Collections
                 arrayBuilder?.Free();
             }
 
-            [NotNull]
             internal V this[int index]
             {
                 get
@@ -291,7 +292,6 @@ namespace Microsoft.CodeAnalysis.Collections
                     _index = -1;
                 }
 
-                [NotNull]
                 public V Current => _valueSet[_index];
 
                 object IEnumerator.Current => Current;
