@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
-            public async ValueTask AppendRemotableDataAsync(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result, CancellationToken cancellationToken)
+            public async Task AppendRemotableDataAsync(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result, CancellationToken cancellationToken)
             {
                 var finder = new SolutionChecksumFinder(SolutionState, _serializer, cancellationToken);
 

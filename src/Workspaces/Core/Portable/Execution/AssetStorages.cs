@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             // search global assets
-            foreach (var asset in _globalAssets.Values)
+            foreach (var (_, asset) in _globalAssets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
