@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return null;
             }
 
-            return methodSymbol.GetReturnTypeWithAnnotatedNullability();
+            return methodSymbol.ReturnType;
         }
 
         public static Task<SemanticDocument> WithSyntaxRootAsync(this SemanticDocument semanticDocument, SyntaxNode root, CancellationToken cancellationToken)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             // Can be cleaned up when https://github.com/dotnet/roslyn/issues/38061 is resolved
             var typeSymbol = (T)symbol.GetSymbolKey().Resolve(semanticModel.Compilation).GetAnySymbol();
-            return typeSymbol.WithNullability(symbol.GetNullability());
+            return (T)typeSymbol.WithNullableAnnotation(symbol.NullableAnnotation);
         }
 
         /// <summary>

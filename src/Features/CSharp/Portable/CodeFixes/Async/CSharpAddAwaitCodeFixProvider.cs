@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             }
 
             return TryGetExpressionType(expression, semanticModel, out var returnType) &&
-            semanticModel.Compilation.ClassifyConversion(taskType.WithoutNullability(), returnType.WithoutNullability()).Exists;
+            semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists;
         }
 
         private static bool DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(ExpressionSyntax expression, SemanticModel semanticModel, Project project, CancellationToken cancellationToken)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             }
 
             var compilation = semanticModel.Compilation;
-            if (!compilation.ClassifyConversion(taskType.WithoutNullability(), rightSideType.WithoutNullability()).Exists)
+            if (!compilation.ClassifyConversion(taskType, rightSideType).Exists)
             {
                 return false;
             }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             var typeArguments = rightSideType.TypeArguments;
             var typeInferer = project.LanguageServices.GetService<ITypeInferenceService>();
             var inferredTypes = typeInferer.InferTypes(semanticModel, expression, cancellationToken);
-            return typeArguments.Any(ta => inferredTypes.Any(it => compilation.ClassifyConversion(it.WithoutNullability(), ta.WithoutNullability()).Exists));
+            return typeArguments.Any(ta => inferredTypes.Any(it => compilation.ClassifyConversion(it, ta).Exists));
         }
 
         private static bool IsInAsyncFunction(ExpressionSyntax expression)

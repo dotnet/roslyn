@@ -15,12 +15,15 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         private static readonly StatisticLogAggregator s_statisticLogAggregator = new StatisticLogAggregator();
         private static readonly LogAggregator s_logAggregator = new LogAggregator();
 
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 1000);
+
         internal enum ActionInfo
         {
             TypeImportCompletionTicks,
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
             TypeImportCompletionCacheMissCount,
+            CommitsOfTypeImportCompletionItem,
 
             TargetTypeCompletionTicks,
 
@@ -32,10 +35,14 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionGetSymbolTicks,
             ExtensionMethodCompletionTypesChecked,
             ExtensionMethodCompletionMethodsChecked,
+            CommitsOfExtensionMethodImportCompletionItem,
         }
 
-        internal static void LogTypeImportCompletionTicksDataPoint(int count) =>
+        internal static void LogTypeImportCompletionTicksDataPoint(int count)
+        {
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
+        }
 
         internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionItemCount, count);
@@ -46,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogTypeImportCompletionCacheMiss() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionCacheMissCount);
 
+        internal static void LogCommitOfTypeImportCompletionItem() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
+
         internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
 
@@ -53,8 +63,11 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogExtensionMethodCompletionSuccess() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionSuccessCount);
 
-        internal static void LogExtensionMethodCompletionTicksDataPoint(int count) =>
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int count)
+        {
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, count);
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+        }
 
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
@@ -71,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogExtensionMethodCompletionMethodsCheckedDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsChecked, count);
 
+        internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
 
         internal static void ReportTelemetry()
         {
@@ -92,6 +107,14 @@ namespace Microsoft.CodeAnalysis.Completion.Log
                 {
                     var info = ((ActionInfo)kv.Key).ToString("f");
                     m[info] = kv.Value.GetCount();
+                }
+
+                foreach (var kv in s_histogramLogAggregator)
+                {
+                    var info = ((ActionInfo)kv.Key).ToString("f");
+                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
+                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
+                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
                 }
             }));
         }

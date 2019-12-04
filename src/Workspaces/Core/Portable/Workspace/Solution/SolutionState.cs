@@ -2000,7 +2000,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // sanity check: this should always be true, no matter how many times
                 // we attempt to record the association.
-                System.Diagnostics.Debug.Assert(tmp == projectId);
+                Debug.Assert(tmp == projectId);
             }
         }
 
@@ -2028,8 +2028,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private MetadataReference? GetPartialMetadataReference(
             ProjectReference projectReference,
-            ProjectState fromProject,
-            CancellationToken cancellationToken)
+            ProjectState fromProject)
         {
             // Try to get the compilation state for this project.  If it doesn't exist, don't do any
             // more work.  
@@ -2038,7 +2037,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return state.GetPartialMetadataReference(this, fromProject, projectReference);
+            return state.GetPartialMetadataReference(fromProject, projectReference);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)
