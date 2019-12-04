@@ -2915,6 +2915,36 @@ public class C
     }
 }
 ");
+
+            verify(
+@"
+public class C
+{
+    public static void Main()
+    {
+        I1 x = new A();
+        _ = x;
+    }
+}
+
+class A : C1 {}
+");
+
+            verify(
+@"
+public class C
+{
+    public static void Main()
+    {
+        IA x = null;
+        I1 y = x;
+        _ = y;
+    }
+}
+
+interface IA : I3 {}
+");
+
             void verify(string source2)
             {
                 CompileWithUsedAssemblyReferences(source2, comp0ImageRef, comp1ImageRef);
