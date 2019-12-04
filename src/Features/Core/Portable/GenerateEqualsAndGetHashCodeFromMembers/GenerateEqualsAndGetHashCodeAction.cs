@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     && semanticModel.GetNullableContext(_typeDeclaration.SpanStart).AnnotationsEnabled();
 
                 return useNullableTypeArgument
-                    ? equatableType.ConstructWithNullability(_containingType.WithNullability(NullableAnnotation.Annotated))
+                    ? equatableType.Construct(_containingType.WithNullableAnnotation(NullableAnnotation.Annotated))
                     : equatableType.Construct(_containingType);
             }
 

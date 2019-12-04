@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getDocumentDiagnostics)
             {
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics);
-                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), project, CancellationToken.None);
+                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.GetTextSpan().IntersectsWith(span)), project, CancellationToken.None);
             }
 
             if (getProjectDiagnostics)

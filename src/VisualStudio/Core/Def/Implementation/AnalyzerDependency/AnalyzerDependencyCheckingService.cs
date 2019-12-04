@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         analyzerFilePaths.Contains(conflict.AnalyzerFilePath2))
                     {
                         var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
-                        if (DiagnosticData.TryCreate(s_analyzerDependencyConflictRule, messageArguments, project.Id, solution.Workspace, out var diagnostic))
+                        if (DiagnosticData.TryCreate(s_analyzerDependencyConflictRule, messageArguments, project, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (analyzerFilePaths.Contains(missingDependency.AnalyzerPath))
                     {
                         var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
-                        if (DiagnosticData.TryCreate(s_missingAnalyzerReferenceRule, messageArguments, project.Id, solution.Workspace, out var diagnostic))
+                        if (DiagnosticData.TryCreate(s_missingAnalyzerReferenceRule, messageArguments, project, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
