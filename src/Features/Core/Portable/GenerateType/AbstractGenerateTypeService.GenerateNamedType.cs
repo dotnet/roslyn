@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // caller.
                 if (_state.IsException &&
                     _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, AllNullabilityIgnoringSymbolComparer.Instance)))
+                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default)))
                 {
                     return;
                 }
