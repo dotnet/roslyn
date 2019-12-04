@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             ImmutableHashSet<DocumentId>? documentIds,
             bool fromBuild)
         {
+            Debug.Assert(!others.IsDefault);
+            Debug.Assert(!syntaxLocals.Values.Any(item => item.IsDefault));
+            Debug.Assert(!semanticLocals.Values.Any(item => item.IsDefault));
+            Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
+
             ProjectId = projectId;
             Version = version;
             FromBuild = fromBuild;
@@ -101,18 +106,32 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
             var version = VersionStamp.Default;
 
-            // filter out any document that doesn't support diagnostics.
-            // g.Key == null means diagnostics on the project which assigned to "others" error category
-            var group = diagnostics.GroupBy(d => d.DocumentId).Where(g => g.Key == null || project.GetDocument(g.Key).SupportsDiagnostics()).ToList();
+            var documentIds = ImmutableHashSet.CreateBuilder<DocumentId>();
+            var diagnosticsWithDocumentId = PooledDictionary<DocumentId, ArrayBuilder<DiagnosticData>>.GetInstance();
+            var diagnosticsWithoutDocumentId = ArrayBuilder<DiagnosticData>.GetInstance();
+
+            foreach (var data in diagnostics)
+            {
+                var documentId = data.DocumentId;
+                if (documentId != null)
+                {
+                    documentIds.Add(documentId);
+                    diagnosticsWithDocumentId.MultiAdd(documentId, data);
+                }
+                else
+                {
+                    diagnosticsWithoutDocumentId.Add(data);
+                }
+            }
 
             var result = new DiagnosticAnalysisResult(
                 project.Id,
                 version,
-                documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
+                documentIds: documentIds.ToImmutable(),
                 syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
+                semanticLocals: diagnosticsWithDocumentId.ToImmutableMultiDictionaryAndFree(),
                 nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty(),
+                others: diagnosticsWithoutDocumentId.ToImmutableAndFree(),
                 fromBuild: true);
 
             return result;

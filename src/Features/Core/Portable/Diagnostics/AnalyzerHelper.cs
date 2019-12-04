@@ -50,24 +50,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
         public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            return analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
-        }
+            => analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
-        }
+            => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
 
-        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
-        {
-            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
-            {
-                return builtInAnalyzer.OpenFileOnly(workspace);
-            }
-
-            return false;
-        }
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, OptionSet options)
+            => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
 
         public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
         {
@@ -123,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic != null)
             {
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectId);
+                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, projectId);
             }
         }
 
@@ -619,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    yield return DiagnosticData.Create(targetDocument, diagnostic);
+                    yield return DiagnosticData.Create(diagnostic, targetDocument);
                 }
             }
 
@@ -640,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    yield return DiagnosticData.Create(document, diagnostic);
+                    yield return DiagnosticData.Create(diagnostic, document);
                 }
             }
         }

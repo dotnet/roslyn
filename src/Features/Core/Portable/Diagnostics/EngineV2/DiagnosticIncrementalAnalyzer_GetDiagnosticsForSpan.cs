@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             {
                                 var avoidLoadingData = true;
                                 var state = stateSet.GetOrCreateProjectState(_project.Id);
-                                var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                                var result = await state.GetAnalysisDataAsync(_owner.PersistentStorageService, _document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
                                 // no previous compilation end diagnostics in this file.
                                 var version = await GetDiagnosticVersionAsync(_project, cancellationToken).ConfigureAwait(false);
@@ -382,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var state = stateSet.GetOrCreateProjectState(_document.Project.Id);
 
                 // see whether we can use existing info
-                var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var result = await state.GetAnalysisDataAsync(_owner.PersistentStorageService, _document, avoidLoadingData: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
                 if (result.Version == version)
                 {
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.TextSpan)
+                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.GetTextSpan())
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
             }

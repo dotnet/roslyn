@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -18,19 +19,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
+        public async Task SynchronizeWithBuildAsync(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
         {
-            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, (w, m) => LogSynchronizeWithBuild(w, m), workspace, buildDiagnostics, CancellationToken.None))
+            var options = Workspace.Options;
+
+            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, options, buildDiagnostics, CancellationToken.None))
             {
                 DebugVerifyDiagnosticLocations(buildDiagnostics);
 
-                if (!PreferBuildErrors(workspace))
+                if (!PreferBuildErrors(options))
                 {
                     // prefer live errors over build errors
                     return;
                 }
 
-                var solution = workspace.CurrentSolution;
+                var solution = Workspace.CurrentSolution;
+
                 foreach (var (projectId, diagnostics) in buildDiagnostics)
                 {
                     var project = solution.GetProject(projectId);
@@ -43,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
 
                     // we load data since we don't know right version.
-                    var oldAnalysisData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
+                    var oldAnalysisData = await ProjectAnalysisData.CreateAsync(PersistentStorageService, project, stateSets, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
                     var newResult = CreateAnalysisResults(project, stateSets, oldAnalysisData, diagnostics);
 
                     foreach (var stateSet in stateSets)
                     {
                         var state = stateSet.GetOrCreateProjectState(project.Id);
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
-                        await state.SaveAsync(project, result).ConfigureAwait(false);
+                        await state.SaveAsync(PersistentStorageService, project, result).ConfigureAwait(false);
                     }
 
                     // REVIEW: this won't handle active files. might need to tweak it later.
@@ -58,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // if we have updated errors, refresh open files
-                if (buildDiagnostics.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
+                if (buildDiagnostics.Count > 0 && PreferLiveErrorsOnOpenedFiles(options))
                 {
                     // enqueue re-analysis of open documents.
-                    AnalyzerService.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
+                    AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds(), highPriority: true);
                 }
             }
         }
@@ -100,15 +104,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return builder.ToImmutable();
         }
 
-        private static bool PreferBuildErrors(Workspace workspace)
-        {
-            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
-        }
+        private static bool PreferBuildErrors(OptionSet options)
+            => options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
 
-        private static bool PreferLiveErrorsOnOpenedFiles(Workspace workspace)
-        {
-            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
-        }
+        private static bool PreferLiveErrorsOnOpenedFiles(OptionSet options)
+            => options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
 
         private static ImmutableArray<DiagnosticData> MergeDiagnostics(ImmutableArray<DiagnosticData> newDiagnostics, ImmutableArray<DiagnosticData> existingDiagnostics)
         {
@@ -184,19 +184,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static string LogSynchronizeWithBuild(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        private static string LogSynchronizeWithBuild(OptionSet options, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
             using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
             var sb = pooledObject.Object;
-            sb.Append($"PreferBuildError:{PreferBuildErrors(workspace)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(workspace)}");
+            sb.Append($"PreferBuildError:{PreferBuildErrors(options)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(options)}");
 
             if (map.Count > 0)
             {
-                foreach (var kv in map)
+                foreach (var (projectId, diagnostics) in map)
                 {
-                    sb.AppendLine($"{kv.Key}, Count: {kv.Value.Length}");
+                    sb.AppendLine($"{projectId}, Count: {diagnostics.Length}");
 
-                    foreach (var diagnostic in kv.Value)
+                    foreach (var diagnostic in diagnostics)
                     {
                         sb.AppendLine($"    {diagnostic.ToString()}");
                     }
