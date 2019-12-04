@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _compilation.AddAssembliesUsedByTypeReference(symbol.ContainingType);
             }
 
-            if (MightReferenceNoPiaLocalTypes(symbol))
+            if (DefinitionMightReferenceNoPiaLocalTypes(symbol))
             {
                 // Need to make sure we record assemblies containing canonical definitions for NoPia embedded types
                 switch (symbol.OriginalDefinition)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool MightReferenceNoPiaLocalTypes(Symbol symbol)
+        private bool DefinitionMightReferenceNoPiaLocalTypes(Symbol symbol)
         {
             ModuleSymbol containingModule = symbol.ContainingModule;
             return containingModule is object &&
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             named = named.TupleUnderlyingTypeOrSelf();
                             addAssembliesUsedByTypeArguments(named);
-                            addAssembliesUsedByImplementedInterfaces(named.OriginalDefinition);
+                            addAssembliesUsedByImplementedInterfaces(named);
 
                             typeOpt = named.BaseTypeNoUseSiteDiagnostics;
                             continue;
@@ -243,14 +243,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void addAssembliesUsedByImplementedInterfaces(NamedTypeSymbol current)
             {
-                Debug.Assert(current.IsDefinition);
-                if (MightReferenceNoPiaLocalTypes(current))
+                if (DefinitionMightReferenceNoPiaLocalTypes(current))
                 {
-                    foreach (var @interface in current.InterfacesNoUseSiteDiagnostics())
+                    foreach (var @interface in current.OriginalDefinition.InterfacesNoUseSiteDiagnostics())
                     {
                         _compilation.AddAssembliesUsedByTypeReference(@interface);
-                        addUsedAssemblies(@interface);
                     }
+                }
+
+                foreach (var @interface in current.InterfacesNoUseSiteDiagnostics())
+                {
+                    addUsedAssemblies(@interface);
                 }
             }
 
