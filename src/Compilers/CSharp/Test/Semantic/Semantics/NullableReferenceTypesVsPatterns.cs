@@ -1984,5 +1984,30 @@ class C
                 );
         }
 
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_02()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    C? c = null;
+
+    void M1(C c, bool b)
+    {
+        if (c is { c : null })
+        {
+            if (c.c != null)
+            {
+                c.c.c.c.ToString();
+            }
+        }
+    }
+}
+");
+            c.VerifyDiagnostics(
+                );
+        }
     }
 }

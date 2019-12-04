@@ -2730,7 +2730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // with another state, those dependent states won't pollute values from the other state.
         private void MarkDependentSlotsNotNull(int slot, TypeSymbol expressionType, ref LocalState state)
         {
-            var variable = variableBySlot[slot];
             foreach (var member in expressionType.GetMembers())
             {
                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
