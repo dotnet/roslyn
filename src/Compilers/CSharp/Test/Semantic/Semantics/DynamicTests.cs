@@ -805,9 +805,6 @@ class C
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (14,25): error CS1073: Unexpected token '<<'
-                //             delegate {} << d1,
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "<<").WithArguments("<<").WithLocation(14, 25),
                 // (10,13): error CS0019: Operator '%' cannot be applied to operands of type 'method group' and 'dynamic'
                 //             M % d1,
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "M % d1").WithArguments("%", "method group", "dynamic").WithLocation(10, 13),

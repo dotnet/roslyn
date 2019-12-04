@@ -8077,11 +8077,13 @@ switch (e)
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithBlockLambda()
         {
-            UsingExpression("()=>{} + d",
-                // (1,8): error CS1073: Unexpected token '+'
-                // ()=>{} + d
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 8)
+            UsingExpression("() => {} + d",
+                TestOptions.Regular.WithStrictFeature(),
+                // (1,10): error CS1073: Unexpected token '+'
+                // () => {} + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 10)
                 );
+            UsingExpression("()=>{} + d");
             N(SyntaxKind.AddExpression);
             {
                 N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -8111,10 +8113,12 @@ switch (e)
         public void PrecedenceInversionWithAnonymousMethod()
         {
             UsingExpression("delegate {} + d",
+                TestOptions.Regular.WithStrictFeature(),
                 // (1,13): error CS1073: Unexpected token '+'
                 // delegate {} + d
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 13)
                 );
+            UsingExpression("delegate {} + d");
             N(SyntaxKind.AddExpression);
             {
                 N(SyntaxKind.AnonymousMethodExpression);

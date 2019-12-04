@@ -3647,9 +3647,6 @@ public class Vec
                 // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is 3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
-                // (8,25): error CS1073: Unexpected token 'is'
-                //         if (delegate {} is 3) {}
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "is").WithArguments("is").WithLocation(8, 25),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
@@ -3662,9 +3659,6 @@ public class Vec
                 // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is var x3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
-                // (12,25): error CS1073: Unexpected token 'is'
-                //         if (delegate {} is var x3) {}
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "is").WithArguments("is").WithLocation(12, 25),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)

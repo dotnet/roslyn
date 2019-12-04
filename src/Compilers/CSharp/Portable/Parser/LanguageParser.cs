@@ -9048,21 +9048,24 @@ tryAgain:
                 // We'll "take" this operator, as precedence is tentatively OK.
                 var opToken = this.EatContextualToken(tk);
 
-                var leftPrecedence = GetPrecedence(leftOperand.Kind);
-                if (newPrecedence > leftPrecedence)
+                if (leftOperand.Kind == SyntaxKind.IsPatternExpression || IsStrict)
                 {
-                    // Normally, a left operand with a looser precedence will consume all right operands that
-                    // have a tighter precedence.  For example, in the expression `a + b * c`, the `* c` part
-                    // will be consumed as part of the right operand of the addition.  However, there are a
-                    // few circumstances in which a tighter precedence is not consumed: that occurs when the
-                    // left hand operator does not have an expression as its right operand.  This occurs for
-                    // the is-type operator and the is-pattern operator.  Source text such as `a is int + b`
-                    // and `a is {} + b` should produce a syntax error, as parsing the `+` with an `is`
-                    // expression as its left operand would be a precedence inversion.  Similarly, it occurs
-                    // with an anonymous method expression or a lambda expression with a block body.  No
-                    // further parsing will find a way to fix things up, so we accept the operator but issue
-                    // an error.
-                    opToken = this.AddError(opToken, ErrorCode.ERR_UnexpectedToken, opToken.Text);
+                    var leftPrecedence = GetPrecedence(leftOperand.Kind);
+                    if (newPrecedence > leftPrecedence)
+                    {
+                        // Normally, a left operand with a looser precedence will consume all right operands that
+                        // have a tighter precedence.  For example, in the expression `a + b * c`, the `* c` part
+                        // will be consumed as part of the right operand of the addition.  However, there are a
+                        // few circumstances in which a tighter precedence is not consumed: that occurs when the
+                        // left hand operator does not have an expression as its right operand.  This occurs for
+                        // the is-type operator and the is-pattern operator.  Source text such as
+                        // `a is {} + b` should produce a syntax error, as parsing the `+` with an `is`
+                        // expression as its left operand would be a precedence inversion.  Similarly, it occurs
+                        // with an anonymous method expression or a lambda expression with a block body.  No
+                        // further parsing will find a way to fix things up, so we accept the operator but issue
+                        // an error.
+                        opToken = this.AddError(opToken, ErrorCode.ERR_UnexpectedToken, opToken.Text);
+                    }
                 }
 
                 if (doubleOp)

@@ -277,12 +277,6 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (12,70): error CS1073: Unexpected token '+'
-                //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(12, 70),
-                // (13,83): error CS1073: Unexpected token '+'
-                //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(13, 83),
                 // (11,16): error CS0019: Operator '+' cannot be applied to operands of type 'method group' and 'method group'
                 //         goo += p.bar + far;// Invalid
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "p.bar + far").WithArguments("+", "method group", "method group").WithLocation(11, 16),
@@ -12382,21 +12376,12 @@ namespace TestNamespace
                 // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             bool b2 = delegate() { } is Del;// CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
-                // (11,38): error CS1073: Unexpected token 'is'
-                //             bool b2 = delegate() { } is Del;// CS0837
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "is").WithArguments("is").WithLocation(11, 38),
                 // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d1 = () => { } as Del;      // CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
-                // (12,32): error CS1073: Unexpected token 'as'
-                //             Del d1 = () => { } as Del;      // CS0837
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "as").WithArguments("as").WithLocation(12, 32),
                 // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d2 = delegate() { } as Del; // CS0837
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22),
-                // (13,37): error CS1073: Unexpected token 'as'
-                //             Del d2 = delegate() { } as Del; // CS0837
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "as").WithArguments("as").WithLocation(13, 37)
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
                 );
         }
 
