@@ -2,8 +2,9 @@
 .SYNOPSIS
 Installs dependencies required to build and test the projects in this repository.
 .DESCRIPTION
-This MAY not require elevation, as the SDK and runtimes are installed locally to this repo location,
-unless `-InstallLocality machine` is specified.
+This MAY not require elevation, as the SDK and runtimes are installed to a per-user location,
+unless the `-InstallLocality` switch is specified directing to a per-repo or per-machine location.
+See detailed help on that switch for more information.
 .PARAMETER InstallLocality
 A value indicating whether dependencies should be installed locally to the repo or at a per-user location.
 Per-user allows sharing the installed dependencies across repositories and allows use of a shared expanded package cache.
