@@ -1945,6 +1945,41 @@ $@"class Program
             getArgs(builder, "|", "nuint?", "System.IntPtr?");
             getArgs(builder, "|", "nuint?", "System.UIntPtr?");
 
+            // All operators:
+            // (These are not tested exhaustively since each is covered by the same table as an operator above.)
+            getArgs(builder, "+", "nint", "int", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "-", "nint", "int", "nint nint.op_Subtraction(nint left, nint right)");
+            getArgs(builder, "*", "nint", "int", "nint nint.op_Multiply(nint left, nint right)");
+            getArgs(builder, "/", "nint", "int", "nint nint.op_Division(nint left, nint right)");
+            getArgs(builder, "%", "nint", "int", "nint nint.op_Modulus(nint left, nint right)");
+            getArgs(builder, "==", "nint", "int", "bool nint.op_Equality(nint left, nint right)");
+            getArgs(builder, "!=", "nint", "int", "bool nint.op_Inequality(nint left, nint right)");
+            getArgs(builder, "<", "nint", "int", "bool nint.op_LessThan(nint left, nint right)");
+            getArgs(builder, "<=", "nint", "int", "bool nint.op_LessThanOrEqual(nint left, nint right)");
+            getArgs(builder, ">", "nint", "int", "bool nint.op_GreaterThan(nint left, nint right)");
+            getArgs(builder, ">=", "nint", "int", "bool nint.op_GreaterThanOrEqual(nint left, nint right)");
+            getArgs(builder, "&", "nint", "nint", "nint nint.op_BitwiseAnd(nint left, nint right)");
+            getArgs(builder, "|", "nint", "nint", "nint nint.op_BitwiseOr(nint left, nint right)");
+            getArgs(builder, "^", "nint", "nint", "nint nint.op_ExclusiveOr(nint left, nint right)");
+            getArgs(builder, "<<", "nint", "int", "nint nint.op_LeftShift(nint left, int right)", null);
+            getArgs(builder, ">>", "nint", "int", "nint nint.op_RightShift(nint left, int right)", null);
+            getArgs(builder, "+", "nuint", "uint", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "-", "nuint", "uint", "nuint nuint.op_Subtraction(nuint left, nuint right)");
+            getArgs(builder, "*", "nuint", "uint", "nuint nuint.op_Multiply(nuint left, nuint right)");
+            getArgs(builder, "/", "nuint", "uint", "nuint nuint.op_Division(nuint left, nuint right)");
+            getArgs(builder, "%", "nuint", "uint", "nuint nuint.op_Modulus(nuint left, nuint right)");
+            getArgs(builder, "==", "nuint", "uint", "bool nuint.op_Equality(nuint left, nuint right)");
+            getArgs(builder, "!=", "nuint", "uint", "bool nuint.op_Inequality(nuint left, nuint right)");
+            getArgs(builder, "<", "nuint", "uint", "bool nuint.op_LessThan(nuint left, nuint right)");
+            getArgs(builder, "<=", "nuint", "uint", "bool nuint.op_LessThanOrEqual(nuint left, nuint right)");
+            getArgs(builder, ">", "nuint", "uint", "bool nuint.op_GreaterThan(nuint left, nuint right)");
+            getArgs(builder, ">=", "nuint", "uint", "bool nuint.op_GreaterThanOrEqual(nuint left, nuint right)");
+            getArgs(builder, "&", "nuint", "nuint", "nuint nuint.op_BitwiseAnd(nuint left, nuint right)");
+            getArgs(builder, "|", "nuint", "nuint", "nuint nuint.op_BitwiseOr(nuint left, nuint right)");
+            getArgs(builder, "^", "nuint", "nuint", "nuint nuint.op_ExclusiveOr(nuint left, nuint right)");
+            getArgs(builder, "<<", "nuint", "int", "nuint nuint.op_LeftShift(nuint left, int right)", null);
+            getArgs(builder, ">>", "nuint", "int", "nuint nuint.op_RightShift(nuint left, int right)", null);
+
             return builder;
         }
 
