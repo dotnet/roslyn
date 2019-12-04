@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 // If we have a codeaction with a single applychangesoperation, we want to send the codeaction with the edits.
                 var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(keepThreadContext);
-                if (operations.Length == 1 && operations.First() is ApplyChangesOperation applyChangesOperation)
+                if (operations.Length == 1 && operations.Single() is ApplyChangesOperation applyChangesOperation)
                 {
                     await AddCodeActionIncludingChangesAsync(
                         codeAction, applyChangesOperation, solution, result,
