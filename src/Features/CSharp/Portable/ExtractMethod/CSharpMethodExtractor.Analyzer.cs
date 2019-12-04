@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                         if (AreAllReferencesNotNull(references))
                         {
-                            return base.GetSymbolType(semanticModel, symbol).WithNullability(NullableAnnotation.NotAnnotated);
+                            return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
                         }
 
                         return base.GetSymbolType(semanticModel, symbol);
