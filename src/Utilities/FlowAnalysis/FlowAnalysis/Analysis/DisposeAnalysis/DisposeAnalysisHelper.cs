@@ -41,14 +41,18 @@ namespace Analyzer.Utilities
         private readonly ImmutableHashSet<INamedTypeSymbol> _disposeOwnershipTransferLikelyTypes;
         private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>>? _lazyDisposableFieldsMap;
         public INamedTypeSymbol? IDisposable { get; }
+        public INamedTypeSymbol? IAsyncDisposable { get; }
         public INamedTypeSymbol? Task { get; }
+        public INamedTypeSymbol? ValueTask { get; }
 
         private DisposeAnalysisHelper(Compilation compilation)
         {
             _wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
             IDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            IAsyncDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
             Task = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            ValueTask = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
 
             _disposeOwnershipTransferLikelyTypes = IDisposable != null ?
                 GetDisposeOwnershipTransferLikelyTypes(compilation) :
@@ -133,7 +137,7 @@ namespace Analyzer.Utilities
         private bool IsDisposableCreation(IOperation operation)
             => (s_DisposableCreationKinds.Contains(operation.Kind) ||
                 operation.Parent is IArgumentOperation argument && argument.Parameter.RefKind == RefKind.Out) &&
-               operation.Type?.IsDisposable(IDisposable) == true;
+               IsDisposable(operation.Type);
 
         public bool HasAnyDisposableCreationDescendant(ImmutableArray<IOperation> operationBlocks, IMethodSymbol containingMethod)
         {
@@ -151,7 +155,7 @@ namespace Analyzer.Utilities
                 return disposableFields;
             }
 
-            if (!namedType.IsDisposable(IDisposable))
+            if (!namedType.IsDisposable(IDisposable, IAsyncDisposable))
             {
                 disposableFields = ImmutableHashSet<IFieldSymbol>.Empty;
             }
@@ -159,7 +163,7 @@ namespace Analyzer.Utilities
             {
                 disposableFields = namedType.GetMembers()
                     .OfType<IFieldSymbol>()
-                    .Where(f => f.Type.IsDisposable(IDisposable) && !f.Type.DerivesFrom(Task))
+                    .Where(f => IsDisposable(f.Type) && !f.Type.DerivesFrom(Task))
                     .ToImmutableHashSet();
             }
 
@@ -180,5 +184,11 @@ namespace Analyzer.Utilities
 
             return IsDisposableCreation(location.CreationOpt);
         }
+
+        public bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+            => type != null && type.IsDisposable(IDisposable, IAsyncDisposable);
+
+        public DisposeMethodKind GetDisposeMethodKind(IMethodSymbol method)
+            => method.GetDisposeMethodKind(IDisposable, IAsyncDisposable, Task, ValueTask);
     }
 }
