@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
     //                  to set valueFactory to null and use TryGetValue/Add pattern instead of GetOrMakeValue.
     //
     internal class CachingFactory<TKey, TValue> : CachingBase<CachingFactory<TKey, TValue>.Entry>
-        where TKey: notnull
+        where TKey : notnull
     {
         internal struct Entry
         {

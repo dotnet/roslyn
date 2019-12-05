@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// A simple class to implement IGrouping.
     /// </summary>
     internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
-        where TKey: notnull
+        where TKey : notnull
     {
         public TKey Key { get; }
         private readonly IEnumerable<TElement> _elements;

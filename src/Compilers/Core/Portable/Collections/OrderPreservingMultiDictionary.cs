@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Collections
     /// </remarks>
     internal sealed class OrderPreservingMultiDictionary<K, V> :
         IEnumerable<KeyValuePair<K, OrderPreservingMultiDictionary<K, V>.ValueSet>>
-        where K: notnull
-        where V: notnull
+        where K : notnull
+        where V : notnull
     {
         #region Pooling
 
