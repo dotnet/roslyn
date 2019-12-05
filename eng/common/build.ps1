@@ -18,7 +18,6 @@ Param(
   [switch] $sign,
   [switch] $pack,
   [switch] $publish,
-  [switch] $clean,
   [switch][Alias('bl')]$binaryLog,
   [switch] $ci,
   [switch] $prepareMachine,
@@ -49,7 +48,6 @@ function Print-Usage() {
     Write-Host "  -pack                   Package build outputs into NuGet packages and Willow components"
     Write-Host "  -sign                   Sign build outputs"
     Write-Host "  -publish                Publish artifacts (e.g. symbols)"
-    Write-Host "  -clean                  Clean the solution"
     Write-Host ""
 
     Write-Host "Advanced settings:"
@@ -114,14 +112,6 @@ function Build {
     @properties
 }
 
-if ($clean) {
-  if(Test-Path $ArtifactsDir) {
-    Remove-Item -Recurse -Force $ArtifactsDir
-    Write-Host "Artifacts directory deleted."
-  }
-  exit 0
-}
-
 try {
   if ($help -or (($null -ne $properties) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
     Print-Usage
@@ -133,7 +123,14 @@ try {
     $nodeReuse = $false
   }
 
-  if ($restore) {
+  # Import custom tools configuration, if present in the repo.
+  # Note: Import in global scope so that the script set top-level variables without qualification.
+  $configureToolsetScript = Join-Path $EngRoot "configure-toolset.ps1"
+  if (Test-Path $configureToolsetScript) {
+    . $configureToolsetScript
+  }
+
+  if (($restore) -and ($null -eq $env:DisableNativeToolsetInstalls)) {
     InitializeNativeTools
   }
 
