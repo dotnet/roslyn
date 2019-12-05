@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol originalDefinition = returnType.OriginalDefinition;
 
-                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything) ||
-                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything))
+                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T, recordUsage: false), TypeCompareKind.ConsiderEverything) ||
+                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T, recordUsage: false), TypeCompareKind.ConsiderEverything))
                 {
                     return true;
                 }

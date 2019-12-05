@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement result;
                 if (_combinedTokensField is object &&
                     parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true } &&
-                    parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
+                    parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken, recordUsage: false), TypeCompareKind.ConsiderEverything))
                 {
                     // For a parameter of type CancellationToken with [EnumeratorCancellation]
                     // if (this.parameterProxy.Equals(default))
