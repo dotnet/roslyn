@@ -52,9 +52,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 {
                     case PredefinedSymbolNavigationKinds.Definition:
                         {
+                            // This is not supported until after demo on December 10th
+                            return SymbolSearchStatus.Withheld;
+                            /*
                             var goToDefinitionService = roslynDocument.GetLanguageService<IGoToDefinitionService>();
                             goToDefinitionService.TryGoToDefinition(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, token);
                             return SymbolSearchStatus.Completed;
+                            */
                         }
                     case PredefinedSymbolNavigationKinds.Implementation:
                         {
