@@ -72,6 +72,11 @@
         <target state="translated">Kompilacja i analiza na żywo (pakiet NuGet)</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VB_Language_Server_Client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="new">C#/Visual Basic Language Server Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Obliczanie elementów zależnych...</target>

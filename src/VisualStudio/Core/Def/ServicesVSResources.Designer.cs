@@ -750,6 +750,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C#/Visual Basic Language Server Client.
+        /// </summary>
+        internal static string CSharp_VB_Language_Server_Client {
+            get {
+                return ResourceManager.GetString("CSharp_VB_Language_Server_Client", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C#/VB Todo List Table Data Source.
         /// </summary>
         internal static string CSharp_VB_Todo_List_Table_Data_Source {

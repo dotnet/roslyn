@@ -2,81 +2,83 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.Threading;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.ServiceHub.Client;
-using Microsoft.VisualStudio.LanguageServices.Remote;
-using Microsoft.CodeAnalysis.Host;
-using System.Composition;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Options;
-using System.Linq;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.ServiceHub.Client;
+using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServices.Remote;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract class AbstractLanguageServerClient : ILanguageClient
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [Export(typeof(ILanguageClient))]
+    [ExportMetadata("Capabilities", "WorkspaceStreamingSymbolProvider")]
+    internal sealed class LanguageServerClient : ILanguageClient
     {
+        private const string ServiceHubClientName = "ManagedLanguage.IDE.LanguageServer";
+
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
         private readonly IEnumerable<Lazy<IOptionPersister>> _lazyOptions;
         private readonly LanguageServerClientEventListener _eventListener;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        private readonly string _serviceHubClientName;
-        private readonly string _languageServerName;
-
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
-        public abstract string Name { get; }
+        public string Name => ServicesVSResources.CSharp_VB_Language_Server_Client;
 
         /// <summary>
         /// Gets the configuration section names for the language client. This may be null if the language client
         /// does not provide settings.
         /// </summary>
-        public virtual IEnumerable<string> ConfigurationSections { get; } = null;
+        public IEnumerable<string> ConfigurationSections { get; } = null;
 
         /// <summary>
         /// Gets the initialization options object the client wants to send when 'initialize' message is sent.
         /// This may be null if the client does not need custom initialization options.
         /// </summary>
-        public virtual object InitializationOptions { get; } = null;
+        public object InitializationOptions { get; } = null;
 
         /// <summary>
         /// Gets the list of file names to watch for changes.  Changes will be sent to the server via 'workspace/didChangeWatchedFiles'
         /// message.  The files to watch must be under the current active workspace.  The file names can be specified as a relative
         /// paths to the exact file, or as glob patterns following the standard in .gitignore see https://www.kernel.org/pub/software/scm/git/docs/gitignore.html files.
         /// </summary>
-        public virtual IEnumerable<string> FilesToWatch { get; } = null;
+        public IEnumerable<string> FilesToWatch { get; } = null;
 
 #pragma warning disable CS0067 // event never used - implementing interface ILanguageClient
         public event AsyncEventHandler<EventArgs> StartAsync;
         public event AsyncEventHandler<EventArgs> StopAsync;
 #pragma warning restore CS0067 // event never used
 
-        public AbstractLanguageServerClient(
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LanguageServerClient(
             IThreadingContext threadingContext,
-            Workspace workspace,
-            IEnumerable<Lazy<IOptionPersister>> lazyOptions,
+            VisualStudioWorkspace workspace,
+            [ImportMany]IEnumerable<Lazy<IOptionPersister>> lazyOptions,
             LanguageServerClientEventListener eventListener,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            string languageServerName,
-            string serviceHubClientName)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
             _lazyOptions = lazyOptions;
             _eventListener = eventListener;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
-
-            _serviceHubClientName = serviceHubClientName;
-            _languageServerName = languageServerName;
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.LanguageServerWorkspaceSymbolSearch);
         }
 
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
@@ -89,12 +91,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             var hostGroup = new HostGroup(client.ClientId);
-            var hubClient = new HubClient(_serviceHubClientName);
+            var hubClient = new HubClient(ServiceHubClientName);
 
             var stream = await ServiceHubRemoteHostClient.Connections.RequestServiceAsync(
                 _workspace,
                 hubClient,
-                _languageServerName,
+                WellKnownServiceHubServices.LanguageServer,
                 hostGroup,
                 TimeSpan.FromMinutes(60),
                 cancellationToken).ConfigureAwait(false);
@@ -169,28 +171,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task OnServerInitializeFailedAsync(Exception e)
         {
             return Task.CompletedTask;
-        }
-    }
-
-    // unfortunately, we can't implement this on LanguageServerClient since this uses MEF v2 and
-    // ILanguageClient requires MEF v1 and two can't be mixed exported in 1 class.
-    [Export]
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class LanguageServerClientEventListener : IEventListener<object>
-    {
-        private readonly TaskCompletionSource<object> _taskCompletionSource;
-
-        public Task WorkspaceStarted => _taskCompletionSource.Task;
-
-        public LanguageServerClientEventListener()
-        {
-            _taskCompletionSource = new TaskCompletionSource<object>();
-        }
-
-        public void StartListening(Workspace workspace, object serviceOpt)
-        {
-            // mark that roslyn solution is added
-            _taskCompletionSource.SetResult(null);
         }
     }
 }
