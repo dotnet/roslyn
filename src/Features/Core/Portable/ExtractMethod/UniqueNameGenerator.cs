@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Contract.ThrowIfNull(baseName);
 
             return NameGenerator.GenerateUniqueName(baseName, string.Empty,
-               n => _semanticModel.LookupSymbols(contextNode.SpanStart, /*container*/null, n).Length == 0);
+                n => _semanticModel.LookupSymbols(contextNode.SpanStart, container: null, n).Length == 0);
         }
     }
 }

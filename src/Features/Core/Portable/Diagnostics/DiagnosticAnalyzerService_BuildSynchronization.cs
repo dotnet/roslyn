@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
+                return analyzer.SynchronizeWithBuildAsync(diagnostics);
             }
 
             return Task.CompletedTask;

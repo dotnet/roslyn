@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public ExpressionCodeGenerator(
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult)
-                    : base(insertionPoint, selectionResult, analyzerResult)
+                    AnalyzerResult analyzerResult,
+                    bool localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, localFunction)
                 {
                 }
 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return code.SelectionInExpression;
                 }
 
-                protected override SyntaxToken CreateMethodName()
+                protected override SyntaxToken CreateMethodName(bool localFunction)
                 {
                     var methodName = "NewMethod";
                     var containingScope = this.CSharpSelectionResult.GetContainingScope();

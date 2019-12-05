@@ -67,11 +67,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken)
         {
             var project = document.Project;
-            var (serializableItems, counter) = await client.TryRunCodeAnalysisRemoteAsync<(IList<SerializableImportCompletionItem>, StatisticCounter)>(
+            var (serializableItems, counter) = (await client.TryRunCodeAnalysisRemoteValueAsync<(IList<SerializableImportCompletionItem>, StatisticCounter)>(
                 project.Solution,
                 nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
                 new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false)).GetValueOrDefault();
+
 
             return (serializableItems.ToImmutableArray(), counter);
         }
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetBaseTypes().Select(t => t.MetadataName));
             allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetAllInterfacesIncludingThis().Select(t => t.MetadataName));
 
-            // interface doesn't inherit from object, but is implicitly convertable to object type.
+            // interface doesn't inherit from object, but is implicitly convertible to object type.
             if (receiverTypeSymbol.IsInterfaceType())
             {
                 allTypeNamesBuilder.Add(nameof(Object));
@@ -274,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //
                 // TODO:
                 // Alternatively, we can try to get symbols out of each assembly, instead of the compilation (which includes all references), 
-                // to avoid such conflict. We should give this approach a try and see if any perf improvement can be archieved.
+                // to avoid such conflict. We should give this approach a try and see if any perf improvement can be achieved.
                 var containerSymbol = compilation.GetTypeByMetadataName(fullyQualifiedContainerName);
 
                 if (containerSymbol != null)

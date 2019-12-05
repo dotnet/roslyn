@@ -187,6 +187,10 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($bootstrap) {
+    $script:restore = $true
+  }
+
   $script:test32 = -not $test64
 
   foreach ($property in $properties) {
