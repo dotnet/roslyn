@@ -424,9 +424,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureKind = ClosureKind.ThisOnly;
                     closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
                 }
-                else if (closure.CapturedEnvironments.Count == 0 &&
-                         originalMethod.MethodKind == MethodKind.LambdaMethod &&
-                         _analysis.MethodsConvertedToDelegates.Contains(originalMethod))
+                else if ((closure.CapturedEnvironments.Count == 0 &&
+                          originalMethod.MethodKind == MethodKind.LambdaMethod &&
+                          _analysis.MethodsConvertedToDelegates.Contains(originalMethod)) ||
+                         // If we are in a variant interface, runtime might not consider the 
+                         // method synthesized directly within the interface as variant safe.
+                         // For simplicity we do not perform precise analysis whether this would
+                         // definitely be the case. If we are in a variant interface, we always force
+                         // creation of a display class.
+                         VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is object)
                 {
                     translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
                     closureKind = ClosureKind.Singleton;
@@ -441,13 +447,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
 
+                Debug.Assert((object)translatedLambdaContainer != _topLevelMethod.ContainingType ||
+                             VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null);
+
                 // Move the body of the lambda to a freshly generated synthetic method on its frame.
                 topLevelMethodId = _analysis.GetTopLevelMethodId();
                 lambdaId = GetLambdaId(syntax, closureKind, closureOrdinal);
 
                 var synthesizedMethod = new SynthesizedClosureMethod(
                     translatedLambdaContainer,
-                    GetStructClosures(closure),
+                    getStructClosures(closure),
                     closureKind,
                     _topLevelMethod,
                     topLevelMethodId,
@@ -458,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 closure.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
-            ImmutableArray<SynthesizedClosureEnvironment> GetStructClosures(Analysis.Closure closure)
+            static ImmutableArray<SynthesizedClosureEnvironment> getStructClosures(Analysis.Closure closure)
             {
                 var closuresBuilder = ArrayBuilder<SynthesizedClosureEnvironment>.GetInstance();
 

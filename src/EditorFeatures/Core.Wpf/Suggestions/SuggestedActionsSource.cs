@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
                     Debug.Assert(diag.Item1.HasTextSpan);
                     var category = GetFixCategory(diag.Item1.Severity);
-                    sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diag.Item1.TextSpan.ToSpan()));
+                    sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diag.Item1.GetTextSpan().ToSpan()));
                 }
             }
 
@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
             }
 
-            private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId currentDocumentId, int solutionVersion)
+            private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId? currentDocumentId, int solutionVersion)
             {
                 // Explicitly hold onto the _subjectBuffer field in a local and use this local in this function to avoid crashes
                 // if this field happens to be cleared by Dispose() below. This is required since this code path involves code

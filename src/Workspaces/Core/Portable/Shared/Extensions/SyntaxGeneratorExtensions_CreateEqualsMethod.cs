@@ -27,11 +27,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
             string localNameOpt,
-            SyntaxAnnotation statementAnnotation,
-            CancellationToken cancellationToken)
+            SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateEqualsMethodStatements(
-                factory, compilation, parseOptions, containingType, symbols, localNameOpt, cancellationToken);
+                factory, compilation, parseOptions, containingType, symbols, localNameOpt);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CreateEqualsMethod(compilation, statements);
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default,
-                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullability(NullableAnnotation.Annotated), ObjName)),
+                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)),
                 statements: statements);
         }
 
@@ -58,11 +57,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
             INamedTypeSymbol constructedEquatableType,
-            SyntaxAnnotation statementAnnotation,
-            CancellationToken cancellationToken)
+            SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, semanticModel.Compilation, containingType, symbols, cancellationToken);
+                factory, semanticModel.Compilation, containingType, symbols);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             var methodSymbol = constructedEquatableType
@@ -103,8 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ParseOptions parseOptions,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
-            string localNameOpt,
-            CancellationToken cancellationToken)
+            string localNameOpt)
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
@@ -149,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      var myType = (MyType)obj;
 
-                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.CastExpression(containingType, objNameExpression));
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(
+                    containingType, localName, factory.CastExpression(containingType, objNameExpression));
 
                 statements.Add(ifStatement);
                 statements.Add(localDeclaration);
@@ -160,7 +158,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      var myType = obj as MyType;
 
-                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.TryCastExpression(objNameExpression, containingType));
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(
+                    containingType, localName, factory.TryCastExpression(objNameExpression, containingType));
 
                 statements.Add(localDeclaration);
 
@@ -255,8 +254,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> members,
-            CancellationToken cancellationToken)
+            ImmutableArray<ISymbol> members)
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
@@ -323,9 +321,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (iequatableType != null)
             {
-                // It's correct to throw out nullability here -- if you have a field of type Foo? and it implements IEquatable, it's still implementing IEquatable<Foo>.
-                var constructed = iequatableType.Construct(memberType.WithoutNullability());
-                return memberType.AllInterfaces.Contains(constructed);
+                // We compare ignoring nested nullability here, as it's possible the underlying object could have implemented IEquatable<Type>
+                // or IEquatable<Type?>. From the perspective of this, either is allowable.
+                var constructed = iequatableType.Construct(memberType);
+                return memberType.AllInterfaces.Contains(constructed, equalityComparer: SymbolEqualityComparer.Default);
             }
 
             return false;
@@ -375,21 +374,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.ConstructWithNullability(type);
+            var constructedType = equalityComparerType.Construct(type);
             return factory.MemberAccessExpression(
                 factory.TypeExpression(constructedType),
                 factory.IdentifierName(DefaultName));
         }
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol field: return field.GetTypeWithAnnotatedNullability();
-                case IPropertySymbol property: return property.GetTypeWithAnnotatedNullability();
-                default: return compilation.GetSpecialType(SpecialType.System_Object);
-            }
-        }
+                IFieldSymbol field => field.Type,
+                IPropertySymbol property => property.Type,
+                _ => compilation.GetSpecialType(SpecialType.System_Object),
+            };
 
         private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType)
         {

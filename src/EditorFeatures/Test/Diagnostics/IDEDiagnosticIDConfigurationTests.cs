@@ -255,7 +255,7 @@ dotnet_diagnostic.IDE0035.severity = %value%
 dotnet_diagnostic.IDE0036.severity = %value%
 
 # IDE0037
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_diagnostic.IDE0037.severity = %value%
 
 # IDE0039
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -419,7 +419,7 @@ dotnet_style_explicit_tuple_names = true:suggestion
 dotnet_diagnostic.IDE0036.severity = %value%
 
 # IDE0037
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_diagnostic.IDE0037.severity = %value%
 
 # IDE0040
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
@@ -721,6 +721,9 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 
+# IDE0037, PreferInferredAnonymousTypeMemberNames
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+
 # IDE0039, PreferLocalOverAnonymousFunction
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 
@@ -914,6 +917,9 @@ visual_basic_preferred_modifier_order = partial,default,private,protected,public
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
+
+# IDE0037, PreferInferredAnonymousTypeMemberNames
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 
 # IDE0040, RequireAccessibilityModifiers
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent

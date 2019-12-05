@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             foreach (var diagnostic in severityGroup)
             {
-                if (!range.IntersectsWith(diagnostic.TextSpan))
+                if (!range.IntersectsWith(diagnostic.GetTextSpan()))
                 {
                     continue;
                 }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 cancellationToken.ThrowIfCancellationRequested();
 
                 aggregatedDiagnostics ??= new Dictionary<TextSpan, List<DiagnosticData>>();
-                aggregatedDiagnostics.GetOrAdd(diagnostic.TextSpan, _ => new List<DiagnosticData>()).Add(diagnostic);
+                aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), _ => new List<DiagnosticData>()).Add(diagnostic);
             }
 
             if (aggregatedDiagnostics == null)
