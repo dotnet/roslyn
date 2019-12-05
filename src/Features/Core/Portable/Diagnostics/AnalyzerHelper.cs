@@ -312,11 +312,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
 
-            if (analyzer == FileContentLoadAnalyzer.Instance || loadDiagnostic != null)
+            if (analyzer == FileContentLoadAnalyzer.Instance)
             {
-                return (analyzer == FileContentLoadAnalyzer.Instance && loadDiagnostic != null) ?
-                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(document, loadDiagnostic)) :
+                return loadDiagnostic != null ?
+                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, document)) :
                     SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+            }
+
+            if (loadDiagnostic != null)
+            {
+                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)

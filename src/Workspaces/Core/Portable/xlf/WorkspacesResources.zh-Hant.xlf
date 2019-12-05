@@ -52,7 +52,7 @@
         <target state="new">Document does not support syntax trees</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_reading_source_file_content">
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
         <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
         <note />

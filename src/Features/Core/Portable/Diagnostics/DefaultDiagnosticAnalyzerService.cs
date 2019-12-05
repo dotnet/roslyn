@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
                 {
-                    return ImmutableArray.Create(DiagnosticData.Create(document, loadDiagnostic));
+                    return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
                 }
 
                 // given service must be DiagnosticAnalyzerService

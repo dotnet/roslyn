@@ -171,7 +171,7 @@
   <data name="Workspace_error" xml:space="preserve">
     <value>Workspace error</value>
   </data>
-  <data name="Error_reading_source_file_content" xml:space="preserve">
+  <data name="Error_reading_content_of_source_file_0_1" xml:space="preserve">
     <value>Error reading content of source file '{0}' -- '{1}'.</value>
   </data>
   <data name="Workspace_is_not_empty" xml:space="preserve">

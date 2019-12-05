@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span).ConfigureAwait(False)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.True(diagnostics(0).Id = "IDE1100")
-                Assert.Equal(String.Format(WorkspacesResources.Error_reading_source_file_content, "Test.cs", "Bad data!"), diagnostics(0).Message)
+                Assert.Equal(String.Format(WorkspacesResources.Error_reading_content_of_source_file_0_1, "Test.cs", "Bad data!"), diagnostics(0).Message)
 
                 ' analyzer should not be executed on a file that can't be loaded
                 diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
@@ -907,7 +907,7 @@ class AnonymousFunctions
                 ' The analyzer is invoked but the compilation does not contain a syntax tree that failed to load.
                 AssertEx.Equal(
                 {
-                    "IDE1100: " & String.Format(WorkspacesResources.Error_reading_source_file_content, "Test.cs", "Bad data!"),
+                    "IDE1100: " & String.Format(WorkspacesResources.Error_reading_content_of_source_file_0_1, "Test.cs", "Bad data!"),
                     "StatefulCompilationAnalyzerDiagnostic: Compilation NamedType Count: 0"
                 }, projectDiagnostics.Select(Function(d) d.Id & ": " & d.GetMessage()))
             End Using

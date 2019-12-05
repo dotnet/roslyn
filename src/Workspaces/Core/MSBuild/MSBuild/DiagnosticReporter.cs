@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         internal void AddDiagnostic(WorkspaceDiagnostic diagnostic)
         {
-            ImmutableInterlocked.Update(ref Diagnostics, d => d.Add(diagnostic));
+            ImmutableInterlocked.Update(ref Diagnostics, (list, d) => list.Add(d), diagnostic);
         }
 
         public void Report(WorkspaceDiagnostic diagnostic)

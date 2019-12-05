@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
             ErrorReadingFileContent = new DiagnosticDescriptor(
                 id: ErrorReadingFileContentId,
                 title: new LocalizableResourceString(nameof(WorkspacesResources.Workspace_error), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                messageFormat: new LocalizableResourceString(nameof(WorkspacesResources.Error_reading_source_file_content), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
+                messageFormat: new LocalizableResourceString(nameof(WorkspacesResources.Error_reading_content_of_source_file_0_1), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                 category: WorkspacesResources.Workspace_error,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true,

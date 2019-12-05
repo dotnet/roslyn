@@ -784,9 +784,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Error reading content of source file &apos;{0}&apos; -- &apos;{1}&apos;..
         /// </summary>
-        internal static string Error_reading_source_file_content {
+        internal static string Error_reading_content_of_source_file_0_1 {
             get {
-                return ResourceManager.GetString("Error_reading_source_file_content", resourceCulture);
+                return ResourceManager.GetString("Error_reading_content_of_source_file_0_1", resourceCulture);
             }
         }
         
@@ -3810,7 +3810,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Workspace error..
+        ///   Looks up a localized string similar to Workspace error.
         /// </summary>
         internal static string Workspace_error {
             get {

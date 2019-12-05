@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (TextAndVersionSource is TreeTextSource)
             {
-                return Task.FromResult((Diagnostic?)null);
+                return SpecializedTasks.Default<Diagnostic?>();
             }
 
             return base.GetLoadDiagnosticAsync(cancellationToken);
