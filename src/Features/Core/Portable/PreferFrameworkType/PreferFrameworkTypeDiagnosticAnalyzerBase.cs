@@ -51,24 +51,8 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
 
-        void Test()
-        {
-            var text1 = "GOO";
-            var text2 = text1;
-            if (!(MakeObject(text2).value is Action action))
-            {
-                return;
-            }
-
-            (object value, object value2) MakeObject(string text)
-            {
-                return (null, null);
-            }
-        }
-
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-
             var semanticModel = context.SemanticModel;
             var language = semanticModel.Language;
 
