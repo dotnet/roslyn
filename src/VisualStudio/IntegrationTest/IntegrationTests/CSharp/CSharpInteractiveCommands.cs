@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void VerifyMaybeExecuteInput()
         {
             VisualStudio.InteractiveWindow.InsertCode("2 + 3");
