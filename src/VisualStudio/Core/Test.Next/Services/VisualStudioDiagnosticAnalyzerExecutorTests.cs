@@ -145,7 +145,7 @@ End Class";
 
                 // make sure things that should have been cleaned up are cleaned up
                 var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
-                Assert.Null(service.GetRemotableData_TestOnly(solutionChecksum, CancellationToken.None));
+                Assert.Null(await service.TestOnly_GetRemotableDataAsync(solutionChecksum, CancellationToken.None).ConfigureAwait(false));
                 Assert.True(connection.Disposed);
             }
         }
