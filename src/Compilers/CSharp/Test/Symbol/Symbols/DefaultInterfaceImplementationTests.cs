@@ -59267,5 +59267,568 @@ interface I1<out T1, in T2>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2>.M2()", "T2", "contravariant", "covariantly").WithLocation(5, 13)
                 );
         }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I1::M1() => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I1'
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.M1()", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        private static void AssertNoMethodImplementation(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            Assert.Empty(i1.GetMembers().OfType<MethodSymbol>().Single().ExplicitInterfaceImplementations);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_02()
+        {
+            var source1 =
+@"
+interface I1 : I1
+{
+    int I1::M1() => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I1").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I1'
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.M1()", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_03()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I2::M1() => throw null;
+}
+
+interface I2
+{
+    int M1();
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.I2.M1()': containing type does not implement interface 'I2'
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1()", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            Assert.Same(i2.GetMembers().OfType<MethodSymbol>().Single(), i1.GetMembers().OfType<MethodSymbol>().Single().ExplicitInterfaceImplementations.Single());
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_04()
+        {
+            var source1 =
+@"
+interface I1 : I2
+{
+    int I2::M1() => throw null;
+}
+
+interface I2 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I2'
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.M1()", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11),
+                // (4,13): error CS0539: 'I1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1()").WithLocation(4, 13),
+                // (7,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(7, 11)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_05()
+        {
+            var source1 =
+@"
+interface I2 : I1
+{
+}
+
+interface I1 : I2
+{
+    int I2::M1() => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(6, 11),
+                // (8,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I2'
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.M1()", "I2").WithLocation(8, 9),
+                // (8,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(8, 11),
+                // (8,13): error CS0539: 'I1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1()").WithLocation(8, 13)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_06()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I1::P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.P1': containing type does not implement interface 'I1'
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.P1", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        private static void AssertNoPropertyImplementation(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m = i1.GetMembers().OfType<PropertySymbol>().Single();
+            Assert.Empty(m.ExplicitInterfaceImplementations);
+            Assert.Empty(m.GetMethod.ExplicitInterfaceImplementations);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_07()
+        {
+            var source1 =
+@"
+interface I1 : I1
+{
+    int I1::P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I1").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.P1': containing type does not implement interface 'I1'
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.P1", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_08()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I2::P1 => throw null;
+}
+
+interface I2
+{
+    int P1 {get;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.I2.P1': containing type does not implement interface 'I2'
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.P1", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var m1 = i1.GetMembers().OfType<PropertySymbol>().Single();
+            var m2 = i2.GetMembers().OfType<PropertySymbol>().Single();
+            Assert.Same(m2, m1.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m2.GetMethod, m1.GetMethod.ExplicitInterfaceImplementations.Single());
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_09()
+        {
+            var source1 =
+@"
+interface I1 : I2
+{
+    int I2::P1 => throw null;
+}
+
+interface I2 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.P1': containing type does not implement interface 'I2'
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P1", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11),
+                // (4,13): error CS0539: 'I1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I1.P1").WithLocation(4, 13),
+                // (7,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(7, 11)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_10()
+        {
+            var source1 =
+@"
+interface I2 : I1
+{
+}
+
+interface I1 : I2
+{
+    int I2::P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(6, 11),
+                // (8,9): error CS0540: 'I1.P1': containing type does not implement interface 'I2'
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P1", "I2").WithLocation(8, 9),
+                // (8,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(8, 11),
+                // (8,13): error CS0539: 'I1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I1.P1").WithLocation(8, 13)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_11()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action I1::E1
+    { add => throw null; remove => throw null;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0540: 'I1.E1': containing type does not implement interface 'I1'
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.E1", "I1").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
+
+        private static void AssertNoEventImplementation(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m = i1.GetMembers().OfType<EventSymbol>().Single();
+            Assert.Empty(m.ExplicitInterfaceImplementations);
+            Assert.Empty(m.AddMethod.ExplicitInterfaceImplementations);
+            Assert.Empty(m.RemoveMethod.ExplicitInterfaceImplementations);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_12()
+        {
+            var source1 =
+@"
+interface I1 : I1
+{
+    event System.Action I1::E1
+    { add => throw null; remove => throw null;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I1").WithLocation(2, 11),
+                // (4,25): error CS0540: 'I1.E1': containing type does not implement interface 'I1'
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.E1", "I1").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_13()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action I2::E1
+    { add => throw null; remove => throw null;}
+}
+
+interface I2
+{
+    event System.Action E1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0540: 'I1.I2.E1': containing type does not implement interface 'I2'
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.E1", "I2").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var m1 = i1.GetMembers().OfType<EventSymbol>().Single();
+            var m2 = i2.GetMembers().OfType<EventSymbol>().Single();
+            Assert.Same(m2, m1.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m2.AddMethod, m1.AddMethod.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m2.RemoveMethod, m1.RemoveMethod.ExplicitInterfaceImplementations.Single());
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_14()
+        {
+            var source1 =
+@"
+interface I1 : I2
+{
+    event System.Action I2::E1
+    { add => throw null; remove => throw null;}
+}
+
+interface I2 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (4,25): error CS0540: 'I1.E1': containing type does not implement interface 'I2'
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.E1", "I2").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27),
+                // (4,29): error CS0539: 'I1.E1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "E1").WithArguments("I1.E1").WithLocation(4, 29),
+                // (8,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(8, 11)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_15()
+        {
+            var source1 =
+@"
+interface I2 : I1
+{
+}
+
+interface I1 : I2
+{
+    event System.Action I2::E1
+    { add => throw null; remove => throw null;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(6, 11),
+                // (8,25): error CS0540: 'I1.E1': containing type does not implement interface 'I2'
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.E1", "I2").WithLocation(8, 25),
+                // (8,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(8, 27),
+                // (8,29): error CS0539: 'I1.E1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "E1").WithArguments("I1.E1").WithLocation(8, 29)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
     }
 }
