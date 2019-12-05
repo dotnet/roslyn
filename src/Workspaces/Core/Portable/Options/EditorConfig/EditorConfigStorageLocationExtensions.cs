@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.Options
             return editorConfigStorageLocation.TryGetOption(new AnalyzerConfigOptionsDictionary(analyzerConfigOptions), type, out value);
         }
 
+        /// <summary>
+        /// This is a wrapper around AnalyzerConfigOptions so that it can be used as a read-only Dictionary.
+        /// </summary>
         private class AnalyzerConfigOptionsDictionary : IReadOnlyDictionary<string, string>
         {
             private readonly AnalyzerConfigOptions _analyzerConfigOptions;
