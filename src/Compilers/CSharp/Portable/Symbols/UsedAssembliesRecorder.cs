@@ -172,16 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitConversion(node.Conversion);
 
             // Need to make sure we record assemblies containing canonical definitions for NoPia embedded types
-            HashSet<TypeSymbol>? lookedAt = null;
-
             if (!node.Conversion.IsIdentity)
             {
-                addUsedAssemblies(node.Operand.Type);
+                addUsedAssemblies(node.Operand.Type, ConsList<TypeSymbol>.Empty);
             }
 
             return base.VisitConversion(node);
 
-            void addUsedAssemblies(TypeSymbol? typeOpt)
+            void addUsedAssemblies(TypeSymbol? typeOpt, ConsList<TypeSymbol> basesBeingResolved)
             {
                 while (true)
                 {
@@ -197,22 +195,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             typeOpt = array.ElementTypeWithAnnotations.DefaultType;
                             continue;
                         case NamedTypeSymbol named:
-                            if (!shouldVisit(named))
+                            named = named.TupleUnderlyingTypeOrSelf();
+                            addAssembliesUsedByTypeArguments(named, basesBeingResolved);
+
+                            named = named.OriginalDefinition;
+                            if (basesBeingResolved.ContainsReference(named))
                             {
                                 break;
                             }
 
-                            named = named.TupleUnderlyingTypeOrSelf();
-                            addAssembliesUsedByTypeArguments(named);
-                            addAssembliesUsedByImplementedInterfaces(named);
+                            basesBeingResolved = basesBeingResolved.Prepend(named);
+                            addAssembliesUsedByImplementedInterfaces(named, basesBeingResolved);
 
                             typeOpt = named.BaseTypeNoUseSiteDiagnostics;
                             continue;
                         case TypeParameterSymbol typeParameter:
-                            if (shouldVisit(typeParameter))
-                            {
-                                addAssembliesUsedByConstraints(typeParameter.OriginalDefinition);
-                            }
+                            Debug.Assert(typeParameter.IsDefinition);
+                            addAssembliesUsedByConstraints(typeParameter.OriginalDefinition, basesBeingResolved);
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(typeOpt.TypeKind);
@@ -222,18 +221,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool shouldVisit(TypeSymbol type)
-            {
-                return (lookedAt ??= new HashSet<TypeSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything)).Add(type);
-            }
-
-            void addAssembliesUsedByTypeArguments(NamedTypeSymbol current)
+            void addAssembliesUsedByTypeArguments(NamedTypeSymbol current, ConsList<TypeSymbol> basesBeingResolved)
             {
                 do
                 {
                     foreach (var typeArgument in current.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                     {
-                        addUsedAssemblies(typeArgument.Type);
+                        addUsedAssemblies(typeArgument.Type, basesBeingResolved);
                     }
 
                     current = current.ContainingType;
@@ -241,30 +235,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 while (current is object);
             }
 
-            void addAssembliesUsedByImplementedInterfaces(NamedTypeSymbol current)
+            void addAssembliesUsedByImplementedInterfaces(NamedTypeSymbol current, ConsList<TypeSymbol> basesBeingResolved)
             {
-                if (DefinitionMightReferenceNoPiaLocalTypes(current))
-                {
-                    foreach (var @interface in current.OriginalDefinition.InterfacesNoUseSiteDiagnostics())
-                    {
-                        _compilation.AddAssembliesUsedByTypeReference(@interface);
-                    }
-                }
+                Debug.Assert(current.IsDefinition);
+                bool definitionMightReferenceNoPiaLocalTypes = DefinitionMightReferenceNoPiaLocalTypes(current);
 
                 foreach (var @interface in current.InterfacesNoUseSiteDiagnostics())
                 {
-                    addUsedAssemblies(@interface);
+                    if (definitionMightReferenceNoPiaLocalTypes)
+                    {
+                        _compilation.AddAssembliesUsedByTypeReference(@interface);
+                    }
+
+                    addUsedAssemblies(@interface, basesBeingResolved);
                 }
             }
 
-            void addAssembliesUsedByConstraints(TypeParameterSymbol current)
+            void addAssembliesUsedByConstraints(TypeParameterSymbol current, ConsList<TypeSymbol> basesBeingResolved)
             {
                 Debug.Assert(current.IsDefinition);
-                if (current.ContainingModule == _compilation.SourceModule)
+                if (current.ContainingModule == _compilation.SourceModule && !basesBeingResolved.ContainsReference(current))
                 {
+                    basesBeingResolved = basesBeingResolved.Prepend(current);
                     foreach (var type in current.ConstraintTypesNoUseSiteDiagnostics)
                     {
-                        addUsedAssemblies(type.Type);
+                        addUsedAssemblies(type.Type, basesBeingResolved);
                     }
                 }
             }
