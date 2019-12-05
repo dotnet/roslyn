@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
+            internal static bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
             {
                 if (forceAnalyzerRun)
                 {

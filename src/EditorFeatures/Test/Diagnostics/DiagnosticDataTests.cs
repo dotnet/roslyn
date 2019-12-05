@@ -115,7 +115,8 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn));
+                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn),
+                language: document.Project.Language);
 
             var text = await document.GetTextAsync();
             var actual = data.GetExistingOrCalculatedTextSpan(text);

@@ -11456,6 +11456,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to lambda discard parameters.
+        /// </summary>
+        internal static string IDS_FeatureLambdaDiscardParameters {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLambdaDiscardParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to leading digit separator.
         /// </summary>
         internal static string IDS_FeatureLeadingDigitSeparator {
@@ -14296,24 +14305,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ExplicitImplCollision_Title {
             get {
                 return ResourceManager.GetString("WRN_ExplicitImplCollision_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_ExpressionMayIntroduceNullT {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_ExpressionMayIntroduceNullT_Title {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT_Title", resourceCulture);
             }
         }
         

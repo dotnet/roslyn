@@ -652,7 +652,7 @@
 -target:winmdobj              Criar um arquivo intermediário do Windows Runtime que
                               seja consumido por WinMDExp (Forma abreviada: -t:winmdobj)
 -doc:&lt;file&gt;                   Arquivo de documentação XML a ser gerado
--refout:&lt;file&gt;                Saída do assembly de referência a ser gerada 
+-refout:&lt;file&gt;                Saída do assembly de referência a ser gerada
 -platform:&lt;string&gt;            Limitar em quais plataformas esse código pode ser executado: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred ou
                               anycpu. O padrão é anycpu.
@@ -678,7 +678,7 @@
 
                        - RECURSOS -
 -win32res:&lt;file&gt;              Especificar um arquivo de recurso Win32 (.res)
--win32icon:&lt;file&gt;             Usar esse ícone para a saída 
+-win32icon:&lt;file&gt;             Usar esse ícone para a saída
 -win32manifest:&lt;file&gt;         Especificar um arquivo de manifesto Win32 (.xml)
 -nowin32manifest              Não incluir o manifesto Win32 padrão
 -resource:&lt;resinfo&gt;           Inserir o recurso especificado (Forma abreviada: -res)
@@ -687,7 +687,7 @@
                               é &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - GERAÇÃO DE CÓDIGO -
--debug[+|-]                   Emitir informações de depuração 
+-debug[+|-]                   Emitir informações de depuração
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                                'portable' é um formato de plataforma cruzada,
@@ -715,7 +715,7 @@
                               tempo de execução.
 
                        - LINGUAGEM -
--checked[+|-]                 Gerar verificações de estouro 
+-checked[+|-]                 Gerar verificações de estouro
 -unsafe[+|-]                  Permitir código 'unsafe'
 -define:&lt;symbol list&gt;         Definir símbolos de compilação condicionais (Forma
                               abreviada: -d)
@@ -734,13 +734,13 @@
 -delaysign[+|-]               Assinar com atraso o assembly usando apenas a parte
                               pública da chave de nome forte
 -publicsign[+|-]              Assinar de modo público o assembly usando apenas a parte pública
-                              da chave de nome forte 
+                              da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar um arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar um contêiner de chave de nome forte
 -highentropyva[+|-]           Habilitar ASLR de alta entropia
 
                        - DIVERSOS -
-@&lt;file&gt;                       Ler o arquivo de resposta para obter mais opções 
+@&lt;file&gt;                       Ler o arquivo de resposta para obter mais opções
 -help                         Exibir esta mensagem de uso (Forma abreviada: -?)
 -nologo                       Suprimir a mensagem de direitos autorais do compilador
 -noconfig                     Não incluir automaticamente o arquivo CSC.RSP
@@ -838,6 +838,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">buffers fixos móveis de indexação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1398,16 +1403,6 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">A interface já está listada na lista de interfaces com uma nulidade diferente de tipos de referência.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
-        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Um membro que retorna um valor [MaybeNull] introduz um valor nulo quando '{0}' é um tipo de referência não anulável.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
-        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="translated">Um membro que retorna um valor [MaybeNull] introduz um valor nulo para um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">

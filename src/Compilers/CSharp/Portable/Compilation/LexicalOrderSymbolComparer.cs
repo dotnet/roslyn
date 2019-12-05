@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return comparison;
             }
 
-            comparison = ((ISymbol)x).Kind.ToSortOrder() - ((ISymbol)y).Kind.ToSortOrder();
+            comparison = x.Kind.ToSortOrder() - y.Kind.ToSortOrder();
             if (comparison != 0)
             {
                 return comparison;

@@ -52,23 +52,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 statements: statements);
         }
 
-        public static IMethodSymbol CreateIEqutableEqualsMethod(
+        public static IMethodSymbol CreateIEquatableEqualsMethod(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
+            INamedTypeSymbol constructedEquatableType,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, compilation, containingType, symbols, cancellationToken);
+                factory, semanticModel.Compilation, containingType, symbols, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
-            var equatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            var constructed = equatableType.Construct(containingType);
-            var methodSymbol = constructed.GetMembers(EqualsName)
-                                          .OfType<IMethodSymbol>()
-                                          .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+            var methodSymbol = constructedEquatableType
+                .GetMembers(EqualsName)
+                .OfType<IMethodSymbol>()
+                .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+
+            var originalParameter = methodSymbol.Parameters.First();
+
+            // Replace `[AllowNull] Foo` with `Foo` or `Foo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
+            var parameters = ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                originalParameter,
+                type: constructedEquatableType.GetTypeArguments()[0],
+                attributes: ImmutableArray<AttributeData>.Empty));
 
             if (factory.RequiresExplicitImplementationForInterfaceMembers)
             {
@@ -76,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
                     explicitInterfaceImplementations: ImmutableArray.Create(methodSymbol),
+                    parameters: parameters,
                     statements: statements);
             }
             else
@@ -83,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
+                    parameters: parameters,
                     statements: statements);
             }
         }

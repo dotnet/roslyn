@@ -1729,7 +1729,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DuplicateNullSuppression = 8715,
         ERR_DefaultLiteralNoTargetType = 8716,
-        WRN_ExpressionMayIntroduceNullT = 8717,
 
         ERR_ReAbstractionInNoPIAType = 8750,
 

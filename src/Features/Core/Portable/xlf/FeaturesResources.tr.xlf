@@ -247,6 +247,11 @@
         <target state="translated">'{0}' parametresini (ve geçersiz kılmaları/uygulamaları) üret</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Tüm bağımsız değişkenleri girintile</target>
@@ -547,6 +552,11 @@
         <target state="translated">Yerel olarak kapsamı oluşturulan atılabilir nesnelerin tüm yollarda atıldığından emin olmak için önerilen atma desenini kullanın. Mümkünse, oluşturulan nesneyi 'using' deyimi veya 'using' bildirimiyle sarmalayın. Aksi halde, try bölgesinden önce bildirilen ayrılmış bir yerel değişkeni ve 'finally' bölgesinde null olmayan değer üzerinde koşulsuz bir Dispose çağrısı (örneğin, 'x?.Dispose()') olan bir try-finally deseni kullanın. Nesne try bölgesi içinde açıkça atıldıysa veya atma sahipliği başka bir nesne ya da metoda aktarıldıysa, 'finally' bölgesinde çift atma gerçekleşmesini önlemek için bu tür bir işlemden hemen sonra yerel değişkene 'null' atayın</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Lambda ifadeleri için blok vücut kullanımı</target>
@@ -680,6 +690,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} basitleştirilebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

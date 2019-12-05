@@ -671,7 +671,7 @@
 -analyzer:&lt;檔案清單&gt;         執行此組件中的分析器
                               (簡短形式: -a)
 -additionalfile:&lt;檔案清單&gt;   不會直接影響程式碼產生，但可能為分析器所用，
-                             以產生錯誤或警告的 
+                             以產生錯誤或警告的
                               額外檔案。
 -embed                        將所有來源檔案嵌入 PDB。
 -embed:&lt;檔案清單&gt;            將特定檔案嵌入 PDB。
@@ -690,7 +690,7 @@
 -debug[+|-]                   發出偵錯資訊
 -debug:{full|pdbonly|portable|embedded}
                               指定偵錯類型 ('full' 為預設值;
-                              'portable' 為跨平台格式; 
+                              'portable' 為跨平台格式;
                               'embedded' 為跨平台格式，會嵌入
                               目標 .dll 或 .exe)
 -optimize[+|-]                啟用最佳化 (簡短形式: -o)
@@ -840,6 +840,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">對可移動的固定緩衝區編製索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1400,16 +1405,6 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">介面已列在介面清單中，並具有不同的參考類型可 NULL 性。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
-        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 為不可為 Null 的參考型別時，傳回 [MaybeNull] 值的成員會代入 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
-        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="translated">傳回 [MaybeNull] 值的成員會為型別參數代入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">

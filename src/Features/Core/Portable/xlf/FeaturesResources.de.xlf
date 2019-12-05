@@ -247,6 +247,11 @@
         <target state="translated">Parameter "{0}" (und Außerkraftsetzungen/Implementierungen) generieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Alle Argumente einrücken</target>
@@ -547,6 +552,11 @@
         <target state="translated">Verwenden Sie das empfohlene Dispose-Muster, um sicherzustellen, dass löschbare Objekte für den lokalen Bereich in allen Pfaden gelöscht werden. Schließen Sie die Erstellung nach Möglichkeit in einer using-Anweisung oder einer using-Deklaration ein. Verwenden Sie andernfalls ein try-finally-Muster mit einer vor dem try-Bereich deklarierten dedizierten lokalen Variablen und einem Dispose-Aufruf ohne Bedingung für den Nicht-NULL-Wert im finally-Bereich, beispielsweise "x?.Dispose()". Wenn das Objekt explizit innerhalb des try-Bereichs gelöscht oder der Dispose-Besitz auf ein anderes Objekt oder eine andere Methode übertragen wird, weisen Sie der lokalen Variablen gleich nach einem solchen Vorgang NULL zu, um einen doppelten Löschvorgang in "finally" zu vermeiden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Blocktextkörper für Lambdaausdrücke verwenden</target>
@@ -680,6 +690,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} kann vereinfacht werden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

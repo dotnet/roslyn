@@ -247,6 +247,11 @@
         <target state="translated">Создать параметр "{0}" (а также переопределения или реализации)</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Добавить отступы для всех аргументов</target>
@@ -547,6 +552,11 @@
         <target state="translated">Используйте рекомендуемый шаблон для корректного освобождения объектов в локальной области по всем путям. По возможности создание следует заключить в оператор using или объявление using. Если это невозможно, используйте шаблон try-finally с выделенной локальной переменной, объявляемой до области try, и безусловным вызовом Dispose для отличного от NULL значения в области finally, например: x?.Dispose(). Если объект явно освобождается в области try или владение освобождением передается другому объекту или методу, то сразу после такой операции присвойте локальной переменной значение NULL, чтобы предотвратить двойное освобождение в finally.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Использовать тело блока для лямбда-выражений</target>
@@ -680,6 +690,11 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="translated">{0} можно упростить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="new">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

@@ -980,7 +980,7 @@ using System;
 
                 private static bool HasTrailingWhitespace(string line)
                 {
-                    return line.LastOrNullable() is char last && char.IsWhiteSpace(last);
+                    return line.LastOrNull() is char last && char.IsWhiteSpace(last);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]

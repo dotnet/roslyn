@@ -165,6 +165,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
+            // If user has disabled analyzer execution for this project, we only want to execute required analyzers
+            // that report diagnostics with category "Compiler".
+            if (!project.State.RunAnalyzers &&
+                GetDiagnosticDescriptors(analyzer).All(d => d.Category != DiagnosticCategory.Compiler))
+            {
+                return true;
+            }
+
             // don't capture project
             var projectId = project.Id;
 
