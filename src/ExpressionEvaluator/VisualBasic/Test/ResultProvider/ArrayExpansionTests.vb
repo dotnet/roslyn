@@ -20,8 +20,8 @@ End Class
 
             Dim children = GetChildren(FormatResult("c", CreateDkmClrValue(Activator.CreateInstance(typeC))))
             Verify(children,
-                EvalResult("_2d", "{Length=4}", "Integer(,)", "c._2d", DkmEvaluationResultFlags.Expandable),
-                EvalResult("_3d", "{Length=1}", "Integer(,,)(,)", "c._3d", DkmEvaluationResultFlags.Expandable))
+                EvalResult("_2d", "{Length=4}", "Integer(,)", "c._2d", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_3d", "{Length=1}", "Integer(,,)(,)", "c._3d", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
 
             children = GetChildren(children(1))
             Verify(children,
