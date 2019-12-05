@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 const byte NUL = (byte)ConversionKind.ImplicitNullable;
                 const byte XNL = (byte)ConversionKind.ExplicitNullable;
 
+                // PROTOTYPE: Conversion from native int to decimal should be ImplicitNumeric,
+                // and conversion from decimal to native int should be ExplicitNumeric.
                 s_convkind = new byte[,] {
                     // Converting Y to X:
                     //          obj  str  bool chr  i08  i16  i32  i64  u08  u16  u32  u64 nint nuint r32  r64  dec bool? chr? i08? i16? i32? i64? u08? u16? u32? u64?nint?nuint?r32? r64? dec? 

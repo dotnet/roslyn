@@ -134,28 +134,28 @@ interface I
 {
     static void Main()
     {
-        nint.ToString();
-        nuint.ToString();
+        _ = nint.Equals(0, 0);
+        _ = nuint.Equals(0, 0);
     }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,9): error CS0103: The name 'nint' does not exist in the current context
-                //         nint.ToString();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 9),
-                // (6,9): error CS0103: The name 'nuint' does not exist in the current context
-                //         nuint.ToString();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 9));
+                // (5,13): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nint.Equals(0, 0);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 13),
+                // (6,13): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nuint.Equals(0, 0);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 13));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,9): error CS0103: The name 'nint' does not exist in the current context
-                //         nint.ToString();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 9),
-                // (6,9): error CS0103: The name 'nuint' does not exist in the current context
-                //         nuint.ToString();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 9));
+                // (5,13): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nint.Equals(0, 0);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 13),
+                // (6,13): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nuint.Equals(0, 0);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 13));
         }
 
         // PROTOTYPE: nint and nuint should be allowed.
