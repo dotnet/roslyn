@@ -59830,5 +59830,28 @@ interface I1 : I2
 
             AssertNoEventImplementation(compilation1);
         }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_16()
+        {
+            var source1 =
+@"
+interface I1<T>
+{
+    int I1<int>.P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1<T>.P1': containing type does not implement interface 'I1<int>'
+                //     int I1<int>.P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<int>").WithArguments("I1<T>.P1", "I1<int>").WithLocation(4, 9)
+                );
+        }
     }
 }
