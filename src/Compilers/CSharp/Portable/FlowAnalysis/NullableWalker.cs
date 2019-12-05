@@ -1083,9 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (useLegacyWarnings &&
-                valueType.Type?.TypeKind == TypeKind.TypeParameter &&
-                valueType.State == NullableFlowState.MaybeDefault)
+            if (useLegacyWarnings && isMaybeDefaultValue(valueType))
             {
                 // No W warning reported assigning or casting [MaybeNull]T value to T
                 // because there is no syntax for declaring the target type as [MaybeNull]T.
@@ -1115,9 +1113,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ReportNonSafetyDiagnostic(location);
             }
+            else if (assignmentKind == AssignmentKind.ForEachIterationVariable && isMaybeDefaultValue(valueType))
+            {
+                // No warning reported assigning [MaybeNull]T value to foreach iteration variable
+                // because there is no syntax for declaring the variable as [MaybeNull]T.
+                return;
+            }
             else
             {
                 ReportDiagnostic(assignmentKind switch { AssignmentKind.Return => ErrorCode.WRN_NullReferenceReturn, AssignmentKind.ForEachIterationVariable => ErrorCode.WRN_NullReferenceIterationVariable, _ => ErrorCode.WRN_NullReferenceAssignment }, location);
+            }
+
+            static bool isMaybeDefaultValue(TypeWithState valueType)
+            {
+                return valueType.Type?.TypeKind == TypeKind.TypeParameter &&
+                    valueType.State == NullableFlowState.MaybeDefault;
             }
         }
 
@@ -6892,6 +6902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             TypeWithAnnotations sourceType;
+            FlowAnalysisAnnotations sourceAnnotations = FlowAnalysisAnnotations.None;
             if (node.EnumeratorInfoOpt == null)
             {
                 sourceType = default;
@@ -6919,12 +6930,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // set by VisitForEachExpression, called just before this.
                     Debug.Assert(ResultType.Type.Equals(node.EnumeratorInfoOpt.CollectionType, TypeCompareKind.AllNullableIgnoreOptions));
                     var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(inferredCollectionType, node.EnumeratorInfoOpt.GetEnumeratorMethod);
-                    var currentProperty = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
-                    sourceType = currentProperty.ReturnTypeWithAnnotations;
+                    var currentPropertyGetter = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
+                    sourceType = currentPropertyGetter.ReturnTypeWithAnnotations;
+                    sourceAnnotations = currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations;
                 }
             }
 
-            TypeWithState sourceState = sourceType.ToTypeWithState();
+            TypeWithState sourceState = ApplyUnconditionalAnnotations(sourceType.ToTypeWithState(), sourceAnnotations);
 
 #pragma warning disable IDE0055 // Fix formatting
             var variableLocation = node.Syntax switch
