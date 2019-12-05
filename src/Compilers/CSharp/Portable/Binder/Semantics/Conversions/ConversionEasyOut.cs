@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 const byte NUL = (byte)ConversionKind.ImplicitNullable;
                 const byte XNL = (byte)ConversionKind.ExplicitNullable;
 
-                // PROTOTYPE: Conversion from native int to decimal should be ImplicitNumeric,
-                // and conversion from decimal to native int should be ExplicitNumeric.
                 s_convkind = new byte[,] {
                     // Converting Y to X:
                     //          obj  str  bool chr  i08  i16  i32  i64  u08  u16  u32  u64 nint nuint r32  r64  dec bool? chr? i08? i16? i32? i64? u08? u16? u32? u64?nint?nuint?r32? r64? dec? 
@@ -46,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     /*  u16 */{ BOX, NOC, NOC, XNM, XNM, XNM, NUM, NUM, XNM, IDN, NUM, NUM, NUM, NUM, NUM, NUM, NUM, NOC, XNL, XNL, XNL, NUL, NUL, XNL, NUL, NUL, NUL, NUL, NUL, NUL, NUL, NUL },
                     /*  u32 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, NUM, XNM, XNM, IDN, NUM, XNM, NUM, NUM, NUM, NUM, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, NUL, NUL, XNL, NUL, NUL, NUL, NUL },
                     /*  u64 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, IDN, XNM, XNM, NUM, NUM, NUM, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, XNL, XNL, NUL, NUL, NUL },
-                    /* nint */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, NUM, XNM, XNM, XNM, XNM, IDN, XNM, NUM, NUM, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, XNL, NUL, XNL, NUL, NUL, NOC },
-                    /*nuint */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, NUM, XNM, IDN, NUM, NUM, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, XNL, NUL, NUL, NUL, NOC },
+                    /* nint */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, NUM, XNM, XNM, XNM, XNM, IDN, XNM, NUM, NUM, NUM, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, XNL, NUL, XNL, NUL, NUL, NUL },
+                    /*nuint */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, NUM, XNM, IDN, NUM, NUM, NUM, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, XNL, NUL, NUL, NUL, NUL },
                     /*  r32 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, IDN, NUM, XNM, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, NUL, XNL },
                     /*  r64 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, IDN, XNM, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, XNL },
-                    /*  dec */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, NOC, NOC, XNM, XNM, IDN, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, NUL, XNL, XNL, NUL },
+                    /*  dec */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, IDN, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL },
                     /*bool? */{ BOX, NOC, XNL, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, IDN, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC },
                     /* chr? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, IDN, XNL, XNL, NUL, NUL, XNL, NUL, NUL, NUL, NUL, NUL, NUL, NUL, NUL },
                     /* i08? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, IDN, NUL, NUL, NUL, XNL, XNL, XNL, XNL, NUL, NUL, NUL, NUL, NUL },
@@ -61,11 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     /* u16? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, NUL, NUL, XNL, IDN, NUL, NUL, NUL, NUL, NUL, NUL, NUL },
                     /* u32? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, IDN, NUL, XNL, NUL, NUL, NUL, NUL },
                     /* u64? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN, XNL, XNL, NUL, NUL, NUL },
-                    /*nint? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, XNL, IDN, XNL, NUL, NUL, NOC },
-                    /*nuint?*/{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, XNL, IDN, NUL, NUL, NOC },
+                    /*nint? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, XNL, IDN, XNL, NUL, NUL, NUL },
+                    /*nuint?*/{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, XNL, IDN, NUL, NUL, NUL },
                     /* r32? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN, NUL, XNL },
                     /* r64? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN, XNL },
-                    /* dec? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN }
+                    /* dec? */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN }
                };
             }
 

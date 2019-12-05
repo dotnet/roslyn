@@ -1325,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal static SpecialMember DecimalConversionMethod(TypeSymbol typeFrom, TypeSymbol typeTo)
+        private static SpecialMember DecimalConversionMethod(TypeSymbol typeFrom, TypeSymbol typeTo)
         {
             if (typeFrom.SpecialType == SpecialType.System_Decimal)
             {
@@ -1361,6 +1361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SpecialType.System_UInt32: return SpecialMember.System_Decimal__op_Implicit_FromUInt32;
                     case SpecialType.System_Int64: return SpecialMember.System_Decimal__op_Implicit_FromInt64;
                     case SpecialType.System_UInt64: return SpecialMember.System_Decimal__op_Implicit_FromUInt64;
+                    case SpecialType.System_IntPtr: return SpecialMember.System_Decimal__op_Implicit_FromInt64; // PROTOTYPE:
+                    case SpecialType.System_UIntPtr: return SpecialMember.System_Decimal__op_Implicit_FromUInt64; // PROTOTYPE:
                     case SpecialType.System_Single: return SpecialMember.System_Decimal__op_Explicit_FromSingle;
                     case SpecialType.System_Double: return SpecialMember.System_Decimal__op_Explicit_FromDouble;
                     default:
@@ -1380,6 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
+                // PROTOTYPE: Test expression lambda cases converting between native ints and decimal.
                 ConversionKind conversionKind = isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var conversion = new Conversion(conversionKind, method, isExtensionMethod: false);
 
