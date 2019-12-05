@@ -350,9 +350,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private async Task<(DiagnosticAnalysisResult loadDiagnostics, PooledHashSet<Document>? failedDocuments)> GetDocumentLoadFailuresAsync(Project project, VersionStamp version, CancellationToken cancellationToken)
+        private async Task<(DiagnosticAnalysisResult loadDiagnostics, ImmutableHashSet<Document>? failedDocuments)> GetDocumentLoadFailuresAsync(Project project, VersionStamp version, CancellationToken cancellationToken)
         {
-            PooledHashSet<Document>? failedDocuments = null;
+            ImmutableHashSet<Document>.Builder? failedDocuments = null;
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? lazyLoadDiagnostics = null;
 
             foreach (var document in project.Documents)
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     lazyLoadDiagnostics ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
                     lazyLoadDiagnostics.Add(document.Id, ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document)));
 
-                    failedDocuments ??= PooledHashSet<Document>.GetInstance();
+                    failedDocuments ??= ImmutableHashSet.CreateBuilder<Document>();
                     failedDocuments.Add(document);
                 }
             }
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 others: ImmutableArray<DiagnosticData>.Empty,
                 documentIds: null);
 
-            return (result, failedDocuments);
+            return (result, failedDocuments?.ToImmutable());
         }
 
         private void UpdateAnalyzerTelemetryData(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry)
