@@ -118,11 +118,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
-            var optionValue = context.Options.GetOption(applicableOption, context.Operation.Syntax.Language, syntaxTree, cancellationToken);
+            var optionValue = context.GetOption(applicableOption, context.Operation.Syntax.Language);
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;

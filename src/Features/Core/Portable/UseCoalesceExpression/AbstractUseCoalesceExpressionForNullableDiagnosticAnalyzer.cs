@@ -42,10 +42,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.Options.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language, syntaxTree, cancellationToken);
+            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;

@@ -39,16 +39,13 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = context.Tree;
-            var root = syntaxTree.GetRoot(cancellationToken);
-
-            var option = context.Options.GetOption(_option, syntaxTree, cancellationToken);
+            var option = context.GetOption(_option);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
             }
 
+            var root = context.Tree.GetRoot(context.CancellationToken);
             Recurse(context, preferredOrder, option.Notification.Severity, root);
         }
 

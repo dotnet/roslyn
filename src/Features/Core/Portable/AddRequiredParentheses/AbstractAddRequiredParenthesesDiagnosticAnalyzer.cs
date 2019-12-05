@@ -77,9 +77,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
             var parent = TryGetParentExpression(binaryLike);
             if (parent == null || !IsBinaryLike(parent))
@@ -102,7 +99,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var preference = context.Options.GetOption(parentPrecedence, context.Compilation.Language, syntaxTree, cancellationToken);
+            var preference = context.GetOption(parentPrecedence, context.Compilation.Language);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;

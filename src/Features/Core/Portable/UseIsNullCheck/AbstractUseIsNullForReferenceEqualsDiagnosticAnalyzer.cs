@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var option = context.Options.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
+            var option = context.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
             if (!option.Value)
             {
                 return;

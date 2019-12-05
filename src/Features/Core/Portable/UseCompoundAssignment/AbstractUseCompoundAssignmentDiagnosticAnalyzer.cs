@@ -55,11 +55,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
         private void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
             var assignment = (TAssignmentSyntax)context.Node;
 
             var syntaxTree = assignment.SyntaxTree;
-            var option = context.Options.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language, syntaxTree, cancellationToken);
+            var option = context.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
             if (!option.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             // is side-effect-free since we will be changing the number of times it is
             // executed from twice to once.
             var semanticModel = context.SemanticModel;
-            if (!IsSideEffectFree(assignmentLeft, semanticModel, isTopLevel: true, cancellationToken))
+            if (!IsSideEffectFree(assignmentLeft, semanticModel, isTopLevel: true, context.CancellationToken))
             {
                 return;
             }

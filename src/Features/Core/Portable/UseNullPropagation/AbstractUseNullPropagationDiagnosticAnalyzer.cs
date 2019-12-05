@@ -80,10 +80,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var syntaxTree = conditionalExpression.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            var option = context.Options.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language, syntaxTree, cancellationToken);
+            var option = context.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;
@@ -155,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
-            if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
+            if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, context.CancellationToken))
             {
                 return;
             }

@@ -57,9 +57,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
             if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
@@ -96,7 +93,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             }
 
             var option = GetLanguageOption(precedence);
-            var preference = context.Options.GetOption(option, parenthesizedExpression.Language, syntaxTree, cancellationToken);
+            var preference = context.GetOption(option, parenthesizedExpression.Language);
 
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {
@@ -127,7 +124,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             // Generates diagnostic used to squiggle the parenthetical expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_diagnosticWithoutFade,
-                GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
+                GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
                 severity,
                 additionalLocations,
                 properties: null));

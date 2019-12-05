@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             diagnostic = default;
 
             var syntaxTree = node.SyntaxTree;
-            var optionSet = analyzerOptions.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = analyzerOptions.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
 
             if (!CanSimplifyTypeNameExpressionCore(
                     model, node, optionSet,

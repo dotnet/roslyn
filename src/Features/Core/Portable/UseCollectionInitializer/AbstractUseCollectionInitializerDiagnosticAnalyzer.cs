@@ -67,11 +67,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var syntaxTree = objectCreationExpression.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var options = context.Options;
-            var option = options.GetOption(CodeStyleOptions.PreferCollectionInitializer, language, syntaxTree, cancellationToken);
+            var option = context.GetOption(CodeStyleOptions.PreferCollectionInitializer, language);
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -112,20 +110,18 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 additionalLocations: locations,
                 properties: null));
 
-            FadeOutCode(context, options, matches.Value, locations, cancellationToken);
+            FadeOutCode(context, matches.Value, locations);
         }
 
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
-            AnalyzerOptions options,
             ImmutableArray<TExpressionStatementSyntax> matches,
-            ImmutableArray<Location> locations,
-            CancellationToken cancellationToken)
+            ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = options.GetOption(
-                CodeStyleOptions.PreferCollectionInitializer_FadeOutCode, context.Node.Language, syntaxTree, cancellationToken);
+            var fadeOutCode = context.GetOption(
+                CodeStyleOptions.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
             if (!fadeOutCode)
             {
                 return;
