@@ -20,6 +20,9 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithSerialization { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Runtime.Serialization"));
 
+        public static ReferenceAssemblies DefaultWithNewtonsoftJson { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Newtonsoft.Json", "10.0.1")));
+
         public static MetadataReference SystemCollectionsImmutableReference { get; } = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static MetadataReference SystemComponentModelCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
         public static MetadataReference SystemCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.Composition.ExportAttribute).Assembly.Location);
