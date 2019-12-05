@@ -67,11 +67,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken)
         {
             var project = document.Project;
-            var (serializableItems, counter) = await client.TryRunCodeAnalysisRemoteAsync<(IList<SerializableImportCompletionItem>, StatisticCounter)>(
+            var (serializableItems, counter) = (await client.TryRunCodeAnalysisRemoteValueAsync<(IList<SerializableImportCompletionItem>, StatisticCounter)>(
                 project.Solution,
                 nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
                 new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false)).GetValueOrDefault();
+
 
             return (serializableItems.ToImmutableArray(), counter);
         }
