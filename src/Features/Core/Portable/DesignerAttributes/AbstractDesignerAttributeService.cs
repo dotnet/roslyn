@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInRemoteHostAsync(RemoteHostClient client, Document document, CancellationToken cancellationToken)
         {
-            return await client.TryRunCodeAnalysisRemoteAsync<DesignerAttributeResult>(
+            return (await client.TryRunCodeAnalysisRemoteValueAsync<DesignerAttributeResult>(
                 document.Project.Solution,
                 nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                document.Id,
-                cancellationToken).ConfigureAwait(false);
+                new[] { document.Id },
+                cancellationToken).ConfigureAwait(false)).GetValueOrDefault();
         }
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
