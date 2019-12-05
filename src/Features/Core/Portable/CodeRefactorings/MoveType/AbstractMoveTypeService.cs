@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         {
             var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            if (state == null)
+            if (state == null || state.TypeName == string.Empty)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
