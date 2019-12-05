@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             nullabilityDiagnosticsBuilder.Free();
         }
 
-        public static bool CheckConstraintsForNonTuple(
+        public static bool CheckConstraintsForNamedType(
             this NamedTypeSymbol type,
             ConversionsBase conversions,
             bool includeNullability,
