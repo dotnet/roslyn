@@ -14,6 +14,9 @@ namespace Test.Utilities
             .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "2.10.0")));
 
+        public static ReferenceAssemblies DefaultWithSystemWeb { get; } = Default
+            .AddAssemblies(ImmutableArray.Create("System.Web", "System.Web.Extensions"));
+
         public static MetadataReference SystemCollectionsImmutableReference { get; } = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static MetadataReference SystemComponentModelCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
         public static MetadataReference SystemCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.Composition.ExportAttribute).Assembly.Location);
