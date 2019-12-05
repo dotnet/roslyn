@@ -40,7 +40,7 @@
                 <ColumnDefinition Width="400" />
             </Grid.ColumnDefinitions>
             <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
-            <Border Grid.Row="0" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <changesignature:IntellisenseTextBlock x:Name="TypeNameTextBox" Padding="0" Width="300"                                     Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"                                     Focusable="True"                                    AutomationProperties.Name="{Binding SelectedCondition.DisplayName}" />            </Border>
+            <Border Grid.Row="0" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <changesignature:IntellisenseTextBlock x:Name="TypeNameTextBox" Width="300" Focusable="True" />            </Border>
             <Label Grid.Row="1" Grid.Column="0" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
             <TextBox Grid.Row="1" Grid.Column="1" Width="200" Text="{Binding ParameterName}" />
             <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />

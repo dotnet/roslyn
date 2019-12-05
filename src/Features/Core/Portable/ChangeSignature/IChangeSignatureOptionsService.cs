@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -9,10 +10,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
         ChangeSignatureOptionsResult GetChangeSignatureOptions(
             ISymbol symbol,
+            TextSpan insertionSpan,
             ParameterConfiguration parameters,
             Document document,
             INotificationService notificationService);
 
-        AddedParameterResult GetAddedParameter(Document document);
+        AddedParameterResult GetAddedParameter(Document document, TextSpan insertionSpan);
     }
 }
