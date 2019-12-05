@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
+            return new ActiveStatementsMap(byDocument.ToMultiDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
         }
 
         private LinePositionSpan GetUpToDateSpan(ActiveStatementDebugInfo activeStatementInfo)
@@ -350,6 +350,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
 
                     default:
+                        // Include the document regardless of whether the module it was built into has been loaded or not.
+                        // If the module has been built it might get loaded later during the debugging session,
+                        // at which point we apply all changes that have been made to the project so far.
                         changedDocuments.Add((oldDocument, document));
                         break;
                 }

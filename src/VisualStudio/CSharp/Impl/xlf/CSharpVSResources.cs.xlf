@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Při formátování provést dodatečné čištění kódu</target>
+        <target state="translated">Při formátování provést dodatečné vyčištění kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">

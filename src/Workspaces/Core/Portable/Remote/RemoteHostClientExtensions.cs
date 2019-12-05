@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating connection could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<RemoteHostClient.Connection> TryCreateConnectionAsync(
+        public static Task<RemoteHostClient.Connection?> TryCreateConnectionAsync(
             this RemoteHostClient client, string serviceName, CancellationToken cancellationToken)
             => client.TryCreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
 
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<SessionWithSolution> TryCreateSessionAsync(
+        public static Task<SessionWithSolution?> TryCreateSessionAsync(
             this RemoteHostClient client, string serviceName, Solution solution, CancellationToken cancellationToken)
             => client.TryCreateSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
 
@@ -41,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static async Task<SessionWithSolution> TryCreateSessionAsync(
-            this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution?> TryCreateSessionAsync(
+            this RemoteHostClient client, string serviceName, Solution solution, object? callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<KeepAliveSession> TryCreateKeepAliveSessionAsync(
+        public static Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(
             this RemoteHostClient client, string serviceName, CancellationToken cancellationToken)
             => TryCreateKeepAliveSessionAsync(client, serviceName, callbackTarget: null, cancellationToken: cancellationToken);
 
@@ -71,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static async Task<KeepAliveSession> TryCreateKeepAliveSessionAsync(
-            this RemoteHostClient client, string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public static async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(
+            this RemoteHostClient client, string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -83,20 +85,20 @@ namespace Microsoft.CodeAnalysis.Remote
             return new KeepAliveSession(client, connection, serviceName, callbackTarget);
         }
 
-        public static Task<SessionWithSolution> TryCreateCodeAnalysisSessionAsync(
+        public static Task<SessionWithSolution?> TryCreateCodeAnalysisSessionAsync(
             this RemoteHostClient client, Solution solution, CancellationToken cancellationToken)
             => TryCreateCodeAnalysisSessionAsync(client, solution, callbackTarget: null, cancellationToken: cancellationToken);
 
-        public static Task<SessionWithSolution> TryCreateCodeAnalysisSessionAsync(
-            this RemoteHostClient client, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        public static Task<SessionWithSolution?> TryCreateCodeAnalysisSessionAsync(
+            this RemoteHostClient client, Solution solution, object? callbackTarget, CancellationToken cancellationToken)
             => client.TryCreateSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
 
-        public static Task<KeepAliveSession> TryCreateCodeAnalysisKeepAliveSessionAsync(
+        public static Task<KeepAliveSession?> TryCreateCodeAnalysisKeepAliveSessionAsync(
             this RemoteHostClient client, CancellationToken cancellationToken)
             => TryCreateCodeAnalysisKeepAliveSessionAsync(client, callbackTarget: null, cancellationToken: cancellationToken);
 
-        public static Task<KeepAliveSession> TryCreateCodeAnalysisKeepAliveSessionAsync(
-            this RemoteHostClient client, object callbackTarget, CancellationToken cancellationToken)
+        public static Task<KeepAliveSession?> TryCreateCodeAnalysisKeepAliveSessionAsync(
+            this RemoteHostClient client, object? callbackTarget, CancellationToken cancellationToken)
             => client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, callbackTarget, cancellationToken);
 
         public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(
@@ -110,12 +112,11 @@ namespace Microsoft.CodeAnalysis.Remote
         public static Task<bool> TryRunRemoteAsync(
             this RemoteHostClient client, string serviceName, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
         {
-            object callbackTarget = null;
-            return TryRunRemoteAsync(client, serviceName, solution, callbackTarget, targetName, arguments, cancellationToken);
+            return TryRunRemoteAsync(client, serviceName, solution, callbackTarget: null, targetName, arguments, cancellationToken);
         }
 
         public static async Task<bool> TryRunRemoteAsync(
-            this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget,
+            this RemoteHostClient client, string serviceName, Solution solution, object? callbackTarget,
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
             using var session = await client.TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
@@ -147,23 +148,36 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
         /// </summary>
-        public static async Task<T> TryRunRemoteAsync<T>(
-            this RemoteHostClient client, string serviceName, Solution solution, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public static async Task<T?> TryRunRemoteAsync<T>(
+            this RemoteHostClient client, string serviceName, Solution solution, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) where T : class
         {
             using var session = await client.TryCreateSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false);
 
             if (session == null)
             {
                 // can't create Session. RemoteHost seems not responding for some reasons such as OOP gone.
-                return default;
+                return null;
             }
 
             return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
-            this RemoteHostClient client, Solution solution, object callbackTarget, string targetName, object argument, CancellationToken cancellationToken)
-            => TryRunCodeAnalysisRemoteAsync(client, solution, callbackTarget, targetName, new object[] { argument }, cancellationToken);
+        /// <summary>
+        /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
+        /// </summary>
+        public static async Task<T?> TryRunRemoteValueAsync<T>(
+            this RemoteHostClient client, string serviceName, Solution solution, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) where T : struct
+        {
+            using var session = await client.TryCreateSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false);
+
+            if (session == null)
+            {
+                // can't create Session. RemoteHost seems not responding for some reasons such as OOP gone.
+                return null;
+            }
+
+            return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+        }
 
         public static Task<bool> TryRunCodeAnalysisRemoteAsync(
             this RemoteHostClient client, Solution solution, object callbackTarget, string targetName, object[] arguments, CancellationToken cancellationToken)
@@ -172,20 +186,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
         /// </summary>
-        public static Task<T> TryRunCodeAnalysisRemoteAsync<T>(
-            this RemoteHostClient client, Solution solution, string targetName, object argument, CancellationToken cancellationToken)
-            => TryRunCodeAnalysisRemoteAsync<T>(client, solution, targetName, new object[] { argument }, cancellationToken);
-
-        /// <summary>
-        /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
-        /// </summary>
-        public static Task<T> TryRunCodeAnalysisRemoteAsync<T>(
-            this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
+        public static Task<T?> TryRunCodeAnalysisRemoteAsync<T>(
+            this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken) where T : class
             => TryRunRemoteAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
 
-        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
-            this RemoteHostClient client, string targetName, object argument, CancellationToken cancellationToken)
-            => TryRunRemoteAsync(client, WellKnownServiceHubServices.CodeAnalysisService, targetName, new object[] { argument }, cancellationToken);
+        public static Task<T?> TryRunCodeAnalysisRemoteValueAsync<T>(
+            this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken) where T : struct
+            => TryRunRemoteValueAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
 
         public static Task<bool> TryRunCodeAnalysisRemoteAsync(
             this RemoteHostClient client, string targetName, object[] arguments, CancellationToken cancellationToken)
@@ -219,20 +226,20 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static Task<PinnedRemotableDataScope> GetPinnedScopeAsync(this Solution solution, CancellationToken cancellationToken)
+        public static ValueTask<PinnedRemotableDataScope> GetPinnedScopeAsync(this Solution solution, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
 
-            var service = solution.Workspace.Services.GetService<IRemotableDataService>();
+            var service = solution.Workspace.Services.GetRequiredService<IRemotableDataService>();
             return service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken);
         }
 
-        public static Task<SessionWithSolution> TryCreateCodeAnalysisSessionAsync(
+        public static Task<SessionWithSolution?> TryCreateCodeAnalysisSessionAsync(
             this Solution solution, CancellationToken cancellationToken)
             => TryCreateCodeAnalysisSessionAsync(solution, callbackTarget: null, cancellationToken: cancellationToken);
 
-        public static async Task<SessionWithSolution> TryCreateCodeAnalysisSessionAsync(
-            this Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution?> TryCreateCodeAnalysisSessionAsync(
+            this Solution solution, object? callbackTarget, CancellationToken cancellationToken)
         {
             var workspace = solution.Workspace;
             var client = await TryGetRemoteHostClientAsync(workspace, cancellationToken).ConfigureAwait(false);
@@ -263,24 +270,24 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
+        /// Run given service on remote host. if it fails to run on remote host, it will return <see langword="null"/>.
         /// </summary>
-        public static Task<T> TryRunCodeAnalysisRemoteAsync<T>(
-            this Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
+        public static Task<T?> TryRunCodeAnalysisRemoteAsync<T>(
+            this Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken) where T : class
         {
             return TryRunCodeAnalysisRemoteAsync<T>(solution, callbackTarget: null, targetName, arguments, cancellationToken);
         }
 
         /// <summary>
-        /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
+        /// Run given service on remote host. if it fails to run on remote host, it will return <see langword="null"/>.
         /// </summary>
-        public static async Task<T> TryRunCodeAnalysisRemoteAsync<T>(
-            this Solution solution, object callbackTarget, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public static async Task<T?> TryRunCodeAnalysisRemoteAsync<T>(
+            this Solution solution, object? callbackTarget, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) where T : class
         {
             using var session = await TryCreateCodeAnalysisSessionAsync(solution, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (session == null)
             {
-                return default;
+                return null;
             }
 
             return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);

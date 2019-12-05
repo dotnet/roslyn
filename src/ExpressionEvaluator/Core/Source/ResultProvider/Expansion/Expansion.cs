@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// </summary>
     internal abstract class Expansion
     {
+        internal virtual bool ContainsFavorites => false;
+
         /// <summary>
         /// Get the rows within the given range. 'index' is advanced
         /// to the end of the range, or if 'visitAll' is true, 'index' is

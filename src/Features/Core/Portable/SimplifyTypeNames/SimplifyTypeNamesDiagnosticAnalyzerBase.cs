@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             _kindsOfInterest = kindsOfInterest;
         }
 
-        public bool OpenFileOnly(Workspace workspace)
+        public bool OpenFileOnly(OptionSet options)
         {
-            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
+            var preferTypeKeywordInDeclarationOption = options.GetOption(
                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
-            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
+            var preferTypeKeywordInMemberAccessOption = options.GetOption(
                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
 
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||

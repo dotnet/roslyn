@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default,
-                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullability(NullableAnnotation.Annotated), ObjName)),
+                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)),
                 statements: statements);
         }
 
@@ -321,9 +321,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (iequatableType != null)
             {
-                // It's correct to throw out nullability here -- if you have a field of type Foo? and it implements IEquatable, it's still implementing IEquatable<Foo>.
-                var constructed = iequatableType.Construct(memberType.WithoutNullability());
-                return memberType.AllInterfaces.Contains(constructed);
+                // We compare ignoring nested nullability here, as it's possible the underlying object could have implemented IEquatable<Type>
+                // or IEquatable<Type?>. From the perspective of this, either is allowable.
+                var constructed = iequatableType.Construct(memberType);
+                return memberType.AllInterfaces.Contains(constructed, equalityComparer: SymbolEqualityComparer.Default);
             }
 
             return false;
@@ -373,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.ConstructWithNullability(type);
+            var constructedType = equalityComparerType.Construct(type);
             return factory.MemberAccessExpression(
                 factory.TypeExpression(constructedType),
                 factory.IdentifierName(DefaultName));
@@ -382,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
             => symbol switch
             {
-                IFieldSymbol field => field.GetTypeWithAnnotatedNullability(),
-                IPropertySymbol property => property.GetTypeWithAnnotatedNullability(),
+                IFieldSymbol field => field.Type,
+                IPropertySymbol property => property.Type,
                 _ => compilation.GetSpecialType(SpecialType.System_Object),
             };
 

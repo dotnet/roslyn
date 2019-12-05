@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -40,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
-        public static async Task<RemoteHostClient> CreateAsync(
+        public static async Task<RemoteHostClient?> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
         {
             try
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public static async Task<ServiceHubRemoteHostClient> CreateWorkerAsync(Workspace workspace, HubClient primary, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            ServiceHubRemoteHostClient client = null;
+            ServiceHubRemoteHostClient? client = null;
             try
             {
                 // let each client to have unique id so that we can distinguish different clients when service is restarted
@@ -121,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 throw;
             }
 
-            static void Shutdown(ServiceHubRemoteHostClient client, Exception ex, CancellationToken cancellationToken)
+            static void Shutdown(ServiceHubRemoteHostClient? client, Exception ex, CancellationToken cancellationToken)
             {
                 // make sure we shutdown client if initializing client has failed.
                 client?.Shutdown();
@@ -155,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override string ClientId => _connectionManager.HostGroup.Id;
 
-        public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
         }

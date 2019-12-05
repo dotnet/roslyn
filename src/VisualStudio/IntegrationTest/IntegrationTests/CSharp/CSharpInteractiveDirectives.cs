@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void VerifyHostCommandsCompletionList()
         {
             VisualStudio.InteractiveWindow.InsertCode("#");

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             if (sourceText != null)
             {
