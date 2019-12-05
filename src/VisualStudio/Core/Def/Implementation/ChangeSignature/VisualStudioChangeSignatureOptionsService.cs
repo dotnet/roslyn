@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using ImportingConstructorAttribute = System.Composition.ImportingConstructorAttribute;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -58,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public ChangeSignatureOptionsResult GetChangeSignatureOptions(
             ISymbol symbol,
+            TextSpan insertionSpan,
             ParameterConfiguration parameters,
             Document document,
             INotificationService notificationService)
@@ -67,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 parameters,
                 symbol,
                 document,
+                insertionSpan,
                 _classificationFormatMap,
                 _classificationTypeMap);
 
@@ -77,15 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 return new ChangeSignatureOptionsResult { IsCancelled = false, UpdatedSignature = new SignatureChange(parameters, viewModel.GetParameterConfiguration()), PreviewChanges = viewModel.PreviewChanges };
             }
-            else
-            {
-                return new ChangeSignatureOptionsResult { IsCancelled = true };
-            }
+
+            return new ChangeSignatureOptionsResult { IsCancelled = true };
         }
 
-        public AddedParameterResult GetAddedParameter(Document document)
+        public AddedParameterResult GetAddedParameter(Document document, TextSpan insertionSpan)
         {
-            var (dialog, viewModel) = CreateAddParameterDialogAsync(document, CancellationToken.None).Result;
+            var (dialog, viewModel) = CreateAddParameterDialogAsync(document, insertionSpan, CancellationToken.None).Result;
             var result = dialog.ShowModal();
 
             if (result.HasValue && result.Value)
@@ -106,22 +107,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         private async Task<(AddParameterDialog, AddParameterDialogViewModel)> CreateAddParameterDialogAsync(
-            Document document, CancellationToken cancellationToken)
+            Document document, TextSpan insertionSpan, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var documentText = sourceText.ToString();
 
             var roleSet = _textEditorFactoryService.CreateTextViewRoleSet(
-                PredefinedTextViewRoles.Document,
                 PredefinedTextViewRoles.Editable,
                 PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole);
 
-            var vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
             var vsTextBuffer = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, _contentType);
             vsTextBuffer.InitializeContent(documentText, documentText.Length);
 
+            var vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
             var initView = new[] {
                 new INITVIEW()
                 {
@@ -138,16 +138,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 (uint)TextViewInitFlags3.VIF_NO_HWND_SUPPORT,
                 initView);
 
-            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
-
             var originalContextBuffer = _editorAdaptersFactoryService.GetDataBuffer(vsTextBuffer);
             // Get the workspace, and from there, the solution and document containing this buffer.
             // If there's an ExternalSource, we won't get a document. Give up in that case.
             var solution = document.Project.Solution;
-
-            // Get the appropriate ITrackingSpan for the window the user is typing in
-            var viewSnapshot = wpfTextView.TextSnapshot;
-            var debuggerMappedSpan = CreateFullTrackingSpan(viewSnapshot, SpanTrackingMode.EdgeInclusive);
 
             // Wrap the original ContextBuffer in a projection buffer that we can make read-only
             var contextBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(null,
@@ -163,18 +157,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // Adjust the context point to ensure that the right information is in scope.
             // For example, we may need to move the point to the end of the last statement in a method body
             // in order to be able to access all local variables.
-        //    var contextPoint = contextBuffer.CurrentSnapshot.GetLineFromLineNumber(currentStatementSpan.iEndLine).Start + currentStatementSpan.iEndIndex;
+            var contextPoint = insertionSpan.Start;
             //var adjustedContextPoint = GetAdjustedContextPoint(contextPoint, document);
+            var adjustedContextPoint = contextPoint;
 
             // Get the previous span/text. We might have to insert another newline or something.
-            //    var previousStatementSpan = GetPreviousStatementBufferAndSpan(adjustedContextPoint, document);
+            var previousStatementSpan = CreateTrackingSpanFromStartToIndex(contextBuffer.CurrentSnapshot, adjustedContextPoint, SpanTrackingMode.EdgeNegative);
+
+            // Get the appropriate ITrackingSpan for the window the user is typing in
+            var mappedSpan = contextBuffer.CurrentSnapshot.CreateTrackingSpan(adjustedContextPoint, 0, SpanTrackingMode.EdgeExclusive);
 
             // Build the tracking span that includes the rest of the file
-            //     var restOfFileSpan = CreateTrackingSpanFromIndexToEnd(contextBuffer.CurrentSnapshot, adjustedContextPoint, SpanTrackingMode.EdgePositive);
+            var restOfFileSpan = CreateTrackingSpanFromIndexToEnd(contextBuffer.CurrentSnapshot, adjustedContextPoint, SpanTrackingMode.EdgePositive);
 
             // Put it all into a projection buffer
             var projectionBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(null,
-                new object[] { /* previousStatementSpan, */ debuggerMappedSpan, /* this.StatementTerminator */ /*, restOfFileSpan */}, ProjectionBufferOptions.None, _contentType);
+                new object[] { previousStatementSpan, mappedSpan, ";", restOfFileSpan }, ProjectionBufferOptions.None, _contentType);
 
             // Fork the solution using this new primary buffer for the document and all of its linked documents.
             var forkedSolution = solution.WithDocumentText(document.Id, projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
@@ -195,6 +193,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
             await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+            // TODO here we should hook the projection buffer.
+            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
             wpfTextView.TextBuffer.ChangeContentType(_contentType, null);
 
             var viewModel = new AddParameterDialogViewModel();
@@ -215,6 +215,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public static ITrackingSpan CreateTrackingSpanFromIndexToEnd(ITextSnapshot textSnapshot, int index, SpanTrackingMode trackingMode)
         {
             return textSnapshot.CreateTrackingSpan(Span.FromBounds(index, textSnapshot.Length), trackingMode);
+        }
+
+        public static ITrackingSpan CreateTrackingSpanFromStartToIndex(ITextSnapshot textSnapshot, int index, SpanTrackingMode trackingMode)
+        {
+            return textSnapshot.CreateTrackingSpan(Span.FromBounds(0, index), trackingMode);
         }
     }
 }

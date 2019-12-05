@@ -8,7 +8,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Humanizer;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
         }
 
-        public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
+        public override async Task<(ISymbol symbol, int selectedIndex, int insertPosition)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -111,12 +113,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return default;
             }
 
+            var insertPosition = TryGetInsertPositionFromDeclaration(matchingNode);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
             {
                 var selectedIndex = TryGetSelectedIndexFromDeclaration(position, matchingNode);
-                return (symbol, selectedIndex);
+                return (symbol, selectedIndex, insertPosition);
             }
 
             if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
@@ -128,19 +131,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
                     if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                     {
-                        return (typeSymbol, 0);
+                        return (typeSymbol, 0, insertPosition);
                     }
                 }
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);
-            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), 0);
+            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), 0, insertPosition);
         }
 
         private static int TryGetSelectedIndexFromDeclaration(int position, SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
             return parameters != null ? GetParameterIndex(parameters.Parameters, position) : 0;
+        }
+
+        // TODO this is a rough algorithm: find the first ( and add 1.
+        private static int TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
+        {
+            var parameters = matchingNode.ChildNodes().OfType<ParameterListSyntax>().SingleOrDefault();
+            return parameters != null ? parameters.OpenParenToken.SpanStart + 1 : 0;
         }
 
         private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)

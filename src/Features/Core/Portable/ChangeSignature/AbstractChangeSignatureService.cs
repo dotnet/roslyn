@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<(ISymbol symbol, int selectedIndex, int insertPosition)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
+            var (symbol, selectedIndex, insertPosition) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-language symbols will show as metadata, so map it to source if possible.
@@ -142,9 +142,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
             }
 
-            // TODO add here a span to be typed in
             return new ChangeSignatureAnalyzedContext(
-                document, symbol, parameterConfiguration);
+                document, symbol, parameterConfiguration, new TextSpan(insertPosition, 0));
         }
 
         private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
@@ -174,6 +173,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
                 context.Symbol,
+                context.InsertionSpan,
                 context.ParameterConfiguration,
                 context.Document,
                 notificationService);

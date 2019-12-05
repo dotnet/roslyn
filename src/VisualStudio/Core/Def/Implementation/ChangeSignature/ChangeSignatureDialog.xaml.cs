@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private void Add_Click(object sender, RoutedEventArgs e)
         {
             var changeSignatureOptionsService = _viewModel.Document.Project.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
-            var result = changeSignatureOptionsService.GetAddedParameter(_viewModel.Document);
+            var result = changeSignatureOptionsService.GetAddedParameter(_viewModel.Document, _viewModel.InsertionSpan);
 
             if (!result.IsCancelled)
             {

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly List<ParameterViewModel> _parameterGroup2;
         private readonly ParameterViewModel _paramsParameter;
         private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
+        public readonly TextSpan InsertionSpan;
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
@@ -41,12 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ParameterConfiguration parameters,
             ISymbol symbol,
             Document document,
+            TextSpan insertionSpan,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
             _notificationService = notificationService;
             Document = document;
+            InsertionSpan = insertionSpan;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
