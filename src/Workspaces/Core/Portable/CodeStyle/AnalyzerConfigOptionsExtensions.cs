@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Reflection;
+using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
@@ -8,34 +8,17 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class AnalyzerConfigOptionsExtensions
     {
-        private readonly static MethodInfo _tryGetEditorConfigOptionMethodInfo = typeof(AnalyzerConfigOptionsExtensions).GetMethod("TryGetEditorConfigOption", BindingFlags.NonPublic | BindingFlags.Static);
-
         public static bool TryGetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option, out T value)
         {
-            return TryGetEditorConfigOption(analyzerConfigOptions, option, out value);
+            return TryGetOption(analyzerConfigOptions, (IOption)option, out value);
         }
 
-        public static bool TryGetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option, string language, out T value)
+        public static bool TryGetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option, out T value)
         {
-            return TryGetEditorConfigOption(analyzerConfigOptions, option, out value);
+            return TryGetOption(analyzerConfigOptions, option, out value);
         }
 
-        internal static bool TryGetOption(this AnalyzerConfigOptions analyzerConfigOptions, OptionKey optionKey, out object value)
-        {
-            foreach (var storageLocation in optionKey.Option.StorageLocations)
-            {
-                if (storageLocation is IEditorConfigStorageLocation editorConfigStorageLocation &&
-                    editorConfigStorageLocation.TryGetOption(analyzerConfigOptions, optionKey.Option.Type, out value))
-                {
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
-
-        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
+        public static bool TryGetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
         {
             foreach (var storageLocation in option.StorageLocations)
             {
@@ -45,10 +28,16 @@ namespace Microsoft.CodeAnalysis
                 {
                     return true;
                 }
+
+                if (storageLocation is IEditorConfigStorageLocation configStorageLocation &&
+                   configStorageLocation.TryGetOption(analyzerConfigOptions, option.Type, out var objectValue))
+                {
+                    value = (T)objectValue;
+                    return true;
+                }
             }
 
-            value = default;
-            return false;
+            throw new ArgumentException("AnalyzerConfigOptions can only be queried with Options that use .editorconfig as a storage location.", nameof(option));
         }
     }
 }
