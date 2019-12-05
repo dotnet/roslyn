@@ -2308,7 +2308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If moduleBeingBuilt.SourceModule.HasBadAttributes Then
                     ' If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
-                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name)
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name, CodeAnalysisResources.ModuleHasInvalidAttributes)
                     Return False
                 End If
 

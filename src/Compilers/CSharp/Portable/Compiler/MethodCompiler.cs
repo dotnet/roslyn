@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // module or crashing.
             if (moduleBeingBuiltOpt != null && (methodCompiler._globalHasErrors || moduleBeingBuiltOpt.SourceModule.HasBadAttributes) && !diagnostics.HasAnyErrors() && !hasDeclarationErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name);
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name,
+                    methodCompiler._globalHasErrors ? CodeAnalysisResources.UnableToDetermineSpecificCauseOfFailure : CodeAnalysisResources.ModuleHasInvalidAttributes);
             }
 
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
