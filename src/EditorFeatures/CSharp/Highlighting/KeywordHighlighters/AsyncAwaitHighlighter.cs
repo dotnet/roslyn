@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,30 +41,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             switch (node)
             {
                 case MethodDeclarationSyntax methodDeclaration:
-                    {
-                        var asyncModifier = methodDeclaration.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                        if (asyncModifier.Kind() != SyntaxKind.None)
-                        {
-                            spans.Add(asyncModifier.Span);
-                        }
-                        break;
-                    }
+                    TryAddAsyncModifier(methodDeclaration.Modifiers, spans);
+                    return;
                 case LocalFunctionStatementSyntax localFunction:
-                    {
-                        var asyncModifier = localFunction.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                        if (asyncModifier.Kind() != SyntaxKind.None)
-                        {
-                            spans.Add(asyncModifier.Span);
-                        }
-                        break;
-                    }
+                    TryAddAsyncModifier(localFunction.Modifiers, spans);
+                    return;
                 case AnonymousFunctionExpressionSyntax anonymousFunction:
-                    if (anonymousFunction.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                    TryAddAsyncOrAwaitKeyword(anonymousFunction.AsyncKeyword, spans);
+                    return;
+                case UsingStatementSyntax usingStatement:
+                    TryAddAsyncOrAwaitKeyword(usingStatement.AwaitKeyword, spans);
+                    return;
+                case LocalDeclarationStatementSyntax localDeclaration:
+                    if (localDeclaration.UsingKeyword.Kind() == SyntaxKind.UsingKeyword)
                     {
-                        spans.Add(anonymousFunction.AsyncKeyword.Span);
+                        TryAddAsyncOrAwaitKeyword(localDeclaration.AwaitKeyword, spans);
                     }
-                    break;
-
+                    return;
+                case CommonForEachStatementSyntax forEachStatement:
+                    TryAddAsyncOrAwaitKeyword(forEachStatement.AwaitKeyword, spans);
+                    return;
                 case AwaitExpressionSyntax awaitExpression:
                     // Note if there is already a highlight for the previous token, merge it
                     // with this span. That way, we highlight nested awaits with a single span.
@@ -85,28 +83,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                         spans.Add(awaitToken.Span);
                     }
                     break;
-
-                case UsingStatementSyntax usingStatement:
-                    if (usingStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
-                    {
-                        spans.Add(usingStatement.AwaitKeyword.Span);
-                    }
-                    break;
-
-                case LocalDeclarationStatementSyntax localDeclaration:
-                    if (localDeclaration.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword && localDeclaration.UsingKeyword.Kind() == SyntaxKind.UsingKeyword)
-                    {
-                        spans.Add(localDeclaration.AwaitKeyword.Span);
-                    }
-                    break;
-
-                case CommonForEachStatementSyntax forEachStatement:
-                    if (forEachStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
-                    {
-                        spans.Add(forEachStatement.AwaitKeyword.Span);
-                    }
-                    break;
             }
+        }
+
+        private static void TryAddAsyncModifier(SyntaxTokenList modifiers, List<TextSpan> spans)
+        {
+            foreach (var mod in modifiers)
+            {
+                if (TryAddAsyncOrAwaitKeyword(mod, spans))
+                {
+                    return;
+                }
+            }
+        }
+
+        private static bool TryAddAsyncOrAwaitKeyword(SyntaxToken mod, List<TextSpan> spans)
+        {
+            if (mod.IsKind(SyntaxKind.AsyncKeyword, SyntaxKind.AwaitKeyword))
+            {
+                spans.Add(mod.Span);
+                return true;
+            }
+
+            return false;
         }
     }
 }
