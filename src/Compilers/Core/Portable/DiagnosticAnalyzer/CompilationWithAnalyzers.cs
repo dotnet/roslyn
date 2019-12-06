@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -688,11 +689,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     // Track if this task was suspended by another tree diagnostics request for the same tree.
                     // If so, we wait for the high priority requests to complete before restarting analysis.
-                    bool suspendend;
+                    bool suspended;
                     var pendingEvents = ImmutableArray<CompilationEvent>.Empty;
                     do
                     {
-                        suspendend = false;
+                        suspended = false;
 
                         // Create a new cancellation source to allow higher priority requests to suspend our analysis.
                         using (cts = new CancellationTokenSource())
@@ -754,7 +755,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                         throw;
                                     }
 
-                                    suspendend = true;
+                                    suspended = true;
                                 }
                                 finally
                                 {
@@ -763,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 }
                             }
                         }
-                    } while (suspendend);
+                    } while (suspended);
 
                     return (pendingEvents, hasSymbolStartActions: driver?.HasSymbolStartedActions(analysisScope) ?? false);
                 }
@@ -1149,7 +1150,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static IEnumerable<Diagnostic> GetEffectiveDiagnosticsImpl(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
+            if (diagnostics.IsEmpty)
+            {
+                yield break;
+            }
+
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
+            var semanticModelsByTree = new Dictionary<SyntaxTree, SemanticModel>();
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic != null)
@@ -1157,9 +1164,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null)
                     {
-                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
+                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic, getSemanticModel);
                     }
                 }
+            }
+
+            SemanticModel getSemanticModel(Compilation compilation, SyntaxTree tree)
+            {
+                if (!semanticModelsByTree.TryGetValue(tree, out var model))
+                {
+                    model = compilation.GetSemanticModel(tree);
+                    semanticModelsByTree.Add(tree, model);
+                }
+
+                return model;
             }
         }
 

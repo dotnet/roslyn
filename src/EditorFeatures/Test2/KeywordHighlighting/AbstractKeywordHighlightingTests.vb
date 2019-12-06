@@ -19,8 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
                 Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim buffer = testDocument.TextBuffer
-                Dim snapshot = testDocument.InitialTextSnapshot
+                Dim snapshot = testDocument.GetTextBuffer().CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
                 Dim document As Document = workspace.CurrentSolution.Projects.First.Documents.First
 

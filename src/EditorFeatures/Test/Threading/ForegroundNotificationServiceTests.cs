@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             await PumpWait().ConfigureAwait(false);
             Assert.True(_done);
-            Assert.Equal(count, 9000000);
+            Assert.Equal(9000000, count);
             Assert.True(Service.IsEmpty_TestOnly);
         }
 

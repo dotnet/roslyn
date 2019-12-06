@@ -16,13 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static BoundObjectInitializerExpressionBase UpdateInitializers(BoundObjectInitializerExpressionBase initializerExpression, ImmutableArray<BoundExpression> newInitializers)
         {
-            if (initializerExpression.Kind == BoundKind.ObjectInitializerExpression)
+            switch (initializerExpression)
             {
-                return ((BoundObjectInitializerExpression)initializerExpression).Update(newInitializers, initializerExpression.Type);
-            }
-            else
-            {
-                return ((BoundCollectionInitializerExpression)initializerExpression).Update(newInitializers, initializerExpression.Type);
+                case BoundObjectInitializerExpression objectInitializer:
+                    return objectInitializer.Update(objectInitializer.Placeholder, newInitializers, initializerExpression.Type);
+                case BoundCollectionInitializerExpression collectionInitializer:
+                    return collectionInitializer.Update(collectionInitializer.Placeholder, newInitializers, initializerExpression.Type);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(initializerExpression.Kind);
             }
         }
 
@@ -36,14 +37,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(rewrittenReceiver != null);
 
-            switch (initializerExpression.Kind)
+            switch (initializerExpression)
             {
-                case BoundKind.ObjectInitializerExpression:
-                    AddObjectInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, ((BoundObjectInitializerExpression)initializerExpression).Initializers);
+                case BoundObjectInitializerExpression objectInitializer:
+                    {
+                        var placeholder = objectInitializer.Placeholder;
+                        AddPlaceholderReplacement(placeholder, rewrittenReceiver);
+                        AddObjectInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, objectInitializer.Initializers);
+                        RemovePlaceholderReplacement(placeholder);
+                    }
                     return;
 
-                case BoundKind.CollectionInitializerExpression:
-                    AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
+                case BoundCollectionInitializerExpression collectionInitializer:
+                    {
+                        var placeholder = collectionInitializer.Placeholder;
+                        AddPlaceholderReplacement(placeholder, rewrittenReceiver);
+                        AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, collectionInitializer.Initializers);
+                        RemovePlaceholderReplacement(placeholder);
+                    }
                     return;
 
                 default:
@@ -174,11 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializer.InvokedAsExtensionMethod)
             {
-                // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
-                Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
-                Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);
+                Debug.Assert(addMethod.IsStatic);
+                Debug.Assert(addMethod.IsExtensionMethod);
                 Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
-                rewrittenArguments = rewrittenArguments.SetItem(0, rewrittenReceiver);
                 rewrittenReceiver = null;
             }
 

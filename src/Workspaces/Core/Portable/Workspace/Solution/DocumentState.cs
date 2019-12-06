@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
+        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
+            new ConditionalWeakTable<SyntaxTree, DocumentId>();
+
         private readonly HostLanguageServices _languageServices;
         private readonly ParseOptions? _options;
         private readonly ValueSource<AnalyzerConfigSet> _analyzerConfigSetSource;
@@ -51,14 +54,6 @@ namespace Microsoft.CodeAnalysis
             _treeSource = this.SupportsSyntaxTree
                 ? treeSource
                 : ValueSource<TreeAndVersion>.Empty;
-        }
-
-        internal bool SupportsSyntaxTree
-        {
-            get
-            {
-                return _languageServices.SyntaxTreeFactory != null;
-            }
         }
 
         public DocumentState(
@@ -92,6 +87,21 @@ namespace Microsoft.CodeAnalysis
                     languageServices);
             }
         }
+
+        internal bool SupportsSyntaxTree
+            => _languageServices.SyntaxTreeFactory != null;
+
+        public HostLanguageServices LanguageServices
+            => _languageServices;
+
+        public ParseOptions? ParseOptions
+            => _options;
+
+        public SourceCodeKind SourceCodeKind
+            => ParseOptions == null ? Attributes.SourceCodeKind : ParseOptions.Kind;
+
+        public bool IsGenerated
+            => Attributes.IsGenerated;
 
         // This is the string used to represent the FilePath property on a SyntaxTree object.
         // if the document does not yet have a file path, use the document's name instead in regular code
@@ -536,20 +546,20 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(newRoot));
             }
 
-            var newTextVersion = this.GetNewerVersion();
+            var newTextVersion = GetNewerVersion();
             var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, newTextVersion, mode);
 
             // determine encoding
             Encoding? encoding;
             ImmutableDictionary<string, ReportDiagnostic>? treeDiagnosticReportingOptions = null;
 
-            if (this.TryGetSyntaxTree(out var priorTree))
+            if (TryGetSyntaxTree(out var priorTree))
             {
                 // this is most likely available since UpdateTree is normally called after modifying the existing tree.
                 encoding = priorTree.Encoding;
                 treeDiagnosticReportingOptions = priorTree.DiagnosticOptions;
             }
-            else if (this.TryGetText(out var priorText))
+            else if (TryGetText(out var priorText))
             {
                 encoding = priorText.Encoding;
             }
@@ -561,7 +571,7 @@ namespace Microsoft.CodeAnalysis
 
             var syntaxTreeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
-            var filePath = GetSyntaxTreeFilePath(this.Attributes);
+            var filePath = GetSyntaxTreeFilePath(Attributes);
 
             if (treeDiagnosticReportingOptions == null)
             {
@@ -573,18 +583,18 @@ namespace Microsoft.CodeAnalysis
             }
 
             Contract.ThrowIfNull(_options);
-            var result = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, this.Attributes, _options, treeDiagnosticReportingOptions, syntaxTreeFactory, mode);
+            var (text, tree) = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, Attributes, _options, treeDiagnosticReportingOptions, syntaxTreeFactory, mode);
 
             return new DocumentState(
-                this.LanguageServices,
-                this.solutionServices,
-                this.Services,
-                this.Attributes,
+                LanguageServices,
+                solutionServices,
+                Services,
+                Attributes,
                 _options,
                 _analyzerConfigSetSource,
                 sourceText: null,
-                textSource: result.Item1,
-                treeSource: new ConstantValueSource<TreeAndVersion>(result.Item2));
+                textSource: text,
+                treeSource: new ConstantValueSource<TreeAndVersion>(tree));
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
@@ -603,7 +613,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // use static method so we don't capture references to this
-        private static Tuple<ValueSource<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
+        private static (ValueSource<TextAndVersion>, TreeAndVersion) CreateRecoverableTextAndTree(
             SyntaxNode newRoot,
             string filePath,
             VersionStamp textVersion,
@@ -618,7 +628,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxTree tree;
             ValueSource<TextAndVersion> lazyTextAndVersion;
 
-            if ((mode == PreservationMode.PreserveIdentity) || !factory.CanCreateRecoverableTree(newRoot))
+            if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
             {
                 tree = factory.CreateSyntaxTree(filePath, options, encoding, newRoot, treeDiagnosticReportingOptions);
 
@@ -638,13 +648,14 @@ namespace Microsoft.CodeAnalysis
                 // right to be suspicious of this).
                 tree = null!;
 
-                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
+                // Uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
                 // as the text is referenced elsewhere.
                 lazyTextAndVersion = new TreeTextSource(
                     new CachedWeakValueSource<SourceText>(
                         new AsyncLazy<SourceText>(
-                            c => BuildRecoverableTreeTextAsync(tree, encoding, c),
-                            c => BuildRecoverableTreeText(tree, encoding, c),
+                            // Build text from root, so recoverable tree won't cycle.
+                            async cancellationToken => (await tree.GetRootAsync(cancellationToken).ConfigureAwait(false)).GetText(encoding),
+                            cancellationToken => tree.GetRoot(cancellationToken).GetText(encoding),
                             cacheResult: false)),
                     textVersion,
                     filePath);
@@ -652,20 +663,7 @@ namespace Microsoft.CodeAnalysis
                 tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, filePath, options, lazyTextAndVersion, encoding, newRoot, treeDiagnosticReportingOptions);
             }
 
-            return Tuple.Create(lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));
-        }
-
-        private static SourceText BuildRecoverableTreeText(SyntaxTree tree, Encoding? encoding, CancellationToken cancellationToken)
-        {
-            // build text from root, so recoverable tree won't cycle.
-            return tree.GetRoot(cancellationToken).GetText(encoding);
-        }
-
-        private static async Task<SourceText> BuildRecoverableTreeTextAsync(SyntaxTree tree, Encoding? encoding, CancellationToken cancellationToken)
-        {
-            // build text from root, so recoverable tree won't cycle.
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            return root.GetText(encoding);
+            return (lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));
         }
 
         private VersionStamp GetNewerVersion()
@@ -749,7 +747,7 @@ namespace Microsoft.CodeAnalysis
         {
             // We need to work out path to this document. Documents may not have a "real" file path if they're something created
             // as a part of a code action, but haven't been written to disk yet.
-            string effectiveFilePath;
+            string? effectiveFilePath = null;
 
             if (FilePath != null)
             {
@@ -757,7 +755,19 @@ namespace Microsoft.CodeAnalysis
             }
             else if (Name != null && projectFilePath != null)
             {
-                effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                if (!RoslynString.IsNullOrEmpty(projectPath))
+                {
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                }
+            }
+
+            if (effectiveFilePath != null)
+            {
+                var analyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                return analyzerConfigSet.GetOptionsForSourcePath(effectiveFilePath).AnalyzerOptions;
             }
             else
             {
@@ -765,14 +775,7 @@ namespace Microsoft.CodeAnalysis
                 // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
                 return ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer);
             }
-
-            var analyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-            return analyzerConfigSet.GetOptionsForSourcePath(effectiveFilePath).AnalyzerOptions;
         }
-
-        private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new ConditionalWeakTable<SyntaxTree, DocumentId>();
 
         private static void BindSyntaxTreeToId(SyntaxTree tree, DocumentId id)
         {
@@ -786,7 +789,7 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(existingId == id);
         }
 
-        public static DocumentId GetDocumentIdForTree(SyntaxTree tree)
+        public static DocumentId? GetDocumentIdForTree(SyntaxTree tree)
         {
             s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
             return id;

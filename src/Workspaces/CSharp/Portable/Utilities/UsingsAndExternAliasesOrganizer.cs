@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal static partial class UsingsAndExternAliasesOrganizer
     {
-        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.ElasticCarriageReturnLineFeed;
+        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.CarriageReturnLineFeed;
 
         public static void Organize(
             SyntaxList<ExternAliasDirectiveSyntax> externAliasList,

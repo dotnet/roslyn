@@ -3,13 +3,14 @@
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
     Public Class VisualBasicToggleLineCommentTests
         Inherits AbstractToggleCommentTestBase
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
         Public Sub AddComment()
             Dim markup =
@@ -111,7 +112,7 @@ End Class
 
         Friend Overrides Function GetToggleCommentCommandHandler(workspace As TestWorkspace) As AbstractCommentSelectionBase(Of ValueTuple)
             Return DirectCast(
-                workspace.ExportProvider.GetExportedValues(Of VSCommanding.ICommandHandler)().First(Function(export) TypeOf export Is ToggleLineCommentCommandHandler),
+                workspace.ExportProvider.GetExportedValues(Of ICommandHandler)().First(Function(export) TypeOf export Is ToggleLineCommentCommandHandler),
                 AbstractCommentSelectionBase(Of ValueTuple))
         End Function
 

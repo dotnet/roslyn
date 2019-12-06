@@ -1,10 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
@@ -12,14 +11,14 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
     Public Class RenameCommandHandlerTests
         Private Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
-            Return New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                            workspace.GetService(Of IEditorOperationsFactoryService))
+            Return New RenameCommandHandler(
+                workspace.GetService(Of IThreadingContext)(),
+                workspace.GetService(Of InlineRenameService))
         End Function
 
         <WpfFact>
@@ -73,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return VSCommanding.CommandState.Unavailable
+                        Return CommandState.Unavailable
                     End Function
 
                 Dim state = handler.GetCommandState(New RenameCommandArgs(textView, textView.TextBuffer), nextHandler)
@@ -98,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.Documents.Single()
                 Dim view = document.GetTextView()
-                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.TextBuffer.CurrentSnapshot)
+                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot)
                 view.Caret.MoveTo(selectedSpan.End)
                 view.Selection.Select(selectedSpan, isReversed:=False)
 
@@ -124,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.Documents.Single()
                 Dim view = document.GetTextView()
-                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.TextBuffer.CurrentSnapshot)
+                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot)
                 view.Caret.MoveTo(selectedSpan.End)
                 view.Selection.Select(selectedSpan, isReversed:=True)
 
@@ -152,8 +151,10 @@ End Class
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
+
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim session = StartSession(workspace)
 
@@ -184,7 +185,7 @@ End Class
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler = CreateCommandHandler(workspace)
-                Dim commandState = commandHandler.GetCommandState(New RenameCommandArgs(view, view.TextBuffer), Function() New VSCommanding.CommandState())
+                Dim commandState = commandHandler.GetCommandState(New RenameCommandArgs(view, view.TextBuffer), Function() New CommandState())
 
                 Assert.True(commandState.IsAvailable)
             End Using
@@ -209,8 +210,8 @@ End Class
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
 
@@ -243,8 +244,8 @@ End Class
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
 
@@ -289,8 +290,8 @@ Goo f;
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Assert.True(view.Selection.IsEmpty())
                 Dim session = StartSession(workspace)
@@ -334,8 +335,8 @@ class [|$$Goo|] // comment
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -391,8 +392,8 @@ Goo f;
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -483,8 +484,9 @@ Goo f;
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim session = StartSession(workspace)
 
@@ -516,8 +518,9 @@ Goo f;
 
                 Dim view = workspace.Documents.Single().GetTextView()
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -568,8 +571,9 @@ Goo f;
 
                 Dim view = workspace.Documents.Single().GetTextView()
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -607,8 +611,9 @@ Goo f;
 
                 Dim view = workspace.Documents.Single().GetTextView()
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -645,8 +650,9 @@ Goo f;
 
                 Dim view = workspace.Documents.Single().GetTextView()
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -700,8 +706,9 @@ Goo f;
 
                 Dim view = workspace.Documents.ElementAt(0).GetTextView()
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -766,8 +773,9 @@ Goo f;
 
                 Dim view = workspace.Documents.ElementAt(0).GetTextView()
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -823,8 +831,10 @@ class Program
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
+
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 commandHandler.ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
@@ -862,8 +872,9 @@ partial class [|Program|]
 
                 Dim view = workspace.Documents.First(Function(d) d.Name = "Test.cs").GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim closedDocument = workspace.Documents.First(Function(d) d.Name = "Test2.cs")
                 closedDocument.CloseTextView()
@@ -898,8 +909,8 @@ partial class [|Program|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -938,8 +949,8 @@ partial class [|Program|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -981,8 +992,8 @@ partial class [|Program|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1019,8 +1030,8 @@ partial class [|Program|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1056,8 +1067,8 @@ partial class [|Program|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1092,8 +1103,9 @@ partial class [|Program|]
 
                 Dim view = workspace.Documents.Single().GetTextView()
 
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -1230,8 +1242,8 @@ class [|C$$|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1275,8 +1287,8 @@ class [|C$$|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1310,8 +1322,8 @@ class [|C$$|]
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
-                    renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of IThreadingContext)(),
+                    renameService)
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)

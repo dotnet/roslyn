@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssemblySymbol assem1 = new MockAssemblySymbol("goo");
 
             NamespaceExtent ne1 = new NamespaceExtent(assem1);
-            Assert.Equal(ne1.Kind, NamespaceKind.Assembly);
+            Assert.Equal(NamespaceKind.Assembly, ne1.Kind);
             Assert.Same(ne1.Assembly, assem1);
 
             CSharpCompilation compilation = CSharpCompilation.Create("Test");

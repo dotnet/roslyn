@@ -5,7 +5,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,16 +16,15 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
     internal class GoToAdjacentMemberCommandHandler :
-        VSCommanding.ICommandHandler<GoToNextMemberCommandArgs>,
-        VSCommanding.ICommandHandler<GoToPreviousMemberCommandArgs>
+        ICommandHandler<GoToNextMemberCommandArgs>,
+        ICommandHandler<GoToPreviousMemberCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
 
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _outliningManagerService = outliningManagerService;
         }
 
-        public VSCommanding.CommandState GetCommandState(GoToNextMemberCommandArgs args)
+        public CommandState GetCommandState(GoToNextMemberCommandArgs args)
         {
             return GetCommandStateImpl(args);
         }
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return ExecuteCommandImpl(args, gotoNextMember: true, context);
         }
 
-        public VSCommanding.CommandState GetCommandState(GoToPreviousMemberCommandArgs args)
+        public CommandState GetCommandState(GoToPreviousMemberCommandArgs args)
         {
             return GetCommandStateImpl(args);
         }
@@ -58,22 +56,22 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return ExecuteCommandImpl(args, gotoNextMember: false, context);
         }
 
-        private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
+        private CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
             var subjectBuffer = args.SubjectBuffer;
             var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
             if (!caretPoint.HasValue || !subjectBuffer.SupportsNavigationToAnyPosition())
             {
-                return VSCommanding.CommandState.Unspecified;
+                return CommandState.Unspecified;
             }
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)
             {
-                return VSCommanding.CommandState.Unspecified;
+                return CommandState.Unspecified;
             }
 
-            return VSCommanding.CommandState.Available;
+            return CommandState.Available;
         }
 
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)

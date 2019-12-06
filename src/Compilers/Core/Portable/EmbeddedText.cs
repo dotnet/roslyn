@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +8,9 @@ using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         private EmbeddedText(string filePath, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> blob)
         {
             Debug.Assert(filePath?.Length > 0);
-            Debug.Assert(Cci.DebugSourceDocument.IsSupportedAlgorithm(checksumAlgorithm));
+            Debug.Assert(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm));
             Debug.Assert(!blob.IsDefault && blob.Length >= sizeof(int));
 
             FilePath = filePath;

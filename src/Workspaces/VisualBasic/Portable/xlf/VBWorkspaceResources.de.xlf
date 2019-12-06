@@ -12,6 +12,16 @@
         <target state="translated">Nur Attribute, Ausdrücke oder Anweisungen können explizit gemacht werden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Imports">
+        <source>R&amp;emove and Sort Imports</source>
+        <target state="translated">Import-Direktiven &amp;entfernen und sortieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">Importe &amp;sortieren</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;Ereignis&gt;</target>

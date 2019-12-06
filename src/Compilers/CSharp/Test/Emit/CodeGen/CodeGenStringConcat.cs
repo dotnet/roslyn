@@ -75,6 +75,45 @@ B
 ");
         }
 
+        [Fact, WorkItem(38858, "https://github.com/dotnet/roslyn/issues/38858")]
+        public void ConcatEnumWithToString()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write(M(Enum.A));
+    }
+    public static string M(Enum e)
+    {
+        return e + """";
+    }
+}
+public enum Enum { A = 0, ToString = 1 }
+";
+            var comp = CompileAndVerify(source, expectedOutput: "A");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(38858, "https://github.com/dotnet/roslyn/issues/38858")]
+        public void ConcatStructWithToString()
+        {
+            var source = @"
+public struct Bad
+{
+    public new int ToString;
+
+    string Crash()
+    {
+        return """" + this;
+    }
+}
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void ConcatDefaults()
         {
@@ -314,6 +353,81 @@ OAFABOFA");
   IL_00f8:  call       ""string string.Concat(params string[])""
   IL_00fd:  call       ""void System.Console.WriteLine(string)""
   IL_0102:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [WorkItem(37830, "https://github.com/dotnet/roslyn/issues/37830")]
+        public void ConcatMerge_MarshalByRefObject()
+        {
+            var source = @"
+using System;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Messaging;
+using System.Runtime.Remoting.Proxies;
+
+class MyProxy : RealProxy
+{
+    readonly MarshalByRefObject target;
+
+    public MyProxy(MarshalByRefObject target) : base(target.GetType())
+    {
+        this.target = target;
+    }
+
+    public override IMessage Invoke(IMessage request)
+    {
+        IMethodCallMessage call = (IMethodCallMessage)request;
+        IMethodReturnMessage res = RemotingServices.ExecuteMessage(target, call);
+        return res;
+    }
+}
+
+class R1 : MarshalByRefObject
+{
+    public int test_field = 5;
+}
+
+class Test
+{
+    static void Main()
+    {
+        R1 myobj = new R1();
+        MyProxy real_proxy = new MyProxy(myobj);
+        R1 o = (R1)real_proxy.GetTransparentProxy();
+        o.test_field = 2;
+        Console.WriteLine(""test_field: "" + o.test_field);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"test_field: 2");
+            comp.VerifyDiagnostics();
+            // Note: we use ldfld on the field, but not ldflda, because the type is MarshalByRefObject
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (R1 V_0, //o
+                int V_1)
+  IL_0000:  newobj     ""R1..ctor()""
+  IL_0005:  newobj     ""MyProxy..ctor(System.MarshalByRefObject)""
+  IL_000a:  callvirt   ""object System.Runtime.Remoting.Proxies.RealProxy.GetTransparentProxy()""
+  IL_000f:  castclass  ""R1""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.2
+  IL_0017:  stfld      ""int R1.test_field""
+  IL_001c:  ldstr      ""test_field: ""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""int R1.test_field""
+  IL_0027:  stloc.1
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  constrained. ""int""
+  IL_0030:  callvirt   ""string object.ToString()""
+  IL_0035:  call       ""string string.Concat(string, string)""
+  IL_003a:  call       ""void System.Console.WriteLine(string)""
+  IL_003f:  ret
 }
 ");
         }

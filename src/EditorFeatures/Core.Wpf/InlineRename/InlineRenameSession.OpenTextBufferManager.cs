@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 // in tests `ActiveTextview` can be null so don't depend on it
                                 ActiveTextView == null ||
                                 ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0) // spans were successfully projected
-                            .FirstOrNullable(); // filter to spans that have a projection
+                            .FirstOrNull(); // filter to spans that have a projection
 
                     UpdateReadOnlyRegions();
                     this.ApplyReplacementText(updateSelection: false);
@@ -307,23 +307,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     _session.UndoManager.UndoTemporaryEdits(_subjectBuffer, disconnect: true);
                 }
-            }
-
-            private Task<LinkedFileMergeSessionResult> ComputeMergeResultAsync(Solution newSolution, CancellationToken cancellationToken)
-            {
-                var preMergeSolution = _session._baseSolution;
-
-                var diffMergingSession = new LinkedFileDiffMergingSession(preMergeSolution, newSolution, newSolution.GetChanges(preMergeSolution), logSessionInfo: true);
-                return diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken);
-            }
-
-            [Obsolete("Update code to call ComputeMergeResultAsync prior to calling the other overload of ApplyConflictResolutionEdits.")]
-            internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, IEnumerable<Document> documents, CancellationToken cancellationToken)
-            {
-                AssertIsForeground();
-
-                var mergeResult = ComputeMergeResultAsync(conflictResolution.NewSolution, cancellationToken).WaitAndGetResult(cancellationToken);
-                ApplyConflictResolutionEdits(conflictResolution, mergeResult, documents, cancellationToken);
             }
 
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)

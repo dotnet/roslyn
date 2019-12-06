@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // Separating references to declaredSymbols into two groups based on wheter it's located in the same 
+            // Separating references to declaredSymbols into two groups based on whether it's located in the same 
             // document as the namespace declaration. This is because code change required for them are different.
             var refLocationsInCurrentDocument = new List<LocationForAffectedSymbol>();
             var refLocationsInOtherDocuments = new List<LocationForAffectedSymbol>();
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 

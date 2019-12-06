@@ -214,11 +214,11 @@ partial class C
             var attributes = parameter.GetAttributes();
             if (expectedAttributeName == null)
             {
-                Assert.Equal(attributes.Length, 0);
+                Assert.Equal(0, attributes.Length);
             }
             else
             {
-                Assert.Equal(attributes.Length, 1);
+                Assert.Equal(1, attributes.Length);
                 var attribute = attributes[0];
                 var argument = attribute.ConstructorArguments.Last();
                 Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name);

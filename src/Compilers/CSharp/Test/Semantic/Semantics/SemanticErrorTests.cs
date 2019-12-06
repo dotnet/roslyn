@@ -3152,10 +3152,10 @@ class Error
             Assert.Equal(1, boundCall.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, boundCall.CandidateReason);
 
-            var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
+            var constructedMethodSymbol = (IMethodSymbol)(boundCall.CandidateSymbols[0]);
             Assert.Equal("void Error.Goo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
-            var typeArgSymbol = constructedMethodSymbol.TypeArgumentsWithAnnotations.Single().Type;
+            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
@@ -14586,14 +14586,16 @@ class C : IEnumerable
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
+            var expected = new DiagnosticDescription[] {
                 // (12,13): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //             yield return this; // CS1621
                 Diagnostic(ErrorCode.ERR_YieldInAnonMeth, "yield"),
                 // (8,24): error CS0161: 'C.GetEnumerator()': not all code paths return a value
                 //     public IEnumerator GetEnumerator()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "GetEnumerator").WithArguments("C.GetEnumerator()")
-                );
+            };
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -16901,9 +16903,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (14,23): error CS1943: An expression of type 'int' is not allowed in a subsequent from clause in a query expression with source type 'Test.F1'.  Type inference failed in the call to 'SelectMany'.
-                //             from g in 3
-                Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "3").WithArguments("int", "Test.F1", "SelectMany")
+                    // (14,23): error CS1943: An expression of type 'int' is not allowed in a subsequent from clause in a query expression with source type 'Test.F1'.  Type inference failed in the call to 'SelectMany'.
+                    //             from g in 3
+                    Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "3").WithArguments("int", "Test.F1", "SelectMany").WithLocation(14, 23)
             );
         }
 

@@ -2063,15 +2063,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to R&amp;emove and Sort Imports.
-        '''</summary>
-        Friend ReadOnly Property Remove_and_Sort_Imports() As String
-            Get
-                Return ResourceManager.GetString("Remove_and_Sort_Imports", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Remove &apos;Me&apos; qualification.
         '''</summary>
         Friend ReadOnly Property Remove_Me_qualification() As String
@@ -2434,15 +2425,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Skips_elements_up_to_a_specified_position_in_the_collection() As String
             Get
                 Return ResourceManager.GetString("Skips_elements_up_to_a_specified_position_in_the_collection", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &amp;Sort Imports.
-        '''</summary>
-        Friend ReadOnly Property Sort_Imports() As String
-            Get
-                Return ResourceManager.GetString("Sort_Imports", resourceCulture)
             End Get
         End Property
         

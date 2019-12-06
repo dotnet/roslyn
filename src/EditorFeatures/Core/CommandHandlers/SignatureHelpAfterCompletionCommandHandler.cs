@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -30,15 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// consider completion to have higher priority for those commands. In order to accomplish that,
     /// we introduced the current command handler. This command handler then delegates escape, up and
     /// down to those command handlers.     
-    /// It is called after <see cref="PredefinedCommandHandlerNames.Completion"/> 
-    /// or <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>
-    /// depending on the completion implemenetation.
+    /// It is called after <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
     /// </summary>
     [Export]
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class SignatureHelpAfterCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,
@@ -59,17 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
         }
 
-        public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public VSCommanding.CommandState GetCommandState(UpKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(UpKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public VSCommanding.CommandState GetCommandState(DownKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(DownKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             return nextHandler();
         }

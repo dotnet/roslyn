@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract AssemblyData CreateAssemblyDataForFile(
             PEAssembly assembly,
-            WeakList<IAssemblySymbol> cachedSymbols,
+            WeakList<IAssemblySymbolInternal> cachedSymbols,
             DocumentationProvider documentationProvider,
             string sourceAssemblySimpleName,
             MetadataImportOptions importOptions,
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MetadataImageKind.Assembly:
                             var assemblyMetadata = (AssemblyMetadata)metadata;
-                            WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
+                            WeakList<IAssemblySymbolInternal> cachedSymbols = assemblyMetadata.CachedSymbols;
 
                             if (assemblyMetadata.IsValidAssembly())
                             {
@@ -471,14 +472,13 @@ namespace Microsoft.CodeAnalysis
                 newMetadata = peReference.GetMetadataNoCopy();
 
                 // make sure basic structure of the PE image is valid:
-                var assemblyMetadata = newMetadata as AssemblyMetadata;
-                if (assemblyMetadata != null)
+                if (newMetadata is AssemblyMetadata assemblyMetadata)
                 {
-                    bool dummy = assemblyMetadata.IsValidAssembly();
+                    _ = assemblyMetadata.IsValidAssembly();
                 }
                 else
                 {
-                    bool dummy = ((ModuleMetadata)newMetadata).Module.IsLinkedModule;
+                    _ = ((ModuleMetadata)newMetadata).Module.IsLinkedModule;
                 }
             }
             catch (Exception e) when (e is BadImageFormatException || e is IOException)
@@ -522,6 +522,27 @@ namespace Microsoft.CodeAnalysis
 
             metadata = null;
             return false;
+        }
+
+        internal AssemblyMetadata GetAssemblyMetadata(PortableExecutableReference peReference, DiagnosticBag diagnostics)
+        {
+            var metadata = GetMetadata(peReference, MessageProvider, Location.None, diagnostics);
+            Debug.Assert(metadata != null || diagnostics.HasAnyErrors());
+
+            if (metadata == null)
+            {
+                return null;
+            }
+
+            // require the metadata to be a valid assembly metadata:
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            if (assemblyMetadata?.IsValidAssembly() != true)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotAssembly, Location.None, peReference.Display));
+                return null;
+            }
+
+            return assemblyMetadata;
         }
 
         /// <summary>

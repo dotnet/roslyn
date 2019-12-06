@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
@@ -3385,6 +3386,7 @@ End Namespace"
                     Dim textView = workspace.Documents.Single().GetTextView()
 
                     Dim handler = New ExtractMethodCommandHandler(
+                        workspace.GetService(Of IThreadingContext)(),
                         workspace.GetService(Of ITextBufferUndoManagerProvider)(),
                         workspace.GetService(Of IInlineRenameService)())
 

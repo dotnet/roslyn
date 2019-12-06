@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [ConditionalFact(typeof(WindowsOnly))]
         public void GetPathRoot()
         {
-            Assert.Equal(null, PathUtilities.GetPathRoot(null));
+            Assert.Null(PathUtilities.GetPathRoot(null));
             Assert.Equal("", PathUtilities.GetPathRoot(""));
             Assert.Equal("", PathUtilities.GetPathRoot("C"));
             Assert.Equal("", PathUtilities.GetPathRoot("abc.txt"));
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"C:\x/y", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", null));
             Assert.Equal(@"C:\x/y", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", null));
 
-            Assert.Equal(null, PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:\goo"));
-            Assert.Equal(null, PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:goo"));
-            Assert.Equal(null, PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"\goo"));
+            Assert.Null(PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:\goo"));
+            Assert.Null(PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:goo"));
+            Assert.Null(PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"\goo"));
 
             Assert.Equal(@"C:\x\y\goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x\y", @"goo"));
             Assert.Equal(@"C:\x/y\goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @"goo"));

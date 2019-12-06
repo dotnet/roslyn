@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectsSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
             VerifySynchronizationObjectInService(snapshotService, projectsSyncObject);
 
-            Assert.Equal(solutionObject.Projects.Count, 0);
+            Assert.Equal(0, solutionObject.Projects.Count);
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
             VerifySynchronizationObjectInService(snapshotService, projectSyncObject);
 
-            Assert.Equal(solutionObject.Projects.Count, 1);
+            Assert.Equal(1, solutionObject.Projects.Count);
             VerifySnapshotInService(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 0, 0, 0, 0, 0);
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
             VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
 
-            Assert.Equal(solutionObject.Projects.Count, 1);
+            Assert.Equal(1, solutionObject.Projects.Count);
             VerifySnapshotInService(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 1, 0, 0, 0, 0);
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
             VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
 
-            Assert.Equal(solutionObject.Projects.Count, 2);
+            Assert.Equal(2, solutionObject.Projects.Count);
 
             var projects = solutionObject.Projects.ToProjectObjects(snapshotService);
             VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1);

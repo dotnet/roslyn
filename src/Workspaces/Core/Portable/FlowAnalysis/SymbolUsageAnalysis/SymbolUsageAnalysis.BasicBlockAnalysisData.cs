@@ -59,6 +59,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 AddEntries(_reachingWrites, other);
             }
 
+            public void Clear(ISymbol symbol)
+            {
+                if (_reachingWrites.TryGetValue(symbol, out var value))
+                {
+                    value.Free();
+                    _reachingWrites.Remove(symbol);
+                }
+            }
+
             /// <summary>
             /// Gets the currently reachable writes for the given symbol.
             /// </summary>
@@ -137,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public static BasicBlockAnalysisData Merge(
                 BasicBlockAnalysisData data1,
                 BasicBlockAnalysisData data2,
-                Func<BasicBlockAnalysisData> createBasicBlockAnalysisData)
+                Action<BasicBlockAnalysisData> trackAllocatedData)
             {
                 // Ensure that we don't return 'null' data if other the other data is non-null,
                 // even if latter is Empty.
@@ -157,20 +166,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 {
                     return data1;
                 }
+                else if (data1.Equals(data2))
+                {
+                    return data1;
+                }
 
-                var mergedData = createBasicBlockAnalysisData();
+                var mergedData = GetInstance();
                 AddEntries(mergedData._reachingWrites, data1);
                 AddEntries(mergedData._reachingWrites, data2);
 
                 if (mergedData.Equals(data1))
                 {
+                    mergedData.Dispose();
                     return data1;
                 }
                 else if (mergedData.Equals(data2))
                 {
+                    mergedData.Dispose();
                     return data2;
                 }
 
+                trackAllocatedData(mergedData);
                 return mergedData;
             }
 

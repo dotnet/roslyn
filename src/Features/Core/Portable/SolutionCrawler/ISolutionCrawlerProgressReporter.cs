@@ -46,6 +46,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Paused,
         PendingItemCountUpdated,
         Evaluating,
-        Stoped
+        Stopped
     }
 }

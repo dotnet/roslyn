@@ -5,9 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
@@ -45,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             return Task.CompletedTask;
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            return null;
         }
     }
 }

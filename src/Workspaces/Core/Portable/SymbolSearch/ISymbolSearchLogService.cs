@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -10,7 +9,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal interface ISymbolSearchLogService
     {
-        Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken);
-        Task LogInfoAsync(string text, CancellationToken cancellationToken);
+        Task LogExceptionAsync(string exception, string text);
+        Task LogInfoAsync(string text);
     }
 }

@@ -277,6 +277,11 @@
         <target state="translated">Рекомендации по написанию кода VB</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Basic_language_server_client">
+        <source>Visual Basic Language Server Client</source>
+        <target state="translated">Клиент языкового сервера Visual Basic</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Проверка значений "nothing":</target>

@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -25,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Collections
     /// Thread safe.
     /// </summary>
     internal class CachingDictionary<TKey, TElement>
+        where TKey : notnull
     {
         private readonly Func<TKey, ImmutableArray<TElement>> _getElementsOfKey;
         private readonly Func<IEqualityComparer<TKey>, HashSet<TKey>> _getKeys;
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Collections
         // or something frozen (usually a regular Dictionary). The frozen Dictionary is used only once the collection
         // is fully populated. This is a memory optimization so that we don't hold onto relatively ConcurrentDictionary
         // instances once the cache is fully populated.
-        private IDictionary<TKey, ImmutableArray<TElement>> _map;
+        private IDictionary<TKey, ImmutableArray<TElement>>? _map;
 
         // This is a special sentinel value that is placed inside the map to indicate that a key was looked
         // up, but not found.
@@ -142,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Collections
         private ImmutableArray<TElement> GetOrCreateValue(TKey key)
         {
             ImmutableArray<TElement> elements;
-            ConcurrentDictionary<TKey, ImmutableArray<TElement>> concurrentMap;
+            ConcurrentDictionary<TKey, ImmutableArray<TElement>>? concurrentMap;
 
             // Check if we're fully populated before trying to retrieve the elements.  If we are
             // and we don't get any elements back, then we don't have to go any further.
@@ -197,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         /// <param name="existingMap">The map to test.</param>
         /// <returns>true if the map is fully populated.</returns>
-        private static bool IsNotFullyPopulatedMap(IDictionary<TKey, ImmutableArray<TElement>> existingMap)
+        private static bool IsNotFullyPopulatedMap([NotNullWhen(returnValue: false)] IDictionary<TKey, ImmutableArray<TElement>>? existingMap)
         {
             return existingMap == null || existingMap is ConcurrentDictionary<TKey, ImmutableArray<TElement>>;
         }
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         /// <param name="existingMap">The existing map which may be null or a ConcurrentDictionary.</param>
         /// <returns></returns>
-        private IDictionary<TKey, ImmutableArray<TElement>> CreateFullyPopulatedMap(IDictionary<TKey, ImmutableArray<TElement>> existingMap)
+        private IDictionary<TKey, ImmutableArray<TElement>> CreateFullyPopulatedMap(IDictionary<TKey, ImmutableArray<TElement>>? existingMap)
         {
             Debug.Assert(IsNotFullyPopulatedMap(existingMap));
 
@@ -250,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private IDictionary<TKey, ImmutableArray<TElement>> EnsureFullyPopulated()
         {
-            IDictionary<TKey, ImmutableArray<TElement>> fullyPopulatedMap = null;
+            IDictionary<TKey, ImmutableArray<TElement>>? fullyPopulatedMap = null;
 
             var currentMap = _map;
             while (IsNotFullyPopulatedMap(currentMap))

@@ -1260,7 +1260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
-            Debug.Assert(arguments.Count = targetElementTypes.Length)
+            Debug.Assert(arguments.Length = targetElementTypes.Length)
 
             ' check arguments against flattened list of target element types 
             Dim result As ConversionKind = wideningConversion
@@ -3576,7 +3576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
-            Debug.Assert(sourceElementTypes.Count = targetElementTypes.Length)
+            Debug.Assert(sourceElementTypes.Length = targetElementTypes.Length)
 
             ' check arguments against flattened list of target element types 
             Dim result As ConversionKind = ConversionKind.WideningTuple

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -411,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SpecialType GetUnderlyingSpecialType(TypeSymbol type) =>
-                type.StrippedType().EnumUnderlyingType().SpecialType;
+                type.StrippedType().EnumUnderlyingTypeOrSelf().SpecialType;
 
             bool IsInRange(SpecialType type, SpecialType low, SpecialType high) =>
                 low <= type && type <= high;

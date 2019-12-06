@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (MemoryStream stream = new MemoryStream())
             {
                 var text = CreateSourceText(stream);
-                Assert.Equal(text.Length, 0);
+                Assert.Equal(0, text.Length);
             }
         }
 
@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void IndexerTest()
         {
             var text = CreateSourceText(HelloWorld);
-            Assert.Throws(typeof(IndexOutOfRangeException), () => text[-1]);
-            Assert.Throws(typeof(IndexOutOfRangeException), () => text[HelloWorld.Length]);
+            Assert.Throws<IndexOutOfRangeException>(() => text[-1]);
+            Assert.Throws<IndexOutOfRangeException>(() => text[HelloWorld.Length]);
             for (int i = HelloWorld.Length - 1; i >= 0; i--)
             {
                 Assert.Equal(HelloWorld[i], text[i]);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 var text = SourceText.From(stream);
-                Assert.IsType(typeof(LargeText), text);
+                Assert.IsType<LargeText>(text);
 
                 char[] buffer = new char[HelloWorld.Length];
                 for (int start = 0; start < text.Length; start += HelloWorld.Length)

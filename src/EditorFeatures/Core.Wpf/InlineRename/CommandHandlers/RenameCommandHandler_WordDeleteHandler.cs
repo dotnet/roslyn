@@ -1,26 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        VSCommanding.ICommandHandler<WordDeleteToStartCommandArgs>,
-        VSCommanding.ICommandHandler<WordDeleteToEndCommandArgs>
+        ICommandHandler<WordDeleteToStartCommandArgs>,
+        ICommandHandler<WordDeleteToEndCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(WordDeleteToStartCommandArgs args)
+        public CommandState GetCommandState(WordDeleteToStartCommandArgs args)
         {
             return GetCommandState();
         }
 
-        public VSCommanding.CommandState GetCommandState(WordDeleteToEndCommandArgs args)
+        public CommandState GetCommandState(WordDeleteToEndCommandArgs args)
         {
             return GetCommandState();
         }

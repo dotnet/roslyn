@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(tempFile.ReadAllText(), text);
 
             var tree = await gooDoc.GetSyntaxRootAsync();
-            Assert.Equal(false, tree.ContainsDiagnostics);
+            Assert.False(tree.ContainsDiagnostics);
 
             var compilation = await project.GetCompilationAsync();
         }

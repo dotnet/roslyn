@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 exposedSpans: textBuffer.CurrentSnapshot.GetFullSpan());
 
             var elisionSnapshot = elisionBuffer.CurrentSnapshot;
-            Assert.Equal(elisionSnapshot.LineCount, 3);
+            Assert.Equal(3, elisionSnapshot.LineCount);
 
             foreach (var line in elisionSnapshot.Lines)
             {
@@ -62,13 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 LineSpan.FromBounds(1, 2), LineSpan.FromBounds(3, 4));
 
             var projectionSnapshot = projectionBuffer.CurrentSnapshot;
-            Assert.Equal(projectionSnapshot.LineCount, 4);
+            Assert.Equal(4, projectionSnapshot.LineCount);
 
             var lines = projectionSnapshot.Lines.ToList();
-            Assert.Equal(lines[0].GetText(), "...");
-            Assert.Equal(lines[1].GetText(), "  line 2");
-            Assert.Equal(lines[2].GetText(), "...");
-            Assert.Equal(lines[3].GetText(), "  line 4");
+            Assert.Equal("...", lines[0].GetText());
+            Assert.Equal("  line 2", lines[1].GetText());
+            Assert.Equal("...", lines[2].GetText());
+            Assert.Equal("  line 4", lines[3].GetText());
         }
 
         [Fact]
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 LineSpan.FromBounds(0, 1), LineSpan.FromBounds(2, 4));
 
             var projectionSnapshot = projectionBuffer.CurrentSnapshot;
-            Assert.Equal(projectionSnapshot.LineCount, 4);
+            Assert.Equal(4, projectionSnapshot.LineCount);
 
             var lines = projectionSnapshot.Lines.ToList();
-            Assert.Equal(lines[0].GetText(), "line 1");
-            Assert.Equal(lines[1].GetText(), "...");
-            Assert.Equal(lines[2].GetText(), "line 3");
-            Assert.Equal(lines[3].GetText(), "  line 4");
+            Assert.Equal("line 1", lines[0].GetText());
+            Assert.Equal("...", lines[1].GetText());
+            Assert.Equal("line 3", lines[2].GetText());
+            Assert.Equal("  line 4", lines[3].GetText());
         }
     }
 }

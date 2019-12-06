@@ -277,6 +277,11 @@
         <target state="translated">Konvence kódování ve VB</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Basic_language_server_client">
+        <source>Visual Basic Language Server Client</source>
+        <target state="translated">Klient serveru pro jazyk Visual Basic</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Kontrola hodnot nothing:</target>

@@ -70,7 +70,7 @@ Friend Class GrammarGenerator
                         Return childKinds IsNot Nothing AndAlso childKinds.Count = structureNode.NodeKinds.Count
                     End Function).ToArray()
 
-                If correspondingChildren.Count > 0 Then
+                If correspondingChildren.Length > 0 Then
                     compoundNodes.Add(structureNode)
 
                     Dim correspondingChildrenKinds = correspondingChildren.ToDictionary(

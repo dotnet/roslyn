@@ -435,14 +435,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             // To help when a user just writes a test (and supplied no 'expectedText') just print
             // out the entire 'actualText' (without any trimming).  in the case that we have both,
-            // call the normal Assert helper which will print out a good trimmed diff.
+            // call the normal AssertEx helper which will print out a good diff.
             if (expectedText == "")
             {
                 Assert.Equal((object)expectedText, actualText);
             }
             else
             {
-                Assert.Equal(expectedText, actualText);
+                AssertEx.EqualOrDiff(expectedText, actualText);
             }
 
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
             => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
-        protected (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
+        internal (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);
 
         protected (OptionKey, object) SingleOption<T>(PerLanguageOption<T> option, T value)
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
-        protected static IDictionary<OptionKey, object> OptionsSet(
+        internal static IDictionary<OptionKey, object> OptionsSet(
             params (OptionKey key, object value)[] options)
         {
             var result = new Dictionary<OptionKey, object>();

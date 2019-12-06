@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed class SynthesizedLocalOrdinalsDispenser
     {
         // The key is (local.SyntaxOffset << 8) | local.SynthesizedKind.
-        private PooledDictionary<long, int> _lazyMap;
+        private PooledDictionary<long, int>? _lazyMap;
 
         private static long MakeKey(SynthesizedLocalKind localKind, int syntaxOffset)
         {

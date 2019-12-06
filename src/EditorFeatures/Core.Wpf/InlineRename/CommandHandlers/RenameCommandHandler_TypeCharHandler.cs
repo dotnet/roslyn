@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameCommandHandler :
         IChainedCommandHandler<TypeCharCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
             return GetCommandState(nextHandler);
         }

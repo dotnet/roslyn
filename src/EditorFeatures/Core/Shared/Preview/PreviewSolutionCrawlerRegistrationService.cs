@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            // to make life time management easier, just create new sevice per new workspace
+            // to make life time management easier, just create new service per new workspace
             return new Service(this, workspaceServices.Workspace);
         }
 

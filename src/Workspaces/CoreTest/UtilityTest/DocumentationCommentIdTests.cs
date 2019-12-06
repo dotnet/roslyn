@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             where TSymbol : ISymbol
         {
             var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(expectedId, compilation);
-            Assert.Equal(true, symbol is TSymbol);
-            Assert.Equal(true, test((TSymbol)symbol));
+            Assert.True(symbol is TSymbol);
+            Assert.True(test((TSymbol)symbol));
 
             return (TSymbol)symbol;
         }

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 }";
             var (solution, _) = CreateTestSolution(markup);
             var results = await RunGetDocumentSymbolsAsync(solution, false).ConfigureAwait(false);
-            Assert.Equal(results.Length, 3);
+            Assert.Equal(3, results.Length);
         }
 
         [Fact]

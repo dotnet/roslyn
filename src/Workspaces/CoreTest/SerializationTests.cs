@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = (CS.Syntax.CompilationUnitSyntax)model.SyntaxTree.GetRoot();
             var annotation = SymbolAnnotation.Create(symbol);
             var rootWithAnnotation = root.WithAdditionalAnnotations(annotation);
-            Assert.Equal(true, rootWithAnnotation.ContainsAnnotations);
-            Assert.Equal(true, rootWithAnnotation.HasAnnotation(annotation));
+            Assert.True(rootWithAnnotation.ContainsAnnotations);
+            Assert.True(rootWithAnnotation.HasAnnotation(annotation));
 
             var stream = new MemoryStream();
             rootWithAnnotation.SerializeTo(stream);
 
             stream.Position = 0;
             var droot = CS.CSharpSyntaxNode.DeserializeFrom(stream);
-            Assert.Equal(true, droot.ContainsAnnotations);
-            Assert.Equal(true, droot.HasAnnotation(annotation));
+            Assert.True(droot.ContainsAnnotations);
+            Assert.True(droot.HasAnnotation(annotation));
 
             var dannotation = droot.GetAnnotations(SymbolAnnotation.Kind).SingleOrDefault();
             Assert.NotNull(dannotation);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var id = SymbolAnnotation.GetSymbol(annotation, model.Compilation);
             var did = SymbolAnnotation.GetSymbol(dannotation, model.Compilation);
 
-            Assert.Equal(true, id.Equals(did));
+            Assert.True(id.Equals(did));
         }
     }
 }

@@ -1,36 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldCommandHandler : VSCommanding.ICommandHandler<EncapsulateFieldCommandArgs>
+    internal abstract class AbstractEncapsulateFieldCommandHandler : ICommandHandler<EncapsulateFieldCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IAsynchronousOperationListener _listener;
 
         public string DisplayName => EditorFeaturesResources.Encapsulate_Field;
 
         public AbstractEncapsulateFieldCommandHandler(
+            IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _undoManager = undoManager;
             _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
         }
@@ -52,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             using var token = _listener.BeginAsyncOperation("EncapsulateField");
 
             var cancellationToken = waitScope.Context.UserCancellationToken;
-            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                waitScope.Context).WaitAndGetResult(cancellationToken);
+            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                waitScope.Context, _threadingContext);
             if (document == null)
             {
                 return false;
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             return true;
         }
 
-        public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args)
-            => args.SubjectBuffer.SupportsRefactorings() ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
+            => args.SubjectBuffer.SupportsRefactorings() ? CommandState.Available : CommandState.Unspecified;
     }
 }

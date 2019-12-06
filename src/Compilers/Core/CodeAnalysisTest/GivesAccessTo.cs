@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -34,11 +35,11 @@ End Class
 Friend Class VB2
 End Class
 ");
-            var csc = CSharpCompilation.Create("CS", new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef });
-            var CS = csc.GlobalNamespace.GetMembers("CS")[0] as INamedTypeSymbol;
+            var csc = (Compilation)CSharpCompilation.Create("CS", new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef });
+            var CS = csc.GlobalNamespace.GetMembers("CS").First() as INamedTypeSymbol;
 
-            var csc2 = CSharpCompilation.Create("CS2", new[] { csharpTree2 }, new MetadataReference[] { TestBase.MscorlibRef });
-            var CS2 = csc2.GlobalNamespace.GetMembers("CS2")[0] as INamedTypeSymbol;
+            var csc2 = (Compilation)CSharpCompilation.Create("CS2", new[] { csharpTree2 }, new MetadataReference[] { TestBase.MscorlibRef });
+            var CS2 = csc2.GlobalNamespace.GetMembers("CS2").First() as INamedTypeSymbol;
 
             var vbc = VisualBasicCompilation.Create("VB", new[] { vbTree }, new MetadataReference[] { TestBase.MscorlibRef });
             var VB = vbc.GlobalNamespace.GetMembers("VB")[0] as INamedTypeSymbol;

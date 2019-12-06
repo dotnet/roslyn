@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
             // To update our forward transitive map, we need to add referencedProjectIds (and their transitive dependencies) to the transitive references
             // of projects. First, let's just compute the new set of transitive references. It's possible while doing so we'll discover that we don't
             // know the transitive project references for one of our new references. In that case, we'll use null as a sentinel to mean "we don't know" and
-            // we propogate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
+            // we propagate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
             var newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
 
             foreach (var referencedProjectId in referencedProjectIds)

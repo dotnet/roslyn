@@ -4614,5 +4614,70 @@ End Class"
                 result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1))
             End Using
         End Sub
+
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")>
+        Public Sub FilesOneWithNoMethodBody()
+            Dim source1 =
+"Imports System
+
+Class C
+    Public Shared Sub Main()
+        Console.WriteLine()
+    End Sub
+End Class
+"
+            Dim source2 =
+"
+' no code
+"
+
+            Dim tree1 = Parse(source1, "f:/build/goo.vb")
+            Dim tree2 = Parse(source2, "f:/build/nocode.vb")
+            Dim c = CreateCompilation({tree1, tree2}, options:=TestOptions.DebugDll)
+
+            c.VerifyPdb("
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/goo.vb"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""48-27-3C-50-9D-24-D4-0D-51-87-6C-E2-FB-2F-AA-1C-80-96-0B-B7"" />
+    <file id=""2"" name=""f:/build/nocode.vb"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""40-43-2C-44-BA-1C-C7-1A-B3-F3-68-E5-96-7C-65-9D-61-85-D5-44"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""12"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" importlevel=""file"" />
+        <currentnamespace name="""" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+")
+        End Sub
+
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")>
+        Public Sub SingleFileWithNoMethodBody()
+            Dim source =
+"
+' no code
+"
+
+            Dim tree = Parse(source, "f:/build/nocode.vb")
+            Dim c = CreateCompilation({tree}, options:=TestOptions.DebugDll)
+
+            c.VerifyPdb("
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/nocode.vb"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""40-43-2C-44-BA-1C-C7-1A-B3-F3-68-E5-96-7C-65-9D-61-85-D5-44"" />
+  </files>
+  <methods />
+</symbols>
+")
+        End Sub
     End Class
 End Namespace

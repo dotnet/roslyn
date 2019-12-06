@@ -42,6 +42,19 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return false;
         }
 
+        protected override bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, out SyntaxNode found)
+        {
+            if (token.IsKind(SyntaxKind.CloseBracketToken, SyntaxKind.OpenBracketToken) &&
+                token.Parent?.Parent.IsKind(SyntaxKind.ElementAccessExpression) == true)
+            {
+                found = token.Parent.Parent;
+                return true;
+            }
+
+            found = null;
+            return false;
+        }
+
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         {
             return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);

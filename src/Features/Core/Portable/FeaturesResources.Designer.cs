@@ -730,14 +730,14 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        ///   Looks up a localized string similar to Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
         /// </summary>
-        internal static string Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
+        internal static string Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
             get {
-                return ResourceManager.GetString("Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_ch" +
-                        "ange_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_i" +
-                        "nteger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbo" +
-                        "l_names", resourceCulture);
+                return ResourceManager.GetString("Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_chan" +
+                        "ge_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_int" +
+                        "eger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_" +
+                        "names", resourceCulture);
             }
         }
         
@@ -756,6 +756,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string can_t_not_construct_final_tree {
             get {
                 return ResourceManager.GetString("can_t_not_construct_final_tree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot apply changes -- unexpected error: &apos;{0}&apos;.
+        /// </summary>
+        internal static string CannotApplyChangesUnexpectedError {
+            get {
+                return ResourceManager.GetString("CannotApplyChangesUnexpectedError", resourceCulture);
             }
         }
         
@@ -830,6 +839,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
             get {
                 return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed while stopped at exception.
+        /// </summary>
+        internal static string ChangesDisallowedWhileStoppedAtException {
+            get {
+                return ResourceManager.GetString("ChangesDisallowedWhileStoppedAtException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes made in project &apos;{0}&apos; will not be applied while the application is running.
+        /// </summary>
+        internal static string ChangesNotAppliedWhileRunning {
+            get {
+                return ResourceManager.GetString("ChangesNotAppliedWhileRunning", resourceCulture);
             }
         }
         
@@ -1248,6 +1275,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to discard.
+        /// </summary>
+        internal static string discard {
+            get {
+                return ResourceManager.GetString("discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
         /// </summary>
         internal static string Disposable_field_0_is_never_disposed {
@@ -1302,29 +1338,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit And Continue.
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
         /// </summary>
-        internal static string Edit_And_Continue {
+        internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
-                return ResourceManager.GetString("Edit_And_Continue", resourceCulture);
+                return ResourceManager.GetString("DocumentIsOutOfSyncWithDebuggee", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Edit and Continue.
         /// </summary>
-        internal static string Edit_and_Continue1 {
+        internal static string EditAndContinue {
             get {
-                return ResourceManager.GetString("Edit_and_Continue1", resourceCulture);
+                return ResourceManager.GetString("EditAndContinue", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit and Continue.
+        ///   Looks up a localized string similar to Edit and Continue disallowed by module.
         /// </summary>
-        internal static string Edit_and_Continue2 {
+        internal static string EditAndContinueDisallowedByModule {
             get {
-                return ResourceManager.GetString("Edit_and_Continue2", resourceCulture);
+                return ResourceManager.GetString("EditAndContinueDisallowedByModule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes made in project &apos;{0}&apos; will prevent the debug session from continuing: {1}.
+        /// </summary>
+        internal static string EditAndContinueDisallowedByProject {
+            get {
+                return ResourceManager.GetString("EditAndContinueDisallowedByProject", resourceCulture);
             }
         }
         
@@ -1392,6 +1437,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error while reading file &apos;{0}&apos;: {1}.
+        /// </summary>
+        internal static string ErrorReadingFile {
+            get {
+                return ResourceManager.GetString("ErrorReadingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to event.
         /// </summary>
         internal static string event_ {
@@ -1446,29 +1500,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Interface....
+        ///   Looks up a localized string similar to Extract interface....
         /// </summary>
-        internal static string Extract_Interface {
+        internal static string Extract_interface {
             get {
-                return ResourceManager.GetString("Extract_Interface", resourceCulture);
+                return ResourceManager.GetString("Extract_interface", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method.
+        ///   Looks up a localized string similar to Extract local function.
         /// </summary>
-        internal static string Extract_Method {
+        internal static string Extract_local_function {
             get {
-                return ResourceManager.GetString("Extract_Method", resourceCulture);
+                return ResourceManager.GetString("Extract_local_function", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method + Local.
+        ///   Looks up a localized string similar to Extract method.
         /// </summary>
-        internal static string Extract_Method_plus_Local {
+        internal static string Extract_method {
             get {
-                return ResourceManager.GetString("Extract_Method_plus_Local", resourceCulture);
+                return ResourceManager.GetString("Extract_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract method + local.
+        /// </summary>
+        internal static string Extract_method_plus_local {
+            get {
+                return ResourceManager.GetString("Extract_method_plus_local", resourceCulture);
             }
         }
         
@@ -1905,6 +1968,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;GetHashCode&apos; implementation can be simplified.
+        /// </summary>
+        internal static string GetHashCode_implementation_can_be_simplified {
+            get {
+                return ResourceManager.GetString("GetHashCode_implementation_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Global Namespace.
         /// </summary>
         internal static string Global_Namespace {
@@ -1923,11 +1995,65 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; explicitly.
+        /// </summary>
+        internal static string Implement_0_explicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; implicitly.
+        /// </summary>
+        internal static string Implement_0_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string Implement_Abstract_Class {
             get {
                 return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces explicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_explicitly {
+            get {
+                return ResourceManager.GetString("Implement all interfaces explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces implicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_all_interfaces_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement explicitly.
+        /// </summary>
+        internal static string Implement_explicitly {
+            get {
+                return ResourceManager.GetString("Implement explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement implicitly.
+        /// </summary>
+        internal static string Implement_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_implicitly", resourceCulture);
             }
         }
         
@@ -3531,6 +3657,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rude edit.
+        /// </summary>
+        internal static string RudeEdit {
+            get {
+                return ResourceManager.GetString("RudeEdit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Separate nibbles.
         /// </summary>
         internal static string Separate_nibbles {
@@ -3762,6 +3897,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_member_is_defined_in_metadata {
             get {
                 return ResourceManager.GetString("The_member_is_defined_in_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selection contains a local function call without its declaration..
+        /// </summary>
+        internal static string The_selection_contains_a_local_function_call_without_its_declaration {
+            get {
+                return ResourceManager.GetString("The_selection_contains_a_local_function_call_without_its_declaration", resourceCulture);
             }
         }
         
@@ -4573,6 +4717,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;System.HashCode&apos;.
+        /// </summary>
+        internal static string Use_System_HashCode {
+            get {
+                return ResourceManager.GetString("Use_System_HashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -4591,7 +4744,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string UseRecommendedDisposePatternDescription {
             get {

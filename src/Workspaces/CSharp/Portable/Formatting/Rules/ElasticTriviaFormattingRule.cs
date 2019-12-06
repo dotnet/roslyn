@@ -290,7 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             }
                         }
 
-                        if (previousToken.GetAncestor<ParameterSyntax>() == null)
+                        if (previousToken.GetAncestor<ParameterSyntax>() == null
+                            && previousToken.GetAncestor<TypeParameterSyntax>() == null)
                         {
                             return 1;
                         }

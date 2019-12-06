@@ -181,7 +181,7 @@ public interface I
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData: null);
             AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
-            Assert.Equal(error, "error CS1061: 'I' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)");
+            Assert.Equal("error CS1061: 'I' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)", error);
 
             // Binding to method on original PIA should succeed
             // in assembly referencing PIA.dll.

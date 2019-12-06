@@ -2,14 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../Commands.vsct">
     <body>
+      <trans-unit id="ECMD_RUNFXCOPSEL|ButtonText">
+        <source>Run Code &amp;Analysis on Selection</source>
+        <target state="new">Run Code &amp;Analysis on Selection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
-        <target state="new">Sort &amp;Usings</target>
+        <target state="translated">Trier les &amp;using</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|LocCanonicalName">
         <source>SortUsings</source>
-        <target state="new">SortUsings</target>
+        <target state="translated">SortUsings</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
@@ -30,6 +35,111 @@
       <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|LocCanonicalName">
         <source>RemoveAndSort</source>
         <target state="translated">RemoveAndSort</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="new">&amp;Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityDefault|CommandName">
+        <source>ErrorListSetSeverityDefault</source>
+        <target state="new">ErrorListSetSeverityDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="new">Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityError|ButtonText">
+        <source>&amp;Error</source>
+        <target state="new">&amp;Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityError|CommandName">
+        <source>ErrorListSetSeverityError</source>
+        <target state="new">ErrorListSetSeverityError</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityError|LocCanonicalName">
+        <source>Error</source>
+        <target state="new">Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityHidden|ButtonText">
+        <source>&amp;Silent</source>
+        <target state="new">&amp;Silent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityHidden|CommandName">
+        <source>ErrorListSetSeverityHidden</source>
+        <target state="new">ErrorListSetSeverityHidden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityHidden|LocCanonicalName">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityInfo|ButtonText">
+        <source>&amp;Suggestion</source>
+        <target state="new">&amp;Suggestion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityInfo|CommandName">
+        <source>ErrorListSetSeverityInfo</source>
+        <target state="new">ErrorListSetSeverityInfo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityInfo|LocCanonicalName">
+        <source>Suggestion</source>
+        <target state="new">Suggestion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="new">&amp;None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityNone|CommandName">
+        <source>ErrorListSetSeverityNone</source>
+        <target state="new">ErrorListSetSeverityNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityNone|LocCanonicalName">
+        <source>None</source>
+        <target state="new">None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeveritySubMenu|ButtonText">
+        <source>Set severity</source>
+        <target state="new">Set severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeveritySubMenu|CommandName">
+        <source>Set severity</source>
+        <target state="new">Set severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeveritySubMenu|LocCanonicalName">
+        <source>Set severity</source>
+        <target state="new">Set severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityWarning|ButtonText">
+        <source>&amp;Warning</source>
+        <target state="new">&amp;Warning</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityWarning|CommandName">
+        <source>ErrorListSetSeverityWarning</source>
+        <target state="new">ErrorListSetSeverityWarning</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidErrorListSetSeverityWarning|LocCanonicalName">
+        <source>Warning</source>
+        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
@@ -102,6 +212,21 @@
         <target state="translated">OpenActiveRuleSet</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
+        <source>Run C&amp;ode Analysis</source>
+        <target state="new">Run C&amp;ode Analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|CommandName">
+        <source>RunCodeAnalysisForProject</source>
+        <target state="new">RunCodeAnalysisForProject</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRunCodeAnalysisForProject|LocCanonicalName">
+        <source>RunCodeAnalysisForProject</source>
+        <target state="new">RunCodeAnalysisForProject</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidSetSeverityDefault|ButtonText">
         <source>&amp;Default</source>
         <target state="translated">Par &amp;défaut</target>
@@ -148,13 +273,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
-        <source>&amp;Info</source>
-        <target state="translated">&amp;Informations</target>
+        <source>&amp;Suggestion</source>
+        <target state="needs-review-translation">&amp;Informations</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
-        <source>Info</source>
-        <target state="translated">Info</target>
+        <source>Suggestion</source>
+        <target state="needs-review-translation">Info</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -163,13 +288,13 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
-        <source>&amp;Hidden</source>
-        <target state="translated">&amp;Masqué</target>
+        <source>&amp;Silent</source>
+        <target state="needs-review-translation">&amp;Masqué</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
-        <source>Hidden</source>
-        <target state="translated">Masqué</target>
+        <source>Silent</source>
+        <target state="needs-review-translation">Masqué</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|CommandName">
@@ -333,18 +458,18 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Définir la gravité de l'ensemble de règles</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Définir la gravité de l'ensemble de règles</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Définir la gravité de l'ensemble de règles</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Définir la gravité de l'ensemble de règles</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
-        <source>Set Rule Set Severity</source>
-        <target state="translated">Définir la gravité de l'ensemble de règles</target>
+        <source>Set severity</source>
+        <target state="needs-review-translation">Définir la gravité de l'ensemble de règles</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">

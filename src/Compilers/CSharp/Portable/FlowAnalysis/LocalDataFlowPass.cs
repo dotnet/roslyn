@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Does a data flow analysis for state attached to local variables and fields of struct locals.
     /// </summary>
-    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
+    internal abstract partial class LocalDataFlowPass<TLocalState, TLocalFunctionState> : AbstractFlowPass<TLocalState, TLocalFunctionState>
+        where TLocalState : AbstractFlowPass<TLocalState, TLocalFunctionState>.ILocalState
+        where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
@@ -23,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A mapping from the local variable slot to the symbol for the local variable itself.  This
         /// is used in the implementation of region analysis (support for extract method) to compute
         /// the set of variables "always assigned" in a region of code.
+        ///
+        /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
+        /// be given slot 1. When referring to <see cref="VariableIdentifier.ContainingSlot"/>, slot 0 indicates
+        /// that the variable in <see cref="VariableIdentifier.Symbol"/> is a root, i.e. not nested within another
+        /// tracked variable. Slots &lt; 0 are illegal.
         /// </summary>
         protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
 
@@ -101,9 +107,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
+            Debug.Assert(containingSlot >= 0);
+
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
+
+            if (containingSlot < 0)
+            {
+                // Error case. Diagnostics should already have been produced.
+                return -1;
+            }
 
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
@@ -253,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
         {
-            int containingSlot = -1;
+            int containingSlot;
             if (member.RequiresInstanceReceiver())
             {
                 if (receiverOpt is null)
@@ -265,6 +279,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return -1;
                 }
+            }
+            else
+            {
+                containingSlot = 0;
             }
             return GetOrCreateSlot(member, containingSlot);
         }

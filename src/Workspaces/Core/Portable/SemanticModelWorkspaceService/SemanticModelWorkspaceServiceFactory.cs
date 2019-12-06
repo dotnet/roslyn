@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 var projectId = document.Project.Id;
                 var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-                CompilationSet compilationSet;
+                CompilationSet? compilationSet;
                 using (_gate.DisposableRead())
                 {
                     versionMap.TryGetValue(projectId, out compilationSet);

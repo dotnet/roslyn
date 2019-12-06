@@ -31,16 +31,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         {
             testParameters ??= new TestParameters();
 
-            var moveToNamespaceOptions = TestMoveToNamespaceOptionsService.DefaultOptions;
-
-            if (optionCancelled)
-            {
-                moveToNamespaceOptions = MoveToNamespaceOptionsResult.Cancelled;
-            }
-            else if (!string.IsNullOrEmpty(targetNamespace))
-            {
-                moveToNamespaceOptions = new MoveToNamespaceOptionsResult(targetNamespace);
-            }
+            var moveToNamespaceOptions = optionCancelled
+                ? MoveToNamespaceOptionsResult.Cancelled
+                : new MoveToNamespaceOptionsResult(targetNamespace);
 
             var workspace = CreateWorkspaceFromFile(markup, testParameters.Value);
             using var testState = new TestState(workspace);
@@ -61,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 {
                     var operations = await task;
 
-                    if (optionCancelled)
+                    if (optionCancelled || string.IsNullOrEmpty(targetNamespace))
                     {
                         Assert.Empty(operations);
                     }
@@ -93,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 
                 }
 
-                if (!optionCancelled)
+                if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))
                 {
                     await TestInRegularAndScriptAsync(markup, expectedMarkup);
                 }

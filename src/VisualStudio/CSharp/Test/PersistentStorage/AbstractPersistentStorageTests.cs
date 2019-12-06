@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             { StorageOptions.SolutionSizeThreshold, 100 }
         });
 
-        private MockPersistentStorageLocationService _persistentLocationService;
+        private AbstractPersistentStorageService _storageService;
         private readonly string _persistentFolder;
 
         private const int LargeSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void Dispose()
         {
             // This should cause the service to release the cached connection it maintains for the primary workspace
-            _persistentLocationService?.RaiseShutdown();
+            _storageService?.GetTestAccessor().Shutdown();
 
             if (Directory.Exists(_persistentFolder))
             {
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var streamName1 = "TestReadChecksumReturnsNullWhenNeverWritten";
 
             using var storage = GetStorage(solution);
-            Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+            Assert.Null(await storage.ReadChecksumAsync(streamName1));
         }
 
         [Fact]
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(null, await storage.ReadStreamAsync(streamName1, s_checksum2));
+                Assert.Null(await storage.ReadStreamAsync(streamName1, s_checksum2));
             }
         }
 
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+                Assert.Null(await storage.ReadChecksumAsync(streamName1));
             }
         }
 
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+                Assert.Null(await storage.ReadChecksumAsync(streamName1));
             }
         }
 
@@ -517,10 +517,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                                    .Returns(solution.Workspace.Options.GetOption(StorageOptions.SolutionSizeThreshold) + 1);
 
             // If we handed out one for a previous test, we need to shut that down first
-            _persistentLocationService?.RaiseShutdown();
-            _persistentLocationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder);
+            _storageService?.GetTestAccessor().Shutdown();
+            var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder);
 
-            var storage = GetStorageService(_persistentLocationService, solutionSizeTrackerMock.Object, faultInjectorOpt).GetStorage(solution, checkBranchId: true);
+            _storageService = GetStorageService(locationService, solutionSizeTrackerMock.Object, faultInjectorOpt);
+            var storage = _storageService.GetStorage(solution, checkBranchId: true);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjectorOpt == null)
@@ -536,33 +537,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             private readonly SolutionId _solutionId;
             private readonly string _storageLocation;
 
-#pragma warning disable CS0067
-            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
-#pragma warning restore CS0067
-
             public MockPersistentStorageLocationService(SolutionId solutionId, string storageLocation)
             {
                 _solutionId = solutionId;
                 _storageLocation = storageLocation;
             }
 
-            public bool IsSupported(Workspace workspace)
-            {
-                return true;
-            }
+            public bool IsSupported(Workspace workspace) => true;
 
-            public string TryGetStorageLocation(SolutionId solutionId)
-            {
-                return solutionId == _solutionId ? _storageLocation : null;
-            }
-
-            public void RaiseShutdown()
-            {
-                StorageLocationChanging?.Invoke(this, new PersistentStorageLocationChangingEventArgs(_solutionId, null, mustUseNewStorageLocationImmediately: true));
-            }
+            public string TryGetStorageLocation(Solution solution)
+                => solution.Id == _solutionId ? _storageLocation : null;
         }
 
-        internal abstract IChecksummedPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector);
+        internal abstract AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector);
 
         protected Stream EncodeString(string text)
         {

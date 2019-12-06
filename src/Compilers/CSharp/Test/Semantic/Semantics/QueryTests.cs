@@ -2176,7 +2176,7 @@ public class Test2
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
             var info2 = semanticModel.GetSemanticInfoSummary(selectClause);
-            var m = (MethodSymbol)info2.Symbol;
+            var m = (IMethodSymbol)info2.Symbol;
             Assert.Equal("Select", m.ReducedFrom.Name);
         }
 
@@ -2898,7 +2898,7 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
@@ -2931,7 +2931,7 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);

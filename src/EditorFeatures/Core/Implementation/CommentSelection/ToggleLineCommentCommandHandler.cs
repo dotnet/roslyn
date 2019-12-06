@@ -21,17 +21,16 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.ToggleLineComment)]
     internal class ToggleLineCommentCommandHandler :
         // Value tuple to represent that there is no distinct command to be passed in.
         AbstractCommentSelectionBase<ValueTuple>,
-        VSCommanding.ICommandHandler<ToggleLineCommentCommandArgs>
+        ICommandHandler<ToggleLineCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         {
         }
 
-        public VSCommanding.CommandState GetCommandState(ToggleLineCommentCommandArgs args)
+        public CommandState GetCommandState(ToggleLineCommentCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
         }

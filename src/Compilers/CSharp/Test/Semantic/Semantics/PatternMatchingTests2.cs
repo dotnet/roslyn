@@ -384,7 +384,7 @@ public class Point
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
 
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -494,7 +494,7 @@ public class Point
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var r = 1 switch { };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19),
                 // (5,19): error CS8506: No best type was found for the switch expression.
@@ -518,7 +518,7 @@ public class Point
     public delegate void D();
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (5,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
                 );
@@ -609,7 +609,7 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (7,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 19)
                 );
@@ -620,7 +620,7 @@ public class Point
                 var model = compilation.GetSemanticModel(tree);
                 var symbol = model.GetDeclaredSymbol(designation);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
-                Assert.Equal("int", ((LocalSymbol)symbol).TypeWithAnnotations.ToDisplayString());
+                Assert.Equal("int", ((ILocalSymbol)symbol).Type.ToDisplayString());
             }
             foreach (var ident in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
             {
@@ -1093,7 +1093,7 @@ class Program1
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(expected);
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(expected);
 
             expected = new[]

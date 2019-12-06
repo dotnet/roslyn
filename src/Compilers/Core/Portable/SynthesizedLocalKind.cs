@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Stores a dynamic analysis instrumentation payload array. The value is initialized in
-        /// synthesized mehtod prologue code and referred to throughout the method body.
+        /// synthesized method prologue code and referred to throughout the method body.
         /// </summary>
         InstrumentationPayload = 34,
 

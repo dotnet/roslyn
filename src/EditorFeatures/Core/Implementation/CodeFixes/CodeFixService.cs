@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -139,7 +140,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, CancellationToken cancellationToken)
+        {
+            return ((ICodeFixService)this).GetFixesAsync(document, range, includeConfigurationFixes, isBlocking: false, cancellationToken);
+        }
+
+        async Task<ImmutableArray<CodeFixCollection>> ICodeFixService.GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, bool isBlocking, CancellationToken cancellationToken)
         {
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
             // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information
@@ -174,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
-                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false,
+                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false, isBlocking,
                     result, cancellationToken).ConfigureAwait(false);
             }
 
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, result, cancellationToken).ConfigureAwait(false);
+            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, isBlocking: false, result, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
@@ -243,6 +249,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             IEnumerable<DiagnosticData> diagnostics,
             bool fixAllForInSpan,
+            bool isBlocking,
             ArrayBuilder<CodeFixCollection> result,
             CancellationToken cancellationToken)
         {
@@ -297,15 +304,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
                     getFixes: dxs =>
                     {
-                        if (fixAllForInSpan)
+                        using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixer, cancellationToken))
                         {
-                            var primaryDiagnostic = dxs.First();
-                            return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
-
-                        }
-                        else
-                        {
-                            return GetCodeFixesAsync(document, span, fixer, dxs, cancellationToken);
+                            if (fixAllForInSpan)
+                            {
+                                var primaryDiagnostic = dxs.First();
+                                return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
+                            }
+                            else
+                            {
+                                return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
+                            }
                         }
                     },
                     cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -316,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
-            Document document, TextSpan span, CodeFixProvider fixer,
+            Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             using var fixesDisposer = ArrayBuilder<CodeFix>.GetInstance(out var fixes);
@@ -331,6 +340,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 },
                 verifyArguments: false,
+                isBlocking,
                 cancellationToken: cancellationToken);
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
@@ -350,12 +360,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // append CodeFixCollection for each CodeFixProvider
             foreach (var provider in lazyConfigurationProviders.Value)
             {
-                await AppendFixesOrConfigurationsAsync(
-                    document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
-                    hasFix: d => provider.IsFixableDiagnostic(d),
-                    getFixes: dxs => provider.GetFixesAsync(
-                        document, diagnosticsSpan, dxs, cancellationToken),
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, provider, cancellationToken))
+                {
+                    await AppendFixesOrConfigurationsAsync(
+                        document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
+                        hasFix: d => provider.IsFixableDiagnostic(d),
+                        getFixes: dxs => provider.GetFixesAsync(
+                            document, diagnosticsSpan, dxs, cancellationToken),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 

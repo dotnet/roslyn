@@ -4,21 +4,16 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
@@ -26,22 +21,19 @@ Imports MSXML
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend NotInheritable Class SnippetTestState
-        Inherits AbstractCommandHandlerTestState
+        Inherits TestState
 
-        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), excludedTypes As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
+        Private Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), excludedTypes As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
             ' Remove the default completion presenters to prevent them from conflicting with the test one
             ' that we are adding.
             MyBase.New(workspaceElement,
-                       extraParts:=CreatePartCatalog(extraParts),
+                       extraCompletionProviders:=Nothing,
+                       extraExportedTypes:={GetType(TestSignatureHelpPresenter), GetType(IntelliSenseTestState), GetType(MockCompletionPresenterProvider)}.Concat(If(extraParts, {})).ToList(),
                        workspaceKind:=workspaceKind,
-                       excludedTypes:={GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession))}.Concat(If(excludedTypes, {})).ToList())
+                       excludedTypes:={GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), GetType(FormatCommandHandler)}.Concat(If(excludedTypes, {})).ToList(),
+                       includeFormatCommandHandler:=False)
 
             Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
-
-            Dim featureServiceFactory = GetExportedValue(Of IFeatureServiceFactory)()
-            featureServiceFactory.GlobalFeatureService.Disable(PredefinedEditorFeatureNames.AsyncCompletion, EmptyFeatureController.Instance)
-
-            SessionTestState = Workspace.GetService(Of IIntelliSenseTestState)
 
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
@@ -51,43 +43,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             If languageName = LanguageNames.VisualBasic Then
                 Dim snippetProvider As CompletionProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Nothing)
-
-                Dim completionService = DirectCast(Workspace.Services.GetLanguageServices(languageName).GetService(Of CompletionService), CommonCompletionService)
+                Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
+                Dim language = languageServices.Language
+                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
                 completionService.SetTestProviders({snippetProvider})
-
-                _completionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
             End If
 
             SnippetExpansionClient = New MockSnippetExpansionClient(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), startActiveSession)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
         End Sub
 
-        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
-            Me.New(workspaceElement, languageName, startActiveSession, extraParts, excludedTypes:=Enumerable.Empty(Of Type), workspaceKind)
-        End Sub
-
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
-        Private ReadOnly _completionCommandHandler As CompletionCommandHandler
-        Private _currentCompletionPresenterSession As TestCompletionPresenterSession
-        Private ReadOnly SessionTestState As IIntelliSenseTestState
 
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
-
-        Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
-            Return ExportProviderCache.CreateTypeCatalog(types).WithParts(GetType(TestCompletionPresenter), GetType(IntelliSenseTestState))
-        End Function
-
-        Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
-            Get
-                Return SessionTestState.CurrentSignatureHelpPresenterSession
-            End Get
-        End Property
-
-        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
-            Get
-                Return SessionTestState.CurrentCompletionPresenterSession
-            End Get
-        End Property
 
         Public Shared Function CreateTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
             extraParts = If(extraParts, Type.EmptyTypes)
@@ -108,21 +76,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                                    </Submission>
                                </Workspace>
 
-            Dim state = New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, WorkspaceKind.Interactive)
+            Dim state = New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, excludedTypes:=Enumerable.Empty(Of Type), WorkspaceKind.Interactive)
             state.Workspace.Options = state.Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, False)
             Return state
         End Function
 
         Friend Overloads Sub SendTabToCompletion()
-            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TabKeyCommandArgs))
-
-            SendTab(AddressOf handler.ExecuteCommand, AddressOf SendTab)
+            MyBase.SendTab()
         End Sub
 
         Friend Overloads Sub SendTab()
             If Not SendTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
                 EditorOperations.InsertText("    ")
             End If
+        End Sub
+
+        Friend Overloads Sub SendBackSpace()
+            EditorOperations.Backspace()
         End Sub
 
         Friend Overloads Sub SendBackTab()
@@ -143,11 +113,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End If
         End Sub
 
-        Public Overloads Sub SendTypeChars(typeChars As String)
-            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
-            MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
-        End Sub
-
         Private Class MockOrderableContentTypeMetadata
             Inherits OrderableContentTypeMetadata
 
@@ -159,8 +124,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
         Friend Class MockSnippetExpansionClient
             Inherits AbstractSnippetExpansionClient
-
-            Private _startActiveSession As Boolean
 
             Public Sub New(threadingContext As IThreadingContext, startActiveSession As Boolean)
                 MyBase.New(threadingContext, Nothing, Nothing, Nothing, Nothing)

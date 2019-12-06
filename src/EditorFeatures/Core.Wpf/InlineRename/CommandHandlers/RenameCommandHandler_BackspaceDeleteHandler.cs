@@ -4,18 +4,17 @@ using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler : IChainedCommandHandler<BackspaceKeyCommandArgs>, IChainedCommandHandler<DeleteKeyCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(BackspaceKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(BackspaceKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             return GetCommandState(nextHandler);
         }
 
-        public VSCommanding.CommandState GetCommandState(DeleteKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(DeleteKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             return GetCommandState(nextHandler);
         }

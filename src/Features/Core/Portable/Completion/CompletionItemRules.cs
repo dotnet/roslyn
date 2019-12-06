@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableArray<CharacterSetModificationRule> FilterCharacterRules { get; }
 
         /// <summary>
-        /// Rules that modify the set of characters that can be typed to cause the selected item to be commited.
+        /// Rules that modify the set of characters that can be typed to cause the selected item to be committed.
         /// </summary>
         public ImmutableArray<CharacterSetModificationRule> CommitCharacterRules { get; }
 

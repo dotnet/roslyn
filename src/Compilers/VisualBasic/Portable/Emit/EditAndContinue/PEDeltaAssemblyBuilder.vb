@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
             _previousGeneration = previousGeneration
-            _changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+            _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
             ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
-        Friend Overrides Function TryGetAnonymousTypeName(template As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+        Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function

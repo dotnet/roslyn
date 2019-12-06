@@ -597,18 +597,18 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(DiagnosticFormatter.Format(diagnostic, Culture));
         }
 
-        public StreamErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
+        public SarifErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
-            Debug.Assert(Arguments.ErrorLogPath != null);
+            Debug.Assert(Arguments.ErrorLogOptions?.Path != null);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var errorLog = OpenFile(Arguments.ErrorLogPath,
+            var errorLog = OpenFile(Arguments.ErrorLogOptions.Path,
                                     diagnostics,
                                     FileMode.Create,
                                     FileAccess.Write,
                                     FileShare.ReadWrite | FileShare.Delete);
 
-            StreamErrorLogger logger;
+            SarifErrorLogger logger;
             if (errorLog == null)
             {
                 Debug.Assert(diagnostics.HasAnyErrors());
@@ -616,7 +616,18 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                logger = new StreamErrorLogger(errorLog, GetToolName(), GetCompilerVersion(), GetAssemblyVersion(), Culture);
+                string toolName = GetToolName();
+                string compilerVersion = GetCompilerVersion();
+                Version assemblyVersion = GetAssemblyVersion();
+
+                if (Arguments.ErrorLogOptions.SarifVersion == SarifVersion.Sarif1)
+                {
+                    logger = new SarifV1ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
+                }
+                else
+                {
+                    logger = new SarifV2ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
+                }
             }
 
             ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger);
@@ -629,7 +640,7 @@ namespace Microsoft.CodeAnalysis
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
-            StreamErrorLogger errorLogger = null;
+            SarifErrorLogger errorLogger = null;
 
             try
             {
@@ -641,7 +652,7 @@ namespace Microsoft.CodeAnalysis
                     CultureInfo.CurrentUICulture = culture;
                 }
 
-                if (Arguments.ErrorLogPath != null)
+                if (Arguments.ErrorLogOptions?.Path != null)
                 {
                     errorLogger = GetErrorLogger(consoleOutput, cancellationToken);
                     if (errorLogger == null)

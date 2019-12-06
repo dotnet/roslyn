@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     var text = baseName.Substring(@break.Start, @break.Length);
                     if (pluralize && start == end - 1)
                     {
-                        // Pluralize the last word if neccessary
+                        // Pluralize the last word if necessary
                         result.Add(text.Pluralize());
                     }
                     else

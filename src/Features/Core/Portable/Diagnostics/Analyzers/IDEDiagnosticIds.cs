@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Formatting;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class IDEDiagnosticIds
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseCompoundAssignmentDiagnosticId = "IDE0054";
 
-        public const string FormattingDiagnosticId = "IDE0055";
+        public const string FormattingDiagnosticId = FormattingDiagnosticIds.FormattingDiagnosticId;
 
         public const string UseIndexOperatorDiagnosticId = "IDE0056";
         public const string UseRangeOperatorDiagnosticId = "IDE0057";
@@ -110,6 +112,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
         public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
         public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
+
+        public const string UseSystemHashCode = "IDE0070";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

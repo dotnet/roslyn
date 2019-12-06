@@ -56,9 +56,9 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = (Compilation)CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<IMethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsLong)?", type.ToTestDisplayString());
             Assert.Equal("System.Runtime.CompilerServices.IsLong", type.GetTypeArgumentCustomModifiers(0).Single().Modifier.ToTestDisplayString());
@@ -126,9 +126,9 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = (Compilation)CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<IMethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
             Assert.Equal("System.Collections.Generic.Dictionary<System.Int32, System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>",
                          type.ToTestDisplayString());
@@ -1516,7 +1516,7 @@ class Module1
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), ((CSharpCustomModifier)((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First()).ModifierSymbol.ContainingAssembly);
 
             var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
@@ -1525,7 +1525,7 @@ class Module1
 
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingAssemblySymbol>(test.ContainingAssembly);
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), ((CSharpCustomModifier)((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First()).ModifierSymbol.ContainingAssembly);
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }
@@ -1825,7 +1825,7 @@ class CL3 : CL2
 ";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Mscorlib40, references: new[] { SystemCoreRef });
 
-            System.Action<IModuleSymbol> validator = (m) =>
+            System.Action<ModuleSymbol> validator = (m) =>
             {
                 var cl3 = ((ModuleSymbol)m).GlobalNamespace.GetTypeMember("CL3");
                 var test = cl3.GetMember<MethodSymbol>("Test");

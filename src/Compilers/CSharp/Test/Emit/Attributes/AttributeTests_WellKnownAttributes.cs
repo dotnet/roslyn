@@ -437,7 +437,7 @@ public class Bar
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
             //         01 00 ff ff ff ff ff ff ff ff 00 00
             // )
-            Action<IModuleSymbol> verifier = (module) =>
+            Action<ModuleSymbol> verifier = (module) =>
                 {
                     var bar = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("Bar");
                     var method = (MethodSymbol)bar.GetMember("Method");
@@ -781,7 +781,7 @@ public class C
     }
 }";
 
-            Action<IModuleSymbol> verifier = (module) =>
+            Action<ModuleSymbol> verifier = (module) =>
             {
                 var c = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
@@ -2565,8 +2565,8 @@ public class C
                 Assert.Equal(CharSet.Unicode, info.CharacterSet);
                 Assert.True(info.ExactSpelling);
                 Assert.True(info.SetLastError);
-                Assert.Equal(true, info.BestFitMapping);
-                Assert.Equal(true, info.ThrowOnUnmappableCharacter);
+                Assert.True(info.BestFitMapping);
+                Assert.True(info.ThrowOnUnmappableCharacter);
 
                 Assert.Equal(
                     MethodImportAttributes.ExactSpelling |
@@ -2606,8 +2606,8 @@ public class C
                 Assert.Equal(CallingConvention.Winapi, info.CallingConvention);
                 Assert.False(info.ExactSpelling);
                 Assert.False(info.SetLastError);
-                Assert.Equal(null, info.BestFitMapping);
-                Assert.Equal(null, info.ThrowOnUnmappableCharacter);
+                Assert.Null(info.BestFitMapping);
+                Assert.Null(info.ThrowOnUnmappableCharacter);
 
                 var n = c.GetMember<MethodSymbol>("N");
                 Assert.Null(n.GetDllImportData());
@@ -3170,7 +3170,7 @@ abstract class C
                 foreach (var ca in peReader.CustomAttributes)
                 {
                     var ctor = peReader.GetCustomAttribute(ca).Constructor;
-                    Assert.NotEqual(ctor.Kind, HandleKind.MethodDefinition);
+                    Assert.NotEqual(HandleKind.MethodDefinition, ctor.Kind);
                 }
             });
         }
@@ -4727,13 +4727,13 @@ public class BobAttribute : Attribute
 
             void verify(CSharpCompilation comp, bool isSerializablePresent)
             {
-                INamedTypeSymbol typeC = comp.GetTypeByMetadataName("C");
+                NamedTypeSymbol typeC = comp.GetTypeByMetadataName("C");
                 var expectedAttributes = isSerializablePresent ? new[] { "System.SerializableAttribute", "BobAttribute" } : new[] { "BobAttribute" };
                 AssertEx.SetEqual(expectedAttributes, typeC.GetAttributes().Select(a => a.ToString()));
 
                 Assert.True(typeC.IsSerializable);
 
-                INamedTypeSymbol typeBobAttribute = comp.GetTypeByMetadataName("BobAttribute");
+                NamedTypeSymbol typeBobAttribute = comp.GetTypeByMetadataName("BobAttribute");
                 Assert.False(typeBobAttribute.IsSerializable);
             }
         }
@@ -4803,52 +4803,52 @@ public class Unbound : Constructed<> { }
 
             var substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType();
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNested);
-            Assert.False(((INamedTypeSymbol)substitutedNested).IsSerializable);
+            Assert.False(((NamedTypeSymbol)substitutedNested).IsSerializable);
 
             var substitutedNestedS = comp.GetTypeByMetadataName("SubstitutedNestedS").BaseType();
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
-            Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
+            Assert.True(((NamedTypeSymbol)substitutedNestedS).IsSerializable);
 
             var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType().Type;
             Assert.IsType<TupleTypeSymbol>(valueTupleS);
-            Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
+            Assert.True(((NamedTypeSymbol)valueTupleS).IsSerializable);
 
             var constructed = comp.GetTypeByMetadataName("Constructed").BaseType();
             Assert.IsType<ConstructedNamedTypeSymbol>(constructed);
-            Assert.False(((INamedTypeSymbol)constructed).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constructed).IsSerializable);
 
             var constructedS = comp.GetTypeByMetadataName("ConstructedS").BaseType();
             Assert.IsType<ConstructedNamedTypeSymbol>(constructedS);
-            Assert.True(((INamedTypeSymbol)constructedS).IsSerializable);
+            Assert.True(((NamedTypeSymbol)constructedS).IsSerializable);
 
             var extendedError = comp2.GetTypeByMetadataName("ExtendedError").BaseType();
             Assert.IsType<ExtendedErrorTypeSymbol>(extendedError);
-            Assert.False(((INamedTypeSymbol)extendedError).IsSerializable);
+            Assert.False(((NamedTypeSymbol)extendedError).IsSerializable);
 
             var topLevel = comp2.GetTypeByMetadataName("MissingTopLevel").BaseType();
             Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(topLevel);
-            Assert.False(((INamedTypeSymbol)topLevel).IsSerializable);
+            Assert.False(((NamedTypeSymbol)topLevel).IsSerializable);
 
             var nested = comp2.GetTypeByMetadataName("MissingNested").BaseType();
             Assert.IsType<MissingMetadataTypeSymbol.Nested>(nested);
-            Assert.False(((INamedTypeSymbol)nested).IsSerializable);
+            Assert.False(((NamedTypeSymbol)nested).IsSerializable);
 
             var constructedError = comp2.GetTypeByMetadataName("MissingConstructed").BaseType();
             Assert.IsType<ConstructedErrorTypeSymbol>(constructedError);
-            Assert.False(((INamedTypeSymbol)constructedError).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constructedError).IsSerializable);
 
             var nestedSubstitutedError = comp2.GetTypeByMetadataName("MissingSubstitutedNested`2").BaseType().ConstructedFrom;
             Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
-            Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
+            Assert.False(((NamedTypeSymbol)nestedSubstitutedError).IsSerializable);
 
             var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
-            Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
+            Assert.False(((NamedTypeSymbol)unbound).IsSerializable);
 
             var script = CreateCompilation("", parseOptions: TestOptions.Script);
             var scriptClass = script.GetTypeByMetadataName("Script");
             Assert.IsType<ImplicitNamedTypeSymbol>(scriptClass);
-            Assert.False(((INamedTypeSymbol)scriptClass).IsSerializable);
+            Assert.False(((NamedTypeSymbol)scriptClass).IsSerializable);
         }
         #endregion
 
@@ -4997,8 +4997,8 @@ namespace System
                 // Verify AttributeUsage
                 var attributeUsage = attrType.GetAttributeUsageInfo();
                 Assert.Equal(AttributeTargets.Class, attributeUsage.ValidTargets);
-                Assert.Equal(true, attributeUsage.AllowMultiple);
-                Assert.Equal(true, attributeUsage.Inherited);
+                Assert.True(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.Inherited);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
@@ -8971,22 +8971,22 @@ class MyAttribute : System.Attribute
 
                 Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("test1").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext")));
 
                 Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("test2").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
 
                 Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test3").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext")));
 
                 Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test4").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
             };
 
@@ -9094,22 +9094,22 @@ class MyAttribute : System.Attribute
                 Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program1.GetMember<MethodSymbol>("test1").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
 
                 Assert.Equal("DebuggerNonUserCodeAttribute is missing\nDebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\nDebuggerStepThroughAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program2.GetMember<MethodSymbol>("test2").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
 
                 Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program1.GetMember<MethodSymbol>("Test3").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
 
                 Assert.Equal("DebuggerNonUserCodeAttribute is missing\nDebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\nDebuggerStepThroughAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program2.GetMember<MethodSymbol>("Test4").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
             };
 
             CompileAndVerify(source, symbolValidator: attributeValidator);

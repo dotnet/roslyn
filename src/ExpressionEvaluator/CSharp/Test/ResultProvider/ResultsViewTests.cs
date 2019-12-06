@@ -1294,7 +1294,7 @@ class C : IEnumerable
                     EvalResult("e", "{int[2]}", "System.Collections.IEnumerable {int[]}", "o.e", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
                 // Verify the module was found but ResolveTypeName failed.
                 var module = runtime.Modules.Single(m => m.Assembly == assembly0);
-                Assert.Equal(module.ResolveTypeNameFailures, 1);
+                Assert.Equal(1, module.ResolveTypeNameFailures);
             }
         }
 

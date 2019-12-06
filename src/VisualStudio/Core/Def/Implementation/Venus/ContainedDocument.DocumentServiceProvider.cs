@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     internal sealed partial class ContainedDocument
     {
         // this is to support old venus/razor case before dev16. 
-        // all new razor (asp.NET core after dev16) should use thier own implementation not ours
+        // all new razor (asp.NET core after dev16) should use their own implementation not ours
         public class DocumentServiceProvider : IDocumentServiceProvider
         {
             private readonly SpanMapper _spanMapper;
@@ -45,6 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return excerpter;
                 }
 
+                if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
+                {
+                    return documentPropertiesService;
+                }
+
                 // ask the default document service provider
                 return DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
             }
@@ -52,6 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
             {
                 return sourceText.FindCorrespondingEditorTextSnapshot();
+            }
+
+            private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
+            {
+                public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
+                public override bool DesignTimeOnly => true;
             }
 
             private class SpanMapper : ISpanMappingService
@@ -176,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                             continue;
                         }
 
-                        // we don't have gurantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
+                        // we don't have guarantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
                         // we map it to right snapshot
                         var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
                         var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);

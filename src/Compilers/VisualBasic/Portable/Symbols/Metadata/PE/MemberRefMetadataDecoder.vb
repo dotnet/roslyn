@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Dim n = candidateReturnTypeCustomModifiers.Length
-            If targetReturnTypeCustomModifiers.Count <> n Then
+            If targetReturnTypeCustomModifiers.Length <> n Then
                 Return False
             End If
 

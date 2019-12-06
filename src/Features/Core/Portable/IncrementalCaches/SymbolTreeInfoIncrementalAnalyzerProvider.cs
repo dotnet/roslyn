@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             // If we hear about low memory conditions, flush our caches.  This will degrade the 
             // experience a bit (as we will no longer offer to Add-Using for p2p refs/metadata),
             // but will be better than OOM'ing.  These caches will be regenerated in the future
-            // when the incremental analyzer reanalyzers the projects in teh workspace.
+            // when the incremental analyzer reanalyzers the projects in the workspace.
             _projectToInfo.Clear();
             _metadataPathToInfo.Clear();
         }

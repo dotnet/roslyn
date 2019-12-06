@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -96,6 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                        originationParts: default,
                        sourceSpans: default,
                        properties: null,
+                       displayableProperties: null,
                        displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;

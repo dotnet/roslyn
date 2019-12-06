@@ -27,6 +27,11 @@
         <target state="translated">'{0}'이(가) '{1}' 형식의 예외를 throw했습니다.</target>
         <note>Threw an exception while evaluating a value.</note>
       </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: host value not found</source>
+        <target state="new">Cannot provide the value: host value not found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
         <target state="translated">{0}'을(를) 역참조할 수 없습니다. 포인터가 잘못되었습니다.</target>

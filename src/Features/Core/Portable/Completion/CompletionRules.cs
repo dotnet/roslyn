@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public EnterKeyRule DefaultEnterKeyRule { get; }
 
         /// <summary>
-        /// The rule determing how snippets work.
+        /// The rule determining how snippets work.
         /// </summary>
         public SnippetsRule SnippetsRule { get; }
 

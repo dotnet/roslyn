@@ -331,12 +331,12 @@ Ad önerilerini göster;</target>
       </trans-unit>
       <trans-unit id="2358">
         <source>C# Editor</source>
-        <target state="needs-review-translation">CSharp Düzenleyici</target>
+        <target state="translated">C# Düzenleyicisi</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>C# Editor with Encoding</source>
-        <target state="needs-review-translation">Encoding ile CSharp Düzenleyici</target>
+        <target state="translated">Kodlamalı C# Düzenleyicisi</target>
         <note />
       </trans-unit>
       <trans-unit id="113">

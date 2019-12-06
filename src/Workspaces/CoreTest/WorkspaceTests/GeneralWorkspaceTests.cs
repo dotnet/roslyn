@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var ws = new NoChangesAllowedWorkspace();
             var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
             var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-            Assert.Equal(originalDoc.Name, "TestDocument");
+            Assert.Equal("TestDocument", originalDoc.Name);
 
             var newName = "ChangedName";
             var changedDoc = originalDoc.WithName(newName);

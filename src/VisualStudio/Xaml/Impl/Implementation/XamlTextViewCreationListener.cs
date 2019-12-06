@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -38,19 +39,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private uint? _rdtEventsCookie;
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new Dictionary<IVsHierarchy, VisualStudioProject>();
 
-        internal ICommandHandlerServiceFactory CommandHandlerServiceFactory { get; }
-
         [ImportingConstructor]
         public XamlTextViewCreationListener(
             [Import(typeof(SVsServiceProvider))] System.IServiceProvider services,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IXamlDocumentAnalyzerService analyzerService,
             VisualStudioWorkspaceImpl vsWorkspace,
             VisualStudioProjectFactory visualStudioProjectFactory)
         {
             _serviceProvider = services;
-            CommandHandlerServiceFactory = commandHandlerServiceFactory;
             _editorAdaptersFactory = editorAdaptersFactoryService;
             _vsWorkspace = vsWorkspace;
             _visualStudioProjectFactory = visualStudioProjectFactory;
@@ -117,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             AttachRunningDocTableEvents();
 
             var wpfTextView = _editorAdaptersFactory.GetWpfTextView(vsTextView);
-            var target = new XamlOleCommandTarget(wpfTextView, CommandHandlerServiceFactory, _editorAdaptersFactory, _serviceProvider);
+            var target = new XamlOleCommandTarget(wpfTextView, (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel)));
             target.AttachToVsTextView();
         }
 

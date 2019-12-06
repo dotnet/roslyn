@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -126,7 +127,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect,
-            ImmutableArray<ITypeSymbol> inferredTypes)
+            Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
+            TelemetryCounter telemetryCounter)
         {
             var symbolGroups = from symbol in symbols
                                let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
@@ -145,7 +147,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
-                    var inferredTypesWithoutNullability = inferredTypes.SelectAsArray(t => t.WithoutNullability());
+                    var tick = Environment.TickCount;
+                    var inferredTypesWithoutNullability = inferredTypes.Value.SelectAsArray(t => t.WithoutNullability());
 
                     foreach (var symbol in symbolGroup)
                     {
@@ -156,6 +159,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             break;
                         }
                     }
+
+                    telemetryCounter.AddTick(Environment.TickCount - tick);
                 }
 
                 itemListBuilder.Add(item);
@@ -262,13 +267,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.IsExclusive = IsExclusive();
 
                 using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
+                using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     var syntaxContext = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
+                    var inferredTypes = new Lazy<ImmutableArray<ITypeSymbol>>(() =>
+                    {
+                        var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
+                        return typeInferenceService.InferTypes(syntaxContext.SemanticModel, position, cancellationToken);
+                    });
 
-                    var regularItems = await GetItemsWorkerAsync(syntaxContext, document, position, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var regularItems = await GetItemsWorkerAsync(syntaxContext, document, position, inferredTypes, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     context.AddItems(regularItems);
 
-                    var preselectedItems = await GetItemsWorkerAsync(syntaxContext, document, position, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var preselectedItems = await GetItemsWorkerAsync(syntaxContext, document, position, inferredTypes, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     context.AddItems(preselectedItems);
                 }
             }
@@ -279,19 +290,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            SyntaxContext context, Document document, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
+            SyntaxContext context, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options, bool preselect, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = GetRelatedDocumentIds(document, position);
 
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
-            var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-            var inferredTypes = typeInferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
-
             if (relatedDocumentIds.IsEmpty)
             {
                 var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(itemsForCurrentDocument, _ => context, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes);
+                return CreateItems(itemsForCurrentDocument, _ => context, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes, telemetryCounter);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -299,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
-            return CreateItems(symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes);
+            return CreateItems(symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes, telemetryCounter);
         }
 
         private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
@@ -461,6 +469,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual string GetInsertionText(CompletionItem item, char ch)
         {
             return SymbolCompletionItem.GetInsertionText(item);
+        }
+
+        // This is used to decide which provider we'd collect target type completion telemetry from.
+        protected virtual bool ShouldCollectTelemetryForTargetTypeCompletion => false;
+
+        private class TelemetryCounter : IDisposable
+        {
+            private readonly bool _shouldReport;
+            private int _tick;
+
+            public TelemetryCounter(bool shouldReport)
+            {
+                _shouldReport = shouldReport;
+            }
+
+            public void AddTick(int tick)
+            {
+                _tick += tick;
+            }
+
+            public void Dispose()
+            {
+                if (_shouldReport)
+                {
+                    CompletionProvidersLogger.LogTargetTypeCompletionTicksDataPoint(_tick);
+                }
+            }
         }
     }
 }

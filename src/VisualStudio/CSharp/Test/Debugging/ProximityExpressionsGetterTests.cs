@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             var languageDebugInfo = new CSharpLanguageDebugInfoService();
 
             var hostdoc = workspace.Documents.First();
-            var snapshot = hostdoc.TextBuffer.CurrentSnapshot;
+            var snapshot = hostdoc.GetTextBuffer().CurrentSnapshot;
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
             var builder = new StringBuilder();
@@ -122,7 +122,7 @@ namespace ConsoleApplication1
             using var workspace = TestWorkspace.CreateCSharp(markup);
             var testDocument = workspace.Documents.Single();
             var caretPosition = testDocument.CursorPosition.Value;
-            var snapshot = testDocument.TextBuffer.CurrentSnapshot;
+            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
             var languageDebugInfo = new CSharpLanguageDebugInfoService();
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 

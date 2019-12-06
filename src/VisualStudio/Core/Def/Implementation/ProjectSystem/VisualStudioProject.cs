@@ -61,6 +61,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _outputRefFilePath;
         private string _defaultNamespace;
 
+        // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
+        // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
+        private bool? _runAnalyzersPropertyValue;
+        private bool? _runAnalyzersDuringLiveAnalysisPropertyValue;
+
+        // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
+        private bool _runAnalyzers = true;
+
         private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, ImmutableArray<MetadataReferenceProperties>>();
 
         /// <summary>
@@ -228,8 +236,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        /// <remarks>This is internal for now, as it's only consumed by <see cref="EditAndContinue.VsENCRebuildableProjectImpl"/>
-        /// which directly takes a <see cref="VisualStudioProject"/>.</remarks>
         internal string IntermediateOutputFilePath
         {
             get => _intermediateOutputFilePath;
@@ -292,6 +298,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        value,
                        s => s.WithHasAllInformation(Id, value),
                        w => w.OnHasAllInformationChanged(Id, value));
+        }
+
+        internal bool? RunAnalyzers
+        {
+            get => _runAnalyzersPropertyValue;
+            set
+            {
+                _runAnalyzersPropertyValue = value;
+                UpdateRunAnalyzers();
+            }
+        }
+
+        internal bool? RunAnalyzersDuringLiveAnalysis
+        {
+            get => _runAnalyzersDuringLiveAnalysisPropertyValue;
+            set
+            {
+                _runAnalyzersDuringLiveAnalysisPropertyValue = value;
+                UpdateRunAnalyzers();
+            }
+        }
+
+        private void UpdateRunAnalyzers()
+        {
+            // Property RunAnalyzers overrides RunAnalyzersDuringLiveAnalysis, and default when both properties are not set is 'true'.
+            var runAnalyzers = _runAnalyzersPropertyValue ?? _runAnalyzersDuringLiveAnalysisPropertyValue ?? true;
+            ChangeProjectProperty(ref _runAnalyzers,
+                runAnalyzers,
+                s => s.WithRunAnalyzers(Id, runAnalyzers),
+                w => w.OnRunAnalyzersChanged(Id, runAnalyzers));
         }
 
         /// <summary>
@@ -646,11 +682,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     continue;
                 }
 
-                // don't get confused by _filePath and filePath
+                // Don't get confused by _filePath and filePath.
                 // VisualStudioProject._filePath points to csproj/vbproj of the project
-                // and the parameter filePath points to dynamic file such as cshtml and etc
+                // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
                 // 
-                // also, provider is free-threaded. so fine to call Wait rather than JTF
+                // Also, provider is free-threaded. so fine to call Wait rather than JTF.
                 var fileInfo = provider.Value.GetDynamicFileInfoAsync(
                     projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
@@ -1582,7 +1618,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentId = DocumentId.CreateNewId(_project.Id, filePath);
 
                 var textLoader = fileInfo.TextLoader;
-                var documentServiceProvider = fileInfo.DocumentServiceProvider;
+                var documentServiceProvider = new DynamicFileDocumentServiceProvider(fileInfo.DocumentServiceProvider);
 
                 return DocumentInfo.Create(
                     documentId,
@@ -1593,6 +1629,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     filePath: filePath,
                     isGenerated: false,
                     documentServiceProvider: documentServiceProvider);
+            }
+
+            private sealed class DynamicFileDocumentServiceProvider : IDocumentServiceProvider
+            {
+                private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
+                {
+                    public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
+                    public override bool DesignTimeOnly => true;
+                }
+
+                private readonly IDocumentServiceProvider _provider;
+
+                public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
+                {
+                    _provider = provider;
+                }
+
+                TService IDocumentServiceProvider.GetService<TService>()
+                {
+                    if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
+                    {
+                        return documentPropertiesService;
+                    }
+
+                    return _provider.GetService<TService>();
+                }
             }
 
             private sealed class SourceTextLoader : TextLoader

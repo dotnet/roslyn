@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilaton are from fully loaded projects.
+        /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
         /// </summary>
         // TODO: make this public
         internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)
@@ -614,6 +615,9 @@ namespace Microsoft.CodeAnalysis
         {
             return this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id)!;
         }
+
+        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
+            => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
 
         private string GetDebuggerDisplay()
         {

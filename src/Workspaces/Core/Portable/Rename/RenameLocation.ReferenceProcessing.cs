@@ -179,8 +179,13 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     switch (target)
                     {
-                        case INamedTypeSymbol nt: return nt.ConstructedFrom.Equals(referencedSymbol);
-                        case INamespaceOrTypeSymbol s: return s.Equals(referencedSymbol);
+                        case INamedTypeSymbol nt:
+                            return nt.ConstructedFrom.Equals(referencedSymbol)
+                                || IsConstructorForType(possibleConstructor: referencedSymbol, possibleType: nt);
+
+                        case INamespaceOrTypeSymbol s:
+                            return s.Equals(referencedSymbol);
+
                         default: return false;
                     }
                 }
@@ -188,6 +193,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 // cascade from property accessor to property (someone in C# renames base.get_X, or the accessor override)
                 if (await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false) ||
                     await IsPropertyAccessorOrAnOverride(originalSymbol, solution, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+
+                // cascade from constructor to named type
+                if (IsConstructorForType(possibleConstructor: referencedSymbol, possibleType: originalSymbol))
                 {
                     return true;
                 }
@@ -201,6 +212,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 return false;
+
+                // Local functions
+                static bool IsConstructorForType(ISymbol possibleConstructor, ISymbol possibleType)
+                {
+                    return possibleConstructor.IsConstructor()
+                        && possibleType is INamedTypeSymbol namedType
+                        && Equals(possibleConstructor.ContainingType.ConstructedFrom, namedType.ConstructedFrom);
+                }
             }
 
             internal static async Task<SymbolAndProjectId> GetPropertyFromAccessorOrAnOverride(

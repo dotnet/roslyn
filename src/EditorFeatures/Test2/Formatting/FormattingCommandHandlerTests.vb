@@ -6,14 +6,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     ''' </summary>
     <[UseExportProvider]>
     Public Class FormattingCommandHandlerTests
-        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object()) =
-            TestStateFactory.GetAllCompletionImplementations()
 
         <WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub TypingUsingStatementsProperlyAligns1(completionImplementation As CompletionImplementation)
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub TypingUsingStatementsProperlyAligns1()
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 using System;
 class TestClass
@@ -59,7 +56,7 @@ class TestClass
             End Using
         End Sub
 
-        Private Shared Sub AssertVirtualCaretColumn(state As TestStateBase, expectedCol As Integer)
+        Private Shared Sub AssertVirtualCaretColumn(state As TestState, expectedCol As Integer)
             Dim caretLine = state.GetLineFromCurrentCaretPosition()
             Dim caret = state.GetCaretPoint()
             Assert.Equal(expectedCol, caret.VirtualBufferPosition.VirtualSpaces)

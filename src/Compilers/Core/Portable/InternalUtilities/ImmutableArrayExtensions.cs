@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,7 +10,7 @@ namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T> items)
+        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
             => items == null ? ImmutableArray<T>.Empty : ImmutableArray.CreateRange(items);
 
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
@@ -43,7 +45,7 @@ namespace Roslyn.Utilities
             return ~low;
         }
 
-        internal static ImmutableArray<TDerived> CastDown<TOriginal, TDerived>(this ImmutableArray<TOriginal> array) where TDerived : class, TOriginal
+        internal static ImmutableArray<TDerived> CastDown<TOriginal, TDerived>(this ImmutableArray<TOriginal> array) where TDerived : class?, TOriginal
         {
             return array.CastArray<TDerived>();
         }

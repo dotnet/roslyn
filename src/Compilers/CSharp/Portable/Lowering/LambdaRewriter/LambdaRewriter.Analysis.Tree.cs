@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// Requires that scope is either the same as <see cref="_currentScope"/>,
                 /// or is the <see cref="Scope.Parent"/> of <see cref="_currentScope"/>.
-                /// Returns imediately in the first case,
+                /// Returns immediately in the first case,
                 /// Replaces <see cref="_currentScope"/> with scope in the second.
                 /// </summary>
                 /// <param name="scope"></param>

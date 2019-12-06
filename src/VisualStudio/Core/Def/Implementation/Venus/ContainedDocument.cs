@@ -97,8 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
             VisualStudioProject project,
-            IVsHierarchy hierarchy,
-            uint itemId,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
             : base(threadingContext)

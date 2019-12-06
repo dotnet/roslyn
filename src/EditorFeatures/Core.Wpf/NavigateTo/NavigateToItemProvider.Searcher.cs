@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -89,7 +89,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
                 finally
                 {
-                    _callback.Done();
+                    var service = _solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                    if (_callback is INavigateToCallback2 callback2 &&
+                        !await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false))
+                    {
+                        // providing this extra information will make UI to show indication to users
+                        // that result might not contain full data
+                        callback2.Done(IncompleteReason.SolutionLoading);
+                    }
+                    else
+                    {
+                        _callback.Done();
+                    }
                 }
             }
 

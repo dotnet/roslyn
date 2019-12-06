@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(savedCurrentAnalysisData);
                             AnalyzeDelegateInvocation(target);
                             mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
-                                _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.CreateBlockAnalysisData);
+                                _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.TrackAllocatedBlockAnalysisData);
                         }
 
                         _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(mergedAnalysisData);

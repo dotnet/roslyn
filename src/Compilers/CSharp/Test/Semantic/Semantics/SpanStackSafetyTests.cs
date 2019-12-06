@@ -1128,7 +1128,7 @@ public class Program
 {
     static void Main()
     {
-        // this is ok  (overriden)
+        // this is ok  (overridden)
         default(Span<int>).GetHashCode();
 
         // this is ok  (implicit boxing)

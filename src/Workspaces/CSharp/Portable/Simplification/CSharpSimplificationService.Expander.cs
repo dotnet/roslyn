@@ -633,8 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var parent = originalSimpleName.Parent;
 
                 // do not complexify further for location where only simple names are allowed
-                if (parent is MemberDeclarationSyntax ||
-                    parent is MemberBindingExpressionSyntax ||
+                if (parent is MemberBindingExpressionSyntax ||
                     originalSimpleName.GetAncestor<NameEqualsSyntax>() != null ||
                     (parent is MemberAccessExpressionSyntax && parent.Kind() != SyntaxKind.SimpleMemberAccessExpression) ||
                     ((parent.Kind() == SyntaxKind.SimpleMemberAccessExpression || parent.Kind() == SyntaxKind.NameMemberCref) && originalSimpleName.IsRightSideOfDot()) ||

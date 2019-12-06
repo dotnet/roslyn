@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     {
                         // Desktop FX: A weak-named assembly conflicts with another weak-named assembly of the same simple name,
                         // unless we find an assembly whose identity matches exactly and whose content is exactly the same.
-                        // TODO: We shouldn't block this on CoreCLR.
+                        // TODO: We shouldn't block this on CoreCLR. https://github.com/dotnet/roslyn/issues/38621
 
                         if (!identity.IsStrongName)
                         {
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         );
                     }
 
-                    // TODO: Desktop FX only
+                    // TODO: Desktop FX only https://github.com/dotnet/roslyn/issues/38621
                     if (!conflictingLoadedAssemblyOpt.IsDefault)
                     {
                         // error: attempt to load an assembly with the same identity as already loaded assembly but different content

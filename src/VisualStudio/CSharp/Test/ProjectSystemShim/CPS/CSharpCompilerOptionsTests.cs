@@ -101,7 +101,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using var environment = new TestEnvironment();
             using var project1 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null);
             // Null output path is allowed.
-            Assert.Equal(null, project1.BinOutputPath);
+            Assert.Null(project1.BinOutputPath);
         }
 
         [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
@@ -111,7 +111,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using var environment = new TestEnvironment();
             using var project2 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test2", binOutputPath: String.Empty);
             // Empty output path is not allowed, it gets reset to null.
-            Assert.Equal(null, project2.BinOutputPath);
+            Assert.Null(project2.BinOutputPath);
         }
 
         [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]

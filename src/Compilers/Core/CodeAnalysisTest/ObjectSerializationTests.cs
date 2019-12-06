@@ -851,8 +851,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void TestReadingPrimitiveAPIs(ObjectReader reader)
         {
-            Assert.Equal(true, reader.ReadBoolean());
-            Assert.Equal(false, reader.ReadBoolean());
+            Assert.True(reader.ReadBoolean());
+            Assert.False(reader.ReadBoolean());
             Assert.Equal(Byte.MaxValue, reader.ReadByte());
             Assert.Equal(SByte.MaxValue, reader.ReadSByte());
             Assert.Equal(Int16.MaxValue, reader.ReadInt16());
@@ -950,8 +950,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void TestReadingPrimitiveValues(ObjectReader reader)
         {
-            Assert.Equal(true, (bool)reader.ReadValue());
-            Assert.Equal(false, (bool)reader.ReadValue());
+            Assert.True((bool)reader.ReadValue());
+            Assert.False((bool)reader.ReadValue());
             Assert.Equal(Byte.MaxValue, (Byte)reader.ReadValue());
             Assert.Equal(SByte.MaxValue, (SByte)reader.ReadValue());
             Assert.Equal(Int16.MaxValue, (Int16)reader.ReadValue());
@@ -970,8 +970,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uD800\uDC00", (String)reader.ReadValue()); // valid surrogate pair
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
-            Assert.Equal(null, reader.ReadValue());
-            Assert.Equal(null, reader.ReadValue());
+            Assert.Null(reader.ReadValue());
+            Assert.Null(reader.ReadValue());
 
             unchecked
             {

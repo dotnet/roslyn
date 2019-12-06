@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var severity = styleOption.Notification.Severity;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;

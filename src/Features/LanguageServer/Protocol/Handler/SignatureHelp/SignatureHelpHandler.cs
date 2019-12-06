@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         /// <summary>
-        /// The <see cref="SignatureHelpItem"/> contains a prefix, parameters seperated by a
+        /// The <see cref="SignatureHelpItem"/> contains a prefix, parameters separated by a
         /// separator and a suffix. Parameters themselves have a prefix, display and suffix.
         /// Concatenate them all to get the text.
         /// </summary>

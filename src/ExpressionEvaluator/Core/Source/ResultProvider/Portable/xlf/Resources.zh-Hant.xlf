@@ -27,6 +27,11 @@
         <target state="translated">'{0}' 擲回 '{1}' 類型的例外狀況</target>
         <note>Threw an exception while evaluating a value.</note>
       </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: host value not found</source>
+        <target state="new">Cannot provide the value: host value not found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
         <target state="translated">無法取值 '{0}'。指標無效。</target>

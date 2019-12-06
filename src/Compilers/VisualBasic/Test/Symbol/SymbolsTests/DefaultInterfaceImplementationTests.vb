@@ -1680,6 +1680,184 @@ BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Pri
 </expected>)
         End Sub
 
+        <Fact>
+        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        Public Sub Field_11()
+
+            Dim csSource =
+"
+public interface I1
+{
+    static string M1 = ""I1.M1"";
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Interface I2
+    Inherits I1
+
+    class M1
+    End Class
+End Interface
+
+Class C1
+    Public Shared M2 As String = ""
+End Class
+
+Class C2
+    Inherits C1
+
+    public class M2
+    End Class
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<error>
+BC40004: class 'M1' conflicts with variable 'M1' in the base interface 'I1' and should be declared 'Shadows'.
+    class M1
+          ~~
+BC40004: class 'M2' conflicts with variable 'M2' in the base class 'C1' and should be declared 'Shadows'.
+    public class M2
+                 ~~
+</error>)
+        End Sub
+
+        <Fact>
+        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        Public Sub Field_12()
+
+            Dim csSource =
+"
+public interface I1
+{
+    static string M1 = ""I1.M1"";
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Interface I2
+    Inherits I1
+
+    Shadows class M1
+    End Class
+End Interface
+
+Class C1
+    Public Shared M2 As String = ""
+End Class
+
+Class C2
+    Inherits C1
+
+    Shadows public class M2
+    End Class
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        Public Sub Field_13()
+
+            Dim csSource =
+"
+public interface I1
+{
+    static string M1 = ""I1.M1"";
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Interface I2
+    Inherits I1
+
+    Sub M1()
+End Interface
+
+
+Class C1
+    Public Shared M2 As String = ""
+End Class
+
+Class C2
+    Inherits C1
+
+    public Sub M2()
+    End Sub
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<error>
+BC40004: sub 'M1' conflicts with variable 'M1' in the base interface 'I1' and should be declared 'Shadows'.
+    Sub M1()
+        ~~
+BC40004: sub 'M2' conflicts with variable 'M2' in the base class 'C1' and should be declared 'Shadows'.
+    public Sub M2()
+               ~~
+</error>)
+        End Sub
+
+        <Fact>
+        <WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")>
+        Public Sub Field_14()
+
+            Dim csSource =
+"
+public interface I1
+{
+    static string M1 = ""I1.M1"";
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Interface I2
+    Inherits I1
+
+    Shadows Sub M1()
+End Interface
+
+
+Class C1
+    Public Shared M2 As String = ""
+End Class
+
+Class C2
+    Inherits C1
+
+    Shadows public Sub M2()
+    End Sub
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+        End Sub
+
         Private Const NoPiaAttributes As String = "
 namespace System.Runtime.InteropServices
 {

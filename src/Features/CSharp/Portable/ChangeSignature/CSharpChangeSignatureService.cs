@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
             var declaredParameters = declarationSymbol.GetParameters();
-            if (paramNodes.Count() != declaredParameters.Count())
+            if (paramNodes.Count() != declaredParameters.Length)
             {
                 return null;
             }

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             //
             // The SyntaxEditor API works by passing in these callbacks when we 
             // replace a node N.  It will call us back with what N looks like after
-            // all teh rewrites that occurred underneath it.
+            // all the rewrites that occurred underneath it.
             // 
             // In order to avoid allocating each time we hit a reference, we just
             // create these statically and pass them in.

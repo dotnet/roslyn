@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -359,6 +360,23 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return aggregateSpans;
+        }
+
+        /// <summary>
+        /// Organizes the imports in the document.
+        /// </summary>
+        /// <param name="document">The document to organize.</param>
+        /// <param name="cancellationToken">The cancellation token that the operation will observe.</param>
+        /// <returns>The document with organized imports. If the language does not support organizing imports, or if no changes were made, this method returns <paramref name="document"/>.</returns>
+        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
+        {
+            var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
+            if (organizeImportsService is null)
+            {
+                return Task.FromResult(document);
+            }
+
+            return organizeImportsService.OrganizeImportsAsync(document, cancellationToken);
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -155,6 +157,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
+        public ImmutableDictionary<string, string> AdditionalProperties { get; set; }
+
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
@@ -167,6 +171,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
+                AdditionalProperties = referenceLocation.AdditionalProperties,
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -177,12 +182,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var document = solution.GetDocument(this.Document);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
+            var additionalProperties = this.AdditionalProperties;
             return new ReferenceLocation(
                 document,
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
+                additionalProperties: additionalProperties ?? ImmutableDictionary<string, string>.Empty,
                 candidateReason: CandidateReason);
         }
 

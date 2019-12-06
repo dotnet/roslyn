@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ClassifiedSpan &&
                 Equals((ClassifiedSpan)obj);

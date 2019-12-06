@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -8,10 +9,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         public readonly string Alias;
 
-        // IAssemblySymbol or AssemblyIdentity
+        /// <summary>
+        /// IAssemblySymbolInternal or AssemblyIdentity
+        /// </summary>
         public readonly object TargetAssembly;
 
-        public ExternAliasRecord(string alias, IAssemblySymbol targetAssembly)
+        public ExternAliasRecord(string alias, IAssemblySymbolInternal targetAssembly)
         {
             Debug.Assert(alias != null);
             Debug.Assert(targetAssembly != null);

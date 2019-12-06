@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="1012">
         <source>Visual Basic Editor with Encoding</source>
-        <target state="needs-review-translation">Microsoft Visual Basic 코드 페이지 편집기</target>
+        <target state="translated">Visual Basic Editor(인코딩 사용)</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
         <source>Visual Basic Editor</source>
-        <target state="needs-review-translation">Microsoft Visual Basic Editor</target>
+        <target state="translated">Visual Basic Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">

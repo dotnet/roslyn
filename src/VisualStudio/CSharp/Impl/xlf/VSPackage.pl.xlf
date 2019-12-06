@@ -331,12 +331,12 @@ Pokaż sugestie dotyczące nazwy;</target>
       </trans-unit>
       <trans-unit id="2358">
         <source>C# Editor</source>
-        <target state="needs-review-translation">Edytor CSharp</target>
+        <target state="translated">Edytor C#</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>C# Editor with Encoding</source>
-        <target state="needs-review-translation">Edytor CSharp z kodowaniem</target>
+        <target state="translated">Edytor C# z kodowaniem</target>
         <note />
       </trans-unit>
       <trans-unit id="113">

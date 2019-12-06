@@ -457,6 +457,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitVariableDeclarationGroup(operation);
         }
 
+        public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
+        {
+            LogString($"{nameof(IUsingDeclarationOperation)}");
+            LogString($"(IsAsynchronous: {operation.IsAsynchronous})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.DeclarationGroup, "DeclarationGroup");
+        }
+
         public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
         {
             LogString($"{nameof(IVariableDeclaratorOperation)} (");

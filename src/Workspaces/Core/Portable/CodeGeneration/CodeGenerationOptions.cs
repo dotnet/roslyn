@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -47,9 +49,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public Location BeforeThisLocation { get; }
 
         /// <summary>
-        /// True if the code generation service should try to automatically add imports to the file
-        /// for any generated code.  Defaults to true.  Not used when generating directly into a
-        /// declaration.
+        /// True if the code generation service should add <see cref="Simplifier.AddImportsAnnotation"/>,
+        /// and when not generating directly into a declaration, should try to automatically add imports to the file
+        /// for any generated code.
+        /// Defaults to true.
         /// </summary>
         public bool AddImports { get; }
 

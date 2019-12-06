@@ -2385,18 +2385,18 @@ struct Type<T>
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
-            var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
+            var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
             await waiter.CreateExpeditedWaitTask();
 
-            var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
-            var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
+            var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
+            var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
 
             Assert.Empty(tags);
             Assert.NotEmpty(allTags);
 
-            Assert.Equal(allTags.Count(), 1);
+            Assert.Equal(1, allTags.Count());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

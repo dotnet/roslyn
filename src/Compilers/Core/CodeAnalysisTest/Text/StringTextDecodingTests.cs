@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // bytes should not decode to UTF-8
             using (var stream = new MemoryStream(bytes))
             {
-                Assert.Throws(typeof(DecoderFallbackException), () =>
+                Assert.Throws<DecoderFallbackException>(() =>
                 {
                     EncodedStringText.TestAccessor.Decode(stream, utf8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: false, canBeEmbedded: false);
                 });

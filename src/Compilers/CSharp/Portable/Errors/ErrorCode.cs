@@ -1063,7 +1063,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LegacyObjectIdSyntax = 2043,
         ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
-        // unused 2046-2999
+        ERR_BadSwitchValue = 2046,
+        // unused 2047-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
@@ -1603,6 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
+        ERR_VarianceInterfaceNesting = 8427,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1659,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitNullableAttribute = 8623,
         WRN_NullabilityMismatchInArgumentForOutput = 8624,
         WRN_NullAsNonNullable = 8625,
-        WRN_AsOperatorMayReturnNull = 8626,
+        //WRN_AsOperatorMayReturnNull = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
@@ -1671,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TripleDotNotAllowed = 8635,
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
-        WRN_ConditionalAccessMayReturnNull = 8638,
+        //WRN_ConditionalAccessMayReturnNull = 8638,
         ERR_BadNullableTypeof = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
@@ -1686,8 +1688,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IsNullableType = 8650,
         ERR_AsNullableType = 8651,
         ERR_FeatureInPreview = 8652,
-        WRN_DefaultExpressionMayIntroduceNullT = 8653,
-        WRN_NullLiteralMayIntroduceNullT = 8654,
+        //WRN_DefaultExpressionMayIntroduceNullT = 8653,
+        //WRN_NullLiteralMayIntroduceNullT = 8654,
         WRN_SwitchExpressionNotExhaustiveForNull = 8655,
 
         WRN_ImplicitCopyInReadOnlyMember = 8656,
@@ -1705,6 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
         ERR_NullableDirectiveTargetExpected = 8668,
         WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
+        WRN_NullReferenceInitializer = 8670,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 

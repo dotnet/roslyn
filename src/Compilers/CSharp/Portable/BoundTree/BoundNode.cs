@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
                 // This is broken out into a separate property so the debugger can display the
-                // top level nullability without setting the _attributes flag and interferring
+                // top level nullability without setting the _attributes flag and interfering
                 // with the normal operation of tests.
                 return TopLevelNullabilityCore;
             }

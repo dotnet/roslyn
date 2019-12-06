@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var builder = ArrayBuilder<SymbolAndProjectId<INamedTypeSymbol>>.GetInstance();
 
             // Group by projectId so that we only process one project/compilation at a time.
-            // Also, process in dependency order so taht previous compilations are ready if
+            // Also, process in dependency order so that previous compilations are ready if
             // they're referenced by later compilations.
             var dependencyOrder = solution.GetProjectDependencyGraph()
                                           .GetTopologicallySortedProjects()
@@ -331,6 +331,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // cache churn we could cause creating all those compilations.
             foreach (var project in orderedProjectsToExamine)
             {
+                Debug.Assert(project.SupportsCompilation);
                 await FindTypesInProjectAsync(
                     searchInMetadata, result,
                     currentMetadataTypes, currentSourceAndMetadataTypes,
@@ -364,6 +365,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool transitive,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(project.SupportsCompilation);
+
             // First see what derived metadata types we might find in this project.
             // This is only necessary if we started with a metadata type.
             if (searchInMetadata)
@@ -522,7 +525,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //          /
             //         └
             //        E
-            // and we're passed in 'B, C, E' as hte project to search, then this set 
+            // and we're passed in 'B, C, E' as the project to search, then this set 
             // will be A, B, C, E.
             var allProjectsThatTheseProjectsDependOn = projects
                 .SelectMany(p => dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(p.Id))
@@ -537,8 +540,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // any information that would affect the result in the projects we are asked to search
             // within.
 
+            // Finally, because we're searching metadata and source symbols, this needs to be a project
+            // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
                                                  .Select(solution.GetProject)
+                                                 .Where(p => p.SupportsCompilation)
                                                  .ToList();
         }
 
@@ -549,12 +555,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolAndProjectIdSet result,
             CancellationToken cancellationToken)
         {
-            if (metadataTypes.Count == 0)
-            {
-                return;
-            }
+            Debug.Assert(project.SupportsCompilation);
 
-            if (!project.SupportsCompilation)
+            if (metadataTypes.Count == 0)
             {
                 return;
             }

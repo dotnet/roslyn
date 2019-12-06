@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         public void WithOptimizationLevel_SetsOptimizationLevel(OptimizationLevel optimizationLevel)
         {
             Assert.Equal(ScriptOptions.Default.WithOptimizationLevel(optimizationLevel).OptimizationLevel, optimizationLevel);
-            Assert.Equal(ScriptOptions.Default.OptimizationLevel, OptimizationLevel.Debug);
+            Assert.Equal(OptimizationLevel.Debug, ScriptOptions.Default.OptimizationLevel);
         }
 
         [Theory]
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         public void WithWarningLevel_SetsWarningLevel(int warningLevel)
         {
             Assert.Equal(ScriptOptions.Default.WithWarningLevel(warningLevel).WarningLevel, warningLevel);
-            Assert.Equal(ScriptOptions.Default.WarningLevel, 4);
+            Assert.Equal(4, ScriptOptions.Default.WarningLevel);
         }
 
         [Theory]

@@ -218,7 +218,7 @@ class Test
   IL_0002:  ldc.i4.4
   IL_0003:  newarr     ""int""
   IL_0008:  dup
-  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.0304DE2B7DF2D15400D2997C7318A0237A5E33D3""
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.4A8C2B3FDBE4BA9BAB0F5168A74E3370B85D6A418160E46C55C26B8EADCBE89F""
   IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0013:  dup
   IL_0014:  ldc.i4.2
@@ -275,7 +275,7 @@ class Test
   IL_0002:  ldc.i4.8
   IL_0003:  newarr     ""byte""
   IL_0008:  dup
-  IL_0009:  ldtoken    ""long <PrivateImplementationDetails>.7CF9F8998983B6C88C228229964D73D4717979C1""
+  IL_0009:  ldtoken    ""long <PrivateImplementationDetails>.314FBB53F9F65BE9B88C66C76B51D81399A1035DEDE102E26DFE2E23A227D365""
   IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0013:  dup
   IL_0014:  ldc.i4.2
@@ -388,7 +388,7 @@ class Test
   .locals init (System.ReadOnlySpan<System.Color> V_0, //s1
                 System.ReadOnlySpan<System.Color> V_1)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.0C7A623FD2BBC05B06423BE359E4021D36E721AD""
+  IL_0002:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.AE4B3280E56E2FAF83F414A6E3DABE9D5FBE18976544C05FED121ACCB85B53FC""
   IL_0007:  ldc.i4.3
   IL_0008:  call       ""System.ReadOnlySpan<System.Color>..ctor(void*, int)""
   IL_000d:  ldloca.s   V_0
@@ -401,7 +401,7 @@ class Test
   IL_0022:  ldc.i4.1
   IL_0023:  call       ""ref readonly System.Color System.ReadOnlySpan<System.Color>.this[int].get""
   IL_0028:  ldind.i1
-  IL_0029:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.0C7A623FD2BBC05B06423BE359E4021D36E721AD""
+  IL_0029:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.AE4B3280E56E2FAF83F414A6E3DABE9D5FBE18976544C05FED121ACCB85B53FC""
   IL_002e:  ldc.i4.3
   IL_002f:  newobj     ""System.ReadOnlySpan<System.Color>..ctor(void*, int)""
   IL_0034:  stloc.1
@@ -517,7 +517,7 @@ class Test
   .maxstack  3
   IL_0000:  ldstr      ""QWERTYUIOP""
   IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
-  IL_000a:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.C5391E308AF25B42D5934D6A201A34E898D255C6""
+  IL_000a:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.C848E1013F9F04A9D63FA43CE7FD4AF035152C7C669A4A404B67107CEE5F2E4E""
   IL_000f:  ldc.i4.s   10
   IL_0011:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
   IL_0016:  call       ""void Test.Test1<char, byte>(System.ReadOnlySpan<char>, System.ReadOnlySpan<byte>)""
@@ -709,7 +709,7 @@ public class Test
             verifier.VerifyIL("Test.StaticData.get", @"{
   // Code size       12 (0xc)
   .maxstack  2
-  IL_0000:  ldsflda    ""short <PrivateImplementationDetails>.51348660BBFF19B8EA7F67E2D4B3787FB4842AD7""
+  IL_0000:  ldsflda    ""short <PrivateImplementationDetails>.C330FA753AC5BE3B8FCB52745062F781CC9E0F4FA981A2BD06FCB969355B9469""
   IL_0005:  ldc.i4.2
   IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
   IL_000b:  ret

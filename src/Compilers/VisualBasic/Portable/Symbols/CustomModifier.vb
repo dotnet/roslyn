@@ -27,6 +27,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public ReadOnly Property ModifierSymbol As NamedTypeSymbol
+            Get
+                Return m_Modifier
+            End Get
+        End Property
+
         Public MustOverride Overrides Function GetHashCode() As Integer
 
         Public MustOverride Overrides Function Equals(obj As Object) As Boolean

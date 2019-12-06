@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -30,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
-        private readonly EditAndContinue.VsENCRebuildableProjectImpl? _editAndContinueProject;
 
         public string DisplayName
         {
@@ -71,8 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _ => null
                 };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace) : null;
+                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
             });
+
+            visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));
 
@@ -83,14 +85,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
                     visualStudioProject,
                     () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
-            }
-
-            // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
-            // leaving the field null in that case.
-            if (Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShellDebugger)) != null)
-            {
-                // TODO: make this lazier, as fetching all the services up front during load shoudn't be necessary
-                _editAndContinueProject = new EditAndContinue.VsENCRebuildableProjectImpl(_visualStudioWorkspace, _visualStudioProject, Shell.ServiceProvider.GlobalProvider);
             }
 
             Guid = projectGuid;
@@ -171,6 +165,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 _visualStudioProject.MaxLangVersion = value;
             }
+            else if (name == AdditionalPropertyNames.RunAnalyzers)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzers = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+            }
         }
 
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
@@ -248,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void SetRuleSetFile(string filePath)
         {
-            // This is now a no-op: we also recieve the rule set file through SetOptions, and we'll just use that one
+            // This is now a no-op: we also receive the rule set file through SetOptions, and we'll just use that one
         }
 
         private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();

@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Indexer1()
         {
             var data = SourceText.From(string.Empty, Encoding.UTF8);
-            Assert.Throws(
-                typeof(IndexOutOfRangeException),
+            Assert.Throws<IndexOutOfRangeException>(
                 () => { var value = data[-1]; });
         }
 

@@ -108,6 +108,18 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
                 var mdReader = metadata.GetMetadataReader();
                 Assert.Equal("lib", mdReader.GetString(mdReader.GetAssemblyDefinition().Name));
             }
+
+            Assert.NotEqual(Guid.Empty, outputs.ReadAssemblyModuleVersionId());
+        }
+
+        [Fact]
+        public void ReadAssemblyModuleVersionId_NoAssembly()
+        {
+            var outputs = new TestCompilationOutputs(
+                openAssemblyStream: () => null,
+                openPdbStream: () => null);
+
+            Assert.Equal(Guid.Empty, outputs.ReadAssemblyModuleVersionId());
         }
     }
 }

@@ -29,9 +29,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return this.Start == other.Start && this.End == other.End;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return this.Equals((LineSpan)obj);
+            return obj is LineSpan other
+                && this.Equals(other);
         }
 
         public override int GetHashCode()

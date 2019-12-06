@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     return false;
                 }
 
-                // if there are more than one return in the method, convert to local funciton.
+                // if there are more than one return in the method, convert to local function.
                 if (memberDeclarationNode.DescendantNodes().OfType<ReturnStatementSyntax>().Count() == 1)
                 {
                     // before: return from a in b select a;

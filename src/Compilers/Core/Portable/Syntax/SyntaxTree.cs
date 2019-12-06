@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
         public abstract SyntaxTree WithFilePath(string path);
 
         /// <summary>
-        /// Returns a new tree whose <see cref="DiagnosticOptions" /> are the specifed value and other properties are copied
+        /// Returns a new tree whose <see cref="DiagnosticOptions" /> are the specified value and other properties are copied
         /// from the current tree.
         /// </summary>
         /// <param name="options">
