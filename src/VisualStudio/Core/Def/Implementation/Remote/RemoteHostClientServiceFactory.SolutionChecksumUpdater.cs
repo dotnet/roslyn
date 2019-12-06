@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var token = Listener.BeginAsyncOperation(nameof(PushTextChanges));
                 _textChangeQueue.ScheduleTask(async () =>
                 {
-                    var client = await _service.Workspace.TryGetRemoteHostClientAsync(CancellationToken).ConfigureAwait(false);
+                    var client = await RemoteHostClient.TryGetClientAsync(_service.Workspace, CancellationToken).ConfigureAwait(false);
                     if (client == null)
                     {
                         return;
@@ -183,9 +183,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                    await client.TryRunRemoteAsync(
+                    _ = await client.TryRunRemoteAsync(
                         WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
                         new object[] { oldDocument.Id, state.Text, textChanges }, CancellationToken).ConfigureAwait(false);
+
                 }, CancellationToken).CompletesAsyncOperation(token);
             }
         }

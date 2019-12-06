@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client == null)
                 {
                     // no remote support
@@ -536,7 +536,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                await client.TryRunCodeAnalysisRemoteAsync(
+                _ = await client.TryRunRemoteAsync(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(AnalyzerService), /* unit count */ 1 },
                     cancellationToken).ConfigureAwait(false);

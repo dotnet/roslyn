@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 try
                 {
-                    await client.TryRunCodeAnalysisRemoteAsync(
+                    _ = await client.TryRunRemoteAsync(
+                        WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                         new object[]
                         {
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
                     project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
 
-                using var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var session = await client.TryCreateSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, cancellationToken).ConfigureAwait(false);
                 if (session == null)
                 {
                     // session is not available

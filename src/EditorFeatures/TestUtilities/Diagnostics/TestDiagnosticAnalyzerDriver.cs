@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private async Task SynchronizeGlobalAssetToRemoteHostIfNeededAsync(Workspace workspace)
         {
-            var client = await workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
             if (client == null)
             {
                 return;
@@ -140,10 +140,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var checksums = AddGlobalAssets(workspace);
 
             // send over global asset
-            await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+            _ = await client.TryRunRemoteAsync(
+                WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                (object)checksums, CancellationToken.None).ConfigureAwait(false);
+                workspace.CurrentSolution,
+                new[] { (object)checksums },
+                CancellationToken.None).ConfigureAwait(false);
         }
 
         private Checksum[] AddGlobalAssets(Workspace workspace)

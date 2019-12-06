@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Packaging;
@@ -91,14 +93,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
                     name, arity, cancellationToken).ConfigureAwait(false);
-                if (results == null)
-                {
-                    return;
-                }
 
                 var project = _document.Project;
-                var projectId = project.Id;
-                var workspace = project.Solution.Workspace;
 
                 foreach (var result in results)
                 {
@@ -122,21 +118,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await _symbolSearchService.FindPackagesWithTypeAsync(
                     source.Name, name, arity, cancellationToken).ConfigureAwait(false);
-                if (results == null)
-                {
-                    return;
-                }
-
-                var project = _document.Project;
-                var projectId = project.Id;
-                var workspace = project.Solution.Workspace;
 
                 foreach (var result in results)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     HandleNugetReference(
                         source.Source, allReferences, nameNode,
-                        project, isAttributeSearch, result,
+                        isAttributeSearch, result,
                         weight: allReferences.Count);
                 }
             }
@@ -154,6 +142,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    // The project must support compilations since we only create compilation for the project that invoked AddImport feature.
+                    RoslynDebug.Assert(compilation != null);
+
                     var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
                     if (assemblySymbol?.Name == result.AssemblyName)
                     {
@@ -171,7 +163,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                 string source,
                 ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
-                Project project,
                 bool isAttributeSearch,
                 PackageWithTypeResult result,
                 int weight)

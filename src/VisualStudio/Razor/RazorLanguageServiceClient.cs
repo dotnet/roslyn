@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var innerSession = await _client.TryCreateSessionAsync(_serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
+            var innerSession = await _client.TryCreateSessionAsync(_serviceName, solution, cancellationToken, callbackTarget).ConfigureAwait(false);
             if (innerSession == null)
             {
                 return null;

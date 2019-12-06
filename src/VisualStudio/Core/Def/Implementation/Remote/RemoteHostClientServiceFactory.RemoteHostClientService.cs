@@ -197,23 +197,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var client = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (client == null)
+                if (client != null)
                 {
-                    return null;
+                    client.StatusChanged += OnStatusChanged;
+
+                    // set global assets on remote host
+                    var checksums = AddGlobalAssets(cancellationToken);
+
+                    // send over global asset
+                    var success = await client.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService,
+                        nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
+                        _workspace.CurrentSolution,
+                        new[] { (object)checksums },
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (success)
+                    {
+                        return client;
+                    }
                 }
 
-                client.StatusChanged += OnStatusChanged;
-
-                // set global assets on remote host
-                var checksums = AddGlobalAssets(cancellationToken);
-
-                // send over global asset
-                await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    (object)checksums, cancellationToken).ConfigureAwait(false);
-
-                return client;
+                return null;
             }
 
             private Checksum[] AddGlobalAssets(CancellationToken cancellationToken)

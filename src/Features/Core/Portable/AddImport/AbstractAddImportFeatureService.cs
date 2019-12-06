@@ -52,27 +52,31 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<AddImportFixData>>(
-                    callbackTarget,
+                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
+
+                var result = await client.TryRunRemoteAsync<IList<AddImportFixData>>(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                    document.Project.Solution,
                     new object[]
                     {
-                    document.Id,
-                    span,
-                    diagnosticId,
-                    maxResults,
-                    placeSystemNamespaceFirst,
-                    searchReferenceAssemblies,
-                    packageSources
+                        document.Id,
+                        span,
+                        diagnosticId,
+                        maxResults,
+                        placeSystemNamespaceFirst,
+                        searchReferenceAssemblies,
+                        packageSources
                     },
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    callbackTarget).ConfigureAwait(false);
 
-                if (result != null)
+                if (result.HasValue)
                 {
-                    return result.ToImmutableArray();
+                    return result.Value.ToImmutableArray();
                 }
             }
 

@@ -78,6 +78,27 @@ namespace Microsoft.CodeAnalysis.Remote
             return $"VS ({prefix}) ({Guid.NewGuid().ToString()})";
         }
 
+        public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
+        {
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return SpecializedTasks.Default<RemoteHostClient?>();
+            }
+
+            return TryGetClientAsync(project.Solution.Workspace, cancellationToken);
+        }
+
+        public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
+        {
+            var service = workspace.Services.GetService<IRemoteHostClientService>();
+            if (service == null)
+            {
+                return SpecializedTasks.Default<RemoteHostClient?>();
+            }
+
+            return service.TryGetRemoteHostClientAsync(cancellationToken);
+        }
+
         /// <summary>
         /// NoOpClient is used if a user killed our remote host process. Basically this client never
         /// create a session
