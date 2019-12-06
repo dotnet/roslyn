@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(2, diagnostics.Count())
 
                 ' Verify available diagnostic descriptors/analyzers if not project specific
-                descriptorsMap = diagnosticService.CreateDiagnosticDescriptorsPerReference(project:=Nothing)
+                descriptorsMap = diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt:=Nothing)
                 Assert.Equal(1, descriptorsMap.Count)
                 descriptors = descriptorsMap.First().Value
                 Assert.Equal(1, descriptors.Count)
@@ -315,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
-                Dim workspaceDescriptors = diagnosticService.CreateDiagnosticDescriptorsPerReference(project:=Nothing)
+                Dim workspaceDescriptors = diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt:=Nothing)
                 Assert.Equal(0, workspaceDescriptors.Count)
 
                 Dim alphaDescriptors = diagnosticService.CreateDiagnosticDescriptorsPerReference(alpha)
@@ -349,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 analyzersMap.Add(LanguageNames.VisualBasic, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer2))
                 Dim diagnosticService2 = New TestDiagnosticAnalyzerService(analyzersMap.ToImmutableDictionary())
 
-                Dim descriptors = diagnosticService2.CreateDiagnosticDescriptorsPerReference(project:=Nothing)
+                Dim descriptors = diagnosticService2.CreateDiagnosticDescriptorsPerReference(projectOpt:=Nothing)
                 Assert.Equal(1, descriptors.Count)
                 Assert.Equal(2, descriptors.Single().Value.Count)
             End Using
