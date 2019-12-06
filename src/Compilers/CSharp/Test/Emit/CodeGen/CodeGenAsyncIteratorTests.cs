@@ -1881,6 +1881,7 @@ public class C
 
         [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
+        [WorkItem(39970, "https://github.com/dotnet/roslyn/issues/39970")]
         public void AsyncIterator_WithoutAwait_WithoutAsync()
         {
             string source = @"
@@ -1892,11 +1893,13 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
-            comp.VerifyDiagnostics(
+            var expected = new DiagnosticDescription[] {
                 // (4,61): error CS8403: Method 'C.M()' with an iterator block must be 'async' to return 'IAsyncEnumerable<int>'
                 //     static System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 61)
-                );
+            };
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -6487,6 +6490,7 @@ class C
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        [WorkItem(39961, "https://github.com/dotnet/roslyn/issues/39961")]
         public void CancellationTokenParameter_WrongParameterType()
         {
             string source = @"
@@ -6499,13 +6503,21 @@ class C
         yield return value++;
         await Task.Yield();
     }
+    static async Task Main()
+    {
+        await foreach (var i in Iter(42))
+        {
+            System.Console.Write(i);
+        }
+    }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,73): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value)
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(6, 73)
                 );
+            CompileAndVerify(comp, expectedOutput: "42");
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]

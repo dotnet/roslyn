@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../EditorFeaturesWpfResources.resx">
     <body>
-      <trans-unit id="Configure_or_Suppress_issues">
-        <source>Configure or Suppress issues</source>
-        <target state="translated">Sorunları Yapılandır veya Gizle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
         <target state="translated">Dizin indirilemedi</target>
@@ -65,6 +60,11 @@
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="translated">Regex - diğer kaçış</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="new">Suppress or Configure issues</target>
         <note />
       </trans-unit>
     </body>

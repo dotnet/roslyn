@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -38,17 +42,41 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal CodeFix(Project project, CodeAction action, Diagnostic diagnostic)
         {
-            this.Project = project;
-            this.Action = action;
-            this.Diagnostics = ImmutableArray.Create(diagnostic);
+            Project = project;
+            Action = action;
+            Diagnostics = ImmutableArray.Create(diagnostic);
         }
 
         internal CodeFix(Project project, CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
             Debug.Assert(!diagnostics.IsDefault);
-            this.Project = project;
-            this.Action = action;
-            this.Diagnostics = diagnostics;
+            Project = project;
+            Action = action;
+            Diagnostics = diagnostics;
+        }
+
+        internal DiagnosticData GetPrimaryDiagnosticData()
+        {
+            var diagnostic = PrimaryDiagnostic;
+
+            if (diagnostic.Location.IsInSource)
+            {
+                var document = Project.GetDocument(diagnostic.Location.SourceTree);
+                if (document != null)
+                {
+                    return DiagnosticData.Create(diagnostic, document);
+                }
+            }
+            else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+            {
+                var document = Project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
+                if (document != null)
+                {
+                    return DiagnosticData.Create(diagnostic, document);
+                }
+            }
+
+            return DiagnosticData.Create(diagnostic, Project);
         }
     }
 }

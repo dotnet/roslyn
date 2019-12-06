@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal abstract class EESymbolProvider<TTypeSymbol, TLocalSymbol>
-        where TTypeSymbol : class, ITypeSymbol
-        where TLocalSymbol : class
+        where TTypeSymbol : class, ITypeSymbolInternal
+        where TLocalSymbol : class, ILocalSymbolInternal
     {
         /// <summary>
         /// Windows PDB constant signature format.
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<string> tupleElementNamesOpt);
 
         /// <exception cref="BadImageFormatException"></exception>
-        public abstract IAssemblySymbol GetReferencedAssembly(AssemblyReferenceHandle handle);
+        public abstract IAssemblySymbolInternal GetReferencedAssembly(AssemblyReferenceHandle handle);
 
         /// <exception cref="BadImageFormatException"></exception>
         public abstract TTypeSymbol GetType(EntityHandle handle);

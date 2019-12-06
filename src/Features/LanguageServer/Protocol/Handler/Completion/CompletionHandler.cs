@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
                 => new TCompletionItem
                 {
-                    Label = item.DisplayText,
+                    Label = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
                     InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,

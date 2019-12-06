@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 CustomModifier candidateCustomModifier = candidateCustomModifiers[i];
 
                 if (targetCustomModifier.IsOptional != candidateCustomModifier.IsOptional ||
-                    !object.Equals(targetCustomModifier.Modifier, candidateCustomModifier.Modifier))
+                    !object.Equals(targetCustomModifier.Modifier, ((CSharpCustomModifier)candidateCustomModifier).ModifierSymbol))
                 {
                     return false;
                 }

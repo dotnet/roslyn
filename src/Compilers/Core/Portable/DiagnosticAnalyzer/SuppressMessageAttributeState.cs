@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Ignore the category parameter because it does not identify the diagnostic
             // and category information can be obtained from diagnostics themselves.
-            info.Id = attribute.CommonConstructorArguments[1].Value as string;
+            info.Id = attribute.CommonConstructorArguments[1].ValueInternal as string;
             if (info.Id == null)
             {
                 return false;

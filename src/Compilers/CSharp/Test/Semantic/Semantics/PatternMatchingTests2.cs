@@ -620,7 +620,7 @@ public class Point
                 var model = compilation.GetSemanticModel(tree);
                 var symbol = model.GetDeclaredSymbol(designation);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
-                Assert.Equal("int", ((LocalSymbol)symbol).TypeWithAnnotations.ToDisplayString());
+                Assert.Equal("int", ((ILocalSymbol)symbol).Type.ToDisplayString());
             }
             foreach (var ident in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
             {

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((options & SymbolInfoOptions.PreserveAliases) != 0)
             {
-                var aliasSymbol = (AliasSymbol)_parentSemanticModel.GetSpeculativeAliasInfo(_position, expression, this.GetSpeculativeBindingOption(expression));
+                var aliasSymbol = _parentSemanticModel.GetSpeculativeAliasInfo(_position, expression, this.GetSpeculativeBindingOption(expression));
                 return new SymbolInfo(aliasSymbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 

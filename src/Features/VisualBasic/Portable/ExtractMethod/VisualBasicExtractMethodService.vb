@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return New VisualBasicSelectionValidator(document, textSpan, options)
         End Function
 
-        Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult) As VisualBasicMethodExtractor
+        Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult, localFunction As Boolean) As VisualBasicMethodExtractor
             Return New VisualBasicMethodExtractor(selectionResult)
         End Function
     End Class

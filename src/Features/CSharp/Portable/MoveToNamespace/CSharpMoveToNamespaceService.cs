@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
 {
     [ExportLanguageService(typeof(IMoveToNamespaceService), LanguageNames.CSharp), Shared]
     internal class CSharpMoveToNamespaceService :
-        AbstractMoveToNamespaceService<CompilationUnitSyntax, NamespaceDeclarationSyntax, TypeDeclarationSyntax>
+        AbstractMoveToNamespaceService<CompilationUnitSyntax, NamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

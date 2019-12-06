@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // if span mapping service filtered out the span, make sure
                 // to return null so that we remove the span from the result
-                return results.FirstOrNullable(r => !r.IsDefault);
+                return results.FirstOrNull(r => !r.IsDefault);
             }
 
             public static SourceText GetLineContainingPosition(SourceText text, int position)
