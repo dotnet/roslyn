@@ -173,16 +173,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                     source, result.PackageName, result.Version));
             }
 
-            private static string GetDesiredName(bool isAttributeSearch, string typeName)
-            {
-                var desiredName = typeName;
-                if (isAttributeSearch)
-                {
-                    desiredName = desiredName.GetWithoutAttributeSuffix(isCaseSensitive: false);
-                }
-
-                return desiredName;
-            }
+            private static string? GetDesiredName(bool isAttributeSearch, string typeName)
+                => isAttributeSearch ? typeName.GetWithoutAttributeSuffix(isCaseSensitive: false) : typeName;
         }
     }
 }
