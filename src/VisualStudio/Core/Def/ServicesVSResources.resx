@@ -1353,7 +1353,7 @@ I agree to all of the foregoing:</value>
   <data name="Entire_Solution" xml:space="preserve">
     <value>Entire Solution</value>
   </data>
-  <data name="CSharp_VB_Language_Server_Client" xml:space="preserve">
+  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>C#/Visual Basic Language Server Client</value>
   </data>
 </root>

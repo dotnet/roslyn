@@ -72,7 +72,7 @@
         <target state="translated">ビルド + ライブ分析 (NuGet パッケージ)</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Language_Server_Client">
+      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
         <source>C#/Visual Basic Language Server Client</source>
         <target state="new">C#/Visual Basic Language Server Client</target>
         <note />
