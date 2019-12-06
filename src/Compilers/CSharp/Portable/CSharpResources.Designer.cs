@@ -15764,24 +15764,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Dereference of a possibly null reference..
         /// </summary>
         internal static string WRN_NullReferenceReceiver {
