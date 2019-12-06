@@ -223,13 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var typeSyntax = typeConstraintSyntax.Type;
                             var typeSyntaxKind = typeSyntax.Kind();
 
-                            // For pointer types, don't report this error. It is already reported during binding typeSyntax below.
                             switch (typeSyntaxKind)
                             {
                                 case SyntaxKind.PredefinedType:
-                                case SyntaxKind.PointerType:
                                 case SyntaxKind.NullableType:
                                     break;
+                                case SyntaxKind.PointerType:
                                 default:
                                     if (!SyntaxFacts.IsName(typeSyntax.Kind()))
                                     {
@@ -525,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case TypeKind.Array:
                 case TypeKind.Pointer:
-                    // CS0706 already reported by parser.
+                    // CS0706 already reported by binding above.
                     return false;
 
                 case TypeKind.Submission:
