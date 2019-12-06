@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                var documentHadDiagnostics = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
 
@@ -168,10 +169,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                _stateManager.OnDocumentReset(stateSets, document);
+                var documentHadDiagnostics = _stateManager.OnDocumentReset(stateSets, document);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
             return Task.CompletedTask;
+        }
+
+        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(Document document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
+        {
+            // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
+            if (!documentHadDiagnostics ||
+                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
+            {
+                // this is Perf to reduce raising events unnecessarily.
+                return;
+            }
+
+            var removeDiagnosticsOnDocumentClose = document.Project.Solution.Options.GetOption(ServiceFeatureOnOffOptions.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
+
+            // TODO: Remove the below hard-coded check for TypeScript once they update their code to explicitly set the above option.
+            if (document.Project.Language != "TypeScript" &&
+                !removeDiagnosticsOnDocumentClose)
+            {
+                return;
+            }
+
+            RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
         }
 
         public void RemoveDocument(DocumentId documentId)
@@ -191,17 +215,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                // remove all diagnostics for the document
-                AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-                {
-                    foreach (var stateSet in stateSets)
-                    {
-                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
-                    }
-                });
+                RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
             }
+        }
+
+        private void RaiseDiagnosticsRemovedForDocument(DocumentId documentId, IEnumerable<StateSet> stateSets)
+        {
+            // remove all diagnostics for the document
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                foreach (var stateSet in stateSets)
+                {
+                    // clear all doucment diagnostics
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                }
+            });
         }
 
         public void RemoveProject(ProjectId projectId)
