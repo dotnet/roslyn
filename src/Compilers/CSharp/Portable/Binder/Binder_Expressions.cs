@@ -7156,7 +7156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!IsSemanticModelBinder)
                 {
-                    Compilation.AddUsedAssembly(type.ContainingAssembly);
+                    AddUsedAssembly(type.ContainingAssembly);
                 }
 
                 diagnostics.Add(node, useSiteDiagnostics);
@@ -7164,6 +7164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             attemptDiagnostics.Free();
             return result;
+        }
+
+        internal void AddUsedAssembly(AssemblySymbol assembly)
+        {
+            Debug.Assert(!IsSemanticModelBinder);
+            Compilation.AddUsedAssembly(assembly);
         }
 
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, SpecialType specialType, SyntaxNode node, DiagnosticBag diagnostics)
