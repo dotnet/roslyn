@@ -100,6 +100,72 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
+        /// Creates <see cref="SessionWithSolution"/> for the <paramref name="serviceName"/> if possible, otherwise returns <see langword="null"/>.
+        /// </summary>
+        public async Task<SessionWithSolution?> TryCreateSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken, object? callbackTarget = null)
+        {
+            var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
+            {
+                return null;
+            }
+
+            return await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Creates <see cref="KeepAliveSession"/> for the <paramref name="serviceName"/>, otherwise returns <see langword="null"/>.
+        /// </summary>
+        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(string serviceName, CancellationToken cancellationToken, object? callbackTarget = null)
+        {
+            var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
+            {
+                return null;
+            }
+
+            return new KeepAliveSession(this, connection, serviceName, callbackTarget);
+        }
+
+        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, Solution solution,
+            IReadOnlyList<object> arguments, CancellationToken cancellationToken, object? callbackTarget = null)
+        {
+            using var session = await TryCreateSessionAsync(serviceName, solution, cancellationToken, callbackTarget).ConfigureAwait(false);
+            if (session == null)
+            {
+                return false;
+            }
+
+            await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+
+        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken, object? callbackTarget = null)
+        {
+            using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
+            {
+                return false;
+            }
+
+            await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken, object? callbackTarget = null)
+        {
+            using var session = await TryCreateSessionAsync(serviceName, solution, cancellationToken, callbackTarget).ConfigureAwait(false);
+            if (session == null)
+            {
+                return default;
+            }
+
+            return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+        }
+
+
+
+        /// <summary>
         /// NoOpClient is used if a user killed our remote host process. Basically this client never
         /// create a session
         /// </summary>
