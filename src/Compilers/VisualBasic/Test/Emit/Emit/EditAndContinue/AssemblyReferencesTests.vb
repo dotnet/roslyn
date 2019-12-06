@@ -272,7 +272,7 @@ End Class
             diff1.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
                     String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
-                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.2000.1002")))
+                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")))
         End Sub
 
         <Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")>
@@ -342,7 +342,7 @@ End Class
             diff1.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
                     String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
-                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null", "1.0.0.2")))
+                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.0.2")))
         End Sub
 
         Public Sub VerifyAssemblyReferences(reader As AggregatedMetadataReader, expected As String())
