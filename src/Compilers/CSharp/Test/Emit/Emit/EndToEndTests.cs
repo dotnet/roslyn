@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 270,
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290,
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 170,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 700, // PROTOTYPE(angocke): Improve stack usage
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 

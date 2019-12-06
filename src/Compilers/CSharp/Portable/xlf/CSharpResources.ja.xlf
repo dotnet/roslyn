@@ -894,6 +894,11 @@
         <target state="translated">読み取り専用メンバー</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRecords">
+        <source>records</source>
+        <target state="new">records</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
         <source>recursive patterns</source>
         <target state="translated">再帰的パターン</target>

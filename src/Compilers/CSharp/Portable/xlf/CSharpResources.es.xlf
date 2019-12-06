@@ -895,6 +895,11 @@
         <target state="translated">miembros de solo lectura</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRecords">
+        <source>records</source>
+        <target state="new">records</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
         <source>recursive patterns</source>
         <target state="translated">patrones recursivos</target>
