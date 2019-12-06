@@ -734,7 +734,7 @@
       </trans-unit>
       <trans-unit id="Prefer_block_body">
         <source>Prefer block body</source>
-        <target state="translated">Blocktext bevorzugen</target>
+        <target state="translated">Blocktextkörper bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_expression_body">

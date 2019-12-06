@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Aplicar todas as regras de formatação de C# (recuo, disposição, espaçamento)</target>
+        <target state="translated">Aplicar todas as regras de formatação de C# (recuo, quebra de linha, espaçamento)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
