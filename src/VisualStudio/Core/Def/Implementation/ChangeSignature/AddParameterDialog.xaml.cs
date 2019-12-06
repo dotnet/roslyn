@@ -2,7 +2,6 @@
 
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interop;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -65,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             DialogResult = false;
         }
 
-        private void TypeNameContentControl_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void TypeNameContentControl_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             UIElement elementWithFocus = Keyboard.FocusedElement as UIElement;
 
@@ -91,18 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     else
                     {
                         // Let the editor control handle the keystrokes
-                        System.Windows.Interop.MSG msg = ComponentDispatcher.CurrentKeyboardMessage;
-
-                        var oleInteropMsg = new OLE.Interop.MSG();
-
-                        oleInteropMsg.hwnd = msg.hwnd;
-                        oleInteropMsg.message = (uint)msg.message;
-                        oleInteropMsg.wParam = msg.wParam;
-                        oleInteropMsg.lParam = msg.lParam;
-                        oleInteropMsg.pt.x = msg.pt_x;
-                        oleInteropMsg.pt.y = msg.pt_y;
-
-                        e.Handled = typeNameTextBox.HandleKeyDown(oleInteropMsg);
+                        e.Handled = typeNameTextBox.HandleKeyDown();
                     }
                 }
             }
