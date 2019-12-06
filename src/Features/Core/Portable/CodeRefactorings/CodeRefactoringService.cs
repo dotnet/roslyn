@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan state,
             CancellationToken cancellationToken)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             foreach (var provider in GetProviders(document))
             {
@@ -96,35 +93,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan state,
             CancellationToken cancellationToken)
-            => GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
+        {
+            return ((ICodeRefactoringService)this).GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
+        }
 
-        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
+        async Task<ImmutableArray<CodeRefactoring>> ICodeRefactoringService.GetRefactoringsAsync(
             Document document,
             TextSpan state,
             bool isBlocking,
-            CancellationToken cancellationToken)
-            => GetRefactoringsAsync(document, state, isBlocking, addOperationScope: _ => null, cancellationToken);
-
-        public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
-            Document document,
-            TextSpan state,
-            bool isBlocking,
-            Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
-                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
-                var tasks = new List<Task<CodeRefactoring?>>();
+                var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+                var tasks = new List<Task<CodeRefactoring>>();
 
                 foreach (var provider in GetProviders(document))
                 {
                     tasks.Add(Task.Run(
                         () =>
                         {
-                            var providerName = provider.GetType().Name;
-                            using (addOperationScope(providerName))
-                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
+                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, provider, cancellationToken))
                             {
                                 return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
                             }
@@ -137,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
+        private async Task<CodeRefactoring> GetRefactoringFromProviderAsync(
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,
