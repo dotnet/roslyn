@@ -26,7 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         protected override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
         {
             var spans = new List<TextSpan>();
-            HighlightRelatedKeywords(node, spans);
+            foreach (var child in node.DescendantNodesAndSelf(n => !n.IsReturnableConstruct()))
+            {
+                HighlightRelatedKeywords(node, spans);
+            }
             return spans;
         }
 
@@ -103,15 +106,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                         spans.Add(forEachStatement.AwaitKeyword.Span);
                     }
                     break;
-            }
-
-            foreach (var child in node.ChildNodes())
-            {
-                // Only recurse if we have anything to do
-                if (!child.IsReturnableConstruct())
-                {
-                    HighlightRelatedKeywords(child, spans);
-                }
             }
         }
     }
