@@ -532,9 +532,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
                 //
-                // The cancellation token is passed to the prior work when it starts, not when it's joined. This is
-                // the equivalent of TaskContinuationOptions.LazyCancellation.
-                var result = await _allRenameLocationsTask.JoinAsync(CancellationToken.None).ConfigureAwait(false);
+                // If cancellation of the conflict resolution task is requested before the rename locations task
+                // completes, we do not need to wait for rename before cancelling. The next conflict resolution task
+                // will wait on the latest rename location task if/when necessary.
+                var result = await _allRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
                 await TaskScheduler.Default;
 
                 return await result.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false);
