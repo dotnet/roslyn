@@ -35,20 +35,17 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         {
             while (true)
             {
-                if (expression is IParenthesizedOperation parenthesized)
+                switch (expression)
                 {
-                    expression = parenthesized.Operand;
-                    continue;
+                    case IParenthesizedOperation parenthesized:
+                        expression = parenthesized.Operand;
+                        continue;
+                    case IConversionOperation { IsImplicit: true } conversion:
+                        expression = conversion.Operand;
+                        continue;
+                    default:
+                        return expression;
                 }
-
-                if (expression is IConversionOperation conversion &&
-                    conversion.IsImplicit)
-                {
-                    expression = conversion.Operand;
-                    continue;
-                }
-
-                return expression;
             }
         }
 
