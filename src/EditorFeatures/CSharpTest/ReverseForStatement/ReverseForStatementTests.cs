@@ -412,5 +412,68 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestByteOneMin()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (byte i = 1; i <= 10; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (byte i = 10; i >= 1; i--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestByteZeroMin()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (byte i = 0; i <= 10; i++)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestByteMax()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (byte i = 1; i < byte.MaxValue; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (byte i = 10; i >= 1; i--)
+        {
+        }
+    }
+}");
+        }
     }
 }
