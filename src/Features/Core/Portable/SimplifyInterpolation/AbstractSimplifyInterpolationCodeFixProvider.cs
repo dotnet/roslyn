@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             {
                 var loc = diagnostic.AdditionalLocations[0];
                 var interpolation = semanticModel.GetOperation(loc.FindNode(getInnermostNodeForTie: true, cancellationToken)) as IInterpolationOperation;
-                var interpolationSyntax = interpolation.Syntax as TInterpolationSyntax;
-                if (interpolation != null && interpolationSyntax != null)
+                if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax)
                 {
                     Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                         interpolation, out var unwrapped, out var alignment, out var negate, out var formatString);
