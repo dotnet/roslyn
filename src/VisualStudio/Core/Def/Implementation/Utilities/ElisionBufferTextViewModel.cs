@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal class ElisionBufferTextViewModel : ITextViewModel
     {
