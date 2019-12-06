@@ -62,27 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     TryAddAsyncOrAwaitKeyword(forEachStatement.AwaitKeyword, spans);
                     return;
                 case AwaitExpressionSyntax awaitExpression:
-                    // Note if there is already a highlight for the previous token, merge it
-                    // with this span. That way, we highlight nested awaits with a single span.
-                    var handled = false;
-                    var awaitToken = awaitExpression.AwaitKeyword;
-                    var previousToken = awaitToken.GetPreviousToken();
-                    if (!previousToken.Span.IsEmpty)
-                    {
-                        var index = spans.FindIndex(s => s.Contains(previousToken.Span));
-                        if (index >= 0)
-                        {
-                            var span = spans[index];
-                            spans[index] = TextSpan.FromBounds(span.Start, awaitToken.Span.End);
-                            handled = true;
-                        }
-                    }
-
-                    if (!handled)
-                    {
-                        spans.Add(awaitToken.Span);
-                    }
-                    break;
+                    TryAddAsyncOrAwaitKeyword(awaitExpression.AwaitKeyword, spans);
+                    return;
             }
         }
 
@@ -101,6 +82,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
             if (mod.IsKind(SyntaxKind.AsyncKeyword, SyntaxKind.AwaitKeyword))
             {
+                // Note if there is already a highlight for the previous token, merge it with this
+                // span. That way, we highlight nested awaits with a single span.
+
+                if (spans.Count > 0)
+                {
+                    var previousToken = mod.GetPreviousToken();
+                    var lastSpan = spans[spans.Count - 1];
+                    if (lastSpan == previousToken.Span)
+                    {
+                        spans[spans.Count - 1] = TextSpan.FromBounds(lastSpan.Start, mod.Span.End);
+                        return true;
+                    }
+                }
+
                 spans.Add(mod.Span);
                 return true;
             }
