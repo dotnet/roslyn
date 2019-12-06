@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeQuality
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
-        public bool OpenFileOnly(Workspace workspace)
+        public bool OpenFileOnly(OptionSet options)
             => false;
 
         protected static DiagnosticDescriptor CreateDescriptor(

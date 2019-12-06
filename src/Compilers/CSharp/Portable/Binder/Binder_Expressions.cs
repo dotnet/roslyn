@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             commonType = CreateErrorType();
                             hasErrors = true;
                         }
-                        result = ConvertSwitchExpression(expr, commonType, targetTyped: false, diagnostics, hasErrors);
+                        result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:

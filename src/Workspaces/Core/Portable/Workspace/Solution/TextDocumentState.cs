@@ -40,6 +40,13 @@ namespace Microsoft.CodeAnalysis
         // Checksums for this solution state
         private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
 
+        public DocumentInfo.DocumentAttributes Attributes { get; }
+
+        /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        public IDocumentServiceProvider Services { get; }
+
         protected TextDocumentState(
             SolutionServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
@@ -62,33 +69,6 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public DocumentInfo.DocumentAttributes Attributes { get; }
-
-        /// <summary>
-        /// A <see cref="IDocumentServiceProvider"/> associated with this document
-        /// </summary>
-        public IDocumentServiceProvider Services { get; }
-
-        public DocumentId Id
-        {
-            get { return Attributes.Id; }
-        }
-
-        public string? FilePath
-        {
-            get { return Attributes.FilePath; }
-        }
-
-        public IReadOnlyList<string> Folders
-        {
-            get { return Attributes.Folders; }
-        }
-
-        public string Name
-        {
-            get { return this.Attributes.Name; }
-        }
-
         public TextDocumentState(DocumentInfo info, SolutionServices services)
             : this(
                   services,
@@ -100,6 +80,11 @@ namespace Microsoft.CodeAnalysis
                     : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
         {
         }
+
+        public DocumentId Id => Attributes.Id;
+        public string? FilePath => Attributes.FilePath;
+        public IReadOnlyList<string> Folders => Attributes.Folders;
+        public string Name => Attributes.Name;
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
         {
@@ -269,7 +254,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             if (sourceText != null)
             {

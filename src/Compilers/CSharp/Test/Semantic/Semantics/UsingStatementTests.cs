@@ -1133,6 +1133,72 @@ class C2
         }
 
         [Fact]
+        [WorkItem(32728, "https://github.com/dotnet/roslyn/issues/32728")]
+        public void UsingPatternWithLangVer7_3()
+        {
+            var source = @"
+ref struct S1
+{
+    public void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (S1 s = new S1())
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (11,16): error CS8370: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("using declarations", "8.0").WithLocation(11, 16)
+            );
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(32728, "https://github.com/dotnet/roslyn/issues/32728")]
+        public void UsingInvalidPatternWithLangVer7_3()
+        {
+            var source = @"
+ref struct S1
+{
+    public int Dispose() { return 0; }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (S1 s = new S1())
+        {
+        }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //         using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
+            );
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (11,16): warning CS0280: 'S1' does not implement the 'disposable' pattern. 'S1.Dispose()' has the wrong signature.
+                //         using (S1 s = new S1())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "S1 s = new S1()").WithArguments("S1", "disposable", "S1.Dispose()").WithLocation(11, 16),
+                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //         using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
+                );
+        }
+
+        [Fact]
         public void Lambda()
         {
             var source = @"

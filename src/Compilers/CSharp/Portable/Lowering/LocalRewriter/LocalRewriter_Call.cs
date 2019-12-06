@@ -1396,12 +1396,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
                 }
             }
-            else if (defaultConstantValue.IsNull &&
-                (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType())))
+            else if (defaultConstantValue.IsNull)
             {
-                // We have something like M(int? x = null) or M(S x = default(S)),
-                // so replace the argument with default(int?).
-                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                if (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType()))
+                {
+                    // We have something like M(int? x = null) or M(S x = default(S)),
+                    // so replace the argument with default(int?).
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
+                }
+            }
+            else if (defaultConstantValue.IsBad)
+            {
+                defaultValue = new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, parameterType, hasErrors: true) { WasCompilerGenerated = true };
             }
             else if (parameterType.IsNullableType())
             {
@@ -1423,10 +1433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null,
                     defaultValue)
                 { WasCompilerGenerated = true };
-            }
-            else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
-            {
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
             }
             else
             {

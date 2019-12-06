@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public HostGroup HostGroup => _hostGroup;
 
-            public Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            public Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
                 // pool is not enabled by option
                 if (!_enableConnectionPool)
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return TryGetConnectionFromPoolAsync(serviceName, cancellationToken);
             }
 
-            private async Task<Connection> TryGetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
+            private async Task<Connection?> TryGetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
             {
                 var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<JsonRpcConnection>());
                 if (queue.TryDequeue(out var connection))
@@ -97,17 +99,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new PooledConnection(this, serviceName, connection);
                 }
 
-                var newConnection = (JsonRpcConnection)await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+                var newConnection = await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
                 if (newConnection == null)
                 {
                     // we might not get new connection if we are either shutdown explicitly or due to OOP terminated
                     return null;
                 }
 
-                return new PooledConnection(this, serviceName, newConnection);
+                return new PooledConnection(this, serviceName, (JsonRpcConnection)newConnection);
             }
 
-            private async Task<Connection> TryCreateNewConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            private async Task<Connection?> TryCreateNewConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
                 var dataRpc = _remotableDataRpc.TryAddReference();
                 if (dataRpc == null)
