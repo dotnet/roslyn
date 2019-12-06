@@ -1341,7 +1341,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Indentation5_UseTabs()
         {
             const string code =
@@ -1813,7 +1813,7 @@ $$
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineAbove4_Tabs()
         {
             const string code =
@@ -1923,7 +1923,7 @@ $$
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineBelow4_Tabs()
         {
             const string code =

@@ -107,6 +107,11 @@
         <target state="translated">Interpunkce</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="new">Removal of document not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file">
         <source>Rename _file</source>
         <target state="translated">Přejmenovat _soubor</target>
