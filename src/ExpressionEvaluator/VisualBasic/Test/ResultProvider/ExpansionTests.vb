@@ -514,10 +514,10 @@ End Class
             Dim value = CreateDkmClrValue(instanceC, type)
             Dim result = FormatResult("c", value)
             Verify(GetChildren(result),
-                EvalResult("P (A)", "0", "Integer", "DirectCast(c, A).P"),
-                EvalResult("P", "0", "Double", "c.P", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_P (A)", "0", "Integer", "DirectCast(c, A)._P"),
-                EvalResult("_P", "0", "Double", "c._P", DkmEvaluationResultFlags.CanFavorite))
+                EvalResult("_P", "0", "Double", "c._P", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P (A)", "0", "Integer", "DirectCast(c, A).P"),
+                EvalResult("P", "0", "Double", "c.P", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
         <Fact>
@@ -538,10 +538,10 @@ End Class
             Dim value = CreateDkmClrValue(instanceC, type)
             Dim result = FormatResult("c", value)
             Verify(GetChildren(result),
-                EvalResult("P (A(Of Integer))", "0", "Integer", "DirectCast(c, A(Of Integer)).P"),
-                EvalResult("P", "0", "Double", "c.P", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_P (A(Of Integer))", "0", "Integer", "DirectCast(c, A(Of Integer))._P"),
-                EvalResult("_P", "0", "Double", "c._P", DkmEvaluationResultFlags.CanFavorite))
+                EvalResult("_P", "0", "Double", "c._P", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P (A(Of Integer))", "0", "Integer", "DirectCast(c, A(Of Integer)).P"),
+                EvalResult("P", "0", "Double", "c.P", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
         <Fact>
@@ -562,9 +562,9 @@ End Class
             Dim value = CreateDkmClrValue(instanceC, type)
             Dim result = FormatResult("c", value)
             Verify(GetChildren(result),
+                EvalResult("_F", "0", "Double", "c._F", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("F (A)", "Nothing", "String", "DirectCast(c, A).F"),
-                EvalResult("F", "0", "Double", "c.F", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("_F", "0", "Double", "c._F", DkmEvaluationResultFlags.CanFavorite))
+                EvalResult("F", "0", "Double", "c.F", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
         <Fact>
@@ -587,8 +587,8 @@ End Class
             Dim value = CreateDkmClrValue(instanceB, type)
             Dim result = FormatResult("b", value)
             Verify(GetChildren(result),
-                EvalResult("P", """Derived""", "String", "b.P", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite, editableValue:="""Derived"""),
-                EvalResult("_P", """Derived""", "String", "b._P", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite, editableValue:="""Derived"""))
+                EvalResult("_P", """Derived""", "String", "b._P", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite, editableValue:="""Derived"""),
+                EvalResult("P", """Derived""", "String", "b.P", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite, editableValue:="""Derived"""))
         End Sub
 
         <Fact>
@@ -617,10 +617,10 @@ End Class
             ' support multiple members on the same type that differ only by case
             ' (properties in C# that have the same name as their backing field, etc).
             Verify(children,
-                EvalResult("P", "4.4", "Double", "c.P", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_P (B)", "45", "Integer", "DirectCast(c, B)._P"),
                 EvalResult("_P", "4.4", "Double", "c._P", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_p", "0", "Integer", "c._p", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "4.4", "Double", "c.P", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("p", "45", "Integer", "c.p", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Shared members", Nothing, "", "C", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             Verify(GetChildren(children(5)),
@@ -696,10 +696,10 @@ End Class"
             ' the added complexity of figuring that out (instead always just calling
             ' most derived) doesn't seem worth it.
             Verify(children,
-                EvalResult("P", "3", "Integer", "DirectCast(c, D).P", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_P (A)", "0", "Integer", "DirectCast(c, A)._P"),
                 EvalResult("_P", "0", "Integer", "c._P", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("_p", "3", "Integer", "DirectCast(c, D)._p", DkmEvaluationResultFlags.CanFavorite))
+                EvalResult("_p", "3", "Integer", "DirectCast(c, D)._p", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "3", "Integer", "DirectCast(c, D).P", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
         <WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")>

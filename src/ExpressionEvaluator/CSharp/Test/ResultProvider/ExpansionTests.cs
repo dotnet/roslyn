@@ -69,6 +69,66 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Verify(FormatResult("\"\"", CreateDkmClrValue("")), EvalResult("\"\"", "\"\"", "string", "\"\"", DkmEvaluationResultFlags.RawString, editableValue: "\"\""));
         }
 
+        [Fact, WorkItem(40179, "https://github.com/dotnet/roslyn/issues/40179")]
+        public void UnderscoreMembersComeFirst()
+        {
+            var source =
+@"class C
+{
+    C Z;
+    object _z;
+    C A;
+    string _a;
+    object _;
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("C");
+            var rootExpr = "new C()";
+            var value = CreateDkmClrValue(Activator.CreateInstance(type));
+            var evalResult = FormatResult(rootExpr, value);
+            Verify(evalResult,
+                EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("@_", "null", "object", "(new C()).@_", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_a", "null", "string", "(new C())._a", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite));
+        }
+
+        [Fact, WorkItem(40179, "https://github.com/dotnet/roslyn/issues/40179")]
+        public void LetterUnderscoreMembersComeSecond()
+        {
+            var source =
+@"class C
+{
+    C Z;
+    object _z;
+    object m_z;
+    C A;
+    string _a;
+    object _;
+    string m_a;
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("C");
+            var rootExpr = "new C()";
+            var value = CreateDkmClrValue(Activator.CreateInstance(type));
+            var evalResult = FormatResult(rootExpr, value);
+            Verify(evalResult,
+                EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("@_", "null", "object", "(new C()).@_", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_a", "null", "string", "(new C())._a", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m_a", "null", "string", "(new C()).m_a", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m_z", "null", "object", "(new C()).m_z", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite));
+        }
+
         /// <summary>
         /// Get children in blocks.
         /// </summary>
@@ -1646,7 +1706,7 @@ struct S
 
                     // NOTE: The real EE will show only the exception message, but our mock does not support autoexp.
                     children = GetChildren(children[0]);
-                    Verify(children[6],
+                    Verify(children[25],
                         EvalResult("Message", "\"Object reference not set to an instance of an object.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                 }
             }
@@ -1687,7 +1747,7 @@ class E : System.Exception
                         EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
                         EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
                     children = GetChildren(children[0]);
-                    Verify(children[6],
+                    Verify(children[25],
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                 }
             }
@@ -1736,7 +1796,7 @@ class E : System.Exception
                         "c?.str.Length",
                         DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown));
                 var children = GetChildren(evalResult);
-                Verify(children[6],
+                Verify(children[25],
                     EvalResult(
                         "Message",
                         "\"Object reference not set to an instance of an object.\"",
@@ -1909,14 +1969,14 @@ class C
                         EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
                         EvalResult("Q", "{E: Exception of type 'E' was thrown.}", "object {E}", "o.Q", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
                     var moreChildren = GetChildren(children[0]);
-                    Verify(moreChildren[1],
+                    Verify(moreChildren[20],
                         EvalResult("F", "1", "object {int}", null));
-                    Verify(moreChildren[7],
+                    Verify(moreChildren[26],
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                     moreChildren = GetChildren(children[1]);
-                    Verify(moreChildren[1],
+                    Verify(moreChildren[20],
                         EvalResult("F", "2", "object {int}", "((E)o.Q).F", DkmEvaluationResultFlags.CanFavorite));
-                    Verify(moreChildren[7],
+                    Verify(moreChildren[26],
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", "((System.Exception)o.Q).Message", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
                 }
             }

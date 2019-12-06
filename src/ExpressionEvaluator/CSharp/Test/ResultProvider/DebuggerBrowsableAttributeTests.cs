@@ -271,9 +271,9 @@ class C
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                     var children = GetChildren(evalResult);
-                    Verify(children[1],
+                    Verify(children[20],
                         EvalResult("G", "1", "object {int}", null));
-                    Verify(children[7],
+                    Verify(children[26],
                         EvalResult("Message", "\"Exception of type 'F' was thrown.\"", "string", null,
                             DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                 }

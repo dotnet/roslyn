@@ -5,11 +5,13 @@
 #endregion
 
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class DkmSuccessEvaluationResult : DkmEvaluationResult
     {
         public readonly string Value;
@@ -88,6 +90,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         public DkmClrValue GetClrValue()
         {
             return InspectionContext.InspectionSession.InvokeResultProvider(this, MethodId.GetClrValue, r => r.GetClrValue(this));
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return $"DkmSuccessEvaluationResult Name={Name}";
         }
     }
 }

@@ -1528,7 +1528,7 @@ class C : IEnumerable
                             DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
                             DkmEvaluationResultCategory.Method));
                     children = GetChildren(children[0]);
-                    Verify(children[6],
+                    Verify(children[25],
                         EvalResult("Message", "\"The method or operation is not implemented.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                 }
             }
@@ -1585,7 +1585,7 @@ class C
                             "o.Q",
                             DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
                     children = GetChildren(children[1]);
-                    Verify(children[6],
+                    Verify(children[25],
                         EvalResult(
                             "Message",
                             "\"Exception of type 'E' was thrown.\"",

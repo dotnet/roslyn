@@ -245,8 +245,48 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             public int Compare(MemberAndDeclarationInfo x, MemberAndDeclarationInfo y)
             {
-                var comp = string.Compare(x.Name, y.Name, StringComparison.Ordinal);
-                return comp != 0 ? comp : (y._inheritanceLevel - x._inheritanceLevel);
+                var xName = x.Name;
+                var yName = y.Name;
+                var comp = string.Compare(xName, yName, StringComparison.Ordinal);
+                return comp != 0 ? adjustComparison(comp) : (y._inheritanceLevel - x._inheritanceLevel);
+
+                int adjustComparison(int comp)
+                {
+                    // Members with underscore prefix come first
+                    var xUnderscore = xName.Length > 0 && xName[0] == '_';
+                    var yUnderscore = yName.Length > 0 && yName[0] == '_';
+                    if (xUnderscore && yUnderscore)
+                    {
+                        return comp;
+                    }
+                    if (xUnderscore && !yUnderscore)
+                    {
+                        return -1;
+                    }
+                    if (yUnderscore)
+                    {
+                        return 1;
+                    }
+
+                    // Members with letter+underscore prefix (ie. m_member) come second
+                    var xLetterUnderscore = xName.Length > 1 && xName[1] == '_';
+                    var yLetterUnderscore = yName.Length > 1 && yName[1] == '_';
+                    if (xLetterUnderscore && yLetterUnderscore)
+                    {
+                        return comp;
+                    }
+                    if (xLetterUnderscore && !yLetterUnderscore)
+                    {
+                        return -1;
+                    }
+                    if (yLetterUnderscore)
+                    {
+                        return 1;
+                    }
+
+
+                    return comp;
+                }
             }
         }
     }

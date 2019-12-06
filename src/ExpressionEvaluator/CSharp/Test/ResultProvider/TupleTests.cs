@@ -1305,9 +1305,9 @@ class E : System.Exception
                 Verify(children,
                     EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
-                Verify(children[1],
+                Verify(children[20],
                     EvalResult("F", "(1, 2)", "(int, int B)", null, DkmEvaluationResultFlags.Expandable));
-                children = GetChildren(children[1]);
+                children = GetChildren(children[20]);
                 Verify(children,
                     EvalResult("Item1", "1", "int", null),
                     EvalResult("B", "2", "int", null),

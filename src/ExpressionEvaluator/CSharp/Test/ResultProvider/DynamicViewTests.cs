@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Verify(result,
                 EvalResult(expression, "{System.Dynamic.ExpandoObject}", "System.Dynamic.ExpandoObject", expression, DkmEvaluationResultFlags.Expandable));
             Verify(GetChildren(result),
+                EvalResult("_count", "1", "int", "o._count", DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Data, access: DkmEvaluationResultAccessType.Private),
+                EvalResult("_data", "{System.Dynamic.ExpandoObject.ExpandoData}", "System.Dynamic.ExpandoObject.ExpandoData", "o._data", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private),
+                EvalResult("_propertyChanged", "null", "System.ComponentModel.PropertyChangedEventHandler", "o._propertyChanged", DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Data, access: DkmEvaluationResultAccessType.Private),
                 EvalResult("Class", "{System.Dynamic.ExpandoClass}", "System.Dynamic.ExpandoClass", "o.Class", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Internal),
                 EvalResult("LockObject", "{object}", "object", "o.LockObject", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Internal),
                 EvalResult("System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<string, object>>.Count", "1", "int", "((System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<string, object>>)o).Count", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
                 EvalResult("System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<string, object>>.IsReadOnly", "false", "bool", "((System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<string, object>>)o).IsReadOnly", DkmEvaluationResultFlags.Boolean | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
                 EvalResult("System.Collections.Generic.IDictionary<string, object>.Keys", "Count = 1", "System.Collections.Generic.ICollection<string> {System.Dynamic.ExpandoObject.KeyCollection}", "((System.Collections.Generic.IDictionary<string, object>)o).Keys", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
                 EvalResult("System.Collections.Generic.IDictionary<string, object>.Values", "Count = 1", "System.Collections.Generic.ICollection<object> {System.Dynamic.ExpandoObject.ValueCollection}", "((System.Collections.Generic.IDictionary<string, object>)o).Values", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("_count", "1", "int", "o._count", DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Data, access: DkmEvaluationResultAccessType.Private),
-                EvalResult("_data", "{System.Dynamic.ExpandoObject.ExpandoData}", "System.Dynamic.ExpandoObject.ExpandoData", "o._data", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private),
-                EvalResult("_propertyChanged", "null", "System.ComponentModel.PropertyChangedEventHandler", "o._propertyChanged", DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Data, access: DkmEvaluationResultAccessType.Private),
                 EvalResult(Resources.StaticMembers, null, "", "System.Dynamic.ExpandoObject", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class),
                 EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
         }
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(expression, Resources.DynamicViewValueWarning, "", fullName, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             var members = GetChildren(result);
             Assert.Equal(32, members.Length);
-            Verify(members[1],
+            Verify(members[20],
                 EvalResult("HResult", "-2147467263", "int", null, category: DkmEvaluationResultCategory.Property, access: DkmEvaluationResultAccessType.Public));
 
             getExceptionValue = () => CreateDkmClrValue(new NotImplementedException());
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(expression, Resources.DynamicViewValueWarning, "", fullName, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             members = GetChildren(result);
             Assert.Equal(32, members.Length);
-            Verify(members[1],
+            Verify(members[20],
                 EvalResult("HResult", "-2147467263", "int", "((System.Exception)new Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView(o).Items).HResult", category: DkmEvaluationResultCategory.Property, access: DkmEvaluationResultAccessType.Public));
         }
 
