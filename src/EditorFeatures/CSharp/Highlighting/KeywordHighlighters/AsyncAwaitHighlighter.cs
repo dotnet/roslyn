@@ -45,23 +45,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
         private IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)
         {
-            using (var pooledObject = s_stackPool.GetPooledObject())
+            using var pooledObject = s_stackPool.GetPooledObject();
+
+            var stack = pooledObject.Object;
+            stack.Push(node);
+
+            while (stack.Count > 0)
             {
-                var stack = pooledObject.Object;
-                stack.Push(node);
+                var current = stack.Pop();
+                yield return current;
 
-                while (stack.Count > 0)
+                foreach (var child in current.ChildNodes())
                 {
-                    var current = stack.Pop();
-                    yield return current;
-
-                    foreach (var child in current.ChildNodes())
+                    // Only process children if they're not the start of another construct
+                    // that async/await would be related to.
+                    if (!child.IsReturnableConstruct())
                     {
-                        // Only recurse if we have anything to do
-                        if (!child.IsReturnableConstruct())
-                        {
-                            stack.Push(child);
-                        }
+                        stack.Push(child);
                     }
                 }
             }
