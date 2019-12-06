@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -890,8 +891,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (node != null)
             {
-                return node.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
-                           .WithTrailingTrivia(SyntaxFactory.ElasticMarker);
+                return node.WithLeadingTrivia<TNode>(SyntaxFactory.ElasticMarker)
+                           .WithTrailingTrivia<TNode>(SyntaxFactory.ElasticMarker);
             }
             else
             {
@@ -2295,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? list.Parameters
                 : declaration is SimpleLambdaExpressionSyntax simpleLambda
                     ? new[] { simpleLambda.Parameter }
-                    : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                    : SpecializedCollections.EmptyReadOnlyList<global::Microsoft.CodeAnalysis.SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2422,8 +2423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     else
                     {
                         return SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(roList), lambda.Body)
-                            .WithLeadingTrivia(lambda.GetLeadingTrivia())
-                            .WithTrailingTrivia(lambda.GetTrailingTrivia());
+                            .WithLeadingTrivia<ParenthesizedLambdaExpressionSyntax>(lambda.GetLeadingTrivia())
+                            .WithTrailingTrivia<ParenthesizedLambdaExpressionSyntax>(lambda.GetTrailingTrivia());
                     }
                 default:
                     return declaration;
@@ -3004,7 +3005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (index > 0)
                 {
                     // make a single declaration with only sub-declarations before the sub-declaration being replaced
-                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia<SyntaxNode>(SyntaxFactory.ElasticSpace));
                 }
 
                 newNodes.AddRange(newDeclarations);
@@ -3012,7 +3013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (index < count - 1)
                 {
                     // make a single declaration with only the sub-declarations after the sub-declaration being replaced
-                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index + 1).WithLeadingTrivia<SyntaxNode>(SyntaxFactory.ElasticSpace));
                 }
 
                 return newNodes;
@@ -3027,7 +3028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (root.Span.Contains(declaration.Span))
             {
-                return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+                return this.Isolate(root.TrackNodes<SyntaxNode>(declaration), r => this.InsertNodesBeforeInternal(r, r.GetCurrentNode<SyntaxNode>(declaration), newDeclarations));
             }
             else
             {
@@ -3059,7 +3060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (root.Span.Contains(declaration.Span))
             {
-                return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+                return this.Isolate(root.TrackNodes<SyntaxNode>(declaration), r => this.InsertNodesAfterInternal(r, r.GetCurrentNode<SyntaxNode>(declaration), newDeclarations));
             }
             else
             {
@@ -3092,9 +3093,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var count = GetDeclarationCount(multiPartDeclaration);
             var newNodes = new List<SyntaxNode>();
-            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia<SyntaxNode>(SyntaxFactory.ElasticSpace));
             newNodes.AddRange(newDeclarations);
-            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia<SyntaxNode>(SyntaxFactory.ElasticSpace));
             return newNodes;
         }
 
@@ -3124,7 +3125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (root.Span.Contains(node.Span))
             {
                 // node exists within normal span of the root (not in trivia)
-                return this.Isolate(root.TrackNodes(node), r => this.RemoveNodeInternal(r, r.GetCurrentNode(node), options));
+                return this.Isolate(root.TrackNodes<SyntaxNode>(node), r => this.RemoveNodeInternal(r, r.GetCurrentNode<SyntaxNode>(node), options));
             }
             else
             {
@@ -3195,9 +3196,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var previousToken = firstToken.GetPreviousToken();
             if (previousToken != default && root.Contains(previousToken.Parent))
             {
-                var newNode = node.WithTrailingTrivia(node.GetTrailingTrivia().AddRange(previousToken.TrailingTrivia));
+                var newNode = node.WithTrailingTrivia<SyntaxNode>(node.GetTrailingTrivia().AddRange(previousToken.TrailingTrivia));
                 var newPreviousToken = previousToken.WithTrailingTrivia(default(SyntaxTriviaList));
-                return root.ReplaceSyntax(
+                return root.ReplaceSyntax<SyntaxNode>(
                     nodes: new[] { node }, computeReplacementNode: (o, r) => newNode,
                     tokens: new[] { previousToken }, computeReplacementToken: (o, r) => newPreviousToken,
                     trivia: null, computeReplacementTrivia: null);
@@ -3279,7 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static BlockSyntax CreateBlock(IEnumerable<SyntaxNode> statements)
-            => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
+            => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations<BlockSyntax>(Simplifier.Annotation);
 
         private static SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode> nodes)
         {
@@ -3398,11 +3399,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
             => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
 
+        internal override SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
+            => SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), (ExpressionSyntax)alignment);
+
+        internal override SyntaxNode InterpolationFormatClause(string format)
+            => SyntaxFactory.InterpolationFormatClause(
+                    SyntaxFactory.Token(SyntaxKind.ColonToken),
+                    SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
+
         internal override SyntaxToken NumericLiteralToken(string text, ulong value)
             => SyntaxFactory.Literal(text, value);
 
         public override SyntaxNode DefaultExpression(SyntaxNode type)
-            => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations(Simplifier.Annotation);
+            => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations<DefaultExpressionSyntax>(Simplifier.Annotation);
 
         public override SyntaxNode DefaultExpression(ITypeSymbol type)
         {
@@ -3465,11 +3474,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
-            => SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
+            => SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations<CastExpressionSyntax>(Simplifier.Annotation);
 
         public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
         {
-            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
+            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations<CastExpressionSyntax>(Simplifier.Annotation);
         }
 
         public override SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right)
@@ -3651,7 +3660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
+            => SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations<QualifiedNameSyntax>(Simplifier.Annotation);
 
         internal override SyntaxNode GlobalAliasedName(SyntaxNode name)
             => SyntaxFactory.AliasQualifiedName(

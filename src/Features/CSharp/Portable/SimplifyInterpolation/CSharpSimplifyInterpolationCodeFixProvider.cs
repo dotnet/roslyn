@@ -9,33 +9,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpSimplifyInterpolationCodeFixProvider : AbstractSimplifyInterpolationCodeFixProvider<
-        InterpolationSyntax, ExpressionSyntax>
+        InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax, InterpolationFormatClauseSyntax>
     {
-        protected override InterpolationSyntax Update(
-            InterpolationSyntax interpolation, ExpressionSyntax unwrapped, ExpressionSyntax alignment, string formatString)
-        {
-            var result = interpolation.WithExpression(unwrapped);
-            if (alignment != null)
-            {
-                result = result.WithAlignmentClause(
-                    SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), alignment));
-            }
+        protected override InterpolationSyntax WithExpression(InterpolationSyntax interpolation, ExpressionSyntax expression)
+            => interpolation.WithExpression(expression);
 
-            if (formatString != null)
-            {
-                if (formatString == "")
-                {
-                    result = result.WithFormatClause(null);
-                }
-                else
-                {
-                    result = result.WithFormatClause(SyntaxFactory.InterpolationFormatClause(
-                        SyntaxFactory.Token(SyntaxKind.ColonToken),
-                        SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, formatString, formatString, default)));
-                }
-            }
+        protected override InterpolationSyntax WithAlignmentClause(InterpolationSyntax interpolation, InterpolationAlignmentClauseSyntax alignmentClause)
+            => interpolation.WithAlignmentClause(alignmentClause);
 
-            return result;
-        }
+        protected override InterpolationSyntax WithFormatClause(InterpolationSyntax interpolation, InterpolationFormatClauseSyntax formatClause)
+            => interpolation.WithFormatClause(formatClause);
     }
 }

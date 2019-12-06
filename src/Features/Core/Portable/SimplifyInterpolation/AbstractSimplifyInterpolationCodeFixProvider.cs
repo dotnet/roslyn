@@ -16,14 +16,22 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
     internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
         TInterpolationSyntax,
-        TExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+        TExpressionSyntax,
+        TInterpolationAlignmentClause,
+        TInterpolationFormatClause> : SyntaxEditorBasedCodeFixProvider
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
+        where TInterpolationAlignmentClause : SyntaxNode
+        where TInterpolationFormatClause : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
+        protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
+        protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
+        protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause formatClause);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -49,15 +57,35 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                         interpolation, out var unwrapped, out var alignment, out var negate, out var formatString);
 
                     alignment = negate ? (TExpressionSyntax)generator.NegateExpression(alignment) : alignment;
+
                     editor.ReplaceNode(
                         interpolationSyntax,
-                        Update(interpolationSyntax, unwrapped, alignment, formatString));
+                        Update(generator, interpolationSyntax, unwrapped, alignment, formatString));
                 }
             }
         }
 
-        protected abstract TInterpolationSyntax Update(
-            TInterpolationSyntax interpolation, TExpressionSyntax unwrapped, TExpressionSyntax alignment, string formatString);
+        private TInterpolationSyntax Update(
+            SyntaxGenerator generator, TInterpolationSyntax interpolation,
+            TExpressionSyntax unwrapped, TExpressionSyntax alignment, string formatString)
+        {
+            var result = WithExpression(interpolation, unwrapped);
+            if (alignment != null)
+            {
+                result = WithAlignmentClause(
+                    result,
+                    (TInterpolationAlignmentClause)generator.InterpolationAlignmentClause(alignment));
+            }
+
+            if (formatString != null)
+            {
+                result = WithFormatClause(result, formatString == ""
+                    ? null
+                    : (TInterpolationFormatClause)generator.InterpolationFormatClause(formatString));
+            }
+
+            return result;
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
