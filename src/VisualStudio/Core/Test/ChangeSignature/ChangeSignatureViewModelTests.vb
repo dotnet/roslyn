@@ -288,6 +288,8 @@ class MyClass
     }
 }"]]></Text>
 
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
             VerifyOpeningState(viewModel, "public ref int M(int x, params int[] y)")
 
             viewModel.SelectedIndex = 1
