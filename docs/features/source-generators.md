@@ -13,9 +13,9 @@ introspect both user C# code and generator specific files.
 ### High Level Design Goals
 
 - Generators produce one or more strings that represent C# source code to be added to the compilation.
-- Explicitly _additional_ only. Generators can add new code to a compilation but may **not** modify existing user code.
+- Explicitly _additive_ only. Generators can add new code to a compilation but may **not** modify existing user code.
 - May access _additional files_, that is, non-C# source texts.
-- Run _un-ordered_, each generator will see the same input compilation.
+- Run _un-ordered_, each generator will see the same input compilation, with no access to files created by other source generators.
 - A user specifies the generators to run via list of assemblies, much like analyzers.
 
 ## Implementation
@@ -44,6 +44,8 @@ or the command-line compiler). `Execute` passes an instance of `SourceGeneratorC
 to the `Compilation` and allows the generator to alter it by adding source and reporting diagnostics.
 
 ```csharp
+namespace Microsoft.CodeAnalysis
+{
     public struct SourceGeneratorContext
     {
         public Compilation Compilation { get; }
@@ -54,6 +56,7 @@ to the `Compilation` and allows the generator to alter it by adding source and r
 
         public CancellationToken CancellationToken { get; }
 
+        // TODO: we need to add a way of declaring diagnostic descriptors, presumably the same mechanism used by analyzers
         public void ReportDiagnostic(Diagnostic diagnostic) { throw new NotImplementedException(); }
 
         public void AddSource(string fileNameHint, SourceText sourceText) { throw new NotImplementedException(); }
@@ -72,7 +75,7 @@ For example, if you have two `.resx` files, generating the files with simply nam
 2. The IDE needs some concept of a "stable" identifier. Source generators create a couple of fun problems for the IDE: 
 users will want to be able to set breakpoints in a generated file, for example. If a source generator outputs multiple 
 files we need to know which is which so we can know which file the breakpoints go with. A source generator of course is 
-allowed to stop emitting a file if needs change (if you delete a `.resx`, then the generated file associated with it 
+allowed to stop emitting a file if its inputs change (if you delete a `.resx`, then the generated file associated with it 
 will also go away), but this gives us some control here.
 
 This was called "hint" in that the compiler is implicitly allowed to control the filename in however it ultimately 
@@ -131,7 +134,9 @@ generator.
 By default, generated texts will be persisted to a `GeneratedFiles/{GeneratorAssemblyName}` 
 sub-folder within `CommandLineArguments.OutputDirectory`. The `fileNameHint` from 
 `SourceGeneratorContext.AddSource` will be used to create a unique name, with appropriate
-collision renaming applied if required. 
+collision renaming applied if required. For instance, on Windows a call to 
+`AddSource("MyCode", ...);` from `MyGenerator.dll` for a C# project might be 
+persisted as `obj/debug/GeneratedFiles/MyGenerator.dll/MyCode.cs`.
 
 File output is not required for the correct function of either command line or IDE based 
 generation, and can be completely disabled, if required. The IDE will work on in-memory 
@@ -170,13 +175,13 @@ the generator. As the generator emits source text, it would indicate where
 in the original document this was generated from. This would allow the 
 compiler API to track e.g. a generated `Symbol` as having an `OriginalDefinition` 
 that represents a span of third party source text (such as a Razor tag in a
- `.cshtml` file). 
+`.cshtml` file). 
 
- We discussed embedding this directly in the source text via `#pragma` but 
- this would require language changes and limit the feature to a specific version
- of C#. Other considerations could be specially formed comments or `#if FALSE --`
- blocks. In general a 'side-channel' approach seems preferable to specially crafted
- grammar in the generated text. 
+We discussed embedding this directly in the source text via `#pragma` but 
+this would require language changes and limit the feature to a specific version
+of C#. Other considerations could be specially formed comments or `#if FALSE --`
+blocks. In general a 'side-channel' approach seems preferable to specially crafted
+grammar in the generated text. 
 
 This is not necessarily a goal required for the success of Source Generators;
 Razor’s language service can be updated to work with source generators 
@@ -220,6 +225,7 @@ We've identified several first and third party candidates that would benefit fro
 - ASP.Net: Improve startup time 
 - Blazor and Razor: Massively reduce tooling burden 
 - Azure Functions: regex compilation during startup
+- Azure SDK
 - [gRPC](https://docs.microsoft.com/en-us/aspnet/core/grpc/?view=aspnetcore-3.1)
 - Resx file generation
 - [System.CommandLine](https://github.com/dotnet/command-line-api)
