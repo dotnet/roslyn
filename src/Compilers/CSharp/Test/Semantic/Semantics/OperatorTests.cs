@@ -6993,7 +6993,9 @@ public class RubyTime
         F<decimal?>();
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
             var tree = comp.SyntaxTrees[0];
             var syntax = tree.GetRoot();
             var methodBody = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body;
