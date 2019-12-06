@@ -45,20 +45,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// Gets the configuration section names for the language client. This may be null if the language client
         /// does not provide settings.
         /// </summary>
-        public IEnumerable<string> ConfigurationSections { get; } = null;
+        public IEnumerable<string> ConfigurationSections { get; }
 
         /// <summary>
         /// Gets the initialization options object the client wants to send when 'initialize' message is sent.
         /// This may be null if the client does not need custom initialization options.
         /// </summary>
-        public object InitializationOptions { get; } = null;
+        public object InitializationOptions { get; }
 
         /// <summary>
         /// Gets the list of file names to watch for changes.  Changes will be sent to the server via 'workspace/didChangeWatchedFiles'
         /// message.  The files to watch must be under the current active workspace.  The file names can be specified as a relative
         /// paths to the exact file, or as glob patterns following the standard in .gitignore see https://www.kernel.org/pub/software/scm/git/docs/gitignore.html files.
         /// </summary>
-        public IEnumerable<string> FilesToWatch { get; } = null;
+        public IEnumerable<string> FilesToWatch { get; }
 
 #pragma warning disable CS0067 // event never used - implementing interface ILanguageClient
         public event AsyncEventHandler<EventArgs> StartAsync;
