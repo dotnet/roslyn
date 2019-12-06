@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     documentProperties : DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
         }
 
-        private (DebuggeeModuleInfo, Guid) EmitAndLoadLibraryToDebuggee(string source, ProjectId projectId, string assemblyName = "", string sourceFilePath = "test1.cs")
+        private (DebuggeeModuleInfo, Guid) EmitAndLoadLibraryToDebuggee(string source, ProjectId projectId, string assemblyName = "", string sourceFilePath = "test1.cs", Encoding encoding = null)
         {
-            var (debuggeeModuleInfo, moduleId) = EmitLibrary(source, projectId, assemblyName, sourceFilePath);
+            var (debuggeeModuleInfo, moduleId) = EmitLibrary(source, projectId, assemblyName, sourceFilePath, encoding);
             LoadLibraryToDebuggee(debuggeeModuleInfo);
             return (debuggeeModuleInfo, moduleId);
         }
@@ -147,9 +147,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private void LoadLibraryToDebuggee(DebuggeeModuleInfo debuggeeModuleInfo)
             => _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => debuggeeModuleInfo;
 
-        private (DebuggeeModuleInfo, Guid) EmitLibrary(string source, ProjectId projectId, string assemblyName = "", string sourceFilePath = "test1.cs", DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+        private (DebuggeeModuleInfo, Guid) EmitLibrary(
+            string source,
+            ProjectId projectId,
+            string assemblyName = "",
+            string sourceFilePath = "test1.cs",
+            Encoding encoding = null,
+            DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
         {
-            var sourceText = SourceText.From(new MemoryStream(Encoding.UTF8.GetBytes(source)), encoding: Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+            encoding ??= Encoding.UTF8;
+
+            var sourceText = SourceText.From(new MemoryStream(encoding.GetBytes(source)), encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
             var tree = SyntaxFactory.ParseSyntaxTree(sourceText, TestOptions.RegularPreview, sourceFilePath);
             var compilation = CSharpTestBase.CreateCompilationWithMscorlib40(tree, options: TestOptions.DebugDll, assemblyName: assemblyName);
 
@@ -885,6 +893,48 @@ class C1
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC2123"
                 }, _telemetryLog);
             }
+        }
+
+        [Fact]
+        public async Task BreakMode_Encodings()
+        {
+            var source1 = "class C1 { void M() { System.Console.WriteLine(\"ã\"); } }";
+
+            var encoding = Encoding.GetEncoding(1252);
+
+            var dir = Temp.CreateDirectory();
+            var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, encoding);
+
+            using var workspace = new TestWorkspace();
+
+            var document1 = workspace.CurrentSolution.
+                AddProject("test", "test", LanguageNames.CSharp).
+                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddDocument("test.cs", SourceText.From(source1, encoding), filePath: sourceFile.Path);
+
+            var documentId = document1.Id;
+
+            var project = document1.Project;
+            workspace.ChangeSolution(project.Solution);
+
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path, encoding: encoding);
+
+            var service = CreateEditAndContinueService(workspace);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+
+            service.StartEditSession();
+
+            // Emulate opening the file, which will trigger "out-of-sync" check.
+            // Since we find content matching the PDB checksum we update the committed solution with this source text.
+            // If we used wrong encoding this would lead to a false change detected below.
+            await debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(documentId, debuggingSession.CancellationToken).ConfigureAwait(false);
+
+            // EnC service queries for a document, which triggers read of the source file from disk.
+            var solutionStatus = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.None, solutionStatus);
+
+            service.EndEditSession();
+            service.EndDebuggingSession();
         }
 
         [Fact]

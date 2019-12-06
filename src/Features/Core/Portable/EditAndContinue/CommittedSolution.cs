@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.IO;
 using System.Diagnostics;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -194,7 +195,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var (matchingSourceText, checksumOrigin, isDocumentMissing) = await TryGetPdbMatchingSourceTextAsync(document.FilePath, document.Project.Id, matchLoadedModulesOnly, cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var (matchingSourceText, checksumOrigin, isDocumentMissing) = await TryGetPdbMatchingSourceTextAsync(
+                document.FilePath, sourceText.Encoding, document.Project.Id, matchLoadedModulesOnly, cancellationToken).ConfigureAwait(false);
 
             lock (_guard)
             {
@@ -232,7 +236,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else if (matchingSourceText != null)
                 {
-                    if (document.TryGetText(out var sourceText) && sourceText.ContentEquals(matchingSourceText))
+                    if (sourceText.ContentEquals(matchingSourceText))
                     {
                         matchingDocument = document;
                     }
@@ -274,7 +278,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<(SourceText? Source, SourceHashOrigin ChecksumOrigin, bool IsDocumentMissing)> TryGetPdbMatchingSourceTextAsync(string sourceFilePath, ProjectId projectId, bool matchLoadedModulesOnly, CancellationToken cancellationToken)
+        private async Task<(SourceText? Source, SourceHashOrigin ChecksumOrigin, bool IsDocumentMissing)> TryGetPdbMatchingSourceTextAsync(
+            string sourceFilePath,
+            Encoding? encoding,
+            ProjectId projectId,
+            bool matchLoadedModulesOnly,
+            CancellationToken cancellationToken)
         {
             var (symChecksum, algorithm, origin) = await TryReadSourceFileChecksumFromPdb(sourceFilePath, projectId, matchLoadedModulesOnly, cancellationToken).ConfigureAwait(false);
             if (symChecksum.IsDefault)
@@ -291,7 +300,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 using var fileStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
-                var sourceText = SourceText.From(fileStream, checksumAlgorithm: algorithm);
+
+                // We must use the encoding of the document as determined by the IDE (the editor).
+                // This might differ from the encoding that the compiler chooses, so if we just relied on the compiler we 
+                // might end up updating the committed solution with a document that has a different encoding than 
+                // the one that's in the workspace, resulting in false document changes when we compare the two.
+                var sourceText = SourceText.From(fileStream, encoding, checksumAlgorithm: algorithm);
+
                 return (sourceText.GetChecksum().SequenceEqual(symChecksum) ? sourceText : null, origin, IsDocumentMissing: false);
             }
             catch (Exception e)
