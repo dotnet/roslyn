@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Interop;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -61,6 +63,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        private void TypeNameContentControl_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            UIElement elementWithFocus = Keyboard.FocusedElement as UIElement;
+
+            if (elementWithFocus is IWpfTextView)
+            {
+                IntellisenseTextBox typeNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
+
+                if (typeNameTextBox != null)
+                {
+                    if (e.Key == Key.Escape && !typeNameTextBox.HasActiveIntellisenseSession)
+                    {
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.Enter && !typeNameTextBox.HasActiveIntellisenseSession)
+                    {
+                        // Do nothing. This case is handled in parent control KeyDown events.
+                    }
+
+                    else if (e.Key == Key.Tab && !typeNameTextBox.HasActiveIntellisenseSession)
+                    {
+                        // Do nothing. This case is handled in parent control KeyDown events.
+                    }
+                    else
+                    {
+                        // Let the editor control handle the keystrokes
+                        System.Windows.Interop.MSG msg = ComponentDispatcher.CurrentKeyboardMessage;
+
+                        var oleInteropMsg = new OLE.Interop.MSG();
+
+                        oleInteropMsg.hwnd = msg.hwnd;
+                        oleInteropMsg.message = (uint)msg.message;
+                        oleInteropMsg.wParam = msg.wParam;
+                        oleInteropMsg.lParam = msg.lParam;
+                        oleInteropMsg.pt.x = msg.pt_x;
+                        oleInteropMsg.pt.y = msg.pt_y;
+
+                        e.Handled = typeNameTextBox.HandleKeyDown(oleInteropMsg);
+                    }
+                }
+            }
         }
     }
 }

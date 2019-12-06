@@ -40,7 +40,7 @@
                 <ColumnDefinition Width="400" />
             </Grid.ColumnDefinitions>
             <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
-            <Border Grid.Row="0" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <ContentControl x:Name="TypeNameContentControl" Width="300" Focusable="True" />            </Border>
+            <Border Grid.Row="0" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <ContentControl x:Name="TypeNameContentControl" Width="300" Focusable="True" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" />            </Border>
             <Label Grid.Row="1" Grid.Column="0" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
             <TextBox Grid.Row="1" Grid.Column="1" Width="200" Text="{Binding ParameterName}" />
             <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />
