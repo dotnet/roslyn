@@ -5,6 +5,7 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using System.Windows.Media;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -463,13 +464,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return false;
         }
 
+        public bool HandleKeyDown()
+        {
+            System.Windows.Interop.MSG msg = ComponentDispatcher.CurrentKeyboardMessage;
+            var oleInteropMsg = new OLE.Interop.MSG();
+
+            oleInteropMsg.hwnd = msg.hwnd;
+            oleInteropMsg.message = (uint)msg.message;
+            oleInteropMsg.wParam = msg.wParam;
+            oleInteropMsg.lParam = msg.lParam;
+            oleInteropMsg.pt.x = msg.pt_x;
+            oleInteropMsg.pt.y = msg.pt_y;
+
+            return HandleKeyDown(oleInteropMsg);
+        }
+
         /// <summary>Converts the given window message for keystroke into a shell command and executes it</summary>
         /// <param name="message">Message representing the keypress command to handle</param>
         /// <returns>True if the command is handled (converted and executed properly), false otherwise</returns>
         /// <remarks>This method is needed when the control is not able to receive VS shell commands directly.
         /// For instance, it might be hosted in a modal dialog. It generates the proper VS commands 
         /// and posts it to the internal editor control.</remarks>
-        public bool HandleKeyDown(MSG message)
+        public bool HandleKeyDown(OLE.Interop.MSG message)
         {
             uint editCmdID = 0;
             Guid editCmdGuid = Guid.Empty;
