@@ -60,10 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public IEnumerable<string> FilesToWatch { get; }
 
-#pragma warning disable CS0067 // event never used - implementing interface ILanguageClient
         public event AsyncEventHandler<EventArgs> StartAsync;
-        public event AsyncEventHandler<EventArgs> StopAsync;
-#pragma warning restore CS0067 // event never used
+        public event AsyncEventHandler<EventArgs> StopAsync { add { } remove { } }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
