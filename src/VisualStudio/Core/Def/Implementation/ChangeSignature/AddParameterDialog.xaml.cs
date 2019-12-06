@@ -45,9 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            this.TypeNameTextBox.TextBuffer = _textBuffer;
-            this.TypeNameTextBox.TextView = _textView;
-            this.TypeNameTextBox.WpfTextView = _wpfTextView;
+            IntellisenseTextBox typeNameTextBox = new IntellisenseTextBox(
+                _textBuffer as IVsTextLines, _textView, _wpfTextView, TypeNameContentControl);
+            this.TypeNameContentControl.Content = typeNameTextBox;
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)

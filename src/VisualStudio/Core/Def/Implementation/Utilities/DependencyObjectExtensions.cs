@@ -3,9 +3,8 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    // TODO move to utilities
     internal static class DependencyObjectExtensions
     {
         public static DependencyObject TryGetParent(this DependencyObject obj)
