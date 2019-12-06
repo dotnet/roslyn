@@ -159,6 +159,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestPostIncrementConstants1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (int i = 0; i < 10; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (int i = 10 - 1; i >= 0; i--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestPostDecrementConstants1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (int i = 10 - 1; i >= 0; i--)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (int i = 0; i < 10; i++)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestIncrementPreIncrement()
         {
             await TestInRegularAndScriptAsync(
