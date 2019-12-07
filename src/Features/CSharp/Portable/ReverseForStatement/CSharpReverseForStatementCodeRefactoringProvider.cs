@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 MatchesDecrementPattern(variable, condition, after, out end, out start))
             {
                 var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (IsUnsignedBoundary(semanticModel, variable, start, cancellationToken))
+                if (IsUnsignedBoundary(semanticModel, variable, start, end, cancellationToken))
                 {
                     // Don't allow reversing when you have unsigned types and are on the start/end
                     // of the legal values for that type.  i.e. `for (byte i = 0; i < 10; i++)` it's
@@ -73,20 +73,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
         private bool IsUnsignedBoundary(
             SemanticModel semanticModel, VariableDeclaratorSyntax variable,
-            ExpressionSyntax start, CancellationToken cancellationToken)
+            ExpressionSyntax start, ExpressionSyntax end, CancellationToken cancellationToken)
         {
             var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol;
-            if (local != null)
+            var startValue = semanticModel.GetConstantValue(start, cancellationToken);
+            var endValue = semanticModel.GetConstantValue(end, cancellationToken);
+
+            return local?.Type.SpecialType switch
             {
-                switch (local.Type.SpecialType)
-                {
-                    case SpecialType.System_Byte:
-                    case SpecialType.System_UInt16:
-                    case SpecialType.System_UInt32:
-                    case SpecialType.System_UInt64:
-                        var startValue = semanticModel.GetConstantValue(start, cancellationToken);
-                        return startValue.HasValue && IsIntegral(startValue.Value) && ToUInt64(startValue.Value) == 0;
-                }
+                SpecialType.System_Byte => IsUnsignedBoundary(startValue, endValue, byte.MaxValue),
+                SpecialType.System_UInt16 => IsUnsignedBoundary(startValue, endValue, ushort.MaxValue),
+                SpecialType.System_UInt32 => IsUnsignedBoundary(startValue, endValue, uint.MaxValue),
+                SpecialType.System_UInt64 => IsUnsignedBoundary(startValue, endValue, ulong.MaxValue),
+                _ => false,
+            };
+        }
+
+        private bool IsUnsignedBoundary<TValue>(Optional<object> startValue, Optional<object> endValue, TValue maxValue)
+            where TValue : struct
+        {
+            if (startValue.HasValue && IsIntegral(startValue.Value) &&
+                ToUInt64(startValue.Value) == 0)
+            {
+                return true;
+            }
+
+            if (endValue.HasValue && IsIntegral(endValue.Value) &&
+                ToUInt64(endValue.Value) == ToUInt64(maxValue))
+            {
+                return true;
             }
 
             return false;

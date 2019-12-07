@@ -570,6 +570,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestByteMax()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (byte x = byte.MaxValue; x >= 10; x--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt16Max()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (ushort x = ushort.MaxValue; x >= 10; x--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt32Max()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (uint x = uint.MaxValue; x >= 10; x--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt64Max()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (ulong x = ulong.MaxValue; x >= 10; x--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestByteZeroMinReverse()
         {
             await TestMissingAsync(
