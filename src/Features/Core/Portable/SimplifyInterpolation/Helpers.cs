@@ -74,9 +74,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     unwrapped = invocation.Instance;
                     formatString = format;
 
-                    unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(invocation.Instance.Syntax.FullSpan)
-                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, argumentValue.Syntax)));
+                    var subtractedSpans = invocation.Syntax.Span.Subtract(invocation.Instance.Syntax.FullSpan);
+                    if (TryGetSpanWithinLiteralQuotes(virtualCharService, argumentValue.Syntax) is TextSpan stringSpan)
+                    {
+                        subtractedSpans = subtractedSpans.Subtract(stringSpan);
+                    }
+
+                    unnecessarySpans.AddRange(subtractedSpans);
                     return;
                 }
 
@@ -95,10 +99,11 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             formatString = null;
         }
 
-        private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxNode stringLiteralNode)
+        private static TextSpan? TryGetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxNode stringLiteralNode)
         {
             var sequence = virtualCharService.TryConvertToVirtualChars(stringLiteralNode.GetFirstToken());
-            if (sequence.IsEmpty) return default;
+            if (sequence.IsDefaultOrEmpty)
+                return null;
 
             return TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
         }
