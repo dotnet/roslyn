@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
@@ -8,8 +10,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     {
         public static void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
             IInterpolationOperation interpolation,
-            out TExpressionSyntax unwrapped, out TExpressionSyntax alignment,
-            out bool negate, out string formatString)
+            out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment,
+            out bool negate, out string? formatString)
                 where TInterpolationSyntax : SyntaxNode
                 where TExpressionSyntax : SyntaxNode
         {
@@ -50,11 +52,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         private static void UnwrapFormatString(
-            IOperation expression, out IOperation unwrapped, out string formatString)
+            IOperation expression, out IOperation unwrapped, out string? formatString)
         {
-            unwrapped = null;
-            formatString = null;
-
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
                 if (invocation.Arguments.Length == 1 &&
@@ -72,10 +71,14 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     return;
                 }
             }
+
+            unwrapped = expression;
+            formatString = null;
         }
 
         private static void UnwrapAlignmentPadding<TExpressionSyntax>(
-            IOperation expression, out IOperation unwrapped, out TExpressionSyntax alignment, out bool negate)
+            IOperation expression, out IOperation unwrapped,
+            out TExpressionSyntax? alignment, out bool negate)
             where TExpressionSyntax : SyntaxNode
         {
             if (expression is IInvocationOperation invocation)
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 }
             }
 
-            unwrapped = null;
+            unwrapped = expression;
             alignment = null;
             negate = false;
         }
