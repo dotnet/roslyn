@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 UnwrapFormatString(virtualCharService, expression, out expression, out formatString, unnecessarySpans);
             }
 
-            unwrapped = expression?.Syntax as TExpressionSyntax;
+            unwrapped = expression.Syntax as TExpressionSyntax;
 
             unnecessaryLocations = unnecessarySpans
                 .Select(interpolation.Syntax.SyntaxTree.GetLocation)
