@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.PopulateSwitch;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
+namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     internal static class PopulateSwitchExpressionHelpers
     {

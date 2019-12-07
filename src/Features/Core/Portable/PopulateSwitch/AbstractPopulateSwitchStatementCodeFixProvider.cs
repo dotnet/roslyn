@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
         }
 
-        protected override void FixOneDiagnostic(
+        protected sealed override void FixOneDiagnostic(
             Document document, SyntaxEditor editor, SemanticModel semanticModel,
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             bool hasMissingCases, bool hasMissingDefaultCase,
@@ -56,22 +56,22 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             }
         }
 
-        protected override ITypeSymbol GetSwitchType(ISwitchOperation switchOperation)
+        protected sealed override ITypeSymbol GetSwitchType(ISwitchOperation switchOperation)
             => switchOperation.Value.Type;
 
-        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
+        protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
             => PopulateSwitchStatementHelpers.GetMissingEnumMembers(switchOperation);
 
-        protected override TSwitchSyntax InsertSwitchArms(SyntaxGenerator generator, TSwitchSyntax switchNode, int insertLocation, List<TSwitchArmSyntax> newArms)
+        protected sealed override TSwitchSyntax InsertSwitchArms(SyntaxGenerator generator, TSwitchSyntax switchNode, int insertLocation, List<TSwitchArmSyntax> newArms)
             => (TSwitchSyntax)generator.InsertSwitchSections(switchNode, insertLocation, newArms);
 
-        protected override TSwitchArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
+        protected sealed override TSwitchArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
             => (TSwitchArmSyntax)generator.DefaultSwitchSection(new[] { generator.ExitSwitchStatement() });
 
-        protected override TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel)
+        protected sealed override TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel)
             => (TSwitchArmSyntax)generator.SwitchSection(caseLabel, new[] { generator.ExitSwitchStatement() });
 
-        protected override int InsertPosition(ISwitchOperation switchStatement)
+        protected sealed override int InsertPosition(ISwitchOperation switchStatement)
         {
             // If the last section has a default label, then we want to be above that.
             // Otherwise, we just get inserted at the end.

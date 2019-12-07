@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
         }
 
-        protected override OperationKind OperationKind => OperationKind.Switch;
+        protected sealed override OperationKind OperationKind => OperationKind.Switch;
 
-        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation operation)
+        protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation operation)
             => PopulateSwitchStatementHelpers.GetMissingEnumMembers(operation);
 
-        protected override bool HasDefaultCase(ISwitchOperation operation)
+        protected sealed override bool HasDefaultCase(ISwitchOperation operation)
             => PopulateSwitchStatementHelpers.HasDefaultCase(operation);
 
-        protected override Location GetDiagnosticLocation(TSwitchSyntax switchBlock)
+        protected sealed override Location GetDiagnosticLocation(TSwitchSyntax switchBlock)
             => switchBlock.GetFirstToken().GetLocation();
     }
 }
