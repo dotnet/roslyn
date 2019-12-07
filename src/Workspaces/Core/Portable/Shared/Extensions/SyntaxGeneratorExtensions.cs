@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -17,14 +18,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class SyntaxGeneratorExtensions
     {
         public static SyntaxNode CreateThrowNotImplementedStatement(
-            this SyntaxGenerator codeDefinitionFactory,
-            Compilation compilation)
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
             return codeDefinitionFactory.ThrowStatement(
-               codeDefinitionFactory.ObjectCreationExpression(
-                   codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
-                   SpecializedCollections.EmptyList<SyntaxNode>()));
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
         }
+
+        public static SyntaxNode CreateThrowNotImplementedExpression(
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+        {
+            return codeDefinitionFactory.ThrowExpression(
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
+        }
+
+        private static SyntaxNode CreateNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+            => codeDefinitionFactory.ObjectCreationExpression(
+                    codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
+                    SpecializedCollections.EmptyList<SyntaxNode>());
 
         public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
@@ -34,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             ImmutableArray<IParameterSymbol> parameters)
         {
-            return parameters.SelectAsArray(p => CreateArgument(factory, p));
+            return parameters.SelectAsArray((System.Func<IParameterSymbol, SyntaxNode>)(p => CreateArgument(factory, p)));
         }
 
         private static SyntaxNode CreateArgument(
@@ -77,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
-                addNullChecks, preferThrowExpression).SelectAsArray(
-                    s => s.WithAdditionalAnnotations(Simplifier.Annotation));
+                addNullChecks, preferThrowExpression).SelectAsArray<SyntaxNode, SyntaxNode>(
+                    s => s.WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation));
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
@@ -108,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return containingTypeOpt.GetMembers()
                     .OfType<IFieldSymbol>()
                     .Where(field => !field.IsStatic)
-                    .Select(field => field.AssociatedSymbol ?? field)
+                    .Select((System.Func<IFieldSymbol, ISymbol>)(field => field.AssociatedSymbol ?? field))
                     .Except(parameterToExistingFieldMap.Values)
                     .Any();
             }
@@ -231,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
                         var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
-                                                 .WithAdditionalAnnotations(Simplifier.Annotation);
+                                                 .WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation);
 
                         factory.AddAssignmentStatements(
                             semanticModel, parameter, fieldAccess,
@@ -333,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         codeFactory.CreateArguments(overriddenProperty.Parameters)),
                     codeFactory.IdentifierName("value")));
             }
-            else if (overriddenProperty.GetParameters().Any())
+            else if (overriddenProperty.GetParameters().Any<IParameterSymbol>())
             {
                 // Call accessors directly if C# overriding VB
                 if (document.Project.Language == LanguageNames.CSharp

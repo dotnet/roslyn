@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             return operation.Arms.Any(a => IsDefault(a));
         }
 
-        private static bool IsDefault(ISwitchExpressionArmOperation arm)
+        public static bool IsDefault(ISwitchExpressionArmOperation arm)
         {
             if (arm.Pattern.Kind == OperationKind.DiscardPattern)
                 return true;

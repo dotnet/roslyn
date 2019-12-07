@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // be returned.
         void AddFirstMissingCloseBrace<TContextNode>(
             SyntaxNode root, TContextNode contextNode,
-            out SyntaxNode newRoot, out TContextNode newContextNode);
+            out SyntaxNode newRoot, out TContextNode newContextNode) where TContextNode : SyntaxNode;
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
 

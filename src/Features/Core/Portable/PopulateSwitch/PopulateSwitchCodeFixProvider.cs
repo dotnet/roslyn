@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool addCases, bool addDefaultCase,
             CancellationToken cancellationToken)
         {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -136,12 +138,12 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken);
 
             FixOneDiagnostic(
-                document, editor, addCases, addDefaultCase, onlyOneDiagnostic,
+                document, editor, model, addCases, addDefaultCase, onlyOneDiagnostic,
                 hasMissingCases, hasMissingDefaultCase, switchNode, switchStatement);
         }
 
         protected abstract void FixOneDiagnostic(
-            Document document, SyntaxEditor editor,
+            Document document, SyntaxEditor editor, SemanticModel model,
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             bool hasMissingCases, bool hasMissingDefaultCase,
             TSwitchSyntax switchNode, TSwitchOperation switchStatement);
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             // Parsing of the switch may have caused imbalanced braces.  i.e. the switch
             // may have consumed a brace that was intended for a higher level construct.
             // So balance the tree first, then do the switch replacement.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             syntaxFacts.AddFirstMissingCloseBrace(
                 root, switchNode, out var newRoot, out var newSwitchNode);
 
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected override void FixOneDiagnostic(
-            Document document, SyntaxEditor editor,
+            Document document, SyntaxEditor editor, SemanticModel model,
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             bool hasMissingCases, bool hasMissingDefaultCase,
             SyntaxNode switchNode, ISwitchOperation switchStatement)
