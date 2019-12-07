@@ -68,7 +68,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (except.IsEmpty)
             {
-                if (span != except) yield return span;
+                if (span != except)
+                {
+                    yield return span;
+                }
+
                 yield break;
             }
 
