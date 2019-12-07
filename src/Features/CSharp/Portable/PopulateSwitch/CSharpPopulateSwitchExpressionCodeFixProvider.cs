@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             var newSwitchNode = UpdateSwitchNode(
                 editor, semanticModel, addCases, addDefaultCase,
                 hasMissingCases, hasMissingDefaultCase,
-                switchNode, switchExpression).WithAdditionalAnnotations<SwitchExpressionSyntax>(Formatter.Annotation);
+                switchNode, switchExpression).WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(switchNode, newSwitchNode);
         }
