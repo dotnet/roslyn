@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 {
@@ -89,23 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             };
         }
 
-        private bool IsUnsignedBoundary<TValue>(Optional<object> startValue, Optional<object> endValue, TValue maxValue)
-            where TValue : struct
-        {
-            if (startValue.HasValue && IsIntegral(startValue.Value) &&
-                ToUInt64(startValue.Value) == 0)
-            {
-                return true;
-            }
+        private static bool IsUnsignedBoundary(Optional<object> startValue, Optional<object> endValue, ulong maxValue)
+            => ValueEquals(startValue, 0) || ValueEquals(endValue, maxValue);
 
-            if (endValue.HasValue && IsIntegral(endValue.Value) &&
-                ToUInt64(endValue.Value) == ToUInt64(maxValue))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        private static ValueEquals(Optional<object> valueOpt, ulong value)
+            => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
 
         private bool IsIntegral(object value)
         {
