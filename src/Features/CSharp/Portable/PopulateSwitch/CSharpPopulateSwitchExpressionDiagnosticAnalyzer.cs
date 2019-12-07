@@ -2,32 +2,17 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PopulateSwitch;
 
 namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal sealed class CSharpPopulateSwitchExpressionDiagnosticAnalyzer :
-        AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchExpressionOperation, SwitchExpressionSyntax>
+        AbstractPopulateSwitchExpressionDiagnosticAnalyzer<SwitchExpressionSyntax>
     {
-        public CSharpPopulateSwitchExpressionDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId)
-        {
-        }
-
-        protected override OperationKind OperationKind => OperationKind.SwitchExpression;
-
-        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
-            => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(operation);
-
-        protected override bool HasDefaultCase(ISwitchExpressionOperation operation)
-            => PopulateSwitchExpressionHelpers.HasDefaultCase(operation);
-
         protected override Location GetDiagnosticLocation(SwitchExpressionSyntax switchBlock)
             => switchBlock.SwitchKeyword.GetLocation();
     }

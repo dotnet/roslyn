@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             ExpressionSyntax,
             MemberAccessExpressionSyntax>
     {
-        [ImportingConstructor]
-        public CSharpPopulateSwitchExpressionCodeFixProvider()
-        {
-        }
-
         protected override SwitchExpressionArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
             => SwitchExpressionArm(DiscardPattern(), Exception(generator, compilation));
 
