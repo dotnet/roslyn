@@ -994,5 +994,47 @@ class Program
     }
 }");
         }
+
+        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNotWithRefAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static ref int GetRef(int[] mem, int addr, int mode)
+    {
+        ref int i = ref addr;
+        [||]switch (mode)
+        {
+            case 0: i = ref mem[mem[addr]]; break;
+            default: throw new Exception();
+        }
+
+        return ref mem[addr];
+    }
+}");
+        }
+
+        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNotWithRefConditionalAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static ref int GetRef(int[] mem, int addr, int mode)
+    {
+        ref int i = ref addr;
+        [||]switch (mode)
+        {
+            case 0: i = true ? ref mem[mem[addr]] : ref mem[mem[addr]]; break;
+            default: throw new Exception();
+        }
+
+        return ref mem[addr];
+    }
+}");
+        }
     }
 }
