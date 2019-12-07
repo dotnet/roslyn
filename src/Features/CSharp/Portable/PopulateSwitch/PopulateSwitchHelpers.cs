@@ -37,19 +37,17 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             foreach (var arm in operation.Arms)
             {
                 if (arm.Pattern is IConstantPatternOperation constantPattern &&
-                    constantPattern.Value is IFieldReferenceOperation enumFieldRef)
+                    constantPattern.Value is IFieldReferenceOperation)
                 {
-                    if (!constantPattern.ConstantValue.HasValue)
+                    var constantValue = constantPattern.Value.ConstantValue;
+                    if (!constantValue.HasValue)
                     {
                         // We had a case which didn't resolve properly.  
                         // Assume the switch is complete.
                         return false;
                     }
 
-                    var caseValue = IntegerUtilities.ToInt64(constantPattern.ConstantValue.Value);
-                    enumMembers.Remove(caseValue);
-
-                    break;
+                    enumMembers.Remove(IntegerUtilities.ToInt64(constantValue.Value));
                 }
             }
 

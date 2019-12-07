@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
         {
         }
 
-        protected override OperationKind OperationKind => OperationKind.Switch;
+        protected override OperationKind OperationKind => OperationKind.SwitchExpression;
 
         protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
             => PopulateSwitchHelpers.GetMissingEnumMembers(operation);

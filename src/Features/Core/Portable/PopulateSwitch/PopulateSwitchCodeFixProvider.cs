@@ -24,10 +24,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    internal abstract class AbstractPopulateSwitchCodeFixProvider<TSwitchOperation, TSwitchSyntax>
+    internal abstract class AbstractPopulateSwitchCodeFixProvider<
+        TSwitchOperation,
+        TSwitchSyntax,
+        TSwitchArmSyntax,
+        TMemberAccessExpression>
         : SyntaxEditorBasedCodeFixProvider
         where TSwitchOperation : IOperation
         where TSwitchSyntax : SyntaxNode
+        where TSwitchArmSyntax : SyntaxNode
+        where TMemberAccessExpression : SyntaxNode
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
@@ -35,6 +41,20 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
         }
+
+        protected abstract ITypeSymbol GetSwitchType(TSwitchOperation switchStatement);
+        protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation switchOperation);
+
+        protected abstract TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel);
+        protected abstract TSwitchArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation);
+        protected abstract int InsertPosition(TSwitchOperation switchOperation);
+        protected abstract TSwitchSyntax InsertSwitchArms(SyntaxGenerator generator, TSwitchSyntax switchNode, int insertLocation, List<TSwitchArmSyntax> newArms);
+
+        protected abstract void FixOneDiagnostic(
+            Document document, SyntaxEditor editor, SemanticModel semanticModel,
+            bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
+            bool hasMissingCases, bool hasMissingDefaultCase,
+            TSwitchSyntax switchNode, TSwitchOperation switchOperation);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Custom;
 
@@ -108,23 +128,17 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool addCases, bool addDefaultCase,
             CancellationToken cancellationToken)
         {
-            var model = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             foreach (var diagnostic in diagnostics)
             {
-                FixOneDiagnostic(
-                    document, editor, model, diagnostic,
-                    addCases, addDefaultCase,
-                    diagnostics.Length == 1,
-                    cancellationToken);
+                await FixOneDiagnostic(
+                    document, editor, diagnostic, addCases, addDefaultCase,
+                    diagnostics.Length == 1, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private void FixOneDiagnostic(
-            Document document, SyntaxEditor editor,
-            SemanticModel model, Diagnostic diagnostic,
-            bool addCases, bool addDefaultCase,
-            bool onlyOneDiagnostic,
+        private async Task FixOneDiagnostic(
+            Document document, SyntaxEditor editor, Diagnostic diagnostic,
+            bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             CancellationToken cancellationToken)
         {
             var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchHelpers.MissingCases]);
@@ -135,6 +149,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (switchNode == null)
                 return;
 
+            var model = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken);
 
             FixOneDiagnostic(
@@ -142,11 +157,40 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 hasMissingCases, hasMissingDefaultCase, switchNode, switchStatement);
         }
 
-        protected abstract void FixOneDiagnostic(
-            Document document, SyntaxEditor editor, SemanticModel model,
-            bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
+        protected TSwitchSyntax UpdateSwitchNode(
+            SyntaxEditor editor, SemanticModel semanticModel,
+            bool addCases, bool addDefaultCase,
             bool hasMissingCases, bool hasMissingDefaultCase,
-            TSwitchSyntax switchNode, TSwitchOperation switchStatement);
+            TSwitchSyntax switchNode, TSwitchOperation switchOperation)
+        {
+            var enumType = GetSwitchType(switchOperation);
+
+            var generator = editor.Generator;
+
+            var newArms = new List<TSwitchArmSyntax>();
+
+            if (hasMissingCases && addCases)
+            {
+                var missingArms =
+                    from e in GetMissingEnumMembers(switchOperation)
+                    let caseLabel = (TMemberAccessExpression)generator.MemberAccessExpression(generator.TypeExpression(enumType), e.Name).WithAdditionalAnnotations(Simplifier.Annotation)
+                    select CreateSwitchArm(generator, semanticModel.Compilation, caseLabel);
+
+                newArms.AddRange(missingArms);
+            }
+
+            if (hasMissingDefaultCase && addDefaultCase)
+            {
+                // Always add the default clause at the end.
+                newArms.Add(CreateDefaulSwitchArm(generator, semanticModel.Compilation));
+            }
+
+            var insertLocation = InsertPosition(switchOperation);
+
+            var newSwitchNode = InsertSwitchArms(generator, switchNode, insertLocation, newArms)
+                .WithAdditionalAnnotations(Formatter.Annotation);
+            return newSwitchNode;
+        }
 
         protected static void AddMissingBraces(
             Document document,
@@ -190,7 +234,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class PopulateSwitchStatementCodeFixProvider : AbstractPopulateSwitchCodeFixProvider<ISwitchOperation, SyntaxNode>
+    internal class PopulateSwitchStatementCodeFixProvider : AbstractPopulateSwitchCodeFixProvider<
+        ISwitchOperation, SyntaxNode, SyntaxNode, SyntaxNode>
     {
         [ImportingConstructor]
         public PopulateSwitchStatementCodeFixProvider()
@@ -199,41 +244,15 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected override void FixOneDiagnostic(
-            Document document, SyntaxEditor editor, SemanticModel model,
+            Document document, SyntaxEditor editor, SemanticModel semanticModel,
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             bool hasMissingCases, bool hasMissingDefaultCase,
-            SyntaxNode switchNode, ISwitchOperation switchStatement)
+            SyntaxNode switchNode, ISwitchOperation switchOperation)
         {
-            var enumType = switchStatement.Value.Type;
-
-            var generator = editor.Generator;
-
-            var sectionStatements = new[] { generator.ExitSwitchStatement() };
-
-            var newSections = new List<SyntaxNode>();
-
-            if (hasMissingCases && addCases)
-            {
-                var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
-                var missingSections =
-                    from e in missingEnumMembers
-                    let caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), e.Name).WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation)
-                    let section = generator.SwitchSection(caseLabel, sectionStatements)
-                    select section;
-
-                newSections.AddRange(missingSections);
-            }
-
-            if (hasMissingDefaultCase && addDefaultCase)
-            {
-                // Always add the default clause at the end.
-                newSections.Add(generator.DefaultSwitchSection(sectionStatements));
-            }
-
-            var insertLocation = InsertPosition(switchStatement);
-
-            var newSwitchNode = generator.InsertSwitchSections(switchNode, insertLocation, newSections)
-                .WithAdditionalAnnotations<SyntaxNode>(Formatter.Annotation);
+            var newSwitchNode = UpdateSwitchNode(
+                editor, semanticModel, addCases, addDefaultCase,
+                hasMissingCases, hasMissingDefaultCase,
+                switchNode, switchOperation).WithAdditionalAnnotations(Formatter.Annotation);
 
             if (onlyOneDiagnostic)
             {
@@ -244,7 +263,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 var root = editor.OriginalRoot;
                 AddMissingBraces(document, ref root, ref switchNode);
 
-                var newRoot = root.ReplaceNode<SyntaxNode>(switchNode, newSwitchNode);
+                var newRoot = root.ReplaceNode(switchNode, newSwitchNode);
                 editor.ReplaceNode(editor.OriginalRoot, newRoot);
             }
             else
@@ -253,7 +272,22 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             }
         }
 
-        private int InsertPosition(ISwitchOperation switchStatement)
+        protected override ITypeSymbol GetSwitchType(ISwitchOperation switchOperation)
+            => switchOperation.Value.Type;
+
+        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
+            => PopulateSwitchHelpers.GetMissingEnumMembers(switchOperation);
+
+        protected override SyntaxNode InsertSwitchArms(SyntaxGenerator generator, SyntaxNode switchNode, int insertLocation, List<SyntaxNode> newArms)
+            => generator.InsertSwitchSections(switchNode, insertLocation, newArms);
+
+        protected override SyntaxNode CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
+            => generator.DefaultSwitchSection(new[] { generator.ExitSwitchStatement() });
+
+        protected override SyntaxNode CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, SyntaxNode caseLabel)
+            => generator.SwitchSection(caseLabel, new[] { generator.ExitSwitchStatement() });
+
+        protected override int InsertPosition(ISwitchOperation switchStatement)
         {
             // If the last section has a default label, then we want to be above that.
             // Otherwise, we just get inserted at the end.
