@@ -92,26 +92,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private static bool IsUnsignedBoundary(Optional<object> startValue, Optional<object> endValue, ulong maxValue)
             => ValueEquals(startValue, 0) || ValueEquals(endValue, maxValue);
 
-        private static ValueEquals(Optional<object> valueOpt, ulong value)
+        private static bool ValueEquals(Optional<object> valueOpt, ulong value)
             => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
 
-        private bool IsIntegral(object value)
-        {
-            switch (value)
+        private static bool IsIntegral(object value)
+            => value switch
             {
-                case sbyte _:
-                case byte _:
-                case short _:
-                case ushort _:
-                case int _:
-                case uint _:
-                case long _:
-                case ulong _:
-                    return true;
-            }
-
-            return false;
-        }
+                sbyte: => true,
+                byte: => true,
+                short: => true,
+                ushort: => true,
+                int: => true,
+                uint: => true,
+                long: => true,
+                ulong: => true,
+                _ => false,
+            };
 
         private bool MatchesIncrementPattern(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax after,
