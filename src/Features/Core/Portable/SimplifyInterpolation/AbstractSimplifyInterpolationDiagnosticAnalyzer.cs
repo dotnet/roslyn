@@ -3,23 +3,26 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
-    internal class AbstractSimplifyInterpolationDiagnosticAnlayzer<
+    internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         TInterpolationSyntax,
         TExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected AbstractSimplifyInterpolationDiagnosticAnlayzer()
+        protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
                   CodeStyleOptions.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_interpolation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                   new LocalizableResourceString(nameof(FeaturesResources.Interpolation_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
+
+        protected abstract IVirtualCharService GetVirtualCharService();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -45,12 +48,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             var option = optionSet.GetOption(CodeStyleOptions.PreferSimplifiedInterpolation, language);
             if (!option.Value)
             {
-                // not point in analyzing if the option is off.
+                // No point in analyzing if the option is off.
                 return;
             }
 
             Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                interpolation, out _, out var alignment, out _, out var formatString);
+                GetVirtualCharService(), interpolation, out _, out var alignment, out _, out var formatString,
+                out var unnecessaryLocations);
 
             if (alignment == null && formatString == null)
             {
@@ -60,12 +64,16 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             var locations = ImmutableArray.Create(interpolation.Syntax.GetLocation());
 
             var severity = option.Notification.Severity;
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
-                interpolation.Expression.Syntax.GetFirstToken().GetLocation(),
-                severity,
-                additionalLocations: locations,
-                properties: null));
+
+            for (var i = 0; i < unnecessaryLocations.Length; i++)
+            {
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    i == 0 ? UnnecessaryWithSuggestionDescriptor : UnnecessaryWithoutSuggestionDescriptor,
+                    unnecessaryLocations[i],
+                    severity,
+                    additionalLocations: locations,
+                    properties: null));
+            }
         }
     }
 }
