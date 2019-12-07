@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         public static bool HasDefaultCase(ISwitchExpressionOperation operation)
-        {
-            return operation.Arms.Any(a => IsDefault(a));
-        }
+            => operation.Arms.Any(a => IsDefault(a));
 
         public static bool IsDefault(ISwitchExpressionArmOperation arm)
         {
