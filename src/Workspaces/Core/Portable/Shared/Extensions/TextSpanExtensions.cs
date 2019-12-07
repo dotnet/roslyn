@@ -86,8 +86,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<TextSpan> Subtract(this IEnumerable<TextSpan> spans, TextSpan except)
-        {
-            return spans.SelectMany(span => span.Subtract(except));
-        }
+            => spans.SelectMany(span => span.Subtract(except));
     }
 }
