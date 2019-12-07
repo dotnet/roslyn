@@ -499,16 +499,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Async Function TestBingHelpLink_NoCustomType() As Task
             Using workspace = TestWorkspace.CreateCSharp("class A { int 111a; }")
-                Dim diagnostic = (Await workspace.CurrentSolution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
+                Dim solution = workspace.CurrentSolution
+                Dim diagnostic = (Await solution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
 
-                Dim helpMessage = diagnostic.GetBingHelpMessage(workspace)
+                Dim helpMessage = diagnostic.GetBingHelpMessage(solution.Options)
                 Assert.Equal("Invalid token '111' in class, struct, or interface member declaration", helpMessage)
 
                 ' turn off custom type search
                 Dim optionServices = workspace.Services.GetService(Of IOptionService)()
                 optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch, False))
 
-                Dim helpMessage2 = diagnostic.GetBingHelpMessage(workspace)
+                Dim helpMessage2 = diagnostic.GetBingHelpMessage(solution.Options)
                 Assert.Equal("Invalid token '{0}' in class, struct, or interface member declaration", helpMessage2)
             End Using
         End Function

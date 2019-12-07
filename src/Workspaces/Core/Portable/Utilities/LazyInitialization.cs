@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Roslyn.Utilities
 {
     internal static class LazyInitialization
     {
-        internal static T InterlockedStore<T>(ref T target, T value) where T : class
+        internal static T InterlockedStore<T>([NotNull]ref T? target, T value) where T : class
         {
-            Debug.Assert(value != null);
             return Interlocked.CompareExchange(ref target, value, null) ?? value;
         }
 
@@ -22,7 +23,7 @@ namespace Roslyn.Utilities
         /// <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
         /// <returns>The target value.</returns>
-        public static T EnsureInitialized<T>(ref T target, Func<T> valueFactory) where T : class
+        public static T EnsureInitialized<T>([NotNull]ref T? target, Func<T> valueFactory) where T : class
         {
             return Volatile.Read(ref target) ?? InterlockedStore(ref target, valueFactory());
         }
@@ -37,7 +38,7 @@ namespace Roslyn.Utilities
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
         /// <param name="state">An argument passed to the value factory.</param>
         /// <returns>The target value.</returns>
-        public static T EnsureInitialized<T, U>(ref T target, Func<U, T> valueFactory, U state)
+        public static T EnsureInitialized<T, U>([NotNull]ref T? target, Func<U, T> valueFactory, U state)
             where T : class
         {
             return Volatile.Read(ref target) ?? InterlockedStore(ref target, valueFactory(state));

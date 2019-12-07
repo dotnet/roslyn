@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return false;
             }
 
-            ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability(typeArgument);
-            ienumeratorGenericSymbol = ienumeratorGenericSymbol.ConstructWithNullability(typeArgument);
+            ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArgument);
+            ienumeratorGenericSymbol = ienumeratorGenericSymbol.Construct(typeArgument);
 
             if (!CanConvertTypes(typeArgument, returnExpressionType, model))
             {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         private bool CanConvertTypes(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, SemanticModel model)
         {
             // return false if there is no conversion for the top level type
-            if (!model.Compilation.ClassifyConversion(typeArgument.WithoutNullability(), returnExpressionType.WithoutNullability()).Exists)
+            if (!model.Compilation.ClassifyConversion(typeArgument, returnExpressionType).Exists)
             {
                 return false;
             }

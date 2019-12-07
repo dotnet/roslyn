@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Erro de sintaxe de linha de comando: '{0}' não é um valor válido para a opção '{1}'. O valor precisa estar no formato '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">O tipo '{0}' não pode ser inserido porque tem um membro que não é abstrato. Considere a definição da propriedade 'Inserir Tipos de Interoperabilidade' como false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">O tipo '{0}' não pode ser inserido porque tem uma nova abstração de um membro da interface base. Considere a configuração da propriedade 'Embed Interop Types' como false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">O runtime de destino não é compatível com a implementação de interface padrão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
+        <target state="translated">O tempo de execução de destino não dá suporte à acessibilidade 'Protected', 'Protected Friend' ou 'Private Protected' para um membro de uma interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -211,47 +211,47 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opções do Compilador do Visual Basic
+        <target state="translated">                  Opções do Compilador do Visual Basic
 
-                                  – ARQUIVO DE SAÍDA –
+                                  - ARQUIVO DE SAÍDA -
 -out:&lt;file&gt;                       Especifica o nome do arquivo de saída.
 -target:exe                       Criar um aplicativo de console (padrão).
                                   (Forma abreviada: -t)
 -target:winexe                    Criar um aplicativo do Windows.
 -target:library                   Criar um assembly de biblioteca.
--target:module                    Criar um módulo que pode ser adicionado a um
+-target:module                    Criar um módulo que possa ser adicionado a um
                                   assembly.
--target:appcontainerexe           Criar um aplicativo do Windows que executa no
+-target:appcontainerexe           Criar um aplicativo do Windows que seja executado no
                                   AppContainer.
 -target:winmdobj                  Criar um arquivo intermediário de Metadados do Windows
 -doc[+|-]                         Gera um arquivo de documentação XML.
 -doc:&lt;file&gt;                       Gera um arquivo de documentação XML para &lt;file&gt;.
 -refout:&lt;file&gt;                    Saída do assembly de referência a ser gerado
 
-                                  – ARQUIVOS DE ENTRADA –
+                                  - ARQUIVOS DE ENTRADA -
 -addmodule:&lt;file_list&gt;            Metadados de referência dos módulos especificados
 -link:&lt;file_list&gt;                 Inserir metadados do assembly de interoperalidade
                                   especificado. (Forma abreviada: -l)
 -recurse:&lt;wildcard&gt;               Incluir todos os arquivos no diretório e subdiretórios
                                   atuais de acordo com as
-                                  especificações curinga.
+                                  especificações de curinga.
 -reference:&lt;file_list&gt;            Metadados de referência do assembly
                                   especificado. (Forma abreviada: -r)
--analyzer:&lt;file_list&gt;             Executa os analisadores do assembly
+-analyzer:&lt;file_list&gt;             Executar os analisadores deste assembly
                                   (Forma abreviada: -a)
 -additionalfile:&lt;file list&gt;       Arquivos adicionais que não afetam diretamente a geração de
                                   código, mas que podem ser usados por analisadores para produzir
                                   erros ou avisos.
 
-                                  – RECURSOS –
--linkresource:&lt;resinfo&gt;           Vincula o arquivo especificado como um recurso do
+                                  - RECURSOS -
+-linkresource:&lt;resinfo&gt;           Vincula o arquivo especificado como um recurso de
                                   assembly externo.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Forma abreviada: -linkres)
 -nowin32manifest                  O manifesto padrão não deve ser inserido
                                   na seção do manifesto do PE de saída.
--resource:&lt;resinfo&gt;               Adiciona o arquivo especificado como um recurso inserido do
-                                  assembly.
+-resource:&lt;resinfo&gt;               Adiciona o arquivo especificado como um recurso do
+                                  assembly inserido.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Forma abreviada: -res)
 -win32icon:&lt;file&gt;                 Especifica um arquivo de ícone Win32 (.ico) para os
@@ -260,31 +260,34 @@
                                   do PE de saída.
 -win32resource:&lt;file&gt;             Especifica um arquivo de recurso Win32 (.res).
 
-                                  – GERAÇÃO DE CÓDIGO –
+                                  - GERAÇÃO DE CÓDIGO -
 -optimize[+|-]                    Habilitar otimizações.
 -removeintchecks[+|-]             Remover verificações de números inteiros. O padrão é desligado.
 -debug[+|-]                       Emitir informações de depuração.
 -debug:full                       Emitir informações de depuração completas (padrão).
 -debug:pdbonly                    Emitir informações de depuração completas.
--debug:portable                   Emitir informações de depuração multiplataforma.
--debug:embedded                   Emitir informações de depuração multiplataforma
+-debug:portable                   Emitir informações de depuração de plataforma cruzada.
+-debug:embedded                   Emitir informações de depuração de plataforma cruzada
                                   no .dll ou no .exe de destino.
 -deterministic                    Produzir um assembly determinístico
                                   (incluindo carimbo de data/hora e GUID da versão do módulo)
--refonly          Produzir um assembly de referência no lugar do instrumento de saída
--principal:TestCoverage         Produzir um assembly instrumentado para coletar
+-refonly          Produzir um assembly de referência no lugar da saída principal
+-instrument:TestCoverage         Produzir um assembly instrumentado para coletar
                                   informações de cobertura
 -sourcelink:&lt;file&gt;                Informações do link de origem para inserir no PDB.
 
-                                  – ERROS E AVISOS –
+                                  - ERROS E AVISOS -
 -nowarn                           Desabilitar todos os avisos.
 -nowarn:&lt;number_list&gt;             Desabilitar uma lista de avisos individuais.
 -warnaserror[+|-]                 Tratar todos os avisos como erros.
 -warnaserror[+|-]:&lt;number_list&gt;   Tratar uma lista de avisos como erros.
 -ruleset:&lt;file&gt;                   Especificar um arquivo de conjunto de regras que desabilita um diagnóstico
                                   específico.
--errorlog:&lt;file&gt;                  Especificar um arquivo para registrar todos os diagnósticos do compilador e do
-                                  analisador.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Especificar um arquivo para registrar todos os diagnósticos do compilador e do
+                                  analisador em formato SARIF.
+                                  sarif_version:{1|2|2.1} O padrão é 1. 2 e 2.1
+                                  ambos significam a versão SARIF 2.1.0.
 -reportanalyzer                   Relatar informações adicionais do analisador, como o
                                   tempo de execução.
 
@@ -292,36 +295,36 @@
 -define:&lt;symbol_list&gt;             Declarar os símbolos globais de
                                   compilação condicional. symbol_list:name=value,...
                                   (Forma abreviada: -d)
--imports:&lt;import_list&gt;            Declarar as importações globais dos namespaces nos
+-imports:&lt;import_list&gt;            Declarar as Importações globais dos namespaces nos
                                   arquivos de metadados referenciados.
                                   import_list:namespace,...
--langversion:?                                  Exibir todos os valores permitidos para a versão da linguagem
--langversion:&lt;string&gt;              Especificar a versão da linguagem como:
+-langversion:?                                  Exibir os valores permitidos para a versão da linguagem
+-langversion:&lt;string&gt;              Especificar a versão da linguagem como
                                `padrão` (versão principal mais recente) ou
                                `mais recente` (versão mais recente, incluindo versões secundárias),
-                               ou versões específicas como `14` ou `15.3`
+                               ou versões específicas, como `14` ou `15.3`
 -optionexplicit[+|-]              Exigir declaração explícita de variáveis.
 -optioninfer[+|-]                 Permitir inferência de tipos de variáveis.
 -rootnamespace:&lt;string&gt;           Especifica o Namespace raiz para todos os tipos de
                                   declarações.
 -optionstrict[+|-]                Impor semântica de linguagem estrita.
--optionstrict:custom              Avisar quando a semântica de linguagem estrita não é
+-optionstrict:custom              Avisar quando a semântica de linguagem estrita não for
                                   respeitada.
 -optioncompare:binary             Especifica comparações de cadeia de caracteres de estilo binário.
                                   Esse é o padrão.
 -optioncompare:text               Especifica comparações de cadeia de caracteres de estilo de texto.
 
-                                  – DIVERSOS –
+                                  - DIVERSOS -
 -help                             Exibir essa mensagem de uso. (Forma abreviada: -?)
 -noconfig                         Não incluir o arquivo VBC.RSP automaticamente.
 -nologo                           Não exibir o banner de direitos autorais do compilador.
 -quiet                            Modo de saída silencioso.
 -verbose                          Exibir mensagens detalhadas.
 -parallel[+|-]                    Build simultâneo.
--version                          Exibir o número de versão do compilador e sair.
+-version                          Exibir o número da versão do compilador e sair.
 
-                                  – AVANÇADO –
--baseaddress:&lt;number&gt;             O endereço básico de uma biblioteca ou módulo
+                                  - AVANÇADO -
+-baseaddress:&lt;number&gt;             O endereço base de uma biblioteca ou um módulo
                                   (hexadecimal).
 -checksumalgorithm:&lt;alg&gt;          Especificar o algoritmo para calcular a soma de verificação do
                                   arquivo de origem armazenado no PDB. Os valores com suporte são:
@@ -333,15 +336,15 @@
 -publicsign[+|-]                  Sinalizar o assembly como público usando somente a parte pública
                                   da chave do nome forte.
 -errorreport:&lt;string&gt;             Especifica como lidar com os erros internos do
-                                  compilador; deve ser prompt, send, none ou queue
+                                  compilador; precisa ser prompt, send, none ou queue
                                   (padrão).
 -filealign:&lt;number&gt;               Especificar o alinhamento usado nas seções do arquivo de
                                   saída.
 -highentropyva[+|-]               Habilitar ASLR de alta entropia.
--keycontainer:&lt;string&gt;            Especifica um contêiner de chaves de nome forte.
--keyfile:&lt;file&gt;                   Especifica um arquivo de chave de nome forte.
--libpath:&lt;path_list&gt;              Lista de diretórios nas quais pesquisar as referências de
-                                  metadados. (Delimitada por ponto e vírgula.)
+-keycontainer:&lt;string&gt;            Especifica um contêiner de chave de nome forte.
+-keyfile:&lt;file&gt;                   Especifica um arquivo da chave de nome forte.
+-libpath:&lt;path_list&gt;              Lista de diretórios nos quais pesquisar as referências de
+                                  metadados. (Delimitados por ponto e vírgula.)
 -main:&lt;class&gt;                     Especifica a Classe ou o Módulo que contém
                                   Sub Main. Também pode ser uma Classe
                                   herdada de System.Windows.Forms.Form.
@@ -355,10 +358,10 @@
                                   Especificar um mapeamento para nomes de caminhos de origem produzidos pelo
                                   compilador.
 -platform:&lt;string&gt;                Limitar em quais plataformas o código pode ser executado;
-                                  deve ser x86, x64, Itanium, arm, arm64,
+                                  precisa ser x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred ou anycpu (padrão).
 -preferreduilang                  Especificar o nome da linguagem de saída preferencial.
--nosdkpath                        Desabilite a pesquisa no caminho de SDK padrão para assemblies de biblioteca padrão.
+-nosdkpath                        Desabilitar a pesquisa no caminho de SDK padrão para assemblies de biblioteca padrão.
 -sdkpath:&lt;path&gt;                   Localização do diretório do SDK do .NET Framework
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Especificar a versão do subsistema do PE de saída.
@@ -366,9 +369,9 @@
 -utf8output[+|-]                  Emitir a saída do compilador em codificação de caracteres
                                   UTF8.
 @&lt;file&gt;                           Inserir configurações de linha de comando de um arquivo de texto
--vbruntime[+|-|*]                 Compilar com-sem o tempo de execução padrão do
+-vbruntime[+|-|*]                 Compilar com/sem o runtime padrão do
                                   Visual Basic.
--vbruntime:&lt;file&gt;                 Compilar com o tempo de execução alternativo do
+-vbruntime:&lt;file&gt;                 Compilar com o runtime alternativo do
                                   Visual Basic em &lt;file&gt;.
 </target>
         <note />
@@ -2113,12 +2116,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoNonNarrowingOverloadCandidates2">
         <source>Overload resolution failed because no accessible '{0}' can be called without a narrowing conversion:{1}</source>
-        <target state="translated">Resolução de sobrecarga falhou porque nenhum "{0}" acessível pode ser chamado sem um conversão de estreitamento:{1}</target>
+        <target state="translated">Resolução de sobrecarga falhou porque nenhum "{0}" acessível pode ser chamado sem um conversão de restrição:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
         <source>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</source>
-        <target state="translated">O argumento correspondente ao parâmetro "{0}" restringe de "{1}" para "{2}".</target>
+        <target state="translated">O parâmetro de correspondência de argumento '{0}' restringe de '{1}' para '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMostSpecificOverload2">
@@ -2672,7 +2675,7 @@
       </trans-unit>
       <trans-unit id="ERR_RedimNoSizes">
         <source>'ReDim' statements require a parenthesized list of the new bounds of each dimension of the array.</source>
-        <target state="translated">'Instruções 'ReDim' requerem uma lista delimitada por parênteses dos novos limites de cada dimensão da matriz.</target>
+        <target state="translated">'Instruções 'ReDim' requerem uma lista entre parênteses dos novos limites de cada dimensão da matriz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitWithMultipleDeclarators">
@@ -4373,7 +4376,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyNameInvalid">
         <source>Friend declaration '{0}' is invalid and cannot be resolved.</source>
-        <target state="translated">A declaração Friend "{0}" é inválida e não pode ser resolvida.</target>
+        <target state="translated">A declaração de friend "{0}" é inválida e não pode ser resolvida.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyBadAccessOverride2">
@@ -5220,7 +5223,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion">
         <source>Cannot infer a common type for the second and third operands of the 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Não é possível inferir um tipo comum para o segundo e terceiro operandos do operador "If". Um deve ter uma conversão de ampliação para o outro.</target>
+        <target state="translated">Não é possível inferir um tipo comum para o segundo e terceiro operandos do operador "If". Um deve ter uma conversão de expansão para o outro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
@@ -5240,7 +5243,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion2">
         <source>Cannot infer a common type for the first and second operands of the binary 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Não é possível inferir um tipo comum para o primeiro e segundo operandos do operador "If" binário. Um deve ter uma conversão de ampliação para o outro.</target>
+        <target state="translated">Não é possível inferir um tipo comum para o primeiro e segundo operandos do operador "If" binário. Um deve ter uma conversão de expansão para o outro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullTypeInCCExpression">
@@ -5904,7 +5907,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing2">
         <source>Argument matching parameter '{0}' narrows to '{1}'.</source>
-        <target state="translated">Parâmetro correspondente ao argumento "{0}" restringe para "{1}".</target>
+        <target state="translated">O parâmetro de correspondência de argumento '{0}' restringe para '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadCandidate1">
@@ -6756,7 +6759,7 @@
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is null consider using 'Is Nothing'.</source>
-        <target state="translated">Esta expressão irá sempre convergir para Nothing (devido à propagação de nulo do operador igual). Para verificar se o valor é nulo, considere o uso de 'Is Nothing'.</target>
+        <target state="translated">Esta expressão sempre convergirá para Nothing (devido ao tratamento simplificado de nulo do operador igual). Para verificar se o valor é nulo, considere o uso de 'Is Nothing'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing_Title">
@@ -6766,7 +6769,7 @@
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is not null consider using 'IsNot Nothing'.</source>
-        <target state="translated">Esta expressão irá sempre convergir para Nothing (devido à propagação de nulo do operador igual). Para verificar se o valor é não nulo, considere o uso de 'IsNot Nothing'.</target>
+        <target state="translated">Esta expressão sempre convergirá para Nothing (devido ao tratamento simplificado de nulo do operador igual). Para verificar se o valor é não nulo, considere o uso de 'IsNot Nothing'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing_Title">
@@ -8788,7 +8791,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">O comprimento da constante de cadeia de caracteres excede o limite de memória atual.  Tente dividir a cadeia de caracteres em várias constantes.</target>
+        <target state="translated">O comprimento da Constante de cadeia de caracteres resultante da concatenação excede o System.Int32.MaxValue. Tente dividir a cadeia de caracteres em várias constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -8823,7 +8826,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_CoContraVariance">
         <source>variance</source>
-        <target state="translated">variação</target>
+        <target state="translated">variância</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CollectionInitializers">

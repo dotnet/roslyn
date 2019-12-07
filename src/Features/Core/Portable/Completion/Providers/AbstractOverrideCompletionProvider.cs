@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 methodSymbol.Name == "ToString" &&
                 methodSymbol.Parameters.Length == 0)
             {
-                newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullability(NullableAnnotation.NotAnnotated));
+                newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullableAnnotation(NullableAnnotation.NotAnnotated));
             }
 
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
