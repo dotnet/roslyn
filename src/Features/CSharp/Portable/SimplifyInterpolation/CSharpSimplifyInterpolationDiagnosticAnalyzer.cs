@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
         InterpolationSyntax, ExpressionSyntax>
     {
         protected override IVirtualCharService GetVirtualCharService()
-        {
-            return CSharpVirtualCharService.Instance;
-        }
+            => CSharpVirtualCharService.Instance;
     }
 }
