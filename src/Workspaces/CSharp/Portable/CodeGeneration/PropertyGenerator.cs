@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static TypeSyntax GenerateTypeSyntax(IPropertySymbol property)
         {
-            var returnType = property.Type.WithNullability(property.NullableAnnotation);
+            var returnType = property.Type;
 
             if (property.ReturnsByRef)
             {

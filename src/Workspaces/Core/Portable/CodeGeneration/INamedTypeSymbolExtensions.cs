@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 namedType.BaseType,
                 namedType.Interfaces,
                 namedType.SpecialType,
+                namedType.NullableAnnotation,
                 namedType.GetMembers().WhereAsArray(s => !(s is INamedTypeSymbol)),
                 namedType.GetTypeMembers().SelectAsArray(t => t.ToCodeGenerationSymbol()),
                 namedType.EnumUnderlyingType);
