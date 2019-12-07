@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
                 if (invocation.Arguments.Length == 1 &&
-                    invocation.Arguments[0].Value is { ConstantValue: { HasValue: true, Value: string format } } argumentValue)
+                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string format } } argumentValue)
                 {
                     unwrapped = invocation.Instance;
                     formatString = format;
