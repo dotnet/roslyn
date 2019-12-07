@@ -74,13 +74,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     unwrapped = invocation.Instance;
                     formatString = format;
 
-                    var subtractedSpans = invocation.Syntax.Span.Subtract(invocation.Instance.Syntax.FullSpan);
-                    if (TryGetSpanWithinLiteralQuotes(virtualCharService, argumentValue.Syntax) is TextSpan stringSpan)
-                    {
-                        subtractedSpans = subtractedSpans.Subtract(stringSpan);
-                    }
-
-                    unnecessarySpans.AddRange(subtractedSpans);
+                    unnecessarySpans.AddRange(invocation.Syntax.Span
+                        .Subtract(invocation.Instance.Syntax.FullSpan)
+                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, argumentValue.Syntax)));
                     return;
                 }
 
@@ -99,13 +95,12 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             formatString = null;
         }
 
-        private static TextSpan? TryGetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxNode stringLiteralNode)
+        private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxNode stringLiteralNode)
         {
             var sequence = virtualCharService.TryConvertToVirtualChars(stringLiteralNode.GetFirstToken());
-            if (sequence.IsDefaultOrEmpty)
-                return null;
-
-            return TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
+            return sequence.IsDefaultOrEmpty
+                ? default
+                : TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
         }
 
         private static void UnwrapAlignmentPadding<TExpressionSyntax>(
