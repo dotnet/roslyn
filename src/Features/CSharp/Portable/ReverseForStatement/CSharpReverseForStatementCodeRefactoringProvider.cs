@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
             var (document, _, cancellationToken) = context;
             if (MatchesIncrementPattern(variable, condition, after, out var start, out var equals, out var end) ||
-                MatchesDecrementPattern(variable, condition, after, out end, out equals, out start))
+                MatchesDecrementPattern(variable, condition, after, out end, out start))
             {
                 var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (IsUnsignedBoundary(semanticModel, variable, start, equals, end, cancellationToken))
+                if (IsUnsignedBoundary(semanticModel, variable, start, cancellationToken))
                 {
                     // Don't allow reversing when you have unsigned types and are on the start/end
                     // of the legal values for that type.  i.e. `for (byte i = 0; i < 10; i++)` it's
@@ -73,39 +73,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
         private bool IsUnsignedBoundary(
             SemanticModel semanticModel, VariableDeclaratorSyntax variable,
-            ExpressionSyntax start, bool equals, ExpressionSyntax end,
-            CancellationToken cancellationToken)
+            ExpressionSyntax start, CancellationToken cancellationToken)
         {
             var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol;
-            var startValue = semanticModel.GetConstantValue(start, cancellationToken);
-            var endValue = semanticModel.GetConstantValue(end, cancellationToken);
-            return local?.Type.SpecialType switch
+            if (local != null)
             {
-                SpecialType.System_Byte => IsUnsignedBoundary<byte>(startValue, endValue, equals, byte.MaxValue - 1, byte.MaxValue),
-                SpecialType.System_UInt16 => IsUnsignedBoundary<ushort>(startValue, endValue, equals, ushort.MaxValue - 1, ushort.MaxValue),
-                SpecialType.System_UInt32 => IsUnsignedBoundary<uint>(startValue, endValue, equals, uint.MaxValue - 1, uint.MaxValue),
-                SpecialType.System_UInt64 => IsUnsignedBoundary<ulong>(startValue, endValue, equals, ulong.MaxValue - 1, ulong.MaxValue),
-                _ => false,
-            };
-        }
-
-        private bool IsUnsignedBoundary<TType>(
-            Optional<object> startValue, Optional<object> endValue,
-            bool equals, TType maxMinus1, TType max) where TType : struct
-        {
-            var zero = default(TType);
-            if (startValue.HasValue && IsIntegral(startValue.Value) &&
-                ToUInt64(zero) == ToUInt64(startValue.Value))
-            {
-                return true;
-            }
-
-            if (endValue.HasValue && IsIntegral(endValue.Value))
-            {
-                if (equals && ToUInt64(max) == ToUInt64(endValue.Value))
-                    return true;
-                else if (ToUInt64(maxMinus1) == ToUInt64(endValue.Value))
-                    return true;
+                switch (local.Type.SpecialType)
+                {
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_UInt64:
+                        var startValue = semanticModel.GetConstantValue(start, cancellationToken);
+                        return startValue.HasValue && IsIntegral(startValue.Value) && ToUInt64(startValue.Value) == 0;
+                }
             }
 
             return false;
@@ -142,10 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
         private bool MatchesDecrementPattern(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax after,
-            [NotNullWhen(true)] out ExpressionSyntax? end, out bool equals, [NotNullWhen(true)] out ExpressionSyntax? start)
+            [NotNullWhen(true)] out ExpressionSyntax? end, [NotNullWhen(true)] out ExpressionSyntax? start)
         {
             start = default;
-            equals = true;
             return IsDecrementInitializer(variable, out end) &&
                    IsDecrementCondition(variable, condition, out start) &&
                    IsDecrementAfter(variable, after);
@@ -310,9 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 editor.ReplaceNode(variable.Initializer!.Value, Reduce(newStart));
                 editor.ReplaceNode(condition, Reduce(Invert(variable, condition, start)));
             }
-            else if (MatchesDecrementPattern(
-                        variable, condition, after,
-                        out end, out _, out start))
+            else if (MatchesDecrementPattern(variable, condition, after, out end, out start))
             {
                 //  for (var x = end; x >= start; x--) =>
                 //  for (var x = start; x <= end; x--)

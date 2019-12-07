@@ -438,6 +438,78 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt16OneMin()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (ushort i = 1; i <= 10; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (ushort i = 10; i >= 1; i--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt32OneMin()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (uint i = 1; i <= 10; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (uint i = 10; i >= 1; i--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt64OneMin()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (ulong i = 1; i <= 10; i++)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(string[] args)
+    {
+        for (ulong i = 10; i >= 1; i--)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestByteZeroMin()
         {
             await TestMissingAsync(
@@ -453,23 +525,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReverseForStatement
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public async Task TestByteMax()
+        public async Task TestUInt16ZeroMin()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingAsync(
 @"class C
 {
     void M(string[] args)
     {
-        [||]for (byte i = 1; i < byte.MaxValue; i++)
+        [||]for (ushort i = 0; i <= 10; i++)
         {
         }
     }
-}",
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt32ZeroMin()
+        {
+            await TestMissingAsync(
 @"class C
 {
     void M(string[] args)
     {
-        for (byte i = 10; i >= 1; i--)
+        [||]for (uint i = 0; i <= 10; i++)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUInt64ZeroMin()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (ulong i = 0; i <= 10; i++)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestByteZeroMinReverse()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string[] args)
+    {
+        [||]for (byte i = 10; i >= 0; i--)
         {
         }
     }
