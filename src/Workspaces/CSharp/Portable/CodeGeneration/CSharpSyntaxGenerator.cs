@@ -2296,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? list.Parameters
                 : declaration is SimpleLambdaExpressionSyntax simpleLambda
                     ? new[] { simpleLambda.Parameter }
-                    : SpecializedCollections.EmptyReadOnlyList<global::Microsoft.CodeAnalysis.SyntaxNode>();
+                    : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
