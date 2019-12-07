@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,40 +24,37 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
-                public static readonly State Empty = new State(compilation: ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation: null);
+                public static readonly State Empty = new State(compilation: null, declarationOnlyCompilation: null);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
                 /// nor does it have any references. It just holds the declaration table alive.
                 /// </summary>
-                public Compilation DeclarationOnlyCompilation { get; }
+                public Compilation? DeclarationOnlyCompilation { get; }
 
                 /// <summary>
-                /// The best compilation that is available.  May be an in-progress, full declaration, or a final compilation.
+                /// The best compilation that is available. May be an in-progress, full declaration, a final compilation, or <see langword="null"/>.
                 /// </summary>
-                public ValueSource<Compilation> Compilation { get; }
+                public ValueSource<Compilation>? Compilation { get; }
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
-                /// null if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
+                /// <see langword="null"/> if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
                 /// </summary>
                 public virtual bool? HasSuccessfullyLoaded => null;
 
                 /// <summary>
-                /// The final compilation if available, otherwise an empty <see cref="ValueSource{Compilation}"/>.
+                /// The final compilation if available, otherwise <see langword="null"/>.
                 /// </summary>
-                public virtual ValueSource<Compilation> FinalCompilation
-                {
-                    get { return ConstantValueSource<Compilation>.Empty; }
-                }
+                public virtual ValueSource<Compilation>? FinalCompilation => null;
 
-                protected State(ValueSource<Compilation> compilation, Compilation declarationOnlyCompilation)
+                protected State(ValueSource<Compilation>? compilation, Compilation? declarationOnlyCompilation)
                 {
-                    this.Compilation = compilation;
-                    this.DeclarationOnlyCompilation = declarationOnlyCompilation;
-
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
+
+                    Compilation = compilation;
+                    DeclarationOnlyCompilation = declarationOnlyCompilation;
                 }
 
                 public static State Create(
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation)
-                    : base(compilation: ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation: declarationOnlyCompilation)
+                    : base(compilation: null, declarationOnlyCompilation: declarationOnlyCompilation)
                 {
                 }
             }
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis
                 private readonly bool _hasSuccessfullyLoaded;
 
                 public override bool? HasSuccessfullyLoaded => _hasSuccessfullyLoaded;
-                public override ValueSource<Compilation> FinalCompilation => this.Compilation;
+                public override ValueSource<Compilation>? FinalCompilation => Compilation;
 
                 public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasSuccessfullyLoaded)
                     : base(finalCompilationSource, finalCompilationSource.GetValue().Clone().RemoveAllReferences())

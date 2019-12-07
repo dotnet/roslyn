@@ -14,14 +14,6 @@ namespace Roslyn.Utilities
         public abstract T GetValue(CancellationToken cancellationToken = default);
         public abstract Task<T> GetValueAsync(CancellationToken cancellationToken = default);
 
-        public bool HasValue
-        {
-            get
-            {
-                return this.TryGetValue(out var tmp);
-            }
-        }
-
-        public static readonly ConstantValueSource<T> Empty = new ConstantValueSource<T>(default);
+        public bool HasValue => TryGetValue(out _);
     }
 }

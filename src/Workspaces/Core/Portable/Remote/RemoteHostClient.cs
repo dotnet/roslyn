@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.Default<Connection?>();
+                return SpecializedTasks.Null<Connection>();
             }
 
             protected override void OnStarted()

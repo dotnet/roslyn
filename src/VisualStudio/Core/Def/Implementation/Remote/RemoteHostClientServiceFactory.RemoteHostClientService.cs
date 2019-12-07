@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 if (remoteClientTask == null)
                 {
                     // service is in shutdown mode or not enabled
-                    return SpecializedTasks.Default<RemoteHostClient>();
+                    return SpecializedTasks.Null<RemoteHostClient>();
                 }
 
                 return remoteClientTask;
