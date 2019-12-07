@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
-                addNullChecks, preferThrowExpression).SelectAsArray<SyntaxNode, SyntaxNode>(
+                addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
