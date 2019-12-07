@@ -2,8 +2,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -60,6 +62,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var innerSpan = TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End);
             var outerSpan = TextSpan.FromBounds(startNode.FullSpan.Start, endNode.FullSpan.End);
             return span.Contains(innerSpan) && outerSpan.Contains(span);
+        }
+
+        public static IEnumerable<TextSpan> Subtract(this TextSpan span, TextSpan except)
+        {
+            if (except.IsEmpty)
+            {
+                if (span != except) yield return span;
+                yield break;
+            }
+
+            var startSegmentEnd = Math.Min(span.End, except.Start);
+            if (span.Start < startSegmentEnd)
+                yield return TextSpan.FromBounds(span.Start, startSegmentEnd);
+
+            var endSegmentStart = Math.Max(span.Start, except.End);
+            if (endSegmentStart < span.End)
+                yield return TextSpan.FromBounds(endSegmentStart, span.End);
+        }
+
+        public static IEnumerable<TextSpan> Subtract(this IEnumerable<TextSpan> spans, TextSpan except)
+        {
+            return spans.SelectMany(span => span.Subtract(except));
         }
     }
 }
