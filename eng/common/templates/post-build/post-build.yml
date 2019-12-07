@@ -17,14 +17,11 @@ parameters:
   signingValidationAdditionalParameters: ''
 
   # Which stages should finish execution before post-build stages start
-  validateDependsOn:
-  - build
-  publishDependsOn: 
-  - Validate
+  dependsOn: [build]
 
 stages:
-- stage: Validate
-  dependsOn: ${{ parameters.validateDependsOn }}
+- stage: validate
+  dependsOn: ${{ parameters.dependsOn }}
   displayName: Validate
   jobs:
   - ${{ if eq(parameters.enableNugetValidation, 'true') }}:
@@ -43,8 +40,8 @@ stages:
           displayName: Validate
           inputs:
             filePath: $(Build.SourcesDirectory)/eng/common/post-build/nuget-validation.ps1
-            arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/ 
-              -ToolDestinationPath $(Agent.BuildDirectory)/Extract/ 
+            arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/
+              -ToolDestinationPath $(Agent.BuildDirectory)/Extract/
 
   - ${{ if eq(parameters.enableSigningValidation, 'true') }}:
     - job:
@@ -104,9 +101,9 @@ stages:
           displayName: Validate
           inputs:
             filePath: $(Build.SourcesDirectory)/eng/common/post-build/sourcelink-validation.ps1
-            arguments: -InputPath $(Build.ArtifactStagingDirectory)/BlobArtifacts/ 
-              -ExtractPath $(Agent.BuildDirectory)/Extract/ 
-              -GHRepoName $(Build.Repository.Name) 
+            arguments: -InputPath $(Build.ArtifactStagingDirectory)/BlobArtifacts/
+              -ExtractPath $(Agent.BuildDirectory)/Extract/
+              -GHRepoName $(Build.Repository.Name)
               -GHCommit $(Build.SourceVersion)
               -SourcelinkCliVersion $(SourceLinkCLIVersion)
           continueOnError: true
@@ -121,7 +118,6 @@ stages:
 - template: \eng\common\templates\post-build\channels\generic-public-channel.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     stageName: 'NetCore_Dev5_Publish'
@@ -134,7 +130,6 @@ stages:
 - template: \eng\common\templates\post-build\channels\generic-public-channel.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     stageName: 'Net_Eng_Latest_Publish'
@@ -147,7 +142,6 @@ stages:
 - template: \eng\common\templates\post-build\channels\generic-public-channel.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     stageName: 'Net_Eng_Validation_Publish'
@@ -160,7 +154,6 @@ stages:
 - template: \eng\common\templates\post-build\channels\generic-public-channel.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     stageName: 'General_Testing_Publish'
@@ -173,7 +166,6 @@ stages:
 - template: \eng\common\templates\post-build\channels\generic-public-channel.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     stageName: 'NETCore_Tooling_Dev_Publishing'
@@ -186,7 +178,6 @@ stages:
 - template: \eng\common\templates\post-build\channels\generic-public-channel.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     stageName: 'NETCore_Tooling_Release_Publishing'
