@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     internal static class Helpers
     {
         public static void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-            IInterpolationOperation interpolation,
-            out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment,
-            out bool negate, out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
+            IVirtualCharService virtualCharService, IInterpolationOperation interpolation,
+            out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment, out bool negate,
+            out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
                 where TInterpolationSyntax : SyntaxNode
                 where TExpressionSyntax : SyntaxNode
         {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             if (interpolation.FormatString == null)
             {
-                UnwrapFormatString(expression, out expression, out formatString, unnecessarySpans);
+                UnwrapFormatString(virtualCharService, expression, out expression, out formatString, unnecessarySpans);
             }
 
             unwrapped = expression?.Syntax as TExpressionSyntax;
@@ -63,7 +64,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         private static void UnwrapFormatString(
-            IOperation expression, out IOperation unwrapped, out string? formatString, ArrayBuilder<TextSpan> unnecessarySpans)
+            IVirtualCharService virtualCharService, IOperation expression, out IOperation unwrapped,
+            out string? formatString, ArrayBuilder<TextSpan> unnecessarySpans)
         {
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
                     unnecessarySpans.AddRange(invocation.Syntax.Span
                         .Subtract(invocation.Instance.Syntax.FullSpan)
-                        .Subtract(argumentValue.Syntax.FullSpan));
+                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, argumentValue.Syntax)));
                     return;
                 }
 
@@ -92,6 +94,14 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             unwrapped = expression;
             formatString = null;
+        }
+
+        private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxNode stringLiteralNode)
+        {
+            var sequence = virtualCharService.TryConvertToVirtualChars(stringLiteralNode.GetFirstToken());
+            if (sequence.IsEmpty) return default;
+
+            return TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
         }
 
         private static void UnwrapAlignmentPadding<TExpressionSyntax>(

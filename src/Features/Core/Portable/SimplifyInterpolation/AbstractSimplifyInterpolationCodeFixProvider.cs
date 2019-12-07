@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax)
                 {
                     Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                        interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
+                        document.GetLanguageService<IVirtualCharService>(), interpolation, out var unwrapped,
+                        out var alignment, out var negate, out var formatString, out _);
 
                     alignment = negate ? (TExpressionSyntax)generator.NegateExpression(alignment) : alignment;
 

@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
-    internal class AbstractSimplifyInterpolationDiagnosticAnalyzer<
+    internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         TInterpolationSyntax,
         TExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TInterpolationSyntax : SyntaxNode
@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                   new LocalizableResourceString(nameof(FeaturesResources.Interpolation_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
+
+        protected abstract IVirtualCharService GetVirtualCharService();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -51,7 +53,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                interpolation, out _, out var alignment, out _, out var formatString, out var unnecessaryLocations);
+                GetVirtualCharService(), interpolation, out _, out var alignment, out _, out var formatString,
+                out var unnecessaryLocations);
 
             if (alignment == null && formatString == null)
             {
