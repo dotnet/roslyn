@@ -160,7 +160,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
             memberOptions:
                 SymbolDisplayMemberOptions.IncludeType |
@@ -171,7 +174,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private static readonly SymbolDisplayFormat s_parameterDisplayFormat = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             parameterOptions:
                 SymbolDisplayParameterOptions.IncludeType |
                 SymbolDisplayParameterOptions.IncludeParamsRefOut |

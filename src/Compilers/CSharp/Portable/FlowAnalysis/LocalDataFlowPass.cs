@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Does a data flow analysis for state attached to local variables and fields of struct locals.
     /// </summary>
-    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
+    internal abstract partial class LocalDataFlowPass<TLocalState, TLocalFunctionState> : AbstractFlowPass<TLocalState, TLocalFunctionState>
+        where TLocalState : AbstractFlowPass<TLocalState, TLocalFunctionState>.ILocalState
+        where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.

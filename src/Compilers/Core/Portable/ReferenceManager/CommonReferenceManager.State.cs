@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -32,14 +33,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enumerates all referenced assemblies.
         /// </summary>
-        internal abstract IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies();
+        internal abstract IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbolInternal>> GetReferencedAssemblies();
 
         /// <summary>
         /// Enumerates all referenced assemblies and their aliases.
         /// </summary>
-        internal abstract IEnumerable<(IAssemblySymbol, ImmutableArray<string>)> GetReferencedAssemblyAliases();
+        internal abstract IEnumerable<(IAssemblySymbolInternal, ImmutableArray<string>)> GetReferencedAssemblyAliases();
 
-        internal abstract MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol);
+        internal abstract MetadataReference GetMetadataReference(IAssemblySymbolInternal assemblySymbol);
         internal abstract ImmutableArray<MetadataReference> ExplicitReferences { get; }
         internal abstract ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> ImplicitReferenceResolutions { get; }
     }
@@ -640,9 +641,9 @@ namespace Microsoft.CodeAnalysis
         // for testing purposes
         internal IEnumerable<string> ExternAliases => AliasesOfReferencedAssemblies.SelectMany(aliases => aliases);
 
-        internal sealed override IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies()
+        internal sealed override IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbolInternal>> GetReferencedAssemblies()
         {
-            return ReferencedAssembliesMap.Select(ra => KeyValuePairUtil.Create(ra.Key, (IAssemblySymbol)ReferencedAssemblies[ra.Value]));
+            return ReferencedAssembliesMap.Select(ra => KeyValuePairUtil.Create(ra.Key, (IAssemblySymbolInternal)ReferencedAssemblies[ra.Value]));
         }
 
         internal TAssemblySymbol GetReferencedAssemblySymbol(MetadataReference reference)
@@ -660,7 +661,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol. 
         /// </summary>
-        internal override MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
+        internal override MetadataReference GetMetadataReference(IAssemblySymbolInternal assemblySymbol)
         {
             foreach (var entry in ReferencedAssembliesMap)
             {
@@ -673,11 +674,11 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        internal override IEnumerable<(IAssemblySymbol, ImmutableArray<string>)> GetReferencedAssemblyAliases()
+        internal override IEnumerable<(IAssemblySymbolInternal, ImmutableArray<string>)> GetReferencedAssemblyAliases()
         {
             for (int i = 0; i < ReferencedAssemblies.Length; i++)
             {
-                yield return ((IAssemblySymbol)ReferencedAssemblies[i], AliasesOfReferencedAssemblies[i]);
+                yield return (ReferencedAssemblies[i], AliasesOfReferencedAssemblies[i]);
             }
         }
 

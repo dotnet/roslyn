@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default, Accessibility.Private,
                 DeclarationModifiers.From(propertySymbol),
-                propertySymbol.GetTypeWithAnnotatedNullability(), fieldName,
+                propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
 
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;

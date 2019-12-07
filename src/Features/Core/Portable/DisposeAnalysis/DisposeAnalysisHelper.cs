@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
                 {
-                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+                    var wellKnownTypeProvider = Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(context.Compilation);
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
                 {
-                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+                    var wellKnownTypeProvider = Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(context.Compilation);
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,

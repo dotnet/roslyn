@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Operations
             return ImmutableArray.Create(statement);
         }
 
-        private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, ITypeSymbol type) =>
-            new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type, constantValue: default, isImplicit: true);
+        private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, TypeSymbol type) =>
+            new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type.GetPublicSymbol(), constantValue: default, isImplicit: true);
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IVariableDeclaratorOperation CreateVariableDeclaratorInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
-            ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
+            ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol.GetPublicSymbol();
             SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default;
@@ -112,10 +112,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
-            return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
+            return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol.GetPublicSymbol(), initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
-        internal IOperation CreateReceiverOperation(BoundNode instance, ISymbol symbol)
+        internal IOperation CreateReceiverOperation(BoundNode instance, Symbol symbol)
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Operations
             //  1. the type of BoundEventAccess is the type of the event symbol.
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
-            IEventSymbol @event = boundEventAssignmentOperator.Event;
+            IEventSymbol @event = boundEventAssignmentOperator.Event.GetPublicSymbol();
             BoundNode instance = boundEventAssignmentOperator.ReceiverOpt;
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
@@ -395,30 +395,30 @@ namespace Microsoft.CodeAnalysis.Operations
                         isImplicit: true);
 
                 // Find matching declaration for the current argument.
-                PropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty((NamedTypeSymbol)type, i);
+                PropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty(type.GetSymbol<NamedTypeSymbol>(), i);
                 BoundAnonymousPropertyDeclaration anonymousProperty = getDeclaration(declarations, property, ref currentDeclarationIndex);
                 if (anonymousProperty is null)
                 {
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceOperation(
-                        property,
+                        property.GetPublicSymbol(),
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         instance,
                         semanticModel: _semanticModel,
                         syntax: value.Syntax,
-                        type: property.Type,
+                        type: property.Type.GetPublicSymbol(),
                         constantValue: default,
                         isImplicit: true);
                     isImplicitAssignment = true;
                 }
                 else
                 {
-                    target = new PropertyReferenceOperation(anonymousProperty.Property,
+                    target = new PropertyReferenceOperation(anonymousProperty.Property.GetPublicSymbol(),
                                                             ImmutableArray<IArgumentOperation>.Empty,
                                                             instance,
                                                             _semanticModel,
                                                             anonymousProperty.Syntax,
-                                                            anonymousProperty.Type,
+                                                            anonymousProperty.Type.GetPublicSymbol(),
                                                             ConvertToOptional(anonymousProperty.ConstantValue),
                                                             anonymousProperty.WasCompilerGenerated);
                     isImplicitAssignment = isImplicit;

@@ -71,7 +71,7 @@ class C
 
             var edits = new[]
             {
-                new SemanticEdit(
+                SemanticEdit.Create(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
@@ -142,7 +142,7 @@ class C
 
             var edits = new[]
             {
-                new SemanticEdit(
+                SemanticEdit.Create(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
@@ -220,14 +220,14 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify();
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2)));
 
             diff2.EmitResult.Diagnostics.Verify();
         }
@@ -325,13 +325,13 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2),
-                    new SemanticEdit(SemanticEditKind.Insert, null, g2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, g2)));
 
             var md1 = diff1.GetMetadata();
             var md2 = diff2.GetMetadata();
@@ -408,7 +408,7 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify(
                 // error CS7038: Failed to emit module 'C'.
@@ -484,7 +484,7 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             // TODO: message should be: Changing the version of an assembly reference is not allowed during debugging
             diff1.EmitResult.Diagnostics.Verify(
@@ -593,7 +593,7 @@ class C
             // First update adds some new synthesized members (lambda related)
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -602,7 +602,7 @@ class C
             // Second update is to a method that doesn't produce any synthesized members 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -614,7 +614,7 @@ class C
             // hence we need to account for wildcards when comparing the versions.
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
 
             diff3.VerifySynthesizedMembers(
                 "C: {<>c}",

@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int i = 0;
                 for (; i < parameters.Length; ++i)
                 {
-                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i].GetPublicSymbol(), arguments[i]));
                 }
 
                 // TODO: In case of __arglist, we will have more arguments than parameters, 
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), null, binder);
                 }
 
-                argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter, argument));
+                argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
             }
 
             // Collect parameters with missing arguments.   
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unusedDiagnostics.Free();
                 }
 
-                argumentsBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter, argument));
+                argumentsBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
             }
         }
 
@@ -1396,12 +1396,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
                 }
             }
-            else if (defaultConstantValue.IsNull &&
-                (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType())))
+            else if (defaultConstantValue.IsNull)
             {
-                // We have something like M(int? x = null) or M(S x = default(S)),
-                // so replace the argument with default(int?).
-                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                if (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType()))
+                {
+                    // We have something like M(int? x = null) or M(S x = default(S)),
+                    // so replace the argument with default(int?).
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
+                }
+            }
+            else if (defaultConstantValue.IsBad)
+            {
+                defaultValue = new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, parameterType, hasErrors: true) { WasCompilerGenerated = true };
             }
             else if (parameterType.IsNullableType())
             {
@@ -1423,10 +1433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null,
                     defaultValue)
                 { WasCompilerGenerated = true };
-            }
-            else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
-            {
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
             }
             else
             {

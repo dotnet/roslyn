@@ -7,33 +7,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class DiagnosticAnalyzerExtensions
     {
         public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer)
-        {
-            var category = DiagnosticAnalyzerCategory.None;
+            => analyzer switch
+            {
+                FileContentLoadAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis,
+                DocumentDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
+                ProjectDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.ProjectAnalysis,
+                IBuiltInAnalyzer builtInAnalyzer => builtInAnalyzer.GetAnalyzerCategory(),
 
-            if (analyzer is DocumentDiagnosticAnalyzer)
-            {
-                category |= DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-            }
-            else if (analyzer is ProjectDiagnosticAnalyzer)
-            {
-                category |= DiagnosticAnalyzerCategory.ProjectAnalysis;
-            }
-            else
-            {
-                if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
-                {
-                    category = builtInAnalyzer.GetAnalyzerCategory();
-                }
-                else
-                {
-                    // It is not possible to know the categorization for a public analyzer,
-                    // so return a worst-case categorization.
-                    category = (DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis);
-                }
-            }
-
-            return category;
-        }
+                // It is not possible to know the categorization for a public analyzer, so return a worst-case categorization.
+                _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
+            };
 
         public static bool SupportsSyntaxDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)
         {

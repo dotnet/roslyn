@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             internal void CreateDiagnosticAndFireEvents(Location location)
             {
                 var document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
-                _diagnostic = DiagnosticData.Create(document,
-                    Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
-                    location: location));
+                _diagnostic = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
+                    location: location),
+                    document);
 
                 DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     this, _workspace, _workspace.CurrentSolution,

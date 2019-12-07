@@ -42,7 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     internal class RoslynPackage : AbstractPackage
     {
         private VisualStudioWorkspace _workspace;
-        private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
@@ -75,9 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _componentModel.GetExtensions<IOptionPersister>();
 
             RoslynTelemetrySetup.Initialize(this);
-
-            // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(_componentModel.GetService<IThreadingContext>(), this, _workspace);
 
             InitializeColors();
 
@@ -126,6 +122,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Load and initialize the services detecting and adding new analyzer config documents as solution item.
             this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>().Initialize(this);
             this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
+
+            this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
 
             LoadAnalyzerNodeComponents();
 

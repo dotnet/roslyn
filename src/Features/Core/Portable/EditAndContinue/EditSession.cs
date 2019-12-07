@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
+            return new ActiveStatementsMap(byDocument.ToMultiDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
         }
 
         private LinePositionSpan GetUpToDateSpan(ActiveStatementDebugInfo activeStatementInfo)
@@ -479,6 +479,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
+                    if (baseProject == project)
+                    {
+                        continue;
+                    }
 
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 
                     // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
