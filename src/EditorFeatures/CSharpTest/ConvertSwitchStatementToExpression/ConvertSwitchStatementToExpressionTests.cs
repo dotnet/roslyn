@@ -975,5 +975,24 @@ class Program
     }
 }");
         }
+
+        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNotWithRefReturns()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static ref int GetRef(int[] mem, int addr, int mode)
+    {
+        [||]switch (mode)
+        {
+            case 0: return ref mem[mem[addr]];
+            case 1: return ref mem[addr];
+            default: throw new Exception();
+        }
+    }
+}");
+        }
     }
 }

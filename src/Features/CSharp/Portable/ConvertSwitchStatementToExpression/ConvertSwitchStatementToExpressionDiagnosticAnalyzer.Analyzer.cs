@@ -233,8 +233,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override SyntaxKind VisitReturnStatement(ReturnStatementSyntax node)
             {
-                // A "return" statement's expression will be placed in the switch arm expression.
-                return node.Expression is null ? default : SyntaxKind.ReturnStatement;
+                // A "return" statement's expression will be placed in the switch arm expression. We
+                // also can't convert a switch statement with ref-returns to a switch-expression
+                // (currently). Until the language supports ref-switch-expressions, we just disable
+                // things.
+                return node.Expression is null || node.Expression is RefExpressionSyntax
+                    ? default
+                    : SyntaxKind.ReturnStatement;
             }
 
             public override SyntaxKind VisitThrowStatement(ThrowStatementSyntax node)
