@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             ImmutableArray<IParameterSymbol> parameters)
         {
-            return parameters.SelectAsArray((System.Func<IParameterSymbol, SyntaxNode>)(p => CreateArgument(factory, p)));
+            return parameters.SelectAsArray(p => CreateArgument(factory, p));
         }
 
         private static SyntaxNode CreateArgument(
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return containingTypeOpt.GetMembers()
                     .OfType<IFieldSymbol>()
                     .Where(field => !field.IsStatic)
-                    .Select((System.Func<IFieldSymbol, ISymbol>)(field => field.AssociatedSymbol ?? field))
+                    .Select(field => field.AssociatedSymbol ?? field)
                     .Except(parameterToExistingFieldMap.Values)
                     .Any();
             }
