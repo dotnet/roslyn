@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    internal static class PopulateSwitchHelpers
+    internal static class PopulateSwitchStatementHelpers
     {
         public const string MissingCases = nameof(MissingCases);
         public const string MissingDefaultCase = nameof(MissingDefaultCase);

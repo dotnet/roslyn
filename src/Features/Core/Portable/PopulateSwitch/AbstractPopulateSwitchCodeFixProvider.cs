@@ -5,19 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -62,8 +58,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             var diagnostic = context.Diagnostics.First();
             var properties = diagnostic.Properties;
-            var missingCases = bool.Parse(properties[PopulateSwitchHelpers.MissingCases]);
-            var missingDefaultCase = bool.Parse(properties[PopulateSwitchHelpers.MissingDefaultCase]);
+            var missingCases = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingCases]);
+            var missingDefaultCase = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingDefaultCase]);
 
             Debug.Assert(missingCases || missingDefaultCase);
 
@@ -141,8 +137,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             CancellationToken cancellationToken)
         {
-            var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchHelpers.MissingCases]);
-            var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchHelpers.MissingDefaultCase]);
+            var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingCases]);
+            var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]);
 
             var switchLocation = diagnostic.AdditionalLocations[0];
             var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSwitchSyntax;
@@ -228,81 +224,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 : base(title, createChangedDocument)
             {
             }
-        }
-    }
-
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class PopulateSwitchStatementCodeFixProvider : AbstractPopulateSwitchCodeFixProvider<
-        ISwitchOperation, SyntaxNode, SyntaxNode, SyntaxNode>
-    {
-        [ImportingConstructor]
-        public PopulateSwitchStatementCodeFixProvider()
-            : base(IDEDiagnosticIds.PopulateSwitchStatementDiagnosticId)
-        {
-        }
-
-        protected override void FixOneDiagnostic(
-            Document document, SyntaxEditor editor, SemanticModel semanticModel,
-            bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
-            bool hasMissingCases, bool hasMissingDefaultCase,
-            SyntaxNode switchNode, ISwitchOperation switchOperation)
-        {
-            var newSwitchNode = UpdateSwitchNode(
-                editor, semanticModel, addCases, addDefaultCase,
-                hasMissingCases, hasMissingDefaultCase,
-                switchNode, switchOperation).WithAdditionalAnnotations(Formatter.Annotation);
-
-            if (onlyOneDiagnostic)
-            {
-                // If we're only fixing up one issue in this document, then also make sure we 
-                // didn't cause any braces to be imbalanced when we added members to the switch.
-                // Note: i'm only doing this for the single case because it feels too complex
-                // to try to support this during fix-all.
-                var root = editor.OriginalRoot;
-                AddMissingBraces(document, ref root, ref switchNode);
-
-                var newRoot = root.ReplaceNode(switchNode, newSwitchNode);
-                editor.ReplaceNode(editor.OriginalRoot, newRoot);
-            }
-            else
-            {
-                editor.ReplaceNode(switchNode, newSwitchNode);
-            }
-        }
-
-        protected override ITypeSymbol GetSwitchType(ISwitchOperation switchOperation)
-            => switchOperation.Value.Type;
-
-        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
-            => PopulateSwitchHelpers.GetMissingEnumMembers(switchOperation);
-
-        protected override SyntaxNode InsertSwitchArms(SyntaxGenerator generator, SyntaxNode switchNode, int insertLocation, List<SyntaxNode> newArms)
-            => generator.InsertSwitchSections(switchNode, insertLocation, newArms);
-
-        protected override SyntaxNode CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
-            => generator.DefaultSwitchSection(new[] { generator.ExitSwitchStatement() });
-
-        protected override SyntaxNode CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, SyntaxNode caseLabel)
-            => generator.SwitchSection(caseLabel, new[] { generator.ExitSwitchStatement() });
-
-        protected override int InsertPosition(ISwitchOperation switchStatement)
-        {
-            // If the last section has a default label, then we want to be above that.
-            // Otherwise, we just get inserted at the end.
-
-            var cases = switchStatement.Cases;
-            if (cases.Length > 0)
-            {
-                var lastCase = cases.Last();
-                if (lastCase.Clauses.Any(c => c.CaseKind == CaseKind.Default))
-                {
-                    return cases.Length - 1;
-                }
-            }
-
-            return cases.Length;
         }
     }
 }

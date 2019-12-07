@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
@@ -54,8 +53,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 Debug.Assert(missingCases || missingDefaultCase);
                 var properties = ImmutableDictionary<string, string>.Empty
-                    .Add(PopulateSwitchHelpers.MissingCases, missingCases.ToString())
-                    .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
+                    .Add(PopulateSwitchStatementHelpers.MissingCases, missingCases.ToString())
+                    .Add(PopulateSwitchStatementHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
                     Descriptor,
@@ -80,26 +79,5 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             // The switch is incomplete if we're missing any cases or we're missing a default case.
             return missingDefaultCase || missingCases;
         }
-    }
-
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class PopulateSwitchStatementDiagnosticAnalyzer :
-        AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchOperation, SyntaxNode>
-    {
-        public PopulateSwitchStatementDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.PopulateSwitchStatementDiagnosticId)
-        {
-        }
-
-        protected override OperationKind OperationKind => OperationKind.Switch;
-
-        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation operation)
-            => PopulateSwitchHelpers.GetMissingEnumMembers(operation);
-
-        protected override bool HasDefaultCase(ISwitchOperation operation)
-            => PopulateSwitchHelpers.HasDefaultCase(operation);
-
-        protected override Location GetDiagnosticLocation(SyntaxNode switchBlock)
-            => switchBlock.GetFirstToken().GetLocation();
     }
 }

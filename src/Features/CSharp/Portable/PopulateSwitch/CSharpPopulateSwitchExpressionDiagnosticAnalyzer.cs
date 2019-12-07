@@ -12,10 +12,10 @@ using Microsoft.CodeAnalysis.PopulateSwitch;
 namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal sealed class PopulateSwitchExpressionDiagnosticAnalyzer :
+    internal sealed class CSharpPopulateSwitchExpressionDiagnosticAnalyzer :
         AbstractPopulateSwitchDiagnosticAnalyzer<ISwitchExpressionOperation, SwitchExpressionSyntax>
     {
-        public PopulateSwitchExpressionDiagnosticAnalyzer()
+        public CSharpPopulateSwitchExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId)
         {
         }
@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
         protected override OperationKind OperationKind => OperationKind.SwitchExpression;
 
         protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
-            => PopulateSwitchHelpers.GetMissingEnumMembers(operation);
+            => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(operation);
 
         protected override bool HasDefaultCase(ISwitchExpressionOperation operation)
-            => PopulateSwitchHelpers.HasDefaultCase(operation);
+            => PopulateSwitchExpressionHelpers.HasDefaultCase(operation);
 
         protected override Location GetDiagnosticLocation(SwitchExpressionSyntax switchBlock)
             => switchBlock.SwitchKeyword.GetLocation();

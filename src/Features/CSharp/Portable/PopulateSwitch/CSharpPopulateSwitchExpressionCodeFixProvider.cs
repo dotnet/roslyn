@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
     [ExportCodeFixProvider(LanguageNames.CSharp,
         Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class PopulateSwitchExpressionCodeFixProvider
+    internal class CSharpPopulateSwitchExpressionCodeFixProvider
         : AbstractPopulateSwitchCodeFixProvider<
             ISwitchExpressionOperation,
             SwitchExpressionSyntax,
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             MemberAccessExpressionSyntax>
     {
         [ImportingConstructor]
-        public PopulateSwitchExpressionCodeFixProvider()
+        public CSharpPopulateSwitchExpressionCodeFixProvider()
             : base(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId)
         {
         }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             => switchExpression.Value.Type;
 
         protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation switchOperation)
-            => PopulateSwitchHelpers.GetMissingEnumMembers(switchOperation);
+            => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(switchOperation);
 
         protected override SwitchExpressionArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
             => SwitchExpressionArm(DiscardPattern(), Exception(generator, compilation));
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             // Otherwise, we just get inserted at the end.
 
             var arms = switchExpression.Arms;
-            return arms.Length > 0 && PopulateSwitchHelpers.IsDefault(arms[arms.Length - 1])
+            return arms.Length > 0 && PopulateSwitchExpressionHelpers.IsDefault(arms[arms.Length - 1])
                 ? arms.Length - 1
                 : arms.Length;
         }

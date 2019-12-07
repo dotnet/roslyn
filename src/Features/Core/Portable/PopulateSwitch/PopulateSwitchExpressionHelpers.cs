@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PopulateSwitch;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 {
-    internal static class PopulateSwitchHelpers
+    internal static class PopulateSwitchExpressionHelpers
     {
         public static ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
         {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             var enumMembers = new Dictionary<long, ISymbol>();
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
-                if (!CodeAnalysis.PopulateSwitch.PopulateSwitchHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
+                if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
                     !TryRemoveExistingEnumMembers(operation, enumMembers))
                 {
                     return SpecializedCollections.EmptyCollection<ISymbol>();

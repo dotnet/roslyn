@@ -2,8 +2,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PopulateSwitch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
     public partial class PopulateSwitchStatementTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new PopulateSwitchStatementDiagnosticAnalyzer(), new PopulateSwitchStatementCodeFixProvider());
+            => (new CSharpPopulateSwitchStatementDiagnosticAnalyzer(), new CSharpPopulateSwitchStatementCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task OnlyOnFirstToken()
