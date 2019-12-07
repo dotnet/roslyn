@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var statements = factory.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray<SyntaxNode, SyntaxNode>(
-                    s => s.WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation));
+                    s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
                         var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
-                                                 .WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation);
+                                                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
                         factory.AddAssignmentStatements(
                             semanticModel, parameter, fieldAccess,
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         codeFactory.CreateArguments(overriddenProperty.Parameters)),
                     codeFactory.IdentifierName("value")));
             }
-            else if (overriddenProperty.GetParameters().Any<IParameterSymbol>())
+            else if (overriddenProperty.GetParameters().Any())
             {
                 // Call accessors directly if C# overriding VB
                 if (document.Project.Language == LanguageNames.CSharp
