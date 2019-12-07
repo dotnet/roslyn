@@ -1341,6 +1341,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SpecialType.System_UInt32: return SpecialMember.System_Decimal__op_Explicit_ToUInt32;
                     case SpecialType.System_Int64: return SpecialMember.System_Decimal__op_Explicit_ToInt64;
                     case SpecialType.System_UInt64: return SpecialMember.System_Decimal__op_Explicit_ToUInt64;
+                    case SpecialType.System_IntPtr: return SpecialMember.System_Decimal__op_Explicit_ToInt64; // PROTOTYPE:
+                    case SpecialType.System_UIntPtr: return SpecialMember.System_Decimal__op_Explicit_ToUInt64; // PROTOTYPE:
                     case SpecialType.System_Single: return SpecialMember.System_Decimal__op_Explicit_ToSingle;
                     case SpecialType.System_Double: return SpecialMember.System_Decimal__op_Explicit_ToDouble;
                     default:
