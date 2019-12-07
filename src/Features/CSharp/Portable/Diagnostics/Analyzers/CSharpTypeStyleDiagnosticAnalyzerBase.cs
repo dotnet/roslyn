@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
-            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
-            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
+            var forIntrinsicTypesOption = options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
+            var whereApparentOption = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
+            var wherePossibleOption = options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
 
             return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
                      whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||

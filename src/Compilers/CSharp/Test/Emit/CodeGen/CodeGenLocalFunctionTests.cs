@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 if (kvp.Key.Contains(localFunctionName))
                 {
                     Assert.Null(result); // more than one name matched
-                    result = kvp.Value.Method;
+                    result = ((MethodSymbol)kvp.Value.Method).GetPublicSymbol();
                 }
             }
             Assert.NotNull(result); // no methods matched

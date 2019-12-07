@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,126 +15,66 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// This cache CompilationWithAnalyzer for active/open files. 
-        /// This will aggressively let go cached compilationWithAnalyzers to not hold them into memory too long.
+        /// Return CompilationWithAnalyzer for given project with given stateSets
         /// </summary>
-        private class CompilationManager
+        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzers(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
         {
-            private readonly DiagnosticIncrementalAnalyzer _owner;
-            private ConditionalWeakTable<Project, CompilationWithAnalyzers> _map;
-
-            public CompilationManager(DiagnosticIncrementalAnalyzer owner)
+            if (!project.SupportsCompilation)
             {
-                _owner = owner;
-                _map = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
+                return null;
             }
 
-            /// <summary>
-            /// Return CompilationWithAnalyzer for given project with given stateSets
-            /// </summary>
-            public async Task<CompilationWithAnalyzers> GetAnalyzerDriverAsync(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+            if (_projectCompilationsWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzers))
             {
-                if (!project.SupportsCompilation)
-                {
-                    return null;
-                }
-
-                if (_map.TryGetValue(project, out var analyzerDriverOpt))
-                {
-                    // we have cached one, return that.
-                    AssertAnalyzers(analyzerDriverOpt, stateSets);
-                    return analyzerDriverOpt;
-                }
-
-                // Create driver that holds onto compilation and associated analyzers
-                var includeSuppressedDiagnostics = true;
-                var newAnalyzerDriverOpt = await CreateAnalyzerDriverAsync(project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-
-                // Add new analyzer driver to the map
-                analyzerDriverOpt = _map.GetValue(project, _ => newAnalyzerDriverOpt);
-
-                // if somebody has beat us, make sure analyzers are good.
-                if (analyzerDriverOpt != newAnalyzerDriverOpt)
-                {
-                    AssertAnalyzers(analyzerDriverOpt, stateSets);
-                }
-
-                // return driver
-                return analyzerDriverOpt;
+                // we have cached one, return that.
+                AssertAnalyzers(compilationWithAnalyzers, stateSets);
+                return compilationWithAnalyzers;
             }
 
-            public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            // Create driver that holds onto compilation and associated analyzers
+            var includeSuppressedDiagnostics = true;
+            var newCompilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+
+            // Add new analyzer driver to the map
+            compilationWithAnalyzers = _projectCompilationsWithAnalyzers.GetValue(project, _ => newCompilationWithAnalyzers);
+
+            // if somebody has beat us, make sure analyzers are good.
+            if (compilationWithAnalyzers != newCompilationWithAnalyzers)
             {
-                var analyzers = stateSets.Select(s => s.Analyzer);
-                return CreateAnalyzerDriverAsync(project, analyzers, includeSuppressedDiagnostics, cancellationToken);
+                AssertAnalyzers(compilationWithAnalyzers, stateSets);
             }
 
-            public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
-                Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            return compilationWithAnalyzers;
+        }
+
+        private Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => CreateCompilationWithAnalyzersAsync(project, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
+
+        private Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => AnalyzerService.CreateCompilationWithAnalyzers(project, analyzers, includeSuppressedDiagnostics, DiagnosticLogAggregator, cancellationToken);
+
+        private void ClearCompilationsWithAnalyzersCache()
+        {
+            // we basically eagarly clear the cache on some known changes
+            // to let CompilationWithAnalyzer go.
+
+            // we create new conditional weak table every time, it turns out 
+            // only way to clear ConditionalWeakTable is re-creating it.
+            // also, conditional weak table has a leak - https://github.com/dotnet/coreclr/issues/665
+            _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertAnalyzers(CompilationWithAnalyzers? compilation, IEnumerable<StateSet> stateSets)
+        {
+            if (compilation == null)
             {
-                return _owner.Owner.CreateAnalyzerDriverAsync(project, analyzers, includeSuppressedDiagnostics, _owner.DiagnosticLogAggregator, cancellationToken);
+                // this can happen if project doesn't support compilation or no stateSets are given.
+                return;
             }
 
-            private void ResetAnalyzerDriverMap()
-            {
-                // we basically eagarly clear the cache on some known changes
-                // to let CompilationWithAnalyzer go.
-
-                // we create new conditional weak table every time, it turns out 
-                // only way to clear ConditionalWeakTable is re-creating it.
-                // also, conditional weak table has a leak - https://github.com/dotnet/coreclr/issues/665
-                _map = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
-            }
-
-            [Conditional("DEBUG")]
-            private void AssertAnalyzers(CompilationWithAnalyzers analyzerDriver, IEnumerable<StateSet> stateSets)
-            {
-                if (analyzerDriver == null)
-                {
-                    // this can happen if project doesn't support compilation or no stateSets are given.
-                    return;
-                }
-
-                // make sure analyzers are same.
-                Contract.ThrowIfFalse(analyzerDriver.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer).Where(a => !a.IsWorkspaceDiagnosticAnalyzer())));
-            }
-
-            #region state changed 
-            public void OnActiveDocumentChanged()
-            {
-                ResetAnalyzerDriverMap();
-            }
-
-            public void OnDocumentOpened()
-            {
-                ResetAnalyzerDriverMap();
-            }
-
-            public void OnDocumentClosed()
-            {
-                ResetAnalyzerDriverMap();
-            }
-
-            public void OnDocumentReset()
-            {
-                ResetAnalyzerDriverMap();
-            }
-
-            public void OnDocumentRemoved()
-            {
-                ResetAnalyzerDriverMap();
-            }
-
-            public void OnProjectRemoved()
-            {
-                ResetAnalyzerDriverMap();
-            }
-
-            public void OnNewSolution()
-            {
-                ResetAnalyzerDriverMap();
-            }
-            #endregion
+            // make sure analyzers are same.
+            Contract.ThrowIfFalse(compilation.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer).Where(a => !a.IsWorkspaceDiagnosticAnalyzer())));
         }
     }
 }

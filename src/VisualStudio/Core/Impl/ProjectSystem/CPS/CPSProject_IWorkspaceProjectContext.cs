@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _ => null
                 };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace) : null;
+                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
             });
 
             visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
@@ -164,6 +164,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             else if (name == AdditionalPropertyNames.MaxSupportedLangVersion)
             {
                 _visualStudioProject.MaxLangVersion = value;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzers)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzers = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
             }
         }
 

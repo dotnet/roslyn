@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a type parameter in a generic type or generic method.
     /// </summary>
-    internal abstract partial class TypeParameterSymbol : TypeSymbol, ITypeParameterSymbol
+    internal abstract partial class TypeParameterSymbol : TypeSymbol, ITypeParameterSymbolInternal
     {
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -676,72 +677,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
-        #region ITypeParameterTypeSymbol Members
-
-#pragma warning disable IDE0055 // Fix formatting. This formatting is correct, need 16.1 for the updated formatter to not flag
-        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation =>
-            ReferenceTypeConstraintIsNullable switch
-            {
-                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.None,
-                false => CodeAnalysis.NullableAnnotation.NotAnnotated,
-                true => CodeAnalysis.NullableAnnotation.Annotated,
-                null => CodeAnalysis.NullableAnnotation.None,
-            };
-#pragma warning restore IDE0055 // Fix formatting
-
-        TypeParameterKind ITypeParameterSymbol.TypeParameterKind
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return (TypeParameterKind)this.TypeParameterKind;
-            }
+            return new PublicModel.TypeParameterSymbol(this, DefaultNullableAnnotation);
         }
 
-        IMethodSymbol ITypeParameterSymbol.DeclaringMethod
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get { return this.DeclaringMethod; }
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.TypeParameterSymbol(this, nullableAnnotation);
         }
-
-        INamedTypeSymbol ITypeParameterSymbol.DeclaringType
-        {
-            get { return this.DeclaringType; }
-        }
-
-        ImmutableArray<ITypeSymbol> ITypeParameterSymbol.ConstraintTypes
-        {
-            get
-            {
-                return this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => (ITypeSymbol)c.Type);
-            }
-        }
-
-        ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations =>
-            ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.ToPublicAnnotation());
-
-        ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        ITypeParameterSymbol ITypeParameterSymbol.ReducedFrom
-        {
-            get { return this.ReducedFrom; }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitTypeParameter(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitTypeParameter(this);
-        }
-
-        #endregion
     }
 }

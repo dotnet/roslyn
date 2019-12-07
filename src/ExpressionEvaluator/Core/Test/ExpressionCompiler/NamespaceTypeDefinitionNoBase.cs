@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         bool ITypeDefinition.IsInterface => UnderlyingType.IsInterface;
 
+        bool ITypeDefinition.IsDelegate => UnderlyingType.IsDelegate;
+
         bool INamespaceTypeDefinition.IsPublic => UnderlyingType.IsPublic;
 
         bool ITypeDefinition.IsRuntimeSpecial => UnderlyingType.IsRuntimeSpecial;

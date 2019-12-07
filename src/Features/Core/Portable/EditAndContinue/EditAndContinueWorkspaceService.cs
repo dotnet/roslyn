@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _emitDiagnosticsUpdateSource.ReportDiagnostics(
                 _workspace.CurrentSolution,
-                projectIdOpt: null,
+                projectId: null,
                 new[] { Diagnostic.Create(descriptor, Location.None, new[] { message }) });
         }
 

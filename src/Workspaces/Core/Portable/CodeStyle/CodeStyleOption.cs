@@ -35,10 +35,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private const int SerializationVersion = 1;
 
+        private NotificationOption _notification;
+
         public CodeStyleOption(T value, NotificationOption notification)
         {
             Value = value;
-            Notification = notification ?? throw new ArgumentNullException(nameof(notification));
+            _notification = notification ?? throw new ArgumentNullException(nameof(notification));
         }
 
         public T Value { get; set; }
@@ -48,7 +50,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private int EnumValueAsInt32 => (int)(object)Value;
 
-        public NotificationOption Notification { get; set; }
+        public NotificationOption Notification
+        {
+            get => _notification;
+            set => _notification = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         public XElement ToXElement() =>
             new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"

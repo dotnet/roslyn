@@ -102,25 +102,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IEventSymbol @event: return ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations);
-                case IMethodSymbol method: return ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations);
-                case IPropertySymbol property: return ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations);
-                default: return ImmutableArray.Create<ISymbol>();
-            }
-        }
+                IEventSymbol @event => ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations),
+                IMethodSymbol method => ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations),
+                IPropertySymbol property => ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations),
+                _ => ImmutableArray.Create<ISymbol>(),
+            };
 
-        public static ImmutableArray<TSymbol> ExplicitOrImplicitInterfaceImplementations<TSymbol>(this TSymbol symbol)
-            where TSymbol : ISymbol
+        public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
         {
             var containingType = symbol.ContainingType;
-            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers().OfType<TSymbol>());
-            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
-                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
-            return membersImplementingAnInterfaceMember.Cast<TSymbol>().ToImmutableArrayOrEmpty();
+            var query = from iface in containingType.AllInterfaces
+                        from interfaceMember in iface.GetMembers()
+                        let impl = containingType.FindImplementationForInterfaceMember(interfaceMember)
+                        where symbol.Equals(impl)
+                        select interfaceMember;
+            return query.ToImmutableArray();
         }
+
+        public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
+            => symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations()).ToImmutableArray();
 
         public static bool IsOverridable([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
@@ -348,13 +350,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.GetTypeWithAnnotatedNullability();
+                    return fieldSymbol.Type;
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.GetTypeWithAnnotatedNullability();
+                    return propertySymbol.Type;
                 case IMethodSymbol methodSymbol:
-                    return methodSymbol.GetReturnTypeWithAnnotatedNullability();
+                    return methodSymbol.ReturnType;
                 case IEventSymbol eventSymbol:
-                    return eventSymbol.GetTypeWithAnnotatedNullability();
+                    return eventSymbol.Type;
             }
 
             return null;
@@ -474,8 +476,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             switch (symbol)
             {
-                case IMethodSymbol m: return m.TypeArguments.ZipAsArray(m.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
-                case INamedTypeSymbol nt: return nt.TypeArguments.ZipAsArray(nt.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
+                case IMethodSymbol m: return m.TypeArguments;
+                case INamedTypeSymbol nt: return nt.TypeArguments;
                 default: return ImmutableArray.Create<ITypeSymbol>();
             }
         }
@@ -536,12 +538,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     var types = method.Parameters
                         .Skip(skip)
-                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(p.NullableAnnotation));
+                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(p.NullableAnnotation));
 
                     if (!method.ReturnsVoid)
                     {
                         // +1 for the return type.
-                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(method.ReturnNullableAnnotation));
+                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
                     }
 
                     return delegateType.TryConstruct(types.ToArray());
@@ -879,13 +881,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case ILocalSymbol localSymbol:
-                    return localSymbol.GetTypeWithAnnotatedNullability();
+                    return localSymbol.Type;
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.GetTypeWithAnnotatedNullability();
+                    return fieldSymbol.Type;
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.GetTypeWithAnnotatedNullability();
+                    return propertySymbol.Type;
                 case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.GetTypeWithAnnotatedNullability();
+                    return parameterSymbol.Type;
                 case IAliasSymbol aliasSymbol:
                     return aliasSymbol.Target as ITypeSymbol;
             }
