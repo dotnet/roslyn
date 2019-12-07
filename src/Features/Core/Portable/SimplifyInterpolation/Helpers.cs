@@ -2,7 +2,12 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
@@ -11,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         public static void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
             IInterpolationOperation interpolation,
             out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment,
-            out bool negate, out string? formatString)
+            out bool negate, out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
                 where TInterpolationSyntax : SyntaxNode
                 where TExpressionSyntax : SyntaxNode
         {
@@ -19,18 +24,24 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             negate = false;
             formatString = null;
 
+            var unnecessarySpans = ArrayBuilder<TextSpan>.GetInstance();
+
             var expression = Unwrap(interpolation.Expression);
             if (interpolation.Alignment == null)
             {
-                UnwrapAlignmentPadding(expression, out expression, out alignment, out negate);
+                UnwrapAlignmentPadding(expression, out expression, out alignment, out negate, unnecessarySpans);
             }
 
             if (interpolation.FormatString == null)
             {
-                UnwrapFormatString(expression, out expression, out formatString);
+                UnwrapFormatString(expression, out expression, out formatString, unnecessarySpans);
             }
 
             unwrapped = expression?.Syntax as TExpressionSyntax;
+
+            unnecessaryLocations = unnecessarySpans
+                .Select(interpolation.Syntax.SyntaxTree.GetLocation)
+                .ToImmutableArray();
         }
 
         private static IOperation Unwrap(IOperation expression)
@@ -52,15 +63,19 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         private static void UnwrapFormatString(
-            IOperation expression, out IOperation unwrapped, out string? formatString)
+            IOperation expression, out IOperation unwrapped, out string? formatString, ArrayBuilder<TextSpan> unnecessarySpans)
         {
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
                 if (invocation.Arguments.Length == 1 &&
-                    invocation.Arguments[0].Value.ConstantValue is { HasValue: true, Value: string format })
+                    invocation.Arguments[0].Value is { ConstantValue: { HasValue: true, Value: string format } } argumentValue)
                 {
                     unwrapped = invocation.Instance;
                     formatString = format;
+
+                    unnecessarySpans.AddRange(invocation.Syntax.Span
+                        .Subtract(invocation.Instance.Syntax.FullSpan)
+                        .Subtract(argumentValue.Syntax.FullSpan));
                     return;
                 }
 
@@ -68,6 +83,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 {
                     unwrapped = invocation.Instance;
                     formatString = "";
+
+                    unnecessarySpans.AddRange(invocation.Syntax.Span
+                        .Subtract(invocation.Instance.Syntax.FullSpan));
                     return;
                 }
             }
@@ -78,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static void UnwrapAlignmentPadding<TExpressionSyntax>(
             IOperation expression, out IOperation unwrapped,
-            out TExpressionSyntax? alignment, out bool negate)
+            out TExpressionSyntax? alignment, out bool negate, ArrayBuilder<TextSpan> unnecessarySpans)
             where TExpressionSyntax : SyntaxNode
         {
             if (expression is IInvocationOperation invocation)
@@ -92,9 +110,15 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                         if (argCount == 1 ||
                             IsSpaceChar(invocation.Arguments[1]))
                         {
+                            var alignmentSyntax = invocation.Arguments[0].Value.Syntax;
+
                             unwrapped = invocation.Instance;
-                            alignment = invocation.Arguments[0].Value.Syntax as TExpressionSyntax;
+                            alignment = alignmentSyntax as TExpressionSyntax;
                             negate = targetName == nameof(string.PadLeft);
+
+                            unnecessarySpans.AddRange(invocation.Syntax.Span
+                                .Subtract(invocation.Instance.Syntax.FullSpan)
+                                .Subtract(alignmentSyntax.FullSpan));
                             return;
                         }
                     }

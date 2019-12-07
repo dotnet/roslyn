@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax)
                 {
                     Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                        interpolation, out var unwrapped, out var alignment, out var negate, out var formatString);
+                        interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                     alignment = negate ? (TExpressionSyntax)generator.NegateExpression(alignment) : alignment;
 

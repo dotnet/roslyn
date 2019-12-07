@@ -17,6 +17,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
 
         [Fact]
+        public async Task ToString_with_no_parameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString()|}} suffix"";
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue} suffix"";
+    }
+}");
+        }
+
+        [Fact]
         public async Task ToString_with_string_literal_parameter()
         {
             await TestInRegularAndScriptAsync(
