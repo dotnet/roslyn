@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpPopulateSwitchStatementDiagnosticAnalyzer :
-       AbstractPopulateSwitchStatementDiagnosticAnalyzer<SwitchStatementSyntax>
+        AbstractPopulateSwitchStatementDiagnosticAnalyzer<SwitchStatementSyntax>
     {
     }
 }
