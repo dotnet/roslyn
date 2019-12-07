@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
-    internal class AbstractSimplifyInterpolationDiagnosticAnlayzer<
+    internal class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         TInterpolationSyntax,
         TExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected AbstractSimplifyInterpolationDiagnosticAnlayzer()
+        protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
                   CodeStyleOptions.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_interpolation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             var option = optionSet.GetOption(CodeStyleOptions.PreferSimplifiedInterpolation, language);
             if (!option.Value)
             {
-                // not point in analyzing if the option is off.
+                // No point in analyzing if the option is off.
                 return;
             }
 

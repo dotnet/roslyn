@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.SimplifyInterpolation
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicSimplifyInterpolationDiagnosticAnalyzer
-        Inherits AbstractSimplifyInterpolationDiagnosticAnlayzer(Of InterpolationSyntax, ExpressionSyntax)
+        Inherits AbstractSimplifyInterpolationDiagnosticAnalyzer(Of InterpolationSyntax, ExpressionSyntax)
 
     End Class
 End Namespace

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.SimplifyInterpolation;
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnlayzer<
+    internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnalyzer<
         InterpolationSyntax, ExpressionSyntax>
     {
     }
