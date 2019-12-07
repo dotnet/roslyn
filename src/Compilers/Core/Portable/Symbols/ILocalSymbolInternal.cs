@@ -2,9 +2,9 @@
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
-    internal interface ILocalSymbolInternal : ILocalSymbol
+    internal interface ILocalSymbolInternal : ISymbolInternal
     {
         bool IsImportedFromMetadata { get; }
 

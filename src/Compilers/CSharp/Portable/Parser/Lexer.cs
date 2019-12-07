@@ -937,14 +937,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+#nullable enable
         private void CheckFeatureAvailability(MessageID feature)
         {
-            var info = feature.GetFeatureAvailabilityDiagnosticInfoOpt(Options);
+            var info = feature.GetFeatureAvailabilityDiagnosticInfo(Options);
             if (info != null)
             {
                 AddError(info.Code, info.Arguments);
             }
         }
+#nullable restore
 
         private bool ScanInteger()
         {

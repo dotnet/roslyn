@@ -93,9 +93,9 @@ class C
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var localsSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
-            var local = (MethodSymbol)semanticModel.GetDeclaredSymbol(localsSyntax[0]);
+            var local = semanticModel.GetDeclaredSymbol(localsSyntax[0]).GetSymbol<MethodSymbol>();
             Assert.False(local.RequiresInstanceReceiver);
-            var staticLocal = (MethodSymbol)semanticModel.GetDeclaredSymbol(localsSyntax[0]);
+            var staticLocal = semanticModel.GetDeclaredSymbol(localsSyntax[0]).GetSymbol<MethodSymbol>();
             Assert.False(staticLocal.RequiresInstanceReceiver);
         }
     }

@@ -1120,6 +1120,24 @@ aeu";
         }
 
         [Fact]
+        public async Task UnderscoreInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task DiscardInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_, _) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.Comma, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
         public async Task UnderscoreInAssignment()
         {
             await TestInMethodAsync(code: @"int _; _ = 1;",

@@ -8066,6 +8066,58 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaWithOverloads() As Task
+            Dim source =
+<code><![CDATA[
+Imports System.Linq.Expressions
+Imports System.Collections
+Imports System
+Imports System.Collections.Generic
+
+Namespace VBTest
+    Public Class SomeItem
+        Public A As String
+        Public B As Integer
+    End Class
+
+    Class SomeCollection(Of T)
+        Inherits List(Of T)
+        Public Overridable Function Include(path As String) As SomeCollection(Of T)
+            Return Nothing
+        End Function
+    End Class
+
+    Module Extensions
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of T, TProperty)(ByVal source As IList(Of T), path As Expression(Of Func(Of T, TProperty))) As IList(Of T)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+       Public Function Include(ByVal source As IList, path As String) As IList
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of T)(ByVal source As IList(Of T), path As String) As IList(Of T)
+            Return Nothing
+        End Function
+    End Module
+
+    Class Program
+        Sub M(c As SomeCollection(Of SomeItem))
+            Dim a = From m In c.Include(Function(t) t.$$)
+        End Sub
+    End Class
+End Namespace
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionInsideMethodsWithNonFunctionsAsArguments() As Task
             Dim source =
 <code><![CDATA[

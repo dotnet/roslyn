@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A RangeVariableSymbol represents an identifier introduced in a query expression as the
     /// identifier of a "from" clause, an "into" query continuation, a "let" clause, or a "join" clause.
     /// </summary>
-    internal class RangeVariableSymbol : Symbol, IRangeVariableSymbol
+    internal class RangeVariableSymbol : Symbol
     {
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
@@ -138,16 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitRangeVariable(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitRangeVariable(this);
-        }
-
         internal override TResult Accept<TArg, TResult>(CSharpSymbolVisitor<TArg, TResult> visitor, TArg a)
         {
             return visitor.VisitRangeVariable(this, a);
@@ -179,6 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return Hash.Combine(_locations[0].GetHashCode(), _containingSymbol.GetHashCode());
+        }
+
+        protected override ISymbol CreateISymbol()
+        {
+            return new PublicModel.RangeVariableSymbol(this);
         }
     }
 }

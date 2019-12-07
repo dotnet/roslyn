@@ -20,21 +20,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ThisParameterSymbol(MethodSymbol forMethod) : this(forMethod, forMethod.ContainingType)
         {
         }
+
         internal ThisParameterSymbol(MethodSymbol forMethod, TypeSymbol containingType)
         {
             _containingMethod = forMethod;
             _containingType = containingType;
         }
 
-        public override string Name
-        {
-            get { return SymbolName; }
-        }
+        public override string Name => SymbolName;
+
+        public override bool IsDiscard => false;
 
         public override TypeWithAnnotations TypeWithAnnotations
-        {
-            get { return TypeWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated); }
-        }
+            => TypeWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated);
 
         public override RefKind RefKind
         {

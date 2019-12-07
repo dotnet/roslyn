@@ -4,10 +4,15 @@ Microsoft.CodeAnalysis.ErrorLogOptions
 Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
 Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.IParameterSymbol.IsDiscard.get -> bool
 Microsoft.CodeAnalysis.OperationKind.UsingDeclaration = 108 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation.DeclarationGroup.get -> Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation.IsAsynchronous.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.ITypeSymbol.WithNullableAnnotation(Microsoft.CodeAnalysis.NullableAnnotation nullableAnnotation) -> Microsoft.CodeAnalysis.ITypeSymbol
+*REMOVED*virtual Microsoft.CodeAnalysis.Location.MetadataModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
+Microsoft.CodeAnalysis.Location.MetadataModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
 Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Default = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.SarifVersion

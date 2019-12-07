@@ -24,11 +24,9 @@ parameters:
 
   workspace: ''
 
-  # Job base template specific parameters
-  # Optional: Enable installing Microbuild plugin
-  #           if 'true', these "variables" must be specified in the variables object or as part of the queue matrix
-  #             _TeamName - the name of your team
-  #             _SignType - 'test' or 'real'
+# Job base template specific parameters
+  # See schema documentation - https://github.com/dotnet/arcade/blob/master/Documentation/AzureDevOps/TemplateSchema.md
+  artifacts: ''
   enableMicrobuild: false
 
   # Optional: Include PublishBuildArtifacts task
@@ -104,7 +102,7 @@ jobs:
     - ${{ if ne(variable.name, '') }}:
       - name: ${{ variable.name }}
         value: ${{ variable.value }}
-    
+
     # handle variable groups
     - ${{ if ne(variable.group, '') }}:
       - group: ${{ variable.group }}
@@ -160,7 +158,7 @@ jobs:
   - ${{ if eq(parameters.enableMicrobuild, 'true') }}:
     - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - task: MicroBuildCleanup@1
-        displayName: Execute Microbuild cleanup tasks  
+        displayName: Execute Microbuild cleanup tasks
         condition: and(always(), in(variables['_SignType'], 'real', 'test'), eq(variables['Agent.Os'], 'Windows_NT'))
         continueOnError: ${{ parameters.continueOnError }}
         env:
@@ -188,11 +186,11 @@ jobs:
       displayName: Publish Test Results
       inputs:
         testResultsFormat: 'xUnit'
-        testResultsFiles: '*.xml' 
+        testResultsFiles: '*.xml'
         searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
       continueOnError: true
       condition: always()
-    
+
   - ${{ if and(eq(parameters.enablePublishBuildAssets, true), ne(parameters.enablePublishUsingPipelines, 'true'), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - task: CopyFiles@2
       displayName: Gather Asset Manifests
