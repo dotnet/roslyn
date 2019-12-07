@@ -11,6 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementInterface)>
     Friend Class VisualBasicPopulateSwitchStatementCodeFixProvider
         Inherits AbstractPopulateSwitchStatementCodeFixProvider(Of
-        SelectBlockSyntax, CaseBlockSyntax, MemberAccessExpressionSyntax)
+            SelectBlockSyntax, CaseBlockSyntax, MemberAccessExpressionSyntax)
     End Class
 End Namespace
