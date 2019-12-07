@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 UnwrapFormatString(expression, out expression, out formatString);
             }
 
-            unwrapped = expression.Syntax as TExpressionSyntax;
+            unwrapped = expression?.Syntax as TExpressionSyntax;
         }
 
         private static IOperation Unwrap(IOperation expression)
