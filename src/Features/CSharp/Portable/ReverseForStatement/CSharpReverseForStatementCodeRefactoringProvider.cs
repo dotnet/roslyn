@@ -98,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private static bool IsIntegral(object value)
             => value switch
             {
-                sbyte: => true,
-                byte: => true,
-                short: => true,
-                ushort: => true,
-                int: => true,
-                uint: => true,
-                long: => true,
-                ulong: => true,
+                sbyte _ => true,
+                byte _ => true,
+                short _ => true,
+                ushort _ => true,
+                int _ => true,
+                uint _ => true,
+                long _ => true,
+                ulong _ => true,
                 _ => false,
             };
 
