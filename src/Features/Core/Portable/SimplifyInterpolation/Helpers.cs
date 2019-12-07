@@ -40,9 +40,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             unwrapped = expression.Syntax as TExpressionSyntax;
 
-            unnecessaryLocations = unnecessarySpans
-                .Select(interpolation.Syntax.SyntaxTree.GetLocation)
-                .ToImmutableArray();
+            unnecessaryLocations = unnecessarySpans.ToImmutableAndFree()
+                .SelectAsArray(interpolation.Syntax.SyntaxTree.GetLocation);
         }
 
         private static IOperation Unwrap(IOperation expression)
