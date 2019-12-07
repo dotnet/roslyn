@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         protected sealed override ITypeSymbol GetSwitchType(ISwitchExpressionOperation switchExpression)
             => switchExpression.Value.Type;
 
-        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation switchOperation)
+        protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation switchOperation)
             => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(switchOperation);
 
         protected static TExpressionSyntax Exception(SyntaxGenerator generator, Compilation compilation)

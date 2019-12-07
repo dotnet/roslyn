@@ -29,9 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
         {
         }
 
-        protected override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation switchOperation)
-            => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(switchOperation);
-
         protected override SwitchExpressionArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
             => SwitchExpressionArm(DiscardPattern(), Exception(generator, compilation));
 
