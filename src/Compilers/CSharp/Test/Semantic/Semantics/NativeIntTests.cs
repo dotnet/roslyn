@@ -634,8 +634,7 @@ $@"{{
             getArgs(builder, sourceType: "nuint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
             getArgs(builder, sourceType: "float?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
             getArgs(builder, sourceType: "double?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
-            // PROTOTYPE:
-            //getArgs(builder, "decimal?", "nint?", null, null);
+            getArgs(builder, sourceType: "decimal?", destType: "nint?", null, "...");
             getArgs(builder, sourceType: "System.IntPtr?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "System.UIntPtr?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "nint", destType: "object",
@@ -796,8 +795,7 @@ $@"{{
             getArgs(builder, sourceType: "nint?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
             getArgs(builder, sourceType: "nint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nint", "float"), null);
             getArgs(builder, sourceType: "nint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nint", "double"), null);
-            // PROTOTYPE:
-            //getArgs(builder, "nint?", "decimal?", null, null);
+            getArgs(builder, sourceType: "nint?", destType: "decimal?", "...", "...");
             getArgs(builder, sourceType: "nint?", destType: "System.IntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "nint?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "object", destType: "nuint", expectedImplicitIL: null,
@@ -963,8 +961,7 @@ $@"{{
             getArgs(builder, sourceType: "nuint?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "float?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
             getArgs(builder, sourceType: "double?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
-            // PROTOTYPE:
-            //getArgs(builder, "decimal?", "nuint?", null, null);
+            getArgs(builder, sourceType: "decimal?", destType: "nuint?", null, "...");
             getArgs(builder, sourceType: "System.IntPtr?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "System.UIntPtr?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "nuint", destType: "object",
@@ -1123,8 +1120,7 @@ $@"{{
             getArgs(builder, sourceType: "nuint?", destType: "ulong?", expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
             getArgs(builder, sourceType: "nuint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), null);
             getArgs(builder, sourceType: "nuint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), null);
-            // PROTOTYPE:
-            //getArgs(builder, "nuint?", "decimal?", null, null);
+            getArgs(builder, sourceType: "nuint?", destType: "decimal?", "...", "...");
             getArgs(builder, sourceType: "nuint?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "nuint?", destType: "System.UIntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
