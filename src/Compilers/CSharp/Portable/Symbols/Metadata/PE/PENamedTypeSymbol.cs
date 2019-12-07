@@ -2306,6 +2306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private PENamedTypeSymbolNonGeneric(PENamedTypeSymbolNonGeneric other) :
                 base(other)
             {
+                _underlying = other;
                 IsNativeInt = true;
 
                 Debug.Assert(this.Equals(other));
@@ -2337,13 +2338,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
+            private readonly PENamedTypeSymbolNonGeneric _underlying;
             internal override bool IsNativeInt { get; }
 
-            internal override NamedTypeSymbol AsNativeInt()
+            internal override NamedTypeSymbol AsNativeInt(bool asNativeInt)
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                return IsNativeInt ? this : new PENamedTypeSymbolNonGeneric(this);
+                if (IsNativeInt == asNativeInt)
+                {
+                    return this;
+                }
+
+                return asNativeInt ? new PENamedTypeSymbolNonGeneric(this) : _underlying;
             }
 
             // PROTOTYPE: Temporary approach for AsNativeInt().

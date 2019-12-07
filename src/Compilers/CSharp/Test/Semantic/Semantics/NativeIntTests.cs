@@ -229,8 +229,7 @@ interface I
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nuint)").WithArguments("nuint").WithLocation(8, 13));
         }
 
-        // PROTOTYPE: PEVerify error: TypeRef has a duplicate.
-        [Fact(Skip = "PEVerify")]
+        [Fact]
         public void SizeOf_02()
         {
             var source =
@@ -481,7 +480,7 @@ $@"{{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  unbox.any  ""nint""
+  IL_0001:  unbox.any  ""System.IntPtr""
   IL_0006:  ret
 }");
             getArgs(builder, sourceType: "string", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
@@ -509,14 +508,21 @@ $@"{{
             getArgs(builder, sourceType: "float", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             getArgs(builder, sourceType: "double", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             getArgs(builder, sourceType: "decimal", destType: "nint", expectedImplicitIL: null,
-// PROTOTYPE: Is this explicit conversion expected?
 @"{
-  // Code size       12 (0xc)
+  // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  call       ""long decimal.op_Explicit(decimal)""
-  IL_0006:  call       ""System.IntPtr System.IntPtr.op_Explicit(long)""
-  IL_000b:  ret
+  IL_0006:  conv.i
+  IL_0007:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""long decimal.op_Explicit(decimal)""
+  IL_0006:  conv.ovf.i
+  IL_0007:  ret
 }");
             getArgs(builder, sourceType: "System.IntPtr", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "System.UIntPtr", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
@@ -542,15 +548,23 @@ $@"{{
             getArgs(builder, sourceType: "float?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "float"));
             getArgs(builder, sourceType: "double?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "double"));
             getArgs(builder, sourceType: "decimal?", destType: "nint", expectedImplicitIL: null,
-// PROTOTYPE: Is this explicit conversion expected?
 @"{
-  // Code size       18 (0x12)
+  // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""decimal decimal?.Value.get""
   IL_0007:  call       ""long decimal.op_Explicit(decimal)""
-  IL_000c:  call       ""System.IntPtr System.IntPtr.op_Explicit(long)""
-  IL_0011:  ret
+  IL_000c:  conv.i
+  IL_000d:  ret
+}",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0007:  call       ""long decimal.op_Explicit(decimal)""
+  IL_000c:  conv.ovf.i
+  IL_000d:  ret
 }");
             getArgs(builder, sourceType: "System.IntPtr?", destType: "nint", expectedImplicitIL: null,
 @"{
@@ -608,7 +622,25 @@ $@"{{
             getArgs(builder, sourceType: "nuint", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
             getArgs(builder, sourceType: "float", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
             getArgs(builder, sourceType: "double", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
-            getArgs(builder, sourceType: "decimal", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: "...");
+            getArgs(builder, sourceType: "decimal", destType: "nint?", expectedImplicitIL: null,
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""long decimal.op_Explicit(decimal)""
+  IL_0006:  conv.i
+  IL_0007:  newobj     ""nint?..ctor(nint)""
+  IL_000c:  ret
+}",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""long decimal.op_Explicit(decimal)""
+  IL_0006:  conv.ovf.i
+  IL_0007:  newobj     ""nint?..ctor(nint)""
+  IL_000c:  ret
+}");
             getArgs(builder, sourceType: "System.IntPtr", destType: "nint?",
 @"{
   // Code size        7 (0x7)
@@ -639,7 +671,49 @@ $@"{{
             getArgs(builder, sourceType: "nuint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
             getArgs(builder, sourceType: "float?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
             getArgs(builder, sourceType: "double?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
-            getArgs(builder, sourceType: "decimal?", destType: "nint?", null, "...");
+            getArgs(builder, sourceType: "decimal?", destType: "nint?", null,
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (decimal? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_001c:  call       ""long decimal.op_Explicit(decimal)""
+  IL_0021:  conv.i
+  IL_0022:  newobj     ""nint?..ctor(nint)""
+  IL_0027:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (decimal? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_001c:  call       ""long decimal.op_Explicit(decimal)""
+  IL_0021:  conv.ovf.i
+  IL_0022:  newobj     ""nint?..ctor(nint)""
+  IL_0027:  ret
+}");
             getArgs(builder, sourceType: "System.IntPtr?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "System.UIntPtr?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "nint", destType: "object",
@@ -647,14 +721,14 @@ $@"{{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  box        ""nint""
+  IL_0001:  box        ""System.IntPtr""
   IL_0006:  ret
 }",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  box        ""nint""
+  IL_0001:  box        ""System.IntPtr""
   IL_0006:  ret
 }");
             getArgs(builder, sourceType: "nint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
@@ -679,15 +753,22 @@ $@"{{
             getArgs(builder, sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
             getArgs(builder, sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
             getArgs(builder, sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
-            getArgs(builder, sourceType: "nint", destType: "decimal", expectedImplicitIL: "...",
-// PROTOTYPE: Is this explicit conversion expected?
+            getArgs(builder, sourceType: "nint", destType: "decimal",
 @"{
-  // Code size       12 (0xc)
+  // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""long System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_0006:  call       ""decimal decimal.op_Implicit(long)""
-  IL_000b:  ret
+  IL_0001:  conv.i8
+  IL_0002:  call       ""decimal decimal.op_Implicit(long)""
+  IL_0007:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i8
+  IL_0002:  call       ""decimal decimal.op_Implicit(long)""
+  IL_0007:  ret
 }");
             getArgs(builder, sourceType: "nint", destType: "System.IntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "nint", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
@@ -703,16 +784,24 @@ $@"{{
             getArgs(builder, sourceType: "nint", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i8", "ulong"), expectedCheckedIL: convToNullableT("conv.ovf.u8", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
             getArgs(builder, sourceType: "nint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
             getArgs(builder, sourceType: "nint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
-            getArgs(builder, sourceType: "nint", destType: "decimal?", expectedImplicitIL: "...",
-// PROTOTYPE: Is this explicit conversion expected?
+            getArgs(builder, sourceType: "nint", destType: "decimal?",
 @"{
-  // Code size       17 (0x11)
+  // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""long System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_0006:  call       ""decimal decimal.op_Implicit(long)""
-  IL_000b:  newobj     ""decimal?..ctor(decimal)""
-  IL_0010:  ret
+  IL_0001:  conv.i8
+  IL_0002:  call       ""decimal decimal.op_Implicit(long)""
+  IL_0007:  newobj     ""decimal?..ctor(decimal)""
+  IL_000c:  ret
+}",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i8
+  IL_0002:  call       ""decimal decimal.op_Implicit(long)""
+  IL_0007:  newobj     ""decimal?..ctor(decimal)""
+  IL_000c:  ret
 }");
             getArgs(builder, sourceType: "nint", destType: "System.IntPtr?",
 @"{
@@ -769,15 +858,14 @@ $@"{{
             getArgs(builder, sourceType: "nint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nint"));
             getArgs(builder, sourceType: "nint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nint"));
             getArgs(builder, sourceType: "nint?", destType: "decimal", expectedImplicitIL: null,
-// PROTOTYPE: Is this explicit conversion expected?
 @"{
-  // Code size       18 (0x12)
+  // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""nint nint?.Value.get""
-  IL_0007:  call       ""long System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_000c:  call       ""decimal decimal.op_Implicit(long)""
-  IL_0011:  ret
+  IL_0007:  conv.i8
+  IL_0008:  call       ""decimal decimal.op_Implicit(long)""
+  IL_000d:  ret
 }");
             getArgs(builder, sourceType: "nint?", destType: "System.IntPtr", expectedImplicitIL: null,
 @"{
@@ -800,7 +888,49 @@ $@"{{
             getArgs(builder, sourceType: "nint?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
             getArgs(builder, sourceType: "nint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nint", "float"), null);
             getArgs(builder, sourceType: "nint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nint", "double"), null);
-            getArgs(builder, sourceType: "nint?", destType: "decimal?", "...", "...");
+            getArgs(builder, sourceType: "nint?", destType: "decimal?",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (nint? V_0,
+                decimal? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""decimal?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  conv.i8
+  IL_001d:  call       ""decimal decimal.op_Implicit(long)""
+  IL_0022:  newobj     ""decimal?..ctor(decimal)""
+  IL_0027:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (nint? V_0,
+                decimal? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""decimal?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  conv.i8
+  IL_001d:  call       ""decimal decimal.op_Implicit(long)""
+  IL_0022:  newobj     ""decimal?..ctor(decimal)""
+  IL_0027:  ret
+}");
             getArgs(builder, sourceType: "nint?", destType: "System.IntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "nint?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "object", destType: "nuint", expectedImplicitIL: null,
@@ -808,7 +938,7 @@ $@"{{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  unbox.any  ""nuint""
+  IL_0001:  unbox.any  ""System.UIntPtr""
   IL_0006:  ret
 }");
             getArgs(builder, sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
@@ -836,14 +966,21 @@ $@"{{
             getArgs(builder, sourceType: "float", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
             getArgs(builder, sourceType: "double", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
             getArgs(builder, sourceType: "decimal", destType: "nuint", expectedImplicitIL: null,
-// PROTOTYPE: Is this explicit conversion expected?
 @"{
-  // Code size       12 (0xc)
+  // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  call       ""ulong decimal.op_Explicit(decimal)""
-  IL_0006:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
-  IL_000b:  ret
+  IL_0006:  conv.u
+  IL_0007:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ulong decimal.op_Explicit(decimal)""
+  IL_0006:  conv.ovf.u.un
+  IL_0007:  ret
 }");
             getArgs(builder, sourceType: "System.IntPtr", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "System.UIntPtr", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
@@ -869,15 +1006,23 @@ $@"{{
             getArgs(builder, sourceType: "float?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "float"));
             getArgs(builder, sourceType: "double?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "double"));
             getArgs(builder, sourceType: "decimal?", destType: "nuint", expectedImplicitIL: null,
-// PROTOTYPE: Is this explicit conversion expected?
 @"{
-  // Code size       18 (0x12)
+  // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""decimal decimal?.Value.get""
   IL_0007:  call       ""ulong decimal.op_Explicit(decimal)""
-  IL_000c:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
-  IL_0011:  ret
+  IL_000c:  conv.u
+  IL_000d:  ret
+}",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0007:  call       ""ulong decimal.op_Explicit(decimal)""
+  IL_000c:  conv.ovf.u.un
+  IL_000d:  ret
 }");
             getArgs(builder, sourceType: "System.IntPtr?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "System.UIntPtr?", destType: "nuint", expectedImplicitIL: null,
@@ -935,7 +1080,25 @@ $@"{{
 }");
             getArgs(builder, sourceType: "float", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             getArgs(builder, sourceType: "double", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "decimal", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: "...");
+            getArgs(builder, sourceType: "decimal", destType: "nuint?", expectedImplicitIL: null,
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ulong decimal.op_Explicit(decimal)""
+  IL_0006:  conv.u
+  IL_0007:  newobj     ""nuint?..ctor(nuint)""
+  IL_000c:  ret
+}",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ulong decimal.op_Explicit(decimal)""
+  IL_0006:  conv.ovf.u.un
+  IL_0007:  newobj     ""nuint?..ctor(nuint)""
+  IL_000c:  ret
+}");
             getArgs(builder, sourceType: "System.IntPtr", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "System.UIntPtr", destType: "nuint?",
 @"{
@@ -966,7 +1129,49 @@ $@"{{
             getArgs(builder, sourceType: "nuint?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "float?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
             getArgs(builder, sourceType: "double?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
-            getArgs(builder, sourceType: "decimal?", destType: "nuint?", null, "...");
+            getArgs(builder, sourceType: "decimal?", destType: "nuint?", null,
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (decimal? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_001c:  call       ""ulong decimal.op_Explicit(decimal)""
+  IL_0021:  conv.u
+  IL_0022:  newobj     ""nuint?..ctor(nuint)""
+  IL_0027:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (decimal? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool decimal?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_001c:  call       ""ulong decimal.op_Explicit(decimal)""
+  IL_0021:  conv.ovf.u.un
+  IL_0022:  newobj     ""nuint?..ctor(nuint)""
+  IL_0027:  ret
+}");
             getArgs(builder, sourceType: "System.IntPtr?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "System.UIntPtr?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             getArgs(builder, sourceType: "nuint", destType: "object",
@@ -974,14 +1179,14 @@ $@"{{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  box        ""nuint""
+  IL_0001:  box        ""System.UIntPtr""
   IL_0006:  ret
 }",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  box        ""nuint""
+  IL_0001:  box        ""System.UIntPtr""
   IL_0006:  ret
 }");
             getArgs(builder, sourceType: "nuint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
@@ -1006,15 +1211,22 @@ $@"{{
             getArgs(builder, sourceType: "nuint", destType: "ulong", expectedImplicitIL: conv("conv.u8"), expectedExplicitIL: conv("conv.u8"));
             getArgs(builder, sourceType: "nuint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
             getArgs(builder, sourceType: "nuint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
-            getArgs(builder, sourceType: "nuint", destType: "decimal", expectedImplicitIL: "...",
-// PROTOTYPE: Is this explicit conversion expected?
+            getArgs(builder, sourceType: "nuint", destType: "decimal",
 @"{
-  // Code size       12 (0xc)
+  // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ulong System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_0006:  call       ""decimal decimal.op_Implicit(ulong)""
-  IL_000b:  ret
+  IL_0001:  conv.u8
+  IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_0007:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u8
+  IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_0007:  ret
 }");
             getArgs(builder, sourceType: "nuint", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "nuint", destType: "System.UIntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
@@ -1030,14 +1242,24 @@ $@"{{
             getArgs(builder, sourceType: "nuint", destType: "ulong?", expectedImplicitIL: convToNullableT("conv.u8", "ulong"), expectedExplicitIL: convToNullableT("conv.u8", "ulong"));
             getArgs(builder, sourceType: "nuint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
             getArgs(builder, sourceType: "nuint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
-            getArgs(builder, sourceType: "nuint", destType: "decimal?", expectedImplicitIL: "...",
+            getArgs(builder, sourceType: "nuint", destType: "decimal?",
 @"{
-  // Code size       12 (0xc)
+  // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""decimal decimal.op_Implicit(ulong)""
-  IL_0006:  newobj     ""decimal?..ctor(decimal)""
-  IL_000b:  ret
+  IL_0001:  conv.u8
+  IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_0007:  newobj     ""decimal?..ctor(decimal)""
+  IL_000c:  ret
+}",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u8
+  IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_0007:  newobj     ""decimal?..ctor(decimal)""
+  IL_000c:  ret
 }");
             getArgs(builder, sourceType: "nuint", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "nuint", destType: "System.UIntPtr?",
@@ -1094,15 +1316,14 @@ $@"{{
             getArgs(builder, sourceType: "nuint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nuint"));
             getArgs(builder, sourceType: "nuint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nuint"));
             getArgs(builder, sourceType: "nuint?", destType: "decimal", expectedImplicitIL: null,
-// PROTOTYPE: Is this explicit conversion expected?
 @"{
-  // Code size       18 (0x12)
+  // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""nuint nuint?.Value.get""
-  IL_0007:  call       ""ulong System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_000c:  call       ""decimal decimal.op_Implicit(ulong)""
-  IL_0011:  ret
+  IL_0007:  conv.u8
+  IL_0008:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_000d:  ret
 }");
             getArgs(builder, sourceType: "nuint?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "nuint?", destType: "System.UIntPtr", expectedImplicitIL: null,
@@ -1125,7 +1346,49 @@ $@"{{
             getArgs(builder, sourceType: "nuint?", destType: "ulong?", expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
             getArgs(builder, sourceType: "nuint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), null);
             getArgs(builder, sourceType: "nuint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), null);
-            getArgs(builder, sourceType: "nuint?", destType: "decimal?", "...", "...");
+            getArgs(builder, sourceType: "nuint?", destType: "decimal?",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                decimal? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""decimal?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  conv.u8
+  IL_001d:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_0022:  newobj     ""decimal?..ctor(decimal)""
+  IL_0027:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                decimal? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""decimal?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  conv.u8
+  IL_001d:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_0022:  newobj     ""decimal?..ctor(decimal)""
+  IL_0027:  ret
+}");
             getArgs(builder, sourceType: "nuint?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             getArgs(builder, sourceType: "nuint?", destType: "System.UIntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
@@ -1179,16 +1442,11 @@ $@"class Program
 
             if (expectedIL != null)
             {
-                // PROTOTYPE: LocalRewriter.DecimalConversionMethod is currently generating incorrect code.
-                if (!hasDecimal(sourceType) && !hasDecimal(destType))
-                {
-                    var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.Passes);
-                    verifier.VerifyIL("Program.Convert", expectedIL);
-                }
+                var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.Passes);
+                verifier.VerifyIL("Program.Convert", expectedIL);
             }
 
             static bool useUnsafe(string type) => type == "void*";
-            static bool hasDecimal(string type) => type.StartsWith("decimal");
         }
 
         // PROTOTYPE: Test unary operator- with `static IntPtr operator-(IntPtr)` defined on System.IntPtr. (Should be ignored for `nint`.)
@@ -2240,12 +2498,10 @@ $@"class Program
 
             if (expectedDiagnostics.Length == 0)
             {
-                // PROTOTYPE: LocalRewriter.DecimalConversionMethod is currently generating incorrect code.
-                CompileAndVerify(comp, verify: hasDecimal(leftType) || hasDecimal(rightType) ? Verification.Skipped : Verification.Passes);
+                CompileAndVerify(comp);
             }
 
             static bool useUnsafe(string type) => type == "void*";
-            static bool hasDecimal(string type) => type.StartsWith("decimal");
         }
 
         [Fact]

@@ -893,6 +893,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     return typeRef;
                 }
+                else if (namedTypeSymbol.IsNativeInt)
+                {
+                    return namedTypeSymbol.AsNativeInt(asNativeInt: false);
+                }
             }
 
             // NoPia: See if this is a type, which definition we should copy into our assembly.
