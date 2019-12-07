@@ -55,5 +55,149 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     }
 }");
         }
+
+        [Fact]
+        public async Task ToString_with_escape_sequences()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString(""|}\\d \""d\""{|Unnecessary:"")|}} suffix"";
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue:\\d \""d\""} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToString_with_verbatim_string_literal_parameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString(@""|}some format code{|Unnecessary:"")|}} suffix"";
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue:some format code} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToString_with_verbatim_escape_sequences_inside_verbatim_interpolated_string()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $@""prefix {someValue{|Unnecessary:[||].ToString(@""|}\d """"d""""{|Unnecessary:"")|}} suffix"";
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $@""prefix {someValue:\d """"d""""} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToString_with_verbatim_escape_sequences_inside_non_verbatim_interpolated_string()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString(@""|}\d """"d""""{|Unnecessary:"")|}} suffix"";
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue:\\d \""d\""} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToString_with_non_verbatim_escape_sequences_inside_verbatim_interpolated_string()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $@""prefix {someValue{|Unnecessary:[||].ToString(""|}\\d \""d\""{|Unnecessary:"")|}} suffix"";
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $@""prefix {someValue:\d """"d""""} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToString_with_string_constant_parameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(int someValue)
+    {
+        const string someConst = ""some format code"";
+        _ = $""prefix {someValue[||].ToString(someConst)} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToString_with_character_literal_parameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(C someValue)
+    {
+        _ = $""prefix {someValue[||].ToString('f')} suffix"";
+    }
+
+    public string ToString(object obj) => null;
+}");
+        }
+
+        [Fact]
+        public async Task ToString_with_format_provider()
+        {
+            // (If someone is explicitly specifying culture, an implicit form should not be encouraged.)
+
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.CurrentCulture)} suffix"";
+    }
+}");
+        }
     }
 }
