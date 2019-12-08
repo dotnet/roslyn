@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     memberValue,
                     parent,
                     _customTypeInfoMap,
-                    ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView);
+                    ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView,
+                    supportsFavorites: false);
                 var expansion = other.Expansion;
                 if (expansion != null)
                 {

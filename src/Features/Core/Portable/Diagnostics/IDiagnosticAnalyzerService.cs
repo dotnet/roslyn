@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Get specific diagnostics for the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
-        /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Get diagnostics for the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
         /// </summary>
         Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);

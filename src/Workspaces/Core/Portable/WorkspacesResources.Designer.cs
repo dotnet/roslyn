@@ -665,6 +665,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}..
+        /// </summary>
+        internal static string Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4 {
+            get {
+                return ResourceManager.GetString("Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination type must be a {0}, {1} or {2}, but given one is {3}..
         /// </summary>
         internal static string Destination_type_must_be_a_0_1_or_2_but_given_one_is_3 {
@@ -769,6 +778,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Error {
             get {
                 return ResourceManager.GetString("Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error reading content of source file &apos;{0}&apos; -- &apos;{1}&apos;..
+        /// </summary>
+        internal static string Error_reading_content_of_source_file_0_1 {
+            get {
+                return ResourceManager.GetString("Error_reading_content_of_source_file_0_1", resourceCulture);
             }
         }
         
@@ -3788,6 +3806,15 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_na" +
                         "me_as_member_access", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Workspace error.
+        /// </summary>
+        internal static string Workspace_error {
+            get {
+                return ResourceManager.GetString("Workspace_error", resourceCulture);
             }
         }
         

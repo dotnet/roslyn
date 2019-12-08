@@ -26,13 +26,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return effectiveSeverity;
         }
-
-        /// <summary>
-        /// Gets project-level effective severity of the given <paramref name="descriptor"/> accounting for severity configurations from both the following sources:
-        /// 1. Compilation options from ruleset file, if any, and command line options such as /nowarn, /warnaserror, etc.
-        /// 2. Analyzer config documents at the project root directory or in ancestor directories.
-        /// </summary>
-        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, Project project)
-            => descriptor.GetEffectiveSeverity(project.CompilationOptions, project.GetAnalyzerConfigSpecialDiagnosticOptions());
     }
 }

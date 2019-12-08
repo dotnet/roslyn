@@ -62,6 +62,8 @@ function Print-Usage() {
   Write-Host "The above arguments can be shortened as much as to be unambiguous (e.g. -co for configuration, -t for test, etc.)."
 }
 
+. $PSScriptRoot\tools.ps1
+
 function InitializeCustomToolset {
   if (-not $restore) {
     return
@@ -112,21 +114,15 @@ function Build {
     @properties
 }
 
-if ($clean) {
-  if(Test-Path $ArtifactsDir) {
-    Remove-Item -Recurse -Force $ArtifactsDir
-    Write-Host 'Artifacts directory deleted.'
-  }
-  exit 0
-}
-
 try {
-  . $PSScriptRoot\tools.ps1
-  If ((Test-Path variable:LastExitCode) -And ($LastExitCode -ne 0)) {
-    Write-PipelineTelemetryError -Category 'InitializeToolset' -Message 'Eng/common/tools.ps1 returned a non-zero exit code.'
-    ExitWithExitCode $LastExitCode
+  if ($clean) {
+    if (Test-Path $ArtifactsDir) {
+      Remove-Item -Recurse -Force $ArtifactsDir
+      Write-Host 'Artifacts directory deleted.'
+    }
+    exit 0
   }
-  
+
   if ($help -or (($null -ne $properties) -and ($properties.Contains('/help') -or $properties.Contains('/?')))) {
     Print-Usage
     exit 0
