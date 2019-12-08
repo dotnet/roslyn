@@ -213,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 SyntaxKind.DefaultExpression,
                 SyntaxKind.DefaultLiteralExpression,
                 SyntaxKind.ConditionalExpression,
-                SyntaxKind.ConditionalExpression,
                 SyntaxKind.ConditionalAccessExpression);
         }
 
