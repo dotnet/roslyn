@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
 
         [Fact]
-        public async Task ToString_with_no_parameter()
+        public async Task ToStringWithNoParameter()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_string_literal_parameter()
+        public async Task ToStringWithStringLiteralParameter()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_escape_sequences()
+        public async Task ToStringWithEscapeSequences()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_verbatim_string_literal_parameter()
+        public async Task ToStringWithVerbatimStringLiteralParameter()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_verbatim_escape_sequences_inside_verbatim_interpolated_string()
+        public async Task ToStringWithVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_verbatim_escape_sequences_inside_non_verbatim_interpolated_string()
+        public async Task ToStringWithVerbatimEscapeSequencesInsideNonVerbatimInterpolatedString()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_non_verbatim_escape_sequences_inside_verbatim_interpolated_string()
+        public async Task ToStringWithNonVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_string_constant_parameter()
+        public async Task ToStringWithStringConstantParameter()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_character_literal_parameter()
+        public async Task ToStringWithCharacterLiteralParameter()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToString_with_format_provider()
+        public async Task ToStringWithFormatProvider()
         {
             // (If someone is explicitly specifying culture, an implicit form should not be encouraged.)
 
