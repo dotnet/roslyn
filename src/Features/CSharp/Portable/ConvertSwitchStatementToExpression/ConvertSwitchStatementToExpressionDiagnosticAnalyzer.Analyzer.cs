@@ -211,6 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override SyntaxKind VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
+                if (node.Right is RefExpressionSyntax)
+                    return default;
+
                 if (_assignmentTargetOpt != null)
                 {
                     if (!SyntaxFactory.AreEquivalent(node.Left, _assignmentTargetOpt))
@@ -227,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             public override SyntaxKind VisitExpressionStatement(ExpressionStatementSyntax node)
-                => IsRef(node.Expression) ? default : Visit(node.Expression);
+                => Visit(node.Expression);
 
             public override SyntaxKind VisitReturnStatement(ReturnStatementSyntax node)
             {
@@ -235,31 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 // also can't convert a switch statement with ref-returns to a switch-expression
                 // (currently). Until the language supports ref-switch-expressions, we just disable
                 // things.
-                return node.Expression is null || IsRef(node.Expression)
+                return node.Expression is null || node.Expression is RefExpressionSyntax
                     ? default
                     : SyntaxKind.ReturnStatement;
-            }
-
-            private bool IsRef(ExpressionSyntax expression)
-            {
-                expression = expression.WalkDownParentheses();
-                if (expression is RefExpressionSyntax)
-                {
-                    return true;
-                }
-
-                if (expression is ConditionalExpressionSyntax conditionalExpression)
-                {
-                    return IsRef(conditionalExpression.WhenTrue) ||
-                           IsRef(conditionalExpression.WhenFalse);
-                }
-
-                if (expression is AssignmentExpressionSyntax assignmentExpression)
-                {
-                    return IsRef(assignmentExpression.Right);
-                }
-
-                return false;
             }
 
             public override SyntaxKind VisitThrowStatement(ThrowStatementSyntax node)
