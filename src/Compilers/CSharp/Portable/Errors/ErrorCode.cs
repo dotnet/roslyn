@@ -1605,6 +1605,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8428,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8429,
+
         // available range
 
         #region diagnostics introduced for recursive patterns
