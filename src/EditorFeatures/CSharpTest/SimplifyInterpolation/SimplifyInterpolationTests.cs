@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 }",
 @"class C
 {
-    void M(int someValue)
+    void M(System.DateTime someValue)
     {
         _ = $""prefix {someValue:\\d \""d\""} suffix"";
     }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 }",
 @"class C
 {
-    void M(int someValue)
+    void M(System.DateTime someValue)
     {
         _ = $@""prefix {someValue:\d """"d""""} suffix"";
     }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 }",
 @"class C
 {
-    void M(int someValue)
+    void M(System.DateTime someValue)
     {
         _ = $""prefix {someValue:\\d \""d\""} suffix"";
     }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 }",
 @"class C
 {
-    void M(int someValue)
+    void M(System.DateTime someValue)
     {
         _ = $@""prefix {someValue:\d """"d""""} suffix"";
     }
