@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         private static int RightAfterEnd(TextSpan span) => span.End + 1;
 
         [Fact]
-        public void Starting_before_start_and_ending_before_start()
+        public void StartingBeforeStartAndEndingBeforeStart()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_before_start_and_ending_at_start()
+        public void StartingBeforeStartAndEndingAtStart()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_before_start_and_ending_after_start()
+        public void StartingBeforeStartAndEndingAfterStart()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(RightAfterStart(LongSpan), AtEnd(LongSpan)) },
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_before_start_and_ending_before_end()
+        public void StartingBeforeStartAndEndingBeforeEnd()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(RightBeforeEnd(LongSpan), AtEnd(LongSpan)) },
@@ -65,21 +65,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_before_start_and_ending_at_end()
+        public void StartingBeforeStartAndEndingAtEnd()
         {
             Assert.Empty(
                 LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), AtEnd(LongSpan))));
         }
 
         [Fact]
-        public void Starting_before_start_and_ending_after_end()
+        public void StartingBeforeStartAndEndingAfterEnd()
         {
             Assert.Empty(
                 LongSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(LongSpan), RightAfterEnd(LongSpan))));
         }
 
         [Fact]
-        public void Starting_at_start_and_ending_at_start()
+        public void StartingAtStartAndEndingAtStart()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_at_start_and_ending_after_start()
+        public void StartingAtStartAndEndingAfterStart()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(RightAfterStart(LongSpan), AtEnd(LongSpan)) },
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_at_start_and_ending_before_end()
+        public void StartingAtStartAndEndingBeforeEnd()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(RightBeforeEnd(LongSpan), AtEnd(LongSpan)) },
@@ -103,21 +103,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_at_start_and_ending_at_end()
+        public void StartingAtStartAndEndingAtEnd()
         {
             Assert.Empty(
                 LongSpan.Subtract(TextSpan.FromBounds(AtStart(LongSpan), AtEnd(LongSpan))));
         }
 
         [Fact]
-        public void Starting_at_start_and_ending_after_end()
+        public void StartingAtStartAndEndingAfterEnd()
         {
             Assert.Empty(
                 LongSpan.Subtract(TextSpan.FromBounds(AtStart(LongSpan), RightAfterEnd(LongSpan))));
         }
 
         [Fact]
-        public void Starting_after_start_and_ending_after_start()
+        public void StartingAfterStartAndEndingAfterStart()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_after_start_and_ending_before_end()
+        public void StartingAfterStartAndEndingBeforeEnd()
         {
             Assert.Equal(
                 new[]
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_after_start_and_ending_at_end()
+        public void StartingAfterStartAndEndingAtEnd()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(AtStart(LongSpan), RightAfterStart(LongSpan)) },
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_after_start_and_ending_after_end()
+        public void StartingAfterStartAndEndingAfterEnd()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(AtStart(LongSpan), RightAfterStart(LongSpan)) },
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_before_end_and_ending_before_end()
+        public void StartingBeforeEndAndEndingBeforeEnd()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_before_end_and_ending_at_end()
+        public void StartingBeforeEndAndEndingAtEnd()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(AtStart(LongSpan), RightBeforeEnd(LongSpan)) },
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_before_end_and_ending_after_end()
+        public void StartingBeforeEndAndEndingAfterEnd()
         {
             Assert.Equal(
                 new[] { TextSpan.FromBounds(AtStart(LongSpan), RightBeforeEnd(LongSpan)) },
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_at_end_and_ending_at_end()
+        public void StartingAtEndAndEndingAtEnd()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_at_end_and_ending_after_end()
+        public void StartingAtEndAndEndingAfterEnd()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Starting_after_end_and_ending_after_end()
+        public void StartingAfterEndAndEndingAfterEnd()
         {
             Assert.Equal(
                 new[] { LongSpan },
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Unit_span_starting_before_start_and_ending_before_start()
+        public void UnitSpanStartingBeforeStartAndEndingBeforeStart()
         {
             Assert.Equal(
                 new[] { UnitSpan },
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Unit_span_starting_before_start_and_ending_at_start()
+        public void UnitSpanStartingBeforeStartAndEndingAtStart()
         {
             Assert.Equal(
                 new[] { UnitSpan },
@@ -217,21 +217,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Unit_span_starting_before_start_and_ending_at_end()
+        public void UnitSpanStartingBeforeStartAndEndingAtEnd()
         {
             Assert.Empty(
                 UnitSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(UnitSpan), AtEnd(UnitSpan))));
         }
 
         [Fact]
-        public void Unit_span_starting_before_start_and_ending_after_end()
+        public void UnitSpanStartingBeforeStartAndEndingAfterEnd()
         {
             Assert.Empty(
                 UnitSpan.Subtract(TextSpan.FromBounds(RightBeforeStart(UnitSpan), RightAfterEnd(UnitSpan))));
         }
 
         [Fact]
-        public void Unit_span_starting_at_start_and_ending_at_start()
+        public void UnitSpanStartingAtStartAndEndingAtStart()
         {
             Assert.Equal(
                 new[] { UnitSpan },
@@ -239,21 +239,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Unit_span_starting_at_start_and_ending_at_end()
+        public void UnitSpanStartingAtStartAndEndingAtEnd()
         {
             Assert.Empty(
                 UnitSpan.Subtract(TextSpan.FromBounds(AtStart(UnitSpan), AtEnd(UnitSpan))));
         }
 
         [Fact]
-        public void Unit_span_starting_at_start_and_ending_after_end()
+        public void UnitSpanStartingAtStartAndEndingAfterEnd()
         {
             Assert.Empty(
                 UnitSpan.Subtract(TextSpan.FromBounds(AtStart(UnitSpan), RightAfterEnd(UnitSpan))));
         }
 
         [Fact]
-        public void Unit_span_starting_at_end_and_ending_at_end()
+        public void UnitSpanStartingAtEndAndEndingAtEnd()
         {
             Assert.Equal(
                 new[] { UnitSpan },
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Unit_span_starting_at_end_and_ending_after_end()
+        public void UnitSpanStartingAtEndAndEndingAfterEnd()
         {
             Assert.Equal(
                 new[] { UnitSpan },
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Unit_span_starting_after_end_and_ending_after_end()
+        public void UnitSpanStartingAfterEndAndEndingAfterEnd()
         {
             Assert.Equal(
                 new[] { UnitSpan },
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Empty_span_starting_before_start_and_ending_before_start()
+        public void EmptySpanStartingBeforeStartAndEndingBeforeStart()
         {
             Assert.Equal(
                 new[] { EmptySpan },
@@ -285,35 +285,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
         }
 
         [Fact]
-        public void Empty_span_starting_before_start_and_ending_at_span()
+        public void EmptySpanStartingBeforeStartAndEndingAtSpan()
         {
             Assert.Empty(
                 EmptySpan.Subtract(TextSpan.FromBounds(RightBeforeStart(EmptySpan), EmptySpan.Start)));
         }
 
         [Fact]
-        public void Empty_span_starting_before_start_and_ending_after_end()
+        public void EmptySpanStartingBeforeStartAndEndingAfterEnd()
         {
             Assert.Empty(
                 EmptySpan.Subtract(TextSpan.FromBounds(RightBeforeStart(EmptySpan), RightAfterEnd(EmptySpan))));
         }
 
         [Fact]
-        public void Empty_span_starting_at_span_and_ending_at_span()
+        public void EmptySpanStartingAtSpanAndEndingAtSpan()
         {
             Assert.Empty(
                 EmptySpan.Subtract(TextSpan.FromBounds(EmptySpan.Start, EmptySpan.Start)));
         }
 
         [Fact]
-        public void Empty_span_starting_at_span_and_ending_after_end()
+        public void EmptySpanStartingAtSpanAndEndingAfterEnd()
         {
             Assert.Empty(
                 EmptySpan.Subtract(TextSpan.FromBounds(EmptySpan.Start, RightAfterEnd(EmptySpan))));
         }
 
         [Fact]
-        public void Empty_span_starting_after_end_and_ending_after_end()
+        public void EmptySpanStartingAfterEndAndEndingAfterEnd()
         {
             Assert.Equal(
                 new[] { EmptySpan },
