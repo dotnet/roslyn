@@ -1613,10 +1613,10 @@ FullWidthRepeat:
             Debug.Assert(CanGet)  ' [
             Debug.Assert(Peek() = "["c OrElse Peek() = FULLWIDTH_LEFT_SQUARE_BRACKET)
 
-            Dim IdStart As Integer = 1
-            Dim here As Integer = IdStart
+            Dim idStart As Integer = 1
+            Dim here As Integer = idStart
 
-            Dim InvalidIdentifier As Boolean = False
+            Dim invalidIdentifier As Boolean = False
 
             If Not CanGet(here) Then
                 Return MakeBadToken(precedingTrivia, here, ERRID.ERR_MissingEndBrack)
@@ -1630,7 +1630,7 @@ FullWidthRepeat:
                     Not (CanGet(here + 1) AndAlso
                          IsIdentifierPartCharacter(Peek(here + 1)))) Then
 
-                InvalidIdentifier = True
+                invalidIdentifier = True
             End If
 
             ' check ident until ]
@@ -1638,15 +1638,15 @@ FullWidthRepeat:
                 Dim [Next] As Char = Peek(here)
 
                 If [Next] = "]"c OrElse [Next] = FULLWIDTH_RIGHT_SQUARE_BRACKET Then
-                    Dim IdStringLength As Integer = here - IdStart
+                    Dim idStringLength As Integer = here - idStart
 
-                    If IdStringLength > 0 AndAlso Not InvalidIdentifier Then
-                        Dim spelling = GetText(IdStringLength + 2)
+                    If idStringLength > 0 AndAlso Not invalidIdentifier Then
+                        Dim spelling = GetText(idStringLength + 2)
                         ' TODO: this should be provable?
-                        Debug.Assert(spelling.Length > IdStringLength + 1)
+                        Debug.Assert(spelling.Length > idStringLength + 1)
 
                         ' TODO: consider interning.
-                        Dim baseText = spelling.Substring(1, IdStringLength)
+                        Dim baseText = spelling.Substring(1, idStringLength)
                         Dim id As SyntaxToken = MakeIdentifier(
                             spelling,
                             SyntaxKind.IdentifierToken,
@@ -1662,7 +1662,7 @@ FullWidthRepeat:
                 ElseIf IsNewLine([Next]) Then
                     Exit While
                 ElseIf Not IsIdentifierPartCharacter([Next]) Then
-                    InvalidIdentifier = True
+                    invalidIdentifier = True
                     Exit While
                 End If
 
@@ -1686,7 +1686,7 @@ FullWidthRepeat:
             Debug.Assert(CanGet)
 
             Dim here As Integer = 0
-            Dim IntegerLiteralStart As Integer
+            Dim integerLiteralStart As Integer
             Dim UnderscoreInWrongPlace As Boolean
             Dim UnderscoreUsed As Boolean = False
             Dim LeadingUnderscoreUsed = False
@@ -1709,7 +1709,7 @@ FullWidthRepeat:
                 Select Case ch
                     Case "H"c, "h"c
                         here += 1
-                        IntegerLiteralStart = here
+                        integerLiteralStart = here
                         base = LiteralBase.Hexadecimal
 
                         If CanGet(here) AndAlso Peek(here) = "_"c Then
@@ -1730,7 +1730,7 @@ FullWidthRepeat:
 
                     Case "B"c, "b"c
                         here += 1
-                        IntegerLiteralStart = here
+                        integerLiteralStart = here
                         base = LiteralBase.Binary
 
                         If CanGet(here) AndAlso Peek(here) = "_"c Then
@@ -1751,7 +1751,7 @@ FullWidthRepeat:
 
                     Case "O"c, "o"c
                         here += 1
-                        IntegerLiteralStart = here
+                        integerLiteralStart = here
                         base = LiteralBase.Octal
 
                         If CanGet(here) AndAlso Peek(here) = "_"c Then
@@ -1780,7 +1780,7 @@ FullWidthRepeat:
                 End Select
             Else
                 ' no base specifier - just go through decimal digits.
-                IntegerLiteralStart = here
+                integerLiteralStart = here
                 UnderscoreInWrongPlace = (CanGet(here) AndAlso Peek(here) = "_"c)
                 While CanGet(here)
                     ch = Peek(here)
@@ -1792,13 +1792,13 @@ FullWidthRepeat:
                     End If
                     here += 1
                 End While
-                If here <> IntegerLiteralStart Then
+                If here <> integerLiteralStart Then
                     UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(here - 1) = "_"c)
                 End If
             End If
 
             ' we may have a dot, and then it is a float, but if this is an integral, then we have seen it all.
-            Dim IntegerLiteralEnd As Integer = here
+            Dim integerLiteralEnd As Integer = here
 
             ' // Unless there was an explicit base specifier (which indicates an integer literal),
             ' // read the rest of a float literal.
@@ -1979,37 +1979,37 @@ FullWidthRepeat2:
             ' //  Produce a value for the literal.
             ' ####################################################
 
-            Dim IntegralValue As UInt64
+            Dim integralValue As UInt64
             Dim floatingValue As Double
             Dim decimalValue As Decimal
             Dim Overflows As Boolean = False
 
             If literalKind = NumericLiteralKind.Integral Then
-                If IntegerLiteralStart = IntegerLiteralEnd Then
+                If integerLiteralStart = integerLiteralEnd Then
                     Return MakeBadToken(precedingTrivia, here, ERRID.ERR_Syntax)
                 Else
-                    IntegralValue = 0
+                    integralValue = 0
 
                     If base = LiteralBase.Decimal Then
                         ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
+                        For LiteralCharacter As Integer = integerLiteralStart To integerLiteralEnd - 1
                             Dim LiteralCharacterValue As Char = Peek(LiteralCharacter)
                             If LiteralCharacterValue = "_"c Then
                                 Continue For
                             End If
                             Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(LiteralCharacterValue)
 
-                            If IntegralValue < 1844674407370955161UL OrElse
-                              (IntegralValue = 1844674407370955161UL AndAlso NextCharacterValue <= 5UI) Then
+                            If integralValue < 1844674407370955161UL OrElse
+                              (integralValue = 1844674407370955161UL AndAlso NextCharacterValue <= 5UI) Then
 
-                                IntegralValue = (IntegralValue * 10UL) + NextCharacterValue
+                                integralValue = (integralValue * 10UL) + NextCharacterValue
                             Else
                                 Overflows = True
                                 Exit For
                             End If
                         Next
 
-                        If TypeCharacter <> TypeCharacter.ULongLiteral AndAlso IntegralValue > Long.MaxValue Then
+                        If TypeCharacter <> TypeCharacter.ULongLiteral AndAlso integralValue > Long.MaxValue Then
                             Overflows = True
                         End If
                     Else
@@ -2017,43 +2017,43 @@ FullWidthRepeat2:
                         Dim OverflowMask As UInt64 = If(base = LiteralBase.Hexadecimal, &HF000000000000000UL, If(base = LiteralBase.Octal, &HE000000000000000UL, &H8000000000000000UL))
 
                         ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
+                        For LiteralCharacter As Integer = integerLiteralStart To integerLiteralEnd - 1
                             Dim LiteralCharacterValue As Char = Peek(LiteralCharacter)
                             If LiteralCharacterValue = "_"c Then
                                 Continue For
                             End If
 
-                            If (IntegralValue And OverflowMask) <> 0 Then
+                            If (integralValue And OverflowMask) <> 0 Then
                                 Overflows = True
                             End If
 
-                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(LiteralCharacterValue)
+                            integralValue = (integralValue << Shift) + IntegralLiteralCharacterValue(LiteralCharacterValue)
                         Next
                     End If
 
                     If TypeCharacter = TypeCharacter.None Then
                         ' nothing to do
                     ElseIf TypeCharacter = TypeCharacter.Integer OrElse TypeCharacter = TypeCharacter.IntegerLiteral Then
-                        If (base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFFFFFF) OrElse
-                            IntegralValue > &HFFFFFFFFUI Then
+                        If (base = LiteralBase.Decimal AndAlso integralValue > &H7FFFFFFF) OrElse
+                            integralValue > &HFFFFFFFFUI Then
 
                             Overflows = True
                         End If
 
                     ElseIf TypeCharacter = TypeCharacter.UIntegerLiteral Then
-                        If IntegralValue > &HFFFFFFFFUI Then
+                        If integralValue > &HFFFFFFFFUI Then
                             Overflows = True
                         End If
 
                     ElseIf TypeCharacter = TypeCharacter.ShortLiteral Then
-                        If (base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFF) OrElse
-                            IntegralValue > &HFFFF Then
+                        If (base = LiteralBase.Decimal AndAlso integralValue > &H7FFF) OrElse
+                            integralValue > &HFFFF Then
 
                             Overflows = True
                         End If
 
                     ElseIf TypeCharacter = TypeCharacter.UShortLiteral Then
-                        If IntegralValue > &HFFFF Then
+                        If integralValue > &HFFFF Then
                             Overflows = True
                         End If
 
@@ -2162,7 +2162,7 @@ FullWidthRepeat2:
                 Return False
             End If
 
-            Dim IntegralValue As Integer = IntegralLiteralCharacterValue(ch)
+            Dim integralValue As Integer = IntegralLiteralCharacterValue(ch)
             here += 1
 
             While CanGet(here)
@@ -2173,17 +2173,17 @@ FullWidthRepeat2:
                 End If
 
                 Dim nextDigit = IntegralLiteralCharacterValue(ch)
-                If IntegralValue < 214748364 OrElse
-                    (IntegralValue = 214748364 AndAlso nextDigit < 8) Then
+                If integralValue < 214748364 OrElse
+                    (integralValue = 214748364 AndAlso nextDigit < 8) Then
 
-                    IntegralValue = IntegralValue * 10 + nextDigit
+                    integralValue = integralValue * 10 + nextDigit
                     here += 1
                 Else
                     Return False
                 End If
             End While
 
-            ReturnValue = IntegralValue
+            ReturnValue = integralValue
             Return True
         End Function
 
@@ -2192,18 +2192,18 @@ FullWidthRepeat2:
             Debug.Assert(IsHash(Peek()))
 
             Dim here As Integer = 1 'skip #
-            Dim FirstValue As Integer
+            Dim firstValue As Integer
             Dim YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue As Integer
             Dim haveDateValue As Boolean = False
             Dim haveYearValue As Boolean = False
-            Dim HaveTimeValue As Boolean = False
-            Dim HaveMinuteValue As Boolean = False
-            Dim HaveSecondValue As Boolean = False
-            Dim HaveAM As Boolean = False
-            Dim HavePM As Boolean = False
-            Dim DateIsInvalid As Boolean = False
+            Dim haveTimeValue As Boolean = False
+            Dim haveMinuteValue As Boolean = False
+            Dim haveSecondValue As Boolean = False
+            Dim haveAM As Boolean = False
+            Dim havePM As Boolean = False
+            Dim dateIsInvalid As Boolean = False
             Dim YearIsTwoDigits As Boolean = False
-            Dim DaysToMonth As Integer() = Nothing
+            Dim daysToMonth As Integer() = Nothing
             Dim yearIsFirst As Boolean = False
 
             ' // Unfortunately, we can't fall back on OLE Automation's date parsing because
@@ -2212,10 +2212,10 @@ FullWidthRepeat2:
             ' // First, eat any whitespace
             here = GetWhitespaceLength(here)
 
-            Dim FirstValueStart As Integer = here
+            Dim firstValueStart As Integer = here
 
             ' // The first thing has to be an integer, although it's not clear what it is yet
-            If Not ScanIntLiteral(FirstValue, here) Then
+            If Not ScanIntLiteral(firstValue, here) Then
                 Return Nothing
 
             End If
@@ -2232,10 +2232,10 @@ FullWidthRepeat2:
                 ' Is the first value a year?
                 ' It is a year if it consists of exactly 4 digits.
                 ' Condition below uses 5 because we already skipped the separator.
-                If here - FirstValueStart = 5 Then
+                If here - firstValueStart = 5 Then
                     haveYearValue = True
                     yearIsFirst = True
-                    YearValue = FirstValue
+                    YearValue = firstValue
 
                     ' // We have to have a month value
                     If Not ScanIntLiteral(MonthValue, here) Then
@@ -2259,7 +2259,7 @@ FullWidthRepeat2:
                     End If
                 Else
                     ' First value is month
-                    MonthValue = FirstValue
+                    MonthValue = firstValue
 
                     ' // We have to have a day value
 
@@ -2298,18 +2298,18 @@ FullWidthRepeat2:
             ' // If we haven't seen a date, assume it's a time value
 
             If Not haveDateValue Then
-                HaveTimeValue = True
-                HourValue = FirstValue
+                haveTimeValue = True
+                HourValue = firstValue
             Else
                 ' // We did see a date. See if we see a time value...
 
                 If ScanIntLiteral(HourValue, here) Then
                     ' // Yup.
-                    HaveTimeValue = True
+                    haveTimeValue = True
                 End If
             End If
 
-            If HaveTimeValue Then
+            If haveTimeValue Then
                 ' // Do we see a :?
 
                 If CanGet(here) AndAlso IsColon(Peek(here)) Then
@@ -2321,13 +2321,13 @@ FullWidthRepeat2:
                         GoTo baddate
                     End If
 
-                    HaveMinuteValue = True
+                    haveMinuteValue = True
 
                     ' // Do we have a second value?
 
                     If CanGet(here) AndAlso IsColon(Peek(here)) Then
                         ' // Yes.
-                        HaveSecondValue = True
+                        haveSecondValue = True
                         here += 1
 
                         If Not ScanIntLiteral(SecondValue, here) Then
@@ -2344,18 +2344,18 @@ FullWidthRepeat2:
                     If Peek(here) = "A"c OrElse Peek(here) = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
                         Peek(here) = "a"c OrElse Peek(here) = FULLWIDTH_LATIN_SMALL_LETTER_A Then
 
-                        HaveAM = True
+                        haveAM = True
                         here += 1
 
                     ElseIf Peek(here) = "P"c OrElse Peek(here) = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
                            Peek(here) = "p"c OrElse Peek(here) = FULLWIDTH_LATIN_SMALL_LETTER_P Then
 
-                        HavePM = True
+                        havePM = True
                         here += 1
 
                     End If
 
-                    If CanGet(here) AndAlso (HaveAM OrElse HavePM) Then
+                    If CanGet(here) AndAlso (haveAM OrElse havePM) Then
                         If Peek(here) = "M"c OrElse Peek(here) = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
                            Peek(here) = "m"c OrElse Peek(here) = FULLWIDTH_LATIN_SMALL_LETTER_M Then
 
@@ -2369,7 +2369,7 @@ FullWidthRepeat2:
 
                 ' // If there's no minute/second value and no AM/PM, it's invalid
 
-                If Not HaveMinuteValue AndAlso Not HaveAM AndAlso Not HavePM Then
+                If Not haveMinuteValue AndAlso Not haveAM AndAlso Not havePM Then
                     GoTo baddate
                 End If
             End If
@@ -2383,56 +2383,56 @@ FullWidthRepeat2:
             ' // OK, now we've got all the values, let's see if we've got a valid date
             If haveDateValue Then
                 If MonthValue < 1 OrElse MonthValue > 12 Then
-                    DateIsInvalid = True
+                    dateIsInvalid = True
                 End If
 
                 ' // We'll check Days in a moment...
 
                 If Not haveYearValue Then
-                    DateIsInvalid = True
+                    dateIsInvalid = True
                     YearValue = 1
                 End If
 
                 ' // Check if not a leap year
 
                 If Not ((YearValue Mod 4 = 0) AndAlso (Not (YearValue Mod 100 = 0) OrElse (YearValue Mod 400 = 0))) Then
-                    DaysToMonth = DaysToMonth365
+                    daysToMonth = DaysToMonth365
                 Else
-                    DaysToMonth = DaysToMonth366
+                    daysToMonth = DaysToMonth366
                 End If
 
                 If DayValue < 1 OrElse
-                   (Not DateIsInvalid AndAlso DayValue > DaysToMonth(MonthValue) - DaysToMonth(MonthValue - 1)) Then
+                   (Not dateIsInvalid AndAlso DayValue > daysToMonth(MonthValue) - daysToMonth(MonthValue - 1)) Then
 
-                    DateIsInvalid = True
+                    dateIsInvalid = True
                 End If
 
                 If YearIsTwoDigits Then
-                    DateIsInvalid = True
+                    dateIsInvalid = True
                 End If
 
                 If YearValue < 1 OrElse YearValue > 9999 Then
-                    DateIsInvalid = True
+                    dateIsInvalid = True
                 End If
 
             Else
                 MonthValue = 1
                 DayValue = 1
                 YearValue = 1
-                DaysToMonth = DaysToMonth365
+                daysToMonth = DaysToMonth365
             End If
 
-            If HaveTimeValue Then
-                If HaveAM OrElse HavePM Then
+            If haveTimeValue Then
+                If haveAM OrElse havePM Then
                     ' // 12-hour value
 
                     If HourValue < 1 OrElse HourValue > 12 Then
-                        DateIsInvalid = True
+                        dateIsInvalid = True
                     End If
 
-                    If HaveAM Then
+                    If haveAM Then
                         HourValue = HourValue Mod 12
-                    ElseIf HavePM Then
+                    ElseIf havePM Then
                         HourValue = HourValue + 12
 
                         If HourValue = 24 Then
@@ -2442,21 +2442,21 @@ FullWidthRepeat2:
 
                 Else
                     If HourValue < 0 OrElse HourValue > 23 Then
-                        DateIsInvalid = True
+                        dateIsInvalid = True
                     End If
                 End If
 
-                If HaveMinuteValue Then
+                If haveMinuteValue Then
                     If MinuteValue < 0 OrElse MinuteValue > 59 Then
-                        DateIsInvalid = True
+                        dateIsInvalid = True
                     End If
                 Else
                     MinuteValue = 0
                 End If
 
-                If HaveSecondValue Then
+                If haveSecondValue Then
                     If SecondValue < 0 OrElse SecondValue > 59 Then
-                        DateIsInvalid = True
+                        dateIsInvalid = True
                     End If
                 Else
                     SecondValue = 0
@@ -2469,7 +2469,7 @@ FullWidthRepeat2:
 
             ' // Ok, we've got a valid value. Now make into an i8.
 
-            If Not DateIsInvalid Then
+            If Not dateIsInvalid Then
                 Dim DateTimeValue As New DateTime(YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue)
                 Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, here)
 
