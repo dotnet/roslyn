@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             ExpressionSyntax,
             MemberAccessExpressionSyntax>
     {
-        protected override SwitchExpressionArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation)
+        protected override SwitchExpressionArmSyntax CreateDefaultSwitchArm(SyntaxGenerator generator, Compilation compilation)
             => SwitchExpressionArm(DiscardPattern(), Exception(generator, compilation));
 
         protected override SwitchExpressionArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, MemberAccessExpressionSyntax caseLabel)

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation switchOperation);
 
         protected abstract TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel);
-        protected abstract TSwitchArmSyntax CreateDefaulSwitchArm(SyntaxGenerator generator, Compilation compilation);
+        protected abstract TSwitchArmSyntax CreateDefaultSwitchArm(SyntaxGenerator generator, Compilation compilation);
         protected abstract int InsertPosition(TSwitchOperation switchOperation);
         protected abstract TSwitchSyntax InsertSwitchArms(SyntaxGenerator generator, TSwitchSyntax switchNode, int insertLocation, List<TSwitchArmSyntax> newArms);
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (hasMissingDefaultCase && addDefaultCase)
             {
                 // Always add the default clause at the end.
-                newArms.Add(CreateDefaulSwitchArm(generator, semanticModel.Compilation));
+                newArms.Add(CreateDefaultSwitchArm(generator, semanticModel.Compilation));
             }
 
             var insertLocation = InsertPosition(switchOperation);
