@@ -163,8 +163,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
         }
 
-
-
         /// <summary>
         /// NoOpClient is used if a user killed our remote host process. Basically this client never
         /// create a session

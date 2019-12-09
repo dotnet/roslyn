@@ -61,12 +61,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Couldn't effectively search in OOP. Perform the search in-proc.
                 await FindReferencesInCurrentProcessAsync(
-                    symbolAndProjectId,
-                    solution,
-                    progress,
-                    documents,
-                    options,
-                    cancellationToken).ConfigureAwait(false);
+                    symbolAndProjectId, solution, progress,
+                    documents, options, cancellationToken).ConfigureAwait(false);
             }
         }
 
