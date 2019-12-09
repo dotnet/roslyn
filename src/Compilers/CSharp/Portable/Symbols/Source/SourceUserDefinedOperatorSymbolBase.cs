@@ -419,6 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: A unary + - ! ~ operator must take a single parameter of type
             // SPEC: T or T? and can return any type.
 
+            // TODO2 ignore tuple names and add test
             if (!this.GetParameterType(0).StrippedType().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 // The parameter of a unary operator must be the containing type

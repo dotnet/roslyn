@@ -398,17 +398,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<ImmutableArray<CustomModifier>> GetTypeArgumentsModifiers(NamedTypeSymbol underlyingTypeSymbol)
         {
-            var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
             if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
             {
                 if ((object)underlyingTypeSymbol != null)
                 {
-                    modifiers = underlyingTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers);
+                    return underlyingTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers);
                 }
             }
 
-            return modifiers;
+            return default;
         }
 
         private void AddDelegateParameters(INamedTypeSymbol symbol)
@@ -492,9 +490,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        static bool HasNonDefaultTupleElements(INamedTypeSymbol symbol)
+        private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
         {
-            return symbol.TupleElements.Any(f => !f.IsDefaultTupleElement());
+            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)

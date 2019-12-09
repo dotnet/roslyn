@@ -380,17 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// Is this a field of a tuple type?
-        /// </summary>
-        public bool IsTupleField
-        {
-            get
-            {
-                return ContainingType.IsTupleType;
-            }
-        }
-
-        /// <summary>
         /// Returns True when field symbol is not mapped directly to a field in the underlying tuple struct.
         /// </summary>
         public virtual bool IsVirtualTupleField
@@ -421,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return IsTupleField ? this : null;
+                return ContainingType.IsTupleType ? this : null;
             }
         }
 

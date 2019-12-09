@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.IsTupleField && this.IsDefaultTupleElement)
+                if (this.ContainingType.IsTupleType && this.IsDefaultTupleElement)
                 {
                     // To improve backwards compatibility with earlier implementation of tuples,
                     // we pretend that default tuple element fields are implicitly declared, despite having locations

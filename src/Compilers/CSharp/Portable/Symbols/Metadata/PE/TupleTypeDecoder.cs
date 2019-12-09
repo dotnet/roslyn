@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
 
-                decodedType = NamedTypeSymbol.Create(decodedType, elementNames);
+                decodedType = NamedTypeSymbol.CreateTuple(decodedType, elementNames);
             }
 
             return decodedType;

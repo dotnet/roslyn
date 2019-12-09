@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (compilation.ShouldEmitNullableAttributes(field))
                     {
-                        builder.AddValue(((FieldSymbol)field).TypeWithAnnotations);
+                        builder.AddValue(field.TypeWithAnnotations);
                     }
                     break;
                 case SymbolKind.Method:

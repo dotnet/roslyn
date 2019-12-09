@@ -3136,7 +3136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
             }
 
-            return NamedTypeSymbol.Create(
+            return NamedTypeSymbol.CreateTuple(
                 locationOpt: null, // no location for the type declaration
                 elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
                 elementLocations: elementLocations,
@@ -3155,17 +3155,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull(nameof(underlyingType));
 
-            if (!csharpUnderlyingTuple.IsTupleType)
+            if (!csharpUnderlyingTuple.IsTupleTypeOfCardinality(out int cardinality))
             {
                 throw new ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, nameof(underlyingType));
             }
 
-            int cardinality = csharpUnderlyingTuple.TupleElementTypesWithAnnotations.Length;
             elementNames = CheckTupleElementNames(cardinality, elementNames);
             CheckTupleElementLocations(cardinality, elementLocations);
             CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations);
 
-            var tupleType = NamedTypeSymbol.Create(
+            var tupleType = NamedTypeSymbol.CreateTuple(
                 csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
             if (!elementNullableAnnotations.IsDefault)
             {

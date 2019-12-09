@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var sourceType = sourceTuple.Type as NamedTypeSymbol;
 
-                if (sourceType?.IsTupleType == true)
+                if (sourceTuple.Type is { IsTupleType: true })
                 {
                     targetType = targetType.WithTupleDataFrom(sourceType);
                 }
@@ -452,9 +452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     targetType = targetType.WithElementNames(sourceTuple.ArgumentNamesOpt,
-                                                                locationBuilder.ToImmutableAndFree(),
-                                                                errorPositions: default,
-                                                                ImmutableArray.Create(tupleSyntax.Location));
+                        locationBuilder.ToImmutableAndFree(),
+                        errorPositions: default,
+                        ImmutableArray.Create(tupleSyntax.Location));
                 }
             }
 

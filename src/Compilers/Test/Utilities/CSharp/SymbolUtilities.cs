@@ -111,17 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return symbol.ToDisplayString(format);
         }
 
-        public static string[] ToTestDisplayStrings(this IEnumerable<TypeWithAnnotations> symbols, bool includeNonNullable = false)
+        public static string[] ToTestDisplayStrings(this IEnumerable<TypeWithAnnotations> symbols)
         {
             return symbols.Select(s => s.ToTestDisplayString()).ToArray();
         }
 
-        public static string[] ToTestDisplayStrings(this IEnumerable<ISymbol> symbols, bool includeNonNullable = false)
+        public static string[] ToTestDisplayStrings(this IEnumerable<ISymbol> symbols)
         {
             return symbols.Select(s => s.ToTestDisplayString()).ToArray();
         }
 
-        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols, bool includeNonNullable = false)
+        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols)
         {
             return symbols.Select(s => s.ToTestDisplayString()).ToArray();
         }

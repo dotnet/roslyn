@@ -3309,7 +3309,6 @@ class C
 
             Assert.IsType<TupleErrorFieldSymbol>(mFirst);
 
-            Assert.True(mFirst.IsTupleField);
             Assert.Equal("first", mFirst.Name);
             Assert.Same(mFirst, mFirst.OriginalDefinition);
             Assert.True(mFirst.Equals(mFirst));
@@ -3328,7 +3327,6 @@ class C
 
             Assert.IsType<TupleErrorFieldSymbol>(mItem1);
 
-            Assert.True(mItem1.IsTupleField);
             Assert.Equal("Item1", mItem1.Name);
             Assert.Same(mItem1, mItem1.OriginalDefinition);
             Assert.True(mItem1.Equals(mItem1));
@@ -4548,7 +4546,6 @@ namespace System
 
             Assert.IsType<TupleErrorFieldSymbol>(mItem1);
 
-            Assert.True(mItem1.IsTupleField);
             Assert.Same(mItem1, mItem1.OriginalDefinition);
             Assert.True(mItem1.Equals(mItem1));
             Assert.Equal("Item1", mItem1.Name);
@@ -10844,7 +10841,6 @@ class C
             AssertNonvirtualTupleElementField(m2Item1);
             AssertVirtualTupleElementField(m2a2);
 
-            Assert.True(m1Item1.IsTupleField);
             Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.ToTestDisplayString());
             Assert.Equal("T1 (T1, T2).Item1", m1Item1.OriginalDefinition.ToTestDisplayString());
@@ -10863,7 +10859,6 @@ class C
             Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
-            Assert.True(m2Item1.IsTupleField);
             Assert.False(m2Item1.IsDefinition);
             Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.ToTestDisplayString());
@@ -10887,7 +10882,6 @@ class C
             Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
-            Assert.True(m2a2.IsTupleField);
             Assert.True(m2a2.IsDefinition);
             Assert.True(m2a2.Equals(m2a2));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).a2", m2a2.ToTestDisplayString());
@@ -11140,7 +11134,6 @@ class C
             AssertVirtualTupleElementField(m2Item9);
             AssertVirtualTupleElementField(m2i2);
 
-            Assert.True(m1Item9.IsTupleField);
             Assert.Same(m1Item9, m1Item9.OriginalDefinition);
             Assert.True(m1Item9.Equals(m1Item9));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item2",
@@ -11157,7 +11150,6 @@ class C
             Assert.True(m1Item9.IsImplicitlyDeclared);
             Assert.Null(m1Item9.TypeLayoutOffset);
 
-            Assert.True(m2Item9.IsTupleField);
             Assert.Same(m2Item9, m2Item9.OriginalDefinition);
             Assert.True(m2Item9.Equals(m2Item9));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item2", m2Item9.TupleUnderlyingField.ToTestDisplayString());
@@ -11175,7 +11167,6 @@ class C
             Assert.True(m2Item9.IsImplicitlyDeclared);
             Assert.Null(m2Item9.TypeLayoutOffset);
 
-            Assert.True(m2i2.IsTupleField);
             Assert.Same(m2i2, m2i2.OriginalDefinition);
             Assert.True(m2i2.Equals(m2i2));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item2", m2i2.TupleUnderlyingField.ToTestDisplayString());
@@ -11377,7 +11368,6 @@ class C
 
             AssertVirtualTupleElementField(m3Item8);
 
-            Assert.True(m3Item8.IsTupleField);
             Assert.Same(m3Item8, m3Item8.OriginalDefinition);
             Assert.True(m3Item8.Equals(m3Item8));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m3Item8.TupleUnderlyingField.ToTestDisplayString());
@@ -11571,7 +11561,6 @@ class C
 
             AssertVirtualTupleElementField(m4Item8);
 
-            Assert.True(m4Item8.IsTupleField);
             Assert.Same(m4Item8, m4Item8.OriginalDefinition);
             Assert.True(m4Item8.Equals(m4Item8));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m4Item8.TupleUnderlyingField.ToTestDisplayString());
@@ -11591,7 +11580,6 @@ class C
 
             AssertVirtualTupleElementField(m4h4);
 
-            Assert.True(m4h4.IsTupleField);
             Assert.Same(m4h4, m4h4.OriginalDefinition);
             Assert.True(m4h4.Equals(m4h4));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m4h4.TupleUnderlyingField.ToTestDisplayString());
@@ -11819,7 +11807,6 @@ class C
 
             AssertVirtualTupleElementField(m5Item8);
 
-            Assert.True(m5Item8.IsTupleField);
             Assert.Same(m5Item8, m5Item8.OriginalDefinition);
             Assert.True(m5Item8.Equals(m5Item8));
             Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
@@ -12188,7 +12175,6 @@ class C
 
             AssertVirtualTupleElementField(m8Item8);
 
-            Assert.True(m8Item8.IsTupleField);
             Assert.Same(m8Item8, m8Item8.OriginalDefinition);
             Assert.True(m8Item8.Equals(m8Item8));
             Assert.Equal("System.Int32 System.ValueTuple<System.Int32>.Item1",
@@ -12209,7 +12195,6 @@ class C
 
             AssertVirtualTupleElementField(m8Item1);
 
-            Assert.True(m8Item1.IsTupleField);
             Assert.Same(m8Item1, m8Item1.OriginalDefinition);
             Assert.True(m8Item1.Equals(m8Item1));
             Assert.Equal("System.Int32 System.ValueTuple<System.Int32>.Item1",
@@ -12401,7 +12386,6 @@ class C
             AssertNonvirtualTupleElementField(m2Item1);
             AssertVirtualTupleElementField(m2a2);
 
-            Assert.True(m1Item1.IsTupleField);
             Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
             Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.True(m1Item1.Equals(m1Item1));
@@ -12418,7 +12402,6 @@ class C
             Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
-            Assert.True(m2Item1.IsTupleField);
             Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
             Assert.True(m2Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m2Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.True(m2Item1.Equals(m2Item1));
@@ -12438,7 +12421,6 @@ class C
             Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
-            Assert.True(m2a2.IsTupleField);
             Assert.Same(m2a2, m2a2.OriginalDefinition);
             Assert.True(m2a2.Equals(m2a2));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2a2.TupleUnderlyingField.ToTestDisplayString());
@@ -12817,7 +12799,7 @@ partial class C
 
         private void AssertTupleNonElementField(FieldSymbol sym)
         {
-            Assert.True(sym.IsTupleField);
+            Assert.True(sym.ContainingType.IsTupleType);
             Assert.False(sym.IsVirtualTupleField);
 
             //it is not an element so index must be negative
@@ -12826,7 +12808,7 @@ partial class C
 
         private void AssertVirtualTupleElementField(FieldSymbol sym)
         {
-            Assert.True(sym.IsTupleField);
+            Assert.True(sym.ContainingType.IsTupleType);
             Assert.True(sym.IsVirtualTupleField);
 
             //it is an element so must have nonnegative index
@@ -12835,7 +12817,7 @@ partial class C
 
         private void AssertNonvirtualTupleElementField(FieldSymbol sym)
         {
-            Assert.True(sym.IsTupleField);
+            Assert.True(sym.ContainingType.IsTupleType);
             Assert.False(sym.IsVirtualTupleField);
 
             //it is an element so must have nonnegative index
@@ -12956,15 +12938,15 @@ namespace System
 
             var m1Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M1").ReturnType;
             {
-                var t1 = NamedTypeSymbol.Create(m1Tuple);
-                var t2 = NamedTypeSymbol.Create(m1Tuple);
+                var t1 = NamedTypeSymbol.CreateTuple(m1Tuple);
+                var t2 = NamedTypeSymbol.CreateTuple(m1Tuple);
 
                 Assert.True(t1.Equals(t2));
                 AssertTupleTypeMembersEquality(t1, t2);
 
-                var t3 = NamedTypeSymbol.Create(m1Tuple, ImmutableArray.Create("a", "b"));
-                var t4 = NamedTypeSymbol.Create(m1Tuple, ImmutableArray.Create("a", "b"));
-                var t5 = NamedTypeSymbol.Create(m1Tuple, ImmutableArray.Create("b", "a"));
+                var t3 = NamedTypeSymbol.CreateTuple(m1Tuple, ImmutableArray.Create("a", "b"));
+                var t4 = NamedTypeSymbol.CreateTuple(m1Tuple, ImmutableArray.Create("a", "b"));
+                var t5 = NamedTypeSymbol.CreateTuple(m1Tuple, ImmutableArray.Create("b", "a"));
 
                 Assert.False(t1.Equals(t3));
                 Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
@@ -12979,8 +12961,8 @@ namespace System
                 Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
-                var t6 = NamedTypeSymbol.Create(m1Tuple, ImmutableArray.Create("Item1", "Item2"));
-                var t7 = NamedTypeSymbol.Create(m1Tuple, ImmutableArray.Create("Item1", "Item2"));
+                var t6 = NamedTypeSymbol.CreateTuple(m1Tuple, ImmutableArray.Create("Item1", "Item2"));
+                var t7 = NamedTypeSymbol.CreateTuple(m1Tuple, ImmutableArray.Create("Item1", "Item2"));
 
                 Assert.True(t6.Equals(t7));
                 AssertTupleTypeMembersEquality(t6, t7);
@@ -12990,7 +12972,7 @@ namespace System
                 Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
-                var t8 = NamedTypeSymbol.Create(m1Tuple, ImmutableArray.Create("Item2", "Item1"));
+                var t8 = NamedTypeSymbol.CreateTuple(m1Tuple, ImmutableArray.Create("Item2", "Item1"));
 
                 Assert.False(t1.Equals(t8));
                 Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));
@@ -13005,17 +12987,17 @@ namespace System
 
             var m2Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M2").ReturnType;
             {
-                var t1 = NamedTypeSymbol.Create(m2Tuple, default(ImmutableArray<string>));
-                var t2 = NamedTypeSymbol.Create(m2Tuple, default(ImmutableArray<string>));
+                var t1 = NamedTypeSymbol.CreateTuple(m2Tuple, default(ImmutableArray<string>));
+                var t2 = NamedTypeSymbol.CreateTuple(m2Tuple, default(ImmutableArray<string>));
 
                 Assert.True(t1.Equals(t2));
                 AssertTupleTypeMembersEquality(t1, t2);
 
-                var t3 = NamedTypeSymbol.Create(m2Tuple,
+                var t3 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "h", "i"));
-                var t4 = NamedTypeSymbol.Create(m2Tuple,
+                var t4 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "h", "i"));
-                var t5 = NamedTypeSymbol.Create(m2Tuple,
+                var t5 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "i", "h"));
 
                 Assert.False(t1.Equals(t3));
@@ -13031,9 +13013,9 @@ namespace System
                 Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
-                var t6 = NamedTypeSymbol.Create(m2Tuple,
+                var t6 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"));
-                var t7 = NamedTypeSymbol.Create(m2Tuple,
+                var t7 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"));
 
                 Assert.True(t6.Equals(t7));
@@ -13044,7 +13026,7 @@ namespace System
                 Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
-                var t8 = NamedTypeSymbol.Create(m2Tuple,
+                var t8 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item9", "Item8"));
 
                 Assert.False(t1.Equals(t8));
@@ -13057,17 +13039,17 @@ namespace System
                 Assert.True(t8.Equals(t6, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t6, t8);
 
-                var t9 = NamedTypeSymbol.Create(m2Tuple,
+                var t9 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "Item1", "Item2"));
-                var t10 = NamedTypeSymbol.Create(m2Tuple,
+                var t10 = NamedTypeSymbol.CreateTuple(m2Tuple,
                     ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "Item1", "Item2"));
 
                 Assert.True(t9.Equals(t10));
                 AssertTupleTypeMembersEquality(t9, t10);
 
-                var t11 = NamedTypeSymbol.Create(m2Tuple.OriginalDefinition.Construct(
+                var t11 = NamedTypeSymbol.CreateTuple(m2Tuple.OriginalDefinition.Construct(
                                                                     m2Tuple.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.RemoveAt(7).
-                                                                    Add(TypeWithAnnotations.Create(NamedTypeSymbol.Create(m1Tuple,
+                                                                    Add(TypeWithAnnotations.Create(NamedTypeSymbol.CreateTuple(m1Tuple,
                                                                         ImmutableArray.Create("a", "b"))))
                                                                     ));
 
@@ -13121,9 +13103,9 @@ namespace System
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item9"
                     );
 
-                var t12 = NamedTypeSymbol.Create(m2Tuple.OriginalDefinition.Construct(
+                var t12 = NamedTypeSymbol.CreateTuple(m2Tuple.OriginalDefinition.Construct(
                                                                     m2Tuple.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.RemoveAt(7).
-                                                                    Add(TypeWithAnnotations.Create(NamedTypeSymbol.Create(m1Tuple,
+                                                                    Add(TypeWithAnnotations.Create(NamedTypeSymbol.CreateTuple(m1Tuple,
                                                                         ImmutableArray.Create("Item1", "Item2"))))
                                                                     ),
                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"));
@@ -13182,9 +13164,9 @@ namespace System
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item9"
                     );
 
-                var t13 = NamedTypeSymbol.Create(m2Tuple.OriginalDefinition.Construct(
+                var t13 = NamedTypeSymbol.CreateTuple(m2Tuple.OriginalDefinition.Construct(
                                                                     m2Tuple.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.RemoveAt(7).
-                                                                    Add(TypeWithAnnotations.Create(NamedTypeSymbol.Create(m1Tuple,
+                                                                    Add(TypeWithAnnotations.Create(NamedTypeSymbol.CreateTuple(m1Tuple,
                                                                         ImmutableArray.Create("a", "b"))))
                                                                     ),
                     ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "item9"));
@@ -13195,15 +13177,15 @@ namespace System
 
             var m3Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M3").ReturnType;
             {
-                var t1 = NamedTypeSymbol.Create(m3Tuple);
-                var t2 = NamedTypeSymbol.Create(m3Tuple);
+                var t1 = NamedTypeSymbol.CreateTuple(m3Tuple);
+                var t2 = NamedTypeSymbol.CreateTuple(m3Tuple);
 
                 Assert.True(t1.Equals(t2));
                 AssertTupleTypeMembersEquality(t1, t2);
 
-                var t3 = NamedTypeSymbol.Create(m3Tuple, ImmutableArray.Create("a", "b", "c"));
-                var t4 = NamedTypeSymbol.Create(m3Tuple, ImmutableArray.Create("a", "b", "c"));
-                var t5 = NamedTypeSymbol.Create(m3Tuple, ImmutableArray.Create("c", "b", "a"));
+                var t3 = NamedTypeSymbol.CreateTuple(m3Tuple, ImmutableArray.Create("a", "b", "c"));
+                var t4 = NamedTypeSymbol.CreateTuple(m3Tuple, ImmutableArray.Create("a", "b", "c"));
+                var t5 = NamedTypeSymbol.CreateTuple(m3Tuple, ImmutableArray.Create("c", "b", "a"));
 
                 Assert.False(t1.Equals(t3));
                 Assert.True(t1.Equals(t3, TypeCompareKind.IgnoreDynamicAndTupleNames));
@@ -13218,8 +13200,8 @@ namespace System
                 Assert.True(t3.Equals(t5, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t5, t3);
 
-                var t6 = NamedTypeSymbol.Create(m3Tuple, ImmutableArray.Create("Item1", "Item2", "Item3"));
-                var t7 = NamedTypeSymbol.Create(m3Tuple, ImmutableArray.Create("Item1", "Item2", "Item3"));
+                var t6 = NamedTypeSymbol.CreateTuple(m3Tuple, ImmutableArray.Create("Item1", "Item2", "Item3"));
+                var t7 = NamedTypeSymbol.CreateTuple(m3Tuple, ImmutableArray.Create("Item1", "Item2", "Item3"));
 
                 Assert.True(t6.Equals(t7));
                 AssertTupleTypeMembersEquality(t6, t7);
@@ -13229,7 +13211,7 @@ namespace System
                 Assert.True(t6.Equals(t1, TypeCompareKind.IgnoreDynamicAndTupleNames));
                 AssertTupleTypeMembersEquality(t1, t6);
 
-                var t8 = NamedTypeSymbol.Create(m3Tuple, ImmutableArray.Create("Item2", "Item3", "Item1"));
+                var t8 = NamedTypeSymbol.CreateTuple(m3Tuple, ImmutableArray.Create("Item2", "Item3", "Item1"));
 
                 Assert.False(t1.Equals(t8));
                 Assert.True(t1.Equals(t8, TypeCompareKind.IgnoreDynamicAndTupleNames));

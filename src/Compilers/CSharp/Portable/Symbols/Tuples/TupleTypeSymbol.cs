@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Helps create a tuple type from source.
         /// </summary>
-        internal static NamedTypeSymbol Create(
+        internal static NamedTypeSymbol CreateTuple(
             Location? locationOpt,
             ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations,
             ImmutableArray<Location> elementLocations,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var locations = locationOpt is null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt);
-            var constructedType = Create(underlyingType, elementNames, errorPositions, elementLocations, locations);
+            var constructedType = CreateTuple(underlyingType, elementNames, errorPositions, elementLocations, locations);
             if (shouldCheckConstraints && diagnostics != null)
             {
                 constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return constructedType;
         }
 
-        public static NamedTypeSymbol Create(
+        public static NamedTypeSymbol CreateTuple(
             NamedTypeSymbol tupleCompatibleType,
             ImmutableArray<string> elementNames = default,
             ImmutableArray<bool> errorPositions = default,
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 do
                 {
-                    var extensionTuple = Create(tupleCompatibleType);
+                    var extensionTuple = CreateTuple(tupleCompatibleType);
                     tupleCompatibleType = nonTupleTypeChain.Pop();
 
                     tupleCompatibleType = ReplaceRestExtensionType(tupleCompatibleType, extensionTuple);
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 firstTupleType = underlyingType.OriginalDefinition;
             }
-            return Create(
+            return CreateTuple(
                 ConstructTupleUnderlyingType(firstTupleType, chainedTupleType, newElementTypes),
                 elementNames: TupleElementNames, elementLocations: TupleElementLocations, errorPositions: TupleErrorPositions, locations: Locations);
         }
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns 0 for "Rest", "ToString" and other members of System.ValueTuple.
         /// Returns -1 for names that aren't reserved.
         /// </summary>
-        internal static int IsElementNameReserved(string name)
+        internal static int IsTupleElementNameReserved(string name)
         {
             if (IsElementNameForbidden(name))
             {
@@ -662,13 +662,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<string> TupleElementNames
-            => _lazyTupleData is null ? default : TupleData!.ElementNames;
+            => _lazyTupleData is null ? default : _lazyTupleData.ElementNames;
 
         private ImmutableArray<bool> TupleErrorPositions
-            => _lazyTupleData is null ? default : TupleData!.ErrorPositions;
+            => _lazyTupleData is null ? default : _lazyTupleData.ErrorPositions;
 
         private ImmutableArray<Location> TupleElementLocations
-            => _lazyTupleData is null ? default : TupleData!.ElementLocations;
+            => _lazyTupleData is null ? default : _lazyTupleData.ElementLocations;
 
         public sealed override ImmutableArray<TypeWithAnnotations> TupleElementTypesWithAnnotations
             => IsTupleType ? TupleData!.TupleElementTypesWithAnnotations(this) : default;
@@ -681,48 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : default;
         }
 
-        private bool TupleNamesEquals(NamedTypeSymbol other, TypeCompareKind comparison)
-        {
-            Debug.Assert(this.IsTupleType);
-
-            if (!other.IsTupleType)
-            {
-                return false;
-            }
-
-            // Make sure field names are the same.
-            if ((comparison & TypeCompareKind.IgnoreTupleNames) == 0)
-            {
-                var elementNames = TupleElementNames;
-                var otherElementNames = other.TupleElementNames;
-                if (elementNames.IsDefault)
-                {
-                    if (!otherElementNames.IsDefault)
-                    {
-                        return false;
-                    }
-                }
-                else if (otherElementNames.IsDefault)
-                {
-                    Debug.Assert(!elementNames.IsDefault);
-                    return false;
-                }
-                else if (!elementNames.SequenceEqual(otherElementNames))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         protected ArrayBuilder<Symbol>? AddOrWrapTupleMembers(ImmutableArray<Symbol> currentMembers)
         {
-            if (!IsTupleType)
-            {
-                return null;
-            }
-
+            Debug.Assert(IsTupleType);
             Debug.Assert(currentMembers.All(m => !(m is TupleVirtualElementFieldSymbol)));
 
             var elementTypes = TupleElementTypesWithAnnotations;
@@ -983,11 +944,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeSymbol MergeTupleNames(TypeSymbol other, NamedTypeSymbol mergedType)
+        private TypeSymbol MergeTupleNames(NamedTypeSymbol other, NamedTypeSymbol mergedType)
         {
             // Merge tuple element names, if any
             ImmutableArray<string> names1 = TupleElementNames;
-            ImmutableArray<string> names2 = ((NamedTypeSymbol)other).TupleElementNames;
+            ImmutableArray<string> names2 = other.TupleElementNames;
             ImmutableArray<string> mergedNames;
             if (names1.IsDefault || names2.IsDefault)
             {
@@ -1007,13 +968,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool namesUnchanged = mergedNames.IsDefault ? TupleElementNames.IsDefault : mergedNames.SequenceEqual(TupleElementNames);
             return (namesUnchanged && this.Equals(mergedType, TypeCompareKind.ConsiderEverything))
                 ? this
-                : Create(mergedType, mergedNames, this.TupleErrorPositions, this.TupleElementLocations, this.Locations);
+                : CreateTuple(mergedType, mergedNames, this.TupleErrorPositions, this.TupleElementLocations, this.Locations);
         }
 
         /// <summary>
         /// The main purpose of this type is to store element names and also cache some information related to tuples.
         /// </summary>
-        internal class TupleUncommonData
+        internal sealed class TupleUncommonData
         {
             /// <summary>
             /// Element names, if provided.
@@ -1065,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ElementNames = elementNames;
                 ElementLocations = elementLocations;
                 ErrorPositions = errorPositions;
-                Locations = locations.IsDefault ? ImmutableArray<Location>.Empty : locations;
+                Locations = locations.NullToEmpty();
             }
 
             internal bool EqualsIgnoringTupleUnderlyingType(TupleUncommonData? other)
@@ -1092,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                     }
 
-                    return this.ElementLocations.SequenceEqual(other.ElementLocations, (l1, l2) => (l1 is object && l1.Equals(l2)) || l2 is null);
+                    return this.ElementLocations.SequenceEqual(other.ElementLocations, (l1, l2) => object.Equals(l1, l2));
                 }
             }
 

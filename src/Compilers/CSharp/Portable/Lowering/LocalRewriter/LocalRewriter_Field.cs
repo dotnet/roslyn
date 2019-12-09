@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             BoundFieldAccess oldNodeOpt = null)
         {
-            if (fieldSymbol.IsTupleField)
+            if (fieldSymbol.ContainingType.IsTupleType)
             {
                 return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
             }

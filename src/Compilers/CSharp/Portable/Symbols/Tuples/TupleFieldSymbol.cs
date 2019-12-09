@@ -262,10 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TupleElementFieldSymbol? correspondingDefaultFieldOpt)
             : base(container, underlyingField, tupleElementIndex, locations, isImplicitlyDeclared, correspondingDefaultFieldOpt)
         {
-            // The underlying field for 'Hanna' in a long tuple is Item1. The corresponding field is Item8.
+            // The underlying field for 'Hanna' (an 8-th named element) in a long tuple is Item1. The corresponding field is Item8.
 
             Debug.Assert(container.IsTupleType);
-            Debug.Assert(underlyingField.IsTupleField);
+            Debug.Assert(underlyingField.ContainingType.IsTupleType);
             RoslynDebug.Assert(name != null);
             Debug.Assert(name != underlyingField.Name || !container.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames),
                                 "fields that map directly to underlying should not be represented by " + nameof(TupleVirtualElementFieldSymbol));

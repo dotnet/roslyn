@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUsed)
             {
-                var tupleType = NamedTypeSymbol.Create(locationOpt: null, elementTypesWithAnnotations: builder.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
+                var tupleType = NamedTypeSymbol.CreateTuple(locationOpt: null, elementTypesWithAnnotations: builder.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                     elementLocations: default, elementNames: default,
                     compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 

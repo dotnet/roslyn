@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
-                        var tupleType = NamedTypeSymbol.Create(
+                        var tupleType = NamedTypeSymbol.CreateTuple(
                             locationOpt: null,
                             subExpressions.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                             elementLocations: default,
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-                tupleTypeOpt = NamedTypeSymbol.Create(node.Location, elements, locations, elementNames,
+                tupleTypeOpt = NamedTypeSymbol.CreateTuple(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
                     includeNullability: false, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = syntax.TryGetInferredMemberName();
 
             // Reserved names are never candidates to be inferred names, at any position
-            if (name == null || NamedTypeSymbol.IsElementNameReserved(name) != -1)
+            if (name == null || NamedTypeSymbol.IsTupleElementNameReserved(name) != -1)
             {
                 return null;
             }

@@ -739,12 +739,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.IsTupleType && !this.TupleNamesEquals(other, comparison))
+            if (this.IsTupleType && !tupleNamesEquals(other, comparison))
             {
                 return false;
             }
 
             return true;
+
+            bool tupleNamesEquals(NamedTypeSymbol other, TypeCompareKind comparison)
+            {
+                // Make sure field names are the same.
+                if ((comparison & TypeCompareKind.IgnoreTupleNames) == 0)
+                {
+                    var elementNames = TupleElementNames;
+                    var otherElementNames = other.TupleElementNames;
+                    if (elementNames.IsDefault)
+                    {
+                        if (!otherElementNames.IsDefault)
+                        {
+                            return false;
+                        }
+                    }
+                    else if (otherElementNames.IsDefault)
+                    {
+                        Debug.Assert(!elementNames.IsDefault);
+                        return false;
+                    }
+                    else if (!elementNames.SequenceEqual(otherElementNames))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
@@ -863,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             allTypeArguments.Free();
             allTypeParameters.Free();
 
-            return IsTupleType ? MergeTupleNames(other, result) : result;
+            return IsTupleType ? MergeTupleNames((NamedTypeSymbol)other, result) : result;
         }
 
         /// <summary>
@@ -1455,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         /// <returns></returns>
-        private bool IsTupleTypeOfCardinality(out int tupleCardinality)
+        internal bool IsTupleTypeOfCardinality(out int tupleCardinality)
         {
             // Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             if (!IsUnboundGenericType &&

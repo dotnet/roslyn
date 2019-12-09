@@ -1081,22 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return IsTupleType ? tupleMemberNames(GetMembers()) : this.declaration.MemberNames;
-
-                static IEnumerable<string> tupleMemberNames(ImmutableArray<Symbol> tupleMembers)
-                {
-                    var set = PooledHashSet<string>.GetInstance();
-                    foreach (var member in tupleMembers)
-                    {
-                        var name = member.Name;
-                        if (set.Add(name))
-                        {
-                            yield return name;
-                        }
-                    }
-
-                    set.Free();
-                }
+                return IsTupleType ? GetMembers().Select(m => m.Name).Distinct() : this.declaration.MemberNames;
             }
         }
 

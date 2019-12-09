@@ -1742,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (original, updated) switch
             {
                 (LambdaSymbol l, NamedTypeSymbol n) _ when n.IsDelegateType() => AreLambdaAndNewDelegateSimilar(l, n),
-                (FieldSymbol { IsTupleField: true, TupleElementIndex: var oi } originalField, FieldSymbol { IsTupleField: true, TupleElementIndex: var ui } updatedField) =>
+                (FieldSymbol { ContainingType: { IsTupleType: true }, TupleElementIndex: var oi } originalField, FieldSymbol { ContainingType: { IsTupleType: true }, TupleElementIndex: var ui } updatedField) =>
                     originalField.Type.Equals(updatedField.Type, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames) && oi == ui,
                 _ => original.Equals(updated, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)
             };
@@ -4511,12 +4511,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return symbol;
                 }
             }
-            var symbolDef = symbol.OriginalDefinition;
-            var symbolContainer = symbol.ContainingType;
+
             if (symbol is TupleElementFieldSymbol)
             {
                 return symbol.SymbolAsMember(containingType);
             }
+
+            var symbolContainer = symbol.ContainingType;
             if (symbolContainer.IsAnonymousType)
             {
                 int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
@@ -4574,6 +4575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = null;
                     return false;
                 }
+                var symbolDef = symbol.OriginalDefinition;
                 result = symbolDef.SymbolAsMember(singleType);
                 if (result is MethodSymbol resultMethod && resultMethod.IsGenericMethod)
                 {
@@ -4813,7 +4815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(valueSlot > 0);
 
             var valueTuple = operandType as NamedTypeSymbol;
-            if (valueTuple is object && !valueTuple.IsTupleType)
+            if (valueTuple is null || !valueTuple.IsTupleType)
             {
                 return;
             }

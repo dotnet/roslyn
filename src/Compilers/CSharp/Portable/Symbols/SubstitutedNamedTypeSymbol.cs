@@ -168,17 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct());
                 }
-                else
+
+                if (IsTupleType)
                 {
-                    if (IsTupleType)
-                    {
-                        return GetMembers().Select(s => s.Name).Distinct();
-                    }
-                    else
-                    {
-                        return OriginalDefinition.MemberNames;
-                    }
+                    return GetMembers().Select(s => s.Name).Distinct();
                 }
+
+                return OriginalDefinition.MemberNames;
             }
         }
 
@@ -288,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                var result = GetMembers().Where(m => m.Name == name).AsImmutable();
+                var result = GetMembers().WhereAsArray(m => m.Name == name);
                 cacheResult(result);
                 return result;
             }
