@@ -82,9 +82,9 @@ interface I
                 var type0 = method.Parameters[0].Type;
                 var type1 = method.Parameters[1].Type;
                 Assert.Equal(SpecialType.None, type0.SpecialType);
-                Assert.False(((NamedTypeSymbol)type0).IsNativeInt);
+                Assert.False(IsNativeInt(type0));
                 Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
-                Assert.True(((NamedTypeSymbol)type1).IsNativeInt);
+                Assert.True(IsNativeInt(type1));
             }
         }
 
@@ -119,10 +119,15 @@ interface I
                 var type0 = method.Parameters[0].Type;
                 var type1 = method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, type0.SpecialType);
-                Assert.False(((NamedTypeSymbol)type0).IsNativeInt);
+                Assert.False(IsNativeInt(type0));
                 Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
-                Assert.True(((NamedTypeSymbol)type1).IsNativeInt);
+                Assert.True(IsNativeInt(type1));
             }
+        }
+
+        private static bool IsNativeInt(ITypeSymbol type)
+        {
+            return type.GetSymbol<NamedTypeSymbol>()?.IsNativeInt == true;
         }
 
         // PROTOTYPE: nint and nuint should be allowed.

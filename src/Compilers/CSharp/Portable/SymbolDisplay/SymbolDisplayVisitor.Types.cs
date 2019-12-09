@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            static bool isNativeInt(INamedTypeSymbol symbol) => symbol is NamedTypeSymbol { IsNativeInt: true };
+            static bool isNativeInt(INamedTypeSymbol symbol) => symbol.GetSymbol<NamedTypeSymbol>()?.IsNativeInt == true;
         }
 
         private void AddTypeKind(INamedTypeSymbol symbol)

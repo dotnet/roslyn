@@ -7832,7 +7832,7 @@ class B
 
             var method = comp.GetMember<MethodSymbol>("B.F1");
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithoutSpecialTypes),
                 "static void F1(IntPtr x, UIntPtr y)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -7850,7 +7850,7 @@ class B
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithSpecialTypes),
                 "static void F1(nint x, nuint y)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -7870,26 +7870,26 @@ class B
 
             method = comp.GetMember<MethodSymbol>("B.F2");
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithoutSpecialTypes),
                 "static void F2(IntPtr x, IntPtr y)");
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithSpecialTypes),
                 "static void F2(nint x, IntPtr y)");
 
             method = comp.GetMember<MethodSymbol>("B.F3");
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithoutSpecialTypes),
                 "static void F3(IntPtr? x, UIntPtr? y)");
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithSpecialTypes),
                 "static void F3(nint? x, UIntPtr? y)");
 
             method = comp.GetMember<MethodSymbol>("B.F4");
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithoutSpecialTypes),
                 "static void F4(IntPtr[] x, A<UIntPtr> y)");
             Verify(
-                SymbolDisplay.ToDisplayParts(method, formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithSpecialTypes),
                 "static void F4(nint[] x, A<nuint> y)");
         }
     }
