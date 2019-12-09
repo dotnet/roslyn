@@ -10189,6 +10189,71 @@ namespace ClassLibrary1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")]
+        public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Test()
+    {
+        X(y: t => Console.WriteLine(t.$$));
+    }
+
+    void X(int x = 7, Action<string> y = null) { }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "Length");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")]
+        public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Test()
+    {
+        X(y: t => Console.WriteLine(t.$$));
+    }
+
+    void X(int x, int z, Action<string> y) { }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "Length");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Test()
+    {
+        new C().X(t => Console.WriteLine(t.$$));
+    }
+}
+
+static class CExtensions
+{
+    public static void X(this C x, Action<string> y) { }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "Length");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionInsideMethodsWithNonFunctionsAsArguments()
         {
             var markup = @"
