@@ -11,7 +11,11 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public static bool TryGetOption(this IEditorConfigStorageLocation editorConfigStorageLocation, AnalyzerConfigOptions analyzerConfigOptions, Type type, out object value)
         {
-            return editorConfigStorageLocation.TryGetOption(new AnalyzerConfigOptionsDictionary(analyzerConfigOptions), type, out value);
+            var optionDictionary = analyzerConfigOptions is DictionaryBackedAnalyzerConfigOptions dictionaryAnalyzerConfigOptions
+                ? dictionaryAnalyzerConfigOptions.AsReadOnlyDictionary()
+                : new AnalyzerConfigOptionsDictionary(analyzerConfigOptions);
+
+            return editorConfigStorageLocation.TryGetOption(optionDictionary, type, out value);
         }
 
         /// <summary>
