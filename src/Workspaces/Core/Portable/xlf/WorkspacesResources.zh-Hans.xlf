@@ -1812,11 +1812,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">此工作区不支持打开和关闭文档。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">使用情况:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">异常:</target>

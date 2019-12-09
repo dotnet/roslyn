@@ -1812,11 +1812,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou šířkou se o
         <target state="translated">Tento pracovní prostor nepodporuje otevírání a zavírání dokumentů.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Použití:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Výjimky:</target>

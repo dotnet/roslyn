@@ -62,14 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parameter.ToMinimalDisplayParts(semanticModel, position));
         }
 
+        /// <summary>
+        /// We no longer show awaitable usage text in SignatureHelp, but IntelliCode expects this
+        /// method to exist.
+        /// </summary>
         protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
-            if (method.IsAwaitableNonDynamic(semanticModel, position))
-            {
-                return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position)
-                             .ToTaggedText(TaggedTextStyle.None);
-            }
-
             return SpecializedCollections.EmptyList<TaggedText>();
         }
     }

@@ -1812,11 +1812,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Este espaço de trabalho não oferece suporte a abertura e fechamento de documentos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Uso:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Exceções:</target>

@@ -1812,11 +1812,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Bu çalışma alanı, belgeleri açıp kapatmayı desteklemiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Kullanım:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Özel Durumlar:</target>
