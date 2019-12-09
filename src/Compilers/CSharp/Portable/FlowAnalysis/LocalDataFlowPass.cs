@@ -286,5 +286,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return GetOrCreateSlot(member, containingSlot);
         }
+
+        protected int RootSlot(int slot)
+        {
+            while (true)
+            {
+                ref var varInfo = ref variableBySlot[slot];
+                if (varInfo.ContainingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = varInfo.ContainingSlot;
+                }
+            }
+        }
     }
 }
