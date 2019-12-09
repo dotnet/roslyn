@@ -24098,5 +24098,17 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     Diagnostic(ErrorCode.ERR_BadConstraintType, "B*").WithLocation(20, 28)
             );
         }
+
+        [Fact]
+        public void ArrayGenericConstraintTypes()
+        {
+            var source = @"class A<T> where T : object[] {}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (1,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    // class A<T> where T : object[] {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
+        }
     }
 }

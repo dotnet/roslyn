@@ -221,22 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
                             var typeSyntax = typeConstraintSyntax.Type;
-                            var typeSyntaxKind = typeSyntax.Kind();
-
-                            switch (typeSyntaxKind)
-                            {
-                                case SyntaxKind.PredefinedType:
-                                case SyntaxKind.NullableType:
-                                case SyntaxKind.PointerType:
-                                    // Pointer error is reported by IsValidTypeConstraint
-                                    break;
-                                default:
-                                    if (!SyntaxFacts.IsName(typeSyntax.Kind()))
-                                    {
-                                        diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());
-                                    }
-                                    break;
-                            }
 
                             var type = BindTypeOrConstraintKeyword(typeSyntax, diagnostics, out ConstraintContextualKeyword keyword);
 
@@ -521,9 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
 
                     case TypeKind.Array:
-                        // CS0706 already reported by binding above.
-                        return false;
-
                     case TypeKind.Pointer:
                         // "Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
                         Error(diagnostics, ErrorCode.ERR_BadConstraintType, syntax.GetLocation());
