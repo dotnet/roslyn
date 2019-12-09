@@ -87,5 +87,29 @@ class [|test1|] { }";
 
             await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        public async Task NothingOfferedWhenTypeHasNoNameYet1()
+        {
+            var code = @"class[||]";
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        public async Task NothingOfferedWhenTypeHasNoNameYet2()
+        {
+            var code = @"class [||]";
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        public async Task NothingOfferedWhenTypeHasNoNameYet3()
+        {
+            var code = @"class [||] { }";
+            await TestMissingAsync(code);
+        }
     }
 }
