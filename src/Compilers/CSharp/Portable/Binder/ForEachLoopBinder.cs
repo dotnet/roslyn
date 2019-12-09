@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         bool isVar;
                         AliasSymbol alias;
-                        TypeWithAnnotations declType = BindTypeWithAnnotationsOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
+                        TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
                         if (isVar)
                         {

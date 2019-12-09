@@ -839,6 +839,11 @@
         <target state="translated">zasłanianie nazw w funkcjach zagnieżdżonych</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNativeInt">
+        <source>native-sized integers</source>
+        <target state="new">native-sized integers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
         <target state="translated">Element stackalloc w wyrażeniach zagnieżdżonych</target>

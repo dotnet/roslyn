@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,42 +9,44 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // NOTE: these types should line up with the elements in BinaryOperatorKind
 
-        TypeMask = 0x000000FF,
+        TypeMask = 0x00000FF,
 
-        SByte = 0x00000011,
-        Byte = 0x00000012,
-        Short = 0x00000013,
-        UShort = 0x00000014,
-        Int = 0x00000015,
-        UInt = 0x00000016,
-        Long = 0x00000017,
-        ULong = 0x00000018,
-        Char = 0x00000019,
-        Float = 0x0000001A,
-        Double = 0x0000001B,
-        Decimal = 0x0000001C,
-        Bool = 0x0000001D,
-        _Object = 0x0000001E, // reserved for binary op
-        _String = 0x0000001F, // reserved for binary op
-        _StringAndObject = 0x00000021, // reserved for binary op
-        _ObjectAndString = 0x00000022, // reserved for binary op
+        SByte = 0x00000001,
+        Byte = 0x00000002,
+        Short = 0x00000003,
+        UShort = 0x00000004,
+        Int = 0x00000005,
+        UInt = 0x00000006,
+        Long = 0x00000007,
+        ULong = 0x00000008,
+        NInt = 0x00000009,
+        NUInt = 0x0000000A,
+        Char = 0x0000000B,
+        Float = 0x0000000C,
+        Double = 0x0000000D,
+        Decimal = 0x0000000E,
+        Bool = 0x0000000F,
+        _Object = 0x00000010, // reserved for binary op
+        _String = 0x00000011, // reserved for binary op
+        _StringAndObject = 0x00000012, // reserved for binary op
+        _ObjectAndString = 0x00000013, // reserved for binary op
 
-        Enum = 0x00000023,
-        _EnumAndUnderlying = 0x00000024, // reserved for binary op
-        _UnderlyingAndEnum = 0x00000025, // reserved for binary op
-        _Delegate = 0x00000026, // reserved for binary op
-        Pointer = 0x00000027,
-        _PointerAndInt = 0x00000028, // reserved for binary op
-        _PointerAndUInt = 0x00000029, // reserved for binary op
-        _PointerAndLong = 0x0000002A, // reserved for binary op
-        _PointerAndULong = 0x0000002B, // reserved for binary op
-        _IntAndPointer = 0x0000002C, // reserved for binary op
-        _UIntAndPointer = 0x0000002D, // reserved for binary op
-        _LongAndPointer = 0x0000002E, // reserved for binary op
-        _ULongAndPointer = 0x0000002F, // reserved for binary op
-        _NullableNull = 0x00000030, // reserved for binary op
-        UserDefined = 0x00000031,
-        Dynamic = 0x00000032,
+        Enum = 0x00000014,
+        _EnumAndUnderlying = 0x00000015, // reserved for binary op
+        _UnderlyingAndEnum = 0x00000016, // reserved for binary op
+        _Delegate = 0x00000017, // reserved for binary op
+        Pointer = 0x00000018,
+        _PointerAndInt = 0x00000019, // reserved for binary op
+        _PointerAndUInt = 0x00000020, // reserved for binary op
+        _PointerAndLong = 0x00000021, // reserved for binary op
+        _PointerAndULong = 0x00000022, // reserved for binary op
+        _IntAndPointer = 0x00000023, // reserved for binary op
+        _UIntAndPointer = 0x00000024, // reserved for binary op
+        _LongAndPointer = 0x00000025, // reserved for binary op
+        _ULongAndPointer = 0x00000026, // reserved for binary op
+        _NullableNull = 0x00000027, // reserved for binary op
+        UserDefined = 0x00000028,
+        Dynamic = 0x00000029,
 
         OpMask = 0x0000FF00,
         PostfixIncrement = 0x00001000,
@@ -269,6 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UInt = UnaryOperatorKind.UInt,
         Long = UnaryOperatorKind.Long,
         ULong = UnaryOperatorKind.ULong,
+        NInt = UnaryOperatorKind.NInt,
+        NUInt = UnaryOperatorKind.NUInt,
         Char = UnaryOperatorKind.Char, //not used
         Float = UnaryOperatorKind.Float,
         Double = UnaryOperatorKind.Double,
@@ -324,6 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntMultiplication = UInt | Multiplication,
         LongMultiplication = Long | Multiplication,
         ULongMultiplication = ULong | Multiplication,
+        NIntMultiplication = NInt | Multiplication,
+        NUIntMultiplication = NUInt | Multiplication,
         FloatMultiplication = Float | Multiplication,
         DoubleMultiplication = Double | Multiplication,
         DecimalMultiplication = Decimal | Multiplication,
@@ -332,6 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntMultiplication = Lifted | UInt | Multiplication,
         LiftedLongMultiplication = Lifted | Long | Multiplication,
         LiftedULongMultiplication = Lifted | ULong | Multiplication,
+        LiftedNIntMultiplication = Lifted | NInt | Multiplication,
+        LiftedNUIntMultiplication = Lifted | NUInt | Multiplication,
         LiftedFloatMultiplication = Lifted | Float | Multiplication,
         LiftedDoubleMultiplication = Lifted | Double | Multiplication,
         LiftedDecimalMultiplication = Lifted | Decimal | Multiplication,
@@ -342,6 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntDivision = UInt | Division,
         LongDivision = Long | Division,
         ULongDivision = ULong | Division,
+        NIntDivision = NInt | Division,
+        NUIntDivision = NUInt | Division,
         FloatDivision = Float | Division,
         DoubleDivision = Double | Division,
         DecimalDivision = Decimal | Division,
@@ -350,6 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntDivision = Lifted | UInt | Division,
         LiftedLongDivision = Lifted | Long | Division,
         LiftedULongDivision = Lifted | ULong | Division,
+        LiftedNIntDivision = Lifted | NInt | Division,
+        LiftedNUIntDivision = Lifted | NUInt | Division,
         LiftedFloatDivision = Lifted | Float | Division,
         LiftedDoubleDivision = Lifted | Double | Division,
         LiftedDecimalDivision = Lifted | Decimal | Division,
@@ -360,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntRemainder = UInt | Remainder,
         LongRemainder = Long | Remainder,
         ULongRemainder = ULong | Remainder,
+        NIntRemainder = NInt | Remainder,
+        NUIntRemainder = NUInt | Remainder,
         FloatRemainder = Float | Remainder,
         DoubleRemainder = Double | Remainder,
         DecimalRemainder = Decimal | Remainder,
@@ -368,6 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntRemainder = Lifted | UInt | Remainder,
         LiftedLongRemainder = Lifted | Long | Remainder,
         LiftedULongRemainder = Lifted | ULong | Remainder,
+        LiftedNIntRemainder = Lifted | NInt | Remainder,
+        LiftedNUIntRemainder = Lifted | NUInt | Remainder,
         LiftedFloatRemainder = Lifted | Float | Remainder,
         LiftedDoubleRemainder = Lifted | Double | Remainder,
         LiftedDecimalRemainder = Lifted | Decimal | Remainder,
@@ -378,6 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntAddition = UInt | Addition,
         LongAddition = Long | Addition,
         ULongAddition = ULong | Addition,
+        NIntAddition = NInt | Addition,
+        NUIntAddition = NUInt | Addition,
         FloatAddition = Float | Addition,
         DoubleAddition = Double | Addition,
         DecimalAddition = Decimal | Addition,
@@ -388,6 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntAddition = Lifted | UInt | Addition,
         LiftedLongAddition = Lifted | Long | Addition,
         LiftedULongAddition = Lifted | ULong | Addition,
+        LiftedNIntAddition = Lifted | NInt | Addition,
+        LiftedNUIntAddition = Lifted | NUInt | Addition,
         LiftedFloatAddition = Lifted | Float | Addition,
         LiftedDoubleAddition = Lifted | Double | Addition,
         LiftedDecimalAddition = Lifted | Decimal | Addition,
@@ -412,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntSubtraction = UInt | Subtraction,
         LongSubtraction = Long | Subtraction,
         ULongSubtraction = ULong | Subtraction,
+        NIntSubtraction = NInt | Subtraction,
+        NUIntSubtraction = NUInt | Subtraction,
         FloatSubtraction = Float | Subtraction,
         DoubleSubtraction = Double | Subtraction,
         DecimalSubtraction = Decimal | Subtraction,
@@ -423,6 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntSubtraction = Lifted | UInt | Subtraction,
         LiftedLongSubtraction = Lifted | Long | Subtraction,
         LiftedULongSubtraction = Lifted | ULong | Subtraction,
+        LiftedNIntSubtraction = Lifted | NInt | Subtraction,
+        LiftedNUIntSubtraction = Lifted | NUInt | Subtraction,
         LiftedFloatSubtraction = Lifted | Float | Subtraction,
         LiftedDoubleSubtraction = Lifted | Double | Subtraction,
         LiftedDecimalSubtraction = Lifted | Decimal | Subtraction,
@@ -442,11 +461,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntLeftShift = UInt | LeftShift,
         LongLeftShift = Long | LeftShift,
         ULongLeftShift = ULong | LeftShift,
+        NIntLeftShift = NInt | LeftShift,
+        NUIntLeftShift = NUInt | LeftShift,
         UserDefinedLeftShift = UserDefined | LeftShift,
         LiftedIntLeftShift = Lifted | Int | LeftShift,
         LiftedUIntLeftShift = Lifted | UInt | LeftShift,
         LiftedLongLeftShift = Lifted | Long | LeftShift,
         LiftedULongLeftShift = Lifted | ULong | LeftShift,
+        LiftedNIntLeftShift = Lifted | NInt | LeftShift,
+        LiftedNUIntLeftShift = Lifted | NUInt | LeftShift,
         LiftedUserDefinedLeftShift = Lifted | UserDefined | LeftShift,
         DynamicLeftShift = Dynamic | LeftShift,
 
@@ -454,11 +477,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntRightShift = UInt | RightShift,
         LongRightShift = Long | RightShift,
         ULongRightShift = ULong | RightShift,
+        NIntRightShift = NInt | RightShift,
+        NUIntRightShift = NUInt | RightShift,
         UserDefinedRightShift = UserDefined | RightShift,
         LiftedIntRightShift = Lifted | Int | RightShift,
         LiftedUIntRightShift = Lifted | UInt | RightShift,
         LiftedLongRightShift = Lifted | Long | RightShift,
         LiftedULongRightShift = Lifted | ULong | RightShift,
+        LiftedNIntRightShift = Lifted | NInt | RightShift,
+        LiftedNUIntRightShift = Lifted | NUInt | RightShift,
         LiftedUserDefinedRightShift = Lifted | UserDefined | RightShift,
         DynamicRightShift = Dynamic | RightShift,
 
@@ -466,6 +493,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntEqual = UInt | Equal,
         LongEqual = Long | Equal,
         ULongEqual = ULong | Equal,
+        NIntEqual = NInt | Equal,
+        NUIntEqual = NUInt | Equal,
         FloatEqual = Float | Equal,
         DoubleEqual = Double | Equal,
         DecimalEqual = Decimal | Equal,
@@ -477,6 +506,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntEqual = Lifted | UInt | Equal,
         LiftedLongEqual = Lifted | Long | Equal,
         LiftedULongEqual = Lifted | ULong | Equal,
+        LiftedNIntEqual = Lifted | NInt | Equal,
+        LiftedNUIntEqual = Lifted | NUInt | Equal,
         LiftedFloatEqual = Lifted | Float | Equal,
         LiftedDoubleEqual = Lifted | Double | Equal,
         LiftedDecimalEqual = Lifted | Decimal | Equal,
@@ -493,6 +524,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntNotEqual = UInt | NotEqual,
         LongNotEqual = Long | NotEqual,
         ULongNotEqual = ULong | NotEqual,
+        NIntNotEqual = NInt | NotEqual,
+        NUIntNotEqual = NUInt | NotEqual,
         FloatNotEqual = Float | NotEqual,
         DoubleNotEqual = Double | NotEqual,
         DecimalNotEqual = Decimal | NotEqual,
@@ -504,6 +537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntNotEqual = Lifted | UInt | NotEqual,
         LiftedLongNotEqual = Lifted | Long | NotEqual,
         LiftedULongNotEqual = Lifted | ULong | NotEqual,
+        LiftedNIntNotEqual = Lifted | NInt | NotEqual,
+        LiftedNUIntNotEqual = Lifted | NUInt | NotEqual,
         LiftedFloatNotEqual = Lifted | Float | NotEqual,
         LiftedDoubleNotEqual = Lifted | Double | NotEqual,
         LiftedDecimalNotEqual = Lifted | Decimal | NotEqual,
@@ -520,6 +555,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntLessThan = UInt | LessThan,
         LongLessThan = Long | LessThan,
         ULongLessThan = ULong | LessThan,
+        NIntLessThan = NInt | LessThan,
+        NUIntLessThan = NUInt | LessThan,
         FloatLessThan = Float | LessThan,
         DoubleLessThan = Double | LessThan,
         DecimalLessThan = Decimal | LessThan,
@@ -529,6 +566,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntLessThan = Lifted | UInt | LessThan,
         LiftedLongLessThan = Lifted | Long | LessThan,
         LiftedULongLessThan = Lifted | ULong | LessThan,
+        LiftedNIntLessThan = Lifted | NInt | LessThan,
+        LiftedNUIntLessThan = Lifted | NUInt | LessThan,
         LiftedFloatLessThan = Lifted | Float | LessThan,
         LiftedDoubleLessThan = Lifted | Double | LessThan,
         LiftedDecimalLessThan = Lifted | Decimal | LessThan,
@@ -541,6 +580,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntGreaterThan = UInt | GreaterThan,
         LongGreaterThan = Long | GreaterThan,
         ULongGreaterThan = ULong | GreaterThan,
+        NIntGreaterThan = NInt | GreaterThan,
+        NUIntGreaterThan = NUInt | GreaterThan,
         FloatGreaterThan = Float | GreaterThan,
         DoubleGreaterThan = Double | GreaterThan,
         DecimalGreaterThan = Decimal | GreaterThan,
@@ -550,6 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntGreaterThan = Lifted | UInt | GreaterThan,
         LiftedLongGreaterThan = Lifted | Long | GreaterThan,
         LiftedULongGreaterThan = Lifted | ULong | GreaterThan,
+        LiftedNIntGreaterThan = Lifted | NInt | GreaterThan,
+        LiftedNUIntGreaterThan = Lifted | NUInt | GreaterThan,
         LiftedFloatGreaterThan = Lifted | Float | GreaterThan,
         LiftedDoubleGreaterThan = Lifted | Double | GreaterThan,
         LiftedDecimalGreaterThan = Lifted | Decimal | GreaterThan,
@@ -562,6 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntLessThanOrEqual = UInt | LessThanOrEqual,
         LongLessThanOrEqual = Long | LessThanOrEqual,
         ULongLessThanOrEqual = ULong | LessThanOrEqual,
+        NIntLessThanOrEqual = NInt | LessThanOrEqual,
+        NUIntLessThanOrEqual = NUInt | LessThanOrEqual,
         FloatLessThanOrEqual = Float | LessThanOrEqual,
         DoubleLessThanOrEqual = Double | LessThanOrEqual,
         DecimalLessThanOrEqual = Decimal | LessThanOrEqual,
@@ -571,6 +616,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntLessThanOrEqual = Lifted | UInt | LessThanOrEqual,
         LiftedLongLessThanOrEqual = Lifted | Long | LessThanOrEqual,
         LiftedULongLessThanOrEqual = Lifted | ULong | LessThanOrEqual,
+        LiftedNIntLessThanOrEqual = Lifted | NInt | LessThanOrEqual,
+        LiftedNUIntLessThanOrEqual = Lifted | NUInt | LessThanOrEqual,
         LiftedFloatLessThanOrEqual = Lifted | Float | LessThanOrEqual,
         LiftedDoubleLessThanOrEqual = Lifted | Double | LessThanOrEqual,
         LiftedDecimalLessThanOrEqual = Lifted | Decimal | LessThanOrEqual,
@@ -583,6 +630,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntGreaterThanOrEqual = UInt | GreaterThanOrEqual,
         LongGreaterThanOrEqual = Long | GreaterThanOrEqual,
         ULongGreaterThanOrEqual = ULong | GreaterThanOrEqual,
+        NIntGreaterThanOrEqual = NInt | GreaterThanOrEqual,
+        NUIntGreaterThanOrEqual = NUInt | GreaterThanOrEqual,
         FloatGreaterThanOrEqual = Float | GreaterThanOrEqual,
         DoubleGreaterThanOrEqual = Double | GreaterThanOrEqual,
         DecimalGreaterThanOrEqual = Decimal | GreaterThanOrEqual,
@@ -592,6 +641,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntGreaterThanOrEqual = Lifted | UInt | GreaterThanOrEqual,
         LiftedLongGreaterThanOrEqual = Lifted | Long | GreaterThanOrEqual,
         LiftedULongGreaterThanOrEqual = Lifted | ULong | GreaterThanOrEqual,
+        LiftedNIntGreaterThanOrEqual = Lifted | NInt | GreaterThanOrEqual,
+        LiftedNUIntGreaterThanOrEqual = Lifted | NUInt | GreaterThanOrEqual,
         LiftedFloatGreaterThanOrEqual = Lifted | Float | GreaterThanOrEqual,
         LiftedDoubleGreaterThanOrEqual = Lifted | Double | GreaterThanOrEqual,
         LiftedDecimalGreaterThanOrEqual = Lifted | Decimal | GreaterThanOrEqual,
@@ -604,6 +655,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntAnd = UInt | And,
         LongAnd = Long | And,
         ULongAnd = ULong | And,
+        NIntAnd = NInt | And,
+        NUIntAnd = NUInt | And,
         EnumAnd = Enum | And,
         BoolAnd = Bool | And,
         UserDefinedAnd = UserDefined | And,
@@ -611,6 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntAnd = Lifted | UInt | And,
         LiftedLongAnd = Lifted | Long | And,
         LiftedULongAnd = Lifted | ULong | And,
+        LiftedNIntAnd = Lifted | NInt | And,
+        LiftedNUIntAnd = Lifted | NUInt | And,
         LiftedEnumAnd = Lifted | Enum | And,
         LiftedBoolAnd = Lifted | Bool | And,
         LiftedUserDefinedAnd = Lifted | UserDefined | And,
@@ -625,6 +680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntOr = UInt | Or,
         LongOr = Long | Or,
         ULongOr = ULong | Or,
+        NIntOr = NInt | Or,
+        NUIntOr = NUInt | Or,
         EnumOr = Enum | Or,
         BoolOr = Bool | Or,
         UserDefinedOr = UserDefined | Or,
@@ -632,6 +689,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntOr = Lifted | UInt | Or,
         LiftedLongOr = Lifted | Long | Or,
         LiftedULongOr = Lifted | ULong | Or,
+        LiftedNIntOr = Lifted | NInt | Or,
+        LiftedNUIntOr = Lifted | NUInt | Or,
         LiftedEnumOr = Lifted | Enum | Or,
         LiftedBoolOr = Lifted | Bool | Or,
         LiftedUserDefinedOr = Lifted | UserDefined | Or,
@@ -646,6 +705,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UIntXor = UInt | Xor,
         LongXor = Long | Xor,
         ULongXor = ULong | Xor,
+        NIntXor = NInt | Xor,
+        NUIntXor = NUInt | Xor,
         EnumXor = Enum | Xor,
         BoolXor = Bool | Xor,
         UserDefinedXor = UserDefined | Xor,
@@ -653,6 +714,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUIntXor = Lifted | UInt | Xor,
         LiftedLongXor = Lifted | Long | Xor,
         LiftedULongXor = Lifted | ULong | Xor,
+        LiftedNIntXor = Lifted | NInt | Xor,
+        LiftedNUIntXor = Lifted | NUInt | Xor,
         LiftedEnumXor = Lifted | Enum | Xor,
         LiftedBoolXor = Lifted | Bool | Xor,
         LiftedUserDefinedXor = Lifted | UserDefined | Xor,

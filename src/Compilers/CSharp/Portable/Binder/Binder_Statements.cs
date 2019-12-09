@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            TypeWithAnnotations declType = BindTypeWithAnnotationsOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -2430,7 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AliasSymbol alias;
             bool isVar;
-            TypeWithAnnotations declType = BindTypeWithAnnotationsOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
             Debug.Assert(declType.HasType || isVar);
 

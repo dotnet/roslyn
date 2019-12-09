@@ -7429,18 +7429,18 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (4,21): error CS1031: Type expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
-            // (4,21): error CS1026: ) expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
-            // (4,21): error CS1003: Syntax error, ',' expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
-            // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));
+                // (4,21): error CS1031: Type expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
+                // (4,21): error CS1026: ) expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
+                // (4,21): error CS1003: Syntax error, ',' expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
+                // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));
         }
 
         #endregion sizeof diagnostic tests

@@ -703,6 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return IsUnsigned(Binder.GetEnumPromotedType(op.Right.Type.GetEnumUnderlyingType().SpecialType));
 
                 case BinaryOperatorKind.UInt:
+                case BinaryOperatorKind.NUInt:
                 case BinaryOperatorKind.ULong:
                 case BinaryOperatorKind.ULongAndPointer:
                 case BinaryOperatorKind.PointerAndInt:
