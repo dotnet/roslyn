@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
@@ -33,15 +34,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             // Register fixes.
 
             // 1) Apply C# DiagnosticAnalyzerAttribute.
-            string title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp);
+            string title = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp);
             AddFix(title, context, root, classDecl, generator, LanguageNames.CSharp);
 
             // 2) Apply VB DiagnosticAnalyzerAttribute.
-            title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic);
+            title = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic);
             AddFix(title, context, root, classDecl, generator, LanguageNames.VisualBasic);
 
             // 3) Apply both C# and VB DiagnosticAnalyzerAttributes.
-            title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic);
+            title = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic);
             AddFix(title, context, root, classDecl, generator, LanguageNames.CSharp, LanguageNames.VisualBasic);
         }
 

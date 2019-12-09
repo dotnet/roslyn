@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicAFix"), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicApiFix"), Shared]
     public sealed class DeclarePublicApiFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
@@ -260,16 +261,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var diagnosticsToFix = new List<KeyValuePair<Project, ImmutableArray<Diagnostic>>>();
-                string titleFormat = "Add all items in {0} {1} to the public API";
-                string title;
-
+                string? title;
                 switch (fixAllContext.Scope)
                 {
                     case FixAllScope.Document:
                         {
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(titleFormat, "document", fixAllContext.Document.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToThePublicApiTitle, fixAllContext.Document.Name);
                             break;
                         }
 
@@ -278,7 +277,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             Project project = fixAllContext.Project;
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(titleFormat, "project", fixAllContext.Project.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInProjectToThePublicApiTitle, fixAllContext.Project.Name);
                             break;
                         }
 
@@ -290,15 +289,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(project, diagnostics));
                             }
 
-                            title = "Add all items in the solution to the public API";
+                            title = PublicApiAnalyzerResources.AddAllItemsInTheSolutionToThePublicApiTitle;
                             break;
                         }
 
                     case FixAllScope.Custom:
                         return null;
+
                     default:
-                        title = titleFormat;
-                        break;
+                        Debug.Fail($"Unknown FixAllScope '{fixAllContext.Scope}'");
+                        return null;
                 }
 
                 return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);

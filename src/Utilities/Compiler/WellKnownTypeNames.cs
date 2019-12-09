@@ -447,5 +447,8 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesComSourceInterfacesAttribute = "System.Runtime.InteropServices.ComSourceInterfacesAttribute";
         public const string MicrosoftCodeAnalysisDiagnosticsGeneratedCodeAnalysisFlags = "Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
+        public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
+        public const string SystemRuntimeInteropServicesCoClassAttribute = "System.Runtime.InteropServices.CoClassAttribute";
+        public const string SystemIProgress1 = "System.IProgress`1";
     }
 }

@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
         <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
-        <target state="translated">Lambda- oder anonyme Methode in generischer Methode ordnet eine Delegatinstanz zu</target>
+        <target state="translated">Lambdafunktion oder anonyme Methode in generischer Methode ordnet eine Delegatinstanz zu</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
