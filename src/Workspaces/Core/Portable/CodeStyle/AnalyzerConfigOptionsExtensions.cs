@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var storageLocation in option.StorageLocations)
             {
+                // This code path will avoid allocating a Dictionary wrapper since we can get direct access to the KeyName.
                 if (storageLocation is EditorConfigStorageLocation<T> editorConfigStorageLocation &&
                     analyzerConfigOptions.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue) &&
                     editorConfigStorageLocation.TryGetOption(stringValue, typeof(T), out value))
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            throw new ArgumentException("AnalyzerConfigOptions can only be queried with Options that use .editorconfig as a storage location.", nameof(option));
+            value = default;
+            return false;
         }
     }
 }
