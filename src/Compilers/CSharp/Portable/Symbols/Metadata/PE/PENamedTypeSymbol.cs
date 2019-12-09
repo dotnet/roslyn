@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var membersInDeclarationOrder = members.ToImmutable();
 
 #if DEBUG
-                ISymbol previous = null;
+                Symbol previous = null;
 
                 foreach (var s in membersInDeclarationOrder)
                 {
@@ -1316,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        ISymbol current = s;
+                        Symbol current = s;
                         Debug.Assert(previous.Kind.ToSortOrder() <= current.Kind.ToSortOrder());
                         previous = current;
                     }

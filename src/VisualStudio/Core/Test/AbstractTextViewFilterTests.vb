@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     <span>@{|S2:|}</span>
 {|S3:|}
 <h2>Default</h2>
-                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc}, LanguageNames.CSharp)
+                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc})
 
                 Dim matchingSpan = projected.SelectedSpans.Single()
                 TestSpan(workspace, projected, projected.CursorPosition.Value, matchingSpan.End)
@@ -249,7 +249,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,
@@ -271,7 +270,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,

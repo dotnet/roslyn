@@ -27,6 +27,11 @@
         <target state="translated">Das Ändern des Dokuments "{0}" wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
+        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
+        <target state="new">Compilation is required to accomplish the task but is not supported by project {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">Wichtige EditorConfig-Optionen</target>
@@ -35,6 +40,21 @@
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
         <target state="translated">"DateTimeKind" muss UTC sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="new">Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">Das Dokument unterstützt keine Syntaxstrukturen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -95,6 +115,11 @@
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
         <target state="translated">Das Präfix "{0}" wurde nicht erwartet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
+        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
+        <target state="new">Project of ID {0} is required to accomplish the task but is not available from the solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -184,7 +209,7 @@
       </trans-unit>
       <trans-unit id="Regex_any_character_group_long">
         <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
-        <target state="translated">Der Punkt (.) stimmt mit einem beliebigen Zeichen außer "\n" überein (das Neue-Zeile-Zeichen, \u000A). Wenn ein Muster für einen regulären Ausdruck durch die Option "RegexOptions.Singleline" geändert wird oder wenn der Teil des Musters, der die Zeichenklasse "." enthält, durch die Option "s" verändert wird, stimmt "." mit jedem beliebigen Zeichen überein.</target>
+        <target state="translated">Der Punkt (.) stimmt mit einem beliebigen Zeichen außer "\n" überein (das Zeilenvorschubzeichen, \u000A). Wenn ein Muster für einen regulären Ausdruck durch die Option "RegexOptions.Singleline" geändert wird oder wenn der Teil des Musters, der die Zeichenklasse "." enthält, durch die Option "s" verändert wird, stimmt "." mit jedem beliebigen Zeichen überein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_short">
@@ -237,7 +262,7 @@ Die Ausgleichsgruppendefinition verwendet "name2" als Stapel. Das Anfangszeichen
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_long">
         <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
-        <target state="translated">Entspricht einem Wagenrücklaufzeichen, \u000D. Beachten Sie, dass "\r" nicht dem Neue-Zeile-Zeichen "\n" entspricht.</target>
+        <target state="translated">Entspricht einem Wagenrücklaufzeichen, \u000D. Beachten Sie, dass "\r" nicht dem Zeilenvorschubzeichen "\n" entspricht.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_short">
@@ -371,7 +396,7 @@ Der \Z-Anker entspricht "\n", stimmt jedoch nicht mit "\r\n" überein (CR/LF-Zei
 The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
         <target state="translated">Der $-Anker gibt an, dass das vorangehende Muster am Ende der Eingabezeichenfolge oder vor "\n" am Ende der Eingabezeichenfolge vorliegen muss. Wenn Sie $ mit der Option "RegexOptions.Multiline" verwenden, kann die Übereinstimmung auch am Ende einer Zeile erfolgen.
 
-Der $-Anker stimmt mit "\n", aber nicht mit "\r\n" überein (Kombination aus Wagenrücklauf- und Neue-Zeile-Zeichen, auch CR/LF). Um der Kombination aus CR/LF-Zeichen zu entsprechen, schließen Sie "\r?$" in das Muster für reguläre Ausdrücke ein.</target>
+Der $-Anker stimmt mit "\n", aber nicht mit "\r\n" überein (Kombination aus Wagenrücklauf- und Zeilenvorschubzeichen, auch CR/LF). Um der Kombination aus CR/LF-Zeichen zu entsprechen, schließen Sie "\r?$" in das Muster für reguläre Ausdrücke ein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_short">
@@ -446,7 +471,7 @@ Der $-Anker stimmt mit "\n", aber nicht mit "\r\n" überein (Kombination aus Wag
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">Hexadezimale Escapesequenz</target>
+        <target state="translated">Hexadezimale Escapezeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -845,7 +870,7 @@ Diese Option empfiehlt sich, wenn Sie wissen, dass die Rückverfolgung nicht zum
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
         <source>nonbacktracking subexpression</source>
-        <target state="translated">Nicht zurückverfolgender Teilausdruck</target>
+        <target state="translated">Teilausdruck ohne Rückverfolgung</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
@@ -1095,7 +1120,7 @@ If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]
         <target state="translated">"\s" stimmt mit einem beliebigen Leerraumzeichen überein. Entspricht den folgenden Escapesequenzen und Unicode-Kategorien:
 
     \f	Das Seitenvorschubzeichen, \u000C
-    \n	Das Neue-Zeile-Zeichen, \u000A
+    \n	Das Zeilenvorschubzeichen, \u000A
     \r	Das Wagenrücklaufzeichen, \u000D
     \t	Das Tabstoppzeichen, \u0009
     \v	Das vertikale Tabstoppzeichen, \u000B
@@ -1307,6 +1332,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Symbolspezifikationen</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
+        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
+        <target state="new">Syntax tree is required to accomplish the task but is not supported by document {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Visual Basic-Dateien</target>
@@ -1314,7 +1344,12 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">Durch das Hinzufügen von Importen wird eine Erweiterungsmethode mit dem gleichen Namen wie "{0}" in den Bereich eingeführt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="new">Workspace error</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

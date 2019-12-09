@@ -2070,9 +2070,9 @@ class MyClass
 
             var commandHandler = workspace.GetService<FormatCommandHandler>();
             var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.GetTextBuffer(), typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
-            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
 
             Assert.Equal(expected, newSnapshot.GetText());
         }

@@ -25,9 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal sealed class FilterSet
     {
         // Cache all the VS completion filters which essentially make them singletons.
-        // Because all items that should be filtered using the same filter button must 
-        // use the same reference to the instance of CompletionFilter.
+        // Need to map item tags such as Class, Interface, Local, Enum to filter buttons.
+        // There can be tags mapping to the same button:
+        // Local -> Locals and Parameters, Parameter -> Locals and Parameters.
         private static readonly ImmutableDictionary<string, FilterWithMask> s_filterMap;
+
+        // Distinct list of all filters.
+        // Need to iterate over a distinct list of filters 
+        // to create a filter list covering a completion session.
+        private static readonly ImmutableArray<FilterWithMask> s_filters;
 
         private BitVector32 _vector;
         private static readonly int s_expanderMask;
@@ -54,7 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         static FilterSet()
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, FilterWithMask>();
+            var mapBuilder = ImmutableDictionary.CreateBuilder<string, FilterWithMask>();
+            var arrayBuilder = ImmutableArray.CreateBuilder<FilterWithMask>();
+
             var previousMask = 0;
 
             NamespaceFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Namespaces, 'n', WellKnownTags.Namespace);
@@ -75,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnippetFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Snippets, 't', WellKnownTags.Snippet);
             TargetTypedFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Target_type_matches, 'j', WellKnownTags.TargetTypeMatch);
 
-            s_filterMap = builder.ToImmutable();
+            s_filterMap = mapBuilder.ToImmutable();
+            s_filters = arrayBuilder.ToImmutable();
 
             s_expanderMask = BitVector32.CreateMask(previousMask);
 
@@ -91,9 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var filter = CreateCompletionFilter(displayText, tags, accessKey);
                 previousMask = BitVector32.CreateMask(previousMask);
 
+                var filterWithMask = new FilterWithMask(filter, previousMask);
+                arrayBuilder.Add(filterWithMask);
+
                 foreach (var tag in tags)
                 {
-                    builder.Add(tag, new FilterWithMask(filter, previousMask));
+                    mapBuilder.Add(tag, filterWithMask);
                 }
 
                 return filter;
@@ -173,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: false));
             }
 
-            foreach (var filterWithMask in s_filterMap.Values)
+            foreach (var filterWithMask in s_filters)
             {
                 if (_vector[filterWithMask.Mask])
                 {

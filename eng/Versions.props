@@ -6,9 +6,9 @@
   -->
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
-    <MinorVersion>4</MinorVersion>
+    <MinorVersion>5</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
@@ -48,7 +48,7 @@
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>4.0.0.4521</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>5.0.2.5153</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildVersion>15.1.548</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.548</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
@@ -62,7 +62,7 @@
     <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.19</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
-    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.6</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
+    <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.0.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftCodeQualityAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeQualityAnalyzersVersion>
     <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
@@ -98,9 +98,9 @@
     <MicrosoftVisualStudioComponentModelHostVersion>16.0.198-g52de9c2988</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
-    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>16.0.29213.96</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
-    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>16.3.1081501-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
-    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>16.3.1081501-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
+    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>16.0.29431.108</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
+    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>16.4.1091102-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
+    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>16.4.1091102-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>16.0.28226-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.27</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
@@ -195,7 +195,7 @@
     <SystemThreadingTasksExtensionsVersion>4.5.3</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
-    <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>16.3.2099</MicrosoftVSSDKBuildToolsVersion>
     <MicrosoftVSSDKVSDConfigToolVersion>16.0.2032702</MicrosoftVSSDKVSDConfigToolVersion>
     <VSLangProjVersion>7.0.3301</VSLangProjVersion>
     <VSLangProj140Version>14.0.25030</VSLangProj140Version>
@@ -225,7 +225,6 @@
     <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>
-    
     <!--
       NOTE: The following dependencies have been identified as particularly problematic to update.
       If you bump their versions, you must push your changes to a dev branch in dotnet/roslyn and

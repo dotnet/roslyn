@@ -563,7 +563,7 @@ class Program
 }";
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
-            var comp2 = CompileAndVerify(s2,
+            var comp2 = (CSharpCompilation)CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 expectedOutput: "12", verify: Verification.Fails).Compilation;

@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalCandidates.ToImmutableAndFree();
         }
 
-        private void CheckRestrictedTypeReceiver(BoundExpression expression, Compilation compilation, DiagnosticBag diagnostics)
+        private void CheckRestrictedTypeReceiver(BoundExpression expression, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _ = BindToNaturalType(argument, diagnostics);
                                 break;
                             case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
-                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), targetTyped: false, diagnostics);
+                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), conversionIfTargetTyped: null, diagnostics);
                                 break;
                         }
                     }

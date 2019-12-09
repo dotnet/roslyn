@@ -22,8 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Private Shared ReadOnly s_roles As ImmutableArray(Of String) = ImmutableArray.Create(PredefinedTextViewRoles.Editable, "DEBUGVIEW", PredefinedTextViewRoles.Interactive)
 
         Private Sub New(workspaceElement As XElement,
-                        isImmediateWindow As Boolean,
-                        Optional cursorDocumentElement As XElement = Nothing)
+                        isImmediateWindow As Boolean)
 
             MyBase.New(
                 workspaceElement,
@@ -32,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 extraExportedTypes:=Nothing,
                 workspaceKind:=WorkspaceKind.Debugger,
                 includeFormatCommandHandler:=False,
-                cursorDocumentElement:=If(cursorDocumentElement, <Document>$$</Document>),
+                makeSeparateBufferForCursor:=True,
                 roles:=s_roles)
 
             Dim languageServices = Workspace.CurrentSolution.Projects.First().LanguageServices
@@ -78,18 +77,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
         Public Shared Function CreateVisualBasicTestState(
                 workspaceElement As XElement,
-                isImmediateWindow As Boolean,
-                Optional cursorDocumentElement As XElement = Nothing) As TestState
+                isImmediateWindow As Boolean) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow, cursorDocumentElement)
+            Return New TestState(workspaceElement, isImmediateWindow)
         End Function
 
         Public Shared Function CreateCSharpTestState(
                 workspaceElement As XElement,
-                isImmediateWindow As Boolean,
-                Optional cursorDocumentElement As XElement = Nothing) As TestState
+                isImmediateWindow As Boolean) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow, cursorDocumentElement)
+            Return New TestState(workspaceElement, isImmediateWindow)
         End Function
 
         Public Function GetCurrentViewLineText() As String

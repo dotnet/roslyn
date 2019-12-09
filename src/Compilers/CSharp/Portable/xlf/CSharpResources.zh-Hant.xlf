@@ -293,8 +293,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。您指的是 'using' 而不是 'await using' 嗎?</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。您指的是 'using' 而不是 'await using' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
@@ -470,6 +470,11 @@
       <trans-unit id="ERR_VarMayNotBindToType">
         <source>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</source>
         <target state="translated">不允許模式的語法 'var' 參考類型，但 '{0}' 在此處的範圍中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
@@ -799,6 +804,11 @@
         <target state="translated">插入的逐字替代字串</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAsyncUsing">
+        <source>asynchronous using</source>
+        <target state="new">asynchronous using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">聯合指派</target>
@@ -832,6 +842,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">對可移動的固定緩衝區編製索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1329,16 +1344,6 @@
         <target state="translated">因為 SyntaxTree 不屬於編譯的一部份，所以無法將其移除</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 是不可為 null 的參考型別時，'as' 運算子可能會產生 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">對於型別參數，'as' 運算子可能會產生 null 值。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">名稱 '_' 參考常數而非捨棄模式。請使用 'var _' 來捨棄值，或使用 '@_' 來依該名稱參考常數。</target>
@@ -1349,16 +1354,6 @@
         <target state="translated">不可對 case 常數使用 '_'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 為不可為 null 的參考型別時，條件式存取可能會產生 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">條件式存取可能會針對型別參數產生 null 值。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">正在將 Null 常值或可能的 Null 值轉換為不可為 Null 的型別。</target>
@@ -1367,16 +1362,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">正在將 Null 常值或可能的 Null 值轉換為不可為 Null 的型別。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 為不可為 null 的參考型別時，預設運算式會引入 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">預設運算式會針對型別參數引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1397,16 +1382,6 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">介面已列在介面清單中，並具有不同的參考類型可 NULL 性。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
-        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
-        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1477,16 +1452,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">無法將 null 常值轉換成不可為 Null 的參考型別。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">當 '{0}' 為不可為 null 的參考型別時，null 常值會引入 null 值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">null 常值會針對型別參數引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -9731,8 +9696,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

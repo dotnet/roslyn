@@ -855,6 +855,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        public SolutionState WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Debug.Assert(this.ContainsProject(projectId));
+
+            var oldProject = this.GetProjectState(projectId)!;
+            var newProject = oldProject.UpdateRunAnalyzers(runAnalyzers);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            // fork without any change on compilation.
+            return this.ForkProject(newProject);
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
@@ -1943,7 +1968,7 @@ namespace Microsoft.CodeAnalysis
         public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
         {
             // return HasAllInformation when compilation is not supported. 
-            // regardless whether project support compilation or not, if projectInfo is not complete, we can't gurantee its reference completeness
+            // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
                 : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
@@ -1975,7 +2000,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // sanity check: this should always be true, no matter how many times
                 // we attempt to record the association.
-                System.Diagnostics.Debug.Assert(tmp == projectId);
+                Debug.Assert(tmp == projectId);
             }
         }
 
@@ -2003,8 +2028,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private MetadataReference? GetPartialMetadataReference(
             ProjectReference projectReference,
-            ProjectState fromProject,
-            CancellationToken cancellationToken)
+            ProjectState fromProject)
         {
             // Try to get the compilation state for this project.  If it doesn't exist, don't do any
             // more work.  
@@ -2013,7 +2037,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return state.GetPartialMetadataReference(this, fromProject, projectReference);
+            return state.GetPartialMetadataReference(fromProject, projectReference);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)

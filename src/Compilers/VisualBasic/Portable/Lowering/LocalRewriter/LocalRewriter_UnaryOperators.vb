@@ -15,11 +15,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitNullableIsTrueOperator(node As BoundNullableIsTrueOperator) As BoundNode
             Debug.Assert(node.Operand.Type.IsNullableOfBoolean())
 
-            If _inExpressionLambda Then
-                Return node.Update(VisitExpression(node.Operand), node.Type)
+            Dim optimizableForConditionalBranch As Boolean = False
+            Dim operand = VisitExpression(AdjustIfOptimizableForConditionalBranch(node.Operand, optimizableForConditionalBranch))
+
+            If optimizableForConditionalBranch AndAlso HasValue(operand) Then
+                Return NullableValueOrDefault(operand)
             End If
 
-            Dim operand = VisitExpressionNode(node.Operand)
+            If _inExpressionLambda Then
+                Return node.Update(operand, node.Type)
+            End If
 
             If HasNoValue(operand) Then
                 Return New BoundLiteral(node.Syntax, ConstantValue.False, node.Type)
@@ -37,6 +42,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return NullableValueOrDefault(operand)
+        End Function
+
+        Private Shared Function AdjustIfOptimizableForConditionalBranch(operand As BoundExpression, <Out> ByRef optimizableForConditionalBranch As Boolean) As BoundExpression
+            optimizableForConditionalBranch = False
+
+            Dim current As BoundExpression = operand
+            Do
+                Select Case current.Kind
+                    Case BoundKind.BinaryOperator
+                        Dim binary = DirectCast(current, BoundBinaryOperator)
+                        If (binary.OperatorKind And BinaryOperatorKind.IsOperandOfConditionalBranch) <> 0 Then
+                            Select Case (binary.OperatorKind And BinaryOperatorKind.OpMask)
+                                Case BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
+                                    Debug.Assert((binary.OperatorKind And BinaryOperatorKind.Lifted) <> 0)
+                                    optimizableForConditionalBranch = True
+                                    Return binary.Update(binary.OperatorKind Or BinaryOperatorKind.OptimizableForConditionalBranch,
+                                                         binary.Left, binary.Right, binary.Checked, binary.ConstantValueOpt, binary.Type)
+                            End Select
+                        End If
+
+                        Return operand
+
+                    Case BoundKind.Parenthesized
+                        current = DirectCast(current, BoundParenthesized).Expression
+                    Case Else
+                        Return operand
+                End Select
+            Loop
+
         End Function
 
         Public Overrides Function VisitUserDefinedUnaryOperator(node As BoundUserDefinedUnaryOperator) As BoundNode

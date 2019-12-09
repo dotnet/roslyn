@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getDocumentDiagnostics)
             {
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics);
-                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), project, CancellationToken.None);
+                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.GetTextSpan().IntersectsWith(span)), project, CancellationToken.None);
             }
 
             if (getProjectDiagnostics)
@@ -103,18 +103,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             var projectDiagnostics = await GetProjectDiagnosticsAsync(project);
             diagnostics.AddRange(projectDiagnostics);
-            return diagnostics;
-        }
-
-        public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution)
-        {
-            var diagnostics = new List<Diagnostic>();
-            foreach (var project in solution.Projects)
-            {
-                var projectDiagnostics = await GetAllDiagnosticsAsync(project);
-                diagnostics.AddRange(projectDiagnostics);
-            }
-
             return diagnostics;
         }
 

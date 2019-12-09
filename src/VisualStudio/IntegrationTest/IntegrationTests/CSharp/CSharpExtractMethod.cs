@@ -86,7 +86,7 @@ public class Program
             VisualStudio.Editor.SetText(TestSource);
             VisualStudio.Editor.PlaceCaret("a = 5", charsOffset: -1);
             VisualStudio.Editor.PlaceCaret("a * b", charsOffset: 1, extendSelection: true);
-            VisualStudio.Editor.Verify.CodeAction("Extract Method", applyFix: true, blockUntilComplete: true);
+            VisualStudio.Editor.Verify.CodeAction("Extract method", applyFix: true, blockUntilComplete: true);
 
             var expectedMarkup = @"
 using System;
@@ -124,7 +124,7 @@ public class Program
             try
             {
                 VisualStudio.Workspace.SetFeatureOption("ExtractMethodOptions", "AllowMovingDeclaration", LanguageNames.CSharp, "true");
-                VisualStudio.Editor.Verify.CodeAction("Extract Method + Local", applyFix: true, blockUntilComplete: true);
+                VisualStudio.Editor.Verify.CodeAction("Extract method + local", applyFix: true, blockUntilComplete: true);
 
                 var expectedMarkup = @"
 using System;
