@@ -840,7 +840,7 @@ No editorconfig based code style option
 
 # IDE0071, PreferSimplifiedInterpolation
 dotnet_style_prefer_simplified_interpolation = true:suggestion
- 
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
