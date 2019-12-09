@@ -256,6 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
+        const int someConstant = 1;
         _ = $""prefix {someValue,-((byte)3.3 + someConstant)} suffix"";
     }
 }");
@@ -343,6 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
+        const int someConstant = 1;
         _ = $""prefix {someValue,(byte)3.3 + someConstant} suffix"";
     }
 }");
@@ -443,12 +445,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftWhenFormattingComponentIsSpecified()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
     {
         _ = $""prefix {someValue[||].PadLeft(3):goo} suffix"";
+    }
+}",
+@"class C
+{
+    void M(string someValue)
+    {
+        _ = $""prefix {someValue,-3:goo} suffix"";
     }
 }");
         }
@@ -456,12 +465,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadRightWhenFormattingComponentIsSpecified()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
     {
         _ = $""prefix {someValue[||].PadRight(3):goo} suffix"";
+    }
+}",
+@"class C
+{
+    void M(string someValue)
+    {
+        _ = $""prefix {someValue,3:goo} suffix"";
     }
 }");
         }
@@ -564,32 +580,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue{|Unnecessary:[||].PadLeft(|}3{|Unnecessary:).ToString()|}} suffix"";
+        _ = $""prefix {someValue.PadLeft(3){|Unnecessary:[||].ToString()|}} suffix"";
     }
 }", @"class C
 {
     void M(string someValue)
     {
         _ = $""prefix {someValue,-3} suffix"";
-    }
-}");
-        }
-
-        [Fact]
-        public async Task PadLeftThenToStringWithFormat()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue.PadLeft(3){|Unnecessary:[||].ToString(""|}goo{|Unnecessary:"")|}} suffix"";
-    }
-}", @"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue.PadLeft(3):goo} suffix"";
     }
 }");
         }
@@ -608,26 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3} suffix"";
-    }
-}");
-        }
-
-        [Fact]
-        public async Task PadLeftThenToStringWithFormatWhenAlignmentComponentIsSpecified()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue.PadLeft(3){|Unnecessary:[||].ToString(""|}goo{|Unnecessary:"")|},3} suffix"";
-    }
-}", @"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue.PadLeft(3),3:goo} suffix"";
+        _ = $""prefix {someValue.PadLeft(3),3} suffix"";
     }
 }");
         }

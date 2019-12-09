@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,11 +21,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         TInterpolationSyntax,
         TExpressionSyntax,
         TInterpolationAlignmentClause,
-        TInterpolationFormatClause> : SyntaxEditorBasedCodeFixProvider
+        TInterpolationFormatClause,
+        TInterpolatedStringExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TInterpolationAlignmentClause : SyntaxNode
         where TInterpolationFormatClause : SyntaxNode
+        where TInterpolatedStringExpressionSyntax : TExpressionSyntax
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
@@ -32,7 +36,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
         protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
-        protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause formatClause);
+        protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause? formatClause);
+        protected abstract string Escape(TInterpolatedStringExpressionSyntax interpolatedString, string formatString);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -46,30 +51,35 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             foreach (var diagnostic in diagnostics)
             {
                 var loc = diagnostic.AdditionalLocations[0];
                 var interpolation = semanticModel.GetOperation(loc.FindNode(getInnermostNodeForTie: true, cancellationToken)) as IInterpolationOperation;
-                if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax)
+                if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
+                    interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
                     Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                        document.GetLanguageService<IVirtualCharService>(), interpolation, out var unwrapped,
+                        document.GetRequiredLanguageService<IVirtualCharService>(), interpolation, out var unwrapped,
                         out var alignment, out var negate, out var formatString, out _);
+
+                    if (unwrapped == null)
+                        continue;
 
                     alignment = negate ? (TExpressionSyntax)generator.NegateExpression(alignment) : alignment;
 
                     editor.ReplaceNode(
                         interpolationSyntax,
-                        Update(generator, interpolationSyntax, unwrapped, alignment, formatString));
+                        Update(generator, interpolatedString, interpolationSyntax, unwrapped, alignment, formatString));
                 }
             }
         }
 
         private TInterpolationSyntax Update(
-            SyntaxGenerator generator, TInterpolationSyntax interpolation,
-            TExpressionSyntax unwrapped, TExpressionSyntax alignment, string formatString)
+            SyntaxGenerator generator, TInterpolatedStringExpressionSyntax interpolatedString,
+            TInterpolationSyntax interpolation, TExpressionSyntax unwrapped,
+            TExpressionSyntax? alignment, string? formatString)
         {
             var result = WithExpression(interpolation, unwrapped);
             if (alignment != null)
@@ -83,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             {
                 result = WithFormatClause(result, formatString == ""
                     ? null
-                    : (TInterpolationFormatClause)generator.InterpolationFormatClause(formatString));
+                    : (TInterpolationFormatClause?)generator.InterpolationFormatClause(Escape(interpolatedString, formatString)));
             }
 
             return result;

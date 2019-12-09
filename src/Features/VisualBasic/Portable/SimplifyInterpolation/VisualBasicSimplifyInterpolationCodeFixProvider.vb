@@ -9,7 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSimplifyInterpolationCodeFixProvider
         Inherits AbstractSimplifyInterpolationCodeFixProvider(Of
-            InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax, InterpolationFormatClauseSyntax)
+            InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
+            InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax)
 
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax
             Return interpolation.WithExpression(expression)
@@ -21,6 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
 
         Protected Overrides Function WithFormatClause(interpolation As InterpolationSyntax, formatClause As InterpolationFormatClauseSyntax) As InterpolationSyntax
             Return interpolation.WithFormatClause(formatClause)
+        End Function
+
+        Protected Overrides Function Escape(interpolatedString As InterpolatedStringExpressionSyntax, formatString As String) As String
+            Return formatString.Replace("""", """""")
         End Function
     End Class
 End Namespace

@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
                 if (invocation.Arguments.Length == 1 &&
-                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string format } } argumentValue)
+                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
                 {
                     unwrapped = invocation.Instance;
-                    formatString = format;
+                    formatString = value;
 
                     unnecessarySpans.AddRange(invocation.Syntax.Span
                         .Subtract(invocation.Instance.Syntax.FullSpan)
-                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, argumentValue.Syntax)));
+                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
                     return;
                 }
 
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             formatString = null;
         }
 
-        private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxNode stringLiteralNode)
+        private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxToken formatToken)
         {
-            var sequence = virtualCharService.TryConvertToVirtualChars(stringLiteralNode.GetFirstToken());
+            var sequence = virtualCharService.TryConvertToVirtualChars(formatToken);
             return sequence.IsDefaultOrEmpty
                 ? default
                 : TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
