@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
-            protected abstract Task<(ExpressionBodyPreference expressionBodiedMethod, ExpressionBodyPreference expressionBodiedLocalFunction, bool staticLocalFunction)> StaticLocalFunctionAndExpressionBodyPreferencesAsync(SemanticDocument semanticDocument, CancellationToken cancellationToken);
+            protected abstract Task<(ExpressionBodyPreference expressionBodiedMethod, ExpressionBodyPreference expressionBodiedLocalFunction, bool staticLocalFunction)> StaticLocalFunctionAndExpressionBodyPreferenceAsync(SemanticDocument semanticDocument, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName(bool localFunction);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
                 var result = GenerateMethodDefinition(LocalFunction, cancellationToken);
 
-                var (expressionBodiedMethod, expressionBodiedLocalFunction, staticLocalFunction) = await StaticLocalFunctionAndExpressionBodyPreferencesAsync(SemanticDocument, cancellationToken).ConfigureAwait(false);
+                var (expressionBodiedMethod, expressionBodiedLocalFunction, staticLocalFunction) = await StaticLocalFunctionAndExpressionBodyPreferenceAsync(SemanticDocument, cancellationToken).ConfigureAwait(false);
 
                 SyntaxNode destination, newContainer;
                 if (LocalFunction)

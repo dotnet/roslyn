@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod"));
             }
 
-            protected override async Task<(ExpressionBodyPreference expressionBodiedMethod, ExpressionBodyPreference expressionBodiedLocalFunction, bool staticLocalFunction)> StaticLocalFunctionAndExpressionBodyPreferencesAsync(
+            protected override async Task<(ExpressionBodyPreference expressionBodiedMethod, ExpressionBodyPreference expressionBodiedLocalFunction, bool staticLocalFunction)> StaticLocalFunctionAndExpressionBodyPreferenceAsync(
                 SemanticDocument semanticDocument,
                 CancellationToken cancellationToken)
             {

@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 

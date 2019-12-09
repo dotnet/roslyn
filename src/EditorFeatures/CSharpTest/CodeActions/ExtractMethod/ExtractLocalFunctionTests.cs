@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
@@ -3788,6 +3789,200 @@ class C : B
         }
     }
 }", CodeActionIndex);
+        }
+
+        [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestEditorconfigSetting_StaticLocalFunction_True()
+        {
+            var input = @"
+<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        [|bool test = true;|]
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_prefer_static_local_function = true:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        {|Rename:NewMethod|}();
+        System.Console.WriteLine(b != true ? b = true : b = false);
+
+        static void NewMethod()
+        {
+            bool test = true;
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_prefer_static_local_function = true:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+
+        [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestEditorconfigSetting_StaticLocalFunction_False()
+        {
+            var input = @"
+<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        [|bool test = true;|]
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_prefer_static_local_function = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        {|Rename:NewMethod|}();
+        System.Console.WriteLine(b != true ? b = true : b = false);
+
+        void NewMethod()
+        {
+            bool test = true;
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_prefer_static_local_function = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
+        {
+            var input = @"
+<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        [|bool b = true;|]
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_local_functions = true:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        bool b = {|Rename:NewMethod|}();
+        System.Console.WriteLine(b != true ? b = true : b = false);
+
+        static bool NewMethod() => true;
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_local_functions = true:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
+        {
+            var input = @"
+<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        [|bool b = true;|]
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_local_functions = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        bool b = {|Rename:NewMethod|}();
+        System.Console.WriteLine(b != true ? b = true : b = false);
+
+        static bool NewMethod()
+        {
+            return true;
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_local_functions = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]

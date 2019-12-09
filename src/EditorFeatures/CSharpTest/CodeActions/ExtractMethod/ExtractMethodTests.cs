@@ -3587,5 +3587,100 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
+        {
+            var input = @"
+<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        [|bool b = true;|]
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = true:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        bool b = {|Rename:NewMethod|}();
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+
+    private static bool NewMethod() => true;
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = true:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
+        {
+            var input = @"
+<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        [|bool b = true;|]
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        bool b = {|Rename:NewMethod|}();
+        System.Console.WriteLine(b != true ? b = true : b = false);
+    }
+
+    private static bool NewMethod()
+    {
+        return true;
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
     }
 }

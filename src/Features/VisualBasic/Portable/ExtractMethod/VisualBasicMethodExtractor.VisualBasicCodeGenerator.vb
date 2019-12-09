@@ -436,8 +436,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.ExpressionStatement(expression:=callSignature)
             End Function
 
-            Protected Overrides Function StaticLocalFunctionAndExpressionBodyPreferencesAsync(semanticDocument As SemanticDocument, cancellationToken As CancellationToken) As Task(Of (expressionBodiedMethod As ExpressionBodyPreference, expressionBodiedLocalFunction As ExpressionBodyPreference, staticLocalFunction As Boolean))
-                ' Expression-bodied methods and static local functions don't apply to C# and VB
+            Protected Overrides Function StaticLocalFunctionAndExpressionBodyPreferenceAsync(semanticDocument As SemanticDocument, cancellationToken As CancellationToken) As Task(Of (expressionBodiedMethod As ExpressionBodyPreference, expressionBodiedLocalFunction As ExpressionBodyPreference, staticLocalFunction As Boolean))
+                ' Expression-bodied methods and static local functions don't apply to VB
                 Return Task.FromResult((ExpressionBodyPreference.Never, ExpressionBodyPreference.Never, True))
             End Function
         End Class
