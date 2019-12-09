@@ -305,16 +305,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             // PROTOTYPE: why isn't this just a provided implementation?
-            private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
+            private sealed class WorkspaceAnalyzerConfigOptions : DictionaryBackedAnalyzerConfigOptions
             {
-                private readonly ImmutableDictionary<string, string> _analyzerOptions;
-
                 public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
+                    : base(analyzerConfigOptions.AnalyzerOptions)
                 {
-                    _analyzerOptions = analyzerConfigOptions.AnalyzerOptions;
                 }
-
-                public override bool TryGetValue(string key, [NotNullWhen(returnValue: true)] out string? value) => _analyzerOptions.TryGetValue(key, out value);
             }
         }
 

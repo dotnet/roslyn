@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -23,18 +22,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract bool TryGetValue(string key, out string value);
     }
 
-    internal sealed class CompilerAnalyzerConfigOptions : AnalyzerConfigOptions
+    public abstract class DictionaryBackedAnalyzerConfigOptions : AnalyzerConfigOptions
     {
-        public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(EmptyDictionary);
-
         private readonly ImmutableDictionary<string, string> _backing;
 
-        public CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string> properties)
+        public DictionaryBackedAnalyzerConfigOptions(ImmutableDictionary<string, string> properties)
         {
             _backing = properties;
         }
 
         public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
 
+        public IReadOnlyDictionary<string, string> AsReadOnlyDictionary() => _backing;
+    }
+
+    internal sealed class CompilerAnalyzerConfigOptions : DictionaryBackedAnalyzerConfigOptions
+    {
+        public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(EmptyDictionary);
+
+        public CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string> properties)
+            : base(properties)
+        {
+        }
     }
 }
