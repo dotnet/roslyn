@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ReportDiagnostic(assignmentKind switch { AssignmentKind.Return => ErrorCode.WRN_NullReferenceReturn, _ => ErrorCode.WRN_NullReferenceAssignment }, location);
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, location);
             }
 
             static bool isMaybeDefaultValue(TypeWithState valueType)
