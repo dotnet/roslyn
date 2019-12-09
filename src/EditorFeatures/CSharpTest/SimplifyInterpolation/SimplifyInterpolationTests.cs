@@ -37,26 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToStringWithStringLiteralParameter()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue{|Unnecessary:[||].ToString(""|}some format code{|Unnecessary:"")|}} suffix"";
-    }
-}",
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue:some format code} suffix"";
-    }
-}");
-        }
-
-        [Fact]
         public async Task ToStringWithEscapeSequences()
         {
             await TestInRegularAndScriptAsync(
@@ -72,26 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(System.DateTime someValue)
     {
         _ = $""prefix {someValue:\\d \""d\""} suffix"";
-    }
-}");
-        }
-
-        [Fact]
-        public async Task ToStringWithVerbatimStringLiteralParameter()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue{|Unnecessary:[||].ToString(@""|}some format code{|Unnecessary:"")|}} suffix"";
-    }
-}",
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue:some format code} suffix"";
     }
 }");
         }
@@ -397,26 +357,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task ToStringWithStringLiteralParameterWhenAlignmentComponentIsSpecified()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue{|Unnecessary:[||].ToString(""|}some format code{|Unnecessary:"")|},3} suffix"";
-    }
-}",
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue,3:some format code} suffix"";
-    }
-}");
-        }
-
-        [Fact]
         public async Task ToStringWithNoParameterWhenBothComponentsAreSpecified()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -542,32 +482,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue{|Unnecessary:[||].ToString().PadLeft(|}3{|Unnecessary:)|}} suffix"";
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString()|}{|Unnecessary:.PadLeft(|}3{|Unnecessary:)|}} suffix"";
     }
 }", @"class C
 {
     void M(string someValue)
     {
         _ = $""prefix {someValue,-3} suffix"";
-    }
-}");
-        }
-
-        [Fact]
-        public async Task ToStringWithFormatThenPadLeft()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue{|Unnecessary:[||].ToString(""|}goo{|Unnecessary:"").PadLeft(|}3{|Unnecessary:)|}} suffix"";
-    }
-}", @"class C
-{
-    void M(string someValue)
-    {
-        _ = $""prefix {someValue,-3:goo} suffix"";
     }
 }");
         }
@@ -586,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue.PadLeft(3)} suffix"";
     }
 }");
         }

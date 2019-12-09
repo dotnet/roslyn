@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             negate = false;
             formatString = null;
 
-            var unnecessarySpans = ArrayBuilder<TextSpan>.GetInstance();
+            var unnecessarySpans = new List<TextSpan>();
 
             var expression = Unwrap(interpolation.Expression);
             if (interpolation.Alignment == null)
@@ -40,8 +42,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             unwrapped = expression.Syntax as TExpressionSyntax;
 
-            unnecessaryLocations = unnecessarySpans.ToImmutableAndFree()
-                .SelectAsArray(interpolation.Syntax.SyntaxTree.GetLocation);
+            unnecessaryLocations =
+                unnecessarySpans.OrderBy(t => t.Start)
+                                .SelectAsArray(interpolation.Syntax.SyntaxTree.GetLocation);
         }
 
         private static IOperation Unwrap(IOperation expression)
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static void UnwrapFormatString(
             IVirtualCharService virtualCharService, IOperation expression, out IOperation unwrapped,
-            out string? formatString, ArrayBuilder<TextSpan> unnecessarySpans)
+            out string? formatString, List<TextSpan> unnecessarySpans)
         {
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static void UnwrapAlignmentPadding<TExpressionSyntax>(
             IOperation expression, out IOperation unwrapped,
-            out TExpressionSyntax? alignment, out bool negate, ArrayBuilder<TextSpan> unnecessarySpans)
+            out TExpressionSyntax? alignment, out bool negate, List<TextSpan> unnecessarySpans)
             where TExpressionSyntax : SyntaxNode
         {
             if (expression is IInvocationOperation invocation)
