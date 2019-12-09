@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -790,6 +792,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod"));
+            }
+
+            protected override async Task<(ExpressionBodyPreference expressionBodiedMethod, ExpressionBodyPreference expressionBodiedLocalFunction, bool staticLocalFunction)> StaticLocalFunctionAndExpressionBodyPreferencesAsync(
+                SemanticDocument semanticDocument,
+                CancellationToken cancellationToken)
+            {
+                var options = await semanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+                var preferExpressionBodiedMethods = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                var preferExpressionBodiedLocalFunctions = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions).Value;
+
+                var preferStaticLocalFunctions = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
+                return (preferExpressionBodiedMethods, preferExpressionBodiedLocalFunctions, preferStaticLocalFunctions);
             }
         }
     }

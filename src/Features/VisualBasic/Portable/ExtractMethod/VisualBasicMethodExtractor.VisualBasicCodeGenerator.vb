@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Options
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -433,6 +434,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 Return SyntaxFactory.ExpressionStatement(expression:=callSignature)
+            End Function
+
+            Protected Overrides Function StaticLocalFunctionAndExpressionBodyPreferencesAsync(semanticDocument As SemanticDocument, cancellationToken As CancellationToken) As Task(Of (expressionBodiedMethod As ExpressionBodyPreference, expressionBodiedLocalFunction As ExpressionBodyPreference, staticLocalFunction As Boolean))
+                ' Expression-bodied methods and static local functions don't apply to C# and VB
+                Return Task.FromResult((ExpressionBodyPreference.Never, ExpressionBodyPreference.Never, True))
             End Function
         End Class
     End Class

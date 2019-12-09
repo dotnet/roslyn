@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
 
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
-                    typeDeclaration, method, Workspace, options, availableIndices));
+                    typeDeclaration, method, options, availableIndices));
             }
 
             if (method.IsConstructor() ||
@@ -167,12 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is CompilationUnitSyntax compilationUnit)
             {
                 return Cast<TDeclarationNode>(
-                    MethodGenerator.AddMethodTo(compilationUnit, method, Workspace, options, availableIndices));
+                    MethodGenerator.AddMethodTo(compilationUnit, method, options, availableIndices));
             }
 
             var ns = Cast<NamespaceDeclarationSyntax>(destination);
             return Cast<TDeclarationNode>(
-                MethodGenerator.AddMethodTo(ns, method, Workspace, options, availableIndices));
+                MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
         }
 
         protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices)
@@ -594,13 +594,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (method.IsLocalFunction())
             {
-                return MethodGenerator.GenerateLocalMethodDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                return MethodGenerator.GenerateLocalFunctionDeclaration(
+                    method, destination, options, options.ParseOptions);
             }
             else
             {
                 return MethodGenerator.GenerateMethodDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                    method, destination, options, options.ParseOptions);
             }
         }
 

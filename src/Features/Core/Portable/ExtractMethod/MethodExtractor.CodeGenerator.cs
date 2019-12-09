@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
+            protected abstract Task<(ExpressionBodyPreference expressionBodiedMethod, ExpressionBodyPreference expressionBodiedLocalFunction, bool staticLocalFunction)> StaticLocalFunctionAndExpressionBodyPreferencesAsync(SemanticDocument semanticDocument, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName(bool localFunction);
@@ -85,13 +87,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
                 var result = GenerateMethodDefinition(LocalFunction, cancellationToken);
 
+                var (expressionBodiedMethod, expressionBodiedLocalFunction, staticLocalFunction) = await StaticLocalFunctionAndExpressionBodyPreferencesAsync(SemanticDocument, cancellationToken).ConfigureAwait(false);
+
                 SyntaxNode destination, newContainer;
                 if (LocalFunction)
                 {
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, parseOptions: destination?.SyntaxTree.Options));
+                        options: new CodeGenerationOptions(
+                            generateDefaultAccessibility: false,
+                            generateMethodBodies: true,
+                            preferExpressionBodiedLocalFunction: expressionBodiedLocalFunction,
+                            preferStaticLocalFunction: staticLocalFunction,
+                            parseOptions: destination?.SyntaxTree.Options));
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
                 }
                 else
@@ -102,7 +111,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = previousMemberNode.Parent ?? previousMemberNode;
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
-                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
+                        new CodeGenerationOptions(
+                            afterThisLocation: previousMemberNode.GetLocation(),
+                            generateDefaultAccessibility: true,
+                            generateMethodBodies: true,
+                            preferExpressionBodiedMethod: expressionBodiedMethod),
                         cancellationToken);
                 }
 

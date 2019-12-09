@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -132,6 +134,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public bool ReuseSyntax { get; }
 
+        /// <summary>
+        /// A hint to the code generator on whether they should attempt to generate a method with an expression body.
+        /// </summary>
+        public ExpressionBodyPreference PreferExpressionBodiedMethod { get; }
+
+        /// <summary>
+        /// A hint to the code generator on whether they should attempt to generate a local function with an expression body.
+        /// </summary>
+        public ExpressionBodyPreference PreferExpressionBodiedLocalFunction { get; }
+
+        /// <summary>
+        /// True if the code generator should attempt to generate static local functions.
+        /// </summary>
+        public bool PreferStaticLocalFunction { get; }
+
         public ParseOptions ParseOptions { get; }
 
         public CodeGenerationOptions(
@@ -150,6 +167,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool autoInsertionLocation = true,
             bool sortMembers = true,
             bool reuseSyntax = false,
+            ExpressionBodyPreference preferExpressionBodiedMethod = ExpressionBodyPreference.Never,
+            ExpressionBodyPreference preferExpressionBodiedLocalFunction = ExpressionBodyPreference.Never,
+            bool preferStaticLocalFunction = true,
             ParseOptions parseOptions = null)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
@@ -171,6 +191,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.AutoInsertionLocation = autoInsertionLocation;
             this.SortMembers = sortMembers;
             this.ReuseSyntax = reuseSyntax;
+            this.PreferExpressionBodiedMethod = preferExpressionBodiedMethod;
+            this.PreferExpressionBodiedLocalFunction = preferExpressionBodiedLocalFunction;
+            this.PreferStaticLocalFunction = preferStaticLocalFunction;
 
             this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
         }
@@ -211,6 +234,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Optional<bool> autoInsertionLocation = default,
             Optional<bool> sortMembers = default,
             Optional<bool> reuseSyntax = default,
+            Optional<ExpressionBodyPreference> preferExpressionBodiedMethod = default,
+            Optional<ExpressionBodyPreference> preferExpressionBodiedLocalFunction = default,
+            Optional<bool> preferStaticLocalFunction = default,
             Optional<ParseOptions> parseOptions = default)
         {
             var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
@@ -228,6 +254,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var newAutoInsertionLocation = autoInsertionLocation.HasValue ? autoInsertionLocation.Value : this.AutoInsertionLocation;
             var newSortMembers = sortMembers.HasValue ? sortMembers.Value : this.SortMembers;
             var newReuseSyntax = reuseSyntax.HasValue ? reuseSyntax.Value : this.ReuseSyntax;
+            var newPreferExpressionBodiedMethod = preferExpressionBodiedMethod.HasValue ? preferExpressionBodiedMethod.Value : this.PreferExpressionBodiedMethod;
+            var newPreferExpressionBodiedLocalFunction = preferExpressionBodiedLocalFunction.HasValue ? preferExpressionBodiedLocalFunction.Value : this.PreferExpressionBodiedLocalFunction;
+            var newPreferStaticLocalFunction = preferStaticLocalFunction.HasValue ? preferStaticLocalFunction.Value : this.PreferStaticLocalFunction;
             var newParseOptions = parseOptions.HasValue ? parseOptions.Value : this.ParseOptions;
 
             return new CodeGenerationOptions(
@@ -246,6 +275,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 newAutoInsertionLocation,
                 newSortMembers,
                 newReuseSyntax,
+                newPreferExpressionBodiedMethod,
+                newPreferExpressionBodiedLocalFunction,
+                newPreferStaticLocalFunction,
                 newParseOptions);
         }
     }
