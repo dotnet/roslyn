@@ -46,6 +46,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // Note that we can pass through the params for this
                 // request (like range, filename) because between getcodeaction and runcodeaction there can be no
                 // changes on the IDE side (it will requery for codeactions if there are changes).
+
+                // Always return the Command instead of a precalculated set of workspace edits. The edits will be
+                // calculated when the code action is either previewed or invoked.
+
                 result.Add(
                     new LSP.Command
                     {
