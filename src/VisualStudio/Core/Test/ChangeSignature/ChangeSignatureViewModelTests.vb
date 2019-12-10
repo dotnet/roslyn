@@ -441,7 +441,7 @@ class MyClass
                     ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToList(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspaceDoc,
-                    insertionSpan:=New Microsoft.CodeAnalysis.Text.TextSpan(0, 0),
+                    insertPosition:=0,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
                     workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())

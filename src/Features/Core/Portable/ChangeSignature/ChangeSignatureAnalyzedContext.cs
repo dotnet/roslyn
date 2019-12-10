@@ -12,19 +12,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public readonly ISymbol Symbol;
         public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
         public readonly ParameterConfiguration ParameterConfiguration;
-        public readonly TextSpan InsertionSpan;
+        public readonly int InsertPosition;
 
         public Solution Solution => Project.Solution;
 
         public ChangeSignatureAnalyzedContext(
-            Document document, ISymbol symbol, ParameterConfiguration parameterConfiguration, TextSpan insertionSpan)
+            Document document, ISymbol symbol, ParameterConfiguration parameterConfiguration, int insertPosition)
         {
             CanChangeSignature = true;
             Document = document;
             Project = document.Project;
             Symbol = symbol;
             ParameterConfiguration = parameterConfiguration;
-            InsertionSpan = insertionSpan;
+            InsertPosition = insertPosition;
             CannotChangeSignatureReason = CannotChangeSignatureReason.None;
         }
 

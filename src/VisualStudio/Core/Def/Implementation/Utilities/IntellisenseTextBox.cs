@@ -95,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 int length;
                 string text;
+                // TODO why 0?
                 this._vsTextLines.GetLengthOfLine(0, out length);
                 this._vsTextLines.GetLineText(0, 0, 0, length, out text);
                 return text;
@@ -487,8 +488,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// and posts it to the internal editor control.</remarks>
         public bool HandleKeyDown(OLE.Interop.MSG message)
         {
-            uint editCmdID = 0;
-            Guid editCmdGuid = Guid.Empty;
+            uint editCmdID;
+            Guid editCmdGuid;
             int VariantSize = 16;
 
             IVsFilterKeys2 filterKeys = Package.GetGlobalService(typeof(SVsFilterKeys)) as IVsFilterKeys2;
