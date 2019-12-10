@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass. Any fix to
-    // one should be applied to the other.
     internal abstract class AbstractRegionControlFlowPass : ControlFlowPass
     {
         internal AbstractRegionControlFlowPass(
