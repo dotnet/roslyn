@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // This is for the rare case of making a tuple with names inside the definition of a ValueTuple type
-                return this.Construct(this.GetTypeParametersAsTypeArguments(), unbound: false).WithTupleData(newData);
+                return this.Construct(this.GetTypeParametersAsTypeArguments(), unbound: false, constructWithTypeParameters: true).WithTupleData(newData);
             }
 
             return WithTupleDataCore(newData);
