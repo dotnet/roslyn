@@ -274,17 +274,33 @@ class C
         t.a.ToString();
         t.b.ToString();
 
-        var t2 = M((a: 1, b: ""hello""), (a: default, z: null));
+        var t2 = M((a: 1, b: ""hello""), (a: default, z: null)); // 1
         t2.a.ToString();
         t2.b.ToString();
+
+        var t3 = M((1, ""hello""), (a: default, b: null)); // 2, 3
+        t3.a.ToString(); // 4
+        t3.b.ToString(); // 5
     }
 }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (11,53): warning CS8123: The tuple element name 'z' is ignored because a different name or no name is specified by the target type '(int a, string b)'.
-                //         var t2 = M((a: 1, b: "hello"), (a: default, z: null));
-                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "z: null").WithArguments("z", "(int a, string b)").WithLocation(11, 53)
+                //         var t2 = M((a: 1, b: "hello"), (a: default, z: null)); // 1
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "z: null").WithArguments("z", "(int a, string b)").WithLocation(11, 53),
+                // (15,35): warning CS8123: The tuple element name 'a' is ignored because a different name or no name is specified by the target type '(int, string)'.
+                //         var t3 = M((1, "hello"), (a: default, b: null)); // 2, 3
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "a: default").WithArguments("a", "(int, string)").WithLocation(15, 35),
+                // (15,47): warning CS8123: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(int, string)'.
+                //         var t3 = M((1, "hello"), (a: default, b: null)); // 2, 3
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: null").WithArguments("b", "(int, string)").WithLocation(15, 47),
+                // (16,12): error CS1061: '(int, string)' does not contain a definition for 'a' and no accessible extension method 'a' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
+                //         t3.a.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, string)", "a").WithLocation(16, 12),
+                // (17,12): error CS1061: '(int, string)' does not contain a definition for 'b' and no accessible extension method 'b' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
+                //         t3.b.ToString(); // 5
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int, string)", "b").WithLocation(17, 12)
                 );
         }
 
