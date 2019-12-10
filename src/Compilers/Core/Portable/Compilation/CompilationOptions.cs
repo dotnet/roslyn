@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// path to key file.
         /// </para>
         /// </remarks>
-        public string CryptoKeyFile { get; protected set; }
+        public string? CryptoKeyFile { get; protected set; }
 
         /// <summary>
         /// The CSP container containing the key with which to sign the output.
@@ -672,12 +674,12 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine((int)this.NullableContextOptions, 0)))))))))))))))))))))))))));
         }
 
-        public static bool operator ==(CompilationOptions left, CompilationOptions right)
+        public static bool operator ==(CompilationOptions? left, CompilationOptions? right)
         {
             return object.Equals(left, right);
         }
 
-        public static bool operator !=(CompilationOptions left, CompilationOptions right)
+        public static bool operator !=(CompilationOptions? left, CompilationOptions? right)
         {
             return !object.Equals(left, right);
         }

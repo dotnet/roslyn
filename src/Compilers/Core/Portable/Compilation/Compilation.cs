@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -49,12 +51,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Used for test purposes only to emulate missing members.
         /// </summary>
-        private SmallDictionary<int, bool> _lazyMakeWellKnownTypeMissingMap;
+        private SmallDictionary<int, bool>? _lazyMakeWellKnownTypeMissingMap;
 
         /// <summary>
         /// Used for test purposes only to emulate missing members.
         /// </summary>
-        private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
+        private SmallDictionary<int, bool>? _lazyMakeMemberMissingMap;
 
         // Protected for access in CSharpCompilation.WithAdditionalFeatures
         protected readonly IReadOnlyDictionary<string, string> _features;
@@ -69,8 +71,8 @@ namespace Microsoft.CodeAnalysis
             bool isSubmission,
             AsyncQueue<CompilationEvent> eventQueue)
         {
-            Debug.Assert(!references.IsDefault);
-            Debug.Assert(features != null);
+            RoslynDebug.Assert(!references.IsDefault);
+            RoslynDebug.Assert(features != null);
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
         {
-            IReadOnlyDictionary<string, string> set = null;
+            IReadOnlyDictionary<string, string>? set = null;
 
             foreach (var tree in trees)
             {
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
-        internal static void ValidateScriptCompilationParameters(Compilation previousScriptCompilation, Type returnType, ref Type globalsType)
+        internal static void ValidateScriptCompilationParameters(Compilation previousScriptCompilation, Type returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))
             {
@@ -344,7 +346,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The previous submission, if any, or null.
         /// </summary>
-        private Compilation PreviousSubmission
+        private Compilation? PreviousSubmission
         {
             get
             {
@@ -379,7 +381,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type object that represents the type of submission result the host requested.
         /// </summary>
-        internal Type SubmissionReturnType => ScriptCompilationInfo?.ReturnTypeOpt;
+        internal Type? SubmissionReturnType => ScriptCompilationInfo?.ReturnTypeOpt;
 
         internal static bool IsValidSubmissionReturnType(Type type)
         {
@@ -389,7 +391,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type of the globals object or null if not specified for this compilation.
         /// </summary>
-        internal Type HostObjectType => ScriptCompilationInfo?.GlobalsType;
+        internal Type? HostObjectType => ScriptCompilationInfo?.GlobalsType;
 
         internal static bool IsValidHostObjectType(Type type)
         {
@@ -803,9 +805,9 @@ namespace Microsoft.CodeAnalysis
         /// Get the symbol for the predefined type from the Cor Library referenced by this
         /// compilation.
         /// </summary>
-        public INamedTypeSymbol GetSpecialType(SpecialType specialType)
+        public INamedTypeSymbol? GetSpecialType(SpecialType specialType)
         {
-            return (INamedTypeSymbol)CommonGetSpecialType(specialType)?.GetITypeSymbol();
+            return (INamedTypeSymbol?)CommonGetSpecialType(specialType)?.GetITypeSymbol();
         }
 
         /// <summary>
@@ -860,7 +862,7 @@ namespace Microsoft.CodeAnalysis
         /// full name of the container class stored in <see cref="CompilationOptions.ScriptClassName"/> to find the symbol.
         /// </summary>
         /// <returns>The Script class symbol or null if it is not defined.</returns>
-        protected INamedTypeSymbol CommonBindScriptClass()
+        protected INamedTypeSymbol? CommonBindScriptClass()
         {
             string scriptClassName = this.Options.ScriptClassName ?? "";
 
@@ -1249,7 +1251,7 @@ namespace Microsoft.CodeAnalysis
         public bool IsSymbolAccessibleWithin(
             ISymbol symbol,
             ISymbol within,
-            ITypeSymbol throughType = null)
+            ITypeSymbol? throughType = null)
         {
             if (symbol is null)
             {
@@ -1296,7 +1298,7 @@ namespace Microsoft.CodeAnalysis
                     // Submissions can reference symbols from previous submissions and their referenced assemblies, even
                     // though those references are missing from this.References. We work around that by digging in
                     // to find references of previous submissions. See https://github.com/dotnet/roslyn/issues/27356
-                    for (Compilation c = this.PreviousSubmission; c != null; c = c.PreviousSubmission)
+                    for (Compilation? c = this.PreviousSubmission; c != null; c = c.PreviousSubmission)
                     {
                         if (assemblyIsInCompilationReferences(a, c))
                         {
@@ -1363,7 +1365,7 @@ namespace Microsoft.CodeAnalysis
         private protected abstract bool IsSymbolAccessibleWithinCore(
             ISymbol symbol,
             ISymbol within,
-            ITypeSymbol throughType);
+            ITypeSymbol? throughType);
 
         internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue);
 
@@ -1399,7 +1401,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void EnsureCompilationEventQueueCompleted()
         {
-            Debug.Assert(EventQueue != null);
+            RoslynDebug.Assert(EventQueue != null);
 
             lock (EventQueue)
             {
@@ -1412,7 +1414,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void CompleteCompilationEventQueue_NoLock()
         {
-            Debug.Assert(EventQueue != null);
+            RoslynDebug.Assert(EventQueue != null);
 
             // Signal the end of compilation.
             EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
@@ -1429,8 +1431,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
         /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
-        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
+        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag? incoming)
         {
+            RoslynDebug.Assert(incoming is object);
             bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null);
             incoming.Free();
             incoming = null;
@@ -1441,7 +1444,7 @@ namespace Microsoft.CodeAnalysis
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
         /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
-        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int> exclude)
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int>? exclude)
         {
             bool hasError = false;
             bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
@@ -1566,7 +1569,7 @@ namespace Microsoft.CodeAnalysis
                 return Win32ResourceForm.UNKNOWN;
         }
 
-        internal Cci.ResourceSection MakeWin32ResourcesFromCOFF(Stream win32Resources, DiagnosticBag diagnostics)
+        internal Cci.ResourceSection? MakeWin32ResourcesFromCOFF(Stream win32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
             {
@@ -1598,7 +1601,7 @@ namespace Microsoft.CodeAnalysis
             return resources;
         }
 
-        internal List<Win32Resource> MakeWin32ResourceList(Stream win32Resources, DiagnosticBag diagnostics)
+        internal List<Win32Resource>? MakeWin32ResourceList(Stream win32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
             {
@@ -1631,9 +1634,9 @@ namespace Microsoft.CodeAnalysis
                     languageId: r.LanguageId,
                     //EDMAURER converting to int from ushort.
                     //Go to short first to avoid sign extension.
-                    id: unchecked((short)r.pstringName.Ordinal),
+                    id: unchecked((short)r.pstringName!.Ordinal),
                     name: r.pstringName.theString,
-                    typeId: unchecked((short)r.pstringType.Ordinal),
+                    typeId: unchecked((short)r.pstringType!.Ordinal),
                     typeName: r.pstringType.theString
                 );
 
@@ -2027,11 +2030,11 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
-            IMethodSymbol debugEntryPoint,
-            Stream sourceLinkStream,
-            IEnumerable<EmbeddedText> embeddedTexts,
-            IEnumerable<ResourceDescription> manifestResources,
-            CompilationTestData testData,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
+            IEnumerable<ResourceDescription>? manifestResources,
+            CompilationTestData? testData,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
@@ -2045,7 +2048,7 @@ namespace Microsoft.CodeAnalysis
             bool emitMetadataOnly,
             bool emitTestCoverageData,
             DiagnosticBag diagnostics,
-            Predicate<ISymbolInternal> filterOpt,
+            Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken);
 
         internal bool CreateDebugDocuments(DebugDocumentsBuilder documentsBuilder, IEnumerable<EmbeddedText> embeddedTexts, DiagnosticBag diagnostics)
@@ -2128,8 +2131,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if successful.</returns>
         internal abstract bool GenerateResourcesAndDocumentationComments(
             CommonPEModuleBuilder moduleBeingBuilt,
-            Stream xmlDocumentationStream,
-            Stream win32ResourcesStream,
+            Stream? xmlDocumentationStream,
+            Stream? win32ResourcesStream,
             string outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -2138,7 +2141,7 @@ namespace Microsoft.CodeAnalysis
         /// Reports all unused imports/usings so far (and thus it must be called as a last step of Emit)
         /// </summary>
         internal abstract void ReportUnusedImports(
-            SyntaxTree filterTree,
+            SyntaxTree? filterTree,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
@@ -2157,7 +2160,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
             DiagnosticBag diagnostics,
-            Predicate<ISymbolInternal> filterOpt,
+            Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken)
         {
             try
@@ -2222,10 +2225,10 @@ namespace Microsoft.CodeAnalysis
         [EditorBrowsable(EditorBrowsableState.Never)]
         public EmitResult Emit(
             Stream peStream,
-            Stream pdbStream,
-            Stream xmlDocumentationStream,
-            Stream win32Resources,
-            IEnumerable<ResourceDescription> manifestResources,
+            Stream? pdbStream,
+            Stream? xmlDocumentationStream,
+            Stream? win32Resources,
+            IEnumerable<ResourceDescription>? manifestResources,
             EmitOptions options,
             CancellationToken cancellationToken)
         {
@@ -2236,9 +2239,9 @@ namespace Microsoft.CodeAnalysis
                 win32Resources,
                 manifestResources,
                 options,
-                default(IMethodSymbol),
-                default(Stream),
-                default(IEnumerable<EmbeddedText>),
+                debugEntryPoint: null,
+                sourceLinkStream: null,
+                embeddedTexts: null,
                 cancellationToken);
         }
 
@@ -2270,14 +2273,14 @@ namespace Microsoft.CodeAnalysis
         // 2.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitResult Emit(
             Stream peStream,
-            Stream pdbStream,
-            Stream xmlDocumentationStream,
-            Stream win32Resources,
-            IEnumerable<ResourceDescription> manifestResources,
+            Stream? pdbStream,
+            Stream? xmlDocumentationStream,
+            Stream? win32Resources,
+            IEnumerable<ResourceDescription>? manifestResources,
             EmitOptions options,
-            IMethodSymbol debugEntryPoint,
-            Stream sourceLinkStream,
-            IEnumerable<EmbeddedText> embeddedTexts,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
             CancellationToken cancellationToken)
         {
             return Emit(
@@ -2330,15 +2333,15 @@ namespace Microsoft.CodeAnalysis
         /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult Emit(
             Stream peStream,
-            Stream pdbStream = null,
-            Stream xmlDocumentationStream = null,
-            Stream win32Resources = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            EmitOptions options = null,
-            IMethodSymbol debugEntryPoint = null,
-            Stream sourceLinkStream = null,
-            IEnumerable<EmbeddedText> embeddedTexts = null,
-            Stream metadataPEStream = null,
+            Stream? pdbStream = null,
+            Stream? xmlDocumentationStream = null,
+            Stream? win32Resources = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            EmitOptions? options = null,
+            IMethodSymbol? debugEntryPoint = null,
+            Stream? sourceLinkStream = null,
+            IEnumerable<EmbeddedText>? embeddedTexts = null,
+            Stream? metadataPEStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -2445,16 +2448,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal EmitResult Emit(
             Stream peStream,
-            Stream metadataPEStream,
-            Stream pdbStream,
-            Stream xmlDocumentationStream,
-            Stream win32Resources,
-            IEnumerable<ResourceDescription> manifestResources,
-            EmitOptions options,
-            IMethodSymbol debugEntryPoint,
-            Stream sourceLinkStream,
-            IEnumerable<EmbeddedText> embeddedTexts,
-            CompilationTestData testData,
+            Stream? metadataPEStream,
+            Stream? pdbStream,
+            Stream? xmlDocumentationStream,
+            Stream? win32Resources,
+            IEnumerable<ResourceDescription>? manifestResources,
+            EmitOptions? options,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
+            CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
@@ -2616,7 +2619,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, testData: null, cancellationToken);
         }
 
         internal abstract EmitDifferenceResult EmitDifference(
@@ -2627,21 +2630,21 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethodHandles,
-            CompilationTestData testData,
+            CompilationTestData? testData,
             CancellationToken cancellationToken);
 
         /// <summary>
         /// Check compilation options and create <see cref="CommonPEModuleBuilder"/>.
         /// </summary>
         /// <returns><see cref="CommonPEModuleBuilder"/> if successful.</returns>
-        internal CommonPEModuleBuilder CheckOptionsAndCreateModuleBuilder(
+        internal CommonPEModuleBuilder? CheckOptionsAndCreateModuleBuilder(
             DiagnosticBag diagnostics,
-            IEnumerable<ResourceDescription> manifestResources,
+            IEnumerable<ResourceDescription>? manifestResources,
             EmitOptions options,
-            IMethodSymbol debugEntryPoint,
-            Stream sourceLinkStream,
-            IEnumerable<EmbeddedText> embeddedTexts,
-            CompilationTestData testData,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
+            CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
             options.ValidateOptions(diagnostics, MessageProvider, Options.Deterministic);
@@ -2695,22 +2698,22 @@ namespace Microsoft.CodeAnalysis
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
-            EmitStreamProvider metadataPEStreamProvider,
-            EmitStreamProvider pdbStreamProvider,
-            Func<ISymWriterMetadataProvider, SymUnmanagedWriter> testSymWriterFactory,
+            EmitStreamProvider? metadataPEStreamProvider,
+            EmitStreamProvider? pdbStreamProvider,
+            Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
             bool includePrivateMembers,
             bool emitTestCoverageData,
-            string pePdbFilePath,
+            string? pePdbFilePath,
             RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Cci.PdbWriter nativePdbWriter = null;
-            DiagnosticBag metadataDiagnostics = null;
-            DiagnosticBag pdbBag = null;
+            Cci.PdbWriter? nativePdbWriter = null;
+            DiagnosticBag? metadataDiagnostics = null;
+            DiagnosticBag? pdbBag = null;
 
             bool deterministic = IsEmitDeterministic;
 
@@ -2731,8 +2734,8 @@ namespace Microsoft.CodeAnalysis
                 pePdbFilePath = PathUtilities.GetFileName(pePdbFilePath);
             }
 
-            EmitStream emitPeStream = null;
-            EmitStream emitMetadataStream = null;
+            EmitStream? emitPeStream = null;
+            EmitStream? emitMetadataStream = null;
             try
             {
                 var signKind = IsRealSigned
@@ -2755,10 +2758,10 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic ? moduleBeingBuilt.PdbChecksumAlgorithm : default);
                 }
 
-                Func<Stream> getPortablePdbStream =
+                Func<Stream?>? getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
                     ? null
-                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
+                    : (Func<Stream?>?)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {
@@ -2780,7 +2783,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (nativePdbWriter != null)
                         {
-                            var nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                            var nativePdbStream = pdbStreamProvider!.GetOrCreateStream(metadataDiagnostics);
                             Debug.Assert(nativePdbStream != null || metadataDiagnostics.HasAnyErrors());
 
                             if (nativePdbStream != null)
@@ -2831,7 +2834,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static Stream ConditionalGetOrCreateStream(EmitStreamProvider metadataPEStreamProvider, DiagnosticBag metadataDiagnostics)
+        private static Stream? ConditionalGetOrCreateStream(EmitStreamProvider metadataPEStreamProvider, DiagnosticBag metadataDiagnostics)
         {
             if (metadataDiagnostics.HasAnyErrors())
             {
@@ -2847,11 +2850,11 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             DiagnosticBag metadataDiagnostics,
             CommonMessageProvider messageProvider,
-            Func<Stream> getPeStream,
-            Func<Stream> getMetadataPeStreamOpt,
-            Func<Stream> getPortablePdbStreamOpt,
-            Cci.PdbWriter nativePdbWriterOpt,
-            string pdbPathOpt,
+            Func<Stream?> getPeStream,
+            Func<Stream?>? getMetadataPeStreamOpt,
+            Func<Stream?>? getPortablePdbStreamOpt,
+            Cci.PdbWriter? nativePdbWriterOpt,
+            string? pdbPathOpt,
             bool metadataOnly,
             bool includePrivateMembers,
             bool isDeterministic,
@@ -2905,7 +2908,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        internal EmitBaseline SerializeToDeltaStreams(
+        internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitBaseline baseline,
             DefinitionMap definitionMap,
@@ -2972,7 +2975,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal string Feature(string p)
+        internal string? Feature(string p)
         {
             string v;
             return _features.TryGetValue(p, out v) ? v : null;
@@ -2980,14 +2983,14 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts> _lazyTreeToUsedImportDirectivesMap;
+        private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts>? _lazyTreeToUsedImportDirectivesMap;
         private static readonly Func<SyntaxTree, SmallConcurrentSetOfInts> s_createSetCallback = t => new SmallConcurrentSetOfInts();
 
         private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts> TreeToUsedImportDirectivesMap
         {
             get
             {
-                return LazyInitializer.EnsureInitialized(ref _lazyTreeToUsedImportDirectivesMap);
+                return LazyInitializer.EnsureInitialized(ref _lazyTreeToUsedImportDirectivesMap)!;
             }
         }
 
@@ -3071,7 +3074,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Return the lexically first of multiple locations.
         /// </summary>
-        internal TLocation FirstSourceLocation<TLocation>(ImmutableArray<TLocation> locations)
+        internal TLocation? FirstSourceLocation<TLocation>(ImmutableArray<TLocation> locations)
             where TLocation : Location
         {
             if (locations.IsEmpty)
@@ -3248,7 +3251,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the required language version found in a <see cref="Diagnostic"/>, if any is found.
         /// Returns null if none is found.
         /// </summary>
-        public static string GetRequiredLanguageVersion(Diagnostic diagnostic)
+        public static string? GetRequiredLanguageVersion(Diagnostic diagnostic)
         {
             if (diagnostic == null)
             {
@@ -3256,7 +3259,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             bool found = false;
-            string foundVersion = null;
+            string? foundVersion = null;
             if (diagnostic.Arguments != null)
             {
                 foreach (var argument in diagnostic.Arguments)
