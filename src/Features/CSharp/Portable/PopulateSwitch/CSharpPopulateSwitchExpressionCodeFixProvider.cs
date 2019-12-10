@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class CSharpPopulateSwitchExpressionCodeFixProvider
         : AbstractPopulateSwitchExpressionCodeFixProvider<
+            ExpressionSyntax,
             SwitchExpressionSyntax,
             SwitchExpressionArmSyntax,
-            ExpressionSyntax,
             MemberAccessExpressionSyntax>
     {
         protected override SwitchExpressionArmSyntax CreateDefaultSwitchArm(SyntaxGenerator generator, Compilation compilation)

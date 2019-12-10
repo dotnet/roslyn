@@ -12,12 +12,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     internal abstract class AbstractPopulateSwitchExpressionCodeFixProvider<
-        TSwitchSyntax, TSwitchArmSyntax, TExpressionSyntax, TMemberAccessExpressionSyntax>
+        TExpressionSyntax, TSwitchSyntax, TSwitchArmSyntax, TMemberAccessExpressionSyntax>
         : AbstractPopulateSwitchCodeFixProvider<
             ISwitchExpressionOperation, TSwitchSyntax, TSwitchArmSyntax, TMemberAccessExpressionSyntax>
-        where TSwitchSyntax : SyntaxNode
-        where TSwitchArmSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
+        where TSwitchSyntax : TExpressionSyntax
+        where TSwitchArmSyntax : SyntaxNode
         where TMemberAccessExpressionSyntax : TExpressionSyntax
     {
         protected AbstractPopulateSwitchExpressionCodeFixProvider()
