@@ -14,9 +14,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal partial class AddParameterDialog : DialogWindow
     {
         public readonly AddParameterDialogViewModel ViewModel;
-        private readonly IVsTextLines _vsTextLines;
-        private readonly IVsTextView _textView;
-        private readonly IWpfTextView _wpfTextView;
+        private readonly IntellisenseTextBoxViewModel _intellisenseTextBoxView;
+        private bool _isValid;
+
+        private bool IsValid
+        {
+            get { return _isValid; }
+            set
+            {
+                this.OKButton.IsEnabled = value;
+                _isValid = value;
+            }
+        }
 
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
@@ -29,16 +38,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
 
-        public AddParameterDialog(
-            IVsTextLines vsTextLines,
-            IVsTextView vsTextView,
-            IWpfTextView wpfTextView)
+        public AddParameterDialog(IntellisenseTextBoxViewModel intellisenseTextBoxViewModel)
         {
+            // TODO this should be initlialized when called for Edit.
             ViewModel = new AddParameterDialogViewModel();
-            _vsTextLines = vsTextLines;
-            _textView = vsTextView;
-            _wpfTextView = wpfTextView;
+            _intellisenseTextBoxView = intellisenseTextBoxViewModel;
             this.Loaded += AddParameterDialog_Loaded;
+            DataContext = ViewModel;
+
+            // This is for Add. For edit, it should be true by default.
+            IsValid = false;
 
             InitializeComponent();
         }
@@ -46,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
             IntellisenseTextBox typeNameTextBox = new IntellisenseTextBox(
-                _vsTextLines, _textView, _wpfTextView, TypeNameContentControl);
+                _intellisenseTextBoxView, TypeNameContentControl);
             this.TypeNameContentControl.Content = typeNameTextBox;
         }
 
@@ -54,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (ViewModel.TrySubmit())
             {
-                // TODO maybe we should try binding.
                 ViewModel.TypeName = ((IntellisenseTextBox)TypeNameContentControl.Content).Text;
                 DialogResult = true;
             }
@@ -83,7 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     {
                         // Do nothing. This case is handled in parent control KeyDown events.
                     }
-
                     else if (e.Key == Key.Tab && !typeNameTextBox.HasActiveIntellisenseSession)
                     {
                         // Do nothing. This case is handled in parent control KeyDown events.
@@ -95,6 +102,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     }
                 }
             }
+        }
+
+        private void TextBox_ParameterNameChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            // check for empty
+            // check for starting with non-letter
+            // check for special symbols
+            // check for matching other parameter names
+            // if not valid and _isValid, then _isValid = false;
+            // if valid and !_isValid, then validate all controls
         }
     }
 }

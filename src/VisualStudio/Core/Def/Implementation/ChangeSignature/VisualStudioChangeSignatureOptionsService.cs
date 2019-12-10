@@ -170,14 +170,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
             await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var roleSet = _textEditorFactoryService.CreateTextViewRoleSet(
+            ITextViewRoleSet roleSet = _textEditorFactoryService.CreateTextViewRoleSet(
                 PredefinedTextViewRoles.Editable,
                 PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole);
 
-            var vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
+            IVsTextView vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
 
-            var initView = new[] {
+            INITVIEW[] initView = new[] {
                 new INITVIEW()
                 {
                     fSelectionMargin = 0,
@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IWpfTextView wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
             wpfTextView.TextBuffer.ChangeContentType(_contentType, null);
 
-            return new AddParameterDialog(vsTextLines, vsTextView, wpfTextView);
+            return new AddParameterDialog(new IntellisenseTextBoxViewModel(vsTextView, wpfTextView));
         }
     }
 }

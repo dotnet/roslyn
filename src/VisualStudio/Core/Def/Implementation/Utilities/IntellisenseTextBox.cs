@@ -28,11 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class IntellisenseTextBox : FrameworkElement, IOleCommandTarget
     {
         /// <summary>
-        /// Contains the text in the buffer
-        /// </summary>
-        private readonly IVsTextLines _vsTextLines;
-
-        /// <summary>
         /// IWpfTextView container
         /// </summary>
         private IWpfTextViewHost _textViewHost;
@@ -55,11 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="IntellisenseTextBox"/> class.
         /// </summary>
-        public IntellisenseTextBox(
-            IVsTextLines vsTextLines, IVsTextView vsTextView, IWpfTextView wpfTextView, ContentControl container)
+        public IntellisenseTextBox(IntellisenseTextBoxViewModel viewModel, ContentControl container)
         {
-            this._vsTextLines = vsTextLines;
-            this.InitializeEditorControl(vsTextView, wpfTextView, container);
+            this.InitializeEditorControl(viewModel, container);
         }
 
         /// <summary>
@@ -91,15 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         public string Text
         {
-            get
-            {
-                int length;
-                string text;
-                // TODO why 0?
-                this._vsTextLines.GetLengthOfLine(0, out length);
-                this._vsTextLines.GetLineText(0, 0, 0, length, out text);
-                return text;
-            }
+            get => this._textViewHost.TextView.TextSnapshot.GetText();
         }
 
         ///// <summary>
@@ -107,10 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         ///// </summary>
         protected override int VisualChildrenCount
         {
-            get
-            {
-                return 1;
-            }
+            get => 1;
         }
 
         /// <summary>
@@ -275,15 +257,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Initializes the editor control
         /// </summary>
-        private void InitializeEditorControl(IVsTextView vsTextView, IWpfTextView wpfTextView, ContentControl container)
+        private void InitializeEditorControl(IntellisenseTextBoxViewModel viewModel, ContentControl container)
         {
             IComponentModel componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
 
-            // TODO Set text buffer initial contents
-            // ErrorHandler.ThrowOnFailure(vsTextBuffer.InitializeContent(initialContent, initialContent != null ? initialContent.Length : 0));
-
             // Sets editor options that control its final look
-            IEditorOptions editorOptions = wpfTextView.Properties.GetProperty(typeof(IEditorOptions)) as IEditorOptions;
+            IEditorOptions editorOptions = viewModel.WpfTextView.Properties.GetProperty(typeof(IEditorOptions)) as IEditorOptions;
             editorOptions.SetOptionValue("TextViewHost/ZoomControl", false);
             editorOptions.SetOptionValue(DefaultWpfViewOptions.AppearanceCategory, appearanceCategory);
 
@@ -301,14 +280,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IEditorOperationsFactoryService editorOperationsFactoryService = componentModel.GetService<IEditorOperationsFactoryService>();
             if (editorOperationsFactoryService != null)
             {
-                this._editorOperations = editorOperationsFactoryService.GetEditorOperations(wpfTextView);
+                this._editorOperations = editorOperationsFactoryService.GetEditorOperations(viewModel.WpfTextView);
             }
 
-            ErrorHandler.ThrowOnFailure(vsTextView.AddCommandFilter(this, out this._nextCommandTarget));
+            ErrorHandler.ThrowOnFailure(viewModel.VsTextView.AddCommandFilter(this, out this._nextCommandTarget));
 
             // Get the host control to render the view
             IVsEditorAdaptersFactoryService editorAdapterFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            this._textViewHost = editorAdapterFactory.GetWpfTextViewHost(vsTextView);
+            this._textViewHost = editorAdapterFactory.GetWpfTextViewHost(viewModel.VsTextView);
 
             // For non-blurry text
             TextOptions.SetTextFormattingMode(this._textViewHost.HostControl, TextFormattingMode.Display);

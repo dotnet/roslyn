@@ -24,7 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             Options = Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, true);
         }
 
-        private string GetDocumentText()
+        // TODO do we need to keep this?
+        private static string GetDocumentText()
         {
             return $@"
 {{
