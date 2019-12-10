@@ -2258,10 +2258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddAccessorIfAvailable(indexerMembers, indexer.SetMethod, diagnostics, checkName: true);
             }
 
-            var merged = mergeIndexersAndNonIndexers(membersAndInitializers.NonTypeNonIndexerMembers, indexerMembers);
-
-            var membersByName = merged.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
-            merged.Free();
+            var membersByName = mergeIndexersAndNonIndexers(membersAndInitializers.NonTypeNonIndexerMembers, indexerMembers);
             indexerMembers.Free();
 
             // Merge types into the member dictionary
@@ -2270,7 +2267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return membersByName;
 
             // Merge (already ordered) non-type, non-indexer members with (already ordered) indexer members.
-            static ArrayBuilder<Symbol> mergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
+            static Dictionary<string, ImmutableArray<Symbol>> mergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
             {
                 int nonIndexerCount = nonIndexerMembers.Length;
                 int indexerCount = indexerMembers.Count;
@@ -2306,7 +2303,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     merged.Add(indexerMembers[indexerPos]);
                 }
 
-                return merged;
+                var membersByName = merged.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
+                merged.Free();
+
+                return membersByName;
             }
         }
 

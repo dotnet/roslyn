@@ -216,6 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(newOwner.IsTupleType);
 
+            NamedTypeSymbol newUnderlyingOwner = GetNewUnderlyingOwner(newOwner);
+            return new TupleElementFieldSymbol(newOwner, _underlyingField.OriginalDefinition.AsMember(newUnderlyingOwner), TupleElementIndex, Locations, IsImplicitlyDeclared, correspondingDefaultFieldOpt: null);
+        }
+
+        protected NamedTypeSymbol GetNewUnderlyingOwner(NamedTypeSymbol newOwner)
+        {
             int currentIndex = TupleElementIndex;
             NamedTypeSymbol newUnderlyingOwner = newOwner;
             while (currentIndex >= NamedTypeSymbol.RestIndex)
@@ -224,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 currentIndex -= NamedTypeSymbol.RestIndex;
             }
 
-            return new TupleElementFieldSymbol(newOwner, _underlyingField.OriginalDefinition.AsMember(newUnderlyingOwner), TupleElementIndex, Locations, IsImplicitlyDeclared, correspondingDefaultFieldOpt: null);
+            return newUnderlyingOwner;
         }
     }
 
@@ -338,13 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(newOwner.IsTupleType);
             Debug.Assert(newOwner.TupleElements.Length == this._containingTuple.TupleElements.Length);
 
-            int currentIndex = TupleElementIndex;
-            NamedTypeSymbol newUnderlyingOwner = newOwner;
-            while (currentIndex >= NamedTypeSymbol.RestIndex)
-            {
-                newUnderlyingOwner = (NamedTypeSymbol)newUnderlyingOwner.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.RestIndex].Type;
-                currentIndex -= NamedTypeSymbol.RestIndex;
-            }
+            NamedTypeSymbol newUnderlyingOwner = GetNewUnderlyingOwner(newOwner);
 
             TupleElementFieldSymbol? newCorrespondingDefaultFieldOpt = null;
             if ((object)_correspondingDefaultField != this)

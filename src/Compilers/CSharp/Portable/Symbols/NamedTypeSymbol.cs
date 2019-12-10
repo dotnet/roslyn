@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Construct(typeArguments, unbound: false);
         }
 
-        internal NamedTypeSymbol Construct(ImmutableArray<TypeWithAnnotations> typeArguments, bool unbound, bool constructWithTypeParameters = false)
+        internal NamedTypeSymbol Construct(ImmutableArray<TypeWithAnnotations> typeArguments, bool unbound)
         {
             if (!ReferenceEquals(this, ConstructedFrom))
             {
@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(!unbound || typeArguments.All(TypeWithAnnotationsIsErrorType));
 
-            if (!constructWithTypeParameters && ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))
+            if (ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))
             {
                 return this;
             }
