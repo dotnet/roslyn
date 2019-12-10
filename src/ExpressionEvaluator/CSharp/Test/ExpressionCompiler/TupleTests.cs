@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         [Fact]
         public void DuplicateValueTupleBetweenMscorlibAndLibrary()
         {
-            // TODO2
             var versionTemplate = @"[assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]";
 
             var corlib_cs = @"
