@@ -271,7 +271,7 @@ class C
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                     var children = GetChildren(evalResult);
-                    Verify(children[20],
+                    Verify(children[0],
                         EvalResult("G", "1", "object {int}", null));
                     Verify(children[26],
                         EvalResult("Message", "\"Exception of type 'F' was thrown.\"", "string", null,
@@ -690,9 +690,9 @@ class C
                 EvalResult("Non-Public members", null, "", "new C(), hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
             var nonPublicChildren = GetChildren(children[2]);
             Verify(nonPublicChildren,
+                EvalResult("SomethingPrivate", "3", "object {int}", "(new C()).SomethingPrivate", DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private),
                 EvalResult("InternalCollapsed", "1", "object {int}", "(new C()).InternalCollapsed", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Internal),
-                EvalResult("PrivateCollapsed", "3", "object {int}", "(new C()).PrivateCollapsed", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("SomethingPrivate", "3", "object {int}", "(new C()).SomethingPrivate", DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private));
+                EvalResult("PrivateCollapsed", "3", "object {int}", "(new C()).PrivateCollapsed", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
         }
     }
 }

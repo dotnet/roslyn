@@ -252,38 +252,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 int adjustComparison(int comp)
                 {
-                    // Members with underscore prefix come first
-                    var xUnderscore = xName.Length > 0 && xName[0] == '_';
-                    var yUnderscore = yName.Length > 0 && yName[0] == '_';
-                    if (xUnderscore && yUnderscore)
+                    // Field members come first
+                    var xIsField = x.MemberType == MemberTypes.Field;
+                    var yIsField = y.MemberType == MemberTypes.Field;
+                    if (xIsField && yIsField)
                     {
                         return comp;
                     }
-                    if (xUnderscore && !yUnderscore)
+                    if (xIsField && !yIsField)
                     {
                         return -1;
                     }
-                    if (yUnderscore)
+                    if (yIsField)
                     {
                         return 1;
                     }
-
-                    // Members with letter+underscore prefix (ie. m_member) come second
-                    var xLetterUnderscore = xName.Length > 1 && xName[1] == '_';
-                    var yLetterUnderscore = yName.Length > 1 && yName[1] == '_';
-                    if (xLetterUnderscore && yLetterUnderscore)
-                    {
-                        return comp;
-                    }
-                    if (xLetterUnderscore && !yLetterUnderscore)
-                    {
-                        return -1;
-                    }
-                    if (yLetterUnderscore)
-                    {
-                        return 1;
-                    }
-
 
                     return comp;
                 }

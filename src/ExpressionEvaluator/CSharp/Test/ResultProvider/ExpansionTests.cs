@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
+                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("@_", "null", "object", "(new C()).@_", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_a", "null", "string", "(new C())._a", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite));
+                EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact, WorkItem(40179, "https://github.com/dotnet/roslyn/issues/40179")]
@@ -120,13 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
+                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("@_", "null", "object", "(new C()).@_", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_a", "null", "string", "(new C())._a", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("m_a", "null", "string", "(new C()).m_a", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("m_z", "null", "object", "(new C()).m_z", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite));
+                EvalResult("m_z", "null", "object", "(new C()).m_z", DkmEvaluationResultFlags.CanFavorite));
         }
 
         /// <summary>
@@ -1290,14 +1290,14 @@ class C
             // A a = new A();
             var more = GetChildren(children[0]);
             Verify(more,
-                EvalResult("I.M4", "4", "int", "((I)(new C()).a).M4", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("M1", "0", "int", "(new C()).a.M1", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("M2", "8", "int", "(new C()).a.M2", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("M3", "7", "int", "(new C()).a.M3", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("M7", "5", "int", "(new C()).a.M7", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("m0", "1", "int", "(new C()).a.m0", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("m4", "3", "int", "(new C()).a.m4", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("m5", "2", "int", "(new C()).a.m5", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("I.M4", "4", "int", "((I)(new C()).a).M4", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("M2", "8", "int", "(new C()).a.M2", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("M3", "7", "int", "(new C()).a.M3", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("M7", "5", "int", "(new C()).a.M7", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("m6", "6", "int", "(new C()).a.m6", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             // B b = new B();
@@ -1306,14 +1306,14 @@ class C
                 EvalResult("Static members", null, "", "B", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             more = GetChildren(more[0]);
             Verify(more,
-                EvalResult("M0", "6", "int", "B.M0", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("M1", "7", "int", "B.M1", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("M4", "4", "int", "B.M4", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("M5", "5", "int", "B.M5", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("m2", "0", "int", "B.m2"),
                 EvalResult("m3", "1", "int", "B.m3"),
                 EvalResult("m6", "2", "int", "B.m6"),
-                EvalResult("m7", "3", "int", "B.m7"));
+                EvalResult("m7", "3", "int", "B.m7"),
+                EvalResult("M0", "6", "int", "B.M0", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("M1", "7", "int", "B.M1", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("M4", "4", "int", "B.M4", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("M5", "5", "int", "B.M5", DkmEvaluationResultFlags.ReadOnly));
         }
 
         /// <summary>
@@ -1615,8 +1615,8 @@ struct S
 
             var children = GetChildren(FormatResult("s", CreateDkmClrValue(value)));
             Verify(children,
-                EvalResult("This", "'s.This' threw an exception of type 'System.Exception'", "S {System.Exception}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
+                EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("This", "'s.This' threw an exception of type 'System.Exception'", "S {System.Exception}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
@@ -1659,10 +1659,10 @@ class EProxy
 
             var children = GetChildren(FormatResult("s", CreateDkmClrValue(value)));
             Verify(children,
-                EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
+                EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
 
-            children = GetChildren(children[0]);
+            children = GetChildren(children[1]);
             Verify(children,
                 EvalResult("z", "1", "int", null),
                 EvalResult("Raw View", null, "", "s.This, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown, DkmEvaluationResultCategory.Data));
@@ -1696,16 +1696,16 @@ struct S
                     var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
+                        EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite),
                         EvalResult(
                             "This",
                             "'s.This' threw an exception of type 'System.NullReferenceException'",
                             "S {System.NullReferenceException}",
                             "s.This",
-                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
-                        EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
 
                     // NOTE: The real EE will show only the exception message, but our mock does not support autoexp.
-                    children = GetChildren(children[0]);
+                    children = GetChildren(children[1]);
                     Verify(children[25],
                         EvalResult("Message", "\"Object reference not set to an instance of an object.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                 }
@@ -1744,9 +1744,9 @@ class E : System.Exception
                     var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
-                        EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
-                        EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
-                    children = GetChildren(children[0]);
+                        EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite),
+                        EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
+                    children = GetChildren(children[1]);
                     Verify(children[25],
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                 }
@@ -1969,12 +1969,12 @@ class C
                         EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
                         EvalResult("Q", "{E: Exception of type 'E' was thrown.}", "object {E}", "o.Q", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
                     var moreChildren = GetChildren(children[0]);
-                    Verify(moreChildren[20],
+                    Verify(moreChildren[0],
                         EvalResult("F", "1", "object {int}", null));
                     Verify(moreChildren[26],
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                     moreChildren = GetChildren(children[1]);
-                    Verify(moreChildren[20],
+                    Verify(moreChildren[0],
                         EvalResult("F", "2", "object {int}", "((E)o.Q).F", DkmEvaluationResultFlags.CanFavorite));
                     Verify(moreChildren[26],
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", "((System.Exception)o.Q).Message", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));

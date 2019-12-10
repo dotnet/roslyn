@@ -351,6 +351,8 @@ class C : IEnumerator<int>
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
+                    EvalResult("c", "{int[3]}", "int[]", "o.c", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("i", "0", "int", "o.i", DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "System.Collections.Generic.IEnumerator<int>.Current",
                         "1",
@@ -362,9 +364,7 @@ class C : IEnumerator<int>
                         "1",
                         "object {int}",
                         "((System.Collections.IEnumerator)o).Current",
-                        DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("c", "{int[3]}", "int[]", "o.c", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
-                    EvalResult("i", "0", "int", "o.i", DkmEvaluationResultFlags.CanFavorite));
+                        DkmEvaluationResultFlags.ReadOnly));
             }
         }
 
@@ -921,9 +921,9 @@ class C
                     EvalResult("<>3__parameter", "0", "int", null, DkmEvaluationResultFlags.CanFavorite),
                     EvalResult("<>l__initialThreadId", UnspecifiedValue, "int", null, DkmEvaluationResultFlags.CanFavorite),
                     EvalResult("<i>5__2", "0", "int", null, DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.CanFavorite),
                     EvalResult("System.Collections.Generic.IEnumerator<int>.Current", "0", "int", "((System.Collections.Generic.IEnumerator<int>)sm).Current", DkmEvaluationResultFlags.ReadOnly),
                     EvalResult("System.Collections.IEnumerator.Current", "0", "object {int}", "((System.Collections.IEnumerator)sm).Current", DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.CanFavorite),
                     EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, raw, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
 
                 // Regular view
@@ -935,9 +935,9 @@ class C
 
                 children = GetChildren(evalResult);
                 Verify(children,
+                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.CanFavorite),
                     EvalResult("System.Collections.Generic.IEnumerator<int>.Current", "0", "int", "((System.Collections.Generic.IEnumerator<int>)sm).Current", DkmEvaluationResultFlags.ReadOnly),
                     EvalResult("System.Collections.IEnumerator.Current", "0", "object {int}", "((System.Collections.IEnumerator)sm).Current", DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("parameter", "0", "int", "sm.parameter", DkmEvaluationResultFlags.CanFavorite),
                     EvalResult("Results View", "Expanding the Results View will enumerate the IEnumerable", "", "sm, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             }
         }

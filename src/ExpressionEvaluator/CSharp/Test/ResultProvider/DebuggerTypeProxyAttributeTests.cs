@@ -1054,9 +1054,9 @@ class P
             var children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("A", "1", "object {int}", "new P(new C()).A"),
+                EvalResult("D", "0", "object {int}", "new P(new C()).D"),
                 EvalResult("B", "3", "object {int}", "new P(new C()).B", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("C", "2", "object {int}", "new P(new C()).C", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("D", "0", "object {int}", "new P(new C()).D"),
                 EvalResult("Raw View", null, "", "new C(), raw", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
 
