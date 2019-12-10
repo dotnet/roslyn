@@ -3684,7 +3684,7 @@ csharp_style_expression_bodied_methods = false:silent
         }
 
         [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestNaming_CamelCase_LocalFunctionSettingsDontApply()
+        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDontApply()
         {
             var input = @"
 <Workspace>
@@ -3734,6 +3734,81 @@ class Program1
     private static bool NewMethod()
     {
         return true;
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*]
+# Naming rules
+
+dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
+dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
+
+# Symbol specifications
+
+dotnet_naming_symbols.local_functions.applicable_kinds = local_function
+dotnet_naming_symbols.local_functions.applicable_accessibilities = *
+dotnet_naming_symbols.local_functions.required_modifiers = 
+
+# Naming styles
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDontApply_GetName()
+        {
+            var input = @"
+<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+class MethodExtraction
+{
+    void TestMethod()
+    {
+        int a = [|1 + 1|];
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*]
+# Naming rules
+
+dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
+dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
+
+# Symbol specifications
+
+dotnet_naming_symbols.local_functions.applicable_kinds = local_function
+dotnet_naming_symbols.local_functions.applicable_accessibilities = *
+dotnet_naming_symbols.local_functions.required_modifiers = 
+
+# Naming styles
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class MethodExtraction
+{
+    void TestMethod()
+    {
+        int a = {|Rename:GetA|}();
+    }
+
+    private static int GetA()
+    {
+        return 1 + 1;
     }
 }
         </Document>
