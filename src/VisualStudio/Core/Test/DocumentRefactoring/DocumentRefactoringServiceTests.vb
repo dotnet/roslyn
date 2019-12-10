@@ -38,8 +38,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DocumentRefactoring
 
                 Assert.True(typeDeclarationPairs.Any())
 
-                Dim matchingTypeDeclarationPair = typeDeclarationPairs.FirstOrDefault(Function(p) String.Equals(p.Item2, Path.GetFileNameWithoutExtension(document.FilePath), StringComparison.OrdinalIgnoreCase))
-                Assert.NotEqual(Nothing, matchingTypeDeclarationPair)
+                Dim matchingTypeDeclarationPair = typeDeclarationPairs.Where(Function(p) String.Equals(p.Item2, Path.GetFileNameWithoutExtension(document.FilePath), StringComparison.OrdinalIgnoreCase))
+                Assert.Single(matchingTypeDeclarationPair)
             End If
         End Function
 
