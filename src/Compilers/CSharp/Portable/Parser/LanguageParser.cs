@@ -7056,9 +7056,11 @@ done:;
                 _termState |= TerminatorState.IsSwitchSectionStart;
             }
 
+            int lastTokenPosition = -1;
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken
                 && this.CurrentToken.Kind != SyntaxKind.EndOfFileToken
-                && !(stopOnSwitchSections && this.IsPossibleSwitchSection()))
+                && !(stopOnSwitchSections && this.IsPossibleSwitchSection())
+                && IsMakingProgress(ref lastTokenPosition))
             {
                 if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
@@ -7138,7 +7140,6 @@ done:;
                 case SyntaxKind.VolatileKeyword:
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.ExternKeyword:
-                case SyntaxKind.OpenBracketToken:
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -7155,6 +7156,9 @@ done:;
                 case SyntaxKind.InternalKeyword:
                 case SyntaxKind.ProtectedKeyword:
                 case SyntaxKind.PrivateKeyword:
+                // PROTOTYPE(local-function-attributes): We should unconditionally accept attribute lists on statements
+                // in parsing and then give an error on statement kinds that don't support attributes during binding.
+                case SyntaxKind.OpenBracketToken:
                     return acceptAccessibilityMods;
                 default:
                     return IsPredefinedType(tk)

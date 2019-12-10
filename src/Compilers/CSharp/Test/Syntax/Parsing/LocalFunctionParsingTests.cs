@@ -772,55 +772,6 @@ class C
                     N(SyntaxKind.EndOfFileToken);
                 }
                 EOF();
-                N(SyntaxKind.CompilationUnit);
-                {
-                    N(SyntaxKind.ClassDeclaration);
-                    {
-                        N(SyntaxKind.ClassKeyword);
-                        N(SyntaxKind.IdentifierToken, "C");
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.MethodDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.VoidKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "M");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.LocalFunctionStatement);
-                                {
-                                    N(SyntaxKind.ExternKeyword);
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.VoidKeyword);
-                                    }
-                                    N(SyntaxKind.IdentifierToken, "local");
-                                    N(SyntaxKind.ParameterList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                    N(SyntaxKind.Block);
-                                    {
-                                        N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.CloseBraceToken);
-                                    }
-                                }
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                    N(SyntaxKind.EndOfFileToken);
-                }
-                EOF();
             }
         }
 
@@ -843,23 +794,6 @@ class C
 
             void verifyTree()
             {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.ObjectKeyword);
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "obj");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                EOF();
                 N(SyntaxKind.LocalDeclarationStatement);
                 {
                     N(SyntaxKind.ExternKeyword);
