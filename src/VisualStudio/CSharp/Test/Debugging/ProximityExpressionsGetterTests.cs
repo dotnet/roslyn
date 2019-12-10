@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -19,9 +20,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
     [UseExportProvider]
     public partial class ProximityExpressionsGetterTests
     {
+        private static string s_lazyTestFileContent;
+
+        private static string GetTestFileContent()
+        {
+            if (s_lazyTestFileContent == null)
+            {
+                using var stream = typeof(ProximityExpressionsGetterTests).Assembly.GetManifestResourceStream("ProximityExpressionsGetterTestFile.cs");
+                using var reader = new StreamReader(stream, Encoding.UTF8);
+                s_lazyTestFileContent = reader.ReadToEnd();
+            }
+
+            return s_lazyTestFileContent;
+        }
+
         private SyntaxTree GetTree()
         {
-            return SyntaxFactory.ParseSyntaxTree(Resources.ProximityExpressionsGetterTestFile);
+            return SyntaxFactory.ParseSyntaxTree(GetTestFileContent());
         }
 
         private SyntaxTree GetTreeFromCode(string code)
@@ -33,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         {
             Console.WriteLine(typeof(FactAttribute));
 
-            var text = Resources.ProximityExpressionsGetterTestFile;
-            using var workspace = TestWorkspace.CreateCSharp(text);
+            using var workspace = TestWorkspace.CreateCSharp(GetTestFileContent());
             var languageDebugInfo = new CSharpLanguageDebugInfoService();
 
             var hostdoc = workspace.Documents.First();

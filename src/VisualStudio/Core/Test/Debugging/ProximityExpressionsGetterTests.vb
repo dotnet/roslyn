@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -19,8 +20,22 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
     Partial Public Class ProximityExpressionsGetterTests
 
+        Private Shared s_lazyTestFileContent As String
+
+        Private Shared Function GetTestFileContent() As String
+            If s_lazyTestFileContent Is Nothing Then
+                Using stream = GetType(ProximityExpressionsGetterTests).Assembly.GetManifestResourceStream("ProximityExpressionsGetterTestFile.vb")
+                    Using reader = New StreamReader(stream, Encoding.UTF8)
+                        s_lazyTestFileContent = reader.ReadToEnd()
+                    End Using
+                End Using
+            End If
+
+            Return s_lazyTestFileContent
+        End Function
+
         Public Function GetTree() As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(Resources.ProximityExpressionsGetterTestFile)
+            Return SyntaxFactory.ParseSyntaxTree(GetTestFileContent())
         End Function
 
         ''' <summary>
@@ -29,8 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         ''' folder in this project.
         ''' </summary>
         Public Async Function GenerateBaselineAsync() As Task
-            Dim text = Resources.ProximityExpressionsGetterTestFile
-            Using workspace = TestWorkspace.CreateVisualBasic(text)
+            Using workspace = TestWorkspace.CreateVisualBasic(GetTestFileContent())
                 Dim languageDebugInfo = New VisualBasicLanguageDebugInfoService()
 
                 Dim hostdoc = workspace.Documents.First()
