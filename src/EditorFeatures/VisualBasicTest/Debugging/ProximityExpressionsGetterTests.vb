@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 
         Private Shared Function GetTestFileContent() As String
             If s_lazyTestFileContent Is Nothing Then
-                Using stream = GetType(ProximityExpressionsGetterTests).Assembly.GetManifestResourceStream("ProximityExpressionsGetterTestFile.vb")
+                Using stream = GetType(ProximityExpressionsGetterTests).Assembly.GetManifestResourceStream("Debugging/ProximityExpressionsGetterTestFile.vb")
                     Using reader = New StreamReader(stream, Encoding.UTF8)
                         s_lazyTestFileContent = reader.ReadToEnd()
                     End Using
