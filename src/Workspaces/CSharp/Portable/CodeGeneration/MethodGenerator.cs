@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddFormatterAndCodeGeneratorAnnotationsTo(localFunctionDeclaration);
         }
 
-        // issue: multiple methods seem to use workspace so have to be careful with removal
         private static MethodDeclarationSyntax UseExpressionBodyIfDesired(
             CodeGenerationOptions options, MethodDeclarationSyntax methodDeclaration, ParseOptions parseOptions)
         {
