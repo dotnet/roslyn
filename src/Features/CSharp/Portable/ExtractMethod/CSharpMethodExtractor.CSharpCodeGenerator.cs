@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -215,6 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var isAsync = this.CSharpSelectionResult.ShouldPutAsyncModifier();
                 var isStatic = !this.AnalyzerResult.UseInstanceMember;
                 var isReadOnly = this.AnalyzerResult.ShouldBeReadOnly;
+
+                if (LocalFunction && !this.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value)
+                {
+                    isStatic = false;
+                }
 
                 return new DeclarationModifiers(
                     isUnsafe: isUnsafe,

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 private string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
                 {
-                    var preferLocalFunctionNameCamelCase = methodName.Equals("newMethod");
+                    var preferLocalFunctionCamelCaseName = methodName.Equals("newMethod");
 
                     if (expression.Parent != null &&
                         expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         expression.Parent.Parent.Kind() == SyntaxKind.VariableDeclarator)
                     {
                         var name = ((VariableDeclaratorSyntax)expression.Parent.Parent).Identifier.ValueText;
-                        return (name != null && name.Length > 0) ? MakeMethodName("Get", name, LocalFunction, preferLocalFunctionNameCamelCase) : methodName;
+                        return (name != null && name.Length > 0) ? MakeMethodName("Get", name, LocalFunction, preferLocalFunctionCamelCaseName) : methodName;
                     }
 
                     if (expression is MemberAccessExpressionSyntax memberAccess)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                         var unqualifiedNameIdentifierValueText = unqualifiedName.Identifier.ValueText;
                         return (unqualifiedNameIdentifierValueText != null && unqualifiedNameIdentifierValueText.Length > 0) ?
-                            MakeMethodName("Get", unqualifiedNameIdentifierValueText, LocalFunction, preferLocalFunctionNameCamelCase) : methodName;
+                            MakeMethodName("Get", unqualifiedNameIdentifierValueText, LocalFunction, preferLocalFunctionCamelCaseName) : methodName;
                     }
 
                     return methodName;
