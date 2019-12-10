@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected readonly TSyntaxContext _context;
         protected readonly bool _filterOutOfScopeLocals;
         protected readonly CancellationToken _cancellationToken;
+        private readonly StringComparer _stringComparerForLanguage;
 
         public AbstractRecommendationServiceRunner(
             TSyntaxContext context,
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             CancellationToken cancellationToken)
         {
             _context = context;
+            _stringComparerForLanguage = _context.GetLanguageService<ISyntaxFactsService>().StringComparer;
             _filterOutOfScopeLocals = filterOutOfScopeLocals;
             _cancellationToken = cancellationToken;
         }
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         {
             if (!string.IsNullOrEmpty(argumentName))
             {
-                parameterType = method.Parameters.FirstOrDefault(p => p.Name == argumentName)?.Type;
+                parameterType = method.Parameters.FirstOrDefault(p => _stringComparerForLanguage.Equals(p.Name, argumentName))?.Type;
                 return parameterType != null;
             }
 
