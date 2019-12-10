@@ -10231,10 +10231,15 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod()
+        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_NonInteractive()
         {
             var markup = @"
 using System;
+
+static class CExtensions
+{
+    public static void X(this C x, Action<string> y) { }
+}
 
 class C
 {
@@ -10243,14 +10248,27 @@ class C
         new C().X(t => Console.WriteLine(t.$$));
     }
 }
+";
+            await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Regular);
+        }
 
-static class CExtensions
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_Interactive()
+        {
+            var markup = @"
+using System;
+
+public static void X(this C x, Action<string> y) { }
+
+public class C
 {
-    public static void X(this C x, Action<string> y) { }
+    void Test()
+    {
+        new C().X(t => Console.WriteLine(t.$$));
+    }
 }
 ";
-
-            await VerifyItemExistsAsync(markup, "Length");
+            await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
