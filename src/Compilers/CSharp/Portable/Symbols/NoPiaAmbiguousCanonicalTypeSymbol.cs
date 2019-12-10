@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            Debug.Assert(false); // TODO2 untested
             return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate, newData);
         }
 

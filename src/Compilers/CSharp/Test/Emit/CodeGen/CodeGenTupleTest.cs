@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using TestResources.SymbolsTests;
 using Xunit;
 using static TestResources.NetFX.ValueTuple;
 
@@ -236,6 +235,30 @@ namespace System
                 //             this.Item2 = item2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(11, 18)
                 );
+        }
+
+        [Fact]
+        public void ValueTupleWithDifferentNamesInOperator()
+        {
+            var source = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+        public static bool operator +((T1 a, T2 b) t) => throw null;
+        public static bool operator true((T1 a, T2 b) t) => throw null;
+        public static bool operator false((T1 a, T2 b) t) => throw null;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            Debug.Assert(false); // TODO2 untested
             return new NoPiaIllegalGenericInstantiationSymbol(_exposingModule, _underlyingSymbol);
         }
 

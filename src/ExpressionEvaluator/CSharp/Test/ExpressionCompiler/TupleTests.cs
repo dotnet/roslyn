@@ -136,8 +136,8 @@ namespace System
 
                 AssertEx.SetEqual(new[] {
                         "Object, System, AssemblyReference:corlib",
-                        "ValueTuple`2, System, AssemblyReference:" + appRef, // ValueTuple comes from app, not corlib
-                        ", System, AssemblyReference:" + appRef },
+                        "ValueTuple`2, System, AssemblyReference:" + appRef // ValueTuple comes from app, not corlib
+                    },
                     reader.DumpTypeReferences());
             }
         }

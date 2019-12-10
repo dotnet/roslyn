@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            Debug.Assert(false); // TODO2 untested
             return new UnboundArgumentErrorTypeSymbol(_name, _errorInfo, newData);
         }
 

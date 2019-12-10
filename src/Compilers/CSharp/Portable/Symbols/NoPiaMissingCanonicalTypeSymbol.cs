@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            Debug.Assert(false); // TODO2 untested
             return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier, newData);
         }
 
