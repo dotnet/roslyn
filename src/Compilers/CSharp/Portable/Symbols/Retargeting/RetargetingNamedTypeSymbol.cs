@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        public RetargetingNamedTypeSymbol(RetargetingModuleSymbol retargetingModule, NamedTypeSymbol underlyingType, TupleUncommonData tupleData = null)
+        public RetargetingNamedTypeSymbol(RetargetingModuleSymbol retargetingModule, NamedTypeSymbol underlyingType, TupleExtraData tupleData = null)
             : base(underlyingType, tupleData)
         {
             Debug.Assert((object)retargetingModule != null);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             _retargetingModule = retargetingModule;
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
             return new RetargetingNamedTypeSymbol(_retargetingModule, _underlyingType, newData);
         }

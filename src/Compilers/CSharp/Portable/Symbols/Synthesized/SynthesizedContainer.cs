@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             => throw ExceptionUtilities.Unreachable;
 
         /// <summary>

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AssemblySymbol embeddingAssembly,
             NamedTypeSymbol firstCandidate,
             NamedTypeSymbol secondCandidate,
-            TupleUncommonData tupleData = null)
+            TupleExtraData tupleData = null)
             : base(tupleData)
         {
             _embeddingAssembly = embeddingAssembly;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _secondCandidate = secondCandidate;
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
             Debug.Assert(false); // TODO2 untested
             return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate, newData);

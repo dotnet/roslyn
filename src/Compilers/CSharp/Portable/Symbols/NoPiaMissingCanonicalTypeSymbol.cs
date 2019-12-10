@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string guid,
             string scope,
             string identifier,
-            TupleUncommonData tupleData = null)
+            TupleExtraData tupleData = null)
             : base(tupleData)
         {
             _embeddingAssembly = embeddingAssembly;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _identifier = identifier;
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
             Debug.Assert(false); // TODO2 untested
             return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier, newData);

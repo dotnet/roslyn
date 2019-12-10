@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _hasNoBaseCycles;
 
         // Only the compiler can create NamedTypeSymbols.
-        internal NamedTypeSymbol(TupleUncommonData tupleData = null)
+        internal NamedTypeSymbol(TupleExtraData tupleData = null)
         {
             _lazyTupleData = tupleData;
         }

@@ -623,8 +623,7 @@ class C
     {
         return (i, S).GetHashCode();
     }
-}
-",
+}",
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 
@@ -638,8 +637,7 @@ class C
     {
         return System.HashCode.Combine(i, S);
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]

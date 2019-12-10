@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.EnumUnderlyingType); // No work to do for this.
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             => throw ExceptionUtilities.Unreachable;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

@@ -60,14 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly DiagnosticInfo _errorInfo;
 
-        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo errorInfo, TupleUncommonData tupleData = null)
+        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo errorInfo, TupleExtraData tupleData = null)
             : base(tupleData)
         {
             _name = name;
             _errorInfo = errorInfo;
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
             Debug.Assert(false); // TODO2 untested
             return new UnboundArgumentErrorTypeSymbol(_name, _errorInfo, newData);

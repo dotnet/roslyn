@@ -123,8 +123,7 @@ class Program : Goo
 
 class [|Program|] : Base
 {
-}
-",
+}",
 @"abstract class Base
 {
     protected abstract (int a, int b) Method((string, string d) x);
@@ -136,8 +135,7 @@ class Program : Base
     {
         throw new System.NotImplementedException();
     }
-}
-");
+}");
         }
 
         [WorkItem(543234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]

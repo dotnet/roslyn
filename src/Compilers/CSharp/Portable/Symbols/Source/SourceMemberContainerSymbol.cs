@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamespaceOrTypeSymbol containingSymbol,
             MergedTypeDeclaration declaration,
             DiagnosticBag diagnostics,
-            TupleUncommonData tupleData = null)
+            TupleExtraData tupleData = null)
             : base(tupleData)
         {
             _containingSymbol = containingSymbol;

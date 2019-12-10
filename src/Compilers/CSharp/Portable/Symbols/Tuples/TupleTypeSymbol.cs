@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string TupleTypeName = "ValueTuple";
         internal const string RestFieldName = "Rest";
 
-        private TupleUncommonData? _lazyTupleData;
+        private TupleExtraData? _lazyTupleData;
 
         /// <summary>
         /// Helps create a tuple type from source.
@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(IsTupleType);
             Debug.Assert(newElementNames.IsDefault || this.TupleElementTypesWithAnnotations.Length == newElementNames.Length);
-            return WithTupleData(new TupleUncommonData(this.TupleUnderlyingType!, newElementNames, newElementLocations, errorPositions, locations));
+            return WithTupleData(new TupleExtraData(this.TupleUnderlyingType!, newElementNames, newElementLocations, errorPositions, locations));
         }
 
-        private NamedTypeSymbol WithTupleData(TupleUncommonData newData)
+        private NamedTypeSymbol WithTupleData(TupleExtraData newData)
         {
             Debug.Assert(IsTupleType);
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithTupleDataCore(newData);
         }
 
-        protected abstract NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData);
+        protected abstract NamedTypeSymbol WithTupleDataCore(TupleExtraData newData);
 
         /// <summary>
         /// Decompose the underlying tuple type into its links and store them into the underlyingTupleTypeChain.
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsTupleType
             => IsTupleTypeOfCardinality(tupleCardinality: out _);
 
-        internal TupleUncommonData? TupleData
+        internal TupleExtraData? TupleData
         {
             get
             {
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_lazyTupleData is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyTupleData, new TupleUncommonData(this), null);
+                    Interlocked.CompareExchange(ref _lazyTupleData, new TupleExtraData(this), null);
                 }
 
                 return _lazyTupleData;
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The main purpose of this type is to store element names and also cache some information related to tuples.
         /// </summary>
-        internal sealed class TupleUncommonData
+        internal sealed class TupleExtraData
         {
             /// <summary>
             /// Element names, if provided.
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal NamedTypeSymbol TupleUnderlyingType { get; }
 
-            internal TupleUncommonData(NamedTypeSymbol underlyingType)
+            internal TupleExtraData(NamedTypeSymbol underlyingType)
             {
                 Debug.Assert(underlyingType is object);
                 Debug.Assert(underlyingType.IsTupleType);
@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Locations = ImmutableArray<Location>.Empty;
             }
 
-            internal TupleUncommonData(NamedTypeSymbol underlyingType, ImmutableArray<string> elementNames,
+            internal TupleExtraData(NamedTypeSymbol underlyingType, ImmutableArray<string> elementNames,
                 ImmutableArray<Location> elementLocations, ImmutableArray<bool> errorPositions, ImmutableArray<Location> locations)
                 : this(underlyingType)
             {
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Locations = locations.NullToEmpty();
             }
 
-            internal bool EqualsIgnoringTupleUnderlyingType(TupleUncommonData? other)
+            internal bool EqualsIgnoringTupleUnderlyingType(TupleExtraData? other)
             {
                 if (other is null && this.ElementNames.IsDefault && this.ElementLocations.IsDefault && this.ErrorPositions.IsDefault)
                 {
@@ -1041,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     && compareElementLocations(other)
                     && compareErrorPosition(other);
 
-                bool compareElementNames(TupleUncommonData other)
+                bool compareElementNames(TupleExtraData other)
                 {
                     if (this.ElementNames.IsDefault && other.ElementNames.IsDefault)
                     {
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.ElementNames.SequenceEqual(other.ElementNames, (n1, n2) => string.Equals(n1, n2, StringComparison.Ordinal));
                 }
 
-                bool compareElementLocations(TupleUncommonData other)
+                bool compareElementLocations(TupleExtraData other)
                 {
                     if (this.ElementLocations.IsDefault && other.ElementLocations.IsDefault)
                     {
@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.ElementLocations.SequenceEqual(other.ElementLocations, (l1, l2) => object.Equals(l1, l2));
                 }
 
-                bool compareErrorPosition(TupleUncommonData other)
+                bool compareErrorPosition(TupleExtraData other)
                 {
                     if (this.ErrorPositions.IsDefault && other.ErrorPositions.IsDefault)
                     {

@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Only the compiler should create error symbols.
-        internal ErrorTypeSymbol(TupleUncommonData tupleData = null)
+        internal ErrorTypeSymbol(TupleExtraData tupleData = null)
             : base(tupleData)
         {
         }
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ErrorTypeSymbol _originalDefinition;
         private int _hashCode;
 
-        protected SubstitutedErrorTypeSymbol(ErrorTypeSymbol originalDefinition, TupleUncommonData tupleData = null)
+        protected SubstitutedErrorTypeSymbol(ErrorTypeSymbol originalDefinition, TupleExtraData tupleData = null)
             : base(tupleData)
         {
             _originalDefinition = originalDefinition;
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
         private readonly TypeMap _map;
 
-        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, TupleUncommonData tupleData = null) :
+        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, TupleExtraData tupleData = null) :
             base((ErrorTypeSymbol)constructedFrom.OriginalDefinition, tupleData)
         {
             _constructedFrom = constructedFrom;
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations);
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
             return new ConstructedErrorTypeSymbol(_constructedFrom, _typeArgumentsWithAnnotations, tupleData: newData);
         }
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _map; }
         }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             => throw ExceptionUtilities.Unreachable;
     }
 }

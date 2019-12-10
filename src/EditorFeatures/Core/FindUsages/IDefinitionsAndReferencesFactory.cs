@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // that we can accurately resolve the type later on when we try to navigate to it.
             if (!definition.IsTupleField())
             {
+                // In an earlier implementation of the compiler APIs, tuples and tuple fields symbols were definitions
+                // We pretend this is still the case
                 definition = definition.OriginalDefinition;
             }
 

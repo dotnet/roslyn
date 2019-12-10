@@ -2284,7 +2284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
-            protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
                 => throw ExceptionUtilities.Unreachable;
 
             public override int Arity
@@ -2346,7 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _mangleName = mangleName;
             }
 
-            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
                 => throw ExceptionUtilities.Unreachable;
 
             public override int Arity
