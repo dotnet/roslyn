@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,9 +32,9 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity severity,
                 int warningLevel,
                 Location location,
-                IEnumerable<Location> additionalLocations,
-                object[] messageArgs,
-                ImmutableDictionary<string, string> properties,
+                IEnumerable<Location>? additionalLocations,
+                object[]? messageArgs,
+                ImmutableDictionary<string, string>? properties,
                 bool isSuppressed)
             {
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
@@ -56,9 +58,9 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity severity,
                 int warningLevel,
                 Location location,
-                IEnumerable<Location> additionalLocations,
-                object[] messageArgs,
-                ImmutableDictionary<string, string> properties,
+                IEnumerable<Location>? additionalLocations,
+                object[]? messageArgs,
+                ImmutableDictionary<string, string>? properties,
                 bool isSuppressed = false)
             {
                 return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs, properties, isSuppressed);
@@ -67,8 +69,8 @@ namespace Microsoft.CodeAnalysis
             internal static SimpleDiagnostic Create(string id, LocalizableString title, string category, LocalizableString message, LocalizableString description, string helpLink,
                                       DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity,
                                       bool isEnabledByDefault, int warningLevel, Location location,
-                                      IEnumerable<Location> additionalLocations, IEnumerable<string> customTags,
-                                      ImmutableDictionary<string, string> properties, bool isSuppressed = false)
+                                      IEnumerable<Location>? additionalLocations, IEnumerable<string>? customTags,
+                                      ImmutableDictionary<string, string>? properties, bool isSuppressed = false)
             {
                 var descriptor = new DiagnosticDescriptor(id, title, message,
                      category, defaultSeverity, isEnabledByDefault, description, helpLink, customTags.ToImmutableArrayOrEmpty());
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis
                 get { return _descriptor.Id; }
             }
 
-            public override string GetMessage(IFormatProvider formatProvider = null)
+            public override string? GetMessage(IFormatProvider? formatProvider = null)
             {
                 if (_messageArgs.Length == 0)
                 {
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis
                 get { return _properties; }
             }
 
-            public override bool Equals(Diagnostic obj)
+            public override bool Equals(Diagnostic? obj)
             {
                 var other = obj as SimpleDiagnostic;
                 if (other == null)
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis
 
             internal override Diagnostic WithLocation(Location location)
             {
-                if (location == null)
+                if (location is null)
                 {
                     throw new ArgumentNullException(nameof(location));
                 }

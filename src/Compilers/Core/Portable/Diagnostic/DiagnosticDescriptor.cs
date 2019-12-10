@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -81,8 +83,8 @@ namespace Microsoft.CodeAnalysis
             string category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
-            string description = null,
-            string helpLinkUri = null,
+            string? description = null,
+            string? helpLinkUri = null,
             params string[] customTags)
             : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
         {
@@ -118,8 +120,8 @@ namespace Microsoft.CodeAnalysis
             string category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
-            LocalizableString description = null,
-            string helpLinkUri = null,
+            LocalizableString? description = null,
+            string? helpLinkUri = null,
             params string[] customTags)
             : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
         {
@@ -132,8 +134,8 @@ namespace Microsoft.CodeAnalysis
             string category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
-            LocalizableString description,
-            string helpLinkUri,
+            LocalizableString? description,
+            string? helpLinkUri,
             ImmutableArray<string> customTags)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             this.CustomTags = customTags;
         }
 
-        public bool Equals(DiagnosticDescriptor other)
+        public bool Equals(DiagnosticDescriptor? other)
         {
             return
                 other != null &&
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 this.Title.Equals(other.Title);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as DiagnosticDescriptor);
         }

@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (firstDeclaratingErrorOpt != null)
                     {
                         var location = firstDeclaratingErrorOpt.Location;
-                        DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree.FilePath : location.MetadataModule.Name);
+                        DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree!.FilePath : location.MetadataModule!.Name);
 
                         return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray<RudeEditDiagnostic>.Empty, hasSemanticErrors: true);
                     }

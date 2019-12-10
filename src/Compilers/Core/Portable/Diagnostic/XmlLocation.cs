@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Xml.Linq;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             return _positionSpan;
         }
 
-        public bool Equals(XmlLocation other)
+        public bool Equals(XmlLocation? other)
         {
             if (ReferenceEquals(this, other))
             {
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis
             return other != null && other._positionSpan.Equals(_positionSpan);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as XmlLocation);
         }

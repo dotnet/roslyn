@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis
 
             _writer.Write("level", GetLevel(diagnostic.Severity));
 
-            string message = diagnostic.GetMessage(_culture);
-            if (!string.IsNullOrEmpty(message))
+            string? message = diagnostic.GetMessage(_culture);
+            if (!RoslynString.IsNullOrEmpty(message))
             {
                 _writer.Write("message", message);
             }
@@ -149,14 +149,14 @@ namespace Microsoft.CodeAnalysis
                     _writer.WriteObjectStart(pair.Key); // rule
                     _writer.Write("id", descriptor.Id);
 
-                    string shortDescription = descriptor.Title.ToString(_culture);
-                    if (!string.IsNullOrEmpty(shortDescription))
+                    string? shortDescription = descriptor.Title.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(shortDescription))
                     {
                         _writer.Write("shortDescription", shortDescription);
                     }
 
-                    string fullDescription = descriptor.Description.ToString(_culture);
-                    if (!string.IsNullOrEmpty(fullDescription))
+                    string? fullDescription = descriptor.Description.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(fullDescription))
                     {
                         _writer.Write("fullDescription", fullDescription);
                     }
