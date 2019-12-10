@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NoPiaAmbiguousCanonicalTypeSymbol(
             AssemblySymbol embeddingAssembly,
             NamedTypeSymbol firstCandidate,
-            NamedTypeSymbol secondCandidate)
+            NamedTypeSymbol secondCandidate,
+            TupleUncommonData tupleData = null)
+            : base(tupleData)
         {
             _embeddingAssembly = embeddingAssembly;
             _firstCandidate = firstCandidate;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
         {
             Debug.Assert(false); // TODO2 untested
-            return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate) { _lazyTupleData = newData };
+            return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate, newData);
         }
 
         internal override bool MangleName

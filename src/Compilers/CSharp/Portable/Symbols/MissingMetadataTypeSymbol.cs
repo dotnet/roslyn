@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly int arity;
         protected readonly bool mangleName;
 
-        private MissingMetadataTypeSymbol(string name, int arity, bool mangleName)
+        private MissingMetadataTypeSymbol(string name, int arity, bool mangleName, TupleUncommonData tupleData = null)
+            : base(tupleData)
         {
             Debug.Assert(name != null);
 
@@ -132,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private int _lazyTypeId = -1;
 
-            public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName)
-                : base(name, arity, mangleName)
+            public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName, TupleUncommonData tupleData = null)
+                : base(name, arity, mangleName, tupleData)
             {
                 Debug.Assert((object)module != null);
                 Debug.Assert(@namespace != null);
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
             {
                 Debug.Assert(false); // TODO2 untested
-                return new TopLevel(_containingModule, _namespaceName, Name, Arity, MangleName) { _lazyTupleData = newData };
+                return new TopLevel(_containingModule, _namespaceName, Name, Arity, MangleName, newData);
             }
 
             /// <summary>

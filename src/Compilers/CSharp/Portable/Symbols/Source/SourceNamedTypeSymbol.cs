@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return backupLocation;
         }
 
-        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
-            : base(containingSymbol, declaration, diagnostics)
+        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, DiagnosticBag diagnostics, TupleUncommonData tupleData = null)
+            : base(containingSymbol, declaration, diagnostics, tupleData)
         {
             Debug.Assert(declaration.Kind == DeclarationKind.Struct ||
                          declaration.Kind == DeclarationKind.Interface ||
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
         {
-            return new SourceNamedTypeSymbol(ContainingType, declaration, new DiagnosticBag()) { _lazyTupleData = newData };
+            return new SourceNamedTypeSymbol(ContainingType, declaration, new DiagnosticBag(), newData);
         }
 
         #region Syntax

@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // lazily created, does not need to be unique
         private ConcurrentCache<string, ImmutableArray<Symbol>> _lazyMembersByNameCache;
 
-        protected SubstitutedNamedTypeSymbol(Symbol newContainer, TypeMap map, NamedTypeSymbol originalDefinition, NamedTypeSymbol constructedFrom = null, bool unbound = false)
-            : base(originalDefinition)
+        protected SubstitutedNamedTypeSymbol(Symbol newContainer, TypeMap map, NamedTypeSymbol originalDefinition, NamedTypeSymbol constructedFrom = null, bool unbound = false, TupleUncommonData tupleData = null)
+            : base(originalDefinition, tupleData)
         {
             Debug.Assert(originalDefinition.IsDefinition);
             Debug.Assert(!originalDefinition.IsErrorType());

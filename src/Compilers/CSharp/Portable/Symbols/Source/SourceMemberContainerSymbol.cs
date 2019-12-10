@@ -181,7 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceMemberContainerTypeSymbol(
             NamespaceOrTypeSymbol containingSymbol,
             MergedTypeDeclaration declaration,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            TupleUncommonData tupleData = null)
+            : base(tupleData)
         {
             _containingSymbol = containingSymbol;
             this.declaration = declaration;

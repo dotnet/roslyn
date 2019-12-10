@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string fullTypeName,
             string guid,
             string scope,
-            string identifier)
+            string identifier,
+            TupleUncommonData tupleData = null)
+            : base(tupleData)
         {
             _embeddingAssembly = embeddingAssembly;
             _fullTypeName = fullTypeName;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
         {
             Debug.Assert(false); // TODO2 untested
-            return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier) { _lazyTupleData = newData };
+            return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier, newData);
         }
 
         public AssemblySymbol EmbeddingAssembly

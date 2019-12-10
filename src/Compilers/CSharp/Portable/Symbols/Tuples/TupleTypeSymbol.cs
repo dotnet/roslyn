@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string TupleTypeName = "ValueTuple";
         internal const string RestFieldName = "Rest";
 
-        protected TupleUncommonData? _lazyTupleData; // Could be marked as initonly once we have such a feature
+        private TupleUncommonData? _lazyTupleData;
 
         /// <summary>
         /// Helps create a tuple type from source.
