@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// use of this field or derived types should be synchronized with <see cref="_readerWriterLock"/> to ensure
         /// you don't grab the field and then use it while shutdown continues.
         /// </summary>
-        private IVsSmartOpenScope SmartOpenScopeServiceOpt { get; set; }
+        private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
         internal IVsFileChangeEx FileChangeService { get; }
 
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var buffer = SharedPools.ByteArray.Allocate();
 
-            var read = 0;
+            int read;
             var left = length;
             while ((read = source.Read(buffer, 0, Math.Min(left, buffer.Length))) != 0)
             {
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private ModuleMetadata TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
+        private ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
         {
             if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out var info, out var pImage, out var length))
             {
@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, out IMetaDataInfo info, out IntPtr pImage, out long length)
+        private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)]out IMetaDataInfo? info, out IntPtr pImage, out long length)
         {
             // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
             // doesn't race against 
