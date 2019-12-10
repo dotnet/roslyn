@@ -27,11 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var span = projectionSnapshot.GetSourceSpans()[1];
             var mappedSpans = projectionSnapshot.MapFromSourceSnapshot(span);
             var elisionBuffer =
-                ProjectionBufferFactoryService.CreateElisionBuffer(/*resolver=*/null,
-                                            new NormalizedSnapshotSpanCollection(
-                                                new[]{ new SnapshotSpan(dataModel.DocumentBuffer.CurrentSnapshot, mappedSpans[0])
-                                             }),
-                                            ElisionBufferOptions.None);
+                ProjectionBufferFactoryService.CreateElisionBuffer(
+                    projectionEditResolver: null,
+                    exposedSpans: new NormalizedSnapshotSpanCollection(
+                        new[] { new SnapshotSpan(dataModel.DocumentBuffer.CurrentSnapshot, mappedSpans[0]) }),
+                    options: ElisionBufferOptions.None);
 
             return new ElisionBufferTextViewModel(dataModel, elisionBuffer);
         }

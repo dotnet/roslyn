@@ -42,15 +42,15 @@
             <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
             <Border Grid.Row="0" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <ContentControl x:Name="TypeNameContentControl" Focusable="True" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" Margin="100,0,100,15" BorderBrush="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" />            </Border>
             <Label Grid.Row="1" Grid.Column="0" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
-            <TextBox Grid.Row="1" Grid.Column="1" Width="200" Text="{Binding ParameterName}" Margin="100,0,100,15" />
+            <TextBox Grid.Row="1" Grid.Column="1" Width="200" Text="{Binding ParameterName, Mode=TwoWay}" Margin="100,0,100,15" TextChanged="TextBox_ParameterNameChanged" />
             <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />
-            <TextBox Grid.Row="2" Grid.Column="1" Width="200" Text="{Binding CallsiteValue}" Margin="100,0,100,15" />
+            <TextBox Grid.Row="2" Grid.Column="1" Width="200" Text="{Binding CallsiteValue, Mode=TwoWay}" Margin="100,0,100,15" />
         </Grid>
         <StackPanel Grid.Row="1" 
                     HorizontalAlignment="Right" 
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal" Width="153">
-            <vs:DialogButton x:Uid="OKButton" 
+            <vs:DialogButton x:Uid="OKButton" x:Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Margin="0, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
