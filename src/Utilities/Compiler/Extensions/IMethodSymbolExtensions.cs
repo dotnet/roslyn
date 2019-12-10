@@ -220,14 +220,17 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method has the signature "Task DisposeAsync()".
+        /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()".
         /// </summary>
-        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? task)
+        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method,
+            INamedTypeSymbol? task,
+            INamedTypeSymbol? valueTask)
         {
             return method.Name == "DisposeAsync" &&
                 method.MethodKind == MethodKind.Ordinary &&
-                method.ReturnType.Equals(task) &&
-                method.Parameters.IsEmpty;
+                method.Parameters.IsEmpty &&
+                (method.ReturnType.Equals(task) ||
+                 method.ReturnType.Equals(valueTask));
         }
 
         /// <summary>
@@ -249,8 +252,10 @@ namespace Analyzer.Utilities.Extensions
         public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
         {
             INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
             INamedTypeSymbol? task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
-            return method.GetDisposeMethodKind(iDisposable, task);
+            INamedTypeSymbol? valueTask = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            return method.GetDisposeMethodKind(iDisposable, iAsyncDisposable, task, valueTask);
         }
 
         /// <summary>
@@ -259,9 +264,11 @@ namespace Analyzer.Utilities.Extensions
         public static DisposeMethodKind GetDisposeMethodKind(
             this IMethodSymbol method,
             INamedTypeSymbol? iDisposable,
-            INamedTypeSymbol? task)
+            INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? task,
+            INamedTypeSymbol? valueTask)
         {
-            if (method.ContainingType.IsDisposable(iDisposable))
+            if (method.ContainingType.IsDisposable(iDisposable, iAsyncDisposable))
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (Equals(method.ContainingType, iDisposable) &&
@@ -273,7 +280,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return DisposeMethodKind.DisposeBool;
                 }
-                else if (method.HasDisposeAsyncMethodSignature(task))
+                else if (method.HasDisposeAsyncMethodSignature(task, valueTask))
                 {
                     return DisposeMethodKind.DisposeAsync;
                 }
