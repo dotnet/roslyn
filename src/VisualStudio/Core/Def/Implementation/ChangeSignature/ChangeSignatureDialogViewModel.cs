@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly List<ParameterViewModel> _parameterGroup2;
         private readonly ParameterViewModel _paramsParameter;
         private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
-        public readonly TextSpan InsertionSpan;
+        public readonly int InsertPosition;
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
@@ -43,14 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ParameterConfiguration parameters,
             ISymbol symbol,
             Document document,
-            TextSpan insertionSpan,
+            int insertPosition,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
             _notificationService = notificationService;
             Document = document;
-            InsertionSpan = insertionSpan;
+            InsertPosition = insertPosition;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
@@ -177,7 +177,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal void Remove()
         {
-            AllParameters[_selectedIndex.Value].IsRemoved = true;
+            if (AllParameters[_selectedIndex.Value] is AddedParameterViewModel)
+            {
+                AllParameters.Remove(AllParameters[_selectedIndex.Value]);
+            }
+            else
+            {
+                AllParameters[_selectedIndex.Value].IsRemoved = true;
+            }
+
             RemoveRestoreNotifyPropertyChanged();
         }
 

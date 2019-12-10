@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
         }
 
-        AddedParameterResult IChangeSignatureOptionsService.GetAddedParameter(Document document, TextSpan insertionSpan)
+        AddedParameterResult IChangeSignatureOptionsService.GetAddedParameter(Document document, int insertPosition)
         {
             throw new System.NotImplementedException();
         }
 
-        ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(ISymbol symbol, TextSpan insertionSpan, ParameterConfiguration parameters, Document document, INotificationService notificationService)
+        ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(ISymbol symbol, int insertPosition, ParameterConfiguration parameters, Document document, INotificationService notificationService)
         {
             var list = parameters.ToListOfParameters();
 

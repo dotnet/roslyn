@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
         ChangeSignatureOptionsResult GetChangeSignatureOptions(
             ISymbol symbol,
-            TextSpan insertionSpan,
+            int insertPosition,
             ParameterConfiguration parameters,
             Document document,
             INotificationService notificationService);
 
-        AddedParameterResult GetAddedParameter(Document document, TextSpan insertionSpan);
+        AddedParameterResult GetAddedParameter(Document document, int insertPosition);
     }
 }

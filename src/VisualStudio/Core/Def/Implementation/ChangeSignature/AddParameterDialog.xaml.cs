@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     /// </summary>
     internal partial class AddParameterDialog : DialogWindow
     {
-        private readonly AddParameterDialogViewModel _viewModel;
-        private readonly IVsTextBuffer _textBuffer;
+        public readonly AddParameterDialogViewModel ViewModel;
+        private readonly IVsTextLines _vsTextLines;
         private readonly IVsTextView _textView;
         private readonly IWpfTextView _wpfTextView;
 
@@ -30,13 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
 
         public AddParameterDialog(
-            AddParameterDialogViewModel viewModel,
-            IVsTextBuffer textBuffer,
+            IVsTextLines vsTextLines,
             IVsTextView vsTextView,
             IWpfTextView wpfTextView)
         {
-            _viewModel = viewModel;
-            _textBuffer = textBuffer;
+            ViewModel = new AddParameterDialogViewModel();
+            _vsTextLines = vsTextLines;
             _textView = vsTextView;
             _wpfTextView = wpfTextView;
             this.Loaded += AddParameterDialog_Loaded;
@@ -47,14 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
             IntellisenseTextBox typeNameTextBox = new IntellisenseTextBox(
-                _textBuffer as IVsTextLines, _textView, _wpfTextView, TypeNameContentControl);
+                _vsTextLines, _textView, _wpfTextView, TypeNameContentControl);
             this.TypeNameContentControl.Content = typeNameTextBox;
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            if (_viewModel.TrySubmit())
+            if (ViewModel.TrySubmit())
             {
+                // TODO maybe we should try binding.
+                ViewModel.TypeName = ((IntellisenseTextBox)TypeNameContentControl.Content).Text;
                 DialogResult = true;
             }
         }

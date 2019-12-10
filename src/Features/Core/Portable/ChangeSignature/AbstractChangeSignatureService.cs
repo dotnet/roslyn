@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return new ChangeSignatureAnalyzedContext(
-                document, symbol, parameterConfiguration, new TextSpan(insertPosition, 0));
+                document, symbol, parameterConfiguration, insertPosition);
         }
 
         private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
                 context.Symbol,
-                context.InsertionSpan,
+                context.InsertPosition,
                 context.ParameterConfiguration,
                 context.Document,
                 notificationService);

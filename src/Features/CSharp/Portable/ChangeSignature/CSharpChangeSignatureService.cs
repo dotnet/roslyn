@@ -146,11 +146,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return parameters != null ? GetParameterIndex(parameters.Parameters, position) : 0;
         }
 
-        // TODO this is a rough algorithm: find the first ( and add 1.
+        // Find the position to insert the new parameter.
+        // We will insert a new comma and a parameter.
         private static int TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<ParameterListSyntax>().SingleOrDefault();
-            return parameters != null ? parameters.OpenParenToken.SpanStart + 1 : 0;
+
+            // TODO should we error process this?
+            if (parameters == null) { return 0; }
+
+            if (parameters.Parameters.Count > 0 &&
+                parameters.Parameters.Last().Modifiers.Any(SyntaxKind.ParamsKeyword))
+            {
+                // (a, b, c, d put here ->, params e)
+                // (a, b, c, d,<- new comma <new parameter> ->, params e)
+                return parameters.Parameters.GetSeparators().Last().SpanStart;
+            }
+
+            // ( put here->)
+            // (,<- new comma for intellisense <new parameter>)
+            //
+            // (a, b, c, d put here->)
+            // (a, b, c, d,<- new comma <new parameter>)
+            return parameters.CloseParenToken.SpanStart;
         }
 
         private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
