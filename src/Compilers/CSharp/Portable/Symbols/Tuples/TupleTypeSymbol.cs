@@ -1036,10 +1036,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                return other is object &&
-                    this.ElementNames == other.ElementNames
+                return other is object
+                    && compareElementNames(other)
                     && compareElementLocations(other)
-                    && this.ErrorPositions == other.ErrorPositions;
+                    && compareErrorPosition(other);
+
+                bool compareElementNames(TupleUncommonData other)
+                {
+                    if (this.ElementNames.IsDefault && other.ElementNames.IsDefault)
+                    {
+                        return true;
+                    }
+
+                    if (this.ElementNames.IsDefault != other.ElementNames.IsDefault)
+                    {
+                        return false;
+                    }
+
+                    return this.ElementNames.SequenceEqual(other.ElementNames, (n1, n2) => string.Equals(n1, n2, StringComparison.Ordinal));
+                }
 
                 bool compareElementLocations(TupleUncommonData other)
                 {
@@ -1055,8 +1070,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return this.ElementLocations.SequenceEqual(other.ElementLocations, (l1, l2) => object.Equals(l1, l2));
                 }
-            }
 
+                bool compareErrorPosition(TupleUncommonData other)
+                {
+                    if (this.ErrorPositions.IsDefault && other.ErrorPositions.IsDefault)
+                    {
+                        return true;
+                    }
+
+                    if (this.ErrorPositions.IsDefault != other.ErrorPositions.IsDefault)
+                    {
+                        return false;
+                    }
+
+                    return this.ErrorPositions.SequenceEqual(other.ErrorPositions, (p1, p2) => p1 == p2);
+                }
+            }
 
             public ImmutableArray<TypeWithAnnotations> TupleElementTypesWithAnnotations(NamedTypeSymbol tuple)
             {
