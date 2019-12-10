@@ -4371,6 +4371,22 @@ class C<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAwaitableMethod()
+        {
+            var markup = @"using System.Threading.Tasks;	
+class C	
+{	
+    async Task Goo()	
+    {	
+        Go$$o();	
+    }	
+}";
+            var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
+
+            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description) });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ObsoleteItem()
         {
             var markup = @"

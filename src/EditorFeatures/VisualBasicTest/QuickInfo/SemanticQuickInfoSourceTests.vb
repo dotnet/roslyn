@@ -1419,8 +1419,7 @@ End Class
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.goo() As Task</File>.ConvertTestSourceTag()
 
-            Await TestFromXmlAsync(markup,
-                 MainDescription(description), Usage(String.Empty))
+            Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 
         <WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")>
