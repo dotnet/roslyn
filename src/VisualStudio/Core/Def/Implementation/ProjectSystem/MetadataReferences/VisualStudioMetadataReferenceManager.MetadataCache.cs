@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -8,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioMetadataReferenceManager
     {
-        private class MetadataCache
+        private sealed class MetadataCache
         {
             private const int InitialCapacity = 64;
             private const int CapacityMultiplier = 2;
@@ -16,11 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly object _gate = new object();
 
             // value is ValueSource so that how metadata is re-acquired back are different per entry. 
-            private readonly Dictionary<FileKey, ValueSource<AssemblyMetadata>> _metadataCache = new Dictionary<FileKey, ValueSource<AssemblyMetadata>>();
+            private readonly Dictionary<FileKey, OptionalValueSource<AssemblyMetadata>> _metadataCache = new Dictionary<FileKey, OptionalValueSource<AssemblyMetadata>>();
 
             private int _capacity = InitialCapacity;
 
-            public bool TryGetMetadata(FileKey key, out AssemblyMetadata metadata)
+            public bool TryGetMetadata(FileKey key, [NotNullWhen(true)]out AssemblyMetadata? metadata)
             {
                 lock (_gate)
                 {
@@ -28,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            public bool TryGetSource(FileKey key, out ValueSource<AssemblyMetadata> source)
+            public bool TryGetSource(FileKey key, [NotNullWhen(true)]out OptionalValueSource<AssemblyMetadata>? source)
             {
                 lock (_gate)
                 {
@@ -36,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private bool TryGetMetadata_NoLock(FileKey key, out AssemblyMetadata metadata)
+            private bool TryGetMetadata_NoLock(FileKey key, [NotNullWhen(true)]out AssemblyMetadata? metadata)
             {
                 if (_metadataCache.TryGetValue(key, out var metadataSource))
                 {
@@ -48,22 +51,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            public bool TryGetOrAddMetadata(FileKey key, ValueSource<AssemblyMetadata> newMetadata, out AssemblyMetadata metadata)
+            /// <summary>
+            /// Gets specified metadata from the cache, or retrieves metadata from given <paramref name="metadataSource"/>
+            /// and adds it to the cache if it's not there yet.
+            /// 
+            /// <paramref name="metadataSource"/> is epxected to to provide metadata at least until this method returns.
+            /// </summary>
+            /// <returns>
+            /// True if the metadata is retrieved from <paramref name="metadataSource"/> source, false if it already exists in the cache.
+            /// </returns>
+            public bool GetOrAddMetadata(FileKey key, OptionalValueSource<AssemblyMetadata> metadataSource, out AssemblyMetadata metadata)
             {
                 lock (_gate)
                 {
-                    if (TryGetMetadata_NoLock(key, out metadata))
+                    if (TryGetMetadata_NoLock(key, out var cachedMetadata))
                     {
+                        metadata = cachedMetadata;
                         return false;
                     }
 
                     EnsureCapacity_NoLock();
 
-                    metadata = newMetadata.GetValue();
-                    Contract.ThrowIfNull(metadata);
+                    var newMetadata = metadataSource.GetValue();
+
+                    // the source is expected to keep the metadata alive at this point
+                    Contract.ThrowIfNull(newMetadata);
 
                     // don't use "Add" since key might already exist with already released metadata
-                    _metadataCache[key] = newMetadata;
+                    _metadataCache[key] = metadataSource;
+                    metadata = newMetadata;
                     return true;
                 }
             }
@@ -77,12 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 using var pooledObject = SharedPools.Default<List<FileKey>>().GetPooledObject();
                 var keysToRemove = pooledObject.Object;
-                foreach (var kv in _metadataCache)
+                foreach (var (fileKey, metadataSource) in _metadataCache)
                 {
                     // metadata doesn't exist anymore. delete it from cache
-                    if (!kv.Value.HasValue)
+                    if (!metadataSource.HasValue)
                     {
-                        keysToRemove.Add(kv.Key);
+                        keysToRemove.Add(fileKey);
                     }
                 }
 

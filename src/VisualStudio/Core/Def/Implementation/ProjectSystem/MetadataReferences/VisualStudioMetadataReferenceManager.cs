@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -67,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Assumes.Present(_temporaryStorageService);
         }
 
-        internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)
+        internal IEnumerable<ITemporaryStreamStorage>? GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
@@ -130,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out var newMetadata))
             {
-                if (!_metadataCache.TryGetOrAddMetadata(key, new WeakConstantValueSource<AssemblyMetadata>(newMetadata), out metadata))
+                if (!_metadataCache.GetOrAddMetadata(key, new WeakValueSource<AssemblyMetadata>(newMetadata), out metadata))
                 {
                     newMetadata.Dispose();
                 }
@@ -143,10 +146,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
 
             // don't dispose assembly metadata since it shares module metadata
-            if (!_metadataCache.TryGetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
             {
                 newMetadata.Dispose();
             }
+
+            // guarantee that the metadata is alive while we add the source to the cache
+            GC.KeepAlive(newMetadata);
 
             return metadata;
         }
@@ -159,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return CreateAssemblyMetadata(fileKey, moduleMetadata, storages, CreateModuleMetadataFromTemporaryStorage);
         }
 
-        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
+        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage>? storages)
         {
             GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream, out var pImage);
 
@@ -169,10 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             s_lifetimeMap.Add(metadata, stream);
 
             // hold onto storage if requested
-            if (storages != null)
-            {
-                storages.Add(storage);
-            }
+            storages?.Add(storage);
 
             return metadata;
         }
@@ -237,9 +240,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, out AssemblyMetadata metadata)
+        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)]out AssemblyMetadata? metadata)
         {
-            metadata = default;
+            metadata = null;
 
             var manifestModule = TryCreateModuleMetadataFromMetadataImporter(fileKey);
             if (manifestModule == null)
@@ -247,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            metadata = CreateAssemblyMetadata(fileKey, manifestModule, null, CreateModuleMetadata);
+            metadata = CreateAssemblyMetadata(fileKey, manifestModule, storages: null, CreateModuleMetadata);
             return true;
         }
 
@@ -266,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
+        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<ITemporaryStreamStorage>? storages)
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
             if (metadata == null)
@@ -315,12 +318,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
         private AssemblyMetadata CreateAssemblyMetadata(
-            FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage> storages,
-            Func<FileKey, List<ITemporaryStreamStorage>, ModuleMetadata> moduleMetadataFactory)
+            FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage>? storages,
+            Func<FileKey, List<ITemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
         {
             var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
-            string assemblyDir = null;
+            string? assemblyDir = null;
             foreach (var moduleName in manifestModule.GetModuleNames())
             {
                 if (moduleBuilder.Count == 0)

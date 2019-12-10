@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A class that abstracts the accessing of a value 
+    /// A class that abstracts the accessing of a value that is guaranteed to be available at some point.
     /// </summary>
     internal abstract class ValueSource<T>
     {

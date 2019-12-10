@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis
                 // Uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
                 // as the text is referenced elsewhere.
                 lazyTextAndVersion = new TreeTextSource(
-                    new CachedWeakValueSource<SourceText>(
+                    new WeaklyCachedValueSource<SourceText>(
                         new AsyncLazy<SourceText>(
                             // Build text from root, so recoverable tree won't cycle.
                             async cancellationToken => (await tree.GetRootAsync(cancellationToken).ConfigureAwait(false)).GetText(encoding),

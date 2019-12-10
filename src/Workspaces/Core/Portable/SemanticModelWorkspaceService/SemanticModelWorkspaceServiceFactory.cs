@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 private const int RebuildThreshold = 3;
 
                 public readonly VersionStamp Version;
-                public readonly ValueSource<Compilation> Compilation;
+                public readonly OptionalValueSource<Compilation> Compilation;
                 public readonly ImmutableDictionary<DocumentId, SyntaxTree> Trees;
 
                 public static async Task<CompilationSet> CreateAsync(Project project, CompilationSet oldCompilationSet, CancellationToken cancellationToken)
@@ -398,11 +398,11 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     return new CompilationSet(version, GetCompilation(project, compilation), map);
                 }
 
-                private CompilationSet(VersionStamp version, ValueSource<Compilation> compilation, ImmutableDictionary<DocumentId, SyntaxTree> map)
+                private CompilationSet(VersionStamp version, OptionalValueSource<Compilation> compilation, ImmutableDictionary<DocumentId, SyntaxTree> map)
                 {
-                    this.Version = version;
-                    this.Compilation = compilation;
-                    this.Trees = map;
+                    Version = version;
+                    Compilation = compilation;
+                    Trees = map;
                 }
 
                 private static ImmutableDictionary<DocumentId, SyntaxTree> GetTreeMap(Project project, Compilation compilation, CompilationSet oldCompilationSet, CancellationToken cancellationToken)
@@ -507,15 +507,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     }
                 }
 
-                private static ValueSource<Compilation> GetCompilation(Project project, Compilation compilation)
+                private static OptionalValueSource<Compilation> GetCompilation(Project project, Compilation compilation)
                 {
                     var cache = project.Solution.Workspace.Services.GetService<IProjectCacheHostService>();
                     if (cache != null && project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId)
                     {
-                        return new WeakConstantValueSource<Compilation>(cache.CacheObjectIfCachingEnabledForKey(project.Id, project, compilation));
+                        return new WeakValueSource<Compilation>(cache.CacheObjectIfCachingEnabledForKey(project.Id, project, compilation));
                     }
 
-                    return new ConstantValueSource<Compilation>(compilation);
+                    return new ConstantOptionalValueSource<Compilation>(compilation);
                 }
 
                 [Conditional("DEBUG")]

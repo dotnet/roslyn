@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioMetadataReferenceManager
     {
-        private class RecoverableMetadataValueSource : ValueSource<AssemblyMetadata>
+        private sealed class RecoverableMetadataValueSource : OptionalValueSource<AssemblyMetadata>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
             private readonly List<ITemporaryStreamStorage> _storages;
@@ -35,7 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return _storages;
             }
 
-            public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
+            public override bool TryGetValue(out AssemblyMetadata value)
+                => _weakValue.TryGetTarget(out value);
+
+            public override Task<AssemblyMetadata?> GetValueAsync(CancellationToken cancellationToken)
+                => Task.FromResult(GetValue(cancellationToken));
+
+            public override AssemblyMetadata? GetValue(CancellationToken cancellationToken)
             {
                 if (_weakValue.TryGetTarget(out var value))
                 {
@@ -73,22 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // memory management.
                 _lifetimeMap.Add(metadata, stream);
                 return metadata;
-            }
-
-            public override bool TryGetValue(out AssemblyMetadata value)
-            {
-                if (_weakValue.TryGetTarget(out value))
-                {
-                    return true;
-                }
-
-                value = default;
-                return false;
-            }
-
-            public override Task<AssemblyMetadata> GetValueAsync(CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetValue(cancellationToken));
             }
         }
     }

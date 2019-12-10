@@ -110,10 +110,9 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = ReadState();
 
-                if (state.Compilation != null)
+                var baseCompilation = state.Compilation?.GetValue(cancellationToken);
+                if (baseCompilation != null)
                 {
-                    var baseCompilation = state.Compilation.GetValue(cancellationToken);
-
                     // We have some pre-calculated state to incrementally update
                     var newInProgressCompilation = clone
                         ? baseCompilation.Clone()
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 return new CompilationTracker(inProgressProject,
-                    new FinalState(new ConstantValueSource<Compilation>(inProgressCompilation), hasSuccessfullyLoaded: false));
+                    new FinalState(new ConstantOptionalValueSource<Compilation>(inProgressCompilation), inProgressCompilation, hasSuccessfullyLoaded: false));
             }
 
             /// <summary>
@@ -350,12 +349,14 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // we are already in the final stage. just return it.
-                        if (state.FinalCompilation != null)
+                        var compilation = state.FinalCompilation?.GetValue(cancellationToken);
+                        if (compilation != null)
                         {
-                            return state.FinalCompilation.GetValue(cancellationToken);
+                            return compilation;
                         }
 
-                        if (state.Compilation == null)
+                        compilation = state.Compilation?.GetValue(cancellationToken);
+                        if (compilation == null)
                         {
                             // let's see whether we have declaration only compilation
                             if (state.DeclarationOnlyCompilation != null)
@@ -370,8 +371,6 @@ namespace Microsoft.CodeAnalysis
                             // We've got nothing.  Build it from scratch :(
                             return await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
                         }
-
-                        var compilation = state.Compilation.GetValue(cancellationToken);
 
                         if (state is FullDeclarationState)
                         {
@@ -404,10 +403,11 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
-                        if (state.FinalCompilation != null)
+                        var finalCompilation = state.FinalCompilation?.GetValue(cancellationToken);
+                        if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(state.FinalCompilation.GetValue(cancellationToken), state.HasSuccessfullyLoaded.Value);
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value);
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -441,17 +441,19 @@ namespace Microsoft.CodeAnalysis
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var state = this.ReadState();
+                var state = ReadState();
 
                 // if we already have a compilation, we must be already done!  This can happen if two
                 // threads were waiting to build, and we came in after the other succeeded.
-                if (state.FinalCompilation != null)
+                var compilation = state.FinalCompilation?.GetValue(cancellationToken);
+                if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return Task.FromResult(new CompilationInfo(state.FinalCompilation.GetValue(cancellationToken), state.HasSuccessfullyLoaded.Value));
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value));
                 }
 
-                if (state.Compilation == null)
+                compilation = state.Compilation?.GetValue(cancellationToken);
+                if (compilation == null)
                 {
                     // this can happen if compilation is already kicked out from the cache.
                     // check whether the state we have support declaration only compilation
@@ -464,8 +466,6 @@ namespace Microsoft.CodeAnalysis
                     // We've got nothing.  Build it from scratch :(
                     return BuildCompilationInfoFromScratchAsync(solution, cancellationToken);
                 }
-
-                var compilation = state.Compilation.GetValue(cancellationToken);
 
                 if (state is FullDeclarationState)
                 {
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis
 
                     compilation = UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(compilation, newReferences, metadataReferenceToProjectId);
 
-                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasSuccessfullyLoaded), solution);
+                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), compilation, hasSuccessfullyLoaded), solution);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);
                 }
