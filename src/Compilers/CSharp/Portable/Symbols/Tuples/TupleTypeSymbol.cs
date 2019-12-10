@@ -214,7 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // This is for the rare case of making a tuple with names inside the definition of a ValueTuple type
-                return this.Construct(this.GetTypeParametersAsTypeArguments(), unbound: false, constructWithTypeParameters: true).WithTupleData(newData);
+                // We don't want to call Construct here, as it has a shortcut that would return `this`, thus causing a loop
+                return this.ConstructCore(this.GetTypeParametersAsTypeArguments(), unbound: false).WithTupleData(newData);
             }
 
             return WithTupleDataCore(newData);
@@ -1054,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                     }
 
-                    return one.SequenceEqual(other, (e1, e2) => (e1 is null && e2 is null) || e1?.Equals(e2) == true);
+                    return one.SequenceEqual(other);
                 }
             }
 
