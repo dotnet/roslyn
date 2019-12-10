@@ -18,7 +18,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefactoring
 {
-    [ExportWorkspaceService(typeof(IDocumentRefactoringService), ServiceLayer.Default), Shared]
+    [Export(typeof(DocumentRefactoringService)), PartNotDiscoverable]
+    [Export(typeof(IDocumentRefactoringService))]
+    [ExportWorkspaceService(typeof(IDocumentRefactoringService)), Shared]
     internal class DocumentRefactoringService : IDocumentRefactoringService
     {
         public async Task<Solution> UpdateAfterInfoChangeAsync(Document current, Document previous, CancellationToken cancellationToken = default)
@@ -51,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefacto
             var previousDocumentName = previous.Name;
             var matchingTypeDeclarationPair = previousDocumentName is null
                 ? typeDeclarationPairs.First()
-                : typeDeclarationPairs.FirstOrDefault(p => p.Name == Path.GetFileNameWithoutExtension(previousDocumentName));
+                : typeDeclarationPairs.FirstOrDefault(p => p.Name.Equals(Path.GetFileNameWithoutExtension(previousDocumentName), System.StringComparison.OrdinalIgnoreCase));
 
             if (matchingTypeDeclarationPair == default)
             {
