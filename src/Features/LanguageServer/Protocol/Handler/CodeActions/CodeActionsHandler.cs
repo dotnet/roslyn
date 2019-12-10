@@ -40,12 +40,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var result = new ArrayBuilder<object>();
             foreach (var codeAction in codeActions)
             {
-                // Note that we can pass through the params for this
-                // request (like range, filename) because between getcodeaction and runcodeaction there can be no
-                // changes on the IDE side (it will requery for codeactions if there are changes).
+                // Always return the Command instead of a precalculated set of workspace edits. 
+                // The edits will be calculated when the code action is either previewed or 
+                // invoked.
 
-                // Always return the Command instead of a precalculated set of workspace edits. The edits will be
-                // calculated when the code action is either previewed or invoked.
+                // It's safe for the client to pass back the range/filename in the command to run
+                // on the server because the client will always re-issue a get code actions request
+                // before invoking a preview or running the command on the server.
 
                 result.Add(
                     new LSP.Command
