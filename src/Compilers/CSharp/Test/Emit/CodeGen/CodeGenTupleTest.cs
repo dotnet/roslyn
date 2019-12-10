@@ -6309,7 +6309,6 @@ End Class";
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.True(tupleWithoutNames.GetMembers("Item1").Single().Locations.IsEmpty);
-            Assert.True(tupleWithoutNames.GetMembers("Item1").Single().Locations.IsEmpty);
         }
 
         [Fact]
