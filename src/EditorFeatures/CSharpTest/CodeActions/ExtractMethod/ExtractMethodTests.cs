@@ -49,7 +49,7 @@ class C
     void M()
     {
         local();
-        NewMethod1();
+        {|Rename:NewMethod1|}();
 
         Testing = 5;
 
