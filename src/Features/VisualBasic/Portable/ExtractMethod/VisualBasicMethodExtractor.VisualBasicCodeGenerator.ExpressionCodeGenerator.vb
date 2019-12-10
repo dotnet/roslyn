@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return code.SelectionInExpression
                 End Function
 
-                Protected Overrides Function CreateMethodName(localFunction As Boolean) As SyntaxToken
+                Protected Overrides Function CreateMethodName() As SyntaxToken
                     Dim methodName = "NewMethod"
                     Dim containingScope = CType(VBSelectionResult.GetContainingScope(), SyntaxNode)
 

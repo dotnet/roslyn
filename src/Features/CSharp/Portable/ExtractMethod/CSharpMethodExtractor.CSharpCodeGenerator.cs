@@ -11,13 +11,16 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
@@ -31,10 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
+                OptionSet options,
                 bool localFunction,
                 CancellationToken cancellationToken)
             {
-                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult, localFunction);
+                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 return codeGenerator.GenerateAsync(cancellationToken);
             }
 
@@ -42,21 +46,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
+                OptionSet options,
                 bool localFunction)
             {
                 if (ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult))
                 {
-                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, localFunction);
+                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
                 if (SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult))
                 {
-                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, localFunction);
+                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
                 if (MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult))
                 {
-                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, localFunction);
+                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
                 return Contract.FailWithReturn<CSharpCodeGenerator>("Unknown selection");
@@ -66,12 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
+                OptionSet options,
                 bool localFunction)
-                : base(insertionPoint, selectionResult, analyzerResult, localFunction)
+                : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
             {
                 Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
 
-                var nameToken = CreateMethodName(localFunction);
+                var nameToken = CreateMethodName();
                 _methodName = nameToken.WithAdditionalAnnotations(this.MethodNameAnnotation);
             }
 
@@ -777,19 +783,45 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
             }
 
-            protected SyntaxToken CreateMethodNameForStatementGenerators(bool localFunction)
+            protected SyntaxToken GenerateMethodNameForStatementGenerators()
             {
                 var semanticModel = this.SemanticDocument.SemanticModel;
                 var nameGenerator = new UniqueNameGenerator(semanticModel);
                 var scope = this.CSharpSelectionResult.GetContainingScope();
 
                 // If extracting a local function, we want to ensure all local variables are considered when generating a unique name.
-                if (localFunction)
+                if (LocalFunction)
                 {
                     scope = this.CSharpSelectionResult.GetFirstTokenInSelection().Parent;
                 }
 
-                return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, "NewMethod"));
+                return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, GenerateMethodNameFromUserPreference()));
+            }
+
+            protected string GenerateMethodNameFromUserPreference()
+            {
+                var methodName = "NewMethod";
+                if (!LocalFunction)
+                {
+                    return methodName;
+                }
+
+                // For local functions, pascal case and camel case should be the most common and therefore we only consider those cases.
+                var namingPreferences = this.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+                var localFunctionPreferences = namingPreferences.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
+
+                var namingRules = namingPreferences.Rules.NamingRules;
+                var localFunctionKind = new SymbolKindOrTypeKind(MethodKind.LocalFunction);
+                if (LocalFunction)
+                {
+                    if (namingRules.Any(rule => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(localFunctionKind, CreateMethodModifiers(), null)))
+                    {
+                        methodName = "newMethod";
+                    }
+                }
+
+                // We default to pascal case.
+                return methodName;
             }
         }
     }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken);
+        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -57,11 +58,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
+            var options = await analyzeResult.SemanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var generatedCode = await GenerateCodeAsync(
                 insertionPoint.With(expandedDocument),
                 OriginalSelectionResult.With(expandedDocument),
                 analyzeResult.With(expandedDocument),
+                options,
                 cancellationToken).ConfigureAwait(false);
 
             var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
@@ -173,10 +176,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return Tuple.Create(true, status);
         }
 
-        internal static string MakeMethodName(string prefix, string originalName)
+        internal static string MakeMethodName(string prefix, string originalName, bool localFunction = false, bool camelCase = false)
         {
             var startingWithLetter = originalName.ToCharArray().SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);
+
+            if (localFunction && camelCase && !prefix.IsEmpty())
+            {
+                prefix = char.ToLowerInvariant(prefix[0]) + prefix.Substring(1);
+            }
 
             return char.IsUpper(name[0]) ?
                 prefix + name :
