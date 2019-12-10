@@ -4458,7 +4458,7 @@ namespace System
             Assert.Same(vt2, namedTuple.ConstructedFrom);
             Assert.Same(vt2, namedTuple.OriginalDefinition);
             Assert.False(namedTuple.Equals(namedTuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything));
-            Assert.False(namedTuple.Equals(namedTuple.TupleUnderlyingType, TypeCompareKind.IgnoreTupleNames));
+            Assert.True(namedTuple.Equals(namedTuple.TupleUnderlyingType, TypeCompareKind.IgnoreTupleNames));
 
             bool verifyTupleErrorField(FieldSymbol field)
             {

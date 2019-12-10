@@ -1089,6 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public ImmutableArray<TypeWithAnnotations> TupleElementTypesWithAnnotations(NamedTypeSymbol tuple)
             {
+                Debug.Assert(tuple.Equals(TupleUnderlyingType, TypeCompareKind.IgnoreTupleNames));
                 if (_lazyElementTypes.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyElementTypes, collectTupleElementTypesWithAnnotations(tuple));
@@ -1122,48 +1123,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public ImmutableArray<FieldSymbol> TupleElements(NamedTypeSymbol tuple)
             {
+                Debug.Assert(tuple.Equals(TupleUnderlyingType, TypeCompareKind.IgnoreTupleNames));
                 if (_lazyDefaultElementFields.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDefaultElementFields, CollectTupleElementFields(tuple));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDefaultElementFields, collectTupleElementFields(tuple));
                 }
 
                 return _lazyDefaultElementFields;
-            }
 
-            private ImmutableArray<FieldSymbol> CollectTupleElementFields(NamedTypeSymbol tuple)
-            {
-                var builder = ArrayBuilder<FieldSymbol>.GetInstance(TupleElementTypesWithAnnotations(tuple).Length, fillWithValue: null!);
-
-                foreach (var member in tuple.GetMembers())
+                ImmutableArray<FieldSymbol> collectTupleElementFields(NamedTypeSymbol tuple)
                 {
-                    if (member.Kind != SymbolKind.Field)
+                    var builder = ArrayBuilder<FieldSymbol>.GetInstance(TupleElementTypesWithAnnotations(tuple).Length, fillWithValue: null!);
+
+                    foreach (var member in tuple.GetMembers())
                     {
-                        continue;
+                        if (member.Kind != SymbolKind.Field)
+                        {
+                            continue;
+                        }
+
+                        var candidate = (FieldSymbol)member;
+                        var index = candidate.TupleElementIndex;
+
+                        if (index >= 0)
+                        {
+                            if (builder[index]?.IsDefaultTupleElement != false)
+                            {
+                                builder[index] = candidate;
+                            }
+                            else
+                            {
+                                // there is a better field in the slot
+                                // that can only happen if the candidate is default.
+                                Debug.Assert(candidate.IsDefaultTupleElement);
+                            }
+                        }
                     }
 
-                    var candidate = (FieldSymbol)member;
-                    var index = candidate.TupleElementIndex;
+                    Debug.Assert(builder.All(f => f is object));
 
-                    if (index >= 0)
-                    {
-                        if (builder[index]?.IsDefaultTupleElement != false)
-                        {
-                            builder[index] = candidate;
-                        }
-                        else
-                        {
-                            // there is a better field in the slot
-                            // that can only happen if the candidate is default.
-                            Debug.Assert(candidate.IsDefaultTupleElement);
-                        }
-                    }
+                    return builder.ToImmutableAndFree();
                 }
-
-                Debug.Assert(builder.All(f => f is object));
-
-                return builder.ToImmutableAndFree();
             }
-
 
             internal SmallDictionary<Symbol, Symbol> UnderlyingDefinitionToMemberMap
             {
