@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provides a description about a programmatic suppression of a <see cref="Diagnostic"/> by a <see cref="DiagnosticSuppressor"/>.
     /// </summary>
-    public sealed class SuppressionDescriptor : IEquatable<SuppressionDescriptor>
+    public sealed class SuppressionDescriptor : IEquatable<SuppressionDescriptor?>
     {
         /// <summary>
         /// An unique identifier for the suppression.

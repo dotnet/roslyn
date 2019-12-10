@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provides a description about a <see cref="Diagnostic"/>
     /// </summary>
-    public sealed class DiagnosticDescriptor : IEquatable<DiagnosticDescriptor>
+    public sealed class DiagnosticDescriptor : IEquatable<DiagnosticDescriptor?>
     {
         /// <summary>
         /// An unique identifier for the diagnostic.

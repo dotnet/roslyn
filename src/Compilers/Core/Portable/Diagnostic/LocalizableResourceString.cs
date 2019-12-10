@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string? GetText(IFormatProvider? formatProvider)
+        protected override string GetText(IFormatProvider? formatProvider)
         {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// A string that may possibly be formatted differently depending on culture.
     /// NOTE: Types implementing <see cref="LocalizableString"/> must be serializable.
     /// </summary>
-    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>
+    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString?>
     {
         /// <summary>
         /// Fired when an exception is raised by any of the public methods of <see cref="LocalizableString"/>.

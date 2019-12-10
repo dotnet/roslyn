@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             return Comparer.GetHashCode(k);
         }
 
-        public bool TryGetValue(K key, [NotNullWhen(returnValue: true)] out V value)
+        public bool TryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
             if (_root != null)
             {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        private bool TryGetValue(int hashCode, K key, [NotNullWhen(returnValue: true)] out V value)
+        private bool TryGetValue(int hashCode, K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
             RoslynDebug.Assert(_root is object);
             AvlNode? b = _root;
@@ -231,7 +231,7 @@ hasBucket:
             return GetFromList(b.Next, key, out value);
         }
 
-        private bool GetFromList(Node? next, K key, [NotNullWhen(returnValue: true)] out V value)
+        private bool GetFromList(Node? next, K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
             while (next != null)
             {
@@ -393,8 +393,8 @@ hasBucket:
 
         private static AvlNode LeftComplex(AvlNode unbalanced)
         {
-            RoslynDebug.Assert(unbalanced.Right != null);
-            RoslynDebug.Assert(unbalanced.Right.Left != null);
+            RoslynDebug.Assert(unbalanced.Right is object);
+            RoslynDebug.Assert(unbalanced.Right.Left is object);
             var right = unbalanced.Right;
             var rightLeft = right.Left;
             right.Left = rightLeft.Right;

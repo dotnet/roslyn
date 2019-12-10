@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,12 +20,12 @@ namespace Microsoft.CodeAnalysis
 
             public static FixedLocalizableString Create(string? fixedResource)
             {
-                if (string.IsNullOrEmpty(fixedResource))
+                if (RoslynString.IsNullOrEmpty(fixedResource))
                 {
                     return s_empty;
                 }
 
-                return new FixedLocalizableString(fixedResource!);
+                return new FixedLocalizableString(fixedResource);
             }
 
             private FixedLocalizableString(string fixedResource)

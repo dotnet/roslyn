@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a diagnostic, such as a compiler error or a warning, along with the location where it occurred.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public abstract partial class Diagnostic : IEquatable<Diagnostic>, IFormattable
+    public abstract partial class Diagnostic : IEquatable<Diagnostic?>, IFormattable
     {
         internal const string CompilerDiagnosticCategory = "Compiler";
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract override int GetHashCode();
 
-        public abstract bool Equals(Diagnostic obj);
+        public abstract bool Equals(Diagnostic? obj);
 
         private string GetDebuggerDisplay()
         {

@@ -304,9 +304,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="value"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(parameterName: "value")]
-        public static string? ToLower(string value)
+        public static string? ToLower(string? value)
         {
-            if ((object)value == null)
+            if (value is null)
                 return null;
 
             if (value.Length == 0)
