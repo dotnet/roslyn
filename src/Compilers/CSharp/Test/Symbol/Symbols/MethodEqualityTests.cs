@@ -192,11 +192,11 @@ class Class
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetTypeMembers("Class").Single();
-            var classMethodDeclaration = (MethodSymbol)@class.GetMembers("Method").Single();
+            var classMethodDeclaration = (IMethodSymbol)@class.GetMembers("Method").Single();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -210,7 +210,7 @@ class Class
             {
                 var exprStmt = (ExpressionStatementSyntax)stmt;
                 var semanticInfo = model.GetSymbolInfo(exprStmt.Expression);
-                return (MethodSymbol)semanticInfo.Symbol;
+                return (IMethodSymbol)semanticInfo.Symbol;
             }).ToArray();
 
             Assert.Equal(6, invokedMethods.Length);
@@ -234,7 +234,7 @@ class Class
             Assert.Equal(invokedMethods[4], invokedMethods[3]);
 
             //invocations with different type args are not equal
-            var pairWiseNotEqual = new MethodSymbol[]
+            var pairWiseNotEqual = new IMethodSymbol[]
             {
                 invokedMethods[0],
                 invokedMethods[2],

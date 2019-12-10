@@ -2050,8 +2050,8 @@ public struct S1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2065,8 +2065,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2080,8 +2080,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2095,8 +2095,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
@@ -2175,8 +2175,8 @@ public struct S1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2190,8 +2190,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2205,8 +2205,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2220,8 +2220,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -2300,8 +2300,8 @@ public struct S1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2315,8 +2315,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2330,8 +2330,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2345,8 +2345,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -2412,8 +2412,8 @@ interface AttrTest1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2427,8 +2427,8 @@ interface AttrTest1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -2508,8 +2508,8 @@ public struct S2<T>
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2523,8 +2523,8 @@ public struct S2<T>
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2538,8 +2538,8 @@ public struct S2<T>
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2553,8 +2553,8 @@ public struct S2<T>
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]

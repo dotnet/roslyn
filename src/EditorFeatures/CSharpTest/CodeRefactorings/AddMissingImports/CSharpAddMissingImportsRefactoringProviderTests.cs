@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
                 // This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
                 // registered consecutively and that the last registered span wins.
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, default);
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan);
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), default);
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), pastedTextSpan);
             }
 
             return workspace;

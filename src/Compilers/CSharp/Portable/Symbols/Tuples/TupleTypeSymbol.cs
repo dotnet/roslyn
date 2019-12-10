@@ -1457,60 +1457,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.WithUnderlyingType(underlyingType);
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            var otherTuple = other as TupleTypeSymbol;
-            if (otherTuple is null)
+            var mergedUnderlying = (NamedTypeSymbol)this.TupleUnderlyingType.MergeEquivalentTypes(other.TupleUnderlyingType, variance);
+
+            ImmutableArray<string> names1 = TupleElementNames;
+            ImmutableArray<string> names2 = ((TupleTypeSymbol)other).TupleElementNames;
+            ImmutableArray<string> mergedNames;
+            if (names1.IsDefault || names2.IsDefault)
             {
-                return this;
+                mergedNames = default;
             }
-            NamedTypeSymbol underlyingType;
-            if (MergeUnderlyingTypeNullability(_underlyingType, otherTuple._underlyingType, variance, out underlyingType))
+            else
             {
-                return WithUnderlyingType(underlyingType);
-            }
-            return this;
-        }
+                Debug.Assert(names1.Length == names2.Length);
+                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
 
-        private static bool MergeUnderlyingTypeNullability(
-            NamedTypeSymbol typeA,
-            NamedTypeSymbol typeB,
-            VarianceKind variance,
-            out NamedTypeSymbol mergedType)
-        {
-            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-
-            mergedType = null;
-
-            var typeDefinition = typeA.OriginalDefinition;
-            var typeParameters = typeDefinition.TypeParameters;
-            int n = typeParameters.Length;
-            var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
-
-            var typeArgumentsA = typeA.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-            var typeArgumentsB = typeB.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-            bool haveChanges = false;
-            for (int i = 0; i < n; i++)
-            {
-                TypeWithAnnotations typeArgumentA = typeArgumentsA[i];
-                TypeWithAnnotations typeArgumentB = typeArgumentsB[i];
-                TypeWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, variance);
-                allTypeArguments.Add(merged);
-                if (!typeArgumentA.IsSameAs(merged))
+                if (mergedNames.All(n => n == null))
                 {
-                    haveChanges = true;
+                    mergedNames = default;
                 }
             }
 
-            if (haveChanges)
-            {
-                TypeMap substitution = new TypeMap(typeParameters, allTypeArguments.ToImmutable());
-                mergedType = substitution.SubstituteNamedType(typeDefinition);
-            }
-
-            allTypeArguments.Free();
-            return haveChanges;
+            bool namesUnchanged = mergedNames.IsDefault ? TupleElementNames.IsDefault : mergedNames.SequenceEqual(TupleElementNames);
+            return (mergedUnderlying.Equals(TupleUnderlyingType, TypeCompareKind.ConsiderEverything) && namesUnchanged)
+                ? this
+                : Create(mergedUnderlying, mergedNames, this._errorPositions, locationOpt: this.Locations.FirstOrDefault(), this._elementLocations);
         }
 
         #region Use-Site Diagnostics

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = state is InProgressState
                         ? ((InProgressState)state).IntermediateProjects
-                        : ImmutableArray.Create<ValueTuple<ProjectState, CompilationTranslationAction>>();
+                        : ImmutableArray.Create<(ProjectState, CompilationTranslationAction)>();
 
                     var newIntermediateProjects = translate == null
                          ? intermediateProjects
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis
                 // we can use current state as it is since we will replace the document with latest document anyway.
                 if (inProgressState != null &&
                     inProgressCompilation != null &&
-                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t, id)))
+                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
                 {
                     inProgressProject = this.ProjectState;
 
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().Item1 : this.ProjectState;
+                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().state : this.ProjectState;
 
                 // if we already have a final compilation we are done.
                 if (inProgressCompilation != null && state is FinalState)
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis
                         else
                         {
                             // get the latest metadata for the partial compilation of the referenced project.
-                            var metadata = solution.GetPartialMetadataReference(projectReference, this.ProjectState, cancellationToken);
+                            var metadata = solution.GetPartialMetadataReference(projectReference, this.ProjectState);
 
                             if (metadata == null)
                             {
@@ -285,11 +286,9 @@ namespace Microsoft.CodeAnalysis
                 SolutionLogger.CreatePartialProjectState();
             }
 
-            private static bool IsTouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
-            {
-                var touchDocumentAction = tuple.Item2 as CompilationTranslationAction.TouchDocumentAction;
-                return touchDocumentAction != null && touchDocumentAction.DocumentId == id;
-            }
+            private static bool IsTouchDocumentActionForDocument(CompilationTranslationAction action, DocumentId id)
+                => action is CompilationTranslationAction.TouchDocumentAction touchDocumentAction &&
+                   touchDocumentAction.DocumentId == id;
 
             /// <summary>
             /// Gets the final compilation if it is available.
@@ -456,12 +455,12 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We've got nothing.  Build it from scratch :(
-                    return BuildCompilationInfoFromScratchAsync(solution, state, cancellationToken);
+                    return BuildCompilationInfoFromScratchAsync(solution, cancellationToken);
                 }
                 else if (state is FullDeclarationState)
                 {
                     // We have a declaration compilation, use it to reconstruct the final compilation
-                    return this.FinalizeCompilationAsync(solution, compilation, cancellationToken);
+                    return FinalizeCompilationAsync(solution, compilation, cancellationToken);
                 }
                 else if (state is InProgressState inProgress)
                 {
@@ -475,7 +474,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
-                SolutionState solution, State state, CancellationToken cancellationToken)
+                SolutionState solution, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -498,17 +497,25 @@ namespace Microsoft.CodeAnalysis
                 {
                     var compilation = CreateEmptyCompilation();
 
-                    var trees = new SyntaxTree[ProjectState.DocumentIds.Count];
-                    var index = 0;
+                    var trees = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentIds.Count);
                     foreach (var document in this.ProjectState.OrderedDocumentStates)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        trees[index] = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        index++;
+
+                        // Do not include syntax trees for documents whose content failed to load.
+                        // Analyzers should not run on these (empty) syntax trees.
+                        var loadDiagnostic = await document.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+                        if (loadDiagnostic == null)
+                        {
+                            trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        }
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
-                    this.WriteState(new FullDeclarationState(compilation), solution);
+
+                    trees.Free();
+
+                    WriteState(new FullDeclarationState(compilation), solution);
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -562,11 +569,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var intermediateProject = intermediateProjects[0];
-                        var inProgressProject = intermediateProject.Item1;
-                        var action = intermediateProject.Item2;
-
-                        inProgressCompilation = await action.InvokeAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                        inProgressCompilation = await intermediateProjects[0].action.InvokeAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
                         this.WriteState(State.Create(inProgressCompilation, intermediateProjects), solution);
@@ -731,7 +734,7 @@ namespace Microsoft.CodeAnalysis
             /// compilation. Only actual compilation references are returned. Could potentially 
             /// return null if nothing can be provided.
             /// </summary>
-            public MetadataReference GetPartialMetadataReference(SolutionState solution, ProjectState fromProject, ProjectReference projectReference)
+            public MetadataReference GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 var state = this.ReadState();
                 // get compilation in any state it happens to be in right now.

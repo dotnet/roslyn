@@ -2769,7 +2769,7 @@ static class C
 
                 Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: expectedIL);
-                Assert.Equal(SpecialType.System_Int32, testData.GetMethodData(typeName + ".<>m0").Method.ReturnType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((MethodSymbol)testData.GetMethodData(typeName + ".<>m0").Method).ReturnType.SpecialType);
                 locals.Free();
 
                 testData = new CompilationTestData();
@@ -2778,7 +2778,7 @@ static class C
                 Assert.Null(error);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(expectedIL);
-                Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((MethodSymbol)methodData.Method).ReturnType.SpecialType);
             });
         }
 

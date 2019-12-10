@@ -18,7 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void OpenCSharpThenVBSolution()
         {
@@ -46,7 +47,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             base.MetadataReference();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+
         public override void ProjectReference()
         {
             base.ProjectReference();

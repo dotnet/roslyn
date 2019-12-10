@@ -138,6 +138,9 @@
   <data name="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3" xml:space="preserve">
     <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
   </data>
+  <data name="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4" xml:space="preserve">
+    <value>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</value>
+  </data>
   <data name="Could_not_find_location_to_generation_symbol_into" xml:space="preserve">
     <value>Could not find location to generation symbol into.</value>
   </data>
@@ -164,6 +167,12 @@
   </data>
   <data name="Adding_projects_is_not_supported" xml:space="preserve">
     <value>Adding projects is not supported.</value>
+  </data>
+  <data name="Workspace_error" xml:space="preserve">
+    <value>Workspace error</value>
+  </data>
+  <data name="Error_reading_content_of_source_file_0_1" xml:space="preserve">
+    <value>Error reading content of source file '{0}' -- '{1}'.</value>
   </data>
   <data name="Workspace_is_not_empty" xml:space="preserve">
     <value>Workspace is not empty.</value>
@@ -1475,5 +1484,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access" xml:space="preserve">
     <value>Adding imports will bring an extension method into scope with the same name as '{0}'</value>
+  </data>
+  <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
+    <value>Document does not support syntax trees</value>
+  </data>
+  <data name="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0" xml:space="preserve">
+    <value>Compilation is required to accomplish the task but is not supported by project {0}.</value>
+  </data>
+  <data name="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0" xml:space="preserve">
+    <value>Syntax tree is required to accomplish the task but is not supported by document {0}.</value>
+  </data>
+  <data name="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution" xml:space="preserve">
+    <value>Project of ID {0} is required to accomplish the task but is not available from the solution</value>
   </data>
 </root>

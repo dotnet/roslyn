@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public Enumerator GetEnumerator()
             => new Enumerator(this);
 
-        public VirtualChar? FirstOrNullable(Func<VirtualChar, bool> predicate)
+        public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
         {
             foreach (var ch in this)
             {

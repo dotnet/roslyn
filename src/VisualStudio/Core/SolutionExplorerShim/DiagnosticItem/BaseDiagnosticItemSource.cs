@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         protected IAnalyzersCommandHandler CommandHandler { get; }
 
         public abstract AnalyzerReference AnalyzerReference { get; }
-        protected abstract BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity);
+        protected abstract BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language);
 
         public abstract object SourceItem { get; }
 
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigSpecificDiagnosticOptions);
-                    return CreateItem(selectedDiagnostic, effectiveSeverity);
+                    return CreateItem(selectedDiagnostic, effectiveSeverity, language);
                 });
         }
 

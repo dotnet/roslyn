@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -84,10 +85,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new NullabilityInfo(ToPublicAnnotation(type, annotation), flowState.ToPublicFlowState());
         }
 
+        internal static ITypeSymbol GetPublicSymbol(this TypeWithAnnotations type)
+        {
+            return type.Type?.GetITypeSymbol(type.ToPublicAnnotation());
+        }
+
+        internal static ImmutableArray<ITypeSymbol> GetPublicSymbols(this ImmutableArray<TypeWithAnnotations> types)
+        {
+            return types.SelectAsArray(t => t.GetPublicSymbol());
+        }
+
         internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this TypeWithAnnotations type) =>
             ToPublicAnnotation(type.Type, type.NullableAnnotation);
 
-        private static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation) =>
+        internal static ImmutableArray<CodeAnalysis.NullableAnnotation> ToPublicAnnotations(this ImmutableArray<TypeWithAnnotations> types) =>
+            types.SelectAsArray(t => t.ToPublicAnnotation());
+
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation) =>
             annotation switch
             {
                 CSharp.NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,

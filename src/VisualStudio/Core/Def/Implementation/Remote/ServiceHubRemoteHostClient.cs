@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
@@ -43,10 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
-        private readonly object _currentRemoteWorkspaceNotificationTaskGate = new object();
-        private Task _currentRemoteWorkspaceNotificationTask = Task.CompletedTask;
-
-        public static async Task<RemoteHostClient> CreateAsync(
+        public static async Task<RemoteHostClient?> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
         {
             try
@@ -80,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public static async Task<ServiceHubRemoteHostClient> CreateWorkerAsync(Workspace workspace, HubClient primary, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            ServiceHubRemoteHostClient client = null;
+            ServiceHubRemoteHostClient? client = null;
             try
             {
                 // let each client to have unique id so that we can distinguish different clients when service is restarted
@@ -127,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 throw;
             }
 
-            static void Shutdown(ServiceHubRemoteHostClient client, Exception ex, CancellationToken cancellationToken)
+            static void Shutdown(ServiceHubRemoteHostClient? client, Exception ex, CancellationToken cancellationToken)
             {
                 // make sure we shutdown client if initializing client has failed.
                 client?.Shutdown();
@@ -161,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override string ClientId => _connectionManager.HostGroup.Id;
 
-        public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
         }
@@ -169,7 +165,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected override void OnStarted()
         {
             RegisterGlobalOperationNotifications();
-            RegisterPersistentStorageLocationServiceChanges();
         }
 
         protected override void OnStopped()
@@ -183,7 +178,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
             UnregisterGlobalOperationNotifications();
-            UnregisterPersistentStorageLocationServiceChanges();
 
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
@@ -300,50 +294,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
             }
-        }
-
-        private void RegisterPersistentStorageLocationServiceChanges()
-        {
-            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
-            if (persistentStorageLocationService != null)
-            {
-                persistentStorageLocationService.StorageLocationChanging += OnPersistentStorageLocationServiceStorageLocationChanging;
-
-                EnqueueStorageLocationChange(Workspace.CurrentSolution.Id, persistentStorageLocationService.TryGetStorageLocation(Workspace.CurrentSolution.Id));
-            }
-        }
-
-        private void OnPersistentStorageLocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
-        {
-            EnqueueStorageLocationChange(e.SolutionId, e.NewStorageLocation);
-
-            if (e.MustUseNewStorageLocationImmediately)
-            {
-                _currentRemoteWorkspaceNotificationTask.Wait();
-            }
-        }
-
-        private void EnqueueStorageLocationChange(SolutionId solutionId, string storageLocation)
-        {
-            lock (_currentRemoteWorkspaceNotificationTaskGate)
-            {
-                _currentRemoteWorkspaceNotificationTask = _currentRemoteWorkspaceNotificationTask.SafeContinueWithFromAsync(_ =>
-                {
-                    return RpcInvokeAsync(nameof(IRemoteHostService.UpdateSolutionStorageLocation), new object[] { solutionId, storageLocation });
-                }, _shutdownCancellationTokenSource.Token, TaskScheduler.Default);
-            }
-        }
-
-        private void UnregisterPersistentStorageLocationServiceChanges()
-        {
-            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
-            if (persistentStorageLocationService != null)
-            {
-                persistentStorageLocationService.StorageLocationChanging -= OnPersistentStorageLocationServiceStorageLocationChanging;
-            }
-
-            // Wait for any remaining tasks to be cleared, otherwise we might have OOP being torn down while we are still running
-            _currentRemoteWorkspaceNotificationTask.Wait();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,13 +20,12 @@ namespace Microsoft.CodeAnalysis.Remote
     internal abstract partial class RemoteHostClient
     {
         public readonly Workspace Workspace;
+        public event EventHandler<bool>? StatusChanged;
 
         protected RemoteHostClient(Workspace workspace)
         {
             Workspace = workspace;
         }
-
-        public event EventHandler<bool> StatusChanged;
 
         /// <summary>
         /// Return an unique string per client.
@@ -35,13 +36,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public abstract string ClientId { get; }
 
         /// <summary>
-        /// Create <see cref="RemoteHostClient.Connection"/> for the <paramref name="serviceName"/> if possible.
+        /// Create <see cref="Connection"/> for the <paramref name="serviceName"/> if possible.
         /// otherwise, return null.
         /// 
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public abstract Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken);
+        public abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
 
         protected abstract void OnStarted();
 
@@ -90,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public override string ClientId => nameof(NoOpClient);
 
-            public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.Default<Connection>();
+                return SpecializedTasks.Default<Connection?>();
             }
 
             protected override void OnStarted()

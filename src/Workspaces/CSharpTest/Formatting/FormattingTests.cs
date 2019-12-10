@@ -9498,5 +9498,27 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(38895, "https://github.com/dotnet/roslyn/issues/38895")]
+        public async Task FormattingNbsp()
+        {
+            await AssertFormatAsync(
+                @"
+class C
+{
+    List<C> list = new List<C>
+    {
+new C()
+    };
+}",
+                @"
+class C
+{
+    List<C> list = new List<C>
+    {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;C()
+    };
+}".Replace("&nbsp;", "\u00A0"));
+        }
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
                 return;
             }
 
-            var firstComment = startToken.LeadingTrivia.FirstOrNullable(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia);
+            var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia);
 
             var startPosition = firstComment.HasValue ? firstComment.Value.SpanStart : startToken.SpanStart;
             var endPosition = endToken.SpanStart;

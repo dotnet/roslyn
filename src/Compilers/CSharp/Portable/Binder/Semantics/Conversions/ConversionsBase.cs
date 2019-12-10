@@ -109,13 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            conversion = GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
             {
                 return conversion;
             }
 
-            return GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
+            // The switch expression conversion is "lowest priority", so that if there is a conversion from the expression's
+            // type it will be preferred over the switch expression conversion.  Technically, we would want the language
+            // specification to say that the switch expression conversion only "exists" if there is no implicit conversion
+            // from the type, and we accomplish that by making it lowest priority.
+            return GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -935,15 +939,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // It has already been subjected to a switch expression conversion.
                     return Conversion.NoConversion;
                 case BoundUnconvertedSwitchExpression switchExpression:
+                    var innerConversions = ArrayBuilder<Conversion>.GetInstance(switchExpression.SwitchArms.Length);
                     foreach (var arm in switchExpression.SwitchArms)
                     {
-                        if (!this.ClassifyConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics).IsImplicit)
+                        var nestedConversion = this.ClassifyImplicitConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics);
+                        if (!nestedConversion.Exists)
                         {
+                            innerConversions.Free();
                             return Conversion.NoConversion;
                         }
+
+                        innerConversions.Add(nestedConversion);
                     }
 
-                    return Conversion.SwitchExpression;
+                    return Conversion.MakeSwitchExpression(innerConversions.ToImmutableAndFree());
                 default:
                     return Conversion.NoConversion;
             }

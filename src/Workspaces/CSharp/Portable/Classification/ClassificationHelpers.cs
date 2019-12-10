@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// </summary>
         /// <param name="token">The token.</param>
         /// <returns>The correct syntactic classification for the token.</returns>
-        public static string GetClassification(SyntaxToken token)
+        public static string? GetClassification(SyntaxToken token)
         {
             if (IsControlKeyword(token))
             {
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        private static string GetClassificationForIdentifier(SyntaxToken token)
+        private static string? GetClassificationForIdentifier(SyntaxToken token)
         {
             if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
             {
                 var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
-                return varDecl.Parent switch
+                return varDecl?.Parent switch
                 {
                     FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName,
                     LocalDeclarationStatementSyntax localDeclarationStatement => localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName,
@@ -343,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
         }
 
-        private static string GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
+        private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
             => identifier.Parent.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,

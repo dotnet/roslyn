@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { "A", "B" }, tupleElementNames);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                var method = methodData.Method;
+                var method = (MethodSymbol)methodData.Method;
                 Assert.True(method.ReturnType.IsTupleType);
                 CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 methodData.VerifyIL(
@@ -177,7 +177,7 @@ class C
                 var customTypeInfoId = result.GetCustomTypeInfo(out customTypeInfo);
                 Assert.Null(customTypeInfo);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                var method = methodData.Method;
+                var method = (MethodSymbol)methodData.Method;
                 Assert.True(method.ReturnType.IsTupleType);
                 CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: false);
                 methodData.VerifyIL(
@@ -219,7 +219,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { "A\u1234", "\u1234B" }, tupleElementNames);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 Assert.True(method.ReturnType.IsTupleType);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
@@ -391,7 +391,7 @@ class C
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Null(tupleElementNames);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                var method = methodData.Method;
+                var method = (MethodSymbol)methodData.Method;
                 CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: false);
                 methodData.VerifyIL(
 @"{
@@ -465,7 +465,7 @@ class C
                 ReadOnlyCollection<string> tupleElementNames;
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(aliasElementNames, tupleElementNames);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = (TypeSymbol)method.ReturnType;
                 Assert.False(returnType.IsTupleType);

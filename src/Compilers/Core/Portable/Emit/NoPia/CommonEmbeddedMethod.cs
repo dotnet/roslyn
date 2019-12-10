@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingMethod).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return ((ISymbolInternal)UnderlyingMethod).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }
