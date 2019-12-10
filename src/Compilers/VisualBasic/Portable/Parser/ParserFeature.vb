@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 
@@ -41,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Enum
 
     Friend Module FeatureExtensions
+
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
@@ -50,130 +51,103 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension>
+        Private Sub Add(md As MultiDictionary(Of Feature, LanguageVersion), keys As Feature(), value As LanguageVersion)
+            Debug.Assert(md IsNot Nothing, $"{NameOf(md)} is null.")
+            Debug.Assert(keys IsNot Nothing, $"{NameOf(keys)} is null.")
+            Debug.Assert(keys.Length > 0, $"{NameOf(keys)} is empty.")
+            For Each key In keys
+                md.Add(key, value)
+            Next
+        End Sub
+
+        Private ReadOnly s_FeatureLanguageVersion As New MultiDictionary(Of Feature, LanguageVersion)() From
+            {
+               {{Feature.AutoProperties,
+                 Feature.LineContinuation,
+                 Feature.StatementLambdas,
+                 Feature.CoContraVariance,
+                 Feature.CollectionInitializers,
+                 Feature.SubLambdas,
+                 Feature.ArrayLiterals}, LanguageVersion.VisualBasic10},
+               {{Feature.AsyncExpressions,
+                 Feature.Iterators,
+                 Feature.GlobalNamespace}, LanguageVersion.VisualBasic11},
+               {{Feature.NullPropagatingOperator,
+                 Feature.NameOfExpressions,
+                 Feature.InterpolatedStrings,
+                 Feature.ReadonlyAutoProperties,
+                 Feature.RegionsEverywhere,
+                 Feature.MultilineStringLiterals,
+                 Feature.CObjInAttributeArguments,
+                 Feature.LineContinuationComments,
+                 Feature.TypeOfIsNot,
+                 Feature.YearFirstDateLiterals,
+                 Feature.WarningDirectives,
+                 Feature.PartialModules,
+                 Feature.PartialInterfaces,
+                 Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite}, LanguageVersion.VisualBasic14},
+               {{Feature.Tuples,
+                 Feature.BinaryLiterals,
+                 Feature.DigitSeparators}, LanguageVersion.VisualBasic15},
+               {{Feature.InferredTupleNames}, LanguageVersion.VisualBasic15_3},
+               {{Feature.LeadingDigitSeparator,
+                 Feature.NonTrailingNamedArguments,
+                 Feature.PrivateProtected}, LanguageVersion.VisualBasic15_5},
+               {{Feature.UnconstrainedTypeParameterInConditional,
+                 Feature.CommentsAfterLineContinuation}, LanguageVersion.VisualBasic16}
+        }
+
+        <Extension>
         Friend Function GetLanguageVersion(feature As Feature) As LanguageVersion
-
-            Select Case feature
-                Case Feature.AutoProperties,
-                     Feature.LineContinuation,
-                     Feature.StatementLambdas,
-                     Feature.CoContraVariance,
-                     Feature.CollectionInitializers,
-                     Feature.SubLambdas,
-                     Feature.ArrayLiterals
-                    Return LanguageVersion.VisualBasic10
-
-                Case Feature.AsyncExpressions,
-                     Feature.Iterators,
-                     Feature.GlobalNamespace
-                    Return LanguageVersion.VisualBasic11
-
-                Case Feature.NullPropagatingOperator,
-                     Feature.NameOfExpressions,
-                     Feature.InterpolatedStrings,
-                     Feature.ReadonlyAutoProperties,
-                     Feature.RegionsEverywhere,
-                     Feature.MultilineStringLiterals,
-                     Feature.CObjInAttributeArguments,
-                     Feature.LineContinuationComments,
-                     Feature.TypeOfIsNot,
-                     Feature.YearFirstDateLiterals,
-                     Feature.WarningDirectives,
-                     Feature.PartialModules,
-                     Feature.PartialInterfaces,
-                     Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
-                    Return LanguageVersion.VisualBasic14
-
-                Case Feature.Tuples,
-                    Feature.BinaryLiterals,
-                    Feature.DigitSeparators
-                    Return LanguageVersion.VisualBasic15
-
-                Case Feature.InferredTupleNames
-                    Return LanguageVersion.VisualBasic15_3
-
-                Case Feature.LeadingDigitSeparator,
-                    Feature.NonTrailingNamedArguments,
-                    Feature.PrivateProtected
-                    Return LanguageVersion.VisualBasic15_5
-
-                Case Feature.UnconstrainedTypeParameterInConditional,
-                    Feature.CommentsAfterLineContinuation
-                    Return LanguageVersion.VisualBasic16
-
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(feature)
-            End Select
-
+            Dim f = s_FeatureLanguageVersion.Item(feature)
+            If Not f.IsEmpty Then
+                Return f.FirstOrDefault()
+            End If
+            Throw ExceptionUtilities.UnexpectedValue(feature)
         End Function
+
+        Private ReadOnly s_FeatureResourceID As New Dictionary(Of Feature, ERRID)() From
+        {
+                {Feature.AutoProperties, ERRID.FEATURE_AutoProperties},
+                {Feature.ReadonlyAutoProperties, ERRID.FEATURE_ReadonlyAutoProperties},
+                {Feature.LineContinuation, ERRID.FEATURE_LineContinuation},
+                {Feature.StatementLambdas, ERRID.FEATURE_StatementLambdas},
+                {Feature.CoContraVariance, ERRID.FEATURE_CoContraVariance},
+                {Feature.CollectionInitializers, ERRID.FEATURE_CollectionInitializers},
+                {Feature.SubLambdas, ERRID.FEATURE_SubLambdas},
+                {Feature.ArrayLiterals, ERRID.FEATURE_ArrayLiterals},
+                {Feature.AsyncExpressions, ERRID.FEATURE_AsyncExpressions},
+                {Feature.Iterators, ERRID.FEATURE_Iterators},
+                {Feature.GlobalNamespace, ERRID.FEATURE_GlobalNamespace},
+                {Feature.NullPropagatingOperator, ERRID.FEATURE_NullPropagatingOperator},
+                {Feature.NameOfExpressions, ERRID.FEATURE_NameOfExpressions},
+                {Feature.RegionsEverywhere, ERRID.FEATURE_RegionsEverywhere},
+                {Feature.MultilineStringLiterals, ERRID.FEATURE_MultilineStringLiterals},
+                {Feature.CObjInAttributeArguments, ERRID.FEATURE_CObjInAttributeArguments},
+                {Feature.LineContinuationComments, ERRID.FEATURE_LineContinuationComments},
+                {Feature.TypeOfIsNot, ERRID.FEATURE_TypeOfIsNot},
+                {Feature.YearFirstDateLiterals, ERRID.FEATURE_YearFirstDateLiterals},
+                {Feature.WarningDirectives, ERRID.FEATURE_WarningDirectives},
+                {Feature.PartialModules, ERRID.FEATURE_PartialModules},
+                {Feature.PartialInterfaces, ERRID.FEATURE_PartialInterfaces},
+                {Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite, ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite},
+                {Feature.DigitSeparators, ERRID.FEATURE_DigitSeparators},
+                {Feature.BinaryLiterals, ERRID.FEATURE_BinaryLiterals},
+                {Feature.Tuples, ERRID.FEATURE_Tuples},
+                {Feature.LeadingDigitSeparator, ERRID.FEATURE_LeadingDigitSeparator},
+                {Feature.PrivateProtected, ERRID.FEATURE_PrivateProtected},
+                {Feature.InterpolatedStrings, ERRID.FEATURE_InterpolatedStrings},
+                {Feature.UnconstrainedTypeParameterInConditional, ERRID.FEATURE_UnconstrainedTypeParameterInConditional},
+                {Feature.CommentsAfterLineContinuation, ERRID.FEATURE_CommentsAfterLineContinuation}
+        }
 
         <Extension>
         Friend Function GetResourceId(feature As Feature) As ERRID
-            Select Case feature
-                Case Feature.AutoProperties
-                    Return ERRID.FEATURE_AutoProperties
-                Case Feature.ReadonlyAutoProperties
-                    Return ERRID.FEATURE_ReadonlyAutoProperties
-                Case Feature.LineContinuation
-                    Return ERRID.FEATURE_LineContinuation
-                Case Feature.StatementLambdas
-                    Return ERRID.FEATURE_StatementLambdas
-                Case Feature.CoContraVariance
-                    Return ERRID.FEATURE_CoContraVariance
-                Case Feature.CollectionInitializers
-                    Return ERRID.FEATURE_CollectionInitializers
-                Case Feature.SubLambdas
-                    Return ERRID.FEATURE_SubLambdas
-                Case Feature.ArrayLiterals
-                    Return ERRID.FEATURE_ArrayLiterals
-                Case Feature.AsyncExpressions
-                    Return ERRID.FEATURE_AsyncExpressions
-                Case Feature.Iterators
-                    Return ERRID.FEATURE_Iterators
-                Case Feature.GlobalNamespace
-                    Return ERRID.FEATURE_GlobalNamespace
-                Case Feature.NullPropagatingOperator
-                    Return ERRID.FEATURE_NullPropagatingOperator
-                Case Feature.NameOfExpressions
-                    Return ERRID.FEATURE_NameOfExpressions
-                Case Feature.RegionsEverywhere
-                    Return ERRID.FEATURE_RegionsEverywhere
-                Case Feature.MultilineStringLiterals
-                    Return ERRID.FEATURE_MultilineStringLiterals
-                Case Feature.CObjInAttributeArguments
-                    Return ERRID.FEATURE_CObjInAttributeArguments
-                Case Feature.LineContinuationComments
-                    Return ERRID.FEATURE_LineContinuationComments
-                Case Feature.TypeOfIsNot
-                    Return ERRID.FEATURE_TypeOfIsNot
-                Case Feature.YearFirstDateLiterals
-                    Return ERRID.FEATURE_YearFirstDateLiterals
-                Case Feature.WarningDirectives
-                    Return ERRID.FEATURE_WarningDirectives
-                Case Feature.PartialModules
-                    Return ERRID.FEATURE_PartialModules
-                Case Feature.PartialInterfaces
-                    Return ERRID.FEATURE_PartialInterfaces
-                Case Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
-                    Return ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
-                Case Feature.DigitSeparators
-                    Return ERRID.FEATURE_DigitSeparators
-                Case Feature.BinaryLiterals
-                    Return ERRID.FEATURE_BinaryLiterals
-                Case Feature.Tuples
-                    Return ERRID.FEATURE_Tuples
-                Case Feature.LeadingDigitSeparator
-                    Return ERRID.FEATURE_LeadingDigitSeparator
-                Case Feature.PrivateProtected
-                    Return ERRID.FEATURE_PrivateProtected
-                Case Feature.InterpolatedStrings
-                    Return ERRID.FEATURE_InterpolatedStrings
-                Case Feature.UnconstrainedTypeParameterInConditional
-                    Return ERRID.FEATURE_UnconstrainedTypeParameterInConditional
-                Case Feature.CommentsAfterLineContinuation
-                    Return ERRID.FEATURE_CommentsAfterLineContinuation
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(feature)
-            End Select
+            Dim id As ERRID = Nothing
+            IF s_FeatureResourceID.TryGetValue(feature, id) Then
+                Return id
+            End If
+            Throw ExceptionUtilities.UnexpectedValue(feature)
         End Function
     End Module
 End Namespace
