@@ -1111,11 +1111,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            if (node is null)
-            {
-                return null;
-            }
-
             // Test if this frame has captured variables and requires the introduction of a closure class.
             if (_frames.TryGetValue(node, out var frame))
             {
@@ -1493,9 +1488,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentTypeParameters = containerAsFrame?.TypeParameters.Concat(synthesizedMethod.TypeParameters) ?? synthesizedMethod.TypeParameters;
             _currentLambdaBodyTypeMap = synthesizedMethod.TypeMap;
 
-            var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
-            CheckLocalsDefined(body);
-            AddSynthesizedMethod(synthesizedMethod, body);
+            if (node.Body is BoundBlock block)
+            {
+                var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(block));
+                CheckLocalsDefined(body);
+                AddSynthesizedMethod(synthesizedMethod, body);
+            }
 
             // return to the old method
 
@@ -1512,11 +1510,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
         {
-            if (body == null)
-            {
-                return;
-            }
-
             if (_synthesizedMethods == null)
             {
                 _synthesizedMethods = ArrayBuilder<TypeCompilationState.MethodWithBody>.GetInstance();

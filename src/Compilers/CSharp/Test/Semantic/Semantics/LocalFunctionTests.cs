@@ -592,6 +592,7 @@ class C
 {
     void M()
     {
+#pragma warning disable 8321 // Unreferenced local function
         [A]
         void local1() { }
 
@@ -607,30 +608,21 @@ class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (9,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         [A]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(9, 9),
-                // (10,14): warning CS8321: The local function 'local1' is declared but never used
-                //         void local1() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(10, 14),
-                // (12,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(10, 9),
+                // (13,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         [return: A]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[return: A]").WithArguments("local function attributes").WithLocation(12, 9),
-                // (13,14): warning CS8321: The local function 'local2' is declared but never used
-                //         void local2() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(13, 14),
-                // (15,14): warning CS8321: The local function 'local3' is declared but never used
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[return: A]").WithArguments("local function attributes").WithLocation(13, 9),
+                // (16,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void local3([A] int i) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local3").WithArguments("local3").WithLocation(15, 14),
-                // (15,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         void local3([A] int i) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(15, 21),
-                // (17,14): warning CS8321: The local function 'local4' is declared but never used
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(16, 21),
+                // (18,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void local4<[A] T>() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local4").WithArguments("local4").WithLocation(17, 14),
-                // (17,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         void local4<[A] T>() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(17, 21));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(18, 21));
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -837,74 +829,168 @@ class C
         public void LocalFunctionExtern_Generic()
         {
             var source = @"
+using System;
 using System.Runtime.InteropServices;
 
-class C1
+class C
 {
 #pragma warning disable 8321 // Unreferenced local function
 
-    void M1()
+    void M()
     {
         [DllImport(""a"")] extern static void local1();
         [DllImport(""a"")] extern static void local2<T>(); // 1
-    }
 
-    void M2<T>()
-    {
-        [DllImport(""a"")] extern static void local3<T2>(); // 2
-    }
-}
-
-class C2<T>
-{
-    void M3()
-    {
-        [DllImport(""a"")] extern static void local4(); // 3
-        [DllImport(""a"")] extern static void local5<T2>(); // 4
-    }
-
-    void M4<T1>()
-    {
-        [DllImport(""a"")] extern static void local6(); // 5
-        [DllImport(""a"")] extern static void local7<T2>(); // 6
-    }
-
-    class CInner1
-    {
-        void M5()
+        void local3()
         {
-            [DllImport(""a"")] extern static void local8(); // 7
-            [DllImport(""a"")] extern static void local9<T2>(); // 8
+            [DllImport(""a"")] extern static void local1();
+            [DllImport(""a"")] extern static void local2<T2>(); // 2
         }
+
+        void local4<T4>()
+        {
+            [DllImport(""a"")] extern static void local1(); // 3
+            [DllImport(""a"")] extern static void local2<T2>(); // 4
+        }
+
+        Action a = () =>
+        {
+            [DllImport(""a"")] extern static void local1();
+            [DllImport(""a"")] extern static void local2<T>(); // 5
+
+            void local3()
+            {
+                [DllImport(""a"")] extern static void local1();
+                [DllImport(""a"")] extern static void local2<T2>(); // 6
+            }
+
+            void local4<T4>()
+            {
+                [DllImport(""a"")] extern static void local1(); // 7
+                [DllImport(""a"")] extern static void local2<T2>(); // 8
+            }
+        };
     }
-}
-";
+}";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (11,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (12,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
                 //         [DllImport("a")] extern static void local2<T>(); // 1
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(11, 10),
-                // (16,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
-                //         [DllImport("a")] extern static void local3<T2>(); // 2
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(16, 10),
-                // (24,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
-                //         [DllImport("a")] extern static void local4(); // 3
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(24, 10),
-                // (25,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
-                //         [DllImport("a")] extern static void local5<T2>(); // 4
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(25, 10),
-                // (30,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
-                //         [DllImport("a")] extern static void local6(); // 5
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(30, 10),
-                // (31,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
-                //         [DllImport("a")] extern static void local7<T2>(); // 6
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(31, 10),
-                // (38,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
-                //             [DllImport("a")] extern static void local8(); // 7
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(38, 14),
-                // (39,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
-                //             [DllImport("a")] extern static void local9<T2>(); // 8
-                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(39, 14));
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(12, 10),
+                // (17,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local2<T2>(); // 2
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(17, 14),
+                // (22,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local1(); // 3
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(22, 14),
+                // (23,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local2<T2>(); // 4
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(23, 14),
+                // (29,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local2<T>(); // 5
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(29, 14),
+                // (34,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local2<T2>(); // 6
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(34, 18),
+                // (39,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local1(); // 7
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(39, 18),
+                // (40,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local2<T2>(); // 8
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(40, 18));
+        }
+
+        [Theory]
+        [InlineData("<CT>", "", "")]
+        [InlineData("", "<MT>", "")]
+        [InlineData("", "", "<LT>")]
+        public void LocalFunctionExtern_Generic_GenericMembers(string classTypeParams, string methodTypeParams, string localFunctionTypeParams)
+        {
+            var source = $@"
+using System;
+using System.Runtime.InteropServices;
+
+class C{classTypeParams}
+{{
+#pragma warning disable 8321 // Unreferenced local function
+
+    void M{methodTypeParams}()
+    {{
+        void localOuter{localFunctionTypeParams}()
+        {{
+            [DllImport(""a"")] extern static void local1(); // 1
+            [DllImport(""a"")] extern static void local2<T>(); // 2
+
+            void local3()
+            {{
+                [DllImport(""a"")] extern static void local1(); // 3
+                [DllImport(""a"")] extern static void local2<T2>(); // 4
+            }}
+
+            void local4<T4>()
+            {{
+                [DllImport(""a"")] extern static void local1(); // 5
+                [DllImport(""a"")] extern static void local2<T2>(); // 6
+            }}
+
+            Action a = () =>
+            {{
+                [DllImport(""a"")] extern static void local1(); // 7
+                [DllImport(""a"")] extern static void local2<T>(); // 8
+
+                void local3()
+                {{
+                    [DllImport(""a"")] extern static void local1(); // 9
+                    [DllImport(""a"")] extern static void local2<T2>(); // 10
+                }}
+
+                void local4<T4>()
+                {{
+                    [DllImport(""a"")] extern static void local1(); // 11
+                    [DllImport(""a"")] extern static void local2<T2>(); // 12
+                }}
+            }};
+        }}
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local1(); // 1
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(13, 14),
+                // (14,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //             [DllImport("a")] extern static void local2<T>(); // 2
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(14, 14),
+                // (18,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local1(); // 3
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(18, 18),
+                // (19,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local2<T2>(); // 4
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(19, 18),
+                // (24,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local1(); // 5
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(24, 18),
+                // (25,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local2<T2>(); // 6
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(25, 18),
+                // (30,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local1(); // 7
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(30, 18),
+                // (31,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                 [DllImport("a")] extern static void local2<T>(); // 8
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(31, 18),
+                // (35,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                     [DllImport("a")] extern static void local1(); // 9
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(35, 22),
+                // (36,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                     [DllImport("a")] extern static void local2<T2>(); // 10
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(36, 22),
+                // (41,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                     [DllImport("a")] extern static void local1(); // 11
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(41, 22),
+                // (42,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                //                     [DllImport("a")] extern static void local2<T2>(); // 12
+                Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(42, 22));
         }
 
         [Fact]
@@ -980,6 +1066,30 @@ class C
                 // (15,28): error CS0128: A local variable or function named 'local1' is already defined in this scope
                 //         static extern void local1() { } // 5
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "local1").WithArguments("local1").WithLocation(15, 28));
+        }
+
+        [Fact]
+        public void ComImport_Class()
+        {
+            const string text = @"
+using System;
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""00020813-0000-0000-c000-000000000046"")]
+class C
+{
+    void M() // 1
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        void local1() { }
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (8,10): error CS0423: Since 'C' has the ComImport attribute, 'C.M()' must be extern or abstract
+                //     void M() // 1
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "M").WithArguments("C.M()", "C").WithLocation(8, 10));
         }
 
         [Fact]
@@ -5311,26 +5421,36 @@ using System;
 
 class C
 {
-    void M()
+    void M1()
     {
-#pragma warning disable 8321 // Unreferenced local function
+        local1(); // 1
+        local2(); // 2
 
-        [Obsolete] // 1
+        [Obsolete]
         void local1() { }
 
-        [Obsolete(""hello"", true)] // 2
+        [Obsolete(""hello"", true)]
         void local2() { }
+
+#pragma warning disable 8321 // Unreferenced local function
+        [Obsolete]
+        void local3()
+        {
+            // no diagnostics expected when calling an Obsolete method within an Obsolete method
+            local1();
+            local2();
+        }
     }
 }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,10): error CS8760: Attribute 'System.ObsoleteAttribute' is not valid on local functions.
-                //         [Obsolete] // 1
-                Diagnostic(ErrorCode.ERR_AttributeNotOnLocalFunction, "Obsolete").WithArguments("System.ObsoleteAttribute").WithLocation(10, 10),
-                // (13,10): error CS8760: Attribute 'System.ObsoleteAttribute' is not valid on local functions.
-                //         [Obsolete("hello", true)] // 2
-                Diagnostic(ErrorCode.ERR_AttributeNotOnLocalFunction, "Obsolete").WithArguments("System.ObsoleteAttribute").WithLocation(13, 10));
+                // (8,9): warning CS0612: 'local1()' is obsolete
+                //         local1(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "local1()").WithArguments("local1()").WithLocation(8, 9),
+                // (9,9): error CS0619: 'local2()' is obsolete: 'hello'
+                //         local2(); // 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "local2()").WithArguments("local2()", "hello").WithLocation(9, 9));
         }
 
         [Fact]

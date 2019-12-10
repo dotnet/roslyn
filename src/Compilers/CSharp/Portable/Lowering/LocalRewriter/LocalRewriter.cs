@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
+                // PROTOTYPE(local-function-attributes): support ExcludeFromCodeCoverageAttribute
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
                 DynamicAnalysisInjector dynamicInstrumenter = instrumentForDynamicAnalysis ? DynamicAnalysisInjector.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, Instrumenter.NoOp) : null;
 

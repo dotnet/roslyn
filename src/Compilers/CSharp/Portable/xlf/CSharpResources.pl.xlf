@@ -42,11 +42,6 @@
         <target state="translated">Atrybut „{0}” nie jest prawidłowy w metodach dostępu zdarzenia. Jest on prawidłowy tylko w deklaracjach „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnLocalFunction">
-        <source>Attribute '{0}' is not valid on local functions.</source>
-        <target state="new">Attribute '{0}' is not valid on local functions.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Właściwość implementowana automatycznie „{0}” nie może być zadeklarowana jako „readonly”, ponieważ ma metodę dostępu „set”.</target>
@@ -9571,7 +9566,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
         <target state="needs-review-translation">'„{0}” jest funkcją lokalną i w związku z tym musi zawsze mieć treść.</target>
         <note />
       </trans-unit>

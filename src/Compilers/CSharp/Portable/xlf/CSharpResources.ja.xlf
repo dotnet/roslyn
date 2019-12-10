@@ -42,11 +42,6 @@
         <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnLocalFunction">
-        <source>Attribute '{0}' is not valid on local functions.</source>
-        <target state="new">Attribute '{0}' is not valid on local functions.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">'set' アクセサーがあるため、自動実装プロパティ '{0}' を 'readonly' とマークすることはできません。</target>
@@ -9571,7 +9566,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
         <target state="needs-review-translation">'{0}' はローカル関数であるため、常に本体が必要です。</target>
         <note />
       </trans-unit>

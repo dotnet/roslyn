@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 
-            protected override SourceMethodSymbolWithAttributes BoundAttributesSource => _invoke;
+            protected override SourceMemberMethodSymbol BoundAttributesSource => _invoke;
 
             public override string Name => WellKnownMemberNames.DelegateEndInvokeName;
 

@@ -2433,7 +2433,7 @@ namespace Microsoft.Cci
                 var data = methodDef.PlatformInvokeData;
                 string entryPointName = data.EntryPointName;
 
-                StringHandle importName = (entryPointName != null)
+                StringHandle importName = entryPointName != null && entryPointName != methodDef.Name
                     ? GetStringHandleForNameAndCheckLength(entryPointName, methodDef)
                     : metadata.GetOrAddString(methodDef.Name); // Length checked while populating the method def table.
 

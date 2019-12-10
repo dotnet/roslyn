@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override MethodImplAttributes ImplementationAttributes => InheritsBaseMethodAttributes ? BaseMethod.ImplementationAttributes : default;
 
         internal sealed override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => InheritsBaseMethodAttributes ? BaseMethod.ReturnValueMarshallingInformation : null;
+
+        internal sealed override bool HasSpecialName => InheritsBaseMethodAttributes && BaseMethod.HasSpecialName;
 #nullable restore
 
         public sealed override RefKind RefKind

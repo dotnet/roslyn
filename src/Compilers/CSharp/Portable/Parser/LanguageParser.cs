@@ -7137,6 +7137,8 @@ done:;
                 case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.VolatileKeyword:
                 case SyntaxKind.RefKeyword:
+                case SyntaxKind.ExternKeyword:
+                case SyntaxKind.OpenBracketToken:
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -7153,9 +7155,6 @@ done:;
                 case SyntaxKind.InternalKeyword:
                 case SyntaxKind.ProtectedKeyword:
                 case SyntaxKind.PrivateKeyword:
-                // could be a local function with attributes
-                case SyntaxKind.OpenBracketToken:  // PROTOTYPE(local-function-attributes): reuse this or always allow the OpenBracketToken?
-                case SyntaxKind.ExternKeyword:
                     return acceptAccessibilityMods;
                 default:
                     return IsPredefinedType(tk)

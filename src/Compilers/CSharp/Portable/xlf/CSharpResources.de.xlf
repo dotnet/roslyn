@@ -42,11 +42,6 @@
         <target state="translated">Das Attribut "{0}" ist für Ereignisaccessoren nicht gültig. Es gilt nur für {1}-Deklarationen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnLocalFunction">
-        <source>Attribute '{0}' is not valid on local functions.</source>
-        <target state="new">Attribute '{0}' is not valid on local functions.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Die automatisch implementierte Eigenschaft "{0}" kann nicht als "readonly" markiert werden, weil sie einen set-Accessor aufweist.</target>
@@ -9571,7 +9566,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>Local function '{0}' must either have a body or be marked 'static extern'.</source>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
         <target state="needs-review-translation">'"{0}" ist eine lokale Funktion und muss daher immer Text enthalten.</target>
         <note />
       </trans-unit>

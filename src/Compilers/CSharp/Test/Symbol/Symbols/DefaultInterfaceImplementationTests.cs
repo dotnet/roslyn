@@ -23755,9 +23755,6 @@ public interface I1
                 // (15,48): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
-                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P13;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32)
@@ -24071,52 +24068,53 @@ public interface I1
                 // (4,32): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public event System.Action P01;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.3", "8.0").WithLocation(4, 32),
-                // (5,40): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,40): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 40),
-                // (6,49): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,49): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     protected internal event System.Action P03 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 49),
-                // (7,39): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (7,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     internal event System.Action P04 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(7, 39),
-                // (8,38): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private event System.Action P05 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(8, 38),
-                // (9,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action P06 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(9, 37),
-                // (10,38): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (10,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual event System.Action P07 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(10, 38),
-                // (11,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (11,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     sealed event System.Action P08 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(11, 37),
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
-                // (12,39): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (12,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(12, 39),
-                // (13,39): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (13,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(13, 39),
                 // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
-                // (14,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+
+                // (14,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(14, 37),
                 // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
-                // (14,43): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,43): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(14, 43),
                 // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
-                // (15,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (15,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(15, 37),
                 // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -24125,7 +24123,7 @@ public interface I1
                 // (15,40): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
-                // (15,42): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (15,42): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(15, 42),
                 // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -24137,9 +24135,6 @@ public interface I1
                 // (16,32): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7.3", "8.0").WithLocation(16, 32),
-                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P13;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
@@ -24233,9 +24228,6 @@ public interface I1
                 // (16,32): error CS8701: Target runtime doesn't support default interface implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P13").WithLocation(16, 32),
-                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P13;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
@@ -27042,39 +27034,25 @@ class Test2 : I1, I2, I3, I4, I5
                 // (20,39): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.3", "8.0").WithLocation(20, 39),
-                // (26,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+
+                // (26,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add => throw null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(26, 9),
-                // (27,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (27,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove => throw null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(27, 9),
-                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
-                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
                 // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
-                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.add").WithLocation(16, 40),
                 // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.remove").WithLocation(16, 40),
-                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.add").WithLocation(20, 39),
                 // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.remove").WithLocation(20, 39),
-                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P1; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.add").WithLocation(4, 32),
                 // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P1; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32)
@@ -27087,48 +27065,33 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
-                // (4,32): error CS8501: Target runtime doesn't support default interface implementation.
+                // (4,32): error CS8701: Target runtime doesn't support default interface implementation.
                 //     extern event System.Action P1; 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P1").WithLocation(4, 32),
-                // (8,40): error CS8501: Target runtime doesn't support default interface implementation.
+                // (8,40): error CS8701: Target runtime doesn't support default interface implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P2").WithLocation(8, 40),
-                // (16,40): error CS8501: Target runtime doesn't support default interface implementation.
+                // (16,40): error CS8701: Target runtime doesn't support default interface implementation.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P4").WithLocation(16, 40),
-                // (20,39): error CS8501: Target runtime doesn't support default interface implementation.
+                // (20,39): error CS8701: Target runtime doesn't support default interface implementation.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P5").WithLocation(20, 39),
-                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
                 // (12,39): error CS8701: Target runtime doesn't support default interface implementation.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P3").WithLocation(12, 39),
-                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
                 // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
-                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.add").WithLocation(16, 40),
                 // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.remove").WithLocation(16, 40),
-                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.add").WithLocation(20, 39),
                 // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.remove").WithLocation(20, 39),
-                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P1; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.add").WithLocation(4, 32),
                 // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P1; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32),
@@ -27208,9 +27171,6 @@ class Test2 : I1, I2, I3, I4
                 // (8,32): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P2 = null;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 32),
-                // (8,32): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P2 = null;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 32),
                 // (8,32): warning CS0067: The event 'I2.P2' is never used
                 //     extern event System.Action P2 = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P2").WithArguments("I2.P2").WithLocation(8, 32)
@@ -27402,7 +27362,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (16,41): error CS0112: A static member 'I4.P4' cannot be marked as override, virtual, or abstract
                 //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P4").WithArguments("I4.P4").WithLocation(16, 41),
-                // (20,41): error CS0106: The modifier 'override' is not valid for this item
+                 // (20,41): error CS0106: The modifier 'override' is not valid for this item
                 //     override sealed event System.Action P5 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 41),
                 // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -27423,10 +27383,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (33,28): error CS0539: 'Test2.P5' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I5.P5 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P5").WithArguments("Test2.P5").WithLocation(33, 28),
-                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     static extern event System.Action P3;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
-                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+               // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
                 // (8,42): warning CS0067: The event 'I2.P2' is never used

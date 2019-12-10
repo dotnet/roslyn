@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal CSharpSyntaxNode? GetBinderContextNode()
+        internal CSharpSyntaxNode? GetMethodBodyNode()
         {
             switch (SyntaxNode)
             {
@@ -73,6 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return (this.syntaxReferenceOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxReferenceOpt);
+            }
+        }
+
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations =>
             DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
@@ -86,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method.
         /// The bound attribute data are then applied to both accessors.
         /// </remarks>
-        protected virtual SourceMethodSymbolWithAttributes BoundAttributesSource
+        protected virtual SourceMemberMethodSymbol BoundAttributesSource
         {
             get
             {
@@ -262,24 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (bagCreatedOnThisThread)
             {
                 NoteAttributesComplete(forReturnType);
-
-                if (!forReturnType
-                    && IsExtern
-                    && !IsAbstract
-                    && !this.IsPartialMethod()
-                    && GetBinderContextNode() is null
-                    && lazyCustomAttributesBag.Attributes.IsEmpty
-                    && !this.ContainingType.IsComImport)
-                {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    // external method with no attributes
-                    var errorCode = (this.MethodKind == MethodKind.Constructor || this.MethodKind == MethodKind.StaticConstructor) ?
-                        ErrorCode.WRN_ExternCtorNoImplementation :
-                        ErrorCode.WRN_ExternMethodNoImplementation;
-                    diagnostics.Add(errorCode, this.Locations[0], this);
-                    AddDeclarationDiagnostics(diagnostics);
-                    diagnostics.Free();
-                }
             }
 
             return lazyCustomAttributesBag;
@@ -359,8 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var sourceContainer = ContainingType as SourceMemberContainerTypeSymbol;
-                if ((object)sourceContainer == null || !sourceContainer.AnyMemberHasAttributes)
+                if (ContainingSymbol is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: false })
                 {
                     return null;
                 }
@@ -524,11 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
-                else if (this.MethodKind is MethodKind.LocalFunction)
-                {
-                    // CS8760: Attribute '{0}' is not valid on local functions.
-                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnLocalFunction, arguments.AttributeSyntaxOpt.Name.Location, description.FullName);
-                }
 
                 return true;
             }
@@ -652,9 +636,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            RoslynDebug.Assert(arguments.AttributeSyntaxOpt?.ArgumentList is object);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -666,13 +651,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
-            if (this.IsGenericMethod || ContainingType?.IsGenericType == true)
+            var isAnyNestedMethodGeneric = false;
+            for (MethodSymbol? current = this; current is object; current = current.ContainingSymbol as MethodSymbol)
+            {
+                if (current.IsGenericMethod)
+                {
+                    isAnyNestedMethodGeneric = true;
+                    break;
+                }
+            }
+
+            if (isAnyNestedMethodGeneric || ContainingType?.IsGenericType == true)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
             }
 
-            string moduleName = attribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+            string? moduleName = attribute.GetConstructorArgument<string>(0, SpecialType.System_String);
             if (!MetadataHelpers.IsValidMetadataIdentifier(moduleName))
             {
                 // Dev10 reports CS0647: "Error emitting attribute ..."
@@ -688,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // while the charset in P/Invoke metadata should be "None".
             CharSet charSet = this.GetEffectiveDefaultMarshallingCharSet() ?? Cci.Constants.CharSet_None;
 
-            string importName = Name;
+            string? importName = null;
             bool preserveSig = true;
             CallingConvention callingConvention = System.Runtime.InteropServices.CallingConvention.Winapi;
             bool setLastError = false;
@@ -708,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Dev10 reports CS0647: "Error emitting attribute ..."
                             arguments.Diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
                             hasErrors = true;
-                            importName = Name;
+                            importName = null;
                         }
 
                         break;
@@ -754,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().SetDllImport(
                     arguments.Index,
                     moduleName,
-                    importName,
+                    importName ?? Name,
                     DllImportData.MakeFlags(
                         exactSpelling,
                         charSet,
@@ -765,6 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     preserveSig);
             }
         }
+#nullable restore
 
         internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
@@ -778,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_lazyCustomAttributesBag != null);
                 Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (ContainingType is { IsComImport: true, TypeKind: TypeKind.Class })
+                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class })
                 {
                     switch (this.MethodKind)
                     {
@@ -801,6 +797,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             break;
                     }
+                }
+
+                if (IsExtern
+                    && !IsAbstract
+                    && !this.IsPartialMethod()
+                    && GetMethodBodyNode() is null
+                    && boundAttributes.IsEmpty
+                    && !this.ContainingType.IsComImport)
+                {
+                    var errorCode = (this.MethodKind == MethodKind.Constructor || this.MethodKind == MethodKind.StaticConstructor) ?
+                        ErrorCode.WRN_ExternCtorNoImplementation :
+                        ErrorCode.WRN_ExternMethodNoImplementation;
+                    diagnostics.Add(errorCode, this.Locations[0], this);
                 }
             }
 
@@ -846,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    ModuleExtensions.GetVTableGapSize(this.MetadataName) > 0;
         }
 
-        internal sealed override bool HasSpecialName
+        internal override bool HasSpecialName
         {
             get
             {
@@ -875,6 +884,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
+
+        // PROTOTYPE(local-function-attributes): security-related properties perhaps should be
+        // overridden in SynthesizedMethodBaseSymbol in order to work with local functions
 
         internal sealed override bool RequiresSecurityObject
         {

@@ -5693,6 +5693,37 @@ class C
             }
         }
 
+        [Fact]
+        public void LocalFunction_SpecialName()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [SpecialName]
+        void local1() { }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                Assert.True(localFn1.HasSpecialName);
+            }
+        }
+
         // PROTOTYPE(local-function-attributes): Test MarshalAsAttribute (are any scenarios possible for it with local functions?)
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)

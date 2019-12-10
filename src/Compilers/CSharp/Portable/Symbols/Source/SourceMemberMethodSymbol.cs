@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Binder TryGetInMethodBinder(BinderFactory binderFactoryOpt = null)
         {
-            CSharpSyntaxNode contextNode = GetBinderContextNode();
+            CSharpSyntaxNode contextNode = GetMethodBodyNode();
             if (contextNode == null)
             {
                 return null;
@@ -621,14 +621,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.locations;
-            }
-        }
-
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return (this.syntaxReferenceOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxReferenceOpt);
             }
         }
 

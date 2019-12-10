@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        protected override SourceMethodSymbolWithAttributes BoundAttributesSource
+        protected override SourceMemberMethodSymbol BoundAttributesSource
         {
             get
             {
