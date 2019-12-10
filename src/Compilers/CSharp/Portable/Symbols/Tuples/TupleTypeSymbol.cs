@@ -2,6 +2,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -1037,53 +1038,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return other is object
-                    && compareElementNames(other)
-                    && compareElementLocations(other)
-                    && compareErrorPosition(other);
+                    && areEqual(this.ElementNames, other.ElementNames)
+                    && areEqual(this.ElementLocations, other.ElementLocations)
+                    && areEqual(this.ErrorPositions, other.ErrorPositions);
 
-                bool compareElementNames(TupleExtraData other)
+                static bool areEqual<T>(ImmutableArray<T> one, ImmutableArray<T> other) where T : notnull
                 {
-                    if (this.ElementNames.IsDefault && other.ElementNames.IsDefault)
+                    if (one.IsDefault && other.IsDefault)
                     {
                         return true;
                     }
 
-                    if (this.ElementNames.IsDefault != other.ElementNames.IsDefault)
+                    if (one.IsDefault != other.IsDefault)
                     {
                         return false;
                     }
 
-                    return this.ElementNames.SequenceEqual(other.ElementNames, (n1, n2) => string.Equals(n1, n2, StringComparison.Ordinal));
-                }
-
-                bool compareElementLocations(TupleExtraData other)
-                {
-                    if (this.ElementLocations.IsDefault && other.ElementLocations.IsDefault)
-                    {
-                        return true;
-                    }
-
-                    if (this.ElementLocations.IsDefault != other.ElementLocations.IsDefault)
-                    {
-                        return false;
-                    }
-
-                    return this.ElementLocations.SequenceEqual(other.ElementLocations, (l1, l2) => object.Equals(l1, l2));
-                }
-
-                bool compareErrorPosition(TupleExtraData other)
-                {
-                    if (this.ErrorPositions.IsDefault && other.ErrorPositions.IsDefault)
-                    {
-                        return true;
-                    }
-
-                    if (this.ErrorPositions.IsDefault != other.ErrorPositions.IsDefault)
-                    {
-                        return false;
-                    }
-
-                    return this.ErrorPositions.SequenceEqual(other.ErrorPositions, (p1, p2) => p1 == p2);
+                    return one.SequenceEqual(other, (e1, e2) => (e1 is null && e2 is null) || e1?.Equals(e2) == true);
                 }
             }
 
