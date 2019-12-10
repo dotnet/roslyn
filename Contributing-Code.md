@@ -73,4 +73,4 @@ For all of the C# guidelines which have analogs in Visual Basic, the team applie
 
 ### Tips 'n' Tricks
 
-Our team finds using [this enhanced source view](http://source.roslyn.io/) of Roslyn helpful when developing.
+Our team finds using [this enhanced source view](http://sourceroslyn.io/) of Roslyn helpful when developing.
