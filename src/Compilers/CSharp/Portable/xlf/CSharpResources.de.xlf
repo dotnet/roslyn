@@ -639,8 +639,8 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
-                             Visual C#-Compileroptionen
+        <target state="needs-review-translation">
+                             Visual C#-Compileroptionen 
 
                        – AUSGABEDATEIEN –
 -out:&lt;Datei&gt;                   Gibt den Namen der Ausgabedatei an (Standardeinstellung: Basisname der
@@ -1477,16 +1477,6 @@
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
         <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Mögliche Zuweisung eines Nullverweises zu Iterationsvariable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Mögliche Zuweisung eines Nullverweises zu Iterationsvariable</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">

@@ -639,8 +639,8 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
-                             Visual C# Derleyici Seçenekleri
+        <target state="needs-review-translation">
+                              Visual C# Derleyici Seçenekleri
 
                        - ÇIKIŞ DOSYALARI -
 -out:&lt;dosya&gt;                   Çıkış dosyası adını belirtin (varsayılan: ana sınıfı
@@ -1477,16 +1477,6 @@
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
         <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Yineleme değişkenine olası null başvuru ataması</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Yineleme değişkenine olası null başvuru ataması</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">

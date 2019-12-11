@@ -803,10 +803,8 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Await Goo()")
-
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem("C.Goo() As Task", currentParameterIndex:=0, methodDocumentation:=documentation)
+                New SignatureHelpTestItem("C.Goo() As Task", currentParameterIndex:=0, methodDocumentation:=String.Empty)
             }
 
             Await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, LanguageNames.VisualBasic)
@@ -827,10 +825,8 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Dim r as Integer = Await Goo()")
-
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem("C.Goo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=documentation)
+                New SignatureHelpTestItem("C.Goo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=String.Empty)
             }
 
             Await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, LanguageNames.VisualBasic)

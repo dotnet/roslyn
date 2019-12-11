@@ -763,7 +763,7 @@ End Class
         End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestPressingEnter_Indentation5_UseTabs()
             Const code = "
 Class C
@@ -1083,7 +1083,7 @@ End Class
         End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineAbove4_Tabs()
             Const code = "
 Class C
@@ -1173,7 +1173,7 @@ End Class
         End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineBelow4_Tabs()
             Const code = "
 Class C

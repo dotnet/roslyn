@@ -350,13 +350,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.GetTypeWithAnnotatedNullability();
+                    return fieldSymbol.Type;
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.GetTypeWithAnnotatedNullability();
+                    return propertySymbol.Type;
                 case IMethodSymbol methodSymbol:
-                    return methodSymbol.GetReturnTypeWithAnnotatedNullability();
+                    return methodSymbol.ReturnType;
                 case IEventSymbol eventSymbol:
-                    return eventSymbol.GetTypeWithAnnotatedNullability();
+                    return eventSymbol.Type;
             }
 
             return null;
@@ -481,8 +481,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             switch (symbol)
             {
-                case IMethodSymbol m: return m.TypeArguments.ZipAsArray(m.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
-                case INamedTypeSymbol nt: return nt.TypeArguments.ZipAsArray(nt.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n));
+                case IMethodSymbol m: return m.TypeArguments;
+                case INamedTypeSymbol nt: return nt.TypeArguments;
                 default: return ImmutableArray.Create<ITypeSymbol>();
             }
         }
@@ -543,12 +543,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     var types = method.Parameters
                         .Skip(skip)
-                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(p.NullableAnnotation));
+                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(p.NullableAnnotation));
 
                     if (!method.ReturnsVoid)
                     {
                         // +1 for the return type.
-                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(method.ReturnNullableAnnotation));
+                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
                     }
 
                     return delegateType.TryConstruct(types.ToArray());
@@ -886,13 +886,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case ILocalSymbol localSymbol:
-                    return localSymbol.GetTypeWithAnnotatedNullability();
+                    return localSymbol.Type;
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.GetTypeWithAnnotatedNullability();
+                    return fieldSymbol.Type;
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.GetTypeWithAnnotatedNullability();
+                    return propertySymbol.Type;
                 case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.GetTypeWithAnnotatedNullability();
+                    return parameterSymbol.Type;
                 case IAliasSymbol aliasSymbol:
                     return aliasSymbol.Target as ITypeSymbol;
             }

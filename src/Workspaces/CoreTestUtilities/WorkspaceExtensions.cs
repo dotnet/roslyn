@@ -60,12 +60,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
             workspace.WorkspaceChanged += wew.Wrap<WorkspaceChangeEventArgs>((sender, args) => action(args));
             return wew;
         }
-
-        internal static EventWaiter VerifyWorkspaceFailedEvent(this Workspace workspace, Action<WorkspaceDiagnosticEventArgs> action)
-        {
-            var wew = new EventWaiter();
-            workspace.WorkspaceFailed += wew.Wrap<WorkspaceDiagnosticEventArgs>((sender, args) => action(args));
-            return wew;
-        }
     }
 }
