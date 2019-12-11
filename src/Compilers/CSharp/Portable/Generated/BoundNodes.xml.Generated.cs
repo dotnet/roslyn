@@ -480,26 +480,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAwaitableValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type, bool hasErrors)
+        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol? type, bool hasErrors)
             : base(BoundKind.AwaitableValuePlaceholder, syntax, type, hasErrors)
         {
             this.ValEscape = valEscape;
         }
 
-        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type)
+        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol? type)
             : base(BoundKind.AwaitableValuePlaceholder, syntax, type)
         {
             this.ValEscape = valEscape;
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type!;
 
         public uint ValEscape { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAwaitableValuePlaceholder(this);
 
-        public BoundAwaitableValuePlaceholder Update(uint valEscape, TypeSymbol type)
+        public BoundAwaitableValuePlaceholder Update(uint valEscape, TypeSymbol? type)
         {
             if (valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -2725,7 +2725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUsingLocalDeclarations : BoundMultipleLocalDeclarationsBase
     {
-        public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, BoundAwaitableInfo? awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
+        public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol? disposeMethodOpt, Conversion iDisposableConversion, BoundAwaitableInfo? awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
             : base(BoundKind.UsingLocalDeclarations, syntax, localDeclarations, hasErrors || awaitOpt.HasErrors() || localDeclarations.HasErrors())
         {
 
@@ -2737,7 +2737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public MethodSymbol DisposeMethodOpt { get; }
+        public MethodSymbol? DisposeMethodOpt { get; }
 
         public Conversion IDisposableConversion { get; }
 
@@ -2745,7 +2745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUsingLocalDeclarations(this);
 
-        public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, BoundAwaitableInfo? awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations)
+        public BoundUsingLocalDeclarations Update(MethodSymbol? disposeMethodOpt, Conversion iDisposableConversion, BoundAwaitableInfo? awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(disposeMethodOpt, this.DisposeMethodOpt) || iDisposableConversion != this.IDisposableConversion || awaitOpt != this.AwaitOpt || localDeclarations != this.LocalDeclarations)
             {
@@ -5560,7 +5560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleLiteral : BoundTupleExpression
     {
-        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.TupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || arguments.HasErrors())
         {
 
@@ -5569,11 +5569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTupleLiteral(this);
 
-        public BoundTupleLiteral Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type)
+        public BoundTupleLiteral Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type)
         {
             if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -5587,7 +5587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedTupleLiteral : BoundTupleExpression
     {
-        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral sourceTuple, bool wasTargetTyped, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
+        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral? sourceTuple, bool wasTargetTyped, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
         {
 
@@ -5598,13 +5598,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public BoundTupleLiteral SourceTuple { get; }
+        public BoundTupleLiteral? SourceTuple { get; }
 
         public bool WasTargetTyped { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedTupleLiteral(this);
 
-        public BoundConvertedTupleLiteral Update(BoundTupleLiteral sourceTuple, bool wasTargetTyped, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type)
+        public BoundConvertedTupleLiteral Update(BoundTupleLiteral? sourceTuple, bool wasTargetTyped, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type)
         {
             if (sourceTuple != this.SourceTuple || wasTargetTyped != this.WasTargetTyped || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -9816,7 +9816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
-            BoundTupleLiteral sourceTuple = node.SourceTuple;
+            BoundTupleLiteral? sourceTuple = node.SourceTuple;
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(sourceTuple, node.WasTargetTyped, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, type);
@@ -11003,7 +11003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
-            MethodSymbol disposeMethodOpt = GetUpdatedSymbol(node, node.DisposeMethodOpt);
+            MethodSymbol? disposeMethodOpt = GetUpdatedSymbol(node, node.DisposeMethodOpt);
             BoundAwaitableInfo? awaitOpt = (BoundAwaitableInfo?)this.Visit(node.AwaitOpt);
             ImmutableArray<BoundLocalDeclaration> localDeclarations = this.VisitList(node.LocalDeclarations);
             return node.Update(disposeMethodOpt, node.IDisposableConversion, awaitOpt, localDeclarations);
@@ -11621,7 +11621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
-            BoundTupleLiteral sourceTuple = (BoundTupleLiteral)this.Visit(node.SourceTuple);
+            BoundTupleLiteral? sourceTuple = (BoundTupleLiteral?)this.Visit(node.SourceTuple);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundConvertedTupleLiteral updatedNode;
 
