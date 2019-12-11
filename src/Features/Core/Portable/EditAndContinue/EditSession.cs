@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return new ActiveStatementsMap(byDocument.ToDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
+            return new ActiveStatementsMap(byDocument.ToMultiDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
         }
 
         private LinePositionSpan GetUpToDateSpan(ActiveStatementDebugInfo activeStatementInfo)
@@ -314,10 +314,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var outOfSyncDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
 
             var changes = project.GetChanges(baseProject);
-            foreach (var documentId in changes.GetChangedDocuments())
+            foreach (var documentId in changes.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
             {
                 var document = project.GetDocument(documentId)!;
                 if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
+                {
+                    continue;
+                }
+
+                // Check if the currently observed document content has changed compared to the base document content.
+                // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
+                //
+                // We may be comparing out-of-date committed document content but we only make a decision based on that content
+                // if it matches the current content. If the current content is equal to baseline content that does not match
+                // the debuggee then the workspace has not observed the change made to the file on disk since baseline was captured
+                // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
+                // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
+                // if it is not applied yet. The change will be applied later after it's observed by the workspace.
+                var baseSource = await baseProject.GetDocument(documentId)!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var source = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                if (baseSource.ContentEquals(source))
                 {
                     continue;
                 }
@@ -334,6 +350,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
 
                     default:
+                        // Include the document regardless of whether the module it was built into has been loaded or not.
+                        // If the module has been built it might get loaded later during the debugging session,
+                        // at which point we apply all changes that have been made to the project so far.
                         changedDocuments.Add((oldDocument, document));
                         break;
                 }
@@ -460,6 +479,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
+                    if (baseProject == project)
+                    {
+                        continue;
+                    }
 
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 
                     // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied

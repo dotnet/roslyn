@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -362,41 +363,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_VariableUsedBeforeDeclaration;
 
-        #region ILocalSymbol Members
-
-        ITypeSymbol ILocalSymbol.Type
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return this.Type;
-            }
+            return new PublicModel.LocalSymbol(this);
         }
-
-        CodeAnalysis.NullableAnnotation ILocalSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
-
-        bool ILocalSymbol.IsFunctionValue
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public sealed override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitLocal(this);
-        }
-
-        public sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitLocal(this);
-        }
-
-        #endregion
 
         #region ILocalSymbolInternal Members
 

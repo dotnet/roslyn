@@ -420,7 +420,7 @@ End Interface")
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenAndInterfaceImplementedOnDerivedType() As Task
             ' We should not find hidden methods.
-            ' We should not find methods of interfaces no implemented by the method symbol.
+            ' We should not find methods of interfaces not implemented by the method symbol.
             ' In this example, 
             ' Dim i As I = New D()
             ' i.M()

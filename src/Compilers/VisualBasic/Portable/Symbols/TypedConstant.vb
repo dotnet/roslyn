@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return "{" & String.Join(", ", constant.Values.Select(Function(v) v.ToVisualBasicString())) & "}"
             End If
 
-            If constant.Kind = TypedConstantKind.Type OrElse constant.Type.SpecialType = SpecialType.System_Object Then
+            If constant.Kind = TypedConstantKind.Type OrElse constant.TypeInternal.SpecialType = SpecialType.System_Object Then
                 Return "GetType(" & constant.Value.ToString() & ")"
             End If
 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return DisplayEnumConstant(constant)
             End If
 
-            Return SymbolDisplay.FormatPrimitive(constant.Value, quoteStrings:=True, useHexadecimalNumbers:=False)
+            Return SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings:=True, useHexadecimalNumbers:=False)
         End Function
 
         ' Decode the value of enum constant
@@ -49,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(constant.Kind = TypedConstantKind.Enum)
 
             ' Create a ConstantValue of enum underlying type
-            Dim splType As SpecialType = DirectCast(constant.Type, INamedTypeSymbol).EnumUnderlyingType.SpecialType
-            Dim valueConstant As ConstantValue = ConstantValue.Create(constant.Value, splType)
+            Dim splType As SpecialType = DirectCast(constant.TypeInternal, NamedTypeSymbol).EnumUnderlyingType.SpecialType
+            Dim valueConstant As ConstantValue = ConstantValue.Create(constant.ValueInternal, splType)
 
             Dim typeName As String = constant.Type.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
             If valueConstant.IsUnsigned Then
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Unable to decode the enum constant, just display the integral value
-            Return constant.Value.ToString()
+            Return constant.ValueInternal.ToString()
         End Function
 
         Private Function DisplaySignedEnumConstant(constant As TypedConstant, ByVal splType As SpecialType, ByVal constantToDecode As Long, ByVal typeName As String) As String
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Unable to decode the enum constant, just display the integral value
-            Return constant.Value.ToString()
+            Return constant.ValueInternal.ToString()
         End Function
 
     End Module

@@ -1280,7 +1280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                    specialtype <> SpecialType.System_Enum AndAlso specialtype <> SpecialType.System_MulticastDelegate Then
                     Dim base As TypeSymbol = GetDeclaredBase(Nothing)
 
-                    If base?.SpecialType = SpecialType.None AndAlso base.ContainingAssembly?.IsMissing Then
+                    If base IsNot Nothing AndAlso base.SpecialType = SpecialType.None AndAlso base.ContainingAssembly?.IsMissing Then
                         Dim missingType = TryCast(base, MissingMetadataTypeSymbol.TopLevel)
 
                         If missingType IsNot Nothing AndAlso missingType.Arity = 0 Then

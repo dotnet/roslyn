@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(varC1_T, varC1_T.OriginalDefinition);
             Assert.Equal(TypeKind.TypeParameter, varC1_T.TypeKind);
             Assert.Equal(VarianceKind.None, varC1_T.Variance);
-            Assert.Same(module0, varC1_T.Locations.Single().MetadataModule);
+            Assert.Same(module0, varC1_T.Locations.Single().MetadataModuleInternal);
             Assert.Equal(0, varC1_T.ConstraintTypes().Length);
 
             var varC2 = varC1.GetTypeMembers("C2").Single();

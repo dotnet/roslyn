@@ -1509,6 +1509,18 @@ $$";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LambdaDiscardParameters()
+        {
+            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = (int _, string _) => 1 + $$", "_");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AnonymousMethodDiscardParameters()
+        {
+            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = delegate(int _, string _) { return 1 + $$ }; } }", "_");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommonTypesInNewExpressionContext()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class c { void M() { new $$"), "Exception");
@@ -7150,9 +7162,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo();";
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()";
 
             await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
         }
@@ -7171,11 +7181,92 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()
-{WorkspacesResources.Usage_colon}
-  int x = {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo();";
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()";
 
             await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpression()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task M()
+        {
+            var request = new Request();
+            var m = await request.$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "ReadAsStreamAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpressionWithParentheses()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task M()
+        {
+            var request = new Request();
+            var m = (await request).$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+            // Nothing should be found: no awaiter for request.
+            await VerifyItemIsAbsentAsync(markup, "Result");
+            await VerifyItemIsAbsentAsync(markup, "ReadAsStreamAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpressionWithTaskAndParentheses()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task M()
+        {
+            var request = new Task<Request>();
+            var m = (await request).$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Result");
+            await VerifyItemExistsAsync(markup, "ReadAsStreamAsync");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -10045,6 +10136,135 @@ namespace ThenIncludeIntellisenseBug
 
             await VerifyItemExistsAsync(markup, "Task");
             await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaWithOverloads()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace ClassLibrary1
+{
+    class SomeItem
+    {
+        public string A;
+        public int B;
+    }
+    class SomeCollection<T> : List<T>
+    {
+        public virtual SomeCollection<T> Include(string path) => null;
+    }
+
+    static class Extensions
+    {
+        public static IList<T> Include<T, TProperty>(this IList<T> source, Expression<Func<T, TProperty>> path)
+            => null;
+
+        public static IList Include(this IList source, string path) => null;
+
+        public static IList<T> Include<T>(this IList<T> source, string path) => null;
+    }
+
+    class Program 
+    {
+        void M(SomeCollection<SomeItem> c)
+        {
+            var a = from m in c.Include(t => t.$$);
+        }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Substring");
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")]
+        public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Test()
+    {
+        X(y: t => Console.WriteLine(t.$$));
+    }
+
+    void X(int x = 7, Action<string> y = null) { }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "Length");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")]
+        public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Test()
+    {
+        X(y: t => Console.WriteLine(t.$$));
+    }
+
+    void X(int x, int z, Action<string> y) { }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "Length");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_NonInteractive()
+        {
+            var markup = @"
+using System;
+
+static class CExtensions
+{
+    public static void X(this C x, Action<string> y) { }
+}
+
+class C
+{
+    void Test()
+    {
+        new C().X(t => Console.WriteLine(t.$$));
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_Interactive()
+        {
+            var markup = @"
+using System;
+
+public static void X(this C x, Action<string> y) { }
+
+public class C
+{
+    void Test()
+    {
+        new C().X(t => Console.WriteLine(t.$$));
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

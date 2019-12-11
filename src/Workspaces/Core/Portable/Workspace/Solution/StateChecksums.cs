@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum Info => (Checksum)Children[0];
         public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[1];
 
-        public void Find(
+        public async Task FindAsync(
             SolutionState state,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
@@ -50,10 +51,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[Projects.Checksum] = Projects;
             }
 
-            foreach (var kv in state.ProjectStates)
+            foreach (var (_, projectState) in state.ProjectStates)
             {
-                var projectState = kv.Value;
-
                 // solution state checksum can't be created without project state checksums created first
                 // check unsupported projects
                 if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     continue;
                 }
 
-                projectStateChecksums.Find(projectState, searchingChecksumsLeft, result, cancellationToken);
+                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
                 if (searchingChecksumsLeft.Count == 0)
                 {
                     return;
@@ -113,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public TextDocumentChecksumCollection AdditionalDocuments => (TextDocumentChecksumCollection)Children[7];
         public AnalyzerConfigDocumentChecksumCollection AnalyzerConfigDocuments => (AnalyzerConfigDocumentChecksumCollection)Children[8];
 
-        public void Find(
+        public async Task FindAsync(
             ProjectState state,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
@@ -174,26 +173,26 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
             }
 
-            Find(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken);
             Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
-            Find(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken);
-            Find(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken);
+
+            await FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
 
-        private static void Find<T>(
-            IImmutableDictionary<DocumentId, T> values,
+        private static async Task FindAsync<TKey, TValue>(
+            ImmutableSortedDictionary<TKey, TValue> documentStates,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken) where T : TextDocumentState
+            CancellationToken cancellationToken) where TValue : TextDocumentState
         {
-            foreach (var kv in values)
+            foreach (var (_, state) in documentStates)
             {
-                var state = kv.Value;
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-                stateChecksums.Find(state, searchingChecksumsLeft, result, cancellationToken);
+                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
                 if (searchingChecksumsLeft.Count == 0)
                 {
                     return;
@@ -244,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum Info => (Checksum)Children[0];
         public Checksum Text => (Checksum)Children[1];
 
-        public void Find(
+        public async Task FindAsync(
             TextDocumentState state,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
@@ -268,8 +267,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Text))
             {
-                // why I can't get text synchronously when async lazy support synchronous callback?
-                result[Text] = state;
+                result[Text] = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < customModifiers.Length; i++)
             {
-                var modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
+                NamedTypeSymbol modifier = ((CSharpCustomModifier)customModifiers[i]).ModifierSymbol;
                 var substituted = SubstituteNamedType(modifier);
 
                 if (!TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything2))
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(customModifiers[i].IsOptional ? CSharpCustomModifier.CreateOptional(substituted) : CSharpCustomModifier.CreateRequired(substituted));
                     for (i++; i < customModifiers.Length; i++)
                     {
-                        modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
+                        modifier = ((CSharpCustomModifier)customModifiers[i]).ModifierSymbol;
                         substituted = SubstituteNamedType(modifier);
 
                         if (!TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything2))
