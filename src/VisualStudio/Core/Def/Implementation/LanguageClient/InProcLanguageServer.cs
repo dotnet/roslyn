@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Capabilities = new VSServerCapabilities
                 {
                     DefinitionProvider = true,
+                    CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                 }
             };
         }
@@ -68,6 +69,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
             return await this._protocol.GoToDefinitionAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentCompletionName)]
+        public async Task<object> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var completionParams = input.ToObject<CompletionParams>();
+            return await this._protocol.GetCompletionsAsync(_workspace.CurrentSolution, completionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentCompletionResolveName)]
+        public async Task<object> ResolveCompletionItemAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var completionItem = input.ToObject<CompletionItem>();
+            return await this._protocol.ResolveCompletionItemAsync(_workspace.CurrentSolution, completionItem, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
     }
 }
