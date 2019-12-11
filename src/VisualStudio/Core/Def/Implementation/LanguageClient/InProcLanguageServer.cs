@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Capabilities = new VSServerCapabilities
                 {
                     DocumentHighlightProvider = true,
+                    DocumentSymbolProvider = true,
                     DefinitionProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                 }
@@ -87,10 +88,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName)]
-        public async Task<DocumentHighlight[]> GetTextDocumentDocumentHighlights(JToken input, CancellationToken cancellationToken)
+        public async Task<DocumentHighlight[]> GetTextDocumentDocumentHighlightsAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
             return await this._protocol.GetDocumentHighlightAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName)]
+        public async Task<object[]> GetTextDocumentDocumentSymbolsAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var documentSymbolParams = input.ToObject<DocumentSymbolParams>();
+            return await this._protocol.GetDocumentSymbolsAsync(_workspace.CurrentSolution, documentSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
     }
 }
