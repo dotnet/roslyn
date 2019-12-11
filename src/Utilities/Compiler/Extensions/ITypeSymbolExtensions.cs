@@ -126,16 +126,20 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Indicates if the given <paramref name="type"/> implements <paramref name="iDisposable"/>.
+        /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or System.IAsyncDisposable or is <see cref="IDisposable"/> or System.IAsyncDisposable type itself.
         /// </summary>
-        public static bool ImplementsIDisposable(this ITypeSymbol type, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
-            => iDisposable != null && type.AllInterfaces.Contains(iDisposable);
+        public static bool IsDisposable(this ITypeSymbol type,
+            INamedTypeSymbol? iDisposable,
+            INamedTypeSymbol? iAsyncDisposable)
+        {
+            return type.IsReferenceType &&
+                (IsInterfaceOrImplementsInterface(type, iDisposable) ||
+                 IsInterfaceOrImplementsInterface(type, iAsyncDisposable));
 
-        /// <summary>
-        /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or is <see cref="IDisposable"/> type itself.
-        /// </summary>
-        public static bool IsDisposable(this ITypeSymbol type, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
-            => type.IsReferenceType && (Equals(type, iDisposable) || type.ImplementsIDisposable(iDisposable));
+            static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+                => interfaceType != null &&
+                   (Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
+        }
 
         /// <summary>
         /// Gets all attributes directly applied to the type or inherited from a base type.
