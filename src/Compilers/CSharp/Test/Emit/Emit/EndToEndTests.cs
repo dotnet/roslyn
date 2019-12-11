@@ -228,8 +228,8 @@ public class Test
             {
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 310,
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1650,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 570,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 2000,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 200,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 780,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
