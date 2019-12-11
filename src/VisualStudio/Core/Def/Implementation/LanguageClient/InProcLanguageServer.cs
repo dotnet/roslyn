@@ -49,6 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     DocumentHighlightProvider = true,
                     DocumentSymbolProvider = true,
+                    DocumentFormattingProvider = true,
+                    DocumentRangeFormattingProvider = true,
+                    DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                     DefinitionProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                 }
@@ -99,6 +102,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var documentSymbolParams = input.ToObject<DocumentSymbolParams>();
             return await this._protocol.GetDocumentSymbolsAsync(_workspace.CurrentSolution, documentSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentFormattingName)]
+        public async Task<TextEdit[]> GetTextDocumentFormattingAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var documentFormattingParams = input.ToObject<DocumentFormattingParams>();
+            return await this._protocol.FormatDocumentAsync(_workspace.CurrentSolution, documentFormattingParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName)]
+        public async Task<TextEdit[]> GetTextDocumentFormattingOnTypeAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var documentOnTypeFormattingParams = input.ToObject<DocumentOnTypeFormattingParams>();
+            return await this._protocol.FormatDocumentOnTypeAsync(_workspace.CurrentSolution, documentOnTypeFormattingParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentRangeFormattingName)]
+        public async Task<TextEdit[]> GetTextDocumentRangeFormattingAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var documentRangeFormattingParams = input.ToObject<DocumentRangeFormattingParams>();
+            return await this._protocol.FormatDocumentRangeAsync(_workspace.CurrentSolution, documentRangeFormattingParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
     }
 }

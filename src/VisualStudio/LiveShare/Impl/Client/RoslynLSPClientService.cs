@@ -91,9 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
-                        DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
-                        DocumentRangeFormattingProvider = true,
-                        DocumentFormattingProvider = true,
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
                         ReferencesProvider = true,
@@ -103,8 +100,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         // Uses LSP SDK client.
                         CompletionProvider = null,
                         DefinitionProvider = false,
+                        DocumentFormattingProvider = false,
                         DocumentHighlightProvider = false,
                         DocumentLinkProvider = null,
+                        DocumentOnTypeFormattingProvider = null,
+                        DocumentRangeFormattingProvider = false,
                         DocumentSymbolProvider = false,
                         RenameProvider = false,
                         CodeLensProvider = null,
