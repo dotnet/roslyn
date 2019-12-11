@@ -14,9 +14,11 @@ namespace Analyzer.Utilities
         public const string SystemSystemException = "System.SystemException";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemIDisposable = "System.IDisposable";
+        public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
+        public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
