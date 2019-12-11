@@ -150,7 +150,7 @@ namespace AnalyzerRunner
             {
                 Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution);
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
                 CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
 
                 SyntaxTree tree = await project.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
