@@ -27139,33 +27139,33 @@ class Test2 : I1, I2, I3, I4
 }
 ";
             ValidateEventModifiers_17(source1,
-                // (12,43): error CS0179: 'I3.P3.add' cannot be extern and declare a body
-                //     static extern event System.Action P3 {add => throw null; remove => throw null;}
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I3.P3.add").WithLocation(12, 43),
-                // (16,45): error CS0179: 'I4.P4.add' cannot be extern and declare a body
-                //     private extern event System.Action P4 { add {throw null;} remove {throw null;}}
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I4.P4.add").WithLocation(16, 45),
-                // (12,62): error CS0179: 'I3.P3.remove' cannot be extern and declare a body
-                //     static extern event System.Action P3 {add => throw null; remove => throw null;}
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I3.P3.remove").WithLocation(12, 62),
-                // (16,63): error CS0179: 'I4.P4.remove' cannot be extern and declare a body
-                //     private extern event System.Action P4 { add {throw null;} remove {throw null;}}
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I4.P4.remove").WithLocation(16, 63),
+                // (4,41): error CS0180: 'I1.P1' cannot be both extern and abstract
+                //     abstract extern event System.Action P1;
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I1.P1").WithLocation(4, 41),
                 // (8,32): error CS0068: 'I2.P2': instance event in interface cannot have initializer
                 //     extern event System.Action P2 = null;
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P2").WithArguments("I2.P2").WithLocation(8, 32),
+                // (12,43): error CS0179: 'I3.P3.add' cannot be extern and declare a body
+                //     static extern event System.Action P3 {add => throw null; remove => throw null;}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I3.P3.add").WithLocation(12, 43),
+                // (12,62): error CS0179: 'I3.P3.remove' cannot be extern and declare a body
+                //     static extern event System.Action P3 {add => throw null; remove => throw null;}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I3.P3.remove").WithLocation(12, 62),
+                // (16,45): error CS0179: 'I4.P4.add' cannot be extern and declare a body
+                //     private extern event System.Action P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I4.P4.add").WithLocation(16, 45),
+                // (16,63): error CS0179: 'I4.P4.remove' cannot be extern and declare a body
+                //     private extern event System.Action P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I4.P4.remove").WithLocation(16, 63),
+                // (19,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I1, I2, I3, I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(19, 15),
                 // (27,28): error CS0539: 'Test2.P3' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I3.P3 { add => throw null; remove => throw null;}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test2.P3").WithLocation(27, 28),
                 // (28,28): error CS0539: 'Test2.P4' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I4.P4 { add => throw null; remove => throw null;}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P4").WithArguments("Test2.P4").WithLocation(28, 28),
-                // (19,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
-                // class Test1 : I1, I2, I3, I4
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(19, 15),
-                // (4,41): error CS0180: 'I1.P1' cannot be both extern and abstract
-                //     abstract extern event System.Action P1;
-                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I1.P1").WithLocation(4, 41),
                 // (8,32): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P2 = null;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 32),
