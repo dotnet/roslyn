@@ -1484,16 +1484,6 @@
         <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Mögliche Zuweisung eines Nullverweises zu Iterationsvariable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Mögliche Zuweisung eines Nullverweises zu Iterationsvariable</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
         <target state="translated">Dereferenzierung eines möglichen Nullverweises.</target>

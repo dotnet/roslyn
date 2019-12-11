@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
             builder.Add(getId(ErrorCode.WRN_NullReferenceArgument));
-            builder.Add(getId(ErrorCode.WRN_NullReferenceIterationVariable));
             builder.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
@@ -382,7 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceReceiver:
                 case ErrorCode.WRN_NullReferenceReturn:
                 case ErrorCode.WRN_NullReferenceArgument:
-                case ErrorCode.WRN_NullReferenceIterationVariable:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
