@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Binder TryGetInMethodBinder(BinderFactory binderFactoryOpt = null)
         {
-            CSharpSyntaxNode contextNode = GetMethodBodyNode();
+            CSharpSyntaxNode contextNode = GetInMethodSyntaxNode();
             if (contextNode == null)
             {
                 return null;

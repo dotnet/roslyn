@@ -1716,7 +1716,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
-    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</value>
+    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</value>
   </data>
   <data name="ERR_FieldCantBeRefAny" xml:space="preserve">
     <value>Field or property cannot be of type '{0}'</value>

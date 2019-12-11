@@ -4064,8 +4064,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
-        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</source>
-        <target state="translated">Das DllImport-Attribut kann nicht auf eine generische oder in einem generischen Typ enthaltene Methode angewendet werden.</target>
+        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
+        <target state="needs-review-translation">Das DllImport-Attribut kann nicht auf eine generische oder in einem generischen Typ enthaltene Methode angewendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">

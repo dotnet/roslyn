@@ -27,7 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal CSharpSyntaxNode? GetMethodBodyNode()
+        /// <summary>
+        /// Gets the syntax node used for the in-method binder.
+        /// </summary>
+        protected CSharpSyntaxNode? GetInMethodSyntaxNode()
         {
             switch (SyntaxNode)
             {
@@ -802,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (IsExtern
                     && !IsAbstract
                     && !this.IsPartialMethod()
-                    && GetMethodBodyNode() is null
+                    && GetInMethodSyntaxNode() is null
                     && boundAttributes.IsEmpty
                     && !this.ContainingType.IsComImport)
                 {

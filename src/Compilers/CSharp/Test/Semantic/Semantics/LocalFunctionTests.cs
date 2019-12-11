@@ -874,28 +874,28 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (12,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (12,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //         [DllImport("a")] extern static void local2<T>(); // 1
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(12, 10),
-                // (17,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (17,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //             [DllImport("a")] extern static void local2<T2>(); // 2
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(17, 14),
-                // (22,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (22,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //             [DllImport("a")] extern static void local1(); // 3
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(22, 14),
-                // (23,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (23,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //             [DllImport("a")] extern static void local2<T2>(); // 4
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(23, 14),
-                // (29,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (29,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //             [DllImport("a")] extern static void local2<T>(); // 5
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(29, 14),
-                // (34,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (34,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local2<T2>(); // 6
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(34, 18),
-                // (39,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (39,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local1(); // 7
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(39, 18),
-                // (40,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (40,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local2<T2>(); // 8
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(40, 18));
         }
@@ -955,40 +955,40 @@ class C{classTypeParams}
 }}";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (13,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (13,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //             [DllImport("a")] extern static void local1(); // 1
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(13, 14),
-                // (14,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (14,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //             [DllImport("a")] extern static void local2<T>(); // 2
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(14, 14),
-                // (18,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (18,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local1(); // 3
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(18, 18),
-                // (19,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (19,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local2<T2>(); // 4
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(19, 18),
-                // (24,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (24,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local1(); // 5
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(24, 18),
-                // (25,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (25,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local2<T2>(); // 6
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(25, 18),
-                // (30,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (30,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local1(); // 7
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(30, 18),
-                // (31,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (31,18): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                 [DllImport("a")] extern static void local2<T>(); // 8
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(31, 18),
-                // (35,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (35,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                     [DllImport("a")] extern static void local1(); // 9
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(35, 22),
-                // (36,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (36,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                     [DllImport("a")] extern static void local2<T2>(); // 10
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(36, 22),
-                // (41,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (41,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                     [DllImport("a")] extern static void local1(); // 11
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(41, 22),
-                // (42,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.
+                // (42,22): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //                     [DllImport("a")] extern static void local2<T2>(); // 12
                 Diagnostic(ErrorCode.ERR_DllImportOnGenericMethod, "DllImport").WithLocation(42, 22));
         }
