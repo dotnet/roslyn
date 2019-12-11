@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 if (!(SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is INamedTypeSymbol typeSymbol) ||
                     typeSymbol.Locations.Any(loc => loc.IsInMetadata) ||
                     typeSymbol.IsAnonymousType ||
-                    typeSymbol.IsImplicitlyDeclared)
+                    typeSymbol.IsImplicitlyDeclared ||
+                    typeSymbol.Name == string.Empty)
                 {
                     return false;
                 }

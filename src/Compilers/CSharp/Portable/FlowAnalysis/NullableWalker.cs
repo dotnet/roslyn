@@ -1083,25 +1083,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (useLegacyWarnings && isMaybeDefaultValue(valueType))
-            {
-                // No W warning reported assigning or casting [MaybeNull]T value to T
-                // because there is no syntax for declaring the target type as [MaybeNull]T.
-                return;
-            }
-
-            if (value.ConstantValue?.IsNull == true)
+            if (value.ConstantValue?.IsNull == true && !useLegacyWarnings)
             {
                 // Report warning converting null literal to non-nullable reference type.
                 // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
-                if (useLegacyWarnings)
-                {
-                    ReportNonSafetyDiagnostic(location);
-                }
-                else
-                {
-                    ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
-                }
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
             }
             else if (assignmentKind == AssignmentKind.Argument)
             {
@@ -1111,17 +1097,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (useLegacyWarnings)
             {
+                if (isMaybeDefaultValue(valueType))
+                {
+                    // No W warning reported assigning or casting [MaybeNull]T value to T
+                    // because there is no syntax for declaring the target type as [MaybeNull]T.
+                    return;
+                }
                 ReportNonSafetyDiagnostic(location);
-            }
-            else if (assignmentKind == AssignmentKind.ForEachIterationVariable && isMaybeDefaultValue(valueType))
-            {
-                // No warning reported assigning [MaybeNull]T value to foreach iteration variable
-                // because there is no syntax for declaring the variable as [MaybeNull]T.
-                return;
             }
             else
             {
-                ReportDiagnostic(assignmentKind switch { AssignmentKind.Return => ErrorCode.WRN_NullReferenceReturn, AssignmentKind.ForEachIterationVariable => ErrorCode.WRN_NullReferenceIterationVariable, _ => ErrorCode.WRN_NullReferenceAssignment }, location);
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, location);
             }
 
             static bool isMaybeDefaultValue(TypeWithState valueType)
@@ -6997,7 +6983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sourceState,
                                 checkConversion: true,
                                 fromExplicitCast: !conversion.IsImplicit,
-                                useLegacyWarnings: false,
+                                useLegacyWarnings: true,
                                 AssignmentKind.ForEachIterationVariable,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,

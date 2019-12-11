@@ -5861,12 +5861,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureObsoleteOnPropertyAccessor" xml:space="preserve">
     <value>obsolete on property accessor</value>
   </data>
-  <data name="WRN_NullReferenceIterationVariable" xml:space="preserve">
-    <value>Possible null reference assignment to iteration variable</value>
-  </data>
-  <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
-    <value>Possible null reference assignment to iteration variable</value>
-  </data>
   <data name="WRN_UnconsumedEnumeratorCancellationAttributeUsage" xml:space="preserve">
     <value>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
   </data>
