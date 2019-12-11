@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected readonly TSyntaxContext _context;
         protected readonly bool _filterOutOfScopeLocals;
         protected readonly CancellationToken _cancellationToken;
+        private readonly StringComparer _stringComparerForLanguage;
 
         public AbstractRecommendationServiceRunner(
             TSyntaxContext context,
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             CancellationToken cancellationToken)
         {
             _context = context;
+            _stringComparerForLanguage = _context.GetLanguageService<ISyntaxFactsService>().StringComparer;
             _filterOutOfScopeLocals = filterOutOfScopeLocals;
             _cancellationToken = cancellationToken;
         }
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
             var invocationExpression = lambdaSyntax.Parent.Parent.Parent;
             var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocationExpression);
+            var argumentName = syntaxFactsService.GetNameForArgument(lambdaSyntax.Parent);
             var ordinalInInvocation = arguments.IndexOf(lambdaSyntax.Parent);
             var expressionOfInvocationExpression = syntaxFactsService.GetExpressionOfInvocationExpression(invocationExpression);
 
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
             // parameter.Ordinal is the ordinal within (a,b,c) => b.
             // For candidate symbols of (a,b,c) => b., get types of all possible b.
-            var parameterTypeSymbols = GetTypeSymbols(candidateSymbols, ordinalInInvocation: ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+            var parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
 
             // For each type of b., return all suitable members.
             return parameterTypeSymbols
@@ -91,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
         /// <returns></returns>
-        private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
+        private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, string argumentName, int ordinalInInvocation, int ordinalInLambda)
         {
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
@@ -101,23 +105,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             {
                 if (candidateSymbol is IMethodSymbol method)
                 {
-                    ITypeSymbol type;
-                    if (method.IsParams() && (ordinalInInvocation >= method.Parameters.Length - 1))
-                    {
-                        if (method.Parameters.LastOrDefault()?.Type is IArrayTypeSymbol arrayType)
-                        {
-                            type = arrayType.ElementType;
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                    else if (ordinalInInvocation < method.Parameters.Length)
-                    {
-                        type = method.Parameters[ordinalInInvocation].Type;
-                    }
-                    else
+                    if (!TryGetMatchingParameterTypeForArgument(method, argumentName, ordinalInInvocation, out var type))
                     {
                         continue;
                     }
@@ -159,6 +147,39 @@ namespace Microsoft.CodeAnalysis.Recommendations
             }
 
             return builder.ToImmutableAndFree().Distinct();
+        }
+
+        private bool TryGetMatchingParameterTypeForArgument(IMethodSymbol method, string argumentName, int ordinalInInvocation, out ITypeSymbol parameterType)
+        {
+            if (!string.IsNullOrEmpty(argumentName))
+            {
+                parameterType = method.Parameters.FirstOrDefault(p => _stringComparerForLanguage.Equals(p.Name, argumentName))?.Type;
+                return parameterType != null;
+            }
+
+            // We don't know the argument name, so have to find the parameter based on position
+            if (method.IsParams() && (ordinalInInvocation >= method.Parameters.Length - 1))
+            {
+                if (method.Parameters.LastOrDefault()?.Type is IArrayTypeSymbol arrayType)
+                {
+                    parameterType = arrayType.ElementType;
+                    return true;
+                }
+                else
+                {
+                    parameterType = null;
+                    return false;
+                }
+            }
+
+            if (ordinalInInvocation < method.Parameters.Length)
+            {
+                parameterType = method.Parameters[ordinalInInvocation].Type;
+                return true;
+            }
+
+            parameterType = null;
+            return false;
         }
 
         protected ImmutableArray<ISymbol> GetSymbolsForNamespaceDeclarationNameContext<TNamespaceDeclarationSyntax>()

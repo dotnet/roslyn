@@ -8118,6 +8118,72 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(y:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(Optional x As Integer = 0, Optional y As Action(Of String) = Nothing)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameterWithDifferentCasing() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(Z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionInsideMethodsWithNonFunctionsAsArguments() As Task
             Dim source =
 <code><![CDATA[
