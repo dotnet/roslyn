@@ -176,12 +176,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return Tuple.Create(true, status);
         }
 
-        internal static string MakeMethodName(string prefix, string originalName, bool localFunction, bool camelCase)
+        internal static string MakeMethodName(string prefix, string originalName, bool camelCase)
         {
             var startingWithLetter = originalName.ToCharArray().SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);
 
-            if (localFunction && camelCase && !prefix.IsEmpty())
+            if (camelCase && !prefix.IsEmpty())
             {
                 prefix = char.ToLowerInvariant(prefix[0]) + prefix.Substring(1);
             }
