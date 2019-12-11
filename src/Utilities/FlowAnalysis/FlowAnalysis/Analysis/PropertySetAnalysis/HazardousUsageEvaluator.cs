@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// TODO(dotpaul): Enable nullable analysis.
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis;
 
@@ -90,22 +87,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Name of the type containing the method, or null if method is part of the type being tracked by PropertySetAnalysis or this is for a return statement.
         /// </summary>
-        public string ContainingTypeName { get; }
+        public string? ContainingTypeName { get; }
 
         /// <summary>
         /// Name of the method being invoked, or null if this is for a return statement.
         /// </summary>
-        public string MethodName { get; }
+        public string? MethodName { get; }
 
         /// <summary>
         /// Name of the parameter containing the object containing the type being tracked by PropertySetAnalysis, or null if the method is part of the type being tracked by PropertySetAnalysis.
         /// </summary>
-        public string ParameterNameOfPropertySetObject { get; }
+        public string? ParameterNameOfPropertySetObject { get; }
 
         /// <summary>
         /// Evaluates if the method invocation with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
         /// </summary>
-        public InvocationEvaluationCallback InvocationEvaluator { get; }
+        public InvocationEvaluationCallback? InvocationEvaluator { get; }
 
         /// <summary>
         /// Determines whether consider the derived classes of the containing type.
@@ -115,7 +112,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Evaluates if the return statement or initialization value with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
         /// </summary>
-        public EvaluationCallback ValueEvaluator { get; }
+        public EvaluationCallback? ValueEvaluator { get; }
 
         public override int GetHashCode()
         {
@@ -132,7 +129,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return this.Equals(obj as HazardousUsageEvaluator);
         }
 
-        public bool Equals(HazardousUsageEvaluator other)
+        public bool Equals(HazardousUsageEvaluator? other)
         {
             return other != null
                 && this.ContainingTypeName == other.ContainingTypeName
