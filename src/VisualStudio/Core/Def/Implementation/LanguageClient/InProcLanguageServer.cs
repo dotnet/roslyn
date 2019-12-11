@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 Capabilities = new VSServerCapabilities
                 {
+                    DocumentHighlightProvider = true,
                     DefinitionProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                 }
@@ -83,6 +84,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var completionItem = input.ToObject<CompletionItem>();
             return await this._protocol.ResolveCompletionItemAsync(_workspace.CurrentSolution, completionItem, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName)]
+        public async Task<DocumentHighlight[]> GetTextDocumentDocumentHighlights(JToken input, CancellationToken cancellationToken)
+        {
+            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
+            return await this._protocol.GetDocumentHighlightAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
     }
 }

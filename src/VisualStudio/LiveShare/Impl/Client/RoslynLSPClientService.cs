@@ -97,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         DocumentSymbolProvider = true,
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        DocumentHighlightProvider = true,
                         ReferencesProvider = true,
                         SignatureHelpProvider = new SignatureHelpOptions() { },
                         ImplementationProvider = true,
@@ -105,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         // Uses LSP SDK client.
                         CompletionProvider = null,
                         DefinitionProvider = false,
+                        DocumentHighlightProvider = false,
                         DocumentLinkProvider = null,
                         RenameProvider = false,
                         CodeLensProvider = null,
