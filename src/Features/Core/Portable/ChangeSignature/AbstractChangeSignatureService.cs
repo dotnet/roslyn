@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
         {
-            var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
 
             // TODO are there any restricitons for extension methods? e.g. remove the first param or reorder it?
@@ -175,8 +174,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 context.Symbol,
                 context.InsertPosition,
                 context.ParameterConfiguration,
-                context.Document,
-                notificationService);
+                context.Document);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(

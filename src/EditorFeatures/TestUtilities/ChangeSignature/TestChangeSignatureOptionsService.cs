@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
@@ -25,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             throw new System.NotImplementedException();
         }
 
-        ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(ISymbol symbol, int insertPosition, ParameterConfiguration parameters, Document document, INotificationService notificationService)
+        ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
+            ISymbol symbol, int insertPosition, ParameterConfiguration parameters,
+            Document document)
         {
             var list = parameters.ToListOfParameters();
 
