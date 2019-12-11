@@ -17,6 +17,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
+        private const string EditorConfigNaming_LocalFunctions_CamelCase = @"[*]
+# Naming rules
+
+dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
+dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
+
+# Symbol specifications
+
+dotnet_naming_symbols.local_functions.applicable_kinds = local_function
+dotnet_naming_symbols.local_functions.applicable_accessibilities = *
+dotnet_naming_symbols.local_functions.required_modifiers = 
+
+# Naming styles
+
+dotnet_naming_style.camel_case.capitalization = camel_case";
+
         [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()
@@ -3699,22 +3716,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*]
-# Naming rules
-
-dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
-dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
-dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
-
-# Symbol specifications
-
-dotnet_naming_symbols.local_functions.applicable_kinds = local_function
-dotnet_naming_symbols.local_functions.applicable_accessibilities = *
-dotnet_naming_symbols.local_functions.required_modifiers = 
-
-# Naming styles
-
-dotnet_naming_style.camel_case.capitalization = camel_case
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">" + EditorConfigNaming_LocalFunctions_CamelCase + @"
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -3737,22 +3739,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*]
-# Naming rules
-
-dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
-dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
-dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
-
-# Symbol specifications
-
-dotnet_naming_symbols.local_functions.applicable_kinds = local_function
-dotnet_naming_symbols.local_functions.applicable_accessibilities = *
-dotnet_naming_symbols.local_functions.required_modifiers = 
-
-# Naming styles
-
-dotnet_naming_style.camel_case.capitalization = camel_case
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">" + EditorConfigNaming_LocalFunctions_CamelCase + @"
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -3775,22 +3762,7 @@ class MethodExtraction
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*]
-# Naming rules
-
-dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
-dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
-dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
-
-# Symbol specifications
-
-dotnet_naming_symbols.local_functions.applicable_kinds = local_function
-dotnet_naming_symbols.local_functions.applicable_accessibilities = *
-dotnet_naming_symbols.local_functions.required_modifiers = 
-
-# Naming styles
-
-dotnet_naming_style.camel_case.capitalization = camel_case
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">" + EditorConfigNaming_LocalFunctions_CamelCase + @"
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -3812,22 +3784,7 @@ class MethodExtraction
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">[*]
-# Naming rules
-
-dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
-dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
-dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
-
-# Symbol specifications
-
-dotnet_naming_symbols.local_functions.applicable_kinds = local_function
-dotnet_naming_symbols.local_functions.applicable_accessibilities = *
-dotnet_naming_symbols.local_functions.required_modifiers = 
-
-# Naming styles
-
-dotnet_naming_style.camel_case.capitalization = camel_case
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">" + EditorConfigNaming_LocalFunctions_CamelCase + @"
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";

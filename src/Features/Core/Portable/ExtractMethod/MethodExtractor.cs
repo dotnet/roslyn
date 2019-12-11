@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return Tuple.Create(true, status);
         }
 
-        internal static string MakeMethodName(string prefix, string originalName, bool localFunction = false, bool camelCase = false)
+        internal static string MakeMethodName(string prefix, string originalName, bool localFunction, bool camelCase)
         {
             var startingWithLetter = originalName.ToCharArray().SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);

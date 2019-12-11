@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
-                modifiers: GenerateModifiers(method, destination, options, localFunction: false),
+                modifiers: GenerateModifiers(method, destination, options),
                 returnType: method.GenerateReturnTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options, ParseOptions parseOptions)
         {
             var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
-                modifiers: GenerateModifiers(method, destination, options, localFunction: true, ((CSharpParseOptions)parseOptions).LanguageVersion),
+                modifiers: GenerateModifiers(method, destination, options),
                 returnType: method.GenerateReturnTypeSyntax(),
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxTokenList GenerateModifiers(
-            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options, bool localFunction, LanguageVersion languageVersion = LanguageVersion.Latest)
+            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -245,18 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                     if (method.IsStatic)
                     {
-                        if (localFunction)
-                        {
-                            // Static local functions are only supported in C# 8.0 and later.
-                            if (languageVersion >= LanguageVersion.CSharp8)
-                            {
-                                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-                            }
-                        }
-                        else
-                        {
-                            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-                        }
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }
 
                     // Don't show the readonly modifier if the containing type is already readonly

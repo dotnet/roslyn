@@ -113,10 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax>(destination);
 
-            if (options.Options == null)
-            {
-                options = options.With(options: Workspace.Options);
-            }
+            options = options.Options == null ? options.With(options: Workspace.Options) : options;
 
             // Synthesized methods for properties/events are not things we actually generate 
             // declarations for.
@@ -578,19 +575,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            if (options.Options == null)
+            if (method.IsDestructor())
             {
-                options = options.With(options: Workspace.Options);
+                return DestructorGenerator.GenerateDestructorDeclaration(method, destination, options);
             }
+
+            options = options.Options == null ? options.With(options: Workspace.Options) : options;
 
             if (method.IsConstructor())
             {
                 return ConstructorGenerator.GenerateConstructorDeclaration(
                     method, destination, Workspace, options, options.ParseOptions);
-            }
-            else if (method.IsDestructor())
-            {
-                return DestructorGenerator.GenerateDestructorDeclaration(method, destination, options);
             }
             else if (method.IsUserDefinedOperator())
             {

@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             private readonly SyntaxToken _methodName;
 
+            private const string NewMethodPascalCaseStr = "NewMethod";
+            private const string NewMethodCamelCaseStr = "newMethod";
+
             public static Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
@@ -217,7 +220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var isStatic = !this.AnalyzerResult.UseInstanceMember;
                 var isReadOnly = this.AnalyzerResult.ShouldBeReadOnly;
 
-                if (LocalFunction && !this.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value)
+                // Static local functions are only supported in C# 8.0 and later
+                var languageVersion = ((CSharpParseOptions)this.SemanticDocument.SyntaxTree.Options).LanguageVersion;
+
+                if (LocalFunction && (!this.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value || languageVersion < LanguageVersion.CSharp8))
                 {
                     isStatic = false;
                 }
@@ -806,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected string GenerateMethodNameFromUserPreference()
             {
-                var methodName = "NewMethod";
+                var methodName = NewMethodPascalCaseStr;
                 if (!LocalFunction)
                 {
                     return methodName;
@@ -822,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     if (namingRules.Any(rule => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(localFunctionKind, CreateMethodModifiers(), null)))
                     {
-                        methodName = "newMethod";
+                        methodName = NewMethodCamelCaseStr;
                     }
                 }
 
