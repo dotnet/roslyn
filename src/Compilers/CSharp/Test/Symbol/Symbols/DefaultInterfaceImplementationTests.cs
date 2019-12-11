@@ -27362,7 +27362,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (16,41): error CS0112: A static member 'I4.P4' cannot be marked as override, virtual, or abstract
                 //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P4").WithArguments("I4.P4").WithLocation(16, 41),
-                 // (20,41): error CS0106: The modifier 'override' is not valid for this item
+                // (20,41): error CS0106: The modifier 'override' is not valid for this item
                 //     override sealed event System.Action P5 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 41),
                 // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -27383,7 +27383,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (33,28): error CS0539: 'Test2.P5' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I5.P5 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P5").WithArguments("Test2.P5").WithLocation(33, 28),
-               // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
                 // (8,42): warning CS0067: The event 'I2.P2' is never used
