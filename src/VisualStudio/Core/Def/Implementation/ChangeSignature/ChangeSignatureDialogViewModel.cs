@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -20,11 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     internal class ChangeSignatureDialogViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly INotificationService _notificationService;
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly ParameterConfiguration _originalParameterConfiguration;
-        private readonly ISymbol _symbol;
 
         private readonly ParameterViewModel _thisParameter;
         private readonly List<ParameterViewModel> _parameterGroup1;
@@ -39,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public readonly Document Document;
 
         internal ChangeSignatureDialogViewModel(
-            INotificationService notificationService,
             ParameterConfiguration parameters,
             ISymbol symbol,
             Document document,
@@ -48,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
-            _notificationService = notificationService;
             Document = document;
             InsertPosition = insertPosition;
             _classificationFormatMap = classificationFormatMap;
@@ -62,7 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _disabledParameters.Add(_thisParameter);
             }
 
-            _symbol = symbol;
             _declarationParts = symbol.ToDisplayParts(s_symbolDeclarationDisplayFormat);
 
             _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();

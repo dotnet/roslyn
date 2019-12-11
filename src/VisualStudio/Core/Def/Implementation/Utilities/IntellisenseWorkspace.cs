@@ -5,13 +5,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Editor.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal class ChangeSignatureWorkspace : Workspace
+    internal class IntellisenseWorkspace : Workspace
     {
-        public ChangeSignatureWorkspace(Solution solution, Project project)
-            : base(project.Solution.Workspace.Services.HostServices, nameof(ChangeSignatureWorkspace))
+        public IntellisenseWorkspace(Solution solution, Project project, string documentText = null)
+            : base(project.Solution.Workspace.Services.HostServices, nameof(IntellisenseWorkspace))
         {
+            documentText = documentText ?? string.Empty;
             // The solution we are handed is still parented by the original workspace. We want to
             // inherit it's "no partial solutions" flag so that way this workspace will also act
             // deterministically if we're in unit tests
@@ -19,18 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             // Create a new document to hold the temporary code
             ChangeSignatureDocumentId = DocumentId.CreateNewId(project.Id);
-            this.SetCurrentSolution(solution.AddDocument(ChangeSignatureDocumentId, Guid.NewGuid().ToString(), GetDocumentText()));
+            this.SetCurrentSolution(solution.AddDocument(ChangeSignatureDocumentId, Guid.NewGuid().ToString(), documentText));
 
             Options = Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, true);
-        }
-
-        // TODO do we need to keep this?
-        private static string GetDocumentText()
-        {
-            return $@"
-{{
-}}
-";
         }
 
         public Document ChangeSignatureDocument => this.CurrentSolution.GetDocument(this.ChangeSignatureDocumentId);

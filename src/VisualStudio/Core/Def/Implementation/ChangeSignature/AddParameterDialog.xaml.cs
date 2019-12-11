@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             DataContext = ViewModel;
 
             // This is for Add. For edit, it should be true by default.
-            IsValid = false;
+            _isValid = false;
 
             InitializeComponent();
         }
@@ -57,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IntellisenseTextBox typeNameTextBox = new IntellisenseTextBox(
                 _intellisenseTextBoxView, TypeNameContentControl);
             this.TypeNameContentControl.Content = typeNameTextBox;
+
+            this.OKButton.IsEnabled = _isValid;
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)

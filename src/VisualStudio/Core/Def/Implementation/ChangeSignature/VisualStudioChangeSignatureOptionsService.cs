@@ -10,14 +10,9 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using ImportingConstructorAttribute = System.Composition.ImportingConstructorAttribute;
 
@@ -30,41 +25,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentType _contentType;
-        private readonly OLE.Interop.IServiceProvider _serviceProvider;
-        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+        private readonly IntellisenseTextBoxViewModelFactory _intellisenseTextBoxViewModelFactory;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioChangeSignatureOptionsService(
             IClassificationFormatMapService classificationFormatMapService,
             ClassificationTypeMap classificationTypeMap,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            SVsServiceProvider services)
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            _textEditorFactoryService = textEditorFactoryService;
             _contentType = contentTypeRegistryService.GetContentType(ContentTypeNames.CSharpContentType);
-            _serviceProvider = (OLE.Interop.IServiceProvider)services.GetService(typeof(OLE.Interop.IServiceProvider));
-            _projectionBufferFactoryService = projectionBufferFactoryService;
+            _intellisenseTextBoxViewModelFactory = intellisenseTextBoxViewModelFactory;
         }
 
         public ChangeSignatureOptionsResult GetChangeSignatureOptions(
             ISymbol symbol,
             int insertPosition,
             ParameterConfiguration parameters,
-            Document document,
-            INotificationService notificationService)
+            Document document)
         {
             var viewModel = new ChangeSignatureDialogViewModel(
-                notificationService,
                 parameters,
                 symbol,
                 document,
@@ -113,92 +97,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var documentText = sourceText.ToString();
 
-            IVsTextLines vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, _contentType) as IVsTextLines;
-            vsTextLines.InitializeContent(documentText.Insert(insertPosition, ","), documentText.Length);
+            var viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
+                document, _contentType, documentText.Insert(insertPosition, ","),
+                CreateTrackingSpans, new[] { AddParameterTextViewRole }, cancellationToken).ConfigureAwait(false);
 
-            var originalContextBuffer = _editorAdaptersFactoryService.GetDataBuffer(vsTextLines);
-            // Get the workspace, and from there, the solution and document containing this buffer.
-            // If there's an ExternalSource, we won't get a document. Give up in that case.
-            var solution = document.Project.Solution;
+            return new AddParameterDialog(viewModels[0]);
 
-            // Wrap the original ContextBuffer in a projection buffer that we can make read-only
-            var contextBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(null,
-                new object[] { originalContextBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive) }, ProjectionBufferOptions.None, _contentType);
-
-            // Make projection readonly so we can't edit it by mistake.
-            using (var regionEdit = contextBuffer.CreateReadOnlyRegionEdit())
+            ITrackingSpan[] CreateTrackingSpans(IProjectionSnapshot snapshot)
             {
-                regionEdit.CreateReadOnlyRegion(new Span(0, contextBuffer.CurrentSnapshot.Length), SpanTrackingMode.EdgeInclusive, EdgeInsertionMode.Deny);
-                regionEdit.Apply();
+                // Adjust the context point to ensure that the right information is in scope.
+                // For example, we may need to move the point to the end of the last statement in a method body
+                // in order to be able to access all local variables.
+                // + 1 to support inserted comma
+                var contextPoint = insertPosition + 1;
+
+                // Get the previous span/text. We might have to insert another newline or something.
+                var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
+
+                // Get the appropriate ITrackingSpan for the window the user is typing in
+                var mappedSpan = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
+
+                // Build the tracking span that includes the rest of the file
+                var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint, SpanTrackingMode.EdgePositive);
+                return new ITrackingSpan[] { previousStatementSpan, mappedSpan, restOfFileSpan };
             }
-
-            // Adjust the context point to ensure that the right information is in scope.
-            // For example, we may need to move the point to the end of the last statement in a method body
-            // in order to be able to access all local variables.
-            // + 1 to support inserted comma
-            var contextPoint = insertPosition + 1;
-
-            // Get the previous span/text. We might have to insert another newline or something.
-            var previousStatementSpan = contextBuffer.CurrentSnapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
-
-            // Get the appropriate ITrackingSpan for the window the user is typing in
-            var mappedSpan = contextBuffer.CurrentSnapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
-
-            // Build the tracking span that includes the rest of the file
-            var restOfFileSpan = contextBuffer.CurrentSnapshot.CreateTrackingSpanFromIndexToEnd(contextPoint, SpanTrackingMode.EdgePositive);
-
-            // Put it all into a projection buffer
-            var projectionBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(null,
-                new object[] { previousStatementSpan, mappedSpan, restOfFileSpan }, ProjectionBufferOptions.None, _contentType);
-
-            // Fork the solution using this new primary buffer for the document and all of its linked documents.
-            var forkedSolution = solution.WithDocumentText(document.Id, projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
-            foreach (var link in document.GetLinkedDocumentIds())
-            {
-                forkedSolution = forkedSolution.WithDocumentText(link, projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
-            }
-
-            // Put it into a new workspace, and open it and its related documents
-            // with the projection buffer as the text.
-            var workspace = new ChangeSignatureWorkspace(forkedSolution, document.Project);
-            workspace.OpenDocument(workspace.ChangeSignatureDocumentId, originalContextBuffer.AsTextContainer());
-            foreach (var link in document.GetLinkedDocumentIds())
-            {
-                workspace.OpenDocument(link, originalContextBuffer.AsTextContainer());
-            }
-
-            // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
-            await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            ITextViewRoleSet roleSet = _textEditorFactoryService.CreateTextViewRoleSet(
-                PredefinedTextViewRoles.Editable,
-                PredefinedTextViewRoles.Interactive,
-                AddParameterTextViewRole);
-
-            IVsTextView vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
-
-            INITVIEW[] initView = new[] {
-                new INITVIEW()
-                {
-                    fSelectionMargin = 0,
-                    fWidgetMargin = 0,
-                    fDragDropMove = 0,
-                    IndentStyle = vsIndentStyle.vsIndentStyleNone
-                }
-            };
-
-            _editorAdaptersFactoryService.SetDataBuffer(vsTextLines, projectionBuffer);
-
-            vsTextView.Initialize(
-                vsTextLines,
-                IntPtr.Zero,
-                (uint)TextViewInitFlags3.VIF_NO_HWND_SUPPORT,
-                initView);
-
-            IWpfTextView wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
-            wpfTextView.TextBuffer.ChangeContentType(_contentType, null);
-
-            return new AddParameterDialog(new IntellisenseTextBoxViewModel(vsTextView, wpfTextView));
         }
     }
 }
