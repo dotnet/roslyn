@@ -7301,5 +7301,49 @@ class C
     bool Some(IntPtr a) => true;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
+        public async Task AssignmentInTry_NotUsedInFinally_Diagnostic()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        bool b = false;
+        try 
+        { 
+            if (i == 0)
+            {
+                [|b|] = true;
+            }
+        }
+        finally 
+        {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        bool b = false;
+        try 
+        { 
+            if (i == 0)
+            {
+            }
+        }
+        finally 
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
     }
 }
