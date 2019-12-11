@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return _storages;
             }
 
-            public override bool TryGetValue(out AssemblyMetadata value)
+            public override bool TryGetValue([NotNullWhen(true)]out AssemblyMetadata? value)
                 => _weakValue.TryGetTarget(out value);
 
             public override Task<AssemblyMetadata?> GetValueAsync(CancellationToken cancellationToken)

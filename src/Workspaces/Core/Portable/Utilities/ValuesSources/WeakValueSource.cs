@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace Roslyn.Utilities
             _weakValue = new WeakReference<T>(value);
         }
 
-        public override bool TryGetValue(out T value)
+        public override bool TryGetValue([NotNullWhen(true)]out T? value)
             => _weakValue.TryGetTarget(out value);
 
         public override T? GetValue(CancellationToken cancellationToken)

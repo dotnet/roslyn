@@ -1961,7 +1961,7 @@ namespace Microsoft.CodeAnalysis
         public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
             return project.SupportsCompilation
-                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).ToNullable()
+                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
                 : SpecializedTasks.Null<Compilation>();
         }
 

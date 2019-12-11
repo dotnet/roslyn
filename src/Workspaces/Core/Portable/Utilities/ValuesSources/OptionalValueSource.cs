@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal abstract class OptionalValueSource<T> where T : class
     {
-        public abstract bool TryGetValue(out T value);
+        public abstract bool TryGetValue([NotNullWhen(true)]out T? value);
         public abstract T? GetValue(CancellationToken cancellationToken = default);
         public abstract Task<T?> GetValueAsync(CancellationToken cancellationToken = default);
 

@@ -19,14 +19,14 @@ namespace Roslyn.Utilities
         [Obsolete("Use Task.CompletedTask instead which is available in the framework.")]
         public static readonly Task EmptyTask = Task.CompletedTask;
 
-        public static Task<T?> ToNullable<T>(this Task<T> task) where T : class
+        public static Task<T?> AsNullable<T>(this Task<T> task) where T : class
             => task!;
 
         public static Task<T> Default<T>() where T : struct
-            => TasksOfStruct<T>.Instance;
+            => TasksOfStruct<T>.Default;
 
         public static Task<T?> Null<T>() where T : class
-            => TasksOfClass<T>.Instance;
+            => TasksOfClass<T>.Null;
 
         public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
             => EmptyTasks<T>.EmptyReadOnlyList;
@@ -45,12 +45,12 @@ namespace Roslyn.Utilities
 
         private static class TasksOfStruct<T> where T : struct
         {
-            public static readonly Task<T> Instance = Task.FromResult<T>(default);
+            public static readonly Task<T> Default = Task.FromResult<T>(default);
         }
 
         private static class TasksOfClass<T> where T : class
         {
-            public static readonly Task<T?> Instance = Task.FromResult<T?>(null);
+            public static readonly Task<T?> Null = Task.FromResult<T?>(null);
         }
 
         private static class EmptyTasks<T>

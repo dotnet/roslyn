@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
+        [return: NotNullIfNotNull("instance")]
         public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T? instance) where T : class
         {
             lock (_gate)
@@ -127,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Host
             return false;
         }
 
+        [return: NotNullIfNotNull("instance")]
         public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class
         {
             lock (_gate)

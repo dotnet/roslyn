@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// cache.
         /// </summary>
         /// <returns>The instance passed in is always returned</returns>
+        [return: NotNullIfNotNull("instance")]
         T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T? instance) where T : class;
 
         /// <summary>
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// will be set to instance.
         /// </summary>
         /// <returns>The instance passed in is always returned</returns>
+        [return: NotNullIfNotNull("instance")]
         T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class;
     }
 }

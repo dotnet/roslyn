@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ namespace Roslyn.Utilities
             _value = value;
         }
 
-        public override bool TryGetValue(out T value)
+        public override bool TryGetValue([NotNullWhen(true)]out T? value)
         {
             value = _value;
             return true;
@@ -27,6 +28,6 @@ namespace Roslyn.Utilities
             => _value;
 
         public override Task<T?> GetValueAsync(CancellationToken cancellationToken)
-            => Task.FromResult(_value).ToNullable();
+            => Task.FromResult(_value).AsNullable();
     }
 }
