@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // given service must be DiagnosticAnalyzerService
                 var diagnosticService = (DiagnosticAnalyzerService)_service._analyzerService;
 
-                var analyzers = GetAnalyzers(diagnosticService, document.Project);
+                var analyzers = GetAnalyzers(diagnosticService.AnalyzerInfoCache, document.Project);
 
                 var compilationWithAnalyzers = await diagnosticService.CreateCompilationWithAnalyzers(
                     document.Project, analyzers, includeSuppressedDiagnostics: false, logAggregator: null, cancellationToken).ConfigureAwait(false);
@@ -172,17 +173,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return builder.ToImmutableAndFree();
             }
 
-            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(DiagnosticAnalyzerService service, Project project)
+            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(DiagnosticAnalyzerInfoCache analyzerInfoCache, Project project)
             {
                 // C# or VB document that supports compiler
-                var compilerAnalyzer = service.GetCompilerDiagnosticAnalyzer(project.Language);
+                var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null)
                 {
                     return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-                return service.GetDiagnosticAnalyzers(project);
+                return analyzerInfoCache.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
             }
 
             public void RemoveDocument(DocumentId documentId)

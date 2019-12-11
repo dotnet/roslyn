@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class TestDiagnosticAnalyzerService : DiagnosticAnalyzerService
     {
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
-        private readonly ImmutableDictionary<object, AnalyzerReference> _hostAnalyzerReferenceMap;
 
         internal TestDiagnosticAnalyzerService(
             string language,
@@ -61,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IAsynchronousOperationListener listener = null)
             : base(analyzerInfoCache, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService(), listener)
         {
-            _hostAnalyzerReferenceMap = analyzerInfoCache.CreateAnalyzerReferencesMap(project: null);
             _onAnalyzerException = onAnalyzerException;
         }
 
@@ -102,7 +100,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return _onAnalyzerException ?? base.GetOnAnalyzerException(projectId, diagnosticLogAggregator);
         }
-
-        internal IEnumerable<AnalyzerReference> HostAnalyzerReferences => _hostAnalyzerReferenceMap.Values;
     }
 }

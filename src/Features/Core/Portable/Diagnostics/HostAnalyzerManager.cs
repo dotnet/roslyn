@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -120,22 +121,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It returns a string that can be used as a way to de-duplicate <see cref="AnalyzerReference"/>s.
         /// </summary>
         public object GetAnalyzerReferenceIdentity(AnalyzerReference reference)
-        {
-            return reference.Id;
-        }
+            => reference.Id;
 
         /// <summary>
         /// It returns a map with <see cref="AnalyzerReference.Id"/> as key and <see cref="AnalyzerReference"/> as value
         /// </summary>
-        public ImmutableDictionary<object, AnalyzerReference> CreateAnalyzerReferencesMap(Project? project = null)
-        {
-            if (project == null)
-            {
-                return _hostAnalyzerReferencesMap.Value;
-            }
-
-            return _hostAnalyzerReferencesMap.Value.AddRange(CreateProjectAnalyzerReferencesMap(project));
-        }
+        public ImmutableDictionary<object, AnalyzerReference> GetHostAnalyzerReferencesMap()
+            => _hostAnalyzerReferencesMap.Value;
 
         /// <summary>
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
@@ -212,20 +204,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
         }
 
-        /// <summary>
-        /// Create <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticDescriptor"/>s map
-        /// </summary>
-        public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> GetHostDiagnosticDescriptorsPerReference()
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference()
         {
-            return CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value);
+            return ConvertReferenceIdentityToName(
+                CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value),
+                _hostAnalyzerReferencesMap.Value);
         }
 
-        /// <summary>
-        /// Create <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticDescriptor"/>s map for given <paramref name="project"/>
-        /// </summary>
-        public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project project)
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project)
         {
-            return CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project));
+            var descriptorPerReference = CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project));
+            var map = _hostAnalyzerReferencesMap.Value.AddRange(CreateProjectAnalyzerReferencesMap(project));
+            return ConvertReferenceIdentityToName(descriptorPerReference, map);
+        }
+
+        private static ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(
+            ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference,
+            ImmutableDictionary<object, AnalyzerReference> map)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
+
+            foreach (var (id, descriptors) in descriptorsPerReference)
+            {
+                if (!map.TryGetValue(id, out var reference) || reference == null)
+                {
+                    continue;
+                }
+
+                var displayName = reference.Display ?? FeaturesResources.Unknown;
+
+                // if there are duplicates, merge descriptors
+                if (builder.TryGetValue(displayName, out var existing))
+                {
+                    builder[displayName] = existing.AddRange(descriptors);
+                    continue;
+                }
+
+                builder.Add(displayName, descriptors);
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -288,6 +306,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) && compilerAnalyzer == analyzer;
         }
 
+        public bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
+        {
+            // compiler diagnostic analyzer always supports all kinds:
+            if (IsCompilerDiagnosticAnalyzer(language, analyzer))
+            {
+                return true;
+            }
+
+            return kind switch
+            {
+                AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
+                AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
+        }
+
         /// <summary>
         /// Get Name of Package (vsix) which Host <see cref="DiagnosticAnalyzer"/> is from.
         /// </summary>
@@ -311,11 +345,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticDescriptor>>();
-            foreach (var kv in analyzersMap)
+            foreach (var (referenceId, analyzers) in analyzersMap)
             {
-                var referenceId = kv.Key;
-                var analyzers = kv.Value;
-
                 var descriptors = ImmutableArray.CreateBuilder<DiagnosticDescriptor>();
                 foreach (var analyzer in analyzers)
                 {

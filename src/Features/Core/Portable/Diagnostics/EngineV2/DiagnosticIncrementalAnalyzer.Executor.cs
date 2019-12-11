@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // perf optimization. check whether analyzer is suppressed and avoid getting diagnostics if suppressed.
-                    if (AnalyzerService.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
+                    if (DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
                     {
                         return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                     }

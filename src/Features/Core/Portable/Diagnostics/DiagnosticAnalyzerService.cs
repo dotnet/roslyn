@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
+
         private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
 
         public IAsynchronousOperationListener Listener { get; }
@@ -67,72 +68,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IAsynchronousOperationListener? listener = null)
             : this(registrationService)
         {
-            _analyzerInfoCache = analyzerInfoCache;
+            AnalyzerInfoCache = analyzerInfoCache;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }
 
         private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)
             => diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages() ?? ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
-
-        public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
-        {
-            var map = _analyzerInfoCache.CreateDiagnosticAnalyzersPerReference(project);
-            return map.Values.SelectMany(v => v).ToImmutableArray();
-        }
-
-        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project? project)
-        {
-            if (project == null)
-            {
-                return ConvertReferenceIdentityToName(_analyzerInfoCache.GetHostDiagnosticDescriptorsPerReference());
-            }
-
-            return ConvertReferenceIdentityToName(_analyzerInfoCache.CreateDiagnosticDescriptorsPerReference(project), project);
-        }
-
-        private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(
-            ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference, Project? project = null)
-        {
-            var map = _analyzerInfoCache.CreateAnalyzerReferencesMap(project);
-
-            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
-
-            foreach (var (id, descriptors) in descriptorsPerReference)
-            {
-                if (!map.TryGetValue(id, out var reference) || reference == null)
-                {
-                    continue;
-                }
-
-                var displayName = GetDisplayName(reference);
-                // if there are duplicates, merge descriptors
-                if (builder.TryGetValue(displayName, out var existing))
-                {
-                    builder[displayName] = existing.AddRange(descriptors);
-                    continue;
-                }
-
-                builder.Add(displayName, descriptors);
-            }
-
-            return builder.ToImmutable();
-        }
-
-        private static string GetDisplayName(AnalyzerReference reference)
-        {
-            return reference.Display ?? FeaturesResources.Unknown;
-        }
-
-        public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
-        {
-            return _analyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-        }
-
-        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
-        {
-            return _analyzerInfoCache.IsAnalyzerSuppressed(analyzer, project);
-        }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
         {
@@ -245,21 +187,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
-        {
-            return _analyzerInfoCache.IsCompilerDiagnostic(language, diagnostic);
-        }
-
-        public DiagnosticAnalyzer? GetCompilerDiagnosticAnalyzer(string language)
-        {
-            return _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
-        }
-
-        public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
-        {
-            return _analyzerInfoCache.IsCompilerDiagnosticAnalyzer(language, analyzer);
-        }
-
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
         {
             if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
@@ -268,12 +195,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
-        }
-
-        public IEnumerable<AnalyzerReference> GetHostAnalyzerReferences()
-        {
-            // CreateAnalyzerReferencesMap will return only host analyzer reference map if project is not specified.
-            return _analyzerInfoCache.CreateAnalyzerReferencesMap(project: null).Values;
         }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
@@ -296,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                var isTelemetryCollectionAllowed = _analyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
+                var isTelemetryCollectionAllowed = AnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
 
                 logAggregator.IncreaseCount((isTelemetryCollectionAllowed, analyzer.GetType(), ex.GetType()));
 

@@ -255,9 +255,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Contract.ThrowIfFalse(project.SupportsCompilation);
             AssertCompilation(project, compilation);
 
-            // Always run diagnostic suppressors.
-            analyzers = AppendDiagnosticSuppressors(analyzers, allAnalyzersAndSuppressors: service.GetDiagnosticAnalyzers(project));
-
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
@@ -330,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !service.SupportAnalysisKind(analyzer, document.Project.Language, kind))
+            if (compilationWithAnalyzers == null || !service.AnalyzerInfoCache.SupportAnalysisKind(analyzer, document.Project.Language, kind))
             {
                 if (kind == AnalysisKind.Syntax)
                 {
@@ -343,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
             if (kind != AnalysisKind.Syntax &&
-                service.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+                service.AnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
             {
                 var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -392,22 +389,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
-        }
-
-        public static bool SupportAnalysisKind(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
-        {
-            // compiler diagnostic analyzer always supports all kinds:
-            if (service.IsCompilerDiagnosticAnalyzer(language, analyzer))
-            {
-                return true;
-            }
-
-            return kind switch
-            {
-                AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
-                AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
-                _ => throw ExceptionUtilities.UnexpectedValue(kind)
-            };
         }
 
         public static async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
@@ -674,15 +655,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // in the error list
                 return null;
             }
-        }
-
-        public static IEnumerable<DiagnosticAnalyzer> AppendDiagnosticSuppressors(IEnumerable<DiagnosticAnalyzer> analyzers, IEnumerable<DiagnosticAnalyzer> allAnalyzersAndSuppressors)
-        {
-            // Append while ensuring no duplicates are added.
-            var diagnosticSuppressors = allAnalyzersAndSuppressors.OfType<DiagnosticSuppressor>();
-            return !diagnosticSuppressors.Any()
-                ? analyzers
-                : analyzers.Concat(diagnosticSuppressors).Distinct();
         }
 
         /// <summary>

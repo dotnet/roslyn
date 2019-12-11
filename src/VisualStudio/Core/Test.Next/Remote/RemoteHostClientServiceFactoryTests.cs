@@ -252,7 +252,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<AnalyzerReference> references)
         {
             var mock = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
-            mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
+            mock.Setup(a => a.AnalyzerInfoCache.GetHostAnalyzerReferencesMap().Values).Returns(references);
             return mock.Object;
         }
 

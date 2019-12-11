@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         private readonly Project _project;
         private readonly Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>> _exceptions;
-        private readonly IPerformanceTrackerService _performanceTracker;
+        private readonly IPerformanceTrackerService? _performanceTracker;
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         public DiagnosticComputer(Project project, DiagnosticAnalyzerInfoCache analyzerInfoCache)
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>.Empty;
             }
 
-            var cacheService = _project.Solution.Workspace.Services.GetService<IProjectCacheService>();
+            var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
             return await AnalyzeAsync(analyzerMap, analyzers, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
         }
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var useConcurrent = true;
 
             // get original compilation
-            var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await _project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // fork compilation with concurrent build. this is okay since WithAnalyzers will fork compilation
             // anyway to attach event queue. this should make compiling compilation concurrent and make things

@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
                     var assetBuilder = new CustomAssetBuilder(_workspace);
 
-                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    foreach (var (_, reference) in _analyzerService.AnalyzerInfoCache.GetHostAnalyzerReferencesMap())
                     {
                         var asset = assetBuilder.Build(reference, cancellationToken);
 
@@ -261,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
 
-                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    foreach (var (_, reference) in _analyzerService.AnalyzerInfoCache.GetHostAnalyzerReferencesMap())
                     {
                         snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
                     }
