@@ -7162,9 +7162,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo();";
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()";
 
             await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
         }
@@ -7183,9 +7181,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()
-{WorkspacesResources.Usage_colon}
-  int x = {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo();";
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()";
 
             await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
         }

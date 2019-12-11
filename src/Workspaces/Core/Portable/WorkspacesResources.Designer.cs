@@ -3755,15 +3755,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Usage:.
-        /// </summary>
-        internal static string Usage_colon {
-            get {
-                return ResourceManager.GetString("Usage_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Value too large to be represented as a 30 bit unsigned integer..
         /// </summary>
         internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {

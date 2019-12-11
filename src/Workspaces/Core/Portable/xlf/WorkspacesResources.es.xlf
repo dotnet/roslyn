@@ -1822,11 +1822,6 @@ Las aserciones posteriores positivas de ancho cero se usan normalmente al princi
         <target state="translated">Esta área de trabajo no admite la apertura y el cierre de documentos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Uso:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Excepciones:</target>

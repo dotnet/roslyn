@@ -1822,11 +1822,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Cet espace de travail ne prend pas en charge l'ouverture et la fermeture de documents.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Utilisation :</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Exceptions :</target>

@@ -465,9 +465,6 @@
   <data name="This_workspace_does_not_support_opening_and_closing_documents" xml:space="preserve">
     <value>This workspace does not support opening and closing documents.</value>
   </data>
-  <data name="Usage_colon" xml:space="preserve">
-    <value>Usage:</value>
-  </data>
   <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>
   </data>

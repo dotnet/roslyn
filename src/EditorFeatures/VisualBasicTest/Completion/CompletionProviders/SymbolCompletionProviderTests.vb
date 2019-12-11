@@ -2992,9 +2992,7 @@ End Class</Code>.Value
 
             Dim description =
 $"<{VBFeaturesResources.Awaitable}> Function C.Goo() As Task
-Doc Comment!
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo()"
+Doc Comment!"
 
             Await VerifyItemWithMscorlib45Async(code, "Goo", description, LanguageNames.VisualBasic)
         End Function
