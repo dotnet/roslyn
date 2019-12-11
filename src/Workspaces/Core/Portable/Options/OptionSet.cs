@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Options
         [return: MaybeNull]
         public T GetOption<T>(Option<T> option)
         {
-            return (T)GetOption(new OptionKey(option, language: null));
+            return (T)GetOption(new OptionKey(option, language: null))!;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Options
         [return: MaybeNull]
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
         {
-            return (T)GetOption(new OptionKey(option, language));
+            return (T)GetOption(new OptionKey(option, language))!;
         }
 
         /// <summary>

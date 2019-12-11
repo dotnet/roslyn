@@ -136,13 +136,13 @@ namespace Microsoft.CodeAnalysis.Options
         [return: MaybeNull]
         public T GetOption<T>(Option<T> option)
         {
-            return (T)GetOption(new OptionKey(option));
+            return (T)GetOption(new OptionKey(option))!;
         }
 
         [return: MaybeNull]
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
         {
-            return (T)GetOption(new OptionKey(option, language));
+            return (T)GetOption(new OptionKey(option, language))!;
         }
 
         public object? GetOption(OptionKey optionKey)
