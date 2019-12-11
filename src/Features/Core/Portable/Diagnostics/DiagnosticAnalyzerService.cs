@@ -291,8 +291,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return (ex, analyzer, diagnostic) =>
             {
-                // Log telemetry, if analyzer supports telemetry.
-                DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, logAggregator);
+                if (logAggregator == null || ex is OperationCanceledException)
+                {
+                    return;
+                }
+
+                var isTelemetryCollectionAllowed = _analyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
+
+                logAggregator.IncreaseCount((isTelemetryCollectionAllowed, analyzer.GetType(), ex.GetType()));
 
                 AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
             };

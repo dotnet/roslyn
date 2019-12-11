@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
         private const string AnalyzerException = "Analyzer.Exception";
         private const string AnalyzerExceptionHashCode = "Analyzer.ExceptionHashCode";
 
-        private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_telemetryCache = new ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>>();
-
         private static string ComputeSha256Hash(string name)
         {
             using var sha256 = SHA256.Create();
@@ -39,18 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             {
                 m[AnalyzerCount] = analyzers.Length;
             }));
-        }
-
-        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer? analyzer, Exception? ex, LogAggregator? logAggregator)
-        {
-            if (logAggregator == null || analyzer == null || ex == null || ex is OperationCanceledException)
-            {
-                return;
-            }
-
-            // TODO: once we create description manager, pass that into here.
-            var telemetry = AllowsTelemetry(analyzer, null);
-            logAggregator.IncreaseCount((telemetry, analyzer.GetType(), ex.GetType()));
         }
 
         public static void LogAnalyzerCrashCountSummary(int correlationId, LogAggregator logAggregator)
@@ -121,50 +107,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                     }
                 }));
             }
-        }
-
-        public static bool AllowsTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService? analyzerService = null)
-        {
-            if (s_telemetryCache.TryGetValue(analyzer, out var value))
-            {
-                return value.Value;
-            }
-
-            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(a, analyzerService))).Value;
-        }
-
-        private static bool CheckTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService? analyzerService)
-        {
-            if (analyzer.IsCompilerAnalyzer())
-            {
-                return true;
-            }
-
-            if (analyzer is IBuiltInAnalyzer)
-            {
-                // if it is builtin analyzer, telemetry is always allowed
-                return true;
-            }
-
-            ImmutableArray<DiagnosticDescriptor> diagDescriptors;
-            try
-            {
-                // SupportedDiagnostics is potentially user code and can throw an exception.
-                diagDescriptors = analyzerService != null ? analyzerService.GetDiagnosticDescriptors(analyzer) : analyzer.SupportedDiagnostics;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            if (diagDescriptors == null)
-            {
-                return false;
-            }
-
-            // find if the first diagnostic in this analyzer allows telemetry
-            var diagnostic = diagDescriptors.Length > 0 ? diagDescriptors[0] : null;
-            return diagnostic == null ? false : diagnostic.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
         }
     }
 }

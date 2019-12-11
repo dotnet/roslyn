@@ -33,25 +33,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             "Analyzer.Suppression",
         };
 
-        private readonly DiagnosticAnalyzerService _analyzerService;
         private ImmutableDictionary<Type, AnalyzerInfo> _analyzerInfoMap;
 
-        public DiagnosticLogAggregator(DiagnosticAnalyzerService analyzerService)
+        public DiagnosticLogAggregator()
         {
-            _analyzerService = analyzerService;
             _analyzerInfoMap = ImmutableDictionary<Type, AnalyzerInfo>.Empty;
         }
 
         public IEnumerable<KeyValuePair<Type, AnalyzerInfo>> AnalyzerInfoMap => _analyzerInfoMap;
 
-        public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo)
+        public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, bool isTelemetryCollectionAllowed)
         {
-            var isTelemetryAllowed = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, _analyzerService);
-
             ImmutableInterlocked.AddOrUpdate(
                 ref _analyzerInfoMap,
                 analyzer.GetType(),
-                addValue: new AnalyzerInfo(analyzer, analyzerTelemetryInfo, isTelemetryAllowed),
+                addValue: new AnalyzerInfo(analyzer, analyzerTelemetryInfo, isTelemetryCollectionAllowed),
                 updateValueFactory: (k, ai) =>
                 {
                     ai.SetAnalyzerTypeCount(analyzerTelemetryInfo);

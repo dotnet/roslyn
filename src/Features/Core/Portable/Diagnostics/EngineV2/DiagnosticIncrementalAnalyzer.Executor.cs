@@ -385,7 +385,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             foreach (var (analyzer, telemetryInfo) in telemetry)
             {
-                DiagnosticLogAggregator.UpdateAnalyzerTypeCount(analyzer, telemetryInfo);
+                bool isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
+                DiagnosticLogAggregator.UpdateAnalyzerTypeCount(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
             }
         }
 

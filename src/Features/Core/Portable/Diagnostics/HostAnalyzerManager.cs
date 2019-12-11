@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
 
@@ -72,9 +73,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
         /// <summary>
-        /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its supported descriptors.
+        /// Cache from <see cref="DiagnosticAnalyzer"/> information about its supported descriptors.
         /// </summary>
-        private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
+        private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
+
+        private sealed class DiagnosticDescriptorsInfo
+        {
+            public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors;
+            public readonly bool TelemetryAllowed;
+
+            public DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
+            {
+                SupportedDescriptors = supportedDescriptors;
+                TelemetryAllowed = telemetryAllowed;
+            }
+        }
 
         public DiagnosticAnalyzerInfoCache(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace)
             : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages.Value, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader), isThreadSafe: true),
@@ -95,11 +108,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
-            _descriptorCache = new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>>();
+            _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
         }
 
-        // this is for testing
-        internal DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        internal DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
             : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => hostAnalyzerReferences), new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty), hostDiagnosticUpdateSource)
         {
         }
@@ -129,21 +141,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
-        {
-            return (ImmutableArray<DiagnosticDescriptor>)_descriptorCache.GetValue(analyzer, a => GetDiagnosticDescriptorsCore(a));
-        }
+            => GetOrCreateDescriptorsInfo(analyzer).SupportedDescriptors;
 
-        private ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptorsCore(DiagnosticAnalyzer analyzer)
+        /// <summary>
+        /// Determine whether collection of telemetry is allowed for given <paramref name="analyzer"/>.
+        /// </summary>
+        public bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer)
+            => GetOrCreateDescriptorsInfo(analyzer).TelemetryAllowed;
+
+        private DiagnosticDescriptorsInfo GetOrCreateDescriptorsInfo(DiagnosticAnalyzer analyzer)
+            => _descriptorsInfo.GetValue(analyzer, CalculateDescriptorsInfo);
+
+        private DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
         {
             ImmutableArray<DiagnosticDescriptor> descriptors;
             try
             {
                 // SupportedDiagnostics is user code and can throw an exception.
-                descriptors = analyzer.SupportedDiagnostics;
-                if (descriptors.IsDefault)
-                {
-                    descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
-                }
+                descriptors = analyzer.SupportedDiagnostics.NullToEmpty();
             }
             catch (Exception ex)
             {
@@ -151,8 +166,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
             }
 
-            return descriptors;
+            bool telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
+
+            return new DiagnosticDescriptorsInfo(descriptors, telemetryAllowed);
         }
+
+        private static bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticDescriptor> descriptors)
+            => analyzer.IsCompilerAnalyzer() ||
+               analyzer is IBuiltInAnalyzer ||
+               descriptors.Length > 0 && descriptors[0].CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
 
         /// <summary>
         /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.

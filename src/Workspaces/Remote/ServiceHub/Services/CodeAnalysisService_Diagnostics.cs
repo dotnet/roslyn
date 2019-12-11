@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var projectId = arguments.ProjectId;
                     var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
 
-                    var result = await new DiagnosticComputer(solution.GetProject(projectId)).GetDiagnosticsAsync(
+                    var result = await new DiagnosticComputer(solution.GetProject(projectId), _analyzerInfoCache).GetDiagnosticsAsync(
                         analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
 
                     await RemoteEndPoint.WriteDataToNamedPipeAsync(pipeName, result, (writer, data, cancellationToken) =>

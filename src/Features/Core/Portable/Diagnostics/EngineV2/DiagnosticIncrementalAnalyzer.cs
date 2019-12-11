@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Workspace = workspace;
             DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            DiagnosticLogAggregator = new DiagnosticLogAggregator(analyzerService);
+            DiagnosticLogAggregator = new DiagnosticLogAggregator();
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             _correlationId = correlationId;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager = new StateManager(analyzerInfoCache, PersistentStorageService);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(AnalyzerService, HostDiagnosticUpdateSource);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerService.Listener, analyzerInfoCache, HostDiagnosticUpdateSource);
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void ResetDiagnosticLogAggregator()
         {
-            DiagnosticLogAggregator = new DiagnosticLogAggregator(AnalyzerService);
+            DiagnosticLogAggregator = new DiagnosticLogAggregator();
         }
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)

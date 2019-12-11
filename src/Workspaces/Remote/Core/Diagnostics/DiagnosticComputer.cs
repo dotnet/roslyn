@@ -21,10 +21,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly Project _project;
         private readonly Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>> _exceptions;
         private readonly IPerformanceTrackerService _performanceTracker;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
-        public DiagnosticComputer(Project project)
+        public DiagnosticComputer(Project project, DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
             _project = project;
+            _analyzerInfoCache = analyzerInfoCache;
             _exceptions = new Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>>();
 
             // we only track performance from primary branch. all forked branch we don't care such as preview.
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             if (_performanceTracker != null)
             {
                 // +1 to include project itself
-                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(), _project.DocumentIds.Count + 1);
+                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), _project.DocumentIds.Count + 1);
             }
 
             var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
