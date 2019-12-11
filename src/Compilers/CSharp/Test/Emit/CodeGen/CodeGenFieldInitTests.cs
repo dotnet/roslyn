@@ -691,7 +691,7 @@ class B
                 .Emit(new System.IO.MemoryStream()).Diagnostics
                     .Verify(
                     // error CS7038: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa828': Unable to determine specific cause of the failure.
-                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("2110a705-cc34-430b-9450-ca37031aa828", CodeAnalysisResources.UnableToDetermineSpecificCauseOfFailure));
+                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("2110a705-cc34-430b-9450-ca37031aa828", "Unable to determine specific cause of the failure."));
         }
     }
 }

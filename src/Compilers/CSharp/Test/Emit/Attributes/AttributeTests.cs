@@ -8920,7 +8920,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
             Assert.False(emitResult2.Success);
             emitResult2.Diagnostics.Verify(
                 // error CS7038: Failed to emit module 'Test.dll': Module has invalid attributes.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll", CodeAnalysisResources.ModuleHasInvalidAttributes).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll", "Module has invalid attributes.").WithLocation(1, 1));
 
             // Use different mscorlib to test retargeting scenario
             var compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
