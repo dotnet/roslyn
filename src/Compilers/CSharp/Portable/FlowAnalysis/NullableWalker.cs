@@ -572,7 +572,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
 #if DEBUG
-                // Run analysis even though it's not needed
+                // Always run analysis in debug builds so that we can more reliably catch
+                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
                 diagnostics = new DiagnosticBag();
 #else
                 return;
