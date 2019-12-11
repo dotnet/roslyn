@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 if (!location.IsNull &&
                     location.LocationTypeOpt != null &&
                     !location.LocationTypeOpt.IsValueType &&
-                    location.LocationTypeOpt.IsDisposable(IDisposableNamedType))
+                    IsDisposable(location.LocationTypeOpt))
                 {
                     CurrentAnalysisData[location] = value;
                 }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 defaultValue = DisposeAbstractValue.NotDisposable;
                 var instanceType = creation.Type;
 
-                if (!instanceType.IsDisposable(IDisposableNamedType) ||
+                if (!IsDisposable(instanceType) ||
                     !IsCurrentBlockReachable())
                 {
                     return defaultValue;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             private void HandleDisposingOperation(IOperation disposingOperation, IOperation? disposedInstance)
             {
-                if (disposedInstance == null || disposedInstance.Type?.IsDisposable(IDisposableNamedType) == false)
+                if (disposedInstance == null || !IsDisposable(disposedInstance.Type))
                 {
                     return;
                 }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 Debug.Assert(!escapedLocations.IsEmpty);
                 Debug.Assert(parameter.RefKind != RefKind.None);
                 var escapedDisposableLocations =
-                    escapedLocations.Where(l => l.LocationTypeOpt?.IsDisposable(IDisposableNamedType) == true);
+                    escapedLocations.Where(l => IsDisposable(l.LocationTypeOpt));
                 SetAbstractValue(escapedDisposableLocations, ValueDomain.UnknownOrMayBeValue);
             }
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
                     arguments, invokedAsDelegate, originalOperation, defaultValue);
 
-                var disposeMethodKind = targetMethod.GetDisposeMethodKind(IDisposableNamedType, TaskNamedType);
+                var disposeMethodKind = GetDisposeMethodKind(targetMethod);
                 switch (disposeMethodKind)
                 {
                     case DisposeMethodKind.Dispose:

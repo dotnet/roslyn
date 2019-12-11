@@ -220,14 +220,17 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method has the signature "Task DisposeAsync()".
+        /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()".
         /// </summary>
-        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? task)
+        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method,
+            INamedTypeSymbol? task,
+            INamedTypeSymbol? valueTask)
         {
             return method.Name == "DisposeAsync" &&
                 method.MethodKind == MethodKind.Ordinary &&
-                method.ReturnType.Equals(task) &&
-                method.Parameters.IsEmpty;
+                method.Parameters.IsEmpty &&
+                (method.ReturnType.Equals(task) ||
+                 method.ReturnType.Equals(valueTask));
         }
 
         /// <summary>
@@ -246,12 +249,26 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Gets the <see cref="DisposeMethodKind"/> for the given method.
         /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            INamedTypeSymbol? task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            INamedTypeSymbol? valueTask = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            return method.GetDisposeMethodKind(iDisposable, iAsyncDisposable, task, valueTask);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
         public static DisposeMethodKind GetDisposeMethodKind(
             this IMethodSymbol method,
             INamedTypeSymbol? iDisposable,
-            INamedTypeSymbol? task)
+            INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? task,
+            INamedTypeSymbol? valueTask)
         {
-            if (method.ContainingType.IsDisposable(iDisposable))
+            if (method.ContainingType.IsDisposable(iDisposable, iAsyncDisposable))
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (Equals(method.ContainingType, iDisposable) &&
@@ -263,7 +280,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return DisposeMethodKind.DisposeBool;
                 }
-                else if (method.HasDisposeAsyncMethodSignature(task))
+                else if (method.HasDisposeAsyncMethodSignature(task, valueTask))
                 {
                     return DisposeMethodKind.DisposeAsync;
                 }
@@ -366,19 +383,40 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Set of well-known collection add method names.
+        /// Used in <see cref="IsCollectionAddMethod"/> heuristic.
+        /// </summary>
+        private static readonly ImmutableHashSet<string> s_collectionAddMethodNameVariants =
+            ImmutableHashSet.Create(StringComparer.Ordinal, "Add", "AddOrUpdate", "GetOrAdd", "TryAdd", "TryUpdate");
+
+        /// <summary>
         /// Determine if the specific method is an Add method that adds to a collection.
         /// </summary>
         /// <param name="method">The method to test.</param>
         /// <param name="iCollectionTypes">Collection types.</param>
         /// <returns>'true' if <paramref name="method"/> is believed to be the add method of a collection.</returns>
         /// <remarks>
-        /// The current heuristic is that we consider a method to be an add method if its name begins with "Add" and its
-        /// enclosing type derives from ICollection or any instantiation of ICollection&lt;T&gt;.
+        /// We use the following heuristic to determine if a method is a collection add method:
+        /// 1. Method's enclosing type implements any of the given <paramref name="iCollectionTypes"/>.
+        /// 2. Any of the following name heuristics are met:
+        ///     a. Method's name is from one of the well-known add method names from <see cref="s_collectionAddMethodNameVariants"/> ("Add", "AddOrUpdate", "GetOrAdd", "TryAdd", or "TryUpdate")
+        ///     b. Method's name begins with "Add" (FxCop compat)
         /// </remarks>
         public static bool IsCollectionAddMethod(this IMethodSymbol method, ImmutableHashSet<INamedTypeSymbol> iCollectionTypes)
-            => !iCollectionTypes.IsEmpty &&
-               method.Name.StartsWith("Add", StringComparison.Ordinal) &&
-               method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
+        {
+            if (iCollectionTypes.IsEmpty)
+            {
+                return false;
+            }
+
+            if (!s_collectionAddMethodNameVariants.Contains(method.Name) &&
+                !method.Name.StartsWith("Add", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
+        }
 
         /// <summary>
         /// Determine if the specific method is a Task.FromResult method that wraps a result in a task.
