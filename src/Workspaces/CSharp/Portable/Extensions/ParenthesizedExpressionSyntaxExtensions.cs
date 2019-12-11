@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Switch expression arm
             // x => (y)
-            if (node.Parent is SwitchExpressionArmSyntax)
+            if (node.Parent is SwitchExpressionArmSyntax arm && arm.Expression == node)
             {
                 return true;
             }

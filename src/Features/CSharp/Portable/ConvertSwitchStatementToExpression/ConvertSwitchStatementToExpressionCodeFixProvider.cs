@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
                 var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
 
-                var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(2);
                 var variableSymbolLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
+                var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(2);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 SyntaxNode variableSymbolLocationNodeOpt = null;

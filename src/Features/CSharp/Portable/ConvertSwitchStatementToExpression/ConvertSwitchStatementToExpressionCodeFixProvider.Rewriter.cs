@@ -84,25 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
                 Debug.Assert(_assignmentTargetOpt is IdentifierNameSyntax);
 
-                if (variableSymbolTypeOpt != null && (variableSymbolTypeOpt.IsReferenceType || variableSymbolTypeOpt.IsNullable()))
-                {
-                    var type = variableSymbolTypeOpt.GenerateTypeSyntax();
-                    return GenerateLocalDeclaration(type);
-                }
+                // There is a probability that we cannot use var if the declaration type is a reference type or nullable type.
+                // In these cases, we generate the explicit type for now and decide later whether or not to use var.
+                var cannotUseVar = variableSymbolTypeOpt != null && (variableSymbolTypeOpt.IsReferenceType || variableSymbolTypeOpt.IsNullable());
+                var type = cannotUseVar ? variableSymbolTypeOpt.GenerateTypeSyntax() : IdentifierName("var");
 
-                return GenerateLocalDeclaration(IdentifierName("var"));
-
-                LocalDeclarationStatementSyntax GenerateLocalDeclaration(TypeSyntax type)
-                {
-                    return LocalDeclarationStatement(
-                        VariableDeclaration(
-                            type,
-                            variables: SingletonSeparatedList(
-                                        VariableDeclarator(
-                                            identifier: ((IdentifierNameSyntax)_assignmentTargetOpt).Identifier,
-                                            argumentList: null,
-                                            initializer: EqualsValueClause(switchExpression)))));
-                }
+                return LocalDeclarationStatement(
+                    VariableDeclaration(
+                        type,
+                        variables: SingletonSeparatedList(
+                                    VariableDeclarator(
+                                        identifier: ((IdentifierNameSyntax)_assignmentTargetOpt).Identifier,
+                                        argumentList: null,
+                                        initializer: EqualsValueClause(switchExpression)))));
             }
 
             private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)
@@ -145,8 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
                 Debug.Assert(statements.Count == 1 || statements.Count == 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
-                var rewrittenExpression = Visit(statements[0]);
-                return rewrittenExpression;
+                return Visit(statements[0]);
             }
 
             public override ExpressionSyntax VisitSwitchStatement(SwitchStatementSyntax node)

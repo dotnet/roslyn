@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     }
                 }
 
-                return (nodeToGenerate, variableSymbolOpt, declaratorToRemoveOpt: null);
+                return (nodeToGenerate, null, declaratorToRemoveOpt: null);
             }
 
             private (VariableDeclaratorSyntax, ISymbol)? TryGetVariableDeclaratorAndSymbol(SemanticModel semanticModel)

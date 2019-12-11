@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             var additionalLocations = ArrayBuilder<Location>.GetInstance();
             additionalLocations.Add(switchStatement.GetLocation());
-            additionalLocations.AddOptional(variableSymbolOpt?.Locations.FirstOrDefault());
+            additionalLocations.AddOptional(variableSymbolOpt?.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax().GetLocation());
             additionalLocations.AddOptional(declaratorToRemoveOpt?.GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
