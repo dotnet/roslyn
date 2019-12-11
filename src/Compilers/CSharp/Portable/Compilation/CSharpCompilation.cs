@@ -2731,7 +2731,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (moduleBeingBuilt.SourceModule.HasBadAttributes)
                 {
                     // If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
-                    diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuilt).Name, CodeAnalysisResources.ModuleHasInvalidAttributes);
+                    diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuilt).Name,
+                        new LocalizableResourceString(nameof(CodeAnalysisResources.ModuleHasInvalidAttributes), CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
+
                     return false;
                 }
 
