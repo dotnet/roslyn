@@ -2,10 +2,7 @@
 
 using Roslyn.Test.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -172,6 +169,60 @@ public class Test
                     // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
                     // about 600 levels of nesting it will not return in any reasonable amount of time.
                     CompileAndVerify(compilation, expectedOutput: "Pass", verify: Verification.Skipped);
+                });
+            }
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NestedIfStatements()
+        {
+            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            {
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 310,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1650,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 570,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 2000,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
+
+            // Un-comment loop below and use above commands to figure out the new limits
+            //for (int i = 260; i < int.MaxValue; i = i + 10)
+            //{
+            //    var start = DateTime.UtcNow;
+            //    Console.Write($"Depth: {i}");
+            //    runTest(i);
+            //    Console.WriteLine($" - {DateTime.UtcNow - start}");
+            //}
+
+            runTest(nestingLevel);
+
+            static void runTest(int nestingLevel)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine(
+@"class Program
+{
+    static bool F(int i) => true;
+    static void Main()
+    {");
+                for (int i = 0; i < nestingLevel; i++)
+                {
+                    builder.AppendLine(
+$@"        if (F({i}))
+        {{");
+                }
+                for (int i = 0; i < nestingLevel; i++)
+                {
+                    builder.AppendLine("        }");
+                }
+                builder.AppendLine(
+@"    }
+}");
+                var source = builder.ToString();
+                RunInThread(() =>
+                {
+                    var comp = CreateCompilation(source);
+                    comp.VerifyDiagnostics();
                 });
             }
         }
