@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -20,22 +24,24 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
+        [return: MaybeNull]
         T GetOption<T>(Option<T> option);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T GetOption<T>(PerLanguageOption<T> option, string languageName);
+        [return: MaybeNull]
+        T GetOption<T>(PerLanguageOption<T> option, string? languageName);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        object GetOption(OptionKey optionKey);
+        object? GetOption(OptionKey optionKey);
 
         /// <summary>
         /// Fetches an immutable set of all current options.
         /// </summary>
-        OptionSet GetOptions();
+        WorkspaceOptionSet GetOptions();
 
         /// <summary>
         /// Applies a set of options.
@@ -47,7 +53,18 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         IEnumerable<IOption> GetRegisteredOptions();
 
+        /// <summary>
+        /// Returns the set of all registered serializable options.
+        /// </summary>
+        ImmutableHashSet<IOption> GetRegisteredSerializableOptions();
+
+        /// <summary>
+        /// Gets force computed option set for all the registered options by quering the option persisters.
+        /// </summary>
+        SerializableOptionSet GetSerializableOptions(IEnumerable<string> languages);
+
         event EventHandler<OptionChangedEventArgs> OptionChanged;
+        event EventHandler<EventArgs> OptionsChanged;
 
         /// <summary>
         /// Registers a provider that can modify the result of <see cref="Document.GetOptionsAsync(CancellationToken)"/>. Providers registered earlier are queried first

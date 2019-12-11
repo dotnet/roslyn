@@ -11,15 +11,16 @@ using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
-using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Nerdbank;
 using Roslyn.Test.Utilities.Remote;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -251,9 +252,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     });
 
                 var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
+                var options = new SolutionOptionSet(new WorkspaceOptionSet(null), ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty);
 
                 // this shouldn't throw exception
-                remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, out var solution);
+                remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, options, out var solution);
                 Assert.NotNull(solution);
             }
         }

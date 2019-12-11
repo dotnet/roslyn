@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -12,24 +14,23 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed class WorkspaceOptionSet : OptionSet
     {
-        private readonly IOptionService _service;
+        private readonly IOptionService? _service;
 
-        private ImmutableDictionary<OptionKey, object> _values;
+        private ImmutableDictionary<OptionKey, object?> _values;
 
-        internal WorkspaceOptionSet(IOptionService service)
+        internal WorkspaceOptionSet(IOptionService? service)
+            : this(service, ImmutableDictionary<OptionKey, object?>.Empty)
         {
-            _service = service;
-            _values = ImmutableDictionary.Create<OptionKey, object>();
         }
 
-        private WorkspaceOptionSet(IOptionService service, ImmutableDictionary<OptionKey, object> values)
+        private WorkspaceOptionSet(IOptionService? service, ImmutableDictionary<OptionKey, object?> values)
         {
             _service = service;
             _values = values;
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-        public override object GetOption(OptionKey optionKey)
+        public override object? GetOption(OptionKey optionKey)
         {
             if (_values.TryGetValue(optionKey, out var value))
             {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Options
             return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
         }
 
-        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
             // make sure we first load this in current optionset
             this.GetOption(optionAndLanguage);
@@ -49,19 +50,24 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         /// <summary>
-        /// Gets a list of all the options that were accessed.
+        /// Gets a list of all the options that were changed.
         /// </summary>
-        internal IEnumerable<OptionKey> GetAccessedOptions()
+        internal IEnumerable<OptionKey> GetChangedOptions()
         {
-            var optionSet = _service.GetOptions();
+            var optionSet = _service?.GetOptions();
             return GetChangedOptions(optionSet);
         }
 
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
         {
+            if (optionSet == this)
+            {
+                yield break;
+            }
+
             foreach (var kvp in _values)
             {
-                var currentValue = optionSet.GetOption(kvp.Key);
+                var currentValue = optionSet?.GetOption(kvp.Key);
                 if (!object.Equals(currentValue, kvp.Value))
                 {
                     yield return kvp.Key;

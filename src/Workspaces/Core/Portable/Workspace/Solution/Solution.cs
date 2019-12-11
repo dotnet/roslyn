@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
-            : this(new SolutionState(workspace, solutionAttributes))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options)
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options))
         {
         }
 
@@ -1263,13 +1263,20 @@ namespace Microsoft.CodeAnalysis
         /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
         /// instance was created.
         /// </summary>
-        public OptionSet Options
+        public OptionSet Options => _state.Options;
+
+        /// <summary>
+        /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
+        /// </summary>
+        internal Solution WithOptions(SerializableOptionSet options)
         {
-            get
+            var newState = _state.WithOptions(options: options);
+            if (newState == _state)
             {
-                // TODO: actually make this a snapshot (https://github.com/dotnet/roslyn/issues/19284)
-                return this.Workspace.Options;
+                return this;
             }
+
+            return new Solution(newState);
         }
     }
 }

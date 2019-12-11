@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var option = new Option<bool>("Test Feature", "Test Name", false);
             var key = new OptionKey(option);
             Assert.False(optionSet.GetOption(option));
-            optionSet = optionSet.WithChangedOption(key, true);
+            optionSet = (WorkspaceOptionSet)optionSet.WithChangedOption(key, true);
             Assert.True((bool)optionSet.GetOption(key));
         }
 

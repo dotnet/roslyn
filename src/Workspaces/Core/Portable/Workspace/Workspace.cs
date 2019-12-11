@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -66,7 +67,9 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            _workspaceOptionService = _services.GetService<IOptionService>() as IWorkspaceOptionService;
+            var optionService = _services.GetRequiredService<IOptionService>();
+            optionService.OptionsChanged += OptionService_OptionsChanged;
+            _workspaceOptionService = optionService as IWorkspaceOptionService;
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
@@ -74,6 +77,13 @@ namespace Microsoft.CodeAnalysis
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
+        }
+
+        private void OptionService_OptionsChanged(object sender, EventArgs e)
+        {
+            var languages = this.CurrentSolution.State.GetProjectLanguages();
+            var newOptions = _services.GetRequiredService<IOptionService>().GetSerializableOptions(languages);
+            this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 
         internal void LogTestMessage(string message)
@@ -118,7 +128,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            return new Solution(this, solutionInfo.Attributes);
+            var languages = solutionInfo.GetProjectLanguages();
+            var optionsService = this.Services.GetRequiredService<IOptionService>();
+            return new Solution(this, solutionInfo.Attributes, optionsService.GetSerializableOptions(languages));
         }
 
         /// <summary>

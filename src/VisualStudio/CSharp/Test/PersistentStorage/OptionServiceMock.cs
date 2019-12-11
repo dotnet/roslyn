@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     {
 #pragma warning disable 67
         public event EventHandler<OptionChangedEventArgs> OptionChanged;
+        public event EventHandler<EventArgs> OptionsChanged;
 #pragma warning restore 67
 
         // Feel free to add other option storages
@@ -59,6 +61,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        WorkspaceOptionSet IOptionService.GetOptions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public SerializableOptionSet GetSerializableOptions(IEnumerable<string> languages)
         {
             throw new NotImplementedException();
         }

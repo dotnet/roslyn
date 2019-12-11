@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
-using Roslyn.Utilities;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -12,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Options
     public struct OptionKey : IEquatable<OptionKey>
     {
         public IOption Option { get; }
-        public string Language { get; }
+        public string? Language { get; }
 
-        public OptionKey(IOption option, string language = null)
+        public OptionKey(IOption option, string? language = null)
         {
             if (language != null && !option.IsPerLanguage)
             {
@@ -54,11 +55,6 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override string ToString()
         {
-            if (Option is null)
-            {
-                return "";
-            }
-
             var languageDisplay = Option.IsPerLanguage
                 ? $"({Language}) "
                 : string.Empty;
