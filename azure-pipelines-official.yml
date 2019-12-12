@@ -37,8 +37,15 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
 
+    - powershell: Write-Host "##vso[task.setvariable variable=NonVSDepsBranch]$($Build.SourceBranch -like '*-vs-deps')"
+      displayName: Setting NonVSDepsBranch variable
+
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
+
+    - powerhsell: git merge "master-vs-deps"
+      displayName: Merging VS Deps 
+      condition: and(succeeded(), variables['NonVSDepsBranch']))
 
     - task: NuGetToolInstaller@0
       inputs:
