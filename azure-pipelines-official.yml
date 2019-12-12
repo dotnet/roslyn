@@ -45,7 +45,7 @@ stages:
 
     - powershell: git merge "master-vs-deps"
       displayName: Merging VS Deps 
-      condition: and(succeeded(), variables['NonVSDepsBranch']))
+      condition: and(succeeded(), variables['NonVSDepsBranch'])
 
     - task: NuGetToolInstaller@0
       inputs:
