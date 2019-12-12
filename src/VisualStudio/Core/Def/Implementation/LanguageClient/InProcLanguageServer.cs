@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                     DefinitionProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
+                    SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                 }
             };
         }
@@ -123,6 +124,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var documentRangeFormattingParams = input.ToObject<DocumentRangeFormattingParams>();
             return await this._protocol.FormatDocumentRangeAsync(_workspace.CurrentSolution, documentRangeFormattingParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentSignatureHelpName)]
+        public async Task<SignatureHelp> GetTextDocumentSignatureHelpAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
+            return await this._protocol.GetSignatureHelpAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
     }
 }
