@@ -6550,7 +6550,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a local function and must therefore always have a body..
+        ///   Looks up a localized string similar to Local function &apos;{0}&apos; must declare a body because it is not marked &apos;static extern&apos;..
         /// </summary>
         internal static string ERR_LocalFunctionMissingBody {
             get {
@@ -11371,6 +11371,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureExternAlias {
             get {
                 return ResourceManager.GetString("IDS_FeatureExternAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extern local functions.
+        /// </summary>
+        internal static string IDS_FeatureExternLocalFunctions {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExternLocalFunctions", resourceCulture);
             }
         }
         

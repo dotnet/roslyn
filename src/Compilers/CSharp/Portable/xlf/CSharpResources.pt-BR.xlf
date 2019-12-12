@@ -834,6 +834,11 @@
         <target state="translated">instrução fixa extensível</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">operador de índice</target>
@@ -4049,8 +4054,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
-        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</source>
-        <target state="translated">O atributo DllImport não pode ser aplicado a um método que seja genérico ou esteja contido em um tipo genérico.</target>
+        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
+        <target state="needs-review-translation">O atributo DllImport não pode ser aplicado a um método que seja genérico ou esteja contido em um tipo genérico.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -9551,8 +9556,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'{0}' é uma função local e, portanto, deve sempre ter um corpo.</target>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
+        <target state="needs-review-translation">'{0}' é uma função local e, portanto, deve sempre ter um corpo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

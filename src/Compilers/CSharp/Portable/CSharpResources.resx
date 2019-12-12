@@ -129,6 +129,9 @@
   <data name="IDS_FeatureLocalFunctionAttributes" xml:space="preserve">
     <value>local function attributes</value>
   </data>
+  <data name="IDS_FeatureExternLocalFunctions" xml:space="preserve">
+    <value>extern local functions</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -1713,7 +1716,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
-    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</value>
+    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</value>
   </data>
   <data name="ERR_FieldCantBeRefAny" xml:space="preserve">
     <value>Field or property cannot be of type '{0}'</value>
@@ -5508,7 +5511,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Local function is declared but never used</value>
   </data>
   <data name="ERR_LocalFunctionMissingBody" xml:space="preserve">
-    <value>'{0}' is a local function and must therefore always have a body.</value>
+    <value>Local function '{0}' must declare a body because it is not marked 'static extern'.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>

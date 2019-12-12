@@ -2410,6 +2410,31 @@ class C
             AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>b__1"); // M2:L2 lambda
         }
 
+        [Fact(Skip = "PROTOTYPE(local-function-attributes")]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionsAttribute()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static void M1() { L1(); [ExcludeFromCodeCoverage] void L1() { new Action(() => { Console.WriteLine(1); }).Invoke(); } }
+
+    static void M2() { L2(); void L2() { new Action(() => { Console.WriteLine(2); }).Invoke(); } }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            AssertInstrumented(verifier, "C.M1");
+            AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0");
+            AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_1");
+
+            AssertInstrumented(verifier, "C.M2");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L2|0"); // M2:L2
+            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>b__1"); // M2:L2 lambda
+        }
+
         [Fact]
         public void ExcludeFromCodeCoverageAttribute_LocalFunctionsAndLambdas_InInitializers()
         {

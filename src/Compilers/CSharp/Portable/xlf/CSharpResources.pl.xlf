@@ -834,6 +834,11 @@
         <target state="translated">rozszerzalna instrukcja fixed</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">operator indeksowania</target>
@@ -4049,8 +4054,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
-        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</source>
-        <target state="translated">Atrybut DllImport nie może być zastosowany do metody, która jest ogólna lub zawarta w typie ogólnym.</target>
+        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
+        <target state="needs-review-translation">Atrybut DllImport nie może być zastosowany do metody, która jest ogólna lub zawarta w typie ogólnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -9551,8 +9556,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'„{0}” jest funkcją lokalną i w związku z tym musi zawsze mieć treść.</target>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
+        <target state="needs-review-translation">'„{0}” jest funkcją lokalną i w związku z tym musi zawsze mieć treść.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

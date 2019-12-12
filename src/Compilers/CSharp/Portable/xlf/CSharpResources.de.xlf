@@ -834,6 +834,11 @@
         <target state="translated">Erweiterbare fixed-Anweisung</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">Indexoperator</target>
@@ -4049,8 +4054,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
-        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</source>
-        <target state="translated">Das DllImport-Attribut kann nicht auf eine generische oder in einem generischen Typ enthaltene Methode angewendet werden.</target>
+        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
+        <target state="needs-review-translation">Das DllImport-Attribut kann nicht auf eine generische oder in einem generischen Typ enthaltene Methode angewendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -9551,8 +9556,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'"{0}" ist eine lokale Funktion und muss daher immer Text enthalten.</target>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
+        <target state="needs-review-translation">'"{0}" ist eine lokale Funktion und muss daher immer Text enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

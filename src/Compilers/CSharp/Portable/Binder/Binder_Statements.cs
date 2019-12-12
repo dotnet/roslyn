@@ -569,13 +569,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics), diagnostics);
             }
-            else
+            else if (!hasErrors && (!localSymbol.IsExtern || !localSymbol.IsStatic))
             {
                 hasErrors = true;
                 diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
-            Debug.Assert(blockBody != null || expressionBody != null || hasErrors);
+            if (!hasErrors && (blockBody != null || expressionBody != null) && localSymbol.IsExtern)
+            {
+                hasErrors = true;
+                diagnostics.Add(ErrorCode.ERR_ExternHasBody, localSymbol.Locations[0], localSymbol);
+            }
+
+            Debug.Assert(blockBody != null || expressionBody != null || (localSymbol.IsExtern && localSymbol.IsStatic) || hasErrors);
 
             localSymbol.GetDeclarationDiagnostics(diagnostics);
 

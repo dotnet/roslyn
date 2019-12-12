@@ -7056,9 +7056,11 @@ done:;
                 _termState |= TerminatorState.IsSwitchSectionStart;
             }
 
+            int lastTokenPosition = -1;
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken
                 && this.CurrentToken.Kind != SyntaxKind.EndOfFileToken
-                && !(stopOnSwitchSections && this.IsPossibleSwitchSection()))
+                && !(stopOnSwitchSections && this.IsPossibleSwitchSection())
+                && IsMakingProgress(ref lastTokenPosition))
             {
                 if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
@@ -7137,6 +7139,7 @@ done:;
                 case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.VolatileKeyword:
                 case SyntaxKind.RefKeyword:
+                case SyntaxKind.ExternKeyword:
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -7153,8 +7156,9 @@ done:;
                 case SyntaxKind.InternalKeyword:
                 case SyntaxKind.ProtectedKeyword:
                 case SyntaxKind.PrivateKeyword:
-                // could be a local function with attributes
-                case SyntaxKind.OpenBracketToken:  // PROTOTYPE(local-function-attributes): reuse this or always allow the OpenBracketToken?
+                // PROTOTYPE(local-function-attributes): We should unconditionally accept attribute lists on statements
+                // in parsing and then give an error on statement kinds that don't support attributes during binding.
+                case SyntaxKind.OpenBracketToken:
                     return acceptAccessibilityMods;
                 default:
                     return IsPredefinedType(tk)
@@ -8397,6 +8401,7 @@ tryAgain:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                case SyntaxKind.ExternKeyword:
                 // Not a valid modifier, but we should parse to give a good
                 // error message
                 case SyntaxKind.PublicKeyword:
@@ -8471,6 +8476,13 @@ tryAgain:
                         continue; // already reported earlier, no need to report again
                     case SyntaxKind.StaticKeyword:
                         modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureStaticLocalFunctions);
+                        if ((object)modifier == modifiers[i])
+                        {
+                            continue;
+                        }
+                        break;
+                    case SyntaxKind.ExternKeyword:
+                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExternLocalFunctions);
                         if ((object)modifier == modifiers[i])
                         {
                             continue;
