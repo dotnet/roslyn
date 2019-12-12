@@ -79,7 +79,7 @@ End Class
 
     Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
         Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, analyzer)
-        diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt:=Nothing)
+        diagnosticService.CreateDiagnosticDescriptorsPerReference(project:=Nothing)
     End Sub
 
     <Fact>
