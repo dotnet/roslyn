@@ -2,12 +2,16 @@
 
 #nullable enable
 
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -17,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal class InProcLanguageServer
     {
+        private readonly IDiagnosticService _diagnosticService;
         private readonly JsonRpc _jsonRpc;
         private readonly IThreadingContext _threadingContext;
         private readonly LanguageServerProtocol _protocol;
@@ -24,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private VSClientCapabilities? _clientCapabilities;
 
-        public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol, Workspace workspace, IThreadingContext threadingContext)
+        public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol, Workspace workspace, IDiagnosticService diagnosticService, IThreadingContext threadingContext)
         {
             this._protocol = protocol;
             this._workspace = workspace;
@@ -32,6 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             this._jsonRpc = new JsonRpc(outputStream, inputStream, this);
             this._jsonRpc.StartListening();
+
+            this._diagnosticService = diagnosticService;
+            this._diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
         /// <summary>
@@ -164,6 +172,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var workspaceSymbolParams = input.ToObject<WorkspaceSymbolParams>();
             return await this._protocol.GetWorkspaceSymbolsAsync(_workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
+        {
+            // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
+            // the worst outcome here is that guests may not see all diagnostics.
+            try
+            {
+                // LSP doesnt support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
+                if (e.DocumentId != null && e.Solution != null)
+                {
+                    var document = e.Solution.GetDocument(e.DocumentId);
+                    if (document == null || document.FilePath == null)
+                    {
+                        return;
+                    }
+
+                    // Only publish document diagnostics for the languages this provider supports.
+                    if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
+                    {
+                        return;
+                    }
+
+                    // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
+                    var diagnostics = await GetDiagnosticsAsync(e.Solution, document, CancellationToken.None).ConfigureAwait(false);
+                    var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
+                    await this._jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+            {
+            }
+        }
+
+        private async Task<LanguageServer.Protocol.Diagnostic[]> GetDiagnosticsAsync(Solution solution, Document document, CancellationToken cancellationToken)
+        {
+            var diagnostics = this._diagnosticService.GetDiagnostics(solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            return diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic
+            {
+                Code = diagnostic.Id,
+                Message = diagnostic.Message,
+                Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnostic.Severity),
+                Range = ProtocolConversions.TextSpanToRange(diagnostic.GetExistingOrCalculatedTextSpan(text), text),
+                // Only the unnecessary diagnostic tag is currently supported via LSP.
+                Tags = diagnostic.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
+            }).ToArray();
         }
     }
 }
