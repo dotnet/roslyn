@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
-        /// <param name="inferredTypes">Should not inlcude nullability information</param>
+        /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>
+        /// because we ignore nullability.</param>
         private bool ShouldIncludeInTargetTypedCompletionList(
             ISymbol symbol,
             ImmutableArray<ITypeSymbol> inferredTypes,
@@ -92,8 +93,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 return false;
             }
-
-            type = type.WithoutNullability();
 
             if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
             {
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                select g;
 
             var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
-            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>();
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
 
             foreach (var symbolGroup in symbolGroups)
             {
@@ -148,12 +147,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
                     var tick = Environment.TickCount;
-                    var inferredTypesWithoutNullability = inferredTypes.Value.SelectAsArray(t => t.WithoutNullability());
 
                     foreach (var symbol in symbolGroup)
                     {
                         var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypesWithoutNullability, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes.Value, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                         {
                             item = item.AddTag(WellKnownTags.TargetTypeMatch);
                             break;

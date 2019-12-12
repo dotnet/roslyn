@@ -1673,14 +1673,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (shouldRecordUsedAssemblyReferences() && qualifierOpt?.IsType != true)
                     {
-                        Compilation.AddAssembliesUsedByTypeReference((NamedTypeSymbol)symbol);
+                        AddAssembliesUsedByTypeReference((NamedTypeSymbol)symbol);
                     }
                     break;
 
                 case SymbolKind.Alias:
                     if (shouldRecordUsedAssemblyReferences() && ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved) is TypeSymbol type)
                     {
-                        Compilation.AddAssembliesUsedByTypeReference(type);
+                        AddAssembliesUsedByTypeReference(type);
                     }
                     break;
             }
@@ -2112,6 +2112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return symbols[0];
                 }
             }
+        }
+
+        internal void AddAssembliesUsedByTypeReference(TypeSymbol type)
+        {
+            Debug.Assert(!IsSemanticModelBinder);
+            Compilation.AddAssembliesUsedByTypeReference(type);
         }
 
         private static AssemblySymbol GetContainingAssembly(Symbol symbol)

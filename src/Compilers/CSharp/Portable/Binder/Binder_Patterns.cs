@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // passed all the filters; permit using ITuple
             if (!IsSemanticModelBinder)
             {
-                Compilation.AddUsedAssembly(iTupleType.ContainingAssembly);
+                AddUsedAssembly(iTupleType.ContainingAssembly);
             }
 
             return true;

@@ -10906,5 +10906,24 @@ class M
                 Diagnostic(ErrorCode.ERR_ConstantStringTooLong, "C1").WithLocation(28, 68)
                 );
         }
+
+        [Fact, WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
+        public void EnsureOperandsConvertedInErrorExpression_01()
+        {
+            string source =
+@"class C
+{
+    static unsafe void M(dynamic d, int* p)
+    {
+        d += p;
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (5,9): error CS0019: Operator '+=' cannot be applied to operands of type 'dynamic' and 'int*'
+                //         d += p;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d += p").WithArguments("+=", "dynamic", "int*").WithLocation(5, 9)
+                );
+        }
     }
 }

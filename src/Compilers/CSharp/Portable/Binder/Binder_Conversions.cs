@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.SwitchExpression)
             {
-                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, targetTyped: true, diagnostics);
+                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
             }
 
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, targetTyped: false, diagnostics, hasErrors);
+                source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
                 if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
                 {
                     return source;
@@ -151,17 +152,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
+#nullable enable
         /// <summary>
         /// Rewrite the expressions in the switch expression arms to add a conversion to the destination type.
         /// </summary>
-        private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, bool targetTyped, DiagnosticBag diagnostics, bool hasErrors = false)
+        private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, Conversion? conversionIfTargetTyped, DiagnosticBag diagnostics, bool hasErrors = false)
         {
+            bool targetTyped = conversionIfTargetTyped != null;
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
+            ImmutableArray<Conversion> underlyingConversions = conversionIfTargetTyped.GetValueOrDefault().UnderlyingConversions;
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance(source.SwitchArms.Length);
-            foreach (var oldCase in source.SwitchArms)
+            for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
+                var oldCase = source.SwitchArms[i];
                 var oldValue = oldCase.Value;
-                var newValue = GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                var newValue =
+                    targetTyped
+                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
@@ -172,6 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.DecisionDag,
                 source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
         }
+#nullable restore
 
         private BoundExpression CreateUserDefinedConversion(
             SyntaxNode syntax,

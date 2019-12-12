@@ -117,6 +117,12 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs">
       <Link>InternalUtilities\MultiDictionary.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\OrderedMultiDictionary.cs">
+      <Link>InternalUtilities\OrderedMultiDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SetWithInsertionOrder.cs">
+      <Link>InternalUtilities\SetWithInsertionOrder.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs">
       <Link>InternalUtilities\IReadOnlySet.cs</Link>
     </Compile>

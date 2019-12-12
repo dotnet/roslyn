@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -87,8 +89,8 @@ namespace Roslyn.Test.Utilities.Remote
 
         public override string ClientId { get; }
 
-        public override async Task<Connection> TryCreateConnectionAsync(
-            string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public override async Task<Connection?> TryCreateConnectionAsync(
+            string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information

@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             commonType = CreateErrorType();
                             hasErrors = true;
                         }
-                        result = ConvertSwitchExpression(expr, commonType, targetTyped: false, diagnostics, hasErrors);
+                        result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
@@ -7156,7 +7156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!IsSemanticModelBinder)
                 {
-                    Compilation.AddUsedAssembly(type.ContainingAssembly);
+                    AddUsedAssembly(type.ContainingAssembly);
                 }
 
                 ReportUseSite(node, useSiteInfo, diagnostics);
@@ -7164,6 +7164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             attemptDiagnostics.Free();
             return result;
+        }
+
+        internal void AddUsedAssembly(AssemblySymbol assembly)
+        {
+            Debug.Assert(!IsSemanticModelBinder);
+            Compilation.AddUsedAssembly(assembly);
         }
 
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, SpecialType specialType, SyntaxNode node, DiagnosticBag diagnostics)

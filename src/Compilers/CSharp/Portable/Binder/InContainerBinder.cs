@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
         {
             if (IsScriptClass)
             {
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // This path would eventually throw, if we didn't have the case above.
-                return Next.GetIteratorElementType(node, diagnostics);
+                return Next.GetIteratorElementType();
             }
         }
 

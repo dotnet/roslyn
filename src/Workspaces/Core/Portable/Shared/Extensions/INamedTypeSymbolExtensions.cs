@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
         {
-            return typeArguments.Length > 0 ? type.ConstructWithNullability(typeArguments) : type;
+            return typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
         }
     }
 }

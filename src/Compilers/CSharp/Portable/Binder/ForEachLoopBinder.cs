@@ -860,7 +860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.NeedsDisposal = true;
             }
-            else if (enumeratorType.IsRefLikeType || isAsync)
+            else if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations) &&
+                    (enumeratorType.IsRefLikeType || isAsync))
             {
                 // if it wasn't directly convertable to IDisposable, see if it is pattern-disposable
                 // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors

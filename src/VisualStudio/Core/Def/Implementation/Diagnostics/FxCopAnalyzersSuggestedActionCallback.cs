@@ -22,7 +22,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
-    [Export(typeof(ISuggestedActionCallback))]
+    // Temporarily disabled due to noise: https://github.com/dotnet/roslyn/issues/39818
+    //[Export(typeof(ISuggestedActionCallback))]
     internal class FxCopAnalyzersSuggestedActionCallback : ForegroundThreadAffinitizedObject, ISuggestedActionCallback
     {
         private const string AnalyzerVsixHyperlink = @"https://marketplace.visualstudio.com/items?itemName=VisualStudioPlatformTeam.MicrosoftCodeAnalysis2019";
