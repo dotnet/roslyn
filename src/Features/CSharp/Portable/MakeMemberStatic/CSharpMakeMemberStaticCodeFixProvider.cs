@@ -2,8 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.MakeMemberStatic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.MakeMemberStatic;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
 {
@@ -14,5 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
             ImmutableArray.Create(
                 "CS0708" // 'MyMethod': cannot declare instance members in a static class
             );
+
+        protected override bool IsValidMemberNode(SyntaxNode node) =>
+            node is MemberDeclarationSyntax ||
+            (node.IsKind(SyntaxKind.VariableDeclarator) && node.Ancestors().Any(a => a.IsKind(SyntaxKind.FieldDeclaration) || a.IsKind(SyntaxKind.EventFieldDeclaration)));
     }
 }

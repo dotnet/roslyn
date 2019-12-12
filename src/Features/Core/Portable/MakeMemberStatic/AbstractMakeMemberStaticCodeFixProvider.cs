@@ -11,22 +11,19 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeMemberStatic
 {
-    internal abstract class AbstractMakeMemberStaticCodeFixProvider
-        : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractMakeMemberStaticCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (context.Diagnostics.Length != 1 ||
-                context.Diagnostics[0].Location?.FindNode(context.CancellationToken) == null)
+            if (context.Diagnostics.Length == 1 &&
+                IsValidMemberNode(context.Diagnostics[0].Location?.FindNode(context.CancellationToken)))
             {
-                return Task.CompletedTask;
+                context.RegisterCodeFix(
+                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                    context.Diagnostics);
             }
-
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
 
             return Task.CompletedTask;
         }
@@ -34,18 +31,21 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
         protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
-            for (int i = 0; i < diagnostics.Length; i++)
+            for (var i = 0; i < diagnostics.Length; i++)
             {
                 var declaration = diagnostics[i].Location?.FindNode(cancellationToken);
-                if (declaration != null)
+
+                if (IsValidMemberNode(declaration))
                 {
                     editor.ReplaceNode(declaration,
-                    (currentDeclaration, generator) => generator.WithModifiers(currentDeclaration, DeclarationModifiers.Static));
+                        (currentDeclaration, generator) => generator.WithModifiers(currentDeclaration, DeclarationModifiers.Static));
                 }
             }
 
             return Task.CompletedTask;
         }
+
+        protected abstract bool IsValidMemberNode(SyntaxNode node);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
