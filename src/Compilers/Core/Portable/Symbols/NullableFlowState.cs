@@ -23,4 +23,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         MaybeNull
     }
+
+    internal static class NullableFlowStateExtensions
+    {
+        public static NullableAnnotation ToAnnotation(this NullableFlowState nullableFlowState)
+        {
+            switch (nullableFlowState)
+            {
+                case CodeAnalysis.NullableFlowState.MaybeNull:
+                    return CodeAnalysis.NullableAnnotation.Annotated;
+                case CodeAnalysis.NullableFlowState.NotNull:
+                    return CodeAnalysis.NullableAnnotation.NotAnnotated;
+                default:
+                    return CodeAnalysis.NullableAnnotation.None;
+            }
+        }
+    }
 }
