@@ -172,6 +172,11 @@
         <target state="translated">種類</target>
         <note />
       </trans-unit>
+      <trans-unit id="LiveShare_CSharp_Visual_Basic_Language_Server_Client">
+        <source>LiveShare C#/Visual Basic Language Server Client</source>
+        <target state="new">LiveShare C#/Visual Basic Language Server Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">ライブ分析 (VSIX 拡張機能)</target>

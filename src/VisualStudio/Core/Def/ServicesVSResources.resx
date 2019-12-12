@@ -1356,4 +1356,7 @@ I agree to all of the foregoing:</value>
   <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>C#/Visual Basic Language Server Client</value>
   </data>
+  <data name="LiveShare_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>LiveShare C#/Visual Basic Language Server Client</value>
+  </data>
 </root>

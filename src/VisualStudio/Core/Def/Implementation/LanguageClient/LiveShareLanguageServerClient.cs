@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
-        public string Name => "LiveShare C#/VB Language Server Client";
+        public string Name => ServicesVSResources.LiveShare_CSharp_Visual_Basic_Language_Server_Client;
 
         /// <summary>
         /// Gets the configuration section names for the language client. This may be null if the language client
