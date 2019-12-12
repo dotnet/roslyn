@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
     }
 
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal struct MemberAndDeclarationInfo
     {
         public static readonly IComparer<MemberAndDeclarationInfo> Comparer = new MemberNameComparer();
@@ -251,24 +252,66 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return y._inheritanceLevel - x._inheritanceLevel;
                 }
 
-                // Field members come first
-                var xIsField = x.MemberType == MemberTypes.Field;
-                var yIsField = y.MemberType == MemberTypes.Field;
-                if (xIsField && yIsField)
+                // Data members come first
+                var xHoldsData = HoldsData(x);
+                var yHoldsData = HoldsData(y);
+                if (xHoldsData && yHoldsData)
                 {
                     return comp;
                 }
-                if (xIsField)
+                if (xHoldsData)
                 {
                     return -1;
                 }
-                if (yIsField)
+                if (yHoldsData)
                 {
                     return 1;
                 }
 
                 return comp;
+
+                static bool HoldsData(MemberAndDeclarationInfo member)
+                {
+                    if (member.MemberType == MemberTypes.Field)
+                    {
+                        return true;
+                    }
+
+                    if (member._member is PropertyInfoImpl propertyInfo)
+                    {
+                        return IsNullOrCompilerGenerated(propertyInfo.Property.GetMethod) && IsNullOrCompilerGenerated(propertyInfo.Property.SetMethod);
+                    }
+
+                    if (member._member is EventInfoImpl eventInfo)
+                    {
+                        return IsNullOrCompilerGenerated(eventInfo.Event.AddMethod) && IsNullOrCompilerGenerated(eventInfo.Event.RemoveMethod);
+                    }
+
+                    return false;
+                }
+
+                static bool IsNullOrCompilerGenerated(System.Reflection.MethodInfo method)
+                {
+                    if (method is null)
+                    {
+                        return true;
+                    }
+
+                    var attributes = method.GetCustomAttributesData();
+                    foreach (var attribute in attributes)
+                    {
+                        if (attribute.AttributeType.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute")
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
         }
+
+        private string GetDebuggerDisplay()
+            => $"MemberAndDeclarationInfo '{Name}'";
     }
 }
