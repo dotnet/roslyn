@@ -197,8 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var oldOutermostBlock = block;
-            var matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken);
+            // If we're within a local function, our scope for the new local declaration is expanded to include the enclosing member.
+            var oldOutermostNode = block.GetAncestor<LocalFunctionStatementSyntax>() == null ? block : (SyntaxNode)block.GetAncestor<MemberDeclarationSyntax>();
+
+            var matches = FindMatches(document, expression, document, oldOutermostNode, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
             (document, matches) = await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(false);
