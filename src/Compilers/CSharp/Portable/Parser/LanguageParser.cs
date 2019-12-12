@@ -7140,6 +7140,7 @@ done:;
                 case SyntaxKind.VolatileKeyword:
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.ExternKeyword:
+                case SyntaxKind.OpenBracketToken:
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -7156,9 +7157,6 @@ done:;
                 case SyntaxKind.InternalKeyword:
                 case SyntaxKind.ProtectedKeyword:
                 case SyntaxKind.PrivateKeyword:
-                // PROTOTYPE(local-function-attributes): We should unconditionally accept attribute lists on statements
-                // in parsing and then give an error on statement kinds that don't support attributes during binding.
-                case SyntaxKind.OpenBracketToken:
                     return acceptAccessibilityMods;
                 default:
                     return IsPredefinedType(tk)
@@ -8147,14 +8145,11 @@ tryAgain:
 
                 if (canParseAsLocalFunction)
                 {
-                    // If we find an attribute or accessibility modifier but no local function it's likely
+                    // If we find an accessibility modifier but no local function it's likely
                     // the user forgot a closing brace. Let's back out of statement parsing.
-                    if (attributes.Count > 0)
-                    {
-                        return null;
-                    }
-
-                    if (mods.Count > 0 && IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind))
+                    // We check just for a leading accessibility modifier in the syntax because
+                    // SkipBadStatementListTokens will not skip attribute lists.
+                    if (attributes.Count == 0 && mods.Count > 0 && IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind))
                     {
                         return null;
                     }

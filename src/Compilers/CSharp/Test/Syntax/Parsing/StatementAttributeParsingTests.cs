@@ -2654,7 +2654,6 @@ class C
 }";
             UsingTree(test);
 
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -4183,7 +4182,7 @@ class C
         }
 
         [Fact]
-        public void AttributeOnExpressionStatement_AwaitExpresion_NonAsyncContext()
+        public void AttributeOnExpressionStatement_AwaitExpression_NonAsyncContext()
         {
             var test = @"
 class C
@@ -4195,29 +4194,78 @@ class C
 }";
             UsingTree(test);
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]await a;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]await a;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
                 // (6,12): error CS0246: The type or namespace name 'await' could not be found (are you missing a using directive or an assembly reference?)
                 //         [A]await a;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "await").WithArguments("await").WithLocation(6, 12),
-                // (6,18): warning CS0169: The field 'C.a' is never used
+                // (6,18): warning CS0168: The variable 'a' is declared but never used
                 //         [A]await a;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C.a").WithLocation(6, 18),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(6, 18));
         }
 
         [Fact]
-        public void AttributeOnExpressionStatement_AwaitExpresion_AsyncContext()
+        public void AttributeOnExpressionStatement_AwaitExpression_AsyncContext()
         {
             var test = @"
 class C
@@ -5501,7 +5549,6 @@ class C
 }";
             UsingTree(test);
 
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -6354,22 +6401,71 @@ class C
 }";
             UsingTree(test);
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int i;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): warning CS0168: The variable 'i' is declared but never used
                 //         [A]int i;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,16): warning CS0169: The field 'C.i' is never used
-                //         [A]int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i").WithLocation(6, 16),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 16));
         }
 
         [Fact]
@@ -6407,40 +6503,40 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "j");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "i");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "j");
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6449,30 +6545,15 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): warning CS0168: The variable 'i' is declared but never used
                 //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 16),
+                // (6,19): warning CS0168: The variable 'j' is declared but never used
                 //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,16): warning CS0169: The field 'C.i' is never used
-                //         [A]int i, j;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i").WithLocation(6, 16),
-                // (6,19): warning CS0169: The field 'C.j' is never used
-                //         [A]int i, j;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "j").WithArguments("C.j").WithLocation(6, 19),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 19));
         }
 
         [Fact]
@@ -6510,43 +6591,43 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "i");
-                                N(SyntaxKind.EqualsValueClause);
-                                {
-                                    N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
                                     }
                                 }
+                                N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6555,21 +6636,12 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         [A]int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,16): warning CS0414: The field 'C.i' is assigned but its value is never used
-                //         [A]int i = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("C.i").WithLocation(6, 16),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 16));
         }
 
         [Fact]
@@ -6607,50 +6679,74 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.IndexerDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.ThisKeyword);
-                        N(SyntaxKind.BracketedParameterList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
-                                N(SyntaxKind.IdentifierToken, "i");
+                                M(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.ArrowExpressionClause);
-                        {
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.NumericLiteralExpression);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.NumericLiteralToken, "0");
+                                N(SyntaxKind.ElementAccessExpression);
+                                {
+                                    N(SyntaxKind.ThisExpression);
+                                    {
+                                        N(SyntaxKind.ThisKeyword);
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        M(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "i");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6659,18 +6755,33 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int this[int i] => 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): error CS1001: Identifier expected
                 //         [A]int this[int i] => 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "this").WithLocation(6, 16),
+                // (6,16): error CS1002: ; expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(6, 16),
+                // (6,21): error CS1525: Invalid expression term 'int'
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
+                // (6,25): error CS1003: Syntax error, ',' expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",", "").WithLocation(6, 25),
+                // (6,25): error CS0103: The name 'i' does not exist in the current context
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25),
+                // (6,28): error CS1002: ; expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 28),
+                // (6,28): error CS1513: } expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 28),
+                // (6,31): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "0").WithLocation(6, 31));
         }
 
         [Fact]
@@ -6708,44 +6819,44 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.ConstKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "i");
-                                N(SyntaxKind.EqualsValueClause);
-                                {
-                                    N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.ConstKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
                                     }
                                 }
+                                N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6754,47 +6865,25 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]const int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,22): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         [A]const int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 22));
         }
 
         [Fact]
-        public void AttributeOnLocalDeclOrMember6()
+        public void AccessModOnLocalDeclOrMember_01()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
-        [A]public int i = 0;
+        public extern int i = 1;
     }
-}";
-            UsingTree(test);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6823,19 +6912,8 @@ class C
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
                         N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.ExternKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
                             N(SyntaxKind.PredefinedType);
@@ -6850,7 +6928,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.NumericLiteralExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                        N(SyntaxKind.NumericLiteralToken, "1");
                                     }
                                 }
                             }
@@ -6863,33 +6941,200 @@ class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test).VerifyDiagnostics(
                 // (5,6): error CS1513: } expected
                 //     {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]public int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]public int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
+                // (6,27): error CS0106: The modifier 'extern' is not valid for this item
+                //         public extern int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "i").WithArguments("extern").WithLocation(6, 27),
                 // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
         }
 
         [Fact]
+        public void AccessModOnLocalDeclOrMember_02()
+        {
+            var test = UsingTree(@"
+class C
+{
+    void Goo()
+    {
+        extern public int i = 1;
+    }
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.ExternKeyword);
+                                N(SyntaxKind.PublicKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,9): error CS0106: The modifier 'extern' is not valid for this item
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(6, 9),
+                // (6,16): error CS0106: The modifier 'public' is not valid for this item
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(6, 16),
+                // (6,27): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 27));
+        }
+
+        [Fact]
+        public void AttributeOnLocalDeclOrMember6()
+        {
+            var test = UsingTree(@"
+class C
+{
+    void Goo()
+    {
+        [A]public int i = 0;
+    }
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.PublicKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A]public int i = 0;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,12): error CS0106: The modifier 'public' is not valid for this item
+                //         [A]public int i = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(6, 12),
+                // (6,23): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         [A]public int i = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 23));
+        }
+
+        [Fact]
         public void AttributeOnLocalDeclOrMember7()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(System.IDisposable d)
     {
         [A]using var i = d;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
