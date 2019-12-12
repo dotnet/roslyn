@@ -197,8 +197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-            // If we're within a local function, our scope for the new local declaration is expanded to include the enclosing member.
-            var scope = block.GetAncestor<LocalFunctionStatementSyntax>() == null ? block : (SyntaxNode)block.GetAncestor<MemberDeclarationSyntax>();
+            SyntaxNode scope = block;
+
+            // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
+            var localFunction = block.GetAncestor<LocalFunctionStatementSyntax>();
+            if (localFunction != null && !localFunction.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)))
+            {
+                scope = block.GetAncestor<MemberDeclarationSyntax>();
+            }
 
             var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
