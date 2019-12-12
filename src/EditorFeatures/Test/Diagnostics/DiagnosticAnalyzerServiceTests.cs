@@ -275,17 +275,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
 
-            AssertEx.Equal(new[]
-            {
-                typeof(FileContentLoadAnalyzer),
-                typeof(CSharpCompilerDiagnosticAnalyzer),
-                typeof(Analyzer),
-                typeof(Priority0Analyzer),
-                typeof(Priority1Analyzer),
-                typeof(Priority10Analyzer),
-                typeof(Priority15Analyzer),
-                typeof(Priority20Analyzer)
-            }, analyzers.Select(a => a.GetType()));
+            Assert.Equal(typeof(CSharpCompilerDiagnosticAnalyzer), analyzers[0].GetType());
+            Assert.Equal(typeof(Analyzer), analyzers[1].GetType());
+            Assert.Equal(typeof(Priority0Analyzer), analyzers[2].GetType());
+            Assert.Equal(typeof(Priority1Analyzer), analyzers[3].GetType());
+            Assert.Equal(typeof(Priority10Analyzer), analyzers[4].GetType());
+            Assert.Equal(typeof(Priority15Analyzer), analyzers[5].GetType());
+            Assert.Equal(typeof(Priority20Analyzer), analyzers[6].GetType());
         }
 
         [Fact]

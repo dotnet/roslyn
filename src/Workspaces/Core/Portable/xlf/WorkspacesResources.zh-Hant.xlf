@@ -52,11 +52,6 @@
         <target state="translated">文件不支援語法樹</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_reading_content_of_source_file_0_1">
-        <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">運算式層級喜好設定</target>
@@ -1347,11 +1342,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">新增匯入會讓擴充方法變成名稱與 '{0}' 相同的範圍</target>
         <note />
       </trans-unit>
-      <trans-unit id="Workspace_error">
-        <source>Workspace error</source>
-        <target state="new">Workspace error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">工作區不是空的。</target>
@@ -1820,11 +1810,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="This_workspace_does_not_support_opening_and_closing_documents">
         <source>This workspace does not support opening and closing documents.</source>
         <target state="translated">這個工作區不支援開啟及關閉文件。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">使用方式:</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">

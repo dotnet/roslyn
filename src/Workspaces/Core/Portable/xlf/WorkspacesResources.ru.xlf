@@ -52,11 +52,6 @@
         <target state="translated">Документ не поддерживает синтаксические деревья.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_reading_content_of_source_file_0_1">
-        <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">Выражения уровень предпочтения</target>
@@ -1347,11 +1342,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">При добавлении импортируемых компонентов в область будет добавлен метод расширения с тем же именем, что и "{0}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Workspace_error">
-        <source>Workspace error</source>
-        <target state="new">Workspace error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Рабочая область не пуста.</target>
@@ -1820,11 +1810,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="This_workspace_does_not_support_opening_and_closing_documents">
         <source>This workspace does not support opening and closing documents.</source>
         <target state="translated">Эта рабочая область не поддерживает открытие и закрытие документов.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Использование:</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">

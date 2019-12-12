@@ -107,6 +107,11 @@
         <target state="translated">句読点</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="new">Removal of document not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file">
         <source>Rename _file</source>
         <target state="translated">ファイル名の変更(_F)</target>

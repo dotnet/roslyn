@@ -304,11 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.Struct;
         }
 
+#nullable enable
         public static bool IsErrorType(this TypeSymbol type)
         {
-            Debug.Assert((object)type != null);
+            RoslynDebug.Assert((object)type != null);
             return type.Kind == SymbolKind.ErrorType;
         }
+#nullable restore
 
         public static bool IsMethodTypeParameter(this TypeParameterSymbol p)
         {
