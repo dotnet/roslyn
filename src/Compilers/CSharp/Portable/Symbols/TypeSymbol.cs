@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #if !DEBUG
             // Don't optimize in DEBUG for better coverage for the GetInterfaceLocation function. 
-            if (useSiteDiagnostics != null)
+            // if (useSiteDiagnostics != null) // TODO:
 #endif
             {
                 diagnostics.Add(GetInterfaceLocation(interfaceMember, implementingType), useSiteInfo.Diagnostics); // TODO:
