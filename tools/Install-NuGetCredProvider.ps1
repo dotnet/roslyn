@@ -4,11 +4,15 @@
     from https://github.com/microsoft/artifacts-credprovider
     to assist in authenticating to Azure Artifact feeds in interactive development
     or unattended build agents.
+.PARAMETER Force
+    Forces install of the CredProvider plugin even if one already exists. This is useful to upgrade an older version.
 .PARAMETER AccessToken
     An optional access token for authenticating to Azure Artifacts authenticated feeds.
 #>
 [CmdletBinding()]
 Param (
+    [Parameter()]
+    [switch]$Force,
     [Parameter()]
     [string]$AccessToken
 )
@@ -35,7 +39,7 @@ if ($IsMacOS -or $IsLinux) {
     chmod u+x $installerScript
 }
 
-& $installerScript
+& $installerScript -Force:$Force
 
 if ($AccessToken) {
     $endpoints = @()
