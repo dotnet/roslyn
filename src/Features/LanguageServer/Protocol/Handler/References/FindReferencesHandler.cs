@@ -1,38 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class FindAllReferencesHandler : ILspRequestHandler<LSP.ReferenceParams, object[], Solution>
+    [Shared]
+    [ExportLspMethod(LSP.Methods.TextDocumentReferencesName)]
+    internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, object[]>
     {
-        private readonly IThreadingContext _threadingContext;
-
-        public FindAllReferencesHandler(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
-
-        public async Task<object[]> HandleAsync(LSP.ReferenceParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        /// <summary>
+        /// Keep thread context by default - currently FAR requires the UI thread to get third party references.
+        /// TODO - this should not require the UI thread...
+        /// </summary>
+        /// <param name="solution"></param>
+        /// <param name="request"></param>
+        /// <param name="clientCapabilities"></param>
+        /// <param name="cancellationToken"></param>
+        /// <param name="keepThreadContext"></param>
+        /// <returns></returns>
+        public async Task<object[]> HandleRequestAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = true)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
-            var solution = requestContext.Context;
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document == null)
             {
@@ -40,26 +39,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
 
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 
-            // Roslyn calls into third party extensions to compute reference results and needs to be on the UI thread to compute results.
-            // This is not great for us and ideally we should ask for a Roslyn API where we can make this call without blocking the UI.
-            if (VsTaskLibraryHelper.ServiceInstance != null)
-            {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            }
+            await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(keepThreadContext);
 
-            await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
-
-            if (requestContext?.ClientCapabilities?.ToObject<VSClientCapabilities>()?.HasVisualStudioLspCapability() == true)
+            if (clientCapabilities.HasVisualStudioLspCapability())
             {
-                return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(false);
+                return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(keepThreadContext);
             }
             else
             {
-                return await GetLocationsAsync(request, context, cancellationToken).ConfigureAwait(false);
+                return await GetLocationsAsync(request, context, cancellationToken).ConfigureAwait(keepThreadContext);
             }
         }
 

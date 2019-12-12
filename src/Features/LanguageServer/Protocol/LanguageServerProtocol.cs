@@ -80,6 +80,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
+        /// Answers an references request by returning the references of a given symbol.
+        /// https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#textDocument_references
+        /// </summary>
+        /// <param name="solution">the solution containing the request document.</param>
+        /// <param name="request">the request document symbol location.</param>
+        /// <param name="clientCapabilities">the client capabilities for the request.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the location(s) references to the symbol.</returns>
+        public Task<object[]> FindReferencesAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.ReferenceParams, object[]>(LSP.Methods.TextDocumentReferencesName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
         /// Answers a format document request to format the entire document.
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_formatting
         /// </summary>

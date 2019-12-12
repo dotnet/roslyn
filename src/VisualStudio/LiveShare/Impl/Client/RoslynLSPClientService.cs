@@ -93,8 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         // Uses Roslyn client.
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        ReferencesProvider = true,
-                        ImplementationProvider = true,
 
                         // Uses LSP SDK client.
                         CompletionProvider = null,
@@ -105,6 +103,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         DocumentOnTypeFormattingProvider = null,
                         DocumentRangeFormattingProvider = false,
                         DocumentSymbolProvider = false,
+                        ImplementationProvider = false,
+                        ReferencesProvider = false,
                         RenameProvider = false,
                         SignatureHelpProvider = null,
                         CodeLensProvider = null,
