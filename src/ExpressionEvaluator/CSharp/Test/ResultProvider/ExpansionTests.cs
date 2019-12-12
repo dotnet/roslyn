@@ -70,46 +70,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
 
         [Fact, WorkItem(40179, "https://github.com/dotnet/roslyn/issues/40179")]
-        public void UnderscoreMembersComeFirst()
+        public void FieldMembersComeFirst()
         {
             var source =
 @"class C
 {
-    C Z;
-    object _z;
-    C A;
-    string _a;
-    object _;
-}";
-            var assembly = GetAssembly(source);
-            var type = assembly.GetType("C");
-            var rootExpr = "new C()";
-            var value = CreateDkmClrValue(Activator.CreateInstance(type));
-            var evalResult = FormatResult(rootExpr, value);
-            Verify(evalResult,
-                EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
-            var children = GetChildren(evalResult);
-            Verify(children,
-                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("@_", "null", "object", "(new C()).@_", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("_a", "null", "string", "(new C())._a", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite));
-        }
+    object Z1 { get; set; }
+    object m_z1 { get; set; }
+    object _z1 { get; set; }
+    object A1 { get; set; }
+    object _a1 { get; set; }
+    object _1 { get; set; }
+    object m_a1 { get; set; }
 
-        [Fact, WorkItem(40179, "https://github.com/dotnet/roslyn/issues/40179")]
-        public void LetterUnderscoreMembersComeSecond()
-        {
-            var source =
-@"class C
-{
-    C Z;
-    object _z;
-    object m_z;
-    C A;
-    string _a;
-    object _;
-    string m_a;
+    object Z2;
+    object _z2;
+    object m_z2;
+    object A2;
+    object _a2;
+    object _2;
+    object m_a2;
 }";
             var assembly = GetAssembly(source);
             var type = assembly.GetType("C");
@@ -120,13 +100,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("Z", "null", "C", "(new C()).Z", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("@_", "null", "object", "(new C()).@_", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("_a", "null", "string", "(new C())._a", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("m_a", "null", "string", "(new C()).m_a", DkmEvaluationResultFlags.CanFavorite),
-                EvalResult("m_z", "null", "object", "(new C()).m_z", DkmEvaluationResultFlags.CanFavorite));
+                EvalResult("A2", "null", "object", "(new C()).A2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Z2", "null", "object", "(new C()).Z2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_2", "null", "object", "(new C())._2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_a2", "null", "object", "(new C())._a2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_z2", "null", "object", "(new C())._z2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m_a2", "null", "object", "(new C()).m_a2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m_z2", "null", "object", "(new C()).m_z2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("A1", "null", "object", "(new C()).A1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Z1", "null", "object", "(new C()).Z1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_1", "null", "object", "(new C())._1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_a1", "null", "object", "(new C())._a1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_z1", "null", "object", "(new C())._z1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m_a1", "null", "object", "(new C()).m_a1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m_z1", "null", "object", "(new C()).m_z1", DkmEvaluationResultFlags.CanFavorite));
         }
 
         /// <summary>

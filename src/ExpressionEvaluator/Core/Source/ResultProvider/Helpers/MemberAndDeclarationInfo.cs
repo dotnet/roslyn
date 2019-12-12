@@ -245,31 +245,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             public int Compare(MemberAndDeclarationInfo x, MemberAndDeclarationInfo y)
             {
-                var xName = x.Name;
-                var yName = y.Name;
-                var comp = string.Compare(xName, yName, StringComparison.Ordinal);
-                return comp != 0 ? adjustComparison(comp) : (y._inheritanceLevel - x._inheritanceLevel);
-
-                int adjustComparison(int comp)
+                var comp = string.Compare(x.Name, y.Name, StringComparison.Ordinal);
+                if (comp == 0)
                 {
-                    // Field members come first
-                    var xIsField = x.MemberType == MemberTypes.Field;
-                    var yIsField = y.MemberType == MemberTypes.Field;
-                    if (xIsField && yIsField)
-                    {
-                        return comp;
-                    }
-                    if (xIsField && !yIsField)
-                    {
-                        return -1;
-                    }
-                    if (yIsField)
-                    {
-                        return 1;
-                    }
+                    return y._inheritanceLevel - x._inheritanceLevel;
+                }
 
+                // Field members come first
+                var xIsField = x.MemberType == MemberTypes.Field;
+                var yIsField = y.MemberType == MemberTypes.Field;
+                if (xIsField && yIsField)
+                {
                     return comp;
                 }
+                if (xIsField)
+                {
+                    return -1;
+                }
+                if (yIsField)
+                {
+                    return 1;
+                }
+
+                return comp;
             }
         }
     }
