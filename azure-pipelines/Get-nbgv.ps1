@@ -10,11 +10,7 @@ if ($existingTool) {
     return $existingTool.Path
 }
 
-if ($env:AGENT_TEMPDIRECTORY) {
-    $toolInstallDir = "$env:AGENT_TEMPDIRECTORY/$env:BUILD_BUILDID"
-} else {
-    $toolInstallDir = "$PSScriptRoot/../obj/tools"
-}
+$toolInstallDir = & "$PSScriptRoot/Get-TempToolsPath.ps1"
 
 $toolPath = "$toolInstallDir/nbgv"
 if (!(Test-Path $toolInstallDir)) { New-Item -Path $toolInstallDir -ItemType Directory | Out-Null }
