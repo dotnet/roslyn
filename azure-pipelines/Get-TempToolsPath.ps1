@@ -1,7 +1,7 @@
-if ($env:AGENT_TOOLSDIRECTORY) {
-    $path = "$env:AGENT_TOOLSDIRECTORY\vs-platform\tools"
+if ($env:AGENT_TEMPDIRECTORY) {
+    $path = "$env:AGENT_TEMPDIRECTORY\$env:BUILD_BUILDID"
 } elseif ($env:localappdata) {
-    $path = "$env:localappdata\vs-platform\tools"
+    $path = "$env:localappdata\gitrepos\tools"
 } else {
     $path = "$PSScriptRoot\..\obj\tools"
 }

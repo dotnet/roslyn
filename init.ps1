@@ -2,8 +2,9 @@
 .SYNOPSIS
 Installs dependencies required to build and test the projects in this repository.
 .DESCRIPTION
-This MAY not require elevation, as the SDK and runtimes are installed locally to this repo location,
-unless `-InstallLocality machine` is specified.
+This MAY not require elevation, as the SDK and runtimes are installed to a per-user location,
+unless the `-InstallLocality` switch is specified directing to a per-repo or per-machine location.
+See detailed help on that switch for more information.
 .PARAMETER InstallLocality
 A value indicating whether dependencies should be installed locally to the repo or at a per-user location.
 Per-user allows sharing the installed dependencies across repositories and allows use of a shared expanded package cache.
@@ -14,6 +15,9 @@ Per-repo can lead to file locking issues when dotnet.exe is left running as a bu
 Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
 .PARAMETER NoPrerequisites
 Skips the installation of prerequisite software (e.g. SDKs, tools).
+.PARAMETER UpgradePrerequisites
+Takes time to install prerequisites even if they are already present in case they need to be upgraded.
+No effect if -NoPrerequisites is specified.
 .PARAMETER NoRestore
 Skips the package restore step.
 .PARAMETER Signing
@@ -37,6 +41,8 @@ Param (
     [Parameter()]
     [switch]$NoPrerequisites,
     [Parameter()]
+    [switch]$UpgradePrerequisites,
+    [Parameter()]
     [switch]$NoRestore,
     [Parameter()]
     [switch]$Signing,
@@ -51,7 +57,7 @@ Param (
 )
 
 if (!$NoPrerequisites) {
-    & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken
+    & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken -Force:$UpgradePrerequisites
     & "$PSScriptRoot\tools\Install-DotNetSdk.ps1" -InstallLocality $InstallLocality
 }
 
@@ -63,7 +69,7 @@ Push-Location $PSScriptRoot
 try {
     $HeaderColor = 'Green'
 
-    if (!$NoRestore) {
+    if (!$NoRestore -and $PSCmdlet.ShouldProcess("NuGet packages", "Restore")) {
         Write-Host "Restoring NuGet packages" -ForegroundColor $HeaderColor
         dotnet restore src
         if ($lastexitcode -ne 0) {
