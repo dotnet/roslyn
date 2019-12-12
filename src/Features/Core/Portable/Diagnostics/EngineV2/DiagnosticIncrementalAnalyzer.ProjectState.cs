@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public DiagnosticAnalysisResult ToResult()
                 {
-                    return DiagnosticAnalysisResult.Create(_project, _version,
+                    return DiagnosticAnalysisResult.CreateFromSerialization(_project, _version,
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,

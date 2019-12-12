@@ -1243,33 +1243,75 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
-        public async Task TestDocumentFileAccessFailureMissingFile()
+        public void TestDocumentFileAccessFailureMissingFile()
         {
-            var workspace = new AdhocWorkspace();
-            var solution = workspace.CurrentSolution;
+            var solution = new AdhocWorkspace().CurrentSolution;
 
-            WorkspaceDiagnostic diagnosticFromEvent = null;
+            WorkspaceDiagnostic diagnostic = null;
+
             solution.Workspace.WorkspaceFailed += (sender, args) =>
             {
-                diagnosticFromEvent = args.Diagnostic;
+                diagnostic = args.Diagnostic;
             };
 
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8))
-                               .WithDocumentFilePath(did, "document path");
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
 
             var doc = solution.GetDocument(did);
-            var text = await doc.GetTextAsync().ConfigureAwait(false);
+            var text = doc.GetTextAsync().Result;
 
-            var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
+            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
 
-            Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnosticFromEvent.Kind);
-            Assert.Equal("", text.ToString());
+            Assert.NotNull(diagnostic);
+            var dd = diagnostic as DocumentDiagnostic;
+            Assert.NotNull(dd);
+            Assert.Equal(did, dd.DocumentId);
+            Assert.Equal(WorkspaceDiagnosticKind.Failure, dd.Kind);
+        }
+
+        [Fact]
+        [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
+        public void TestWorkspaceDiagnosticHasDebuggerText()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            WorkspaceDiagnostic diagnostic = null;
+
+            solution.Workspace.WorkspaceFailed += (sender, args) =>
+            {
+                diagnostic = args.Diagnostic;
+            };
+
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+
+            solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
+
+            var doc = solution.GetDocument(did);
+            var text = doc.GetTextAsync().Result;
+
+            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
+
+            Assert.NotNull(diagnostic);
+            var dd = diagnostic as DocumentDiagnostic;
+            Assert.NotNull(dd);
+            Assert.Equal(dd.ToString(), string.Format("[{0}] {1}", WorkspacesResources.Failure, dd.Message));
+        }
+
+        private bool WaitFor(Func<bool> condition, TimeSpan timeout)
+        {
+            var start = DateTime.UtcNow;
+
+            while ((DateTime.UtcNow - start) < timeout && !condition())
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(10));
+            }
+
+            return condition();
         }
 
         [Fact]

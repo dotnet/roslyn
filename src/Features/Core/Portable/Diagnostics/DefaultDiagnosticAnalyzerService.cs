@@ -146,12 +146,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
                Document document, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-                if (loadDiagnostic != null)
-                {
-                    return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
-                }
-
                 // given service must be DiagnosticAnalyzerService
                 var diagnosticService = (DiagnosticAnalyzerService)_service._analyzerService;
 
@@ -164,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     builder.AddRange(await diagnosticService.ComputeDiagnosticsAsync(
-                        compilationWithAnalyzers, document, analyzer, kind, span: null, logAggregator: null, cancellationToken).ConfigureAwait(false));
+                        compilationWithAnalyzers, document, analyzer, kind, spanOpt: null, logAggregator: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
