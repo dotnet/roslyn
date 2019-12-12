@@ -3,7 +3,7 @@
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
     internal readonly struct IntellisenseTextBoxViewModel
     {

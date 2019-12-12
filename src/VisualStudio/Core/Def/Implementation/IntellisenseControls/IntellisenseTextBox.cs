@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities.Internal;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
     /// <summary>
     /// Enables in place editing of a text block by placing an editor control over it.

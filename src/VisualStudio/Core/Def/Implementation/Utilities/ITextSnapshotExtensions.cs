@@ -6,7 +6,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal static class ITextSnapshotExtensions
     {
-
         public static ITrackingSpan CreateFullTrackingSpan(this ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
         {
             return textSnapshot.CreateTrackingSpan(Span.FromBounds(0, textSnapshot.Length), trackingMode);

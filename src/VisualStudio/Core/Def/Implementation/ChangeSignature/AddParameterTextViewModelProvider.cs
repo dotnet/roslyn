@@ -2,6 +2,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -20,11 +21,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public ITextViewModel CreateTextViewModel(ITextDataModel dataModel, ITextViewRoleSet roles)
         {
             var projectionSnapshot = (IProjectionSnapshot)dataModel.DataBuffer.CurrentSnapshot;
-            // There are three spans: 
-            // 1. From the start of the document and to the inserted comma before the insertion.
-            // 2. The insertion span -  we need to catch it here.
-            // 3. The rest of the document.
-            var span = projectionSnapshot.GetSourceSpans()[1];
+            // There are five spans: 
+            // 0. From the start of the document and to the inserted comma before the insertion.
+            // 1. The insertion span for the type - we need to catch it for AddParameterTypeTextViewRole.
+            // 2. the space span
+            // 3. The parameter name span.
+            // 4. The rest of the document.
+            // Please note that for VB we should use another structure: start, name, " AS ", type, rest
+            int index;
+            if (roles.Contains(VisualStudioChangeSignatureOptionsService.AddParameterTypeTextViewRole))
+            {
+                index = 1;
+            }
+            else
+            {
+                index = 3;
+            }
+
+            var span = projectionSnapshot.GetSourceSpans()[index];
             var mappedSpans = projectionSnapshot.MapFromSourceSnapshot(span);
             var elisionBuffer =
                 ProjectionBufferFactoryService.CreateElisionBuffer(

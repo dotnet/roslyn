@@ -9,9 +9,10 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using ImportingConstructorAttribute = System.Composition.ImportingConstructorAttribute;
@@ -22,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal class VisualStudioChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
         public const string AddParameterTextViewRole = "AddParameter";
+        public const string AddParameterTypeTextViewRole = "AddParameterType";
+        public const string AddParameterNameTextViewRole = "AddParameterName";
 
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
@@ -97,11 +100,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var documentText = sourceText.ToString();
 
-            var viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
-                document, _contentType, documentText.Insert(insertPosition, ","),
-                CreateTrackingSpans, new[] { AddParameterTextViewRole }, cancellationToken).ConfigureAwait(false);
+            var rolesCollection1 = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
+                AddParameterTextViewRole,AddParameterTypeTextViewRole };
+            var rolesCollection2 = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
+                AddParameterTextViewRole, AddParameterNameTextViewRole };
+            var rolesCollections = new[] { rolesCollection1, rolesCollection2 };
 
-            return new AddParameterDialog(viewModels[0]);
+            var viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
+                // TODO for VB there should be something like ", AS " and corresponding mapping should be opposite.
+                document, _contentType, documentText.Insert(insertPosition, ", "),
+                CreateTrackingSpans, rolesCollections, cancellationToken).ConfigureAwait(false);
+
+            return new AddParameterDialog(viewModels[0], viewModels[1]);
 
             ITrackingSpan[] CreateTrackingSpans(IProjectionSnapshot snapshot)
             {
@@ -115,11 +125,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
 
                 // Get the appropriate ITrackingSpan for the window the user is typing in
-                var mappedSpan = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
+                var mappedSpan1 = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
+                var spaceSpan = snapshot.CreateTrackingSpan(contextPoint, 1, SpanTrackingMode.EdgeExclusive);
+                var mappedSpan2 = snapshot.CreateTrackingSpan(contextPoint + 1, 0, SpanTrackingMode.EdgeExclusive);
 
                 // Build the tracking span that includes the rest of the file
-                var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint, SpanTrackingMode.EdgePositive);
-                return new ITrackingSpan[] { previousStatementSpan, mappedSpan, restOfFileSpan };
+                var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint + 1, SpanTrackingMode.EdgePositive);
+                return new ITrackingSpan[] { previousStatementSpan, mappedSpan1, spaceSpan, mappedSpan2, restOfFileSpan };
             }
         }
     }
