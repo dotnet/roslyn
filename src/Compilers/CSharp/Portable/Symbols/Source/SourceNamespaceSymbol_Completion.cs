@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,8 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 Parallel.For(0, members.Length, po, UICultureUtilities.WithCurrentUICulture<int>(i =>
                                 {
-                                    var member = members[i];
-                                    ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
+                                    try
+                                    {
+                                        var member = members[i];
+                                        ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
+                                    }
+                                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                                    {
+                                        throw ExceptionUtilities.Unreachable;
+                                    }
                                 }));
 
                                 foreach (var member in members)

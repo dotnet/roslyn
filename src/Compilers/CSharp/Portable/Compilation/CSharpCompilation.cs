@@ -2310,9 +2310,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Parallel.For(0, syntaxTrees.Length, parallelOptions,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
-                            var syntaxTree = syntaxTrees[i];
-                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
-                            builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                            try
+                            {
+                                var syntaxTree = syntaxTrees[i];
+                                AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                                builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                            }
+                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                            {
+                                throw ExceptionUtilities.Unreachable;
+                            }
                         }));
                 }
                 else
