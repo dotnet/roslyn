@@ -80,8 +80,6 @@ namespace Microsoft.CodeAnalysis
             DefaultEncoding = defaultEncoding;
         }
 
-        internal sealed override string FilePath => Path;
-
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {
             var factory = workspace.Services.GetRequiredService<ITextFactoryService>();

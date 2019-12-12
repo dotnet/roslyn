@@ -4373,21 +4373,17 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitableMethod()
         {
-            var markup = @"using System.Threading.Tasks;
-class C
-{
-    async Task Goo()
-    {
-        Go$$o();
-    }
+            var markup = @"using System.Threading.Tasks;	
+class C	
+{	
+    async Task Goo()	
+    {	
+        Go$$o();	
+    }	
 }";
             var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
 
-            var documentation = $@"
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo();";
-
-            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description), Usage(documentation) });
+            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description) });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
