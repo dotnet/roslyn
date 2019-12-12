@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis
         ''' </summary>
         ''' <param name="trivia">The source trivia.</param>
         ''' <param name="kind">The syntax kind to test for.</param>
-        ''' <returns><c>true</c> if triviq is of specified kind; <c>false</c> otherwise.</returns>
+        ''' <returns><c>true</c> if trivia is of specified kind; <c>false</c> otherwise.</returns>
         <Extension>
         Public Function IsKind(trivia As SyntaxTrivia, kind As SyntaxKind) As Boolean
             Return trivia.RawKind = kind
