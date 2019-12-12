@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var returnType = iterator.ReturnType;
                 RefKind refKind = iterator.RefKind;
-                TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation, diagnostics);
+                TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation, diagnostics, recordUsage: true);
 
                 if (elementType.IsDefault)
                 {
