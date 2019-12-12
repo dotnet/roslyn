@@ -13,8 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     ' TODO: Make this class static when we add that functionality to VB.
     Namespace DataTipInfoGetter
         Friend Module DataTipInfoGetterModule
+#Disable Warning BC42356 ' This async method lacks 'Await' operators and so will run synchronously
             Friend Async Function GetInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of DebugDataTipInfo)
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+#Enable Warning BC42356 ' This async method lacks 'Await' operators and so will run synchronously
+                Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
                 Dim token = root.FindToken(position)
 
                 If token.IsKind(SyntaxKind.CommaToken) Then

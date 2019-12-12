@@ -20,7 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
         {
             try
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                // Try to fetch the syntax tree synchronously. We are blocking the UI thread when we are doing this,
+                // and if the tree isn't available we will then have our UI thread blocked on waiting for the thread
+                // pool to complete, which might take awhile. There are still some async-only helpers we call further
+                // down but we shouldn't block the fast path for that.
+                var root = document.GetSyntaxRootSynchronously(cancellationToken);
                 if (root == null)
                 {
                     return default;
