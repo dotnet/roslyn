@@ -15,6 +15,9 @@ Per-repo can lead to file locking issues when dotnet.exe is left running as a bu
 Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
 .PARAMETER NoPrerequisites
 Skips the installation of prerequisite software (e.g. SDKs, tools).
+.PARAMETER UpgradePrerequisites
+Takes time to install prerequisites even if they are already present in case they need to be upgraded.
+No effect if -NoPrerequisites is specified.
 .PARAMETER NoRestore
 Skips the package restore step.
 .PARAMETER AccessToken
@@ -27,13 +30,15 @@ Param (
     [Parameter()]
     [switch]$NoPrerequisites,
     [Parameter()]
+    [switch]$UpgradePrerequisites,
+    [Parameter()]
     [switch]$NoRestore,
     [Parameter()]
     [string]$AccessToken
 )
 
 if (!$NoPrerequisites) {
-    & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken
+    & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken -Force:$UpgradePrerequisites
     & "$PSScriptRoot\tools\Install-DotNetSdk.ps1" -InstallLocality $InstallLocality
 }
 
