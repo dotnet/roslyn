@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(model);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addImportsService = document.GetLanguageService<IAddImportsService>();
+            var addImportsService = document.Project.LanguageServices.GetRequiredService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
 
             // Create a simple interval tree for simplification spans.
@@ -212,8 +212,7 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxGenerator generator,
             CancellationToken cancellationToken)
         {
-            SyntaxNode? first = null;
-            SyntaxNode? last = null;
+            (SyntaxNode first, SyntaxNode last)? nodes = null;
             var importsToAdd = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
@@ -246,8 +245,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             continue;
                         }
 
-                        first ??= annotatedNode;
-                        last = annotatedNode;
+                        nodes = (first: nodes?.first ?? annotatedNode, last: annotatedNode);
 
                         if (addedSymbols.Contains(namespaceSymbol))
                         {
@@ -276,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editing
             // since whatever added the symbol annotation probably also added simplifier annotations,
             // and if not they probably didn't for a reason
 
-            return (importsToAdd.ToImmutableAndFree(), addedSymbols, first?.GetCommonRoot(last));
+            return (importsToAdd.ToImmutableAndFree(), addedSymbols, nodes is var (first, last) ? first.GetCommonRoot(last) : null);
         }
 
         /// <summary>

@@ -7164,9 +7164,9 @@ public class Derived : Base
             var model = comp.GetSemanticModel(tree);
 
             var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
-            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
         }
 
         [Fact]

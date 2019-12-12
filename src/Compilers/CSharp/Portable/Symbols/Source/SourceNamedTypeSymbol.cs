@@ -1037,7 +1037,7 @@ next:;
                 TypedConstant argument = attribute.CommonConstructorArguments[0];
                 Debug.Assert(argument.Kind == TypedConstantKind.Type);
 
-                var coClassType = argument.Value as NamedTypeSymbol;
+                var coClassType = argument.ValueInternal as NamedTypeSymbol;
                 if ((object)coClassType != null && coClassType.TypeKind == TypeKind.Class)
                 {
                     arguments.GetOrCreateData<TypeWellKnownAttributeData>().ComImportCoClass = coClassType;

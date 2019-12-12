@@ -193,17 +193,33 @@ namespace Microsoft.CodeAnalysis
                     treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
                     analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
-                _optionsCache.TryAdd(sectionKey, result);
+                if (_optionsCache.TryAdd(sectionKey, result))
+                {
+                    // Release the pooled object to be used as a key
+                    _sectionKeyPool.ForgetTrackedObject(sectionKey);
+                }
+                else
+                {
+                    freeKey(sectionKey, _sectionKeyPool);
+                }
+            }
+            else
+            {
+                freeKey(sectionKey, _sectionKeyPool);
             }
 
-            sectionKey.Clear();
             treeOptionsBuilder.Clear();
             analyzerOptionsBuilder.Clear();
-            _sectionKeyPool.Free(sectionKey);
             _treeOptionsPool.Free(treeOptionsBuilder);
             _analyzerOptionsPool.Free(analyzerOptionsBuilder);
 
             return result;
+
+            static void freeKey(List<Section> sectionKey, ObjectPool<List<Section>> pool)
+            {
+                sectionKey.Clear();
+                pool.Free(sectionKey);
+            }
 
             static void addOptions(
                 AnalyzerConfig.Section section,
@@ -242,46 +258,18 @@ namespace Microsoft.CodeAnalysis
                             diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
                         }
 
-                        ReportDiagnostic? severity;
-                        var comparer = StringComparer.OrdinalIgnoreCase;
-                        if (comparer.Equals(value, "default"))
+                        if (TryParseSeverity(value, out ReportDiagnostic severity))
                         {
-                            severity = ReportDiagnostic.Default;
-                        }
-                        else if (comparer.Equals(value, "error"))
-                        {
-                            severity = ReportDiagnostic.Error;
-                        }
-                        else if (comparer.Equals(value, "warning"))
-                        {
-                            severity = ReportDiagnostic.Warn;
-                        }
-                        else if (comparer.Equals(value, "suggestion"))
-                        {
-                            severity = ReportDiagnostic.Info;
-                        }
-                        else if (comparer.Equals(value, "silent") || comparer.Equals(value, "refactoring"))
-                        {
-                            severity = ReportDiagnostic.Hidden;
-                        }
-                        else if (comparer.Equals(value, "none"))
-                        {
-                            severity = ReportDiagnostic.Suppress;
+                            treeBuilder[diagId] = severity;
                         }
                         else
                         {
-                            severity = null;
                             diagnosticBuilder.Add(Diagnostic.Create(
                                 InvalidAnalyzerConfigSeverityDescriptor,
                                 Location.None,
                                 diagId,
                                 value,
                                 analyzerConfigPath));
-                        }
-
-                        if (severity.HasValue)
-                        {
-                            treeBuilder[diagId] = severity.GetValueOrDefault();
                         }
                     }
                     else
@@ -290,6 +278,44 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+        }
+
+        internal static bool TryParseSeverity(string value, out ReportDiagnostic severity)
+        {
+            var comparer = StringComparer.OrdinalIgnoreCase;
+            if (comparer.Equals(value, "default"))
+            {
+                severity = ReportDiagnostic.Default;
+                return true;
+            }
+            else if (comparer.Equals(value, "error"))
+            {
+                severity = ReportDiagnostic.Error;
+                return true;
+            }
+            else if (comparer.Equals(value, "warning"))
+            {
+                severity = ReportDiagnostic.Warn;
+                return true;
+            }
+            else if (comparer.Equals(value, "suggestion"))
+            {
+                severity = ReportDiagnostic.Info;
+                return true;
+            }
+            else if (comparer.Equals(value, "silent") || comparer.Equals(value, "refactoring"))
+            {
+                severity = ReportDiagnostic.Hidden;
+                return true;
+            }
+            else if (comparer.Equals(value, "none"))
+            {
+                severity = ReportDiagnostic.Suppress;
+                return true;
+            }
+
+            severity = default;
+            return false;
         }
     }
 }

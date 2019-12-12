@@ -214,7 +214,7 @@ class Program
                         </Project>
                     </Workspace>)
 
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Using readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit()
                     readOnlyEdit.CreateReadOnlyRegion(New Span(0, textBuffer.CurrentSnapshot.Length))

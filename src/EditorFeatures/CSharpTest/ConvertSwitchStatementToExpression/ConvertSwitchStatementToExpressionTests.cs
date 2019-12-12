@@ -975,5 +975,97 @@ class Program
     }
 }");
         }
+
+        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNotWithRefReturns()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static ref int GetRef(int[] mem, int addr, int mode)
+    {
+        [||]switch (mode)
+        {
+            case 0: return ref mem[mem[addr]];
+            case 1: return ref mem[addr];
+            default: throw new Exception();
+        }
+    }
+}");
+        }
+
+        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNotWithRefAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static ref int GetRef(int[] mem, int addr, int mode)
+    {
+        ref int i = ref addr;
+        [||]switch (mode)
+        {
+            case 0: i = ref mem[mem[addr]]; break;
+            default: throw new Exception();
+        }
+
+        return ref mem[addr];
+    }
+}");
+        }
+
+        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNotWithRefConditionalAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static ref int GetRef(int[] mem, int addr, int mode)
+    {
+        ref int i = ref addr;
+        [||]switch (mode)
+        {
+            case 0: i = ref true ? ref mem[mem[addr]] : ref mem[mem[addr]]; break;
+            default: throw new Exception();
+        }
+
+        return ref mem[addr];
+    }
+}");
+        }
+
+        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestWithRefInsideConditionalAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    static void GetRef(int[] mem, int addr, int mode)
+    {
+        ref int i = ref addr;
+        [||]switch (mode)
+        {
+            case 0: i = true ? ref mem[mem[addr]] : ref mem[mem[addr]]; break;
+            default: throw new Exception();
+        }
+    }
+}",
+@"class Program
+{
+    static void GetRef(int[] mem, int addr, int mode)
+    {
+        ref int i = ref addr;
+        i = mode switch
+        {
+            0 => true ? ref mem[mem[addr]] : ref mem[mem[addr]],
+            _ => throw new Exception(),
+        };
+    }
+}");
+        }
     }
 }

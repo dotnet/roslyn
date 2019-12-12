@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                 Dim languageDebugInfo = New VisualBasicLanguageDebugInfoService()
 
                 Dim hostdoc = workspace.Documents.First()
-                Dim snapshot = hostdoc.TextBuffer.CurrentSnapshot
+                Dim snapshot = hostdoc.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 
                 Dim builder = New StringBuilder()
@@ -131,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                                                    continuation As Func(Of VisualBasicProximityExpressionsService, Document, Integer, Task)) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim testDocument = workspace.Documents.Single()
-                Dim snapshot = testDocument.TextBuffer.CurrentSnapshot
+                Dim snapshot = testDocument.GetTextBuffer().CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
 
@@ -213,7 +213,7 @@ End Module</text>.Value, "local", True)
             Using workspace = TestWorkspace.CreateVisualBasic(parsedInput)
                 Dim service = New VisualBasicProximityExpressionsService()
                 Dim hostdoc = workspace.Documents.First()
-                Dim snapshot = hostdoc.TextBuffer.CurrentSnapshot
+                Dim snapshot = hostdoc.GetTextBuffer().CurrentSnapshot
                 Dim snapshotPoint = New SnapshotPoint(snapshot, caretPosition)
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 

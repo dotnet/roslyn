@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.Documents.Single()
                 Dim view = document.GetTextView()
-                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.TextBuffer.CurrentSnapshot)
+                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot)
                 view.Caret.MoveTo(selectedSpan.End)
                 view.Selection.Select(selectedSpan, isReversed:=False)
 
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.Documents.Single()
                 Dim view = document.GetTextView()
-                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.TextBuffer.CurrentSnapshot)
+                Dim selectedSpan = workspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single().ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot)
                 view.Caret.MoveTo(selectedSpan.End)
                 view.Selection.Select(selectedSpan, isReversed:=True)
 

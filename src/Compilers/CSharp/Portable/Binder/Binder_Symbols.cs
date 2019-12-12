@@ -531,13 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
                 ReportUnsafeIfNotAllowed(node, diagnostics);
 
-                // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
-                if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
-                {
-                    // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
-                    Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
-                }
-                else if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
+                if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
                     CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }
@@ -2309,14 +2303,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
+#nullable enable
+        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location? location = null)
         {
-            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, locationOpt ?? syntax.GetLocation());
+            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, location ?? syntax.GetLocation());
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
         {
-            if (feature.GetFeatureAvailabilityDiagnosticInfoOpt((CSharpParseOptions)tree.Options) is { } diagInfo)
+            if (feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options) is { } diagInfo)
             {
                 diagnostics.Add(diagInfo, location);
                 return false;

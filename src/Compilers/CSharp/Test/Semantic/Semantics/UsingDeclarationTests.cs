@@ -670,7 +670,7 @@ class C
 
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -696,7 +696,7 @@ class C
 
             CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
 
-            CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -772,7 +772,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (7,15): error CS0106: The modifier 'public' is not valid for this item
                 //         using public readonly var x = (IDisposable)null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),

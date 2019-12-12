@@ -61,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new TupleNameCompletionProvider(),
                 new DeclarationNameCompletionProvider(),
                 new InternalsVisibleToCompletionProvider(),
-                new PropertySubpatternCompletionProvider());
+                new PropertySubpatternCompletionProvider(),
+                new TypeImportCompletionProvider(),
+                new ExtensionMethodImportCompletionProvider());
 
             var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
             var languagesProvider = languageServices.GetService<IEmbeddedLanguagesProvider>();
@@ -70,8 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 defaultCompletionProviders = defaultCompletionProviders.Add(
                     new EmbeddedLanguageCompletionProvider(languagesProvider));
             }
-
-            defaultCompletionProviders = defaultCompletionProviders.Add(new TypeImportCompletionProvider());
 
             _defaultCompletionProviders = defaultCompletionProviders;
         }

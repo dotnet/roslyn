@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 moduleBeingBuilt,
                 emittingPdb: true,
                 diagnostics: diagnostics,
-                filterOpt: changes.RequiresCompilation,
+                filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
                 // Map the definitions from the previous compilation to the current compilation.

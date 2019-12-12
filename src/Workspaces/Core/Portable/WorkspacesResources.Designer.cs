@@ -575,6 +575,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation is required to accomplish the task but is not supported by project {0}..
+        /// </summary>
+        internal static string Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0 {
+            get {
+                return ResourceManager.GetString("Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
         internal static string Core_EditorConfig_Options {
@@ -656,6 +665,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}..
+        /// </summary>
+        internal static string Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4 {
+            get {
+                return ResourceManager.GetString("Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination type must be a {0}, {1} or {2}, but given one is {3}..
         /// </summary>
         internal static string Destination_type_must_be_a_0_1_or_2_but_given_one_is_3 {
@@ -688,6 +706,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Diagnostic_must_have_span_0 {
             get {
                 return ResourceManager.GetString("Diagnostic_must_have_span_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Document does not support syntax trees.
+        /// </summary>
+        internal static string Document_does_not_support_syntax_trees {
+            get {
+                return ResourceManager.GetString("Document_does_not_support_syntax_trees", resourceCulture);
             }
         }
         
@@ -1363,6 +1390,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Project_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Project_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project of ID {0} is required to accomplish the task but is not available from the solution.
+        /// </summary>
+        internal static string Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution {
+            get {
+                return ResourceManager.GetString("Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_" +
+                        "solution", resourceCulture);
             }
         }
         
@@ -3367,6 +3404,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Syntax tree is required to accomplish the task but is not supported by document {0}..
+        /// </summary>
+        internal static string SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0 {
+            get {
+                return ResourceManager.GetString("SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Temporary storage cannot be written more than once..
         /// </summary>
         internal static string Temporary_storage_cannot_be_written_more_than_once {
@@ -3696,15 +3742,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unterminated_regex_comment {
             get {
                 return ResourceManager.GetString("Unterminated_regex_comment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Usage:.
-        /// </summary>
-        internal static string Usage_colon {
-            get {
-                return ResourceManager.GetString("Usage_colon", resourceCulture);
             }
         }
         

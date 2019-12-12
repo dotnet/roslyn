@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -117,7 +118,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return CreateSymbolTreeInfo(
                 project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
-                inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
+                inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
+                simpleMethods: null,
+                complexMethods: ImmutableArray<ExtensionMethodInfo>.Empty);
         }
 
         // generate nodes for the global namespace an all descendants
