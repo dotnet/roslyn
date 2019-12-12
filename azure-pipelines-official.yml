@@ -43,7 +43,7 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
 
-    - powershell: git merge "master-vs-deps"
+    - powershell: git merge origin/master-vs-deps
       displayName: Merging VS Deps 
       condition: and(succeeded(), variables['NonVSDepsBranch'])
 
