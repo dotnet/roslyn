@@ -106,6 +106,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             return diagnostics;
         }
 
+        public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution)
+        {
+            var diagnostics = new List<Diagnostic>();
+            foreach (var project in solution.Projects)
+            {
+                var projectDiagnostics = await GetAllDiagnosticsAsync(project);
+                diagnostics.AddRange(projectDiagnostics);
+            }
+
+            return diagnostics;
+        }
+
         public Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, TextSpan span)
         {
             return GetDiagnosticsAsync(document.Project, document, span, getDocumentDiagnostics: true, getProjectDiagnostics: false);

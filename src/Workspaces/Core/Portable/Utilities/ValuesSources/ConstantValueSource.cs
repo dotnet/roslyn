@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable enable
-
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +11,7 @@ namespace Roslyn.Utilities
     internal sealed class ConstantValueSource<T> : ValueSource<T>
     {
         private readonly T _value;
-        private Task<T>? _task;
+        private Task<T> _task;
 
         public ConstantValueSource(T value)
         {
@@ -26,7 +23,7 @@ namespace Roslyn.Utilities
             return _value;
         }
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T value)
+        public override bool TryGetValue(out T value)
         {
             value = _value;
             return true;
