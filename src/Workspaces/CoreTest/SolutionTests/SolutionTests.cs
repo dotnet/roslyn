@@ -1535,7 +1535,7 @@ public class C : A {
             var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), treeDiagnosticReportingOptions: null, CancellationToken.None);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), analyzerConfigOptionsResult: null, CancellationToken.None);
 
             // create recoverable tree off the original tree
             var recoverableTree = factory.CreateRecoverableTree(
@@ -1552,6 +1552,57 @@ public class C : A {
 
             // this shouldn't throw
             var root = newTree.GetRoot();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        public void TestAnalyzerConfigOptions()
+        {
+            // get one to get to syntax tree factory
+            var dummyProject = CreateNotKeptAliveSolution().AddProject("dummy", "dummy", LanguageNames.CSharp);
+
+            var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
+
+            // create the origin tree
+            var testDir = Temp.CreateDirectory();
+            var sourceFile = testDir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+    void M(C? c)
+    {
+        _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
+    }
+}");
+            using var fileStream = File.OpenRead(sourceFile.Path);
+            var text = SourceText.From(fileStream);
+            var tree = factory.ParseSyntaxTree(sourceFile.Path, dummyProject.ParseOptions, text, analyzerConfigOptionsResult: null, CancellationToken.None);
+
+            var compilation = CSharpCompilation.Create("TestProject", new[] { tree }, references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib },
+                    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
+
+            // warning CS8602: Dereference of a possibly null reference.
+            var diagnostics = compilation.GetDiagnostics();
+            Assert.Equal(1, diagnostics.Length);
+            Assert.Contains("CS8602", diagnostics[0].Id);
+
+            // analyzer config file
+            var analyzerConfigFile = testDir.CreateFile(".editorconfig");
+            var analyzerConfigText = @"
+[*.cs]
+generated_code = true";
+            var analyzerConfig = AnalyzerConfig.Parse(analyzerConfigText, analyzerConfigFile.Path);
+            var analyzerConfigSet = AnalyzerConfigSet.Create(new[] { analyzerConfig });
+            var analyzerConfigOptionsResult = analyzerConfigSet.GetOptionsForSourcePath(sourceFile.Path);
+
+            tree = factory.ParseSyntaxTree(sourceFile.Path, dummyProject.ParseOptions, text, analyzerConfigOptionsResult, CancellationToken.None);
+
+            compilation = CSharpCompilation.Create("TestProject", new[] { tree }, references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib },
+                    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
+
+            // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+            diagnostics = compilation.GetDiagnostics();
+            Assert.Equal(1, diagnostics.Length);
+            Assert.Contains("CS8669", diagnostics[0].Id);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

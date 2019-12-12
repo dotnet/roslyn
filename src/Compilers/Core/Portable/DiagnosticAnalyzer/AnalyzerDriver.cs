@@ -1794,10 +1794,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // First check for explicit user configuration for generated code.
                 //     generated_code = true | false
                 var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                if (options.TryGetValue("generated_code", out string optionValue) &&
-                    bool.TryParse(optionValue, out var boolValue))
+                var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options);
+                if (isUserConfiguredGeneratedCode.HasValue)
                 {
-                    return boolValue;
+                    return isUserConfiguredGeneratedCode.Value;
                 }
 
                 // Either no explicit user configuration or we don't recognize the option value.
