@@ -40,9 +40,9 @@
                 <ColumnDefinition Width="400" />
             </Grid.ColumnDefinitions>
             <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
-            <Border Grid.Row="0" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <ContentControl x:Name="TypeNameContentControl" Focusable="True" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" Margin="100,0,100,15" BorderBrush="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" />            </Border>
+            <Border Grid.Row="0" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <ContentControl x:Name="TypeContentControl" Focusable="True" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" Margin="100,0,100,15" BorderBrush="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" />            </Border>
             <Label Grid.Row="1" Grid.Column="0" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
-            <TextBox Grid.Row="1" Grid.Column="1" Width="200" Text="{Binding ParameterName, Mode=TwoWay}" Margin="100,0,100,15" TextChanged="TextBox_ParameterNameChanged" />
+            <Border Grid.Row="1" Grid.Column="1" BorderThickness="1" Margin="6,0,0,0">                <ContentControl x:Name="NameContentControl" Focusable="True" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" Margin="100,0,100,15" BorderBrush="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" />            </Border>
             <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />
             <TextBox Grid.Row="2" Grid.Column="1" Width="200" Text="{Binding CallsiteValue, Mode=TwoWay}" Margin="100,0,100,15" />
         </Grid>

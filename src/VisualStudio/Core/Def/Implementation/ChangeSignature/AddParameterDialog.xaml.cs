@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -14,7 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal partial class AddParameterDialog : DialogWindow
     {
         public readonly AddParameterDialogViewModel ViewModel;
-        private readonly IntellisenseTextBoxViewModel _intellisenseTextBoxView;
+        private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxView;
+        private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxView;
         private bool _isValid;
 
         private bool IsValid
@@ -38,11 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
 
-        public AddParameterDialog(IntellisenseTextBoxViewModel intellisenseTextBoxViewModel)
+        public AddParameterDialog(
+            IntellisenseTextBoxViewModel typeIntellisenseTextBoxViewModel,
+            IntellisenseTextBoxViewModel nameIntellisenseTextBoxViewModel)
         {
             // TODO this should be initlialized when called for Edit.
             ViewModel = new AddParameterDialogViewModel();
-            _intellisenseTextBoxView = intellisenseTextBoxViewModel;
+            _typeIntellisenseTextBoxView = typeIntellisenseTextBoxViewModel;
+            _nameIntellisenseTextBoxView = nameIntellisenseTextBoxViewModel;
             this.Loaded += AddParameterDialog_Loaded;
             DataContext = ViewModel;
 
@@ -54,9 +58,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            IntellisenseTextBox typeNameTextBox = new IntellisenseTextBox(
-                _intellisenseTextBoxView, TypeNameContentControl);
-            this.TypeNameContentControl.Content = typeNameTextBox;
+            IntellisenseTextBox typeTextBox = new IntellisenseTextBox(
+                _typeIntellisenseTextBoxView, TypeContentControl);
+            this.TypeContentControl.Content = typeTextBox;
+
+            IntellisenseTextBox nameTextBox = new IntellisenseTextBox(
+                _nameIntellisenseTextBoxView, NameContentControl);
+            this.NameContentControl.Content = nameTextBox;
 
             this.OKButton.IsEnabled = _isValid;
         }
@@ -65,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (ViewModel.TrySubmit())
             {
-                ViewModel.TypeName = ((IntellisenseTextBox)TypeNameContentControl.Content).Text;
+                ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
                 DialogResult = true;
             }
         }

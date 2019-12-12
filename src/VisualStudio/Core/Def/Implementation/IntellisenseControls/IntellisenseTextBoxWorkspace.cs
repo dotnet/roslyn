@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Editor.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
-    internal class IntellisenseWorkspace : Workspace
+    internal class IntellisenseTextBoxWorkspace : Workspace
     {
-        public IntellisenseWorkspace(Solution solution, Project project, string documentText = null)
-            : base(project.Solution.Workspace.Services.HostServices, nameof(IntellisenseWorkspace))
+        public IntellisenseTextBoxWorkspace(Solution solution, Project project, string documentText = null)
+            : base(project.Solution.Workspace.Services.HostServices, nameof(IntellisenseTextBoxWorkspace))
         {
             documentText = documentText ?? string.Empty;
             // The solution we are handed is still parented by the original workspace. We want to

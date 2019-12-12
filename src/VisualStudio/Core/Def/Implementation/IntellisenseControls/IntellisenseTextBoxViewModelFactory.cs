@@ -5,6 +5,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
@@ -16,7 +17,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using ImportingConstructorAttribute = System.Composition.ImportingConstructorAttribute;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
     [Export(typeof(IntellisenseTextBoxViewModelFactory)), Shared]
     internal class IntellisenseTextBoxViewModelFactory
@@ -56,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
           IContentType contentType,
           string contentString,
           Func<IProjectionSnapshot, ITrackingSpan[]> createSpansMethod,
-          string[] roles, CancellationToken cancellationToken)
+          string[][] rolesCollections, CancellationToken cancellationToken)
         {
             IVsTextLines vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, contentType) as IVsTextLines;
             vsTextLines.InitializeContent(contentString, contentString.Length);
@@ -91,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Put it into a new workspace, and open it and its related documents
             // with the projection buffer as the text.
-            var workspace = new IntellisenseWorkspace(forkedSolution, document.Project);
+            var workspace = new IntellisenseTextBoxWorkspace(forkedSolution, document.Project);
             workspace.OpenDocument(workspace.ChangeSignatureDocumentId, originalContextBuffer.AsTextContainer());
             foreach (var link in document.GetLinkedDocumentIds())
             {
@@ -101,17 +102,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
             await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            IntellisenseTextBoxViewModel[] result = new IntellisenseTextBoxViewModel[roles.Length];
-            for (int i = 0; i < roles.Length; i++)
+            _editorAdaptersFactoryService.SetDataBuffer(vsTextLines, projectionBuffer);
+
+            IntellisenseTextBoxViewModel[] result = new IntellisenseTextBoxViewModel[rolesCollections.Length];
+            for (int i = 0; i < rolesCollections.Length; i++)
             {
-                ITextViewRoleSet roleSet = _textEditorFactoryService.CreateTextViewRoleSet(
-                        PredefinedTextViewRoles.Editable,
-                        PredefinedTextViewRoles.Interactive,
-                        roles[i]);
+                ITextViewRoleSet roleSet = _textEditorFactoryService.CreateTextViewRoleSet(rolesCollections[i]);
 
                 IVsTextView vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
-
-                _editorAdaptersFactoryService.SetDataBuffer(vsTextLines, projectionBuffer);
 
                 vsTextView.Initialize(
                     vsTextLines,
