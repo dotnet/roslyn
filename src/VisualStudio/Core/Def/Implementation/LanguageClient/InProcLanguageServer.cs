@@ -55,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     DefinitionProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                     SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
+                    WorkspaceSymbolProvider = true,
                 }
             };
         }
@@ -131,6 +132,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
             return await this._protocol.GetSignatureHelpAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.WorkspaceSymbolName)]
+        public async Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var workspaceSymbolParams = input.ToObject<WorkspaceSymbolParams>();
+            return await this._protocol.GetWorkspaceSymbolsAsync(_workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
     }
 }
