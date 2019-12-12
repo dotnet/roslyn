@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Perform name lookup without generating diagnostics as it could possibly be a keyword in the current context.
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsInternal(lookupResult, identifierValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, basesBeingResolved: null, options: LookupOptions.NamespacesOrTypesOnly, diagnose: false);
+            CompoundUseSiteInfo useSiteInfo = default;
+            this.LookupSymbolsInternal(lookupResult, identifierValueText, arity: 0, useSiteInfo: ref useSiteInfo, basesBeingResolved: null, options: LookupOptions.NamespacesOrTypesOnly, diagnose: false);
 
             // We have following possible cases for lookup:
 
@@ -351,9 +351,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool wasError;
                 var plainName = node.Identifier.ValueText;
                 var result = LookupResult.GetInstance();
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                this.LookupSymbolsWithFallback(result, plainName, 0, ref useSiteDiagnostics, null, LookupOptions.NamespaceAliasesOnly);
-                diagnostics.Add(node, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                this.LookupSymbolsWithFallback(result, plainName, 0, ref useSiteInfo, null, LookupOptions.NamespaceAliasesOnly);
+                ReportUseSite(node, useSiteInfo, diagnostics);
 
                 Symbol bindingResult = ResultSymbol(result, plainName, 0, node, diagnostics, false, out wasError, qualifierOpt: null, basesBeingResolved: null, options: LookupOptions.NamespaceAliasesOnly);
                 result.Free();
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUseSiteDiagnostics(constructedType.Type.OriginalDefinition, diagnostics, syntax);
                     var type = (NamedTypeSymbol)constructedType.Type;
                     var location = syntax.Location;
-                    type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
+                    type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics, recordUsage: !IsSemanticModelBinder); // TODO: unused usings!
                 }
                 else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
                 {
@@ -810,9 +810,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = LookupResult.GetInstance();
             LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             Symbol bindingResult;
             // If we were looking up the identifier "dynamic" at the topmost level and didn't find anything good,
@@ -1093,9 +1093,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsSimpleName(lookupResult, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            this.LookupSymbolsSimpleName(lookupResult, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             bool wasError;
             Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out wasError, qualifierOpt, basesBeingResolved, options);
@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                type.CheckConstraintsForNonTuple(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNonTuple(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics, recordUsage: !IsSemanticModelBinder);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
@@ -1341,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
-            ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            ReportUseSiteDiagnostics(compilation, typeSymbol, diagnostics, node, recordUsage: false); // No need to record core library
             return typeSymbol;
         }
 
@@ -1368,31 +1368,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var useSiteDiagnostic = symbol.GetUseSiteDiagnosticForSymbolOrContainingType();
-            if (useSiteDiagnostic != null)
+            var useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(symbol);
+            if (useSiteInfo.DiagnosticInfo != null)
             {
-                Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, new SourceLocation(syntax));
+                Symbol.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, diagnostics, new SourceLocation(syntax));
             }
 
+            // No need to track assemblies used by special members or types. They are coming from core library, which 
+            // doesn't have any dependencies.
             return true;
         }
 
-        /// <summary>
-        /// Reports use-site diagnostics for the specified symbol.
-        /// </summary>
-        /// <returns>
-        /// True if there was an error among the reported diagnostics
-        /// </returns>
-        internal static bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, SyntaxNode node)
+        private static UseSiteInfo.Builder GetUseSiteInfoForWellKnownMemberOrContainingType(Symbol symbol)
         {
-            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
-            return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, node.Location);
-        }
+            Debug.Assert(symbol.IsDefinition);
 
-        internal static bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, SyntaxToken token)
-        {
-            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
-            return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, token.GetLocation());
+            UseSiteInfo.Builder info = symbol.GetUseSiteInfo();
+            symbol.MergeUseSiteDiagnostics(ref info, symbol.ContainingType.GetUseSiteInfo());
+            return info;
         }
 
         /// <summary>
@@ -1401,10 +1394,135 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there was an error among the reported diagnostics
         /// </returns>
-        internal static bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, Location location)
+        internal bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, SyntaxNode node)
         {
-            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
-            return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, location);
+            return ReportUseSiteDiagnostics(Compilation, symbol, diagnostics, node, recordUsage: !IsSemanticModelBinder && !(Flags.IncludesAny(BinderFlags.InUsing) && CodeAnalysis.Compilation.ReportUnusedImportsInTree(node.SyntaxTree)));
+        }
+        /// <summary>
+        /// Reports use-site diagnostics for the specified symbol.
+        /// </summary>
+        /// <returns>
+        /// True if there was an error among the reported diagnostics
+        /// </returns>
+        internal static bool ReportUseSiteDiagnostics(CSharpCompilation compilation, Symbol symbol, DiagnosticBag diagnostics, SyntaxNode node, bool recordUsage)
+        {
+            UseSiteInfo info = symbol.GetUseSiteInfo();
+            if (info.DiagnosticInfo != null && Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo, diagnostics, node.Location))
+            {
+                return true;
+            }
+
+            if (recordUsage)
+            {
+                RecordDependencies(compilation, info);
+            }
+
+            return false;
+        }
+
+#nullable enable
+        private static void RecordDependencies(CSharpCompilation compilation, UseSiteInfo.Builder useSiteInfo)
+        {
+            compilation.AddUsedAssemblies(useSiteInfo.Dependencies);
+        }
+
+        internal void ReportUseSite(SyntaxToken token, CompoundUseSiteInfo useSiteInfo, DiagnosticBag diagnostics)
+        {
+            diagnostics.Add(token, useSiteInfo.Diagnostics);
+            ReportUseSiteDependencies(useSiteInfo.Dependencies);
+        }
+
+        internal void ReportUseSite(SyntaxNode node, CompoundUseSiteInfo useSiteInfo, DiagnosticBag diagnostics)
+        {
+            diagnostics.Add(node, useSiteInfo.Diagnostics);
+            ReportUseSiteDependencies(useSiteInfo.Dependencies);
+        }
+
+        internal void ReportUseSite(Location location, CompoundUseSiteInfo useSiteInfo, DiagnosticBag diagnostics)
+        {
+            diagnostics.Add(location, useSiteInfo.Diagnostics);
+            ReportUseSiteDependencies(useSiteInfo.Dependencies);
+        }
+
+        internal void ReportUseSiteDependencies(ISet<AssemblySymbol>? dependencies)
+        {
+            if (!IsSemanticModelBinder) // TODO: check usings!
+            {
+                Compilation.AddUsedAssemblies(dependencies);
+            }
+        }
+
+        internal static void ReportUseSite(CSharpCompilation compilation, SyntaxNode node, CompoundUseSiteInfo useSiteInfo, DiagnosticBag diagnostics, bool recordUsage)
+        {
+            diagnostics.Add(node, useSiteInfo.Diagnostics);
+            if (recordUsage)
+            {
+                compilation.AddUsedAssemblies(useSiteInfo.Dependencies);
+            }
+        }
+
+        internal static void ReportUseSite(CSharpCompilation compilation, Location location, CompoundUseSiteInfo useSiteInfo, DiagnosticBag diagnostics, bool recordUsage)
+        {
+            diagnostics.Add(location, useSiteInfo.Diagnostics);
+            if (recordUsage)
+            {
+                compilation.AddUsedAssemblies(useSiteInfo.Dependencies);
+            }
+        }
+#nullable restore
+
+        internal bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, SyntaxToken token)
+        {
+            return ReportUseSiteDiagnostics(Compilation, symbol, diagnostics, token, recordUsage: !IsSemanticModelBinder);
+        }
+
+        internal static bool ReportUseSiteDiagnostics(CSharpCompilation compilation, Symbol symbol, DiagnosticBag diagnostics, SyntaxToken token, bool recordUsage)
+        {
+            UseSiteInfo info = symbol.GetUseSiteInfo();
+            if (info.DiagnosticInfo != null && Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo, diagnostics, token.GetLocation()))
+            {
+                return true;
+            }
+
+            if (recordUsage)
+            {
+                RecordDependencies(compilation, info);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Reports use-site diagnostics for the specified symbol.
+        /// </summary>
+        /// <returns>
+        /// True if there was an error among the reported diagnostics
+        /// </returns>
+        internal bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, Location location)
+        {
+            return ReportUseSiteDiagnostics(Compilation, symbol, diagnostics, location, recordUsage: !IsSemanticModelBinder);
+        }
+
+        /// <summary>
+        /// Reports use-site diagnostics for the specified symbol.
+        /// </summary>
+        /// <returns>
+        /// True if there was an error among the reported diagnostics
+        /// </returns>
+        internal static bool ReportUseSiteDiagnostics(CSharpCompilation compilation, Symbol symbol, DiagnosticBag diagnostics, Location location, bool recordUsage)
+        {
+            UseSiteInfo info = symbol.GetUseSiteInfo();
+            if (info.DiagnosticInfo != null && Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo, diagnostics, location))
+            {
+                return true;
+            }
+
+            if (recordUsage)
+            {
+                RecordDependencies(compilation, info);
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -1423,11 +1541,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         /// type isn't found.
         /// </summary>
-        internal NamedTypeSymbol GetWellKnownTypeWithoutRecordingUsage(WellKnownType type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol GetWellKnownTypeWithoutRecordingUsage(WellKnownType type, ref CompoundUseSiteInfo useSiteInfo)
         {
             NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type, recordUsage: false);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
-            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, typeSymbol.GetUseSiteDiagnostic());
+            useSiteInfo.AddForSymbol(typeSymbol);
             return typeSymbol;
         }
 
@@ -1444,31 +1562,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((syntax != null) ^ (location != null));
 
-            DiagnosticInfo useSiteDiagnostic;
-            Symbol memberSymbol = GetWellKnownTypeMemberWithoutRecordingUsage(compilation, member, out useSiteDiagnostic, isOptional);
+            UseSiteInfo.Builder useSiteInfo;
+            Symbol memberSymbol = GetWellKnownTypeMemberWithoutRecordingUsage(compilation, member, out useSiteInfo, isOptional);
 
-            if (useSiteDiagnostic != null)
+            if (useSiteInfo.DiagnosticInfo != null)
             {
                 // report the diagnostic only for non-optional members:
-                Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, location ?? syntax.Location);
+                Symbol.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, diagnostics, location ?? syntax.Location);
+
+                if (useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
+                {
+                    return memberSymbol;
+                }
             }
 
-            if (memberSymbol is object && recordUsage)
+            if (recordUsage)
             {
-                compilation.AddUsedAssembly(memberSymbol.ContainingAssembly);
+                RecordDependencies(compilation, useSiteInfo);
             }
 
             return memberSymbol;
         }
 
-        internal static Symbol GetWellKnownTypeMemberWithoutRecordingUsage(CSharpCompilation compilation, WellKnownMember member, out DiagnosticInfo diagnosticInfo, bool isOptional = false)
+        internal static Symbol GetWellKnownTypeMemberWithoutRecordingUsage(CSharpCompilation compilation, WellKnownMember member, out UseSiteInfo.Builder useSiteInfo, bool isOptional = false)
         {
             Symbol memberSymbol = compilation.GetWellKnownTypeMember(member, recordUsage: false);
 
             if ((object)memberSymbol != null)
             {
-                diagnosticInfo = memberSymbol.GetUseSiteDiagnosticForSymbolOrContainingType();
-                if (diagnosticInfo != null)
+                useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(memberSymbol);
+                if (useSiteInfo.DiagnosticInfo != null)
                 {
                     // Dev11 reports use-site diagnostics even for optional symbols that are found.
                     // We decided to silently ignore bad optional symbols.
@@ -1476,16 +1599,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Report errors only for non-optional members:
                     if (isOptional)
                     {
-                        var severity = diagnosticInfo.Severity;
-
-                        // ignore warnings:
-                        diagnosticInfo = null;
+                        var severity = useSiteInfo.DiagnosticInfo.Severity;
 
                         // if the member is optional and bad for whatever reason ignore it:
                         if (severity == DiagnosticSeverity.Error)
                         {
+                            useSiteInfo = default;
                             return null;
                         }
+
+                        // ignore warnings:
+                        useSiteInfo.DiagnosticInfo = null;
                     }
                 }
             }
@@ -1493,11 +1617,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // member is missing
                 MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(member);
-                diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name);
+                useSiteInfo = new UseSiteInfo.Builder() { DiagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name) };
             }
             else
             {
-                diagnosticInfo = null;
+                useSiteInfo = default;
             }
 
             return memberSymbol;

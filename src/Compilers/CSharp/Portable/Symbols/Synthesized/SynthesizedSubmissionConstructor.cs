@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = containingType.DeclaringCompilation;
 
             var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
-            var useSiteError = submissionArrayType.GetUseSiteDiagnostic();
+            var useSiteError = submissionArrayType.GetUseSiteInfo().DiagnosticInfo; // TODO:
             if (useSiteError != null)
             {
                 diagnostics.Add(useSiteError, NoLocation.Singleton);

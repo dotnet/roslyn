@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
                 Debug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics, recordUsage: true);
 
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 if (!_explicitInterfaceImplementations.IsEmpty)
@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     foreach (var parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);
-                                        parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
+                                        parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics, recordUsage: true);
                                     }
 
                                     this.AddDeclarationDiagnostics(diagnostics);
@@ -1549,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var diagnostics = DiagnosticBag.GetInstance();
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
-                                this.Type.CheckAllConstraints(DeclaringCompilation, conversions, _location, diagnostics);
+                                this.Type.CheckAllConstraints(DeclaringCompilation, conversions, _location, diagnostics, recordUsage: true);
 
                                 var type = this.Type;
                                 if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
@@ -1594,16 +1594,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind;
             var typeSyntax = syntax.Type.SkipRef(out refKind);
             var type = binder.BindType(typeSyntax, diagnostics);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
-            if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(type, ref useSiteInfo))
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), _location, this, type.Type);
             }
 
-            diagnostics.Add(_location, useSiteDiagnostics);
+            diagnostics.Add(_location, useSiteInfo.Diagnostics); // TODO:
 
             if (type.IsVoidType())
             {
@@ -1618,11 +1618,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var parameterSyntaxOpt = GetParameterListSyntax(syntax);
             var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             foreach (ParameterSymbol param in parameters)
             {
-                if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
+                if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(param.Type, ref useSiteInfo))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, _location, this, param.Type);
                 }
@@ -1632,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            diagnostics.Add(_location, useSiteDiagnostics);
+            diagnostics.Add(_location, useSiteInfo.Diagnostics); // TODO:
             return parameters;
         }
 

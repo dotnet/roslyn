@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Clear();
                     // PROTOTYPE(UsedAssemblyReferences): Might want to suppress nullable analysis for this call.
+                    // PROTOTYPE(UsedAssemblyReferences): Ensure we don't trigger any analyzers during the GetDiagnosticsForAllMethodBodies call.
                     GetDiagnosticsForAllMethodBodies(diagnostics, doLowering: true, cancellationToken);
                     seenErrors = diagnostics.HasAnyErrors();
                 }
@@ -211,6 +212,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void AddUsedAssemblies(ISet<AssemblySymbol>? assemblies)
+        {
+            if (assemblies?.Count > 0)
+            {
+                foreach (var candidate in assemblies)
+                {
+                    AddUsedAssembly(candidate);
+                }
+            }
+        }
+
         internal bool AddUsedAssembly(AssemblySymbol? assembly)
         {
             if (assembly is null || assembly == SourceAssembly || assembly.IsMissing)
@@ -218,20 +230,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (_lazyUsedAssemblyReferences is null)
-            {
-                Interlocked.CompareExchange(ref _lazyUsedAssemblyReferences, new ConcurrentSet<AssemblySymbol>(), null);
-            }
-
 #if DEBUG
             bool wasFrozen = _usedAssemblyReferencesFrozen;
 #endif
-            bool result = _lazyUsedAssemblyReferences.Add(assembly);
+            bool result = GetOrCreateUsedAssemblyReferencesCache().Add(assembly);
 
 #if DEBUG
             Debug.Assert(!result || !wasFrozen);
 #endif
             return result;
+        }
+
+        private ConcurrentSet<AssemblySymbol> GetOrCreateUsedAssemblyReferencesCache()
+        {
+            if (_lazyUsedAssemblyReferences is null)
+            {
+                Interlocked.CompareExchange(ref _lazyUsedAssemblyReferences, new ConcurrentSet<AssemblySymbol>(), null);
+            }
+
+            return _lazyUsedAssemblyReferences;
         }
 
         internal void AddAssembliesUsedByTypeReference(TypeSymbol? typeOpt)

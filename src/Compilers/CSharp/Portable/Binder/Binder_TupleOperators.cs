@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Is the operand implicitly convertible to bool?
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
             TypeSymbol boolean = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromType(type, boolean, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromType(type, boolean, ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             if (conversion.IsImplicit)
             {

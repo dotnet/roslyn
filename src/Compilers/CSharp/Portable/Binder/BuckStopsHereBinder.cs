@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool InExecutableBinder => false;
 
-        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
+        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref CompoundUseSiteInfo useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
         {
             failedThroughTypeCheck = false;
-            return IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);
+            return IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteInfo);
         }
 
         internal override ConstantFieldsInProgress ConstantFieldsInProgress

@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
                     var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
-                    typeSymbol.CheckAllConstraints(_compilation, conversions, location, semanticDiagnostics);
+                    typeSymbol.CheckAllConstraints(_compilation, conversions, location, semanticDiagnostics, recordUsage: true /*TODO:*/);
                 }
             }
 
@@ -637,13 +637,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
-            LookupSymbolInAliases(originalBinder, result, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+            LookupSymbolInAliases(originalBinder, result, name, arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
 
             if (!result.IsMultiViable && (options & LookupOptions.NamespaceAliasesOnly) == 0)
             {
-                LookupSymbolInUsings(this.Usings, originalBinder, result, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+                LookupSymbolInUsings(this.Usings, originalBinder, result, name, arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
             }
         }
 
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
 
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Found a match in our list of normal aliases.  Mark the alias as being seen so that
                 // it won't be reported to the user as something that can be removed.
-                var res = originalBinder.CheckViability(alias.Alias, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                var res = originalBinder.CheckViability(alias.Alias, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved);
                 if (res.Kind == LookupResultKind.Viable)
                 {
                     MarkImportDirective(alias.UsingDirective, callerIsSemanticModel);
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Found a match in our list of extern aliases.  Mark the extern alias as being
                     // seen so that it won't be reported to the user as something that can be
                     // removed.
-                    var res = originalBinder.CheckViability(a.Alias, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                    var res = originalBinder.CheckViability(a.Alias, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved);
                     if (res.Kind == LookupResultKind.Viable)
                     {
                         MarkImportDirective(a.ExternAliasDirective, callerIsSemanticModel);
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             if (originalBinder.Flags.Includes(BinderFlags.InScriptUsing))
             {
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Found a match in our list of normal using directives.  Mark the directive
                     // as being seen so that it won't be reported to the user as something that
                     // can be removed.
-                    var res = originalBinder.CheckViability(symbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                    var res = originalBinder.CheckViability(symbol, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved);
                     if (res.Kind == LookupResultKind.Viable)
                     {
                         MarkImportDirective(originalBinder.Compilation, typeOrNamespace.UsingDirective, callerIsSemanticModel);

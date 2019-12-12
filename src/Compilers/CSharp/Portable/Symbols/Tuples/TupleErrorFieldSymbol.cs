@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            return _useSiteDiagnosticInfo;
+            return new UseSiteInfo(this, _useSiteDiagnosticInfo);
         }
 
         public override sealed int GetHashCode()

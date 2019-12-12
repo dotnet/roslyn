@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics)
         {
-            var useSiteDiagnostic = symbol.GetUseSiteDiagnostic();
+            var useSiteDiagnostic = symbol.GetUseSiteInfo().DiagnosticInfo; // TODO:
             if (useSiteDiagnostic != null)
             {
                 ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, NoLocation.Singleton);

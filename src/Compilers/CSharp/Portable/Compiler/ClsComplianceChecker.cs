@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol attributeClass = data.AttributeClass;
                     if ((object)attributeClass != null)
                     {
-                        DiagnosticInfo info = attributeClass.GetUseSiteDiagnostic();
+                        DiagnosticInfo info = attributeClass.GetUseSiteInfo().DiagnosticInfo;
                         if (info != null)
                         {
                             Location location = symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.Locations[0];

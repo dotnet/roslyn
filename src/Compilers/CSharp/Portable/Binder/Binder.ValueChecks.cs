@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.Kind == BoundKind.MethodGroup && valueKind != BindValueKind.RValueOrMethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)expr;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
-                diagnostics.Add(expr.Syntax, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
+                ReportUseSite(expr.Syntax, useSiteInfo, diagnostics);
                 Symbol otherSymbol = null;
                 bool resolvedToMethodGroup = resolution.MethodGroup != null;
                 if (!expr.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
@@ -981,9 +981,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool isAccessible = this.IsAccessible(setMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    bool isAccessible = this.IsAccessible(setMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
 
                     if (!isAccessible)
                     {
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (IsBadBaseAccess(node, receiver, setMethod, diagnostics, propertySymbol) ||
-                        (!object.Equals(setMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax)))
+                        (!object.Equals(setMethod.GetUseSiteInfo(), propertySymbol.GetUseSiteInfo()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax)))
                     {
                         return false;
                     }
@@ -1030,9 +1030,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool isAccessible = this.IsAccessible(getMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    bool isAccessible = this.IsAccessible(getMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
 
                     if (!isAccessible)
                     {
@@ -1050,10 +1050,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
-                    if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
-                        (!object.Equals(getMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax)))
+                    if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol))
                     {
                         return false;
+                    }
+
+                    UseSiteInfo getterUseSiteInfo = getMethod.GetUseSiteInfo();
+                    if (!object.Equals(getterUseSiteInfo.DiagnosticInfo, propertySymbol.GetUseSiteInfo().DiagnosticInfo))
+                    {
+                        if (ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax))
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        ReportUseSiteDependencies(getterUseSiteInfo.Dependencies);
                     }
 
                     CheckRuntimeSupportForSymbolAccess(node, receiver, getMethod, diagnostics);

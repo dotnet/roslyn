@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             if (left.HasDynamicType() || right.HasDynamicType())
             {
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     left = BindToNaturalType(left, diagnostics);
                     right = BindToNaturalType(right, diagnostics);
-                    var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(right, left.Type, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(right, left.Type, ref useSiteInfo);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
 
                     return new BoundCompoundAssignmentOperator(
                         node,
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightConverted = CreateConversion(right, best.RightConversion, bestSignature.RightType, diagnostics);
 
             var leftType = left.Type;
-            Conversion finalConversion = Conversions.ClassifyConversionFromExpressionType(bestSignature.ReturnType, leftType, ref useSiteDiagnostics);
+            Conversion finalConversion = Conversions.ClassifyConversionFromExpressionType(bestSignature.ReturnType, leftType, ref useSiteInfo);
 
             bool isPredefinedOperator = !bestSignature.Kind.IsUserDefined();
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isPredefinedOperator &&
                 !kind.IsShift())
             {
-                Conversion rightToLeftConversion = this.Conversions.ClassifyConversionFromExpression(right, leftType, ref useSiteDiagnostics);
+                Conversion rightToLeftConversion = this.Conversions.ClassifyConversionFromExpression(right, leftType, ref useSiteInfo);
                 if (!rightToLeftConversion.IsImplicit || !rightToLeftConversion.IsValid)
                 {
                     hasError = true;
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.Add(node, useSiteDiagnostics);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             if (!hasError && leftType.IsVoidPointer())
             {
@@ -237,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol delegateType = left.Type;
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion argumentConversion = this.Conversions.ClassifyConversionFromExpression(right, delegateType, ref useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            Conversion argumentConversion = this.Conversions.ClassifyConversionFromExpression(right, delegateType, ref useSiteInfo);
 
             if (!argumentConversion.IsImplicit || !argumentConversion.IsValid) // NOTE: dev10 appears to allow user-defined conversions here.
             {
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
 
-                if (!this.IsAccessible(method, ref useSiteDiagnostics, this.GetAccessThroughType(receiverOpt)))
+                if (!this.IsAccessible(method, ref useSiteInfo, this.GetAccessThroughType(receiverOpt)))
                 {
                     // CONSIDER: depending on the accessibility (e.g. if it's private), dev10 might just report the whole event bogus.
                     Error(diagnostics, ErrorCode.ERR_BadAccess, node, method);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.Add(node, useSiteDiagnostics);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             return new BoundEventAssignmentOperator(
                 syntax: node,
@@ -363,8 +363,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to make sure left is either implicitly convertible to Boolean or has user defined truth operator.
                 //   left && right is lowered to {op_False|op_Implicit}(left) ? left : And(left, right)
                 //   left || right is lowered to {op_True|!op_Implicit}(left) ? left : Or(left, right)
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if (!IsValidDynamicCondition(left, isNegative: kind == BinaryOperatorKind.LogicalAnd, useSiteDiagnostics: ref useSiteDiagnostics, userDefinedOperator: out userDefinedOperator))
+                CompoundUseSiteInfo useSiteInfo = default;
+                if (!IsValidDynamicCondition(left, isNegative: kind == BinaryOperatorKind.LogicalAnd, useSiteInfo: ref useSiteInfo, userDefinedOperator: out userDefinedOperator))
                 {
                     // Dev11 reports ERR_MustHaveOpTF. The error was shared between this case and user-defined binary Boolean operators.
                     // We report two distinct more specific error messages.
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasError = true;
                 }
-                diagnostics.Add(node, useSiteDiagnostics);
+                ReportUseSite(node, useSiteInfo, diagnostics);
             }
 
             return new BoundBinaryOperator(
@@ -648,11 +648,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     resultSignature = signature;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    CompoundUseSiteInfo useSiteInfo = default;
                     bool leftDefault = left.IsLiteralDefault();
                     bool rightDefault = right.IsLiteralDefault();
-                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, leftDefault, rightType, rightNull, rightDefault, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, leftDefault, rightType, rightNull, rightDefault, ref useSiteInfo);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                 }
             }
             return foundOperator;
@@ -679,8 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)left.Type != null && left.Type.TypeKind == TypeKind.Delegate)
             {
                 // Special diagnostic for delegate += and -= about wrong right-hand-side
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = this.Conversions.ClassifyConversionFromExpression(right, left.Type, ref useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                var conversion = this.Conversions.ClassifyConversionFromExpression(right, left.Type, ref useSiteInfo);
                 Debug.Assert(!conversion.IsImplicit);
                 GenerateImplicitConversionError(diagnostics, right.Syntax, conversion, right, left.Type);
                 // discard use-site diagnostics
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, lookupResult, originalUserDefinedOperators, CreateErrorType(), true);
         }
 
-        private bool IsValidDynamicCondition(BoundExpression left, bool isNegative, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out MethodSymbol userDefinedOperator)
+        private bool IsValidDynamicCondition(BoundExpression left, bool isNegative, ref CompoundUseSiteInfo useSiteInfo, out MethodSymbol userDefinedOperator)
         {
             userDefinedOperator = null;
 
@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var implicitConversion = Conversions.ClassifyImplicitConversionFromExpression(left, Compilation.GetSpecialType(SpecialType.System_Boolean), ref useSiteDiagnostics);
+            var implicitConversion = Conversions.ClassifyImplicitConversionFromExpression(left, Compilation.GetSpecialType(SpecialType.System_Boolean), ref useSiteInfo);
             if (implicitConversion.Exists)
             {
                 return true;
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var namedType = type as NamedTypeSymbol;
-            return HasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteDiagnostics, out userDefinedOperator);
+            return HasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteInfo, out userDefinedOperator);
         }
 
         private bool IsValidUserDefinedConditionalLogicalOperator(
@@ -981,9 +981,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // As mentioned above, we need more than just op true and op false existing; we need
             // to know that the first operand can be passed to it.
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!HasApplicableBooleanOperator(t, WellKnownMemberNames.TrueOperatorName, signature.LeftType, ref useSiteDiagnostics, out trueOperator) ||
-                !HasApplicableBooleanOperator(t, WellKnownMemberNames.FalseOperatorName, signature.LeftType, ref useSiteDiagnostics, out falseOperator))
+            CompoundUseSiteInfo useSiteInfo = default;
+            if (!HasApplicableBooleanOperator(t, WellKnownMemberNames.TrueOperatorName, signature.LeftType, ref useSiteInfo, out trueOperator) ||
+                !HasApplicableBooleanOperator(t, WellKnownMemberNames.FalseOperatorName, signature.LeftType, ref useSiteInfo, out falseOperator))
             {
                 // I have changed the wording of this error message. The original wording was:
 
@@ -995,14 +995,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // '{1}' of user-defined operator '{0}' must declare operator true and operator false.
 
                 Error(diagnostics, ErrorCode.ERR_MustHaveOpTF, syntax, signature.Method, t);
-                diagnostics.Add(syntax, useSiteDiagnostics);
+                ReportUseSite(syntax, useSiteInfo, diagnostics);
 
                 trueOperator = null;
                 falseOperator = null;
                 return false;
             }
 
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            ReportUseSite(syntax, useSiteInfo, diagnostics);
 
             // For the remainder of this method the comments WOLOG assume that we're analyzing an &&. The
             // exact same issues apply to ||.
@@ -1067,9 +1067,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out MethodSymbol @operator)
+        private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref CompoundUseSiteInfo useSiteInfo, out MethodSymbol @operator)
         {
-            for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 var operators = type.GetOperators(name);
                 for (var i = 0; i < operators.Length; i++)
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
                     {
-                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.GetParameterType(0), ref useSiteDiagnostics);
+                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.GetParameterType(0), ref useSiteInfo);
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
@@ -1117,9 +1117,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = BinaryOperatorOverloadResolutionResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.OverloadResolution.BinaryOperatorOverloadResolution(kind, left, right, result, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            this.OverloadResolution.BinaryOperatorOverloadResolution(kind, left, right, result, ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             var possiblyBest = result.Best;
 
@@ -1200,9 +1200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
             var result = UnaryOperatorOverloadResolutionResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.OverloadResolution.UnaryOperatorOverloadResolution(kind, operand, result, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            this.OverloadResolution.UnaryOperatorOverloadResolution(kind, operand, result, ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             var possiblyBest = result.Best;
 
@@ -2002,9 +2002,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var signature = best.Signature;
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             bool hasErrors = false;
             if (!resultConversion.IsImplicit || !resultConversion.IsValid)
@@ -2808,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We store the conversion from expression's operand type to target type to enable these
             // optimizations during is/as operator rewrite.
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             if (operand.ConstantValue == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
@@ -2828,8 +2828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    See Test SyntaxBinderTests.TestIsOperatorWithTypeParameter
 
                 Error(diagnostics, ErrorCode.WRN_IsAlwaysFalse, node, targetType);
-                Conversion conv = Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteDiagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
+                Conversion conv = Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteInfo);
+                ReportUseSite(node, useSiteInfo, diagnostics);
                 return new BoundIsOperator(node, operand, typeExpression, conv, resultType);
             }
 
@@ -2850,8 +2850,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             }
 
-            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
         }
@@ -3279,9 +3279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetTypeKind = targetType.TypeKind;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
             bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundAsOperator(node, operand, typeExpression, conversion, resultType, hasErrors);
         }
@@ -3460,13 +3460,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    the result. Otherwise, b is evaluated, and the outcome becomes the result.
             //
             // Note that there is no runtime dynamic dispatch since comparison with null is not a dynamic operation.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             if ((object)optRightType != null && optRightType.IsDynamic())
             {
-                var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, GetSpecialType(SpecialType.System_Object, diagnostics, node), ref useSiteDiagnostics);
+                var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, GetSpecialType(SpecialType.System_Object, diagnostics, node), ref useSiteInfo);
                 rightOperand = BindToNaturalType(rightOperand, diagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
+                ReportUseSite(node, useSiteInfo, diagnostics);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                     leftConversion, BoundNullCoalescingOperatorResultKind.RightDynamicType, optRightType);
             }
@@ -3478,11 +3478,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isLeftNullable)
             {
-                var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, optLeftType0, ref useSiteDiagnostics);
+                var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, optLeftType0, ref useSiteInfo);
                 if (rightConversion.Exists)
                 {
-                    var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, optLeftType0, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, optLeftType0, ref useSiteInfo);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                     var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType0, diagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
                         leftConversion, BoundNullCoalescingOperatorResultKind.LeftUnwrappedType, optLeftType0);
@@ -3495,12 +3495,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)optLeftType != null)
             {
-                var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, optLeftType, ref useSiteDiagnostics);
+                var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, optLeftType, ref useSiteInfo);
                 if (rightConversion.Exists)
                 {
                     var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType, diagnostics);
                     var leftConversion = Conversion.Identity;
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
                         leftConversion, BoundNullCoalescingOperatorResultKind.LeftType, optLeftType);
                 }
@@ -3544,12 +3544,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We just store the second conversion in the bound node and insert the first conversion during rewriting
                     // the null coalescing operator. See method LocalRewriter.GetConvertedLeftForNullCoalescingOperator.
 
-                    leftConversion = Conversions.ClassifyImplicitConversionFromType(optLeftType0, optRightType, ref useSiteDiagnostics);
+                    leftConversion = Conversions.ClassifyImplicitConversionFromType(optLeftType0, optRightType, ref useSiteInfo);
                     resultKind = BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType;
                 }
                 else
                 {
-                    leftConversion = Conversions.ClassifyImplicitConversionFromExpression(leftOperand, optRightType, ref useSiteDiagnostics);
+                    leftConversion = Conversions.ClassifyImplicitConversionFromExpression(leftOperand, optRightType, ref useSiteInfo);
                     resultKind = BoundNullCoalescingOperatorResultKind.RightType;
                 }
 
@@ -3576,13 +3576,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportDiagnosticsIfObsolete(diagnostics, leftConversion, node, hasBaseReceiver: false);
                     }
 
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, resultKind, optRightType);
                 }
             }
 
             // SPEC:    Otherwise, a and b are incompatible, and a compile-time error occurs.
-            diagnostics.Add(node, useSiteDiagnostics);
+            ReportUseSite(node, useSiteInfo, diagnostics);
             return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
         }
 
@@ -3611,7 +3611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             // If A0 exists and B is implicitly convertible to A0, then the result type of this expression is A0, except if B is dynamic.
             // This differs from most assignments such that you cannot directly replace a with (a ??= b).
@@ -3619,10 +3619,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftType.IsNullableType())
             {
                 var underlyingLeftType = leftType.GetNullableUnderlyingType();
-                var underlyingRightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, underlyingLeftType, ref useSiteDiagnostics);
+                var underlyingRightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, underlyingLeftType, ref useSiteInfo);
                 if (underlyingRightConversion.Exists && rightOperand.Type?.IsDynamic() != true)
                 {
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                     var convertedRightOperand = CreateConversion(rightOperand, underlyingRightConversion, underlyingLeftType, diagnostics);
                     return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, underlyingLeftType);
                 }
@@ -3632,9 +3632,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a is not null, b is not evaluated. If a is null, b is evaluated and converted to type A, and is stored in a.
             // Reset useSiteDiagnostics because they could have been used populated incorrectly from attempting to bind
             // as the nullable underlying value type case.
-            useSiteDiagnostics = null;
-            var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, leftType, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+            useSiteInfo = default;
+            var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, leftType, ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
             if (rightConversion.Exists)
             {
                 var convertedRightOperand = CreateConversion(rightOperand, rightConversion, leftType, diagnostics);
@@ -3752,9 +3752,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 bool hadMultipleCandidates;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteInfo);
+                ReportUseSite(node, useSiteInfo, diagnostics);
 
                 if ((object)bestType == null)
                 {

@@ -432,7 +432,7 @@ class Test
             var actual_lookupSymbols = actual_lookupNames.SelectMany(name =>
             {
                 var lookupResult = LookupResult.GetInstance();
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                CompoundUseSiteInfo useSiteInfo = default;
                 binder.LookupSymbolsSimpleName(
                     lookupResult,
                     qualifierOpt: null,
@@ -441,8 +441,8 @@ class Test
                     basesBeingResolved: null,
                     options: LookupOptions.MustBeInvocableIfMember,
                     diagnose: false,
-                    useSiteDiagnostics: ref useSiteDiagnostics);
-                Assert.Null(useSiteDiagnostics);
+                    useSiteInfo: ref useSiteInfo);
+                Assert.Null(useSiteInfo.Diagnostics);
                 Assert.True(lookupResult.IsMultiViable || lookupResult.Kind == LookupResultKind.NotReferencable);
                 var result = lookupResult.Symbols.ToArray();
                 lookupResult.Free();
@@ -579,9 +579,9 @@ class Test
             var position = testSrc.IndexOf("return", StringComparison.Ordinal);
             var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(position);
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            binder.LookupSymbolsSimpleName(lookupResult, qualifierOpt: null, plainName: "F", arity: 0, basesBeingResolved: null, options: LookupOptions.AllMethodsOnArityZero, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
-            Assert.Null(useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            binder.LookupSymbolsSimpleName(lookupResult, qualifierOpt: null, plainName: "F", arity: 0, basesBeingResolved: null, options: LookupOptions.AllMethodsOnArityZero, diagnose: false, useSiteInfo: ref useSiteInfo);
+            Assert.Null(useSiteInfo.Diagnostics);
             Assert.True(lookupResult.IsMultiViable);
             var actual_lookupSymbols_as_string = lookupResult.Symbols.Select(e => e.ToTestDisplayString()).ToArray();
             lookupResult.Free();

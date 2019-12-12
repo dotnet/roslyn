@@ -41,7 +41,7 @@ public unsafe class C
         public void ConversionClassification()
         {
             var c = CreateCompilation("", new[] { CSharpRef });
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var useSiteDiagnostics = CompoundUseSiteInfo.Discarded;
             var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
             var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
 

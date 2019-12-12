@@ -1032,9 +1032,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            ImmutableArray<Symbol> referencedSymbols = binder.BindXmlNameAttribute(syntax, ref useSiteDiagnostics);
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            ImmutableArray<Symbol> referencedSymbols = binder.BindXmlNameAttribute(syntax, ref useSiteInfo);
+            binder.ReportUseSite(syntax, useSiteInfo, diagnostics);
 
             if (referencedSymbols.IsEmpty)
             {

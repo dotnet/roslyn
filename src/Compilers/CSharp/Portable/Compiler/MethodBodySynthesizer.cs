@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundBlock.SynthesizedNoLocals(syntax, @return);
             }
 
-            Binder.ReportUseSiteDiagnostics(updateMethod, diagnostics, syntax);
+            Binder.ReportUseSiteDiagnostics(compilation, updateMethod, diagnostics, syntax, recordUsage: true);
 
             BoundThisReference fieldReceiver = eventSymbol.IsStatic ?
                 null :
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create<TypeSymbol>(delegateType));
 
-            Binder.ReportUseSiteDiagnostics(compareExchangeMethod, diagnostics, syntax);
+            Binder.ReportUseSiteDiagnostics(compilation, compareExchangeMethod, diagnostics, syntax, recordUsage: true);
 
             GeneratedLabelSymbol loopLabel = new GeneratedLabelSymbol("loop");
 

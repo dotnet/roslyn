@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var syntax = expr.Syntax;
                 var intPtrType = compilation.GetSpecialType(SpecialType.System_IntPtr);
-                Binder.ReportUseSiteDiagnostics(intPtrType, diagnostics, syntax);
+                Binder.ReportUseSiteDiagnostics(compilation, intPtrType, diagnostics, syntax, recordUsage: false);
                 MethodSymbol conversionMethod;
                 if (Binder.TryGetSpecialTypeMember(compilation, SpecialMember.System_IntPtr__op_Explicit_ToPointer, syntax, diagnostics, out conversionMethod))
                 {
@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             // NOTE: This conversion can fail if some of the types involved are from not-yet-loaded modules.
             // For example, if System.Exception hasn't been loaded, then this call will fail for $stowedexception.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteDiagnostics);
-            diagnostics.Add(expr.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteInfo);
+            diagnostics.Add(expr.Syntax, useSiteInfo.Diagnostics);
             Debug.Assert(conversion.IsValid || diagnostics.HasAnyErrors());
 
             return BoundConversion.Synthesized(

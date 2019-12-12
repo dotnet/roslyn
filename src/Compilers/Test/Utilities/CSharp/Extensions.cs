@@ -837,4 +837,10 @@ internal static class Extensions
     {
         return compilation.GetWellKnownTypeMember(member, recordUsage: false);
     }
+
+
+    public static DiagnosticInfo GetUseSiteDiagnostic(this Symbol @this)
+    {
+        return @this.GetUseSiteInfo().DiagnosticInfo;
+    }
 }

@@ -245,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(node));
                 if (binder != null)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var symbols = binder.BindXmlNameAttribute(attrSyntax, ref useSiteDiagnostics);
+                    var unused = CompoundUseSiteInfo.Discarded;
+                    var symbols = binder.BindXmlNameAttribute(attrSyntax, ref unused);
 
                     // NOTE: We don't need to call GetSymbolInfoForSymbol because the symbols
                     // can only be parameters or type parameters.

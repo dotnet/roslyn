@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
-            MergeUseSiteDiagnostics(ref result, _underlyingEvent.GetUseSiteDiagnostic());
-            return result;
+            UseSiteInfo.Builder result = base.GetUseSiteInfo();
+            MergeUseSiteDiagnostics(ref result, _underlyingEvent.GetUseSiteInfo());
+            return new UseSiteInfo(result);
         }
 
         public override int GetHashCode()

@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
-            if (!delegateType.IsNoMoreVisibleThan(invoke.ReturnTypeWithAnnotations, ref useSiteDiagnostics))
+            if (!delegateType.IsNoMoreVisibleThan(invoke.ReturnTypeWithAnnotations, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than delegate '{0}'
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
@@ -99,14 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in invoke.Parameters)
             {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteDiagnostics))
+                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameter.Type);
                 }
             }
 
-            diagnostics.Add(delegateType.Locations[0], useSiteDiagnostics);
+            diagnostics.Add(delegateType.Locations[0], useSiteInfo.Diagnostics); // TODO:
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)

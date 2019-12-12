@@ -7632,7 +7632,7 @@ class Module1
         )
         {
             SymbolInfo info1 = semanticModel.GetSymbolInfo(node1);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var useSiteDiagnostics = CompoundUseSiteInfo.Discarded;
 
             if (info1.Symbol == null)
             {

@@ -280,9 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Make sure implemented member is accessible
             if ((object)implementedMember != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                CompoundUseSiteInfo useSiteInfo = default;
 
-                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteInfo, throughTypeOpt: null))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
                 }
@@ -306,14 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
                     {
                         if (accessor.IsImplementable() &&
-                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteInfo, throughTypeOpt: null))
                         {
                             diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
                         }
                     }
                 }
 
-                diagnostics.Add(memberLocation, useSiteDiagnostics);
+                diagnostics.Add(memberLocation, useSiteInfo.Diagnostics); // TODO:
             }
 
             return implementedMember;

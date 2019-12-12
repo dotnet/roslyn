@@ -260,12 +260,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var constraintType in constraintTypes)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                constraintType.Type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                useSiteInfo.AddForSymbol(constraintType.Type);
 
-                if (!diagnostics.Add(location, useSiteDiagnostics))
+                if (!diagnostics.Add(location, useSiteInfo.Diagnostics))
                 {
-                    constraintType.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                    DeclaringCompilation.AddUsedAssemblies(useSiteInfo.Dependencies);
+                    constraintType.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics, recordUsage: true);
                 }
             }
         }

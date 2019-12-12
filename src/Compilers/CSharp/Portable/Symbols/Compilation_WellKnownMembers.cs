@@ -203,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsAttributeType(TypeSymbol type)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Attribute, ref useSiteDiagnostics);
+            var ignoredUseSiteInfo = CompoundUseSiteInfo.Discarded;
+            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Attribute, ref ignoredUseSiteInfo);
         }
 
         internal override bool IsAttributeType(ITypeSymbol type)
@@ -212,9 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAttributeType(type.EnsureCSharpSymbolOrNull(nameof(type)));
         }
 
-        internal bool IsExceptionType(TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsExceptionType(TypeSymbol type, ref CompoundUseSiteInfo useSiteInfo)
         {
-            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteDiagnostics);
+            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteInfo);
         }
 
         internal bool IsReadOnlySpanType(TypeSymbol type)
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TypeSymbol.Equals(type.OriginalDefinition, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, recordUsage: false), TypeCompareKind.ConsiderEverything2);
         }
 
-        internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref CompoundUseSiteInfo useSiteInfo)
         {
             Debug.Assert(wellKnownType == WellKnownType.System_Attribute ||
                          wellKnownType == WellKnownType.System_Exception);
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var wkType = GetWellKnownType(wellKnownType, recordUsage: false);
-            return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
+            return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo);
         }
 
         internal override bool IsSystemTypeReference(ITypeSymbolInternal type)
@@ -390,8 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>>),
             bool isOptionalUse = false)
         {
-            DiagnosticInfo diagnosticInfo;
-            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMemberWithoutRecordingUsage(this, constructor, out diagnosticInfo, isOptional: true);
+            UseSiteInfo.Builder info;
+            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMemberWithoutRecordingUsage(this, constructor, out info, isOptional: true);
 
             if ((object)ctorSymbol == null)
             {
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new ArrayBuilder<KeyValuePair<string, TypedConstant>>(namedArguments.Length);
                 foreach (var arg in namedArguments)
                 {
-                    var wellKnownMember = Binder.GetWellKnownTypeMemberWithoutRecordingUsage(this, arg.Key, out diagnosticInfo, isOptional: true);
+                    var wellKnownMember = Binder.GetWellKnownTypeMemberWithoutRecordingUsage(this, arg.Key, out info, isOptional: true);
                     if (wellKnownMember == null || wellKnownMember is ErrorTypeSymbol)
                     {
                         // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, bool recordUsage, WellKnownMember attributeCtor, WellKnownMember? secondAttributeCtor = null)
         {
-            var userDefinedAttribute = GetWellKnownType(attributeType, recordUsage);
+            var userDefinedAttribute = GetWellKnownType(attributeType, recordUsage: false);
 
             if (userDefinedAttribute is MissingMetadataTypeSymbol)
             {
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (diagnosticsOpt != null)
                     {
-                        var errorReported = Binder.ReportUseSiteDiagnostics(userDefinedAttribute, diagnosticsOpt, locationOpt);
+                        var errorReported = Binder.ReportUseSiteDiagnostics(this, userDefinedAttribute, diagnosticsOpt, locationOpt, recordUsage: false);
                         Debug.Assert(errorReported);
                     }
                 }
@@ -604,11 +604,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This should produce diagnostics if the member is missing or bad
                 var member = Binder.GetWellKnownTypeMember(this, attributeCtor,
-                                                           recordUsage: false, // recorded above if requested so
+                                                           recordUsage: true,
                                                            diagnosticsOpt, locationOpt);
                 if (member != null && secondAttributeCtor != null)
                 {
-                    Binder.GetWellKnownTypeMember(this, secondAttributeCtor.Value, recordUsage: false, diagnosticsOpt, locationOpt);
+                    Binder.GetWellKnownTypeMember(this, secondAttributeCtor.Value, recordUsage: true, diagnosticsOpt, locationOpt);
                 }
             }
 

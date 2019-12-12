@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
-        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        internal sealed override UseSiteInfo GetUseSiteInfo()
         {
-            return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
+            return new UseSiteInfo(this, ReturnTypeWithAnnotations.Type.GetUseSiteInfo());
         }
         #endregion
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(compilationState.Compilation, this, diagnostics, recordUsage: true);
             if (baseConstructorCall == null)
             {
                 // Attribute..ctor was not found or was inaccessible

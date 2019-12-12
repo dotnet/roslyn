@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             internal override Symbol ContainingMemberOrLambda { get { return _factory.CurrentFunction; } }
-            internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
+            internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref CompoundUseSiteInfo useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
             {
-                return AccessCheck.IsSymbolAccessible(symbol, _factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
+                return AccessCheck.IsSymbolAccessible(symbol, _factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
             }
         }
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var propertySym = (PropertySymbol)WellKnownMember(member);
             Debug.Assert(receiverOpt == null ||
                 receiverOpt.Type.GetMembers(propertySym.Name).OfType<PropertySymbol>().Single() == propertySym);
-            Binder.ReportUseSiteDiagnostics(propertySym, Diagnostics, Syntax);
+            Binder.ReportUseSiteDiagnostics(Compilation, propertySym, Diagnostics, Syntax, recordUsage: true);
             return Property(receiverOpt, propertySym);
         }
 
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public NamedTypeSymbol SpecialType(SpecialType st)
         {
             NamedTypeSymbol specialType = Compilation.GetSpecialType(st);
-            Binder.ReportUseSiteDiagnostics(specialType, Diagnostics, Syntax);
+            Binder.ReportUseSiteDiagnostics(Compilation, specialType, Diagnostics, Syntax, recordUsage: true);
             return specialType;
         }
 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public NamedTypeSymbol WellKnownType(WellKnownType wt)
         {
             NamedTypeSymbol wellKnownType = Compilation.GetWellKnownType(wt, recordUsage: true);
-            Binder.ReportUseSiteDiagnostics(wellKnownType, Diagnostics, Syntax);
+            Binder.ReportUseSiteDiagnostics(Compilation, wellKnownType, Diagnostics, Syntax, recordUsage: true);
             return wellKnownType;
         }
 
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new MissingPredefinedMember(diagnostic);
             }
 
-            Binder.ReportUseSiteDiagnostics(specialMember, Diagnostics, Syntax);
+            Binder.ReportUseSiteDiagnostics(Compilation, specialMember, Diagnostics, Syntax, recordUsage: true);
             return specialMember;
         }
 
@@ -462,9 +462,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression != null)
             {
                 // If necessary, add a conversion on the return expression.
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType, ref useSiteDiagnostics);
-                Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
+                CompoundUseSiteInfo useSiteInfo = default;
+                var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType, ref useSiteInfo);
+                Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
         {
-            HashSet<DiagnosticInfo> discarded = null;
+            var discarded = CompoundUseSiteInfo.Discarded;
             // Because compiler-generated nodes are not lowered, this conversion is not used later in the compiler.
             // But it is a required part of the `BoundIsOperator` node, so we compute a conversion here.
             Conversion c = Compilation.Conversions.ClassifyBuiltInConversion(operand.Type, type, ref discarded);
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression StaticCall(WellKnownMember method, params BoundExpression[] args)
         {
             MethodSymbol methodSymbol = WellKnownMethod(method);
-            Binder.ReportUseSiteDiagnostics(methodSymbol, Diagnostics, Syntax);
+            Binder.ReportUseSiteDiagnostics(Compilation, methodSymbol, Diagnostics, Syntax, recordUsage: true);
             Debug.Assert(methodSymbol.IsStatic);
             return Call(null, methodSymbol, args);
         }
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression StaticCall(SpecialMember method, params BoundExpression[] args)
         {
             MethodSymbol methodSymbol = SpecialMethod(method);
-            Binder.ReportUseSiteDiagnostics(methodSymbol, Diagnostics, Syntax);
+            Binder.ReportUseSiteDiagnostics(Compilation, methodSymbol, Diagnostics, Syntax, recordUsage: true);
             Debug.Assert(methodSymbol.IsStatic);
             return Call(null, methodSymbol, args);
         }
@@ -1181,10 +1181,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return arg;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteInfo);
             Debug.Assert(c.Exists);
-            Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
+            Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
 
             // If this happens, we should probably check if the method has ObsoleteAttribute.
             Debug.Assert((object)c.Method == null, "Why are we synthesizing a user-defined conversion after initial binding?");

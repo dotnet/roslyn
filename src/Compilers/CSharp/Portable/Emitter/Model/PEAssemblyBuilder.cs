@@ -435,14 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics)
         {
             var result = _sourceAssembly.DeclaringCompilation.GetWellKnownType(type, recordUsage: true);
-            Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
+            Binder.ReportUseSiteDiagnostics(_sourceAssembly.DeclaringCompilation, result, diagnostics, Location.None, recordUsage: true);
             return result;
         }
 
         private NamedTypeSymbol GetSpecialType(SpecialType type, DiagnosticBag diagnostics)
         {
             var result = _sourceAssembly.DeclaringCompilation.GetSpecialType(type);
-            Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
+            Binder.ReportUseSiteDiagnostics(_sourceAssembly.DeclaringCompilation, result, diagnostics, Location.None, recordUsage: true);
             return result;
         }
 

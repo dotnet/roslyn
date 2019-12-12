@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetAttributes();
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
-            MergeUseSiteDiagnostics(ref result, _underlyingField.GetUseSiteDiagnostic());
-            return result;
+            UseSiteInfo.Builder result = base.GetUseSiteInfo();
+            MergeUseSiteDiagnostics(ref result, _underlyingField.GetUseSiteInfo());
+            return new UseSiteInfo(result);
         }
 
         public override sealed int GetHashCode()
@@ -264,15 +264,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _cannotUse = cannotUse;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
             if (_cannotUse)
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _name,
-                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion()));
+                return new UseSiteInfo(new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _name,
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion())));
             }
 
-            return base.GetUseSiteDiagnostic();
+            return base.GetUseSiteInfo();
         }
 
         public override string Name

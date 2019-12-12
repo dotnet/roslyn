@@ -5471,7 +5471,7 @@ class C<T>
                 var factory = new BinderFactory(compilation, tree);
                 var binder = factory.GetBinder(cref);
                 var lookupResult = LookupResult.GetInstance();
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var unused = CompoundUseSiteInfo.Discarded;
                 binder.LookupSymbolsSimpleName(
                     lookupResult,
                     qualifierOpt: null,
@@ -5480,7 +5480,7 @@ class C<T>
                     basesBeingResolved: null,
                     options: LookupOptions.Default,
                     diagnose: false,
-                    useSiteDiagnostics: ref useSiteDiagnostics);
+                    useSiteInfo: ref unused);
                 Assert.Equal(LookupResultKind.Viable, lookupResult.Kind);
                 var symbol = lookupResult.Symbols.Single();
                 lookupResult.Free();

@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, diagnostics).elementType;
+                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, diagnostics, recordUsage: !IsSemanticModelBinder).elementType;
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
 
-                (TypeWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, elementTypeDiagnostics);
+                (TypeWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, elementTypeDiagnostics, recordUsage: !IsSemanticModelBinder);
 
                 Location errorLocation = _methodSymbol.Locations[0];
                 if (elementType.IsDefault)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // If an element type is found, we also return whether the interface is meant to be used with async.
         internal static (TypeWithAnnotations elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
-            RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+            RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics, bool recordUsage)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
                         if (diagnostics != null)
                         {
-                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocationNode);
+                            ReportUseSiteDiagnostics(compilation, objectType, diagnostics, errorLocationNode, recordUsage);
                         }
                         return (TypeWithAnnotations.Create(objectType), false);
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo useSiteInfo)
         {
             Debug.Assert(result.IsClear);
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteInfo));
             }
         }
 

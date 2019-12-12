@@ -445,18 +445,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            DiagnosticInfo result = null;
+            UseSiteInfo.Builder result = default;
 
             // check element type
             // check custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations))
-            {
-                return result;
-            }
+            DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations);
 
-            return result;
+            return new UseSiteInfo(result);
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var info = getter.GetUseSiteDiagnostic();
+                var info = getter.GetUseSiteInfo().DiagnosticInfo;
                 if ((object)info != null)
                 {
                     bag.Add(new CSDiagnostic(info, body.Syntax.Location));

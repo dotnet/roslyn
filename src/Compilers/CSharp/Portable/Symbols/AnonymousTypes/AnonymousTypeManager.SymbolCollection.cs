@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
+            DiagnosticInfo info = symbol.GetUseSiteInfo().DiagnosticInfo;
             if (info != null)
             {
                 hasError = Symbol.ReportUseSiteDiagnostic(info, diagnostics, NoLocation.Singleton);

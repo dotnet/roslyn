@@ -427,10 +427,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    Symbol.GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }
 
-        public bool IsAtLeastAsVisibleAs(Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool IsAtLeastAsVisibleAs(Symbol sym, ref CompoundUseSiteInfo useSiteInfo)
         {
             // System.Nullable is public, so it is safe to delegate to the underlying.
-            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteDiagnostics);
+            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteInfo);
         }
 
         public TypeWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>

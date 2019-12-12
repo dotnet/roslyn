@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics, recordUsage);
             }
 
             return constructedType;
@@ -357,19 +357,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int remainder;
             int chainLength = NumberOfValueTuples(numElements, out remainder);
 
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage);
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage: false);
             if ((object)diagnostics != null && (object)syntax != null)
             {
-                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
+                ReportUseSiteAndObsoleteDiagnostics(compilation, syntax, diagnostics, firstTupleType, recordUsage);
             }
 
             NamedTypeSymbol chainedTupleType = null;
             if (chainLength > 1)
             {
-                chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage);
+                chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage: false);
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
-                    ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
+                    ReportUseSiteAndObsoleteDiagnostics(compilation, syntax, diagnostics, chainedTupleType, recordUsage);
                 }
             }
 
@@ -396,9 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return currentSymbol;
         }
 
-        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode syntax, DiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
+        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, NamedTypeSymbol firstTupleType, bool recordUsage)
         {
-            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            Binder.ReportUseSiteDiagnostics(compilation, firstTupleType, diagnostics, syntax, recordUsage);
             Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
         }
 
@@ -412,13 +412,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
 
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage);
-            ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage: false);
+            ReportUseSiteAndObsoleteDiagnostics(compilation, syntax, diagnostics, firstTupleType, recordUsage);
 
             if (chainLength > 1)
             {
-                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage);
-                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage: false);
+                ReportUseSiteAndObsoleteDiagnostics(compilation, syntax, diagnostics, chainedTupleType, recordUsage);
             }
         }
 
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                DiagnosticInfo useSiteDiag = member.GetUseSiteDiagnostic();
+                DiagnosticInfo useSiteDiag = member.GetUseSiteInfo().DiagnosticInfo;
                 if ((object)useSiteDiag != null && useSiteDiag.Severity == DiagnosticSeverity.Error)
                 {
                     diagnostics.Add(useSiteDiag, syntax.GetLocation());
@@ -1489,9 +1489,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            return _underlyingType.GetUseSiteDiagnostic();
+            return _underlyingType.GetUseSiteInfo();
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)

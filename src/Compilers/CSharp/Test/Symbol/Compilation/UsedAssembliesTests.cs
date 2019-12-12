@@ -2960,6 +2960,185 @@ interface IA : I3 {}
         }
 
         [Fact]
+        public void NoPia_09()
+        {
+            var source0 =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: PrimaryInteropAssemblyAttribute(1,1)]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest33
+{
+}
+";
+            var comp0 = CreateCompilation(source0);
+            comp0.VerifyDiagnostics();
+
+            var comp0Ref = comp0.ToMetadataReference(embedInteropTypes: true);
+            var comp0ImageRef = comp0.EmitToImageReference(embedInteropTypes: true);
+
+            var source1 =
+@"
+public class C1 : ITest33, I1
+{
+}
+
+public interface I1
+{
+}
+
+public interface I3 : ITest33, I1
+{
+}
+
+public interface I4 : I3
+{
+}
+
+public class C2
+{
+    public static void M1<T>() where T : ITest33 {}
+    public static void M2<T>() where T : I3 {}
+    public static void M3<T>() where T : C1 {}
+    public static void M4<T>() where T : I1 {}
+}
+";
+            var comp1 = AssertUsedAssemblyReferences(source1, references: new[] { comp0Ref });
+
+            var comp1Ref = comp1.ToMetadataReference();
+            var comp1ImageRef = comp1.EmitToImageReference();
+
+            var comp3 = CreateCompilation(source0);
+            var comp3Ref = comp3.ToMetadataReference(embedInteropTypes: false);
+            var comp3ImageRef = comp3.EmitToImageReference(embedInteropTypes: false);
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M4<I3>();
+    }
+}
+");
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M4<C1>();
+    }
+}
+");
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M3<C1>();
+    }
+}
+");
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M2<I4>();
+    }
+}
+");
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M2<I3>();
+    }
+}
+");
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M1<I4>();
+    }
+}
+");
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M1<I3>();
+    }
+}
+");
+
+            verify(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M1<C1>();
+    }
+}
+");
+
+            verify(
+@"
+public class C : I3
+{
+}
+");
+
+            verify(
+@"
+public class C : C1
+{
+}
+");
+
+            verify(
+@"
+interface IA : I3 {}
+");
+
+            void verify(string source2)
+            {
+                CompileWithUsedAssemblyReferences(source2, comp0ImageRef, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp0Ref, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp0Ref, comp1Ref);
+                CompileWithUsedAssemblyReferences(source2, comp0ImageRef, comp1Ref);
+
+                CompileWithUsedAssemblyReferences(source2, comp3ImageRef, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp3Ref, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp3Ref, comp1Ref);
+                CompileWithUsedAssemblyReferences(source2, comp3ImageRef, comp1Ref);
+            }
+        }
+
+        [Fact]
         public void ArraysAndPointers_01()
         {
             var source0 =

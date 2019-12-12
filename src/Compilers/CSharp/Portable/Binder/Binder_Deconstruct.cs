@@ -305,9 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var single = variable.Single;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, ref useSiteDiagnostics);
-                    diagnostics.Add(single.Syntax, useSiteDiagnostics);
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, ref useSiteInfo);
+                    ReportUseSite(single.Syntax, useSiteInfo, diagnostics);
 
                     if (!nestedConversion.IsImplicit)
                     {

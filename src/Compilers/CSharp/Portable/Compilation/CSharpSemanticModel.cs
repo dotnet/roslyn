@@ -1561,8 +1561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                binder.LookupExtensionMethods(lookupResult, name, 0, options, ref useSiteDiagnostics);
+                var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
+                binder.LookupExtensionMethods(lookupResult, name, 0, options, ref unusedUseSiteInfo);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lookupResult = LookupResult.GetInstance();
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
             binder.LookupSymbolsSimpleName(
                 lookupResult,
                 container,
@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 basesBeingResolved: null,
                 options: options & ~LookupOptions.IncludeExtensionMethods,
                 diagnose: false,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref unusedUseSiteInfo);
 
             if (lookupResult.IsMultiViable)
             {
@@ -1749,8 +1749,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetEnclosingBinder(position);
             if (binder != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return binder.IsAccessible(symbol, ref useSiteDiagnostics, null);
+                var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
+                return binder.IsAccessible(symbol, ref unusedUseSiteInfo, null);
             }
 
             return false;
@@ -1943,11 +1943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern = lowestBoundNode as BoundPattern ?? highestBoundNode as BoundPattern ?? (highestBoundNode is BoundSubpattern sp ? sp.Pattern : null);
             if (pattern != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
                     pattern.InputType, pattern.ConvertedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref unusedUseSiteInfo));
             }
 
             var boundExpr = lowestBoundNode as BoundExpression;
@@ -2066,8 +2066,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // There is a sequence of conversions; we use ClassifyConversionFromExpression to report the most pertinent.
                         var binder = this.GetEnclosingBinder(boundExpr.Syntax.Span.Start);
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref useSiteDiagnostics);
+                        var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
+                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref unusedUseSiteInfo);
                     }
                 }
                 else if (boundNodeForSyntacticParent?.Kind == BoundKind.DelegateCreationExpression)
@@ -2636,8 +2636,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (bnode != null && !cdestination.IsErrorType())
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, ref useSiteDiagnostics);
+                    var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, ref unusedUseSiteInfo);
                 }
             }
 
@@ -2689,8 +2689,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (bnode != null && !destination.IsErrorType())
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref useSiteDiagnostics, forCast: true);
+                    var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref unusedUseSiteInfo, forCast: true);
                 }
             }
 
@@ -3790,8 +3790,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeSymbolOpt.ComImportCoClass.InstanceConstructors :
                         typeSymbolOpt.InstanceConstructors;
 
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    candidateConstructors = binder.FilterInaccessibleConstructors(instanceConstructors, allowProtectedConstructorsOfBaseType: false, useSiteDiagnostics: ref useSiteDiagnostics);
+                    var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
+                    candidateConstructors = binder.FilterInaccessibleConstructors(instanceConstructors, allowProtectedConstructorsOfBaseType: false, useSiteInfo: ref unusedUseSiteInfo);
 
                     if ((object)constructorOpt == null ? !candidateConstructors.Any() : !candidateConstructors.Contains(constructorOpt))
                     {
@@ -4378,11 +4378,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var method in extensionMethods)
                     {
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        var unusedUseSiteInfo = CompoundUseSiteInfo.Discarded;
                         MergeReducedAndFilteredMethodGroupSymbol(
                             methods,
                             filteredMethods,
-                            binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics),
+                            binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteInfo: ref unusedUseSiteInfo),
                             typeArguments,
                             receiver.Type,
                             ref resultKind,

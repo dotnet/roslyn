@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //  explicit base constructor call
                 Debug.Assert(ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
-                BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+                BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(compilationState.Compilation, this, diagnostics, recordUsage: false);
                 if (call == null)
                 {
                     // This may happen if Object..ctor is not found or is inaccessible

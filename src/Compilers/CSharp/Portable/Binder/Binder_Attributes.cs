@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // its value depends on the values of conditional symbols, which in turn depends on the source file where the attribute is applied.
 
                     Debug.Assert(!attribute.HasErrors);
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteDiagnostics);
-                    diagnostics.Add(attributeSyntax, useSiteDiagnostics);
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteInfo);
+                    binder.ReportUseSite(attributeSyntax, useSiteInfo, diagnostics);
                     attributesBuilder[i] = attribute.WithOmittedCondition(isConditionallyOmitted);
                 }
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder attributeArgumentBinder = this.WithAdditionalFlags(BinderFlags.AttributeArgument);
             AnalyzedAttributeArguments analyzedArguments = attributeArgumentBinder.BindAttributeArguments(argumentListOpt, attributeTypeForBinding, diagnostics);
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
             ImmutableArray<int> argsToParamsOpt = default;
             bool expanded = false;
             MethodSymbol attributeConstructor = null;
@@ -162,9 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 suppressErrors: attributeType.IsErrorType(),
                                                                 ref argsToParamsOpt,
                                                                 ref expanded,
-                                                                ref useSiteDiagnostics);
+                                                                ref useSiteInfo);
             }
-            diagnostics.Add(node, useSiteDiagnostics);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             if (attributeConstructor is object)
             {
@@ -232,9 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constructorArgsArray, boundAttribute.ConstructorArgumentNamesOpt, (AttributeSyntax)boundAttribute.Syntax, diagnostics, ref hasErrors);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            bool isConditionallyOmitted = IsAttributeConditionallyOmitted(attributeType, boundAttribute.SyntaxTree, ref useSiteDiagnostics);
-            diagnostics.Add(boundAttribute.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            bool isConditionallyOmitted = IsAttributeConditionallyOmitted(attributeType, boundAttribute.SyntaxTree, ref useSiteInfo);
+            ReportUseSite(boundAttribute.Syntax, useSiteInfo, diagnostics);
 
             return new SourceAttributeData(boundAttribute.Syntax.GetReference(), attributeType, attributeConstructor, constructorArguments, constructorArgumentsSourceIndices, namedArguments, hasErrors, isConditionallyOmitted);
         }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref CompoundUseSiteInfo useSiteInfo)
         {
             // When early binding attributes, we don't want to determine if the attribute type is conditional and if so, must be emitted or not.
             // Invoking IsConditional property on attributeType can lead to a cycle, hence we delay this computation until after early binding.
@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var baseType = attributeType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                var baseType = attributeType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                 if ((object)baseType != null && baseType.IsConditional)
                 {
-                    return IsAttributeConditionallyOmitted(baseType, syntaxTree, ref useSiteDiagnostics);
+                    return IsAttributeConditionallyOmitted(baseType, syntaxTree, ref useSiteInfo);
                 }
 
                 return true;
@@ -432,9 +432,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var identifierName = namedArgument.NameEquals.Name;
             var name = identifierName.Identifier.ValueText;
             LookupResult result = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteDiagnostics);
-            diagnostics.Add(identifierName, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteInfo);
+            ReportUseSite(identifierName, useSiteInfo, diagnostics);
             Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError, qualifierOpt: null, basesBeingResolved: null);
             resultKind = result.Kind;
             result.Free();
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool suppressErrors,
             ref ImmutableArray<int> argsToParamsOpt,
             ref bool expanded,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             MemberResolutionResult<MethodSymbol> memberResolutionResult;
             ImmutableArray<MethodSymbol> candidateConstructors;
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowProtectedConstructorsOfBaseType: true))
             {
                 resultKind = resultKind.WorseResultKind(
-                    memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteDiagnostics) ?
+                    memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
                         LookupResultKind.Inaccessible :
                         LookupResultKind.OverloadResolutionFailure);
             }
@@ -763,9 +763,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int line = syntax.SyntaxTree.GetDisplayLineNumber(syntax.Name.Span);
                 kind = TypedConstantKind.Primitive;
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Conversions.GetCallerLineNumberConversion(parameterType, ref useSiteDiagnostics);
-                diagnostics.Add(syntax, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                var conversion = Conversions.GetCallerLineNumberConversion(parameterType, ref useSiteInfo);
+                ReportUseSite(syntax, useSiteInfo, diagnostics);
 
                 if (conversion.IsNumeric || conversion.IsConstantExpression)
                 {
@@ -913,8 +913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default; // ignoring, since already bound argument and parameter
+            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref useSiteInfo);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.
             // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].

@@ -63,18 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        internal sealed override UseSiteInfo GetUseSiteInfo()
         {
             var type = this.TypeWithAnnotations;
-            DiagnosticInfo result = null;
+            UseSiteInfo.Builder result = default;
             if (!DeriveUseSiteDiagnosticFromType(ref result, type) && this.ContainingModule.HasUnifiedReferences)
             {
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes);
+                type.GetUnificationUseSiteDiagnosticRecursive(ref result.DiagnosticInfo, this, ref unificationCheckedTypes);
             }
-            return result;
+            return new UseSiteInfo(source: null, result);
         }
 
         /// <summary>

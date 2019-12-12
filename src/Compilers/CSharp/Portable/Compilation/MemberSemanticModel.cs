@@ -461,8 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, ref useSiteDiagnostics);
+            var unused = CompoundUseSiteInfo.Discarded;
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, ref unused);
         }
 
         internal override Conversion ClassifyConversionForCast(
@@ -484,8 +484,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref useSiteDiagnostics, forCast: true);
+            var unused = CompoundUseSiteInfo.Discarded;
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref unused, forCast: true);
         }
 
         /// <summary>

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
 
             Debug.Assert((object)disposableInterface != null);
-            bool hasErrors = ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
+            bool hasErrors = originalBinder.ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
 
             Conversion iDisposableConversion;
             ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    hasErrors |= ReportUseSiteDiagnostics(awaitableTypeOpt, diagnostics, awaitKeyword);
+                    hasErrors |= originalBinder.ReportUseSiteDiagnostics(awaitableTypeOpt, diagnostics, awaitKeyword);
                     var placeholder = new BoundAwaitableValuePlaceholder(syntax, valEscape: originalBinder.LocalScopeDepth, awaitableTypeOpt).MakeCompilerGenerated();
                     awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
                 }
@@ -172,12 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool populateDisposableConversionOrDisposeMethod(bool fromExpression, out Conversion iDisposableConversion, out MethodSymbol disposeMethodOpt, out TypeSymbol awaitableTypeOpt)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
                 disposeMethodOpt = null;
                 awaitableTypeOpt = null;
 
-                diagnostics.Add(syntax, useSiteDiagnostics);
+                originalBinder.ReportUseSite(syntax, useSiteInfo, diagnostics);
 
                 if (iDisposableConversion.IsImplicit)
                 {
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Retry with a different assumption about whether the `using` is async
                     TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
-                    HashSet<DiagnosticInfo> ignored = null;
+                    var ignored = CompoundUseSiteInfo.Discarded;
                     Conversion alternateConversion = classifyConversion(fromExpression, alternateInterface, ref ignored);
 
                     bool wrongAsync = alternateConversion.IsImplicit;
@@ -227,11 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref HashSet<DiagnosticInfo> diag)
+            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref CompoundUseSiteInfo useSiteInfo)
             {
                 return fromExpression ?
-                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref diag) :
-                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref diag);
+                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo) :
+                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
             }
 
             TypeSymbol getDisposableInterface(bool isAsync)

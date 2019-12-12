@@ -1881,8 +1881,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol cssource = source.EnsureCSharpSymbolOrNull(nameof(source));
             TypeSymbol csdest = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
+            var useSiteInfo = CompoundUseSiteInfo.Discarded;
+            return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteInfo);
         }
 
         /// <summary>
@@ -1970,11 +1970,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol0 = symbol.EnsureCSharpSymbolOrNull(nameof(symbol));
             Symbol within0 = within.EnsureCSharpSymbolOrNull(nameof(within));
             TypeSymbol throughType0 = throughType.EnsureCSharpSymbolOrNull(nameof(throughType));
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var useSiteInfo = CompoundUseSiteInfo.Discarded;
             return
                 within0.Kind == SymbolKind.Assembly ?
-                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref useSiteDiagnostics) :
-                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteDiagnostics, throughType0);
+                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref useSiteInfo) :
+                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteInfo, throughType0);
         }
 
         [Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", true)]
@@ -3379,7 +3379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CanEmitSpecialType(SpecialType type)
         {
             var typeSymbol = GetSpecialType(type);
-            var diagnostic = typeSymbol.GetUseSiteDiagnostic();
+            var diagnostic = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 

@@ -673,9 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use implicit conversion to Boolean if it is defined on the static type of the left operand.
             // If not the type has to implement IsTrue/IsFalse operator - we checked it during binding.
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = _compilation.Conversions.ClassifyConversionFromExpression(loweredLeft, boolean, ref useSiteDiagnostics);
-            _diagnostics.Add(loweredLeft.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var conversion = _compilation.Conversions.ClassifyConversionFromExpression(loweredLeft, boolean, ref useSiteInfo);
+            Binder.ReportUseSite(_compilation, loweredLeft.Syntax, useSiteInfo, _diagnostics, recordUsage: true);
             if (conversion.IsImplicit)
             {
                 Debug.Assert(leftTruthOperator == null);

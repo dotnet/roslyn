@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (forwarded.IsErrorType())
                             {
-                                DiagnosticInfo info = forwarded.GetUseSiteDiagnostic() ?? ((ErrorTypeSymbol)forwarded).ErrorInfo;
+                                DiagnosticInfo info = forwarded.GetUseSiteInfo().DiagnosticInfo ?? ((ErrorTypeSymbol)forwarded).ErrorInfo;
 
                                 if ((object)info != null)
                                 {
@@ -2003,7 +2003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DiagnosticInfo useSiteDiagnostic = forwardedType.GetUseSiteDiagnostic();
+            DiagnosticInfo useSiteDiagnostic = forwardedType.GetUseSiteInfo().DiagnosticInfo; // TODO:
             if (useSiteDiagnostic != null &&
                 useSiteDiagnostic.Code != (int)ErrorCode.ERR_UnexpectedUnboundGenericName &&
                 Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, arguments.Diagnostics, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt)))

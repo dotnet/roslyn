@@ -537,9 +537,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ConvertIndex(BoundExpression expr, TypeSymbol oldType, TypeSymbol newType)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, ref useSiteDiagnostics).Kind;
-            Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
+            CompoundUseSiteInfo useSiteInfo = default;
+            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, ref useSiteInfo).Kind;
+            Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
             switch (kind)
             {
                 case ConversionKind.Identity:

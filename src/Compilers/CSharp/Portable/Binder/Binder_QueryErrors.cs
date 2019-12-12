@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             if (instanceArgument.Type.IsDynamic())
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new DiagnosticInfoWithSymbols(ErrorCode.ERR_BadDynamicQuery, Array.Empty<object>(), symbols),
                     new SourceLocation(queryClause));
             }
-            else if (ImplementsStandardQueryInterface(instanceArgument.Type, name, ref useSiteDiagnostics))
+            else if (ImplementsStandardQueryInterface(instanceArgument.Type, name, ref useSiteInfo))
             {
                 // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new object[] { instanceArgument.Type, name },
                     symbols), new SourceLocation(fromClause != null ? fromClause.Expression : queryClause));
             }
-            else if (fromClause != null && fromClause.Type == null && HasCastToQueryProvider(instanceArgument.Type, ref useSiteDiagnostics))
+            else if (fromClause != null && fromClause.Type == null && HasCastToQueryProvider(instanceArgument.Type, ref useSiteInfo))
             {
                 // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Consider explicitly specifying the type of the range variable '{2}'.
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbols), new SourceLocation(fromClause != null ? fromClause.Expression : queryClause));
             }
 
-            diagnostics.Add(queryClause, useSiteDiagnostics);
+            ReportUseSite(queryClause, useSiteInfo, diagnostics);
         }
 
-        private bool ImplementsStandardQueryInterface(TypeSymbol instanceType, string name, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool ImplementsStandardQueryInterface(TypeSymbol instanceType, string name, ref CompoundUseSiteInfo useSiteInfo)
         {
-            if (instanceType.TypeKind == TypeKind.Array || name == "Cast" && HasCastToQueryProvider(instanceType, ref useSiteDiagnostics))
+            if (instanceType.TypeKind == TypeKind.Array || name == "Cast" && HasCastToQueryProvider(instanceType, ref useSiteInfo))
             {
                 return true;
             }
@@ -84,21 +84,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var originalType = instanceType.OriginalDefinition;
             var ienumerable_t = Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
             var iqueryable_t = Compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T, recordUsage: false);
-            bool isIenumerable = TypeSymbol.Equals(originalType, ienumerable_t, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, ienumerable_t, ref nonUnique, ref useSiteDiagnostics);
-            bool isQueryable = TypeSymbol.Equals(originalType, iqueryable_t, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, iqueryable_t, ref nonUnique, ref useSiteDiagnostics);
+            bool isIenumerable = TypeSymbol.Equals(originalType, ienumerable_t, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, ienumerable_t, ref nonUnique, ref useSiteInfo);
+            bool isQueryable = TypeSymbol.Equals(originalType, iqueryable_t, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, iqueryable_t, ref nonUnique, ref useSiteInfo);
             return isIenumerable != isQueryable && !nonUnique;
         }
 
-        private static bool HasUniqueInterface(TypeSymbol instanceType, NamedTypeSymbol interfaceType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool HasUniqueInterface(TypeSymbol instanceType, NamedTypeSymbol interfaceType, ref CompoundUseSiteInfo useSiteInfo)
         {
             bool nonUnique = false;
-            return HasUniqueInterface(instanceType, interfaceType, ref nonUnique, ref useSiteDiagnostics);
+            return HasUniqueInterface(instanceType, interfaceType, ref nonUnique, ref useSiteInfo);
         }
 
-        private static bool HasUniqueInterface(TypeSymbol instanceType, NamedTypeSymbol interfaceType, ref bool nonUnique, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool HasUniqueInterface(TypeSymbol instanceType, NamedTypeSymbol interfaceType, ref bool nonUnique, ref CompoundUseSiteInfo useSiteInfo)
         {
             TypeSymbol candidate = null;
-            foreach (var i in instanceType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            foreach (var i in instanceType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 if (TypeSymbol.Equals(i.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything2))
                 {
@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)candidate != null;
         }
 
-        private bool HasCastToQueryProvider(TypeSymbol instanceType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool HasCastToQueryProvider(TypeSymbol instanceType, ref CompoundUseSiteInfo useSiteInfo)
         {
             var originalType = instanceType.OriginalDefinition;
             var ienumerable = Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
             var iqueryable = Compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable, recordUsage: false);
-            bool isIenumerable = TypeSymbol.Equals(originalType, ienumerable, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, ienumerable, ref useSiteDiagnostics);
-            bool isQueryable = TypeSymbol.Equals(originalType, iqueryable, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, iqueryable, ref useSiteDiagnostics);
+            bool isIenumerable = TypeSymbol.Equals(originalType, ienumerable, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, ienumerable, ref useSiteInfo);
+            bool isQueryable = TypeSymbol.Equals(originalType, iqueryable, TypeCompareKind.ConsiderEverything2) || HasUniqueInterface(instanceType, iqueryable, ref useSiteInfo);
             return isIenumerable != isQueryable;
         }
 

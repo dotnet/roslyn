@@ -310,13 +310,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol containerOpt, string memberName, int arity, bool hasParameterList, DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteDiagnostics);
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteInfo);
+            ReportUseSite(syntax, useSiteInfo, diagnostics);
             return result;
         }
 
-        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol containerOpt, string memberName, int arity, bool hasParameterList, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol containerOpt, string memberName, int arity, bool hasParameterList, ref CompoundUseSiteInfo useSiteInfo)
         {
             // Since we may find symbols without going through the lookup API, 
             // expose the symbols via an ArrayBuilder.
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     basesBeingResolved: null,
                     options: LookupOptions.AllMethodsOnArityZero,
                     diagnose: false,
-                    useSiteDiagnostics: ref useSiteDiagnostics);
+                    useSiteInfo: ref useSiteInfo);
 
                 // CONSIDER: Dev11 also checks for a constructor in the event of an ambiguous result.
                 if (result.IsMultiViable)

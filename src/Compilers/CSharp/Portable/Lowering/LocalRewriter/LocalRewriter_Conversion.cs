@@ -452,9 +452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool acceptFailingConversion)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
-            diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            Conversion conversion = compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            Binder.ReportUseSite(compilation, rewrittenOperand.Syntax, useSiteInfo, diagnostics, recordUsage: true);
 
             if (!conversion.IsValid)
             {
@@ -516,9 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundExpression MakeImplicitConversion(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
-            _diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            Binder.ReportUseSite(_compilation, rewrittenOperand.Syntax, useSiteInfo, _diagnostics, recordUsage: true);
             if (!conversion.IsImplicit)
             {
                 // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
@@ -1489,9 +1489,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Conversion TryMakeConversion(SyntaxNode syntax, TypeSymbol fromType, TypeSymbol toType)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var result = TryMakeConversion(syntax, _compilation.Conversions.ClassifyConversionFromType(fromType, toType, ref useSiteDiagnostics), fromType, toType);
-            _diagnostics.Add(syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var result = TryMakeConversion(syntax, _compilation.Conversions.ClassifyConversionFromType(fromType, toType, ref useSiteInfo), fromType, toType);
+            Binder.ReportUseSite(_compilation, syntax, useSiteInfo, _diagnostics, recordUsage: true);
             return result;
         }
 

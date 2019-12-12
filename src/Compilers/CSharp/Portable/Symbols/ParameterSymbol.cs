@@ -405,9 +405,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = null;
+                UseSiteInfo.Builder info = default;
                 DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                return (object)info.DiagnosticInfo != null && info.DiagnosticInfo.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 

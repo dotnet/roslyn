@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            return this.ErrorInfo;
+            return new UseSiteInfo(this, this.ErrorInfo, dependencies: null);
         }
 
         /// <summary>
@@ -577,9 +577,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.ResultKind; }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            return _originalDefinition.GetUseSiteDiagnostic();
+            return _originalDefinition.GetUseSiteInfo();
         }
 
         public override int GetHashCode()

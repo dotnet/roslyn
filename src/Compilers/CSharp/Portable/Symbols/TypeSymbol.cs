@@ -154,26 +154,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
 
-        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo useSiteInfo)
         {
             var result = BaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
-                result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                useSiteInfo.AddForSymbol(result.OriginalDefinition);
             }
 
             return result;
         }
 
-        internal NamedTypeSymbol BaseTypeOriginalDefinition(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol BaseTypeOriginalDefinition(ref CompoundUseSiteInfo useSiteInfo)
         {
             var result = BaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
                 result = result.OriginalDefinition;
-                result.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                useSiteInfo.AddForSymbol(result);
             }
 
             return result;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<NamedTypeSymbol> AllInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<NamedTypeSymbol> AllInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo useSiteInfo)
         {
             var result = AllInterfacesNoUseSiteDiagnostics;
 
@@ -212,13 +212,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             do
             {
-                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
             while ((object)current != null);
 
             foreach (var iface in result)
             {
-                iface.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                useSiteInfo.AddForSymbol(iface.OriginalDefinition);
             }
 
             return result;
@@ -235,15 +235,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeSymbol EffectiveType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal TypeSymbol EffectiveType(ref CompoundUseSiteInfo useSiteInfo)
         {
-            return this.IsTypeParameter() ? ((TypeParameterSymbol)this).EffectiveBaseClass(ref useSiteDiagnostics) : this;
+            return this.IsTypeParameter() ? ((TypeParameterSymbol)this).EffectiveBaseClass(ref useSiteInfo) : this;
         }
 
         /// <summary>
         /// Returns true if this type derives from a given type.
         /// </summary>
-        internal bool IsDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref CompoundUseSiteInfo useSiteInfo)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(!type.IsTypeParameter());
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             while ((object)t != null)
             {
                 if (type.Equals(t, comparison))
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
 
             return false;
@@ -270,9 +270,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if this type is equal or derives from a given type.
         /// </summary>
-        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref CompoundUseSiteInfo useSiteInfo)
         {
-            return this.Equals(type, comparison) || this.IsDerivedFrom(type, comparison, ref useSiteDiagnostics);
+            return this.Equals(type, comparison) || this.IsDerivedFrom(type, comparison, ref useSiteInfo);
         }
 
         /// <summary>
@@ -397,13 +397,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo useSiteInfo)
         {
             var result = InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics;
 
             foreach (var iface in result.Keys)
             {
-                iface.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                useSiteInfo.AddForSymbol(iface.OriginalDefinition);
             }
 
             return result;
@@ -453,8 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsInterfaceType())
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this, ref useSiteDiagnostics);
+                var unused = CompoundUseSiteInfo.Discarded;
+                return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this, ref unused);
             }
 
             return FindImplementationForInterfaceMemberInNonInterface(interfaceMember);
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
+                DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
                 return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
@@ -844,9 +844,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol closestMismatch = null;
             bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
             TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == true
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
-            for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 // NOTE: In the case of PE symbols, it is possible to see an explicit implementation
                 // on a type that does not declare the corresponding interface (or one of its
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!seenTypeDeclaringInterface ||
                     (!canBeImplementedImplicitly && (object)implementingBaseOpt == null))
                 {
-                    if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).ContainsKey(interfaceType))
+                    if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).ContainsKey(interfaceType))
                     {
                         seenTypeDeclaringInterface = true;
 
@@ -949,7 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Check for default interface implementations
-                    defaultImpl = FindMostSpecificImplementationInInterfaces(interfaceMember, implementingType, ref useSiteDiagnostics, diagnostics);
+                    defaultImpl = FindMostSpecificImplementationInInterfaces(interfaceMember, implementingType, ref useSiteInfo, diagnostics);
                     implementationInInterfacesMightChangeResult = false;
                 }
             }
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (useSiteDiagnostics != null)
 #endif
             {
-                diagnostics.Add(GetInterfaceLocation(interfaceMember, implementingType), useSiteDiagnostics);
+                diagnostics.Add(GetInterfaceLocation(interfaceMember, implementingType), useSiteInfo.Diagnostics); // TODO:
             }
 
             if (defaultImpl is object)
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static Symbol FindMostSpecificImplementationInInterfaces(Symbol interfaceMember, TypeSymbol implementingType,
-                                                                         ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+                                                                         ref CompoundUseSiteInfo useSiteInfo,
                                                                          DiagnosticBag diagnostics)
         {
             Debug.Assert(!implementingType.IsInterfaceType());
@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Symbol defaultImpl = FindMostSpecificImplementationInBases(interfaceMember,
                                                                        implementingType,
-                                                                       ref useSiteDiagnostics, out Symbol conflict1, out Symbol conflict2);
+                                                                       ref useSiteInfo, out Symbol conflict1, out Symbol conflict2);
 
             if ((object)conflict1 != null)
             {
@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface, ref CompoundUseSiteInfo useSiteInfo)
         {
             MultiDictionary<Symbol, Symbol>.ValueSet implementingMember = FindImplementationInInterface(interfaceMember, implementingInterface);
 
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     return FindMostSpecificImplementationInBases(interfaceMember, implementingInterface,
-                                                                 ref useSiteDiagnostics,
+                                                                 ref useSiteInfo,
                                                                  out var _, out var _);
                 case 1:
                     {
@@ -1095,11 +1095,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static Symbol FindMostSpecificImplementationInBases(
             Symbol interfaceMember,
             TypeSymbol implementingType,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             out Symbol conflictingImplementation1,
             out Symbol conflictingImplementation2)
         {
-            ImmutableArray<NamedTypeSymbol> allInterfaces = implementingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            ImmutableArray<NamedTypeSymbol> allInterfaces = implementingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
 
             if (allInterfaces.IsEmpty)
             {
@@ -1118,10 +1118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (interfaceAccessor1 is null && interfaceAccessor2 is null)
             {
-                return findMostSpecificImplementationInBases(interfaceMember, allInterfaces, ref useSiteDiagnostics, out conflictingImplementation1, out conflictingImplementation2);
+                return findMostSpecificImplementationInBases(interfaceMember, allInterfaces, ref useSiteInfo, out conflictingImplementation1, out conflictingImplementation2);
             }
 
-            Symbol accessorImpl1 = findMostSpecificImplementationInBases(interfaceAccessor1 ?? interfaceAccessor2, allInterfaces, ref useSiteDiagnostics,
+            Symbol accessorImpl1 = findMostSpecificImplementationInBases(interfaceAccessor1 ?? interfaceAccessor2, allInterfaces, ref useSiteInfo,
                                                                          out Symbol conflictingAccessorImplementation11, out Symbol conflictingAccessorImplementation12);
 
             if (accessorImpl1 is null && conflictingAccessorImplementation11 is null) // implementation of accessor is not found
@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            Symbol accessorImpl2 = findMostSpecificImplementationInBases(interfaceAccessor2, allInterfaces, ref useSiteDiagnostics,
+            Symbol accessorImpl2 = findMostSpecificImplementationInBases(interfaceAccessor2, allInterfaces, ref useSiteInfo,
                                                                          out Symbol conflictingAccessorImplementation21, out Symbol conflictingAccessorImplementation22);
 
             if ((accessorImpl2 is null && conflictingAccessorImplementation21 is null) || // implementation of accessor is not found
@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static Symbol findMostSpecificImplementationInBases(
                 Symbol interfaceMember,
                 ImmutableArray<NamedTypeSymbol> allInterfaces,
-                ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+                ref CompoundUseSiteInfo useSiteInfo,
                 out Symbol conflictingImplementation1,
                 out Symbol conflictingImplementation2)
             {
@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (bases == null)
                         {
                             Debug.Assert(implementations.Count == 1);
-                            bases = previousContainingType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                            bases = previousContainingType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                             implementations[i] = (methodSet, bases);
                         }
 
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (implementations.Count != 0)
                     {
-                        MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases = interfaceType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                        MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases = interfaceType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
 
                         for (int i = implementations.Count - 1; i >= 0; i--)
                         {
@@ -1835,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 DiagnosticInfo useSiteDiagnostic;
                 if ((object)interfaceMemberReturnType != null &&
-                    (useSiteDiagnostic = interfaceMemberReturnType.GetUseSiteDiagnostic()) != null &&
+                    (useSiteDiagnostic = interfaceMemberReturnType.GetUseSiteInfo().DiagnosticInfo) != null &&
                     useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                 {
                     diagnostics.Add(useSiteDiagnostic, interfaceLocation);

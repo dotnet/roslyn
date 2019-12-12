@@ -242,9 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // but there exists an explicit conversion, Dev10 compiler generates a warning "WRN_GotoCaseShouldConvert"
                 // instead of an error. See test "CS0469_NoImplicitConversionWarning".
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Conversion conversion = Conversions.ClassifyConversionFromExpression(caseExpression, SwitchGoverningType, ref useSiteDiagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(caseExpression, SwitchGoverningType, ref useSiteInfo);
+                ReportUseSite(node, useSiteInfo, diagnostics);
                 if (!conversion.IsValid)
                 {
                     GenerateImplicitConversionError(diagnostics, node, conversion, caseExpression, SwitchGoverningType);
@@ -397,9 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     TypeSymbol resultantGoverningType;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Conversion conversion = binder.Conversions.ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(switchGoverningType, out resultantGoverningType, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    Conversion conversion = binder.Conversions.ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(switchGoverningType, out resultantGoverningType, ref useSiteInfo);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                     if (conversion.IsValid)
                     {
                         // Condition (2) satisfied

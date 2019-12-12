@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switchSections: switchSections,
                 // If there is no explicit default label, the default action is to break out of the switch
                 defaultLabel: defaultLabel?.Label ?? BreakLabel,
-                diagnostics);
+                diagnostics,
+                recordUsage: !IsSemanticModelBinder);
 
             // Report subsumption errors, but ignore the input's constant value for that.
             CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);

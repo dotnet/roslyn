@@ -383,13 +383,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // If the expression is a lambda, anonymous method, or method group then it will
                     // have no compile-time type; give the same error as if the type was wrong.
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    CompoundUseSiteInfo useSiteInfo = default;
 
-                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
+                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteInfo), ref useSiteInfo))
                     {
                         diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
                         hasErrors = true;
-                        diagnostics.Add(exprSyntax, useSiteDiagnostics);
+                        ReportUseSite(exprSyntax, useSiteInfo, diagnostics);
                     }
                 }
             }
@@ -443,8 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasError = false;
 
             var result = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
             // In this case we create new label symbol on the fly, and an error is reported by parser
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder != null)
             {
                 result.Clear();
-                binder.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+                binder.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
                 if (result.IsMultiViable)
                 {
                     // The label '{0}' shadows another label by the same name in a contained scope
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.Add(node, useSiteDiagnostics);
+            ReportUseSite(node, useSiteInfo, diagnostics);
             result.Free();
 
             var body = BindStatement(node.Statement, diagnostics);
@@ -722,13 +722,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if (this.IsAccessible(disposeMethod, ref useSiteDiagnostics))
+                CompoundUseSiteInfo useSiteInfo = default;
+                if (this.IsAccessible(disposeMethod, ref useSiteInfo))
                 {
                     diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
                 }
 
-                diagnostics.Add(syntaxNode, useSiteDiagnostics);
+                ReportUseSite(syntaxNode, useSiteInfo, diagnostics);
                 disposeMethod = null;
             }
 
@@ -1327,9 +1327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode initializerSyntax = initializer.Syntax;
 
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteDiagnostics);
-            diagnostics.Add(initializerSyntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteInfo);
+            ReportUseSite(initializerSyntax, useSiteInfo, diagnostics);
 
             if (!elementConversion.IsValid || !elementConversion.IsImplicit)
             {
@@ -1747,9 +1747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = new DiagnosticBag();
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteDiagnostics);
-            diagnostics.Add(expression.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var conversion = this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteInfo);
+            ReportUseSite(expression.Syntax, useSiteInfo, diagnostics);
 
             if (isRefAssignment)
             {
@@ -2159,11 +2159,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedSwitchExpression:
                     {
                         var switchExpression = (BoundUnconvertedSwitchExpression)operand;
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        CompoundUseSiteInfo useSiteInfo = default;
                         bool reportedError = false;
                         foreach (var arm in switchExpression.SwitchArms)
                         {
-                            var armConversion = this.Conversions.ClassifyImplicitConversionFromExpression(arm.Value, targetType, ref useSiteDiagnostics);
+                            var armConversion = this.Conversions.ClassifyImplicitConversionFromExpression(arm.Value, targetType, ref useSiteInfo);
                             if (!armConversion.IsImplicit)
                             {
                                 GenerateImplicitConversionError(diagnostics, arm.Value.Syntax, conversion, arm.Value, targetType);
@@ -2198,14 +2198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // By the time we get here we have done analysis and know we have failed the cast in general, and diagnostics collected in the process is already in the bag. 
             // The only thing left is to form a diagnostics about the actually failing conversion(s).
             // This whole method does not itself collect any usesite diagnostics. Its only purpose is to produce an error better than "conversion failed here"           
-            HashSet<DiagnosticInfo> usDiagsUnused = null;
+            var unused = CompoundUseSiteInfo.Discarded;
 
             for (int i = 0; i < targetElementTypes.Length; i++)
             {
                 var argument = tupleArguments[i];
                 var targetElementType = targetElementTypes[i].Type;
 
-                var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(argument, targetElementType, ref usDiagsUnused);
+                var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(argument, targetElementType, ref unused);
                 if (!elementConversion.IsValid)
                 {
                     GenerateImplicitConversionError(diagnostics, argument.Syntax, elementConversion, argument, targetElementType);
@@ -2290,9 +2290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Is the operand implicitly convertible to bool?
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = this.Conversions.ClassifyConversionFromExpression(expr, boolean, ref useSiteDiagnostics);
-            diagnostics.Add(expr.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var conversion = this.Conversions.ClassifyConversionFromExpression(expr, boolean, ref useSiteInfo);
+            ReportUseSite(expr.Syntax, useSiteInfo, diagnostics);
 
             if (conversion.IsImplicit)
             {
@@ -2741,7 +2741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion;
             bool badAsyncReturnAlreadyReported = false;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
             if (IsInAsyncMethod())
             {
                 Debug.Assert(returnRefKind == RefKind.None);
@@ -2754,15 +2754,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     returnType = returnType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
-                    conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, ref useSiteDiagnostics);
+                    conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, ref useSiteInfo);
                 }
             }
             else
             {
-                conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, ref useSiteDiagnostics);
+                conversion = this.Conversions.ClassifyConversionFromExpression(argument, returnType, ref useSiteInfo);
             }
 
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            ReportUseSite(syntax, useSiteInfo, diagnostics);
 
             if (!argument.HasAnyErrors)
             {
@@ -2861,14 +2861,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    TypeSymbol effectiveType = type.EffectiveType(ref useSiteDiagnostics);
-                    if (!Compilation.IsExceptionType(effectiveType, ref useSiteDiagnostics))
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    TypeSymbol effectiveType = type.EffectiveType(ref useSiteInfo);
+                    if (!Compilation.IsExceptionType(effectiveType, ref useSiteInfo))
                     {
                         // "The type caught or thrown must be derived from System.Exception"
                         Error(diagnostics, ErrorCode.ERR_BadExceptionType, declaration.Type);
                         hasError = true;
-                        diagnostics.Add(declaration.Type, useSiteDiagnostics);
+                        ReportUseSite(declaration.Type, useSiteInfo, diagnostics);
                     }
                 }
             }
@@ -2899,18 +2899,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if ((object)type != null)
                         {
-                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            CompoundUseSiteInfo useSiteInfo = default;
 
-                            if (Conversions.HasIdentityOrImplicitReferenceConversion(type, previousType, ref useSiteDiagnostics))
+                            if (Conversions.HasIdentityOrImplicitReferenceConversion(type, previousType, ref useSiteInfo))
                             {
                                 // "A previous catch clause already catches all exceptions of this or of a super type ('{0}')"
                                 Error(diagnostics, ErrorCode.ERR_UnreachableCatch, declaration.Type, previousType);
-                                diagnostics.Add(declaration.Type, useSiteDiagnostics);
+                                ReportUseSite(declaration.Type, useSiteInfo, diagnostics);
                                 hasError = true;
                                 break;
                             }
 
-                            diagnostics.Add(declaration.Type, useSiteDiagnostics);
+                            ReportUseSite(declaration.Type, useSiteInfo, diagnostics);
                         }
                         else if (TypeSymbol.Equals(previousType, Compilation.GetWellKnownType(WellKnownType.System_Exception, recordUsage: false), TypeCompareKind.ConsiderEverything2) &&
                                  Compilation.SourceAssembly.RuntimeCompatibilityWrapNonExceptionThrows)

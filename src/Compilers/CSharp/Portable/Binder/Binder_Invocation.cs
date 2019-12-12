@@ -500,15 +500,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = MethodGroup.GetInstance();
             methodGroup.PopulateWithSingleMethod(boundExpression, delegateType.DelegateInvokeMethod);
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
             OverloadResolution.MethodInvocationOverloadResolution(
                 methods: methodGroup.Methods,
                 typeArguments: methodGroup.TypeArguments,
                 receiver: methodGroup.Receiver,
                 arguments: analyzedArguments,
                 result: overloadResolutionResult,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo);
+            ReportUseSite(node, useSiteInfo, diagnostics);
 
             // If overload resolution on the "Invoke" method found an applicable candidate, and one of the arguments
             // was dynamic then treat this as a dynamic call.
@@ -552,11 +552,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool anyApplicableCandidates)
         {
             BoundExpression result;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
             var resolution = this.ResolveMethodGroup(
                 methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
-                useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
-            diagnostics.Add(expression, useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
+            ReportUseSite(expression, useSiteInfo, diagnostics);
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
 
             if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
                     if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
-                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics, recordUsage: !IsSemanticModelBinder)))
                     {
                         finalCandidates.Add(result.Member);
                         continue;
@@ -1548,15 +1548,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (!IsSemanticModelBinder)
+            {
+                switch (boundArgument)
+                {
+                    case BoundNamespaceExpression nsExpr:
+                        Debug.Assert(!nsExpr.NamespaceSymbol.IsGlobalNamespace);
+                        Compilation.AddAssembliesUsedByNamespaceReference(nsExpr.NamespaceSymbol);
+                        break;
+
+                    case BoundMethodGroup methodGroup:
+                        if (methodGroup.ReceiverOpt?.Kind != BoundKind.TypeExpression)
+                        {
+                            foreach (var symbol in methodGroup.Methods)
+                            {
+                                Compilation.AddAssembliesUsedByTypeReference(symbol.ContainingType);
+                            }
+                        }
+                        break;
+                    case BoundPropertyGroup _:
+                        ExceptionUtilities.UnexpectedValue(boundArgument.Kind);
+                        break;
+                }
+            }
+
             return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 
         private void EnsureNameofExpressionSymbols(BoundMethodGroup methodGroup, DiagnosticBag diagnostics)
         {
             // Check that the method group contains something applicable. Otherwise error.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(methodGroup.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
+            ReportUseSite(methodGroup.Syntax, useSiteInfo, diagnostics);
             diagnostics.AddRange(resolution.Diagnostics);
             if (resolution.IsExtensionMethodGroup)
             {
@@ -1634,8 +1658,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var lookupResult = LookupResult.GetInstance();
             const LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(lookupResult, SyntaxFacts.GetText(SyntaxKind.NameOfKeyword), useSiteDiagnostics: ref useSiteDiagnostics, arity: 0, options: options);
+            CompoundUseSiteInfo useSiteInfo = default;
+            this.LookupSymbolsWithFallback(lookupResult, SyntaxFacts.GetText(SyntaxKind.NameOfKeyword), useSiteInfo: ref useSiteInfo, arity: 0, options: options);
 
             var result = lookupResult.IsMultiViable;
             lookupResult.Free();

@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Well-known type SecurityAttribute is optional.
                 // Native compiler doesn't generate a use-site error if it is not found, we do the same.
                 var wellKnownType = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAttribute, recordUsage: false);
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics).ToThreeState();
+                var unused = CompoundUseSiteInfo.Discarded;
+                _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref unused).ToThreeState();
             }
 
             return _lazyIsSecurityAttribute.Value();

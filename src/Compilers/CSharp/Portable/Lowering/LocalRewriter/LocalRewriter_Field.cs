@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields from inferred names are not usable in C# 7.0.
             field = field.CorrespondingTupleField ?? field;
 
-            DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
+            DiagnosticInfo useSiteInfo = field.GetUseSiteInfo().DiagnosticInfo;
             if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
             {
                 Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);

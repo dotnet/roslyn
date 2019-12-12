@@ -280,13 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return PointedAtTypeWithAnnotations.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            DiagnosticInfo result = null;
+            UseSiteInfo.Builder result = default;
 
             // Check type, custom modifiers
             DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtTypeWithAnnotations);
-            return result;
+            return new UseSiteInfo(result);
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)

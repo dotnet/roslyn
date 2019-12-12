@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // check that System.Object is available. 
             // Although submission semantically doesn't have a base class we need to emit one.
-            var info = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object).GetUseSiteDiagnostic();
+            var info = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object).GetUseSiteInfo().DiagnosticInfo; // TODO:
             if (info != null)
             {
                 Symbol.ReportUseSiteDiagnostic(info, diagnostics, Locations[0]);

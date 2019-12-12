@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     sourceAssembly,
                                     alias);
                                 // Skip pseudo-variables with errors.
-                                if (local.GetUseSiteDiagnostic()?.Severity == DiagnosticSeverity.Error)
+                                if (local.GetUseSiteInfo().DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
                                 {
                                     continue;
                                 }

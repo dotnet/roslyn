@@ -469,8 +469,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var originalDef = sourceType.OriginalDefinition;
                 if ((object)originalDef != (object)sourceType)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var typeArguments = sourceType.GetAllTypeArguments(ref useSiteDiagnostics);
+                    var unused = CompoundUseSiteInfo.Discarded;
+                    var typeArguments = sourceType.GetAllTypeArguments(ref unused);
 
                     var otherDef = (NamedTypeSymbol)Visit(originalDef);
                     if (otherDef is null)
@@ -906,8 +906,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var originalDef = type.OriginalDefinition;
                 if ((object)originalDef != type)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.Type),
+                    var unused = CompoundUseSiteInfo.Discarded;
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref unused).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.Type),
                                                                                                                                                   v.VisitCustomModifiers(t.CustomModifiers)),
                                                                                                                  this);
 

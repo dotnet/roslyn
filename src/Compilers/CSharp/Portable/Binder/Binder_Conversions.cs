@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteInfo);
 
-            diagnostics.Add(source.Syntax, useSiteDiagnostics);
+            ReportUseSite(source.Syntax, useSiteInfo, diagnostics);
             return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, destination: destination, diagnostics: diagnostics);
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
 
             TypeSymbol conversionParameterType = conversion.BestUserDefinedConversionAnalysis.Operator.GetParameterType(0);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             if (conversion.BestUserDefinedConversionAnalysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm &&
                 !TypeSymbol.Equals(conversion.BestUserDefinedConversionAnalysis.FromType, conversionParameterType, TypeCompareKind.ConsiderEverything2))
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedOperand = CreateConversion(
                     syntax: syntax,
                     source: convertedOperand,
-                    conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteDiagnostics),
+                    conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteInfo),
                     isCast: false,
                     conversionGroupOpt: conversionGroup,
                     wasCompilerGenerated: true,
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Skip introducing the conversion from C to C?.  The "to" conversion is now wrong though,
                     // because it will still assume converting C? to D?. 
 
-                    toConversion = Conversions.ClassifyConversionFromType(conversionReturnType, destination, ref useSiteDiagnostics);
+                    toConversion = Conversions.ClassifyConversionFromType(conversionReturnType, destination, ref useSiteInfo);
                     Debug.Assert(toConversion.Exists);
                 }
                 else
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     userDefinedConversion = CreateConversion(
                         syntax: syntax,
                         source: userDefinedConversion,
-                        conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteDiagnostics),
+                        conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteInfo),
                         isCast: false,
                         conversionGroupOpt: conversionGroup,
                         wasCompilerGenerated: true,
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true };
             }
 
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            ReportUseSite(syntax, useSiteInfo, diagnostics);
 
             // Conversion's "to" type --> final type
             BoundExpression finalConversion = CreateConversion(
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // applicable candidate set, so the applicable candidate set consists solely of
             // M(object, object) and is therefore the best match.
 
-            return !methodSymbol.CheckConstraints(this.Conversions, node, this.Compilation, diagnostics);
+            return !methodSymbol.CheckConstraints(this.Conversions, node, this.Compilation, diagnostics, recordUsage: !IsSemanticModelBinder);
         }
 
         /// <summary>
@@ -718,9 +718,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var containingType = this.ContainingType;
             if ((object)containingType != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                bool isAccessible = this.IsSymbolAccessibleConditional(memberSymbol.GetTypeOrReturnType().Type, containingType, ref useSiteDiagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                bool isAccessible = this.IsSymbolAccessibleConditional(memberSymbol.GetTypeOrReturnType().Type, containingType, ref useSiteInfo);
+                ReportUseSite(node, useSiteInfo, diagnostics);
 
                 if (!isAccessible)
                 {
@@ -807,14 +807,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
             Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
+                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt.Type, ref useSiteInfo).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
-            useSiteDiagnostics = null;
+            useSiteInfo = default;
 
             for (int i = 0; i < numParams; i++)
             {
@@ -822,11 +822,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
                 if (delegateParameter.RefKind != methodParameter.RefKind ||
-                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
+                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteInfo))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
-                    diagnostics.Add(errorLocation, useSiteDiagnostics);
+                    diagnostics.Add(errorLocation, useSiteInfo.Diagnostics);
                     return false;
                 }
             }
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (delegateMethod.RefKind != method.RefKind)
             {
                 Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
-                diagnostics.Add(errorLocation, useSiteDiagnostics);
+                diagnostics.Add(errorLocation, useSiteInfo.Diagnostics);
                 return false;
             }
 
@@ -845,16 +845,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Conversions.HasIdentityConversion(methodReturnType, delegateReturnType) :
                                     // - Return types "match"
                                     method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                                        Conversions.HasIdentityOrImplicitReferenceConversion(methodReturnType, delegateReturnType, ref useSiteDiagnostics);
+                                        Conversions.HasIdentityOrImplicitReferenceConversion(methodReturnType, delegateReturnType, ref useSiteInfo);
 
             if (!returnsMatch)
             {
                 Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
-                diagnostics.Add(errorLocation, useSiteDiagnostics);
+                diagnostics.Add(errorLocation, useSiteInfo.Diagnostics);
                 return false;
             }
 
-            diagnostics.Add(errorLocation, useSiteDiagnostics);
+            ReportUseSite(errorLocation, useSiteInfo, diagnostics);
             return true;
         }
 
@@ -931,9 +931,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            conversion = Conversions.GetMethodGroupConversion(boundMethodGroup, delegateType, ref useSiteDiagnostics);
-            diagnostics.Add(delegateMismatchLocation, useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            conversion = Conversions.GetMethodGroupConversion(boundMethodGroup, delegateType, ref useSiteInfo);
+            ReportUseSite(delegateMismatchLocation, useSiteInfo, diagnostics);
             if (!conversion.Exists)
             {
                 if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))

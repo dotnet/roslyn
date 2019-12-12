@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a parameter type that violates its own constraints then the first such method is 
             // the best bad method.
 
-            if (HadConstructedParameterFailedConstraintCheck(binder.Conversions, binder.Compilation, diagnostics, location))
+            if (HadConstructedParameterFailedConstraintCheck(binder.Conversions, binder.Compilation, diagnostics, location, recordUsage: !binder.IsSemanticModelBinder))
             {
                 return;
             }
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportUnsupportedMetadata(Location location, DiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, MemberResolutionResult<TMember> firstUnsupported)
         {
-            DiagnosticInfo diagInfo = firstUnsupported.Member.GetUseSiteDiagnostic();
+            DiagnosticInfo diagInfo = firstUnsupported.Member.GetUseSiteInfo().DiagnosticInfo;
             Debug.Assert(diagInfo != null);
             Debug.Assert(diagInfo.Severity == DiagnosticSeverity.Error);
 
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Debug.Assert(bad.Member.GetUseSiteDiagnostic().Severity == DiagnosticSeverity.Error,
+            Debug.Assert(bad.Member.GetUseSiteInfo().DiagnosticInfo.Severity == DiagnosticSeverity.Error,
                 "Why did we use MemberResolutionKind.UseSiteError if we didn't have a use site error?");
 
             // Use site errors are reported unconditionally in PerformMemberOverloadResolution/PerformObjectCreationOverloadResolution.
@@ -658,7 +658,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var pair in constraintFailure.Result.ConstraintFailureDiagnostics)
             {
-                diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+                if (pair.UseSiteInfo.DiagnosticInfo is object)
+                {
+                    diagnostics.Add(new CSDiagnostic(pair.UseSiteInfo.DiagnosticInfo, location));
+                }
             }
 
             return true;
@@ -888,7 +891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionsBase conversions,
             CSharpCompilation compilation,
             DiagnosticBag diagnostics,
-            Location location)
+            Location location,
+            bool recordUsage)
         {
             // We know that there is at least one method that had a number of arguments
             // passed that was valid for *some* method in the candidate set. Given that
@@ -968,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is, then just report that error.
 
             MethodSymbol method = (MethodSymbol)(Symbol)result.Member;
-            if (!method.CheckConstraints(conversions, location, compilation, diagnostics))
+            if (!method.CheckConstraints(conversions, location, compilation, diagnostics, recordUsage))
             {
                 // The error is already reported into the diagnostics bag.
                 return true;
@@ -979,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // formal parameter type.
 
             TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
-            formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics);
+            formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics, recordUsage);
 
             return true;
         }

@@ -231,8 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ErrorCode.ERR_BadVisOpReturn :
                 ErrorCode.ERR_BadVisReturnType;
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
+            CompoundUseSiteInfo useSiteInfo = default;
+            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
                 diagnostics.Add(code, Locations[0], this, returnType.Type);
@@ -244,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in parameters)
             {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
                     diagnostics.Add(code, Locations[0], this, parameter.Type);
                 }
             }
 
-            diagnostics.Add(Locations[0], useSiteDiagnostics);
+            diagnostics.Add(Locations[0], useSiteInfo.Diagnostics); // TODO:
         }
 
         protected void MakeFlags(

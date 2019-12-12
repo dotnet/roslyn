@@ -91,18 +91,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Perform overload resolution on the given method group, with the given arguments and
         // names. The names can be null if no names were supplied to any arguments.
-        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, ref CompoundUseSiteInfo useSiteInfo)
         {
             var results = result.ResultsBuilder;
 
             // First, attempt overload resolution not getting complete results.
-            PerformObjectCreationOverloadResolution(results, constructors, arguments, false, ref useSiteDiagnostics);
+            PerformObjectCreationOverloadResolution(results, constructors, arguments, false, ref useSiteInfo);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformObjectCreationOverloadResolution(results, constructors, arguments, true, ref useSiteDiagnostics);
+                PerformObjectCreationOverloadResolution(results, constructors, arguments, true, ref useSiteInfo);
             }
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver,
             AnalyzedArguments arguments,
             OverloadResolutionResult<MethodSymbol> result,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             bool isMethodGroupConversion = false,
             bool allowRefOmittedArguments = false,
             bool inferWithDynamic = false,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MethodOrPropertyOverloadResolution(
                 methods, typeArguments, receiver, arguments, result, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
+                allowRefOmittedArguments, ref useSiteInfo, inferWithDynamic: inferWithDynamic,
                 allowUnexpandedForm: allowUnexpandedForm,
                 returnRefKind: returnRefKind,
                 returnType: returnType);
@@ -138,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             OverloadResolutionResult<PropertySymbol> result,
             bool allowRefOmittedArguments,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             ArrayBuilder<TypeWithAnnotations> typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             MethodOrPropertyOverloadResolution(
                 indexers, typeArguments, receiverOpt, arguments, result, isMethodGroupConversion: false,
-                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteInfo: ref useSiteInfo);
             typeArguments.Free();
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<TMember> result,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 results: results, members: members, typeArguments: typeArguments,
                 receiver: receiver, arguments: arguments, completeResults: false,
                 isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
-                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteInfo: ref useSiteInfo,
                 inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     results: results, members: members, typeArguments: typeArguments,
                     receiver: receiver, arguments: arguments, completeResults: true,
                     isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
-                    allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                    allowRefOmittedArguments: allowRefOmittedArguments, useSiteInfo: ref useSiteInfo,
                     allowUnexpandedForm: allowUnexpandedForm);
             }
         }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind,
             TypeSymbol returnType,
             bool allowRefOmittedArguments,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
             where TMember : Symbol
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddMemberToCandidateSet(
                     members[i], results, members, typeArguments, receiver, arguments, completeResults,
                     isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
-                    useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
+                    useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
             }
 
             // CONSIDER: use containingTypeMapOpt for RemoveLessDerivedMembers?
@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Remove methods that are inaccessible because their inferred type arguments are inaccessible.
             // It is not clear from the spec how or where this is supposed to occur.
-            RemoveInaccessibleTypeArguments(results, ref useSiteDiagnostics);
+            RemoveInaccessibleTypeArguments(results, ref useSiteInfo);
 
             // SPEC: The set of candidate methods is reduced to contain only methods from the most derived types.
-            RemoveLessDerivedMembers(results, ref useSiteDiagnostics);
+            RemoveLessDerivedMembers(results, ref useSiteInfo);
 
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
@@ -281,13 +281,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isMethodGroupConversion)
                 {
-                    RemoveDelegateConversionsWithWrongReturnType(results, ref useSiteDiagnostics, returnRefKind, returnType);
+                    RemoveDelegateConversionsWithWrongReturnType(results, ref useSiteInfo, returnRefKind, returnType);
                 }
             }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
             // Also note that less derived members are not actually removed - they are simply flagged.
-            ReportUseSiteDiagnostics(results, ref useSiteDiagnostics);
+            ReportUseSiteInfo(results, ref useSiteInfo);
 
             // SPEC: If the resulting set of candidate methods is empty, then further processing along the following steps are abandoned,
             // SPEC: and instead an attempt is made to process the invocation as an extension method invocation. If this fails, then no
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified,
             // SPEC: the method invocation is ambiguous, and a binding-time error occurs.
 
-            RemoveWorseMembers(results, arguments, ref useSiteDiagnostics);
+            RemoveWorseMembers(results, arguments, ref useSiteInfo);
 
             // Note, the caller is responsible for "final validation",
             // as that is not part of overload resolution.
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// known when we're attempting to infer the return type of a method group for type inference.</param>
         private void RemoveDelegateConversionsWithWrongReturnType<TMember>(
             ArrayBuilder<MemberResolutionResult<TMember>> results,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             RefKind? returnRefKind,
             TypeSymbol returnType) where TMember : Symbol
         {
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool returnsMatch =
                     (object)returnType == null ||
                     method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
-                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
+                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteInfo);
                 if (!returnsMatch)
                 {
                     results[f] = new MemberResolutionResult<TMember>(
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void AddConstructorToCandidateSet(MethodSymbol constructor, ArrayBuilder<MemberResolutionResult<MethodSymbol>> results,
-            AnalyzedArguments arguments, bool completeResults, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            AnalyzedArguments arguments, bool completeResults, ref CompoundUseSiteInfo useSiteInfo)
         {
             // Filter out constructors with unsupported metadata.
             if (constructor.HasUnsupportedMetadata)
@@ -497,13 +497,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var normalResult = IsConstructorApplicableInNormalForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
+            var normalResult = IsConstructorApplicableInNormalForm(constructor, arguments, completeResults, ref useSiteInfo);
             var result = normalResult;
             if (!normalResult.IsValid)
             {
                 if (IsValidParams(constructor))
                 {
-                    var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
+                    var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteInfo);
                     if (expandedResult.IsValid || completeResults)
                     {
                         result = expandedResult;
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             AnalyzedArguments arguments,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             var argumentAnalysis = AnalyzeArguments(constructor, arguments, isMethodGroupConversion: false, expanded: false); // Constructors are never involved in method group conversion.
             if (!argumentAnalysis.IsValid)
@@ -553,14 +553,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: false,
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo);
         }
 
         private MemberAnalysisResult IsConstructorApplicableInExpandedForm(
             MethodSymbol constructor,
             AnalyzedArguments arguments,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             var argumentAnalysis = AnalyzeArguments(constructor, arguments, isMethodGroupConversion: false, expanded: true);
             if (!argumentAnalysis.IsValid)
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: false,
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo);
 
             return result.IsValid ? MemberAnalysisResult.ExpandedForm(result.ArgsToParamsOpt, result.ConversionsOpt, hasAnyRefOmittedArgument: false) : result;
         }
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments,
             Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMapOpt,
             bool inferWithDynamic,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             bool allowUnexpandedForm)
             where TMember : Symbol
         {
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (MemberGroupHidesByName(members, member, ref useSiteDiagnostics))
+                if (MemberGroupHidesByName(members, member, ref useSiteInfo))
                 {
                     return;
                 }
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var pair in containingTypeMapOpt)
                 {
                     NamedTypeSymbol otherType = pair.Key;
-                    if (otherType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+                    if (otherType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
 
-                        if (MemberGroupHidesByName(others, member, ref useSiteDiagnostics))
+                        if (MemberGroupHidesByName(others, member, ref useSiteInfo))
                         {
                             return;
                         }
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowRefOmittedArguments: allowRefOmittedArguments,
                     inferWithDynamic: inferWithDynamic,
                     completeResults: completeResults,
-                    useSiteDiagnostics: ref useSiteDiagnostics)
+                    useSiteInfo: ref useSiteInfo)
                 : default(MemberResolutionResult<TMember>);
 
             var result = normalResult;
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         arguments,
                         allowRefOmittedArguments: allowRefOmittedArguments,
                         completeResults: completeResults,
-                        useSiteDiagnostics: ref useSiteDiagnostics);
+                        useSiteInfo: ref useSiteInfo);
 
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
@@ -877,14 +877,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool MemberGroupHidesByName<TMember>(ArrayBuilder<TMember> members, TMember member, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool MemberGroupHidesByName<TMember>(ArrayBuilder<TMember> members, TMember member, ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             NamedTypeSymbol memberContainingType = member.ContainingType;
             foreach (var otherMember in members)
             {
                 NamedTypeSymbol otherContainingType = otherMember.ContainingType;
-                if (HidesByName(otherMember) && otherContainingType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+                if (HidesByName(otherMember) && otherContainingType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
                 {
                     return true;
                 }
@@ -911,29 +911,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void RemoveInaccessibleTypeArguments<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void RemoveInaccessibleTypeArguments<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             for (int f = 0; f < results.Count; ++f)
             {
                 var result = results[f];
-                if (result.Result.IsValid && !TypeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteDiagnostics))
+                if (result.Result.IsValid && !TypeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo))
                 {
                     results[f] = new MemberResolutionResult<TMember>(result.Member, result.LeastOverriddenMember, MemberAnalysisResult.InaccessibleTypeArgument());
                 }
             }
         }
 
-        private bool TypeArgumentsAccessible(ImmutableArray<TypeSymbol> typeArguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool TypeArgumentsAccessible(ImmutableArray<TypeSymbol> typeArguments, ref CompoundUseSiteInfo useSiteInfo)
         {
             foreach (TypeSymbol arg in typeArguments)
             {
-                if (!_binder.IsAccessible(arg, ref useSiteDiagnostics)) return false;
+                if (!_binder.IsAccessible(arg, ref useSiteInfo)) return false;
             }
             return true;
         }
 
-        private static void RemoveLessDerivedMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static void RemoveLessDerivedMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             // 7.6.5.1 Method invocations
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // work necessary to eliminate methods on base types of Mammal when we eliminated
                 // methods on base types of Cat.
 
-                if (IsLessDerivedThanAny(result.LeastOverriddenMember.ContainingType, results, ref useSiteDiagnostics))
+                if (IsLessDerivedThanAny(result.LeastOverriddenMember.ContainingType, results, ref useSiteInfo))
                 {
                     results[f] = new MemberResolutionResult<TMember>(result.Member, result.LeastOverriddenMember, MemberAnalysisResult.LessDerived());
                 }
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Is this type a base type of any valid method on the list?
-        private static bool IsLessDerivedThanAny<TMember>(TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsLessDerivedThanAny<TMember>(TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             for (int f = 0; f < results.Count; ++f)
@@ -1081,11 +1081,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                if (currentType.IsInterfaceType() && type.IsInterfaceType() && currentType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).Contains((NamedTypeSymbol)type))
+                if (currentType.IsInterfaceType() && type.IsInterfaceType() && currentType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)type))
                 {
                     return true;
                 }
-                else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+                else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
                 {
                     return true;
                 }
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<MethodSymbol> constructors,
             AnalyzedArguments arguments,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             // SPEC: The instance constructor to invoke is determined using the overload resolution 
             // SPEC: rules of 7.5.3. The set of candidate instance constructors consists of all 
@@ -1184,33 +1184,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (MethodSymbol constructor in constructors)
             {
-                AddConstructorToCandidateSet(constructor, results, arguments, completeResults, ref useSiteDiagnostics);
+                AddConstructorToCandidateSet(constructor, results, arguments, completeResults, ref useSiteInfo);
             }
 
-            ReportUseSiteDiagnostics(results, ref useSiteDiagnostics);
+            ReportUseSiteInfo(results, ref useSiteInfo);
 
             // The best method of the set of candidate methods is identified. If a single best
             // method cannot be identified, the method invocation is ambiguous, and a binding-time
             // error occurs. 
-            RemoveWorseMembers(results, arguments, ref useSiteDiagnostics);
+            RemoveWorseMembers(results, arguments, ref useSiteInfo);
 
             return;
         }
 
-        private static void ReportUseSiteDiagnostics<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static void ReportUseSiteInfo<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             foreach (MemberResolutionResult<TMember> result in results)
             {
-                if (result.HasUseSiteDiagnosticToReport)
-                {
-                    useSiteDiagnostics = useSiteDiagnostics ?? new HashSet<DiagnosticInfo>();
-                    useSiteDiagnostics.Add(result.Member.GetUseSiteDiagnostic());
-                }
+                useSiteInfo.AddForSymbol(result.Member, addDiagnostics: result.HasUseSiteDiagnosticToReport, addDependencies: result.IsApplicable);
             }
         }
 
-        private int GetTheBestCandidateIndex<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private int GetTheBestCandidateIndex<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             int currentBestIndex = -1;
@@ -1232,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteDiagnostics);
+                    var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteInfo);
                     if (better == BetterResult.Right)
                     {
                         // The current best is worse
@@ -1259,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return -1;
                 }
 
-                var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteDiagnostics);
+                var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteInfo);
                 if (better != BetterResult.Left)
                 {
                     // The current best is not better
@@ -1270,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return currentBestIndex;
         }
 
-        private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             // SPEC: Given the set of applicable candidate function members, the best function member in
@@ -1300,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // See if we have a winner, otherwise we might need to perform additional analysis
             // in order to improve diagnostics
-            int bestIndex = GetTheBestCandidateIndex(results, arguments, ref useSiteDiagnostics);
+            int bestIndex = GetTheBestCandidateIndex(results, arguments, ref useSiteInfo);
             if (bestIndex != -1)
             {
                 // Mark all other candidates as worse
@@ -1342,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var better = BetterFunctionMember(c1Result, c2Result, arguments.Arguments, ref useSiteDiagnostics);
+                    var better = BetterFunctionMember(c1Result, c2Result, arguments.Arguments, ref useSiteInfo);
                     if (better == BetterResult.Left)
                     {
                         worse[c2Idx] = worseThanSomething;
@@ -1382,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (worse[i] == worseThanSomething)
                     {
                         // Mark those candidates, that are worse than the single notBest candidate, as Worst in order to improve error reporting.
-                        results[i] = BetterResult.Left == BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteDiagnostics)
+                        results[i] = BetterResult.Left == BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteInfo)
                             ? results[i].Worst() : results[i].Worse();
                     }
                     else
@@ -1464,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
             ArrayBuilder<BoundExpression> arguments,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             Debug.Assert(m1.Result.IsValid);
@@ -1485,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return BetterFunctionMember(m1, m2, arguments, considerRefKinds: hasAnyRefOmittedArgument1, useSiteDiagnostics: ref useSiteDiagnostics);
+                return BetterFunctionMember(m1, m2, arguments, considerRefKinds: hasAnyRefOmittedArgument1, useSiteInfo: ref useSiteInfo);
             }
         }
 
@@ -1494,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> m2,
             ArrayBuilder<BoundExpression> arguments,
             bool considerRefKinds,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             Debug.Assert(m1.Result.IsValid);
@@ -1556,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    m2.Result.ConversionForArg(i),
                                                    parameter2.RefKind,
                                                    considerRefKinds,
-                                                   ref useSiteDiagnostics,
+                                                   ref useSiteInfo,
                                                    out okToDowngradeToNeither);
 
                 var type1Normalized = type1;
@@ -1573,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (r == BetterResult.Neither)
                 {
-                    if (allSame && Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    if (allSame && Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteInfo).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                     }
@@ -1582,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteInfo).Kind != ConversionKind.Identity)
                 {
                     allSame = false;
                 }
@@ -1697,7 +1693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type2Normalized = type2.NormalizeTaskTypes(Compilation);
                     }
 
-                    if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteInfo).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                         break;
@@ -1851,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 uninst2.Add(GetParameterType(parameter2, m2.Result));
             }
 
-            result = MoreSpecificType(uninst1, uninst2, ref useSiteDiagnostics);
+            result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
             uninst1.Free();
             uninst2.Free();
 
@@ -1972,7 +1968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BetterResult MoreSpecificType(ArrayBuilder<TypeSymbol> t1, ArrayBuilder<TypeSymbol> t2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static BetterResult MoreSpecificType(ArrayBuilder<TypeSymbol> t1, ArrayBuilder<TypeSymbol> t2, ref CompoundUseSiteInfo useSiteInfo)
         {
             Debug.Assert(t1.Count == t2.Count);
 
@@ -1982,7 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = BetterResult.Neither;
             for (int i = 0; i < t1.Count; ++i)
             {
-                var r = MoreSpecificType(t1[i], t2[i], ref useSiteDiagnostics);
+                var r = MoreSpecificType(t1[i], t2[i], ref useSiteInfo);
                 if (r == BetterResult.Neither)
                 {
                     // We learned nothing. Do nothing.
@@ -2004,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static BetterResult MoreSpecificType(TypeSymbol t1, TypeSymbol t2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static BetterResult MoreSpecificType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo useSiteInfo)
         {
             // Spec 7.5.3.2:
             // - A type parameter is less specific than a non-type parameter. 
@@ -2040,7 +2036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // between the two types.
                 Debug.Assert(arr1.HasSameShapeAs(arr2));
 
-                return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteDiagnostics);
+                return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteInfo);
             }
 
             // SPEC EXTENSION: We apply the same rule to pointer types. 
@@ -2049,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var p1 = (PointerTypeSymbol)t1;
                 var p2 = (PointerTypeSymbol)t2;
-                return MoreSpecificType(p1.PointedAtType, p2.PointedAtType, ref useSiteDiagnostics);
+                return MoreSpecificType(p1.PointedAtType, p2.PointedAtType, ref useSiteInfo);
             }
 
             if (t1.IsDynamic() || t2.IsDynamic())
@@ -2083,10 +2079,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var allTypeArgs1 = ArrayBuilder<TypeSymbol>.GetInstance();
             var allTypeArgs2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            n1.GetAllTypeArguments(allTypeArgs1, ref useSiteDiagnostics);
-            n2.GetAllTypeArguments(allTypeArgs2, ref useSiteDiagnostics);
+            n1.GetAllTypeArguments(allTypeArgs1, ref useSiteInfo);
+            n2.GetAllTypeArguments(allTypeArgs2, ref useSiteInfo);
 
-            var result = MoreSpecificType(allTypeArgs1, allTypeArgs2, ref useSiteDiagnostics);
+            var result = MoreSpecificType(allTypeArgs1, allTypeArgs2, ref useSiteInfo);
 
             allTypeArgs1.Free();
             allTypeArgs2.Free();
@@ -2094,17 +2090,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Determine whether t1 or t2 is a better conversion target from node.
-        private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, TypeSymbol t2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo useSiteInfo)
         {
             Debug.Assert(node.Kind != BoundKind.UnboundLambda);
             bool ignore;
             return BetterConversionFromExpression(
                 node,
                 t1,
-                Conversions.ClassifyImplicitConversionFromExpression(node, t1, ref useSiteDiagnostics),
+                Conversions.ClassifyImplicitConversionFromExpression(node, t1, ref useSiteInfo),
                 t2,
-                Conversions.ClassifyImplicitConversionFromExpression(node, t2, ref useSiteDiagnostics),
-                ref useSiteDiagnostics,
+                Conversions.ClassifyImplicitConversionFromExpression(node, t2, ref useSiteInfo),
+                ref useSiteInfo,
                 out ignore);
         }
 
@@ -2118,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conv2,
             RefKind refKind2,
             bool considerRefKinds,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             out bool okToDowngradeToNeither)
         {
             okToDowngradeToNeither = false;
@@ -2161,11 +2157,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return BetterConversionFromExpression(node, t1, conv1, t2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither);
+            return BetterConversionFromExpression(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
         }
 
         // Determine whether t1 or t2 is a better conversion target from node.
-        private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool okToDowngradeToNeither)
+        private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo useSiteInfo, out bool okToDowngradeToNeither)
         {
             okToDowngradeToNeither = false;
 
@@ -2190,30 +2186,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Given an implicit conversion C1 that converts from an expression E to a type T1, 
             // and an implicit conversion C2 that converts from an expression E to a type T2,
             // C1 is a better conversion than C2 if E does not exactly match T2 and one of the following holds:
-            bool t1MatchesExactly = ExpressionMatchExactly(node, t1, ref useSiteDiagnostics);
-            bool t2MatchesExactly = ExpressionMatchExactly(node, t2, ref useSiteDiagnostics);
+            bool t1MatchesExactly = ExpressionMatchExactly(node, t1, ref useSiteInfo);
+            bool t2MatchesExactly = ExpressionMatchExactly(node, t2, ref useSiteInfo);
 
             if (t1MatchesExactly)
             {
                 if (!t2MatchesExactly)
                 {
                     // - E exactly matches T1
-                    okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
+                    okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, t1, t2, ref useSiteInfo, false);
                     return BetterResult.Left;
                 }
             }
             else if (t2MatchesExactly)
             {
                 // - E exactly matches T2
-                okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
+                okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, t1, t2, ref useSiteInfo, false);
                 return BetterResult.Right;
             }
 
             // - T1 is a better conversion target than T2
-            return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither);
+            return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
         }
 
-        private bool ExpressionMatchExactly(BoundExpression node, TypeSymbol t, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool ExpressionMatchExactly(BoundExpression node, TypeSymbol t, ref CompoundUseSiteInfo useSiteInfo)
         {
             // Given an expression E and a type T, E exactly matches T if one of the following holds:
 
@@ -2230,7 +2226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from that type is not identity, we still have to do this 
                 // because we might be converting to a tuple type backed by
                 // different definition of ValueTuple type.
-                return ExpressionMatchExactly((BoundTupleLiteral)node, t, ref useSiteDiagnostics);
+                return ExpressionMatchExactly((BoundTupleLiteral)node, t, ref useSiteInfo);
             }
 
             // - E is an anonymous function, T is either a delegate type D or an expression tree 
@@ -2247,7 +2243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
-                var x = lambda.GetInferredReturnType(ref useSiteDiagnostics);
+                var x = lambda.GetInferredReturnType(ref useSiteInfo);
                 if (x.HasType && Conversions.HasIdentityConversion(x.Type, y))
                 {
                     return true;
@@ -2282,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (lambda.Body.Statements[0].Kind == BoundKind.ReturnStatement)
                             {
                                 var returnStmt = (BoundReturnStatement)lambda.Body.Statements[0];
-                                if (returnStmt.ExpressionOpt != null && ExpressionMatchExactly(returnStmt.ExpressionOpt, y, ref useSiteDiagnostics))
+                                if (returnStmt.ExpressionOpt != null && ExpressionMatchExactly(returnStmt.ExpressionOpt, y, ref useSiteInfo))
                                 {
                                     return true;
                                 }
@@ -2303,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             bool result = false;
                             foreach (BoundReturnStatement r in returnStatements)
                             {
-                                if (r.ExpressionOpt == null || !ExpressionMatchExactly(r.ExpressionOpt, y, ref useSiteDiagnostics))
+                                if (r.ExpressionOpt == null || !ExpressionMatchExactly(r.ExpressionOpt, y, ref useSiteInfo))
                                 {
                                     result = false;
                                     break;
@@ -2329,7 +2325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // check every argument of a tuple vs corresponding type in destination tuple type
-        private bool ExpressionMatchExactly(BoundTupleLiteral tupleSource, TypeSymbol targetType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool ExpressionMatchExactly(BoundTupleLiteral tupleSource, TypeSymbol targetType, ref CompoundUseSiteInfo useSiteInfo)
         {
             if (targetType.Kind != SymbolKind.NamedType)
             {
@@ -2351,7 +2347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < sourceArguments.Length; i++)
             {
-                if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i].Type, ref useSiteDiagnostics))
+                if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i].Type, ref useSiteInfo))
                 {
                     return false;
                 }
@@ -2402,16 +2398,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BetterResult BetterConversionTarget(
             TypeSymbol type1,
             TypeSymbol type2,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             bool okToDowngradeToNeither;
-            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
+            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
         }
 
         private BetterResult BetterConversionTargetCore(
             TypeSymbol type1,
             TypeSymbol type2,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             int betterConversionTargetRecursionLimit)
         {
             if (betterConversionTargetRecursionLimit < 0)
@@ -2420,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool okToDowngradeToNeither;
-            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither, betterConversionTargetRecursionLimit - 1);
+            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, betterConversionTargetRecursionLimit - 1);
         }
 
         private BetterResult BetterConversionTarget(
@@ -2429,10 +2425,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conv1,
             TypeSymbol type2,
             Conversion conv2,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             out bool okToDowngradeToNeither)
         {
-            return BetterConversionTargetCore(node, type1, conv1, type2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
+            return BetterConversionTargetCore(node, type1, conv1, type2, conv2, ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
         }
 
         private BetterResult BetterConversionTargetCore(
@@ -2441,7 +2437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conv1,
             TypeSymbol type2,
             Conversion conv2,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             out bool okToDowngradeToNeither,
             int betterConversionTargetRecursionLimit)
         {
@@ -2455,8 +2451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists, 
             // and at least one of the following holds:
-            bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).IsImplicit;
-            bool type2ToType1 = Conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteDiagnostics).IsImplicit;
+            bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteInfo).IsImplicit;
+            bool type2ToType1 = Conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteInfo).IsImplicit;
             UnboundLambda lambdaOpt = node as UnboundLambda;
 
             if (type1ToType2)
@@ -2468,13 +2464,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // - An implicit conversion from T1 to T2 exists 
-                okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, type1, type2, ref useSiteDiagnostics, true);
+                okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, type1, type2, ref useSiteInfo, true);
                 return BetterResult.Left;
             }
             else if (type2ToType1)
             {
                 // - An implicit conversion from T1 to T2 exists 
-                okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, type1, type2, ref useSiteDiagnostics, true);
+                okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, type1, type2, ref useSiteInfo, true);
                 return BetterResult.Right;
             }
 
@@ -2488,7 +2484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
                     return BetterConversionTargetCore(((NamedTypeSymbol)type1).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type,
                                                       ((NamedTypeSymbol)type2).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type,
-                                                      ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
+                                                      ref useSiteInfo, betterConversionTargetRecursionLimit);
                 }
 
                 // A shortcut, Task<T> type cannot satisfy other rules.
@@ -2537,7 +2533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (delegateResult == BetterResult.Neither)
                         {
                             //  - D2 has a return type S2, and S1 is a better conversion target than S2
-                            delegateResult = BetterConversionTargetCore(r1, r2, ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
+                            delegateResult = BetterConversionTargetCore(r1, r2, ref useSiteInfo, betterConversionTargetRecursionLimit);
                         }
 
                         // Downgrade result to Neither if conversion used by the winner isn't actually valid method group conversion.
@@ -2606,7 +2602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool CanDowngradeConversionFromLambdaToNeither(BetterResult currentResult, UnboundLambda lambda, TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool fromTypeAnalysis)
+        private bool CanDowngradeConversionFromLambdaToNeither(BetterResult currentResult, UnboundLambda lambda, TypeSymbol type1, TypeSymbol type2, ref CompoundUseSiteInfo useSiteInfo, bool fromTypeAnalysis)
         {
             // DELIBERATE SPEC VIOLATION: See bug 11961.
             // The native compiler uses one algorithm for determining betterness of lambdas and another one
@@ -2672,7 +2668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        var x = lambda.InferReturnType(Conversions, d1, ref useSiteDiagnostics);
+                        var x = lambda.InferReturnType(Conversions, d1, ref useSiteInfo);
                         if (!x.HasType)
                         {
                             return true;
@@ -2688,7 +2684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(
                                 r1.IsErrorType() ||
                                 r2.IsErrorType() ||
-                                currentResult == BetterConversionTarget(r1, r2, ref useSiteDiagnostics));
+                                currentResult == BetterConversionTarget(r1, r2, ref useSiteInfo));
                         }
 #endif
                     }
@@ -2970,7 +2966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments,
             bool inferWithDynamic,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
@@ -3033,7 +3029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: inferWithDynamic,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo);
 
             // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
             // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
@@ -3052,7 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             bool allowRefOmittedArguments,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
@@ -3103,7 +3099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: false,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo);
 
             return result.Result.IsValid ?
                 new MemberResolutionResult<TMember>(
@@ -3124,7 +3120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasAnyRefOmittedArgument,
             bool inferWithDynamic,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
             where TMember : Symbol
         {
             bool ignoreOpenTypes;
@@ -3165,7 +3161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             arguments,
                                             originalEffectiveParameters,
                                             out inferenceError,
-                                            ref useSiteDiagnostics);
+                                            ref useSiteInfo);
                         if (typeArguments.IsDefault)
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);
@@ -3206,7 +3202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameterTypes = leastOverriddenMember.GetParameterTypes();
                     for (int i = 0; i < parameterTypes.Length; i++)
                     {
-                        if (!parameterTypes[i].Type.CheckAllConstraints(Compilation, Conversions))
+                        if (!parameterTypes[i].Type.CheckAllConstraints(Compilation, Conversions, recordUsage: false))
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i));
                         }
@@ -3241,7 +3237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 ignoreOpenTypes: ignoreOpenTypes,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult);
         }
 
@@ -3251,7 +3247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
             out MemberAnalysisResult error,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             var args = arguments.Arguments.ToImmutable();
 
@@ -3268,7 +3264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
-                ref useSiteDiagnostics);
+                ref useSiteInfo);
 
             if (inferenceResult.Success)
             {
@@ -3282,7 +3278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _binder.Conversions,
                     method,
                     args,
-                    useSiteDiagnostics: ref useSiteDiagnostics);
+                    useSiteInfo: ref useSiteInfo);
                 if (inferredFromFirstArgument.IsDefault)
                 {
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
@@ -3303,7 +3299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasAnyRefOmittedArgument,
             bool ignoreOpenTypes,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo useSiteInfo)
         {
             // The effective parameters are in the right order with respect to the arguments.
             //
@@ -3376,7 +3372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameters.ParameterTypes[argumentPosition].Type,
                         parameterRefKind,
                         ignoreOpenTypes,
-                        ref useSiteDiagnostics,
+                        ref useSiteInfo,
                         forExtensionMethodThisArg);
 
                     if (forExtensionMethodThisArg && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
@@ -3437,7 +3433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol parameterType,
             RefKind parRefKind,
             bool ignoreOpenTypes,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             bool forExtensionMethodThisArg)
         {
             // Spec 7.5.3.1
@@ -3482,8 +3478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argRefKind == RefKind.None)
             {
                 var conversion = forExtensionMethodThisArg ?
-                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteDiagnostics) :
-                    Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteDiagnostics);
+                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteInfo) :
+                    Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteInfo);
                 Debug.Assert((!conversion.Exists) || conversion.IsImplicit, "ClassifyImplicitConversion should only return implicit conversions");
                 return conversion;
             }

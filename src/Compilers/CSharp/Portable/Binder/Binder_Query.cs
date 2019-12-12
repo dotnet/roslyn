@@ -747,9 +747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ultimateReceiver.Kind == BoundKind.MethodGroup)
                 {
                     var methodGroup = (BoundMethodGroup)ultimateReceiver;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                     diagnostics.AddRange(resolution.Diagnostics);
                     if (resolution.HasAnyErrors)
                     {

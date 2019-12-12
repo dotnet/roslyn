@@ -444,11 +444,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             // Check for use-site diagnostics (e.g. missing types in the signature).
-            DiagnosticInfo useSiteDiagnosticInfo = null;
-            this.CalculateUseSiteDiagnostic(ref useSiteDiagnosticInfo);
-            if (useSiteDiagnosticInfo != null && useSiteDiagnosticInfo.Severity == DiagnosticSeverity.Error)
+            UseSiteInfo.Builder useSiteInfo = default;
+            this.CalculateUseSiteDiagnostic(ref useSiteInfo);
+            if (useSiteInfo.DiagnosticInfo != null && useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
             {
-                diagnostics.Add(useSiteDiagnosticInfo, this.Locations[0]);
+                diagnostics.Add(useSiteInfo.DiagnosticInfo, this.Locations[0]);
                 return;
             }
 

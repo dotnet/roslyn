@@ -746,7 +746,7 @@ class C
 
             // Note: there is a valid conversion here at the type level.  It's the process of evaluating the conversion, which for
             // constants happens at compile time, that triggers the error.
-            HashSet<DiagnosticInfo> unused = null;
+            var unused = CompoundUseSiteInfo.Discarded;
             var bag = DiagnosticBag.GetInstance();
             var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(compilation.GetSpecialType(SpecialType.System_Int32));
             var conversion = compilation.Conversions.ClassifyConversionFromExpression(

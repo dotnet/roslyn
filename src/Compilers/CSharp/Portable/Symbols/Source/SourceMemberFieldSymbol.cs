@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            CompoundUseSiteInfo useSiteInfo = default;
+            if (!this.IsNoMoreVisibleThan(type, ref useSiteInfo))
             {
                 // Inconsistent accessibility: field type '{1}' is less accessible than field '{0}'
                 diagnostics.Add(ErrorCode.ERR_BadVisFieldType, this.ErrorLocation, this, type);
             }
 
-            diagnostics.Add(this.ErrorLocation, useSiteDiagnostics);
+            diagnostics.Add(this.ErrorLocation, useSiteInfo.Diagnostics); // TODO:
         }
 
         public abstract bool HasInitializer { get; }
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (@event.IsWindowsRuntimeEvent)
                 {
                     NamedTypeSymbol tokenTableType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T, recordUsage: true);
-                    Binder.ReportUseSiteDiagnostics(tokenTableType, diagnosticsForFirstDeclarator, this.ErrorLocation);
+                    Binder.ReportUseSiteDiagnostics(this.DeclaringCompilation, tokenTableType, diagnosticsForFirstDeclarator, this.ErrorLocation, recordUsage: true);
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
                     // type that has additional generic constraints?
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
             if (!IsFixedSizeBuffer)
             {
-                Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
+                Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics, recordUsage: true);
             }
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);

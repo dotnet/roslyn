@@ -250,9 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
-                _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
+                Binder.ReportUseSite(_compilation, forEachSyntax, useSiteInfo, _diagnostics, recordUsage: true);
             }
 
             Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,

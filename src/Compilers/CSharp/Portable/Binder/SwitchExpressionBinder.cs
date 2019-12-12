@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             defaultLabel = new GeneratedLabelSymbol("default");
-            decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
+            decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics, recordusage: !IsSemanticModelBinder);
             var reachableLabels = decisionDag.ReachableLabels;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             seenTypes.Free();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
+            CompoundUseSiteInfo useSiteInfo = default;
+            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteInfo);
             typesInOrder.Free();
 
             // We've found a candidate common type among those arms that have a type.  Also check that every arm's
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var @case in switchCases)
                 {
-                    if (!this.Conversions.ClassifyImplicitConversionFromExpression(@case.Value, commonType, ref useSiteDiagnostics).Exists)
+                    if (!this.Conversions.ClassifyImplicitConversionFromExpression(@case.Value, commonType, ref useSiteInfo).Exists)
                     {
                         commonType = null;
                         break;
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
+            ReportUseSite(SwitchExpressionSyntax, useSiteInfo, diagnostics);
             return commonType;
         }
 

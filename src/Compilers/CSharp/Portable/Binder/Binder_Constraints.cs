@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Constraints are checked for invalid types, duplicate types, and accessibility. 
         /// </summary>
-        private static void RemoveInvalidConstraints(
+        private void RemoveInvalidConstraints(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ArrayBuilder<TypeParameterConstraintClause> constraintClauses,
             ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>> syntaxNodes,
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypeParameterConstraintClause RemoveInvalidConstraints(
+        private TypeParameterConstraintClause RemoveInvalidConstraints(
             TypeParameterSymbol typeParameter,
             TypeParameterConstraintClause constraintClause,
             ArrayBuilder<TypeConstraintSyntax> syntaxNodesOpt,
@@ -375,19 +375,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constraintClause;
         }
 
-        private static void CheckConstraintTypeVisibility(
+        private void CheckConstraintTypeVisibility(
             Symbol containingSymbol,
             Location location,
             TypeWithAnnotations constraintType,
             DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
+            CompoundUseSiteInfo useSiteInfo = default;
+            if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteInfo))
             {
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
-            diagnostics.Add(location, useSiteDiagnostics);
+            ReportUseSite(location, useSiteInfo, diagnostics);
         }
 
         /// <summary>

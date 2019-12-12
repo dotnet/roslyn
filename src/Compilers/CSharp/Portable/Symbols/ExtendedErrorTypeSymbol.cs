@@ -115,14 +115,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _unreported; }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
             if (_unreported)
             {
-                return this.ErrorInfo;
+                return new UseSiteInfo(this.ErrorInfo);
             }
 
-            return null;
+            return default;
         }
 
         public override int Arity

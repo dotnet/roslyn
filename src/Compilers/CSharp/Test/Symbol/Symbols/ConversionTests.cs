@@ -167,18 +167,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                         { Xrf, Irf, Xrf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Idn },
             };
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var unused = CompoundUseSiteInfo.Discarded;
 
             for (int i = 0; i < types.Length; ++i)
             {
                 for (int j = 0; j < types.Length; ++j)
                 {
                     var kind = conversions[i, j];
-                    var result = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics);
+                    var result = c.ClassifyConversionFromType(types[j], types[i], ref unused);
                     //Assert.Equal doesn't allow a string explanation, so provide one this way.
                     if (kind != result.Kind)
                     {
-                        var result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
+                        var result2 = c.ClassifyConversionFromType(types[j], types[i], ref unused); // set breakpoint here if this test is failing...
                         Assert.True(false, string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
                     }
                 }
@@ -309,16 +309,16 @@ class C
             Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
 
             var conv = new BuckStopsHereBinder(compilation).Conversions;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var unused = CompoundUseSiteInfo.Discarded;
 
             // no custom modifiers to custom modifiers
-            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArray, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
+            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArray, typeIntArrayWithCustomModifiers, ref unused).Kind);
 
             // custom modifiers to no custom modifiers
-            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArrayWithCustomModifiers, typeIntArray, ref useSiteDiagnostics).Kind);
+            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArrayWithCustomModifiers, typeIntArray, ref unused).Kind);
 
             // custom modifiers to custom modifiers
-            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArrayWithCustomModifiers, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
+            Assert.Equal(ConversionKind.Identity, conv.ClassifyConversionFromType(typeIntArrayWithCustomModifiers, typeIntArrayWithCustomModifiers, ref unused).Kind);
         }
 
         [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]

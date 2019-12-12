@@ -1854,7 +1854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (baseType.SpecialType == SpecialType.System_Object)
                 {
-                    return GenerateBaseParameterlessConstructorInitializer(constructor, diagnostics);
+                    return GenerateBaseParameterlessConstructorInitializer(compilation, constructor, diagnostics, recordUsage: true);
                 }
                 else if (baseType.IsErrorType() || baseType.IsStatic)
                 {
@@ -1909,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
         }
 
-        internal static BoundCall GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
+        internal static BoundCall GenerateBaseParameterlessConstructorInitializer(CSharpCompilation compilation, MethodSymbol constructor, DiagnosticBag diagnostics, bool recordUsage)
         {
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
             MethodSymbol baseConstructor = null;
@@ -1932,25 +1932,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (Binder.ReportUseSiteDiagnostics(baseConstructor, diagnostics, diagnosticsLocation))
+            if (Binder.ReportUseSiteDiagnostics(compilation, baseConstructor, diagnostics, diagnosticsLocation, recordUsage))
             {
                 return null;
             }
 
             // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
             bool hasErrors = false;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!AccessCheck.IsSymbolAccessible(baseConstructor, constructor.ContainingType, ref useSiteDiagnostics))
+            CompoundUseSiteInfo useSiteInfo = default;
+            if (!AccessCheck.IsSymbolAccessible(baseConstructor, constructor.ContainingType, ref useSiteInfo))
             {
                 diagnostics.Add(ErrorCode.ERR_BadAccess, diagnosticsLocation, baseConstructor);
                 resultKind = LookupResultKind.Inaccessible;
                 hasErrors = true;
             }
 
-            if (!useSiteDiagnostics.IsNullOrEmpty())
-            {
-                diagnostics.Add(diagnosticsLocation, useSiteDiagnostics);
-            }
+            Binder.ReportUseSite(compilation, diagnosticsLocation, useSiteInfo, diagnostics, recordUsage);
 
             CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             {
                 var typeSymbol = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String);
 
-                DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+                UseSiteInfo info = typeSymbol.GetUseSiteInfo();
 
                 if (typeSymbol.IsErrorType())
                 {
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
                 if (TypeSymbol.Equals(Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything2))
                 {
-                    if (info != null)
+                    if (info.DiagnosticInfo != null)
                     {
-                        Symbol.ReportUseSiteDiagnostic(info,
+                        Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo,
                                                        diagnostics,
                                                        syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
                     }
@@ -71,22 +71,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             if ((object)lazyMethod == (object)ErrorMethodSymbol.UnknownMethod)
             {
-                DiagnosticInfo info;
+                UseSiteInfo.Builder info;
                 var symbol = (MethodSymbol)Binder.GetWellKnownTypeMemberWithoutRecordingUsage(ModuleBeingBuilt.Compilation,
                                                                          member,
                                                                          out info,
                                                                          isOptional: false);
 
-                if (info != null && info.Severity == DiagnosticSeverity.Error)
+                if (info.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
                 {
                     symbol = null;
                 }
 
                 if (Interlocked.CompareExchange(ref lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) == ErrorMethodSymbol.UnknownMethod)
                 {
-                    if (info != null)
+                    if (info.DiagnosticInfo != null)
                     {
-                        Symbol.ReportUseSiteDiagnostic(info,
+                        Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo,
                                                        diagnostics,
                                                        syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
                     }

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
             LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
-                this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
+                this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics, recordUsage: !IsSemanticModelBinder);
             if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenTrueLabel))
             {
                 diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the expression does not have a constant value, an error will be reported in the caller
                 if (!hasErrors && expression.ConstantValue is object)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    CompoundUseSiteInfo useSiteInfo = default;
                     if (expression.ConstantValue == ConstantValue.Null)
                     {
                         if (inputType.IsNonNullableValueType())
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
                     }
-                    else if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteDiagnostics, out _, operandConstantValue: null) == false)
+                    else if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteInfo, out _, operandConstantValue: null) == false)
                     {
                         diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, inputType, expression.Display);
                         hasErrors = true;
@@ -220,14 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var requiredVersion = MessageID.IDS_FeatureRecursivePatterns.RequiredVersion();
                         if (Compilation.LanguageVersion < requiredVersion &&
-                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, ref useSiteDiagnostics).IsImplicit)
+                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, ref useSiteInfo).IsImplicit)
                         {
                             diagnostics.Add(ErrorCode.ERR_ConstantPatternVsOpenType,
                                 expression.Syntax.Location, inputType, expression.Display, new CSharpRequiredLanguageVersion(requiredVersion));
                         }
                     }
 
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    ReportUseSite(node, useSiteInfo, diagnostics);
                 }
             }
             else
@@ -312,10 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                CompoundUseSiteInfo useSiteInfo = default;
                 bool? matchPossible = ExpressionOfTypeMatchesPatternType(
-                    Conversions, inputType, patternType, ref useSiteDiagnostics, out Conversion conversion, operandConstantValue: null, operandCouldBeNull: true);
-                diagnostics.Add(typeSyntax, useSiteDiagnostics);
+                    Conversions, inputType, patternType, ref useSiteInfo, out Conversion conversion, operandConstantValue: null, operandCouldBeNull: true);
+                ReportUseSite(typeSyntax, useSiteInfo, diagnostics);
                 if (matchPossible != false)
                 {
                     if (!conversion.Exists && (inputType.ContainsTypeParameter() || patternType.ContainsTypeParameter()))
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             TypeSymbol expressionType,
             TypeSymbol patternType,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo useSiteInfo,
             out Conversion conversion,
             ConstantValue operandConstantValue = null,
             bool operandCouldBeNull = false)
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
             }
 
-            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteDiagnostics);
+            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteInfo);
             ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
             return
                 (result == null) ? (bool?)null :
@@ -802,9 +802,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasBaseInterface(TypeSymbol type, NamedTypeSymbol possibleBaseInterface)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, ref useSiteDiagnostics).IsImplicit;
-                diagnostics.Add(node, useSiteDiagnostics);
+                CompoundUseSiteInfo useSiteInfo = default;
+                var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, ref useSiteInfo).IsImplicit;
+                ReportUseSite(node, useSiteInfo, diagnostics);
                 return result;
             }
         }

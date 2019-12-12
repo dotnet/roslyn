@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
 
-                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics, recordUsage: true);
             }
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var @interface in set)
                     {
-                        @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                        @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics, recordUsage: true);
                     }
 
                     if (set.Count > 1)
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
 
             if ((object)baseType != null)
             {
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
                 }
 
-                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteDiagnostics))
+                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var i in baseInterfacesRO)
                 {
-                    if (!i.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                    if (!i.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                     {
                         // Inconsistent accessibility: base interface '{1}' is less accessible than interface '{0}'
                         diagnostics.Add(ErrorCode.ERR_BadVisBaseInterface, interfaceLocations[i], this, i);
@@ -335,7 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             interfaceLocations.Free();
 
-            diagnostics.Add(Locations[0], useSiteDiagnostics);
+            Binder.ReportUseSite(DeclaringCompilation,
+                                 useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : Locations[0],
+                                 useSiteInfo, diagnostics, recordUsage: true);
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
         }
@@ -588,25 +590,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                CompoundUseSiteInfo useSiteInfo = default;
 
                 if (t.DeclaringCompilation != this.DeclaringCompilation)
                 {
-                    t.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    t.AddUseSiteDiagnostics(ref useSiteInfo);
 
                     foreach (var @interface in t.AllInterfacesNoUseSiteDiagnostics)
                     {
                         if (@interface.DeclaringCompilation != this.DeclaringCompilation)
                         {
-                            @interface.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                            @interface.AddUseSiteDiagnostics(ref useSiteInfo);
                         }
                     }
                 }
 
-                if (!useSiteDiagnostics.IsNullOrEmpty())
-                {
-                    diagnostics.Add(Locations[0], useSiteDiagnostics);
-                }
+                Binder.ReportUseSite(DeclaringCompilation,
+                                     useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : Locations[0],
+                                     useSiteInfo, diagnostics, recordUsage: true);
             }
 
             return isClass ? declaredInterfaces : result.ToImmutableAndFree();
@@ -665,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.SetKnownToHaveNoDeclaredBaseCycles();
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo useSiteInfo = default;
             NamedTypeSymbol current = declaredBase;
 
             do
@@ -675,15 +676,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
 
-                current.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                current.AddUseSiteDiagnostics(ref useSiteInfo);
                 current = current.BaseTypeNoUseSiteDiagnostics;
             }
             while ((object)current != null);
 
-            if (!useSiteDiagnostics.IsNullOrEmpty())
-            {
-                diagnostics.Add(FindBaseRefSyntax(declaredBase) ?? Locations[0], useSiteDiagnostics);
-            }
+            Binder.ReportUseSite(DeclaringCompilation,
+                                 useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : (FindBaseRefSyntax(declaredBase) ?? Locations[0]),
+                                 useSiteInfo, diagnostics, recordUsage: true);
 
             return declaredBase;
         }

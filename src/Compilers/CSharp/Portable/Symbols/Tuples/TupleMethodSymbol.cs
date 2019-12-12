@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo GetUseSiteInfo()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
-            MergeUseSiteDiagnostics(ref result, _underlyingMethod.GetUseSiteDiagnostic());
-            return result;
+            UseSiteInfo.Builder result = base.GetUseSiteInfo();
+            MergeUseSiteDiagnostics(ref result, _underlyingMethod.GetUseSiteInfo());
+            return new UseSiteInfo(result);
         }
 
         public override int GetHashCode()

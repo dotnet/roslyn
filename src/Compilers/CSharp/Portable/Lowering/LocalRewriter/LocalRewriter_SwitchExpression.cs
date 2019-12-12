@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
                 {
-                    HashSet<DiagnosticInfo> discarded = null;
+                    var discarded = CompoundUseSiteInfo.Discarded;
                     Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discarded);
                     return c.IsImplicit;
                 }

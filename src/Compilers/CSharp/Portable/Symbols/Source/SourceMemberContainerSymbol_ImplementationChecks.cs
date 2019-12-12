@@ -255,7 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             // Suppress for bogus properties and events and for indexed properties.
                                             if (!interfaceMember.MustCallMethodsDirectly() && !interfaceMember.IsIndexedProperty())
                                             {
-                                                DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteDiagnostic();
+                                                DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteInfo().DiagnosticInfo;
+
+                                                // TODO: Record dependencies
 
                                                 if (useSiteDiagnostic != null && useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                                                 {
@@ -291,7 +293,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 if ((object)synthesizedImplementation != null || TypeSymbol.Equals(implementingMember.ContainingType, this, TypeCompareKind.ConsiderEverything2))
                                 {
-                                    DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteDiagnostic();
+                                    DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteInfo().DiagnosticInfo;
+
+                                    // TODO: Record dependencies
+
                                     // CAVEAT: don't report ERR_ByRefReturnUnsupported since by-ref return types are 
                                     // specifically allowed for the purposes of interface implementation (for C++ interop).
                                     // However, if there's a reference to the interface member in source, then we do want
@@ -326,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // will fall back and use the first derived interface if exact interface is not present.
             // this is the similar logic as the VB implementation.
             Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[implementedInterface].Contains(implementedInterface));
-            HashSet<DiagnosticInfo> unuseddiagnostics = null;
+            var unused = CompoundUseSiteInfo.Discarded;
 
             NamedTypeSymbol directInterface = null;
             foreach (var iface in this.InterfacesNoUseSiteDiagnostics())
@@ -336,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     directInterface = iface;
                     break;
                 }
-                else if ((object)directInterface == null && iface.ImplementsInterface(implementedInterface, ref unuseddiagnostics))
+                else if ((object)directInterface == null && iface.ImplementsInterface(implementedInterface, ref unused))
                 {
                     directInterface = iface;
                 }
@@ -671,9 +676,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool isAccessible = AccessCheck.IsSymbolAccessible(hiddenMember, this, ref useSiteDiagnostics);
-                    diagnostics.Add(symbolLocation, useSiteDiagnostics);
+                    CompoundUseSiteInfo useSiteInfo = default;
+                    bool isAccessible = AccessCheck.IsSymbolAccessible(hiddenMember, this, ref useSiteInfo);
+                    Binder.ReportUseSite(DeclaringCompilation, symbolLocation, useSiteInfo, diagnostics, recordUsage: true);
 
                     if (isAccessible && hiddenMember.GetMemberArity() == symbolArity)
                     {
@@ -800,8 +805,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var overriddenMember = overriddenMembers[0];
 
                     //otherwise, it would have been excluded during lookup
-                    HashSet<DiagnosticInfo> useSiteDiagnosticsNotUsed = null;
-                    Debug.Assert(AccessCheck.IsSymbolAccessible(overriddenMember, overridingType, ref useSiteDiagnosticsNotUsed));
+                    var useSiteInfoNotUsed = CompoundUseSiteInfo.Discarded;
+                    Debug.Assert(AccessCheck.IsSymbolAccessible(overriddenMember, overridingType, ref useSiteInfoNotUsed));
 
                     Debug.Assert(overriddenMember.Kind == overridingMember.Kind);
 
@@ -919,19 +924,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (overridingProperty.IsSealed)
                             {
                                 MethodSymbol ownOrInheritedGetMethod = overridingProperty.GetOwnOrInheritedGetMethod();
-                                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                                if (overridingProperty.GetMethod != ownOrInheritedGetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedGetMethod, overridingType, ref useSiteDiagnostics))
+                                CompoundUseSiteInfo useSiteInfo = default;
+                                if (overridingProperty.GetMethod != ownOrInheritedGetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedGetMethod, overridingType, ref useSiteInfo))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_NoGetToOverride, overridingMemberLocation, overridingProperty, overriddenProperty);
                                 }
 
                                 MethodSymbol ownOrInheritedSetMethod = overridingProperty.GetOwnOrInheritedSetMethod();
-                                if (overridingProperty.SetMethod != ownOrInheritedSetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedSetMethod, overridingType, ref useSiteDiagnostics))
+                                if (overridingProperty.SetMethod != ownOrInheritedSetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedSetMethod, overridingType, ref useSiteInfo))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_NoSetToOverride, overridingMemberLocation, overridingProperty, overriddenProperty);
                                 }
 
-                                diagnostics.Add(overridingMemberLocation, useSiteDiagnostics);
+                                Binder.ReportUseSite(overridingMember.DeclaringCompilation, overridingMemberLocation, useSiteInfo, diagnostics, recordUsage: true);
                             }
                         }
                         else if (overridingMemberIsEvent)
@@ -1006,10 +1011,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // NOTE: this error may be redundant (if an error has already been reported
                         // for the return type or parameter type in question), but the scenario is
                         // too rare to justify complicated checks.
-                        DiagnosticInfo useSiteDiagnostic = overriddenMember.GetUseSiteDiagnostic();
-                        if (useSiteDiagnostic != null)
+                        if (Binder.ReportUseSiteDiagnostics(overridingMember.DeclaringCompilation, overriddenMember, diagnostics, overridingMember.Locations[0], recordUsage: true))
                         {
-                            suppressAccessors = ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, overridingMember.Locations[0]);
+                            suppressAccessors = true;
                         }
                     }
                 }

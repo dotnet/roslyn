@@ -31,19 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TypeConversions(corLibrary, currentRecursionDepth, includeNullability, this);
         }
 
-        public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo useSiteInfo)
         {
             // Conversions involving method groups require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo useSiteInfo)
         {
             // Conversions involving stackalloc expressions require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo useSiteInfo)
         {
             // Conversions involving interpolated strings require a Binder.
             throw ExceptionUtilities.Unreachable;
