@@ -88,6 +88,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
+        private static void RunTest(int expectedDepth, Action<int> runTest)
+        {
+            if (runTestAndCatch(expectedDepth))
+            {
+                return;
+            }
+
+            int minDepth = 0;
+            int maxDepth = expectedDepth;
+            int actualDepth;
+            while (true)
+            {
+                int depth = (maxDepth - minDepth) / 2 + minDepth;
+                if (depth <= minDepth)
+                {
+                    actualDepth = minDepth;
+                    break;
+                }
+                if (depth >= maxDepth)
+                {
+                    actualDepth = maxDepth;
+                    break;
+                }
+                if (runTestAndCatch(depth))
+                {
+                    minDepth = depth;
+                }
+                else
+                {
+                    maxDepth = depth;
+                }
+            }
+            Assert.Equal(expectedDepth, actualDepth);
+
+            bool runTestAndCatch(int depth)
+            {
+                try
+                {
+                    runTest(depth);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]

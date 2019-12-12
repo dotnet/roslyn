@@ -223,11 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxListBuilder modifiers)
         {
-            _recursionDepth++;
-            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-            var result = ParseNamespaceDeclarationCore(attributeLists, modifiers);
-            _recursionDepth--;
-            return result;
+            return StackGuard.Execute(
+                ref _recursionDepth,
+                parser => parser.ThrowOnInsufficientExecutionStack,
+                (LanguageParser parser, (SyntaxList<AttributeListSyntax>, SyntaxListBuilder) attributesAndModifiers) => parser.ParseNamespaceDeclarationCore(attributesAndModifiers.Item1, attributesAndModifiers.Item2),
+                this,
+                (attributeLists, modifiers));
         }
 
         private NamespaceDeclarationSyntax ParseNamespaceDeclarationCore(
@@ -1916,11 +1917,12 @@ tryAgain:
         // Returns null if we can't parse anything (even partially).
         internal MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind)
         {
-            _recursionDepth++;
-            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-            var result = ParseMemberDeclarationOrStatementCore(parentKind);
-            _recursionDepth--;
-            return result;
+            return StackGuard.Execute(
+                ref _recursionDepth,
+                parser => parser.ThrowOnInsufficientExecutionStack,
+                (LanguageParser parser, SyntaxKind parentKind) => parser.ParseMemberDeclarationOrStatementCore(parentKind),
+                this,
+                parentKind);
         }
 
         // Returns null if we can't parse anything (even partially).
@@ -6293,36 +6295,36 @@ done:;
 
         private StatementSyntax ParseStatementCore()
         {
-            try
+            return StackGuard.Execute(
+                ref _recursionDepth,
+                parser => parser.ThrowOnInsufficientExecutionStack,
+                (parser, _) => parser.ParseStatementCoreCore(),
+                this,
+                (object)null);
+        }
+
+        private StatementSyntax ParseStatementCoreCore()
+        {
+            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
             {
-                _recursionDepth++;
-                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-
-                if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
-                {
-                    return (StatementSyntax)this.EatNode();
-                }
-
-                // First, try to parse as a non-declaration statement. If the statement is a single
-                // expression then we only allow legal expression statements. (That is, "new C();",
-                // "C();", "x = y;" and so on.)
-
-                StatementSyntax result = ParseStatementNoDeclaration(allowAnyExpression: false);
-                if (result != null)
-                {
-                    return result;
-                }
-
-                // We could not successfully parse the statement as a non-declaration. Try to parse
-                // it as either a declaration or as an "await X();" statement that is in a non-async
-                // method. 
-
-                return ParsePossibleDeclarationOrBadAwaitStatement();
+                return (StatementSyntax)this.EatNode();
             }
-            finally
+
+            // First, try to parse as a non-declaration statement. If the statement is a single
+            // expression then we only allow legal expression statements. (That is, "new C();",
+            // "C();", "x = y;" and so on.)
+
+            StatementSyntax result = ParseStatementNoDeclaration(allowAnyExpression: false);
+            if (result != null)
             {
-                _recursionDepth--;
+                return result;
             }
+
+            // We could not successfully parse the statement as a non-declaration. Try to parse
+            // it as either a declaration or as an "await X();" statement that is in a non-async
+            // method. 
+
+            return ParsePossibleDeclarationOrBadAwaitStatement();
         }
 
         private StatementSyntax ParsePossibleDeclarationOrBadAwaitStatement()
@@ -11459,6 +11461,8 @@ tryAgain:
         }
 
         private bool IsStrict => this.Options.Features.ContainsKey("strict");
+
+        private bool ThrowOnInsufficientExecutionStack => this.Options.Features.ContainsKey("ThrowOnInsufficientExecutionStack");
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
         private new bool IsIncremental
