@@ -73,7 +73,14 @@ class OtherClassName { }
         End Function
 
         <Fact>
-        Public Function TestRefactor_NoRename() As Task
+        Public Function TestRefactorSingleClass_CaseInsensitive() As Task
+            Return TestDocumentRefactoring("
+class test1 { }
+            ")
+        End Function
+
+        <Fact>
+        Public Function TestRefactorSingleClass_NoRename() As Task
             Return TestDocumentRefactoring("
 class DifferentNamedClass { }
             ", expectMatchingName:=False)
