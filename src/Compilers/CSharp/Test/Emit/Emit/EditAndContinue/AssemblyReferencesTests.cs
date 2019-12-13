@@ -411,8 +411,11 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module 'C'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+                // error CS7038: Failed to emit module 'C': Changing the version of an assembly reference is not allowed during debugging: 
+                // 'Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null' changed version to '1.0.2000.1002'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C",
+                    string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")));
         }
 
         [WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
@@ -486,10 +489,12 @@ class C
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
-            // TODO: message should be: Changing the version of an assembly reference is not allowed during debugging
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module 'C'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+                // error CS7038: Failed to emit module 'C': Changing the version of an assembly reference is not allowed during debugging: 
+                // 'Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null' changed version to '1.0.0.2'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C",
+                    string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.0.2")));
         }
 
         private void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)

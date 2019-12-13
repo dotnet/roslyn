@@ -6973,7 +6973,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to emit module &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Failed to emit module &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ERR_ModuleEmitFailure {
             get {
@@ -15760,24 +15760,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullReferenceInitializer_Title {
             get {
                 return ResourceManager.GetString("WRN_NullReferenceInitializer_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable_Title", resourceCulture);
             }
         }
         

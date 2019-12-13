@@ -571,7 +571,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var compilation = binder.Compilation;
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
+#if DEBUG
+                // Always run analysis in debug builds so that we can more reliably catch
+                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
+                diagnostics = new DiagnosticBag();
+#else
                 return;
+#endif
             }
 
             Analyze(
@@ -887,6 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             case ConversionKind.Identity:
+                            case ConversionKind.DefaultLiteral:
                             case ConversionKind.ImplicitReference:
                             case ConversionKind.ExplicitReference:
                             case ConversionKind.ImplicitTupleLiteral:
@@ -1083,27 +1090,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (useLegacyWarnings &&
-                valueType.Type?.TypeKind == TypeKind.TypeParameter &&
-                valueType.State == NullableFlowState.MaybeDefault)
-            {
-                // No W warning reported assigning or casting [MaybeNull]T value to T
-                // because there is no syntax for declaring the target type as [MaybeNull]T.
-                return;
-            }
-
-            if (value.ConstantValue?.IsNull == true)
+            if (value.ConstantValue?.IsNull == true && !useLegacyWarnings)
             {
                 // Report warning converting null literal to non-nullable reference type.
                 // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
-                if (useLegacyWarnings)
-                {
-                    ReportNonSafetyDiagnostic(location);
-                }
-                else
-                {
-                    ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
-                }
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
             }
             else if (assignmentKind == AssignmentKind.Argument)
             {
@@ -1113,11 +1104,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (useLegacyWarnings)
             {
+                if (isMaybeDefaultValue(valueType))
+                {
+                    // No W warning reported assigning or casting [MaybeNull]T value to T
+                    // because there is no syntax for declaring the target type as [MaybeNull]T.
+                    return;
+                }
                 ReportNonSafetyDiagnostic(location);
             }
             else
             {
-                ReportDiagnostic(assignmentKind switch { AssignmentKind.Return => ErrorCode.WRN_NullReferenceReturn, AssignmentKind.ForEachIterationVariable => ErrorCode.WRN_NullReferenceIterationVariable, _ => ErrorCode.WRN_NullReferenceAssignment }, location);
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, location);
+            }
+
+            static bool isMaybeDefaultValue(TypeWithState valueType)
+            {
+                return valueType.Type?.TypeKind == TypeKind.TypeParameter &&
+                    valueType.State == NullableFlowState.MaybeDefault;
             }
         }
 
@@ -1865,14 +1868,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializerOpt != null)
             {
-                VisitObjectCreationInitializer(null, slot, initializerOpt);
+                VisitObjectCreationInitializer(containingSymbol: null, slot, initializerOpt, leftAnnotations: FlowAnalysisAnnotations.None);
             }
 
             SetResultType(node, TypeWithState.Create(type, resultState));
         }
 #nullable restore
 
-        private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
+        private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node, FlowAnalysisAnnotations leftAnnotations)
         {
             TakeIncrementalSnapshot(node);
             switch (node)
@@ -1913,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert((object)containingSymbol != null);
                     if ((object)containingSymbol != null)
                     {
-                        var type = containingSymbol.GetTypeOrReturnType();
+                        var type = ApplyLValueAnnotations(containingSymbol.GetTypeOrReturnType(), leftAnnotations);
                         TypeWithState resultType = VisitOptionalImplicitConversion(node, type, useLegacyWarnings: false, trackMembers: true, AssignmentKind.Assignment);
                         TrackNullableStateForAssignment(node, type, containingSlot, resultType, MakeSlot(node));
                     }
@@ -1951,7 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)symbol != null)
                         {
                             int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
-                            VisitObjectCreationInitializer(symbol, slot, node.Right);
+                            VisitObjectCreationInitializer(symbol, slot, node.Right, GetLValueAnnotations(node.Left));
                             // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
                             // and using that value instead of reconstructing here
                         }
@@ -3603,7 +3606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (method is object && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
+            if (!IsAnalyzingAttribute && method is object && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
             {
                 SetUnreachable();
             }
@@ -6010,6 +6013,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPropertyAccess property => getSetterAnnotations(property.PropertySymbol),
                 BoundIndexerAccess indexer => getSetterAnnotations(indexer.Indexer),
                 BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
+                BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => getSetterAnnotations(prop),
+                BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
                 _ => FlowAnalysisAnnotations.None
             };
 
@@ -6890,6 +6895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             TypeWithAnnotations sourceType;
+            FlowAnalysisAnnotations sourceAnnotations = FlowAnalysisAnnotations.None;
             if (node.EnumeratorInfoOpt == null)
             {
                 sourceType = default;
@@ -6917,12 +6923,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // set by VisitForEachExpression, called just before this.
                     Debug.Assert(ResultType.Type.Equals(node.EnumeratorInfoOpt.CollectionType, TypeCompareKind.AllNullableIgnoreOptions));
                     var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(inferredCollectionType, node.EnumeratorInfoOpt.GetEnumeratorMethod);
-                    var currentProperty = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
-                    sourceType = currentProperty.ReturnTypeWithAnnotations;
+                    var currentPropertyGetter = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
+                    sourceType = currentPropertyGetter.ReturnTypeWithAnnotations;
+                    sourceAnnotations = currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations;
                 }
             }
 
-            TypeWithState sourceState = sourceType.ToTypeWithState();
+            TypeWithState sourceState = ApplyUnconditionalAnnotations(sourceType.ToTypeWithState(), sourceAnnotations);
 
 #pragma warning disable IDE0055 // Fix formatting
             var variableLocation = node.Syntax switch
@@ -6983,7 +6990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sourceState,
                                 checkConversion: true,
                                 fromExplicitCast: !conversion.IsImplicit,
-                                useLegacyWarnings: false,
+                                useLegacyWarnings: true,
                                 AssignmentKind.ForEachIterationVariable,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,

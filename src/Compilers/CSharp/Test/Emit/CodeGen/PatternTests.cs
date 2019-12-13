@@ -3805,8 +3805,8 @@ class Program
 }
 class A
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
-    public static implicit operator B(A a) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static implicit operator B(A a) => new B();
 }
 class B
 {
@@ -3815,7 +3815,7 @@ class B
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var expectedOutput = @"42";
+            var expectedOutput = @"22";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -3838,8 +3838,8 @@ class Program
 }
 class A
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
-    public static implicit operator B(A a) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static implicit operator B(A a) => new B();
 }
 class B
 {
@@ -3848,7 +3848,7 @@ class B
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var expectedOutput = @"42";
+            var expectedOutput = @"22";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -3874,12 +3874,12 @@ class Program
 }
 class A : Exception
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator int(A a) => throw null;
     public static implicit operator B(A a) => throw null;
 }
 class B : Exception
 {
-    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+    public static implicit operator int(B b) => throw null;
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
@@ -3912,8 +3912,8 @@ class Program
 }
 class A : Exception
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
-    public static implicit operator B(A a) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static implicit operator B(A a) => new B();
 }
 class B : Exception
 {
@@ -3922,7 +3922,7 @@ class B : Exception
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var expectedOutput = @"42";
+            var expectedOutput = @"22";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

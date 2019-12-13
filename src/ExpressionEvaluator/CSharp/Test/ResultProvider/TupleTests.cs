@@ -203,16 +203,16 @@ class C
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("_1", "{System.ValueTuple<int>}", "object {System.ValueTuple<int>}", "o._1", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_2", "(1, 2)", "object {(int, int)}", "o._2", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_3", "(1, 2, 3)", "object {(int, int, int)}", "o._3", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_4", "(1, 2, 3, 4)", "object {(int, int, int, int)}", "o._4", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_5", "(1, 2, 3, 4, 5)", "object {(int, int, int, int, int)}", "o._5", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_6", "(1, 2, 3, 4, 5, 6)", "object {(int, int, int, int, int, int)}", "o._6", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_7", "(1, 2, 3, 4, 5, 6, 7)", "object {(int, int, int, int, int, int, int)}", "o._7", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_8", "(1, 2, 3, 4, 5, 6, 7, 8)", "object {(int, int, int, int, int, int, int, int)}", "o._8", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_8A", "{System.ValueTuple<int, int, int, int, int, int, int, int>}", "object {System.ValueTuple<int, int, int, int, int, int, int, int>}", "o._8A", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_9", "(1, 2, 3, 4, 5, 6, 7, 8, 9)", "object {(int, int, int, int, int, int, int, int, int)}", "o._9", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("_1", "{System.ValueTuple<int>}", "object {System.ValueTuple<int>}", "o._1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_2", "(1, 2)", "object {(int, int)}", "o._2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_3", "(1, 2, 3)", "object {(int, int, int)}", "o._3", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_4", "(1, 2, 3, 4)", "object {(int, int, int, int)}", "o._4", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_5", "(1, 2, 3, 4, 5)", "object {(int, int, int, int, int)}", "o._5", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_6", "(1, 2, 3, 4, 5, 6)", "object {(int, int, int, int, int, int)}", "o._6", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_7", "(1, 2, 3, 4, 5, 6, 7)", "object {(int, int, int, int, int, int, int)}", "o._7", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_8", "(1, 2, 3, 4, 5, 6, 7, 8)", "object {(int, int, int, int, int, int, int, int)}", "o._8", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_8A", "{System.ValueTuple<int, int, int, int, int, int, int, int>}", "object {System.ValueTuple<int, int, int, int, int, int, int, int>}", "o._8A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_9", "(1, 2, 3, 4, 5, 6, 7, 8, 9)", "object {(int, int, int, int, int, int, int, int, int)}", "o._9", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -245,7 +245,7 @@ class C
                         "(0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f, 0x0010, 0x0011)",
                         "(short, short, short, short, short, short, short, short, short, short, short, short, short, short, short, short, short)",
                         "o._17",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0], inspectionContext);
                 Verify(children,
                     EvalResult("Item1", "0x0001", "short", "o._17.Item1"),
@@ -373,9 +373,9 @@ class C
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "{(int, int)}", "(int A, int B)", "o.F", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("G", "{(int, int, int)}", "(int, int, int C)", "o.G", DkmEvaluationResultFlags.Expandable), // expandable, but with no children
-                    EvalResult("H", "{(int, int, int, int, int, int, int, int, int)}", "(int, int B, int, int D, int, int F, int, int H, int)", "o.H", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("F", "{(int, int)}", "(int A, int B)", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "{(int, int, int)}", "(int, int, int C)", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite), // expandable, but with no children
+                    EvalResult("H", "{(int, int, int, int, int, int, int, int, int)}", "(int, int B, int, int D, int, int F, int, int H, int)", "o.H", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 var moreChildren = GetChildren(children[0]);
                 Verify(moreChildren,
                     EvalResult("A", "1", "int", "o.F.Item1"),
@@ -430,9 +430,9 @@ class C
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("_1", "(null, 0)", "(object, int)", "o._1", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_2", "(null, 0, null)", "(object, int, object)?", "o._2", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("_3", "{(object, int)[1]}", "(object, int)[]", "o._3", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("_1", "(null, 0)", "(object, int)", "o._1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_2", "(null, 0, null)", "(object, int, object)?", "o._2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("_3", "{(object, int)[1]}", "(object, int)[]", "o._3", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -462,13 +462,13 @@ class C
                         "(1, (2, 3))",
                         "(dynamic, (object, dynamic)) {(object, (object, object))}",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "G",
                         "(1, 2, 3, 4, 5, 6, {object[1]}, {object[1]})",
                         "(object, object, object, object, object, object, dynamic[], dynamic[]) {(object, object, object, object, object, object, object[], object[])}",
                         "o.G",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -499,7 +499,7 @@ class C
                         "((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12))",
                         "((int A, (int B, int C) D, int E, int F, int G, int H, int I, int J) K, (int L, int M, int N) O)",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -531,13 +531,13 @@ class C
                         "((1, (2, 3), 4, 5, 6, 7, 8, 9, 10, 11), (12, 13, 14))",
                         "((int A, (int B, int C) D, int, int F, int G, int, int I, int J, int K, int L) M, (int N, int, int P) Q)",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "G",
                         "{(int, (int, int)[], (object, object), (int, int, int, int, int, int, int, int, int))[1]}",
                         "(int A, (int B, int)[] C, (object, object), (int, int D, int E, int F, int G, int H, int I, int J, int) K)[]",
                         "o.G",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[1]);
                 Verify(children,
                     EvalResult(
@@ -578,11 +578,11 @@ class C
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "({System.ValueTuple<int>}, 2)", "(System.ValueTuple<int> A, int B)", "o.F", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("G", "(3, {System.ValueTuple<int>})", "(int A, System.ValueTuple<int> B)", "o.G", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("H", "{System.ValueTuple<(int, int)>}", "System.ValueTuple<(int A, int B)>", "o.H", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("I", "(7, {System.ValueTuple<(int, int)>})", "(int A, System.ValueTuple<(int B, int C)> D)", "o.I", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("J", "{C<(int, int)>}", "C<(int A, int B)>", "o.J"));
+                    EvalResult("F", "({System.ValueTuple<int>}, 2)", "(System.ValueTuple<int> A, int B)", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "(3, {System.ValueTuple<int>})", "(int A, System.ValueTuple<int> B)", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("H", "{System.ValueTuple<(int, int)>}", "System.ValueTuple<(int A, int B)>", "o.H", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("I", "(7, {System.ValueTuple<(int, int)>})", "(int A, System.ValueTuple<(int B, int C)> D)", "o.I", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("J", "{C<(int, int)>}", "C<(int A, int B)>", "o.J", DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -612,7 +612,7 @@ class C
                         "(1, {(int, object)[1]}, (4, 5), (6, 7, 8, 9, 10, 11, 12, 13, 14))",
                         "(dynamic A, (int B, dynamic C)[] D, dynamic E, (int F, dynamic G, int H, int I, int J, int K, int L, int M, int N) O) {(object, (int, object)[], object, (int, object, int, int, int, int, int, int, int))}",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -658,7 +658,7 @@ class C
                         "((({C1}, {C2}), ({C3}, {C4})), (({C5}, {C6}), ({C7}, {C8})), (({C9}, {C10}), ({C11}, {C12})))",
                         "(((C1 C1, dynamic C2) B1, (C3 C3, dynamic C4)) A1, (dynamic B3, (C7 C7, C8 C8) B4) A2, ((C9 C9, C10 C10), dynamic B6) A3) {(((C1, object), (C3, object)), (object, (C7, C8)), ((C9, C10), object))}",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -693,15 +693,15 @@ class C
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "{A<(object, object)[], (object, object[])>}", "A<(dynamic A, object B)[], (object C, dynamic[] D)> {A<(object, object)[], (object, object[])>}", "o.F", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("G", "{B<(object, B<(object, object)>.S)>}", "B<(object E, B<(object F, dynamic G)>.S H)> {B<(object, B<(object, object)>.S)>}", "o.G", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("F", "{A<(object, object)[], (object, object[])>}", "A<(dynamic A, object B)[], (object C, dynamic[] D)> {A<(object, object)[], (object, object[])>}", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "{B<(object, B<(object, object)>.S)>}", "B<(object E, B<(object F, dynamic G)>.S H)> {B<(object, B<(object, object)>.S)>}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 var moreChildren = GetChildren(children[0]);
                 Verify(moreChildren,
-                    EvalResult("F", "null", "(dynamic A, object B)[] {(object, object)[]}", "o.F.F"),
-                    EvalResult("G", "{(object, object[])[0]}", "(object C, dynamic[] D)[] {(object, object[])[]}", "o.F.G"));
+                    EvalResult("F", "null", "(dynamic A, object B)[] {(object, object)[]}", "o.F.F", DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "{(object, object[])[0]}", "(object C, dynamic[] D)[] {(object, object[])[]}", "o.F.G", DkmEvaluationResultFlags.CanFavorite));
                 moreChildren = GetChildren(children[1]);
                 Verify(moreChildren,
-                    EvalResult("F", "(null, (null, {B<(object, object)>.S}))", "(dynamic X, (object E, B<(object F, dynamic G)>.S H) Y) {(object, (object, B<(object, object)>.S))}", "o.G.F", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("F", "(null, (null, {B<(object, object)>.S}))", "(dynamic X, (object E, B<(object F, dynamic G)>.S H) Y) {(object, (object, B<(object, object)>.S))}", "o.G.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
                     EvalResult("X", "null", "dynamic {object}", "o.G.F.Item1"),
@@ -766,7 +766,7 @@ class B
                         "{A<((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))>}",
                         "A<((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11), (C1 C1, (C2 C2, dynamic C3) C4)> {A<((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))>}",
                         "o.G",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult(
@@ -774,7 +774,7 @@ class B
                         "({A1}, {A2}, ((null, null), null, null, null, null, null, null, null, null), {A4}, {A5}, (null, (null, null)), {A7}, {A8}, (((null, null), null, null, null, null, null, null, null, null), (null, (null, null))))",
                         "(dynamic A1, A2 A2, ((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A3, A4 A4, A5 A5, (C1 C1, (C2 C2, dynamic C3) C4) A6, A7 A7, A8 A8, (((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A9, (C1 C1, (C2 C2, dynamic C3) C4) A10) A11) {(object, A2, ((object, B2), B4, object, B6, B7, object, B9, B10, object), A4, A5, (C1, (C2, object)), A7, A8, (((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))))}",
                         "o.G.F",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -809,13 +809,13 @@ class B
                         "(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)",
                         "(int A, int B, int C, int D, int E, int F, int, int, int, int, int, int, int, int, int)",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "G",
                         "(0, 0, 0, 0, 0, 0, 0, 0, 0)",
                         "(int A, int B, int C, int D, int E, int F, int G, int H, int I)",
                         "o.G",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -960,7 +960,7 @@ class C
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "(null, null)", "(object Item2, object struct { })", "o.F", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("F", "(null, null)", "(object Item2, object struct { })", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("Item2", "null", "object", "o.F.Item1"),
@@ -1004,7 +1004,7 @@ class C
                         "(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)",
                         "(int One, int Two, int, int, int Five, int Six, int, int, int Nine, int Ten, int, int, int Thirteen, int Fourteen, int)",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("One", "0", "int", "o.F.Item1"),
@@ -1081,7 +1081,7 @@ class C
                         "(1, 2, (3, 4), 5, 6, 7, 8, 9)",
                         "(int A, int, (int C, int D) E, int, int, int H, int, int J)",
                         "o.T, raw",
-                        DkmEvaluationResultFlags.Expandable));
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0], inspectionContext);
                 Verify(children,
                     EvalResult("Item1", "1", "int", "o.T.Item1, raw"),
@@ -1127,7 +1127,7 @@ class async
                     EvalResult("o", "{async}", "async", "o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("_f", "(null, {namespace.struct})", "object {(async, namespace.struct)}", "o._f", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("_f", "(null, {namespace.struct})", "object {(async, namespace.struct)}", "o._f", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("Item1", "null", "async", "(((@async, @namespace.@struct))o._f).Item1"),
@@ -1218,7 +1218,7 @@ class B
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "({A}, {A})", "(A, A)", "o.F", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("F", "({A}, {A})", "(A, A)", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("Item1", "F=1", "A", "o.F.Item1", DkmEvaluationResultFlags.Expandable),
@@ -1263,7 +1263,7 @@ class B
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "(1, {System.InvalidOperationException: Unable to evaluate}, 3)", "(object A, int, int)", "o.F", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("F", "(1, {System.InvalidOperationException: Unable to evaluate}, 3)", "(object A, int, int)", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("A", "1", "object {int}", "o.F.Item1"),
@@ -1303,7 +1303,7 @@ class E : System.Exception
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown));
+                    EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children[1],
                     EvalResult("F", "(1, 2)", "(int, int B)", null, DkmEvaluationResultFlags.Expandable));

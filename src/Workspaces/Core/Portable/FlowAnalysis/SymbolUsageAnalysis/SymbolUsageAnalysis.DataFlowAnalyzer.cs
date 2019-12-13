@@ -179,6 +179,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         {
                             _analysisData.CurrentBlockAnalysisData.Clear(local);
                         }
+
+                        if (region.Kind == ControlFlowRegionKind.TryAndFinally)
+                        {
+                            // Locals defined in the outer regions of try/finally might be used in finally region.
+                            break;
+                        }
                     }
                 }
             }

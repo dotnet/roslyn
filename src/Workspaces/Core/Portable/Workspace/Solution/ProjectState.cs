@@ -435,13 +435,13 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<DocumentId> AnalyzerConfigDocumentIds => _analyzerConfigDocumentStates.Keys;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
+        public ImmutableSortedDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
+        public ImmutableSortedDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IImmutableDictionary<DocumentId, AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates => _analyzerConfigDocumentStates;
+        public ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates => _analyzerConfigDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
         {

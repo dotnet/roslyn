@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+            private readonly IPersistentStorageService _persistentStorageService;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
@@ -40,9 +42,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache, IPersistentStorageService persistentStorageService)
             {
                 _analyzerInfoCache = analyzerInfoCache;
+                _persistentStorageService = persistentStorageService;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
                 _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
@@ -211,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var opened = false;
                 foreach (var stateSet in stateSets)
                 {
-                    opened |= await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
+                    opened |= await stateSet.OnDocumentOpenedAsync(_persistentStorageService, document).ConfigureAwait(false);
                 }
 
                 return opened;
@@ -223,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var removed = false;
                 foreach (var stateSet in stateSets)
                 {
-                    removed |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
+                    removed |= await stateSet.OnDocumentClosedAsync(_persistentStorageService, document).ConfigureAwait(false);
                 }
 
                 return removed;

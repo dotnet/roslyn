@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -81,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // PERF: We need to flip this to false when we do actual diffing.
                     var avoidLoadingData = true;
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var existingData = await ProjectAnalysisData.CreateAsync(PersistentStorageService, project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
                     // We can't return here if we have open file only analyzers since saved data for open file only analyzer
                     // is incomplete -- it only contains info on open files rather than whole project.
-                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilation, project.Solution.Workspace))
+                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilation, project.Solution.Options))
                     {
                         return existingData;
                     }
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilation, Workspace workspace)
+        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilation, OptionSet options)
         {
             if (compilation == null)
             {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             foreach (var analyzer in compilation.Analyzers)
             {
-                if (analyzer.IsOpenFileOnly(workspace))
+                if (analyzer.IsOpenFileOnly(options))
                 {
                     return true;
                 }
@@ -265,13 +266,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             analyzers = default;
 
+            var options = project.Solution.Options;
+
             var existingAnalyzers = compilation.Analyzers;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             foreach (var analyzer in existingAnalyzers)
             {
                 if (existing.TryGetValue(analyzer, out var analysisResult) &&
                     analysisResult.Version == version &&
-                    !analyzer.IsOpenFileOnly(project.Solution.Workspace))
+                    !analyzer.IsOpenFileOnly(options))
                 {
                     // we already have up to date result.
                     continue;

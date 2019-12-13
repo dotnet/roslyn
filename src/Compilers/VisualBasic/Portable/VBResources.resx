@@ -816,7 +816,7 @@
     <value>'Sub New' cannot be declared 'Partial'.</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
-    <value>Failed to emit module '{0}'.</value>
+    <value>Failed to emit module '{0}': {1}</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>

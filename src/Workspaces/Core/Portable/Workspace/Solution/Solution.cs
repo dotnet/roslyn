@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // TODO: actually make this a snapshot
+                // TODO: actually make this a snapshot (https://github.com/dotnet/roslyn/issues/19284)
                 return this.Workspace.Options;
             }
         }
