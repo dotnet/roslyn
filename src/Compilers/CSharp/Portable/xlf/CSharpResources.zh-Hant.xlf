@@ -177,6 +177,11 @@
         <target state="translated">運算式樹狀架構不得包含元組 == 或 != 運算子。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">功能 '{0}' 目前處於預覽階段，且*不受支援*。若要使用預覽功能，請使用「預覽語言」版本。</target>

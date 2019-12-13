@@ -3140,8 +3140,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                var elementType = elementTypes[i].EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
-                var annotation = elementNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : elementNullableAnnotations[i].ToInternalAnnotation();
+                ITypeSymbol typeSymbol = elementTypes[i];
+                var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
+                var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
                 typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
             }
 
