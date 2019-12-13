@@ -113,8 +113,7 @@ namespace Roslyn.Utilities
 
         #endregion // Poolable
 
-        [return: MaybeNull]
-        internal T FindItem(char[] chars, int start, int len, int hashCode)
+        internal T? FindItem(char[] chars, int start, int len, int hashCode)
         {
             // get direct element reference to avoid extra range checks
             ref var localSlot = ref _localTable[LocalIdxFromHash(hashCode)];

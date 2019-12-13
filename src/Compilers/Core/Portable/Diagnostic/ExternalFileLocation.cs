@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A program location in source code.
     /// </summary>
-    internal sealed class ExternalFileLocation : Location, IEquatable<ExternalFileLocation>
+    internal sealed class ExternalFileLocation : Location, IEquatable<ExternalFileLocation?>
     {
         private readonly TextSpan _sourceSpan;
         private readonly FileLinePositionSpan _lineSpan;

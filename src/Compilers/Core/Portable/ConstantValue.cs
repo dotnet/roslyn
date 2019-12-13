@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         DateTime,
     }
 
-    internal abstract partial class ConstantValue : IEquatable<ConstantValue>
+    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>
     {
         public abstract ConstantValueTypeDiscriminator Discriminator { get; }
         internal abstract SpecialType SpecialType { get; }

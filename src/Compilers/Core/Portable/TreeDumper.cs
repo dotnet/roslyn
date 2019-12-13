@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         public static string DumpXML(TreeDumperNode root, string? indent = null)
         {
             var dumper = new TreeDumper();
-            dumper.DoDumpXML(root, string.Empty, string.IsNullOrEmpty(indent) ? string.Empty : indent!);
+            dumper.DoDumpXML(root, string.Empty, indent ?? string.Empty);
             return dumper._sb.ToString();
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
 
         public TreeDumperNode(string text) : this(text, null, null) { }
         public object? Value { get; }
-        public string? Text { get; }
+        public string Text { get; }
         public IEnumerable<TreeDumperNode> Children { get; }
         public TreeDumperNode this[string child]
         {

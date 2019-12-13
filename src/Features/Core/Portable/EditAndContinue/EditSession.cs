@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     case CommittedSolution.DocumentState.OutOfSync:
                         var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
-                        outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(document.FilePath!, textSpan: default, lineSpan: default), new[] { document.FilePath! }));
+                        outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(document.FilePath!, textSpan: default, lineSpan: default), new[] { document.FilePath }));
                         continue;
 
                     default:

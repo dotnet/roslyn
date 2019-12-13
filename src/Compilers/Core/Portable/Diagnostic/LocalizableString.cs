@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
         /// </summary>
-        public string? ToString(IFormatProvider? formatProvider)
+        public string ToString(IFormatProvider? formatProvider)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// Provides the implementation of ToString. ToString will provide a default value
         /// if this method throws an exception.
         /// </summary>
-        protected abstract string? GetText(IFormatProvider? formatProvider);
+        protected abstract string GetText(IFormatProvider? formatProvider);
 
         /// <summary>
         /// Provides the implementation of GetHashCode. GetHashCode will provide a default value

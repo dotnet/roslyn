@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             private readonly int _warningLevel;
             private readonly Location _location;
             private readonly IReadOnlyList<Location> _additionalLocations;
-            private readonly object[] _messageArgs;
+            private readonly object?[] _messageArgs;
             private readonly ImmutableDictionary<string, string> _properties;
             private readonly bool _isSuppressed;
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 int warningLevel,
                 Location location,
                 IEnumerable<Location>? additionalLocations,
-                object[]? messageArgs,
+                object?[]? messageArgs,
                 ImmutableDictionary<string, string>? properties,
                 bool isSuppressed)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
                 _warningLevel = warningLevel;
                 _location = location ?? Location.None;
                 _additionalLocations = additionalLocations?.ToImmutableArray() ?? SpecializedCollections.EmptyReadOnlyList<Location>();
-                _messageArgs = messageArgs ?? Array.Empty<object>();
+                _messageArgs = messageArgs ?? Array.Empty<object?>();
                 _properties = properties ?? ImmutableDictionary<string, string>.Empty;
                 _isSuppressed = isSuppressed;
             }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 int warningLevel,
                 Location location,
                 IEnumerable<Location>? additionalLocations,
-                object[]? messageArgs,
+                object?[]? messageArgs,
                 ImmutableDictionary<string, string>? properties,
                 bool isSuppressed = false)
             {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
                 get { return _descriptor.Id; }
             }
 
-            public override string? GetMessage(IFormatProvider? formatProvider = null)
+            public override string GetMessage(IFormatProvider? formatProvider = null)
             {
                 if (_messageArgs.Length == 0)
                 {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal override IReadOnlyList<object> Arguments
+            internal override IReadOnlyList<object?> Arguments
             {
                 get { return _messageArgs; }
             }

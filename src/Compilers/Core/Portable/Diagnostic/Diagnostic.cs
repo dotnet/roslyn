@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
             Location location,
-            params object[] messageArgs)
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, null, null, messageArgs);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticDescriptor descriptor,
             Location location,
             ImmutableDictionary<string, string>? properties,
-            params object[]? messageArgs)
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, null, properties, messageArgs);
         }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticDescriptor descriptor,
             Location location,
             IEnumerable<Location>? additionalLocations,
-            params object[]? messageArgs)
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, additionalLocations, properties: null, messageArgs: messageArgs);
         }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
             Location location,
             IEnumerable<Location>? additionalLocations,
             ImmutableDictionary<string, string>? properties,
-            params object[]? messageArgs)
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
         }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticSeverity effectiveSeverity,
             IEnumerable<Location>? additionalLocations,
             ImmutableDictionary<string, string>? properties,
-            params object[]? messageArgs)
+            params object?[] messageArgs)
         {
             if (descriptor == null)
             {
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the culture specific text of the message.
         /// </summary>
-        public abstract string? GetMessage(IFormatProvider? formatProvider = null);
+        public abstract string GetMessage(IFormatProvider? formatProvider = null);
 
         /// <summary>
         /// Gets the default <see cref="DiagnosticSeverity"/> of the diagnostic's <see cref="DiagnosticDescriptor"/>.
@@ -466,9 +466,9 @@ namespace Microsoft.CodeAnalysis
         // compatibility
         internal virtual int Code { get { return 0; } }
 
-        internal virtual IReadOnlyList<object>? Arguments
+        internal virtual IReadOnlyList<object?>? Arguments
         {
-            get { return SpecializedCollections.EmptyReadOnlyList<object>(); }
+            get { return SpecializedCollections.EmptyReadOnlyList<object?>(); }
         }
 
         /// <summary>

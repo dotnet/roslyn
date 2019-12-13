@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis
         private AvlNode? _root;
         public readonly IEqualityComparer<K> Comparer;
 
-        public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(EqualityComparer<K>.Default);
+        // https://github.com/dotnet/roslyn/issues/40344
+        public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null!);
 
         public SmallDictionary() : this(EqualityComparer<K>.Default) { }
 
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_root != null)
             {
-                return TryGetValue(GetHashCode(key), key, out value);
+                return TryGetValue(GetHashCode(key), key, out value!);
             }
 
             value = default!;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 V value;
-                if (!TryGetValue(key, out value))
+                if (!TryGetValue(key, out value!))
                 {
                     throw new KeyNotFoundException($"Could not find key {key}");
                 }
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsKey(K key)
         {
             V value;
-            return TryGetValue(key, out value);
+            return TryGetValue(key, out value!);
         }
 
         [Conditional("DEBUG")]
@@ -228,7 +229,7 @@ hasBucket:
                 return true;
             }
 
-            return GetFromList(b.Next, key, out value);
+            return GetFromList(b.Next, key, out value!);
         }
 
         private bool GetFromList(Node? next, K key, [MaybeNullWhen(returnValue: false)] out V value)
@@ -527,7 +528,7 @@ hasBucket:
                         // left == right only if both are nulls
                         if (root.Left == root.Right)
                         {
-                            _next = dict._root;
+                            _next = root;
                         }
                         else
                         {
@@ -645,7 +646,7 @@ hasBucket:
                     // left == right only if both are nulls
                     if (root.Left == root.Right)
                     {
-                        _next = dict._root;
+                        _next = root;
                     }
                     else
                     {
