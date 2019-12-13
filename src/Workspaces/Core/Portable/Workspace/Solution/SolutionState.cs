@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis
 
             var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
-            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+            var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
 
