@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     edits: edits,
                     isAddedSymbol: isAddedSymbol);
             }
-            catch (NotSupportedException)
+            catch (NotSupportedException e)
             {
-                // TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName);
+                // TODO: https://github.com/dotnet/roslyn/issues/9004
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
                 return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
             }
 

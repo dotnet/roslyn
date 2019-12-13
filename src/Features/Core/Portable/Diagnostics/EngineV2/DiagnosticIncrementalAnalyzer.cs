@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
+        internal IPersistentStorageService PersistentStorageService { get; }
         internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
         internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
@@ -55,10 +57,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             DiagnosticLogAggregator = new DiagnosticLogAggregator(analyzerService);
+            PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(analyzerInfoCache);
+            _stateManager = new StateManager(analyzerInfoCache, PersistentStorageService);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(AnalyzerService, HostDiagnosticUpdateSource);

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -357,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return GetChangeRanges(oldSnapshot, oldText.Length, newSnapshot);
             }
 
-            private IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImage oldImage, int oldTextLength, ITextImage newImage)
+            private IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImage? oldImage, int oldTextLength, ITextImage? newImage)
             {
                 if (oldImage == null ||
                     newImage == null ||

@@ -1896,8 +1896,8 @@ class Test
 
     void Test7<T>(int i, T x)
     {
-        _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
-        _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
+        _ = i switch { 1 => x, _ => default }/*T:T*/;
+        _ = i switch { 1 => default, _ => x }/*T:T*/;
     }
 }
 
@@ -1912,7 +1912,6 @@ public interface IIn<in T> { }
 public interface IOut<out T> { }
 ");
             c.VerifyTypes();
-            // Should not report warnings 5 or 6 (see https://github.com/dotnet/roslyn/issues/39888).
             c.VerifyDiagnostics(
                 // (33,15): error CS8506: No best type was found for the switch expression.
                 //         _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
@@ -1925,13 +1924,7 @@ public interface IOut<out T> { }
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(39, 37),
                 // (40,29): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => y, _ => x }/*T:I<string!>!*/; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29),
-                // (45,37): warning CS8601: Possible null reference assignment.
-                //         _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(45, 37),
-                // (46,29): warning CS8601: Possible null reference assignment.
-                //         _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(46, 29));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29));
         }
     }
 }

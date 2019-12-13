@@ -88,6 +88,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Gathering Suggestions - &apos;{0}&apos;.
+        /// </summary>
+        internal static string Gathering_Suggestions_0 {
+            get {
+                return ResourceManager.GetString("Gathering_Suggestions_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gathering Suggestions - Waiting for the solution to fully load.
+        /// </summary>
+        internal static string Gathering_Suggestions_Waiting_for_the_solution_to_fully_load {
+            get {
+                return ResourceManager.GetString("Gathering_Suggestions_Waiting_for_the_solution_to_fully_load", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex - Alternation.
         /// </summary>
         internal static string Regex_Alternation {

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
                 => _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
 
-            public async Task<bool> OnDocumentOpenedAsync(Document document)
+            public async Task<bool> OnDocumentOpenedAsync(IPersistentStorageService persistentStorageService, Document document)
             {
                 // can not be cancelled
                 if (!TryGetProjectState(document.Project.Id, out var projectState) ||
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return false;
                 }
 
-                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
+                var result = await projectState.GetAnalysisDataAsync(persistentStorageService, document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
 
                 // store analysis result to active file state:
                 var activeFileState = GetOrCreateActiveFileState(document.Id);
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(Document document)
+            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, Document document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // active file exist, put it in the project state
                 var projectState = GetOrCreateProjectState(document.Project.Id);
-                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
+                await projectState.MergeAsync(persistentStorageService, activeFileState, document).ConfigureAwait(false);
                 return true;
             }
 
