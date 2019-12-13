@@ -347,6 +347,11 @@
         <target state="translated">Wprowadź zmienną zapytania</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
         <target state="translated">Ustaw możliwość zapisu dla pól z deklaracją readonly</target>

@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
@@ -33,16 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         // All the characters that might potentially trigger formatting when typed
         private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
-#nullable enable
-
-        private readonly IIndentationManagerService? _indentationManagerService;
-
-#nullable restore
+        private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
-        public CSharpEditorFormattingService([Import(IIndentationManagerService.MefContractName, AllowDefault = true)] object indentationManagerService)
+        public CSharpEditorFormattingService(IIndentationManagerService indentationManagerService)
         {
-            _indentationManagerService = IIndentationManagerService.FromDefaultImport(indentationManagerService);
+            _indentationManagerService = indentationManagerService;
         }
 
         public bool SupportsFormatDocument => true;

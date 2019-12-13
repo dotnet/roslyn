@@ -52,11 +52,6 @@
         <target state="translated">Das Dokument unterstützt keine Syntaxstrukturen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_reading_content_of_source_file_0_1">
-        <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">Einstellungen für Ausdrucksebene</target>
@@ -1347,11 +1342,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Durch das Hinzufügen von Importen wird eine Erweiterungsmethode mit dem gleichen Namen wie "{0}" in den Bereich eingeführt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Workspace_error">
-        <source>Workspace error</source>
-        <target state="new">Workspace error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Arbeitsbereich ist nicht leer.</target>
@@ -1820,11 +1810,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="This_workspace_does_not_support_opening_and_closing_documents">
         <source>This workspace does not support opening and closing documents.</source>
         <target state="translated">Das Öffnen und Schließen von Dokumenten wird in diesem Arbeitsbereich nicht unterstützt.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Nutzung:</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">

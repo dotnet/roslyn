@@ -1566,6 +1566,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removal of document not supported.
+        /// </summary>
+        internal static string Removal_of_document_not_supported {
+            get {
+                return ResourceManager.GetString("Removal_of_document_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removing &apos;{0}&apos; from &apos;{1}&apos; with content:.
         /// </summary>
         internal static string Removing_0_from_1_with_content_colon {
