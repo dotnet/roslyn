@@ -17,17 +17,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         internal static class Connections
         {
+            private static readonly TimeSpan s_reportTimeout = TimeSpan.FromMinutes(10);
+            private static bool s_timeoutReported = false;
+
             /// <summary>
-            /// call <paramref name="funcAsync"/> and retry up to <paramref name="timeout"/> if the call throws
-            /// <typeparamref name="TException"/>. any other exception from the call won't be handled here.
+            /// Wrap <see cref="HubClient.RequestServiceAsync"/> since we can't control its internal timeout value ourselves.
+            /// See https://devdiv.visualstudio.com/DefaultCollection/DevDiv/Editor/_workitems?id=378757&fullScreen=false&_a=edit
             /// </summary>
-            public static async Task<TResult> RetryRemoteCallAsync<TException, TResult>(
+            private static async Task<Stream> RequestServiceWithCancellationRetryAsync(
                 Workspace workspace,
-                Func<Task<TResult>> funcAsync,
+                HubClient client,
+                ServiceDescriptor descriptor,
                 TimeSpan timeout,
-                CancellationToken cancellationToken) where TException : Exception
+                CancellationToken cancellationToken)
             {
-                const int retry_delayInMS = 50;
+                const int RetryDelayInMS = 50;
 
                 using (var pooledStopwatch = SharedPools.Default<Stopwatch>().GetPooledObject())
                 {
@@ -40,18 +44,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                         try
                         {
-                            return await funcAsync().ConfigureAwait(false);
+                            return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
                         }
-                        catch (TException)
+                        catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken)
                         {
-                            // throw cancellation token if operation is cancelled
-                            cancellationToken.ThrowIfCancellationRequested();
+                            // Retry on cancellation that is not sourced by our cancellation token.
+                            // Since HubClient will throw when it can't connect to service hub service (e.g. timeout, disposal).
                         }
 
-                        // wait for retry_delayInMS before next try
-                        await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+                        // wait before next try
+                        await Task.Delay(RetryDelayInMS, cancellationToken).ConfigureAwait(false);
 
-                        ReportTimeout(watch);
+                        // if we tried for more than 10 mins and still couldn't connect, report non-fatal Watson
+                        if (!s_timeoutReported && watch.Elapsed > s_reportTimeout)
+                        {
+                            s_timeoutReported = true;
+
+                            // report service hub logs along with dump
+                            new Exception("RequestServiceAsync Timeout").ReportServiceHubNFW("RequestServiceAsync Timeout");
+                        }
                     }
                 }
 
@@ -72,34 +83,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 TimeSpan timeout,
                 CancellationToken cancellationToken)
             {
-                const int max_retry = 10;
-                const int retry_delayInMS = 50;
+                const int MaxRetryAttempts = 10;
+                const int RetryDelayInMS = 50;
 
                 RemoteInvocationException lastException = null;
 
                 var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
 
-                // call to get service can fail due to this bug - devdiv#288961 or more.
+                // Call to get service can fail due to this bug - devdiv#288961 or more.
                 // until root cause is fixed, we decide to have retry rather than fail right away
-                for (var i = 0; i < max_retry; i++)
+                //
+                // We have double re-try here. We have these 2 separated since 2 retries are for different problems.
+                // First retry most likely deal with real issue on ServiceHub, second retry (cancellation) is to deal with
+                // ServiceHub behavior we don't want to use.
+                for (var i = 0; i < MaxRetryAttempts; i++)
                 {
                     try
                     {
-                        // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
-                        // we have bug opened to track the issue.
-                        // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/Editor/_workitems?id=378757&fullScreen=false&_a=edit
-
-                        // retry on cancellation token since HubClient will throw its own cancellation token
-                        // when it couldn't connect to service hub service for some reasons
-                        // (ex, OOP process GC blocked and not responding to request)
-                        //
-                        // we have double re-try here. we have these 2 separated since 2 retries are for different problems.
-                        // as noted by 2 different issues above at the start of each 2 different retries.
-                        // first retry most likely deal with real issue on servicehub, second retry (cancellation) is to deal with
-                        // by design servicehub behavior we don't want to use.
-                        return await RetryRemoteCallAsync<OperationCanceledException, Stream>(
+                        return await RequestServiceWithCancellationRetryAsync(
                             workspace,
-                            () => client.RequestServiceAsync(descriptor, cancellationToken),
+                            client,
+                            descriptor,
                             timeout,
                             cancellationToken).ConfigureAwait(false);
                     }
@@ -116,8 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         }
                     }
 
-                    // wait for retry_delayInMS before next try
-                    await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+                    // wait before next try
+                    await Task.Delay(RetryDelayInMS, cancellationToken).ConfigureAwait(false);
                 }
 
                 RemoteHostCrashInfoBar.ShowInfoBar(workspace, lastException);
@@ -126,24 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // we had enough feedback from users not to crash VS on servicehub failure
                 throw new SoftCrashException("RequestServiceAsync Failed", lastException, cancellationToken);
             }
-
-            #region code related to make diagnosis easier later
-
-            private static readonly TimeSpan s_reportTimeout = TimeSpan.FromMinutes(10);
-            private static bool s_timeoutReported = false;
-
-            private static void ReportTimeout(Stopwatch watch)
-            {
-                // if we tried for 10 min and still couldn't connect. NFW (non fatal watson) some data
-                if (!s_timeoutReported && watch.Elapsed > s_reportTimeout)
-                {
-                    s_timeoutReported = true;
-
-                    // report service hub logs along with dump
-                    (new Exception("RequestServiceAsync Timeout")).ReportServiceHubNFW("RequestServiceAsync Timeout");
-                }
-            }
-            #endregion
         }
     }
 }
