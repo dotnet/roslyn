@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis
         ''' </summary>
         ''' <param name="trivia">The source trivia.</param>
         ''' <param name="kind">The syntax kind to test for.</param>
-        ''' <returns><c>true</c> if trivia is of specified kind; <c>false</c> otherwise.</returns>
+        ''' <returns><see langword="true"/> if the trivia is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(trivia As SyntaxTrivia, kind As SyntaxKind) As Boolean
             Return trivia.RawKind = kind
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis
         ''' </summary>
         ''' <param name="token">The source token.</param>
         ''' <param name="kind">The syntax kind to test for.</param>
-        ''' <returns><c>true</c> if token is of specified kind; <c>false</c> otherwise.</returns>
+        ''' <returns><see langword="true"/> if the token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return token.RawKind = kind
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis
         ''' </summary>
         ''' <param name="node">The Source node.</param>
         ''' <param name="kind">The syntax kind  to test for.</param>
-        ''' <returns><c>true</c> if node is of specified kind; <c>false</c> otherwise.</returns>
+        ''' <returns><see langword="true"/> if the node is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
             Return node IsNot Nothing AndAlso node.RawKind = kind
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis
         ''' </summary>
         ''' <param name="nodeOrToken">The source node or token.</param>
         ''' <param name="kind">The syntax kind to test for.</param>
-        ''' <returns><c>true</c> if node or token is of specified kind; <c>false</c> otherwise.</returns>
+        ''' <returns><see langword="true"/> if the node or token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
             Return nodeOrToken.RawKind = kind
@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Determines if the given raw kind value belongs to the Visual Basic <see cref="SyntaxKind"/> enumeration.
         ''' </summary>
         ''' <param name="rawKind">The raw value to test.</param>
-        ''' <returns><c>true</c> when the raw value belongs to the Visual Basic syntax kind; <c>false</c> otherwise.</returns>
+        ''' <returns><see langword="true"/> when the raw value belongs to the Visual Basic syntax kind; otherwise, <see langword="false"/>.</returns>
         Friend Function IsVisualBasicKind(rawKind As Integer) As Boolean
             Const LastPossibleVisualBasicKind As Integer = 8192
 

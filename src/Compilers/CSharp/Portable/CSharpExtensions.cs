@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="token">The source token.</param>
         /// <param name="kind">The syntax kind to test for.</param>
-        /// <returns><c>true</c> if token is of specified kind; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if the token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind)
         {
             return token.RawKind == (int)kind;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="trivia">The source trivia.</param>
         /// <param name="kind">The syntax kind to test for.</param>
-        /// <returns><c>true</c> if trivia is of specified kind; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if the trivia is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxTrivia trivia, SyntaxKind kind)
         {
             return trivia.RawKind == (int)kind;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="node">The source node.</param>
         /// <param name="kind">The syntax kind to test for.</param>
-        /// <returns><c>true</c> if node is of specified kind; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if the node is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind)
         {
             return node?.RawKind == (int)kind;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="nodeOrToken">The source node or token.</param>
         /// <param name="kind">The syntax kind to test for.</param>
-        /// <returns><c>true</c> if node or token is of specified kind; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if the node or token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxNodeOrToken nodeOrToken, SyntaxKind kind)
         {
             return nodeOrToken.RawKind == (int)kind;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Determines if the given raw kind value belongs to the C# <see cref="SyntaxKind"/> enumeration.
         /// </summary>
         /// <param name="rawKind">The raw value to test.</param>
-        /// <returns><c>true</c> when the raw value belongs to the C# syntax kind; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> when the raw value belongs to the C# syntax kind; otherwise, <see langword="false"/>.</returns>
         internal static bool IsCSharpKind(int rawKind)
         {
             const int FirstVisualBasicKind = (int)SyntaxKind.List + 1;
