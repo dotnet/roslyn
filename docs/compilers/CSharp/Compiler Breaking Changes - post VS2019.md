@@ -78,3 +78,6 @@ could be different than the one that compiler used to find.
     ```
 
 11. Previously, the language version was not checked for `this ref` and `this in` orderings of parameter modifiers. In *Visual Studio 2019 version 16.4* these orderings produce an error with langversion below 7.2. See https://github.com/dotnet/roslyn/issues/38486
+
+12. In *Visual Studio 2019 version 16.5* and language version 8.0 and later, the compiler will no longer accept `throw null` when there is no type `System.Exception`.
+
