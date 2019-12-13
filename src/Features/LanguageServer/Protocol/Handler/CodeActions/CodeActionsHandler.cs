@@ -28,13 +28,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<object[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var codeActions = await GetCodeActionsAsync(solution,
-                                                    request.TextDocument.Uri,
-                                                    request.Range,
-                                                    keepThreadContext,
-                                                    cancellationToken).ConfigureAwait(keepThreadContext);
+                request.TextDocument.Uri,
+                request.Range,
+                cancellationToken).ConfigureAwait(false);
 
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var codeAction in codeActions)
             {
                 // If we have a codeaction with a single applychangesoperation, we want to send the codeaction with the edits.
-                var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+                var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 if (clientSupportsWorkspaceEdits && operations.Length == 1 && operations.First() is ApplyChangesOperation applyChangesOperation)
                 {
                     var workspaceEdit = new LSP.WorkspaceEdit { Changes = new Dictionary<string, LSP.TextEdit[]>() };
@@ -60,8 +59,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         var newDoc = applyChangesOperation.ChangedSolution.GetDocument(docId);
                         var oldDoc = solution.GetDocument(docId);
-                        var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
-                        var textChanges = await newDoc.GetTextChangesAsync(oldDoc).ConfigureAwait(keepThreadContext);
+                        var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var textChanges = await newDoc.GetTextChangesAsync(oldDoc).ConfigureAwait(false);
 
                         var edits = textChanges.Select(tc => new LSP.TextEdit
                         {

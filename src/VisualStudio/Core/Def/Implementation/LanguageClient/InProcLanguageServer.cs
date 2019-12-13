@@ -85,15 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
-        /// <summary>
-        /// Go to definition calls to get third party definitions (xaml) and to get those definitions it expectes to be called on the UI thread.
-        /// <see cref="VisualStudioSymbolNavigationService.WouldNotifyToSpecificSymbol"/>
-        /// </summary>
         [JsonRpcMethod(Methods.TextDocumentDefinitionName)]
         public async Task<object> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             return await this._protocol.GoToDefinitionAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 

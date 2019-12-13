@@ -27,9 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="request"></param>
         /// <param name="clientCapabilities"></param>
         /// <param name="cancellationToken"></param>
-        /// <param name="keepThreadContext"></param>
         /// <returns></returns>
-        public async Task<object[]> HandleRequestAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = true)
+        public async Task<object[]> HandleRequestAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
@@ -39,19 +38,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 
-            await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(keepThreadContext);
+            await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
             if (clientCapabilities.HasVisualStudioLspCapability())
             {
-                return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(keepThreadContext);
+                return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                return await GetLocationsAsync(request, context, cancellationToken).ConfigureAwait(keepThreadContext);
+                return await GetLocationsAsync(request, context, cancellationToken).ConfigureAwait(false);
             }
         }
 
