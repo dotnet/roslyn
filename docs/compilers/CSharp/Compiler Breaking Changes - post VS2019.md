@@ -79,7 +79,15 @@ could be different than the one that compiler used to find.
 
 11. Previously, the language version was not checked for `this ref` and `this in` orderings of parameter modifiers. In *Visual Studio 2019 version 16.4* these orderings produce an error with langversion below 7.2. See https://github.com/dotnet/roslyn/issues/38486
 
-12. https://github.com/dotnet/roslyn/issues/10492 Under some circumstances, the compiler would accept an expression that does not obey the rules of the language grammar.  Examples include
+12. https://github.com/dotnet/roslyn/issues/40092 Previously, the compiler allowed `extern event` declarations to have initializers, in violation of the C# language specification. In *Visual Studio 2019 version 16.5* such declarations produce compile errors.
+    ```C#
+    class C
+    {
+        extern event System.Action E = null; // error
+    }
+    ```
+
+13. https://github.com/dotnet/roslyn/issues/10492 Under some circumstances, the compiler would accept an expression that does not obey the rules of the language grammar.  Examples include
     - `e is {} + c`
     - `e is T t + c`
 

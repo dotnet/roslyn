@@ -24057,5 +24057,74 @@ public class C
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0 => 1, _ => 2 }").WithLocation(9, 45)
                 );
         }
+
+        [Fact]
+        public void PointerGenericConstraintTypes()
+        {
+            var source = @"
+namespace A
+{
+    class D {}
+}
+
+class B {}
+
+unsafe class C<T, U, V, X, Y, Z> where T : byte*
+                                 where U : unmanaged
+                                 where V : U*
+                                 where X : object*
+                                 where Y : B*
+                                 where Z : A.D*
+{
+    void M1<A>() where A : byte* {}
+    void M2<A, B>() where A : unmanaged 
+                    where B : A* {}
+    void M3<A>() where A : object* {}
+    void M4<A>() where A : B* {}
+    void M5<A>() where A : T {}
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                    // (9,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    // unsafe class C<T, U, V, X, Y, Z> where T : byte*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "byte*").WithLocation(9, 44),
+                    // (11,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where V : U*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "U*").WithLocation(11, 44),
+                    // (12,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where X : object*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object*").WithLocation(12, 44),
+                    // (13,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where Y : B*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "B*").WithLocation(13, 44),
+                    // (14,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where Z : A.D*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "A.D*").WithLocation(14, 44),
+                    // (16,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M1<A>() where A : byte* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "byte*").WithLocation(16, 28),
+                    // (18,31): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                     where B : A* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "A*").WithLocation(18, 31),
+                    // (19,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M3<A>() where A : object* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object*").WithLocation(19, 28),
+                    // (20,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M4<A>() where A : B* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "B*").WithLocation(20, 28)
+            );
+        }
+
+        [Fact]
+        public void ArrayGenericConstraintTypes()
+        {
+            var source = @"class A<T> where T : object[] {}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (1,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    // class A<T> where T : object[] {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
+        }
     }
 }

@@ -85,10 +85,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         ''' </summary>
         Friend Const BC30182 = "BC30182"
 
+        ''' <summary>
+        ''' 'A' should have suitable 'GetAwaiter' method.
+        ''' </summary>
+        Friend Const BC36930 = "BC36930"
+
         Public ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC32016, BC36610,
-                                             BC36719, BC30512, BC30390, BC42309, BC30182, IDEDiagnosticIds.UnboundIdentifierId)
+                                             BC36719, BC30512, BC30390, BC42309, BC30182, BC36930, IDEDiagnosticIds.UnboundIdentifierId)
             End Get
         End Property
     End Module

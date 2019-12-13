@@ -44,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     edits:=edits,
                     isAddedSymbol:=isAddedSymbol)
             Catch e As NotSupportedException
-                ' TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName)
+                ' TODO: https://github.com/dotnet/roslyn/issues/9004
+                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
                 Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
             End Try
 

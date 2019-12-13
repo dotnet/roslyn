@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
-                        parameter.GetTypeWithAnnotatedNullability(), uniqueName);
+                        parameter.Type, uniqueName);
                 }
             }
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         default,
                         accessibilityLevel,
                         new DeclarationModifiers(),
-                        parameter.GetTypeWithAnnotatedNullability(),
+                        parameter.Type,
                         RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: uniqueName,
