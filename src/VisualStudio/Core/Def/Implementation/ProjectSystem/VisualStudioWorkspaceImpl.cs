@@ -1694,8 +1694,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var referenceInfo = GetReferenceInfo_NoLock(projectIdToRetarget);
 
-                foreach (var convertedReference in referenceInfo.ConvertedProjectReferences.ToList())
+                for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count; i++)
                 {
+                    var convertedReference = referenceInfo.ConvertedProjectReferences[i];
+
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
@@ -1714,7 +1716,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         referenceInfo.ConvertedProjectReferences.Remove(convertedReference);
 
                         // We have converted one, but you could have more than one reference with different aliases
-                        // that we need to convert, so we'll keep going
+                        // that we need to convert, so we'll keep going. Make sure to decrement the index so we don't
+                        // skip any items.
+                        i--;
                     }
                 }
             }
