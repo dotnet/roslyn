@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 #pragma warning disable 67
         public event EventHandler<OptionChangedEventArgs> OptionChanged;
         public event EventHandler<EventArgs> OptionsChanged;
+        public event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged;
 #pragma warning restore 67
 
         // Feel free to add other option storages
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public OptionSet GetOptions()
+        public WorkspaceOptionSet GetOptions()
         {
             throw new NotImplementedException();
         }
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public bool SetOptions(OptionSet optionSet)
+        public bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false)
         {
             Equals(null, null);
             throw new NotImplementedException();
@@ -65,17 +66,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        WorkspaceOptionSet IOptionService.GetOptions()
+        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }
 
-        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions()
-        {
-            throw new NotImplementedException();
-        }
-
-        public SerializableOptionSet GetSerializableOptions(IEnumerable<string> languages)
+        public SerializableOptionSet GetSerializableOptions(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }
