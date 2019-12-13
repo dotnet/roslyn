@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Options
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
 
-            private ImmutableArray<EventHandler<EventArgs>> _optionsChangedEventHandlers =
-                ImmutableArray<EventHandler<EventArgs>>.Empty;
+            private ImmutableArray<EventHandler<BatchOptionsChangedEventArgs>> _batchOptionsChangedEventHandlers =
+                ImmutableArray<EventHandler<BatchOptionsChangedEventArgs>>.Empty;
 
             private ImmutableArray<IDocumentOptionsProvider> _documentOptionsProviders =
                 ImmutableArray<IDocumentOptionsProvider>.Empty;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Options
                 _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
-                _globalOptionService.OptionsChanged += OnGlobalOptionServiceOptionsChanged;
+                _globalOptionService.BatchOptionsChanged += OnGlobalOptionServiceBatchOptionsChanged;
             }
 
             public void OnWorkspaceDisposed(Workspace workspace)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Options
                 // Disconnect us from the underlying global service.  That way it doesn't 
                 // keep us around (and all the event handlers we're holding onto) forever.
                 _globalOptionService.OptionChanged -= OnGlobalOptionServiceOptionChanged;
-                _globalOptionService.OptionsChanged -= OnGlobalOptionServiceOptionsChanged;
+                _globalOptionService.BatchOptionsChanged -= OnGlobalOptionServiceBatchOptionsChanged;
             }
 
             private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
@@ -119,35 +119,35 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            private void OnGlobalOptionServiceOptionsChanged(object sender, EventArgs e)
+            private void OnGlobalOptionServiceBatchOptionsChanged(object sender, BatchOptionsChangedEventArgs e)
             {
                 _taskQueue.ScheduleTask(() =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread
-                    var eventHandlers = GetOptionsChangedEventHandlers();
+                    var eventHandlers = GetBatchOptionsChangedEventHandlers();
                     foreach (var handler in eventHandlers)
                     {
                         handler(this, e);
                     }
-                }, "OptionsService.OnGlobalOptionServiceOptionChanged");
+                }, "OptionsService.OnGlobalOptionServiceBatchOptionsChanged");
             }
 
-            private ImmutableArray<EventHandler<EventArgs>> GetOptionsChangedEventHandlers()
+            private ImmutableArray<EventHandler<BatchOptionsChangedEventArgs>> GetBatchOptionsChangedEventHandlers()
             {
                 lock (_gate)
                 {
-                    return _optionsChangedEventHandlers;
+                    return _batchOptionsChangedEventHandlers;
                 }
             }
 
-            public event EventHandler<EventArgs> OptionsChanged
+            public event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged
             {
                 add
                 {
                     lock (_gate)
                     {
-                        _optionsChangedEventHandlers = _optionsChangedEventHandlers.Add(value);
+                        _batchOptionsChangedEventHandlers = _batchOptionsChangedEventHandlers.Add(value);
                     }
                 }
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Options
                 {
                     lock (_gate)
                     {
-                        _optionsChangedEventHandlers = _optionsChangedEventHandlers.Remove(value);
+                        _batchOptionsChangedEventHandlers = _batchOptionsChangedEventHandlers.Remove(value);
                     }
                 }
             }
@@ -167,16 +167,16 @@ namespace Microsoft.CodeAnalysis.Options
             [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
             [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
-            public ImmutableHashSet<IOption> GetRegisteredSerializableOptions() => _globalOptionService.GetRegisteredSerializableOptions();
-            public SerializableOptionSet GetSerializableOptions(IEnumerable<string> languages)
+            public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
+            public SerializableOptionSet GetSerializableOptions(ImmutableHashSet<string> languages)
             {
-                var serializableOptions = _globalOptionService.GetRegisteredSerializableOptions();
-                var serializableOptionsMap = _globalOptionService.GetForceComputedRegisteredSerializableOptionValues(languages);
+                var serializableOptionKeys = _globalOptionService.GetRegisteredSerializableOptions(languages);
+                var serializableOptionValues = _globalOptionService.GetSerializableOptionValues(serializableOptionKeys, languages);
                 var workspaceOptionSet = this.GetOptions();
-                return new SolutionOptionSet(workspaceOptionSet, serializableOptions, serializableOptionsMap);
+                return new SerializableOptionSet(languages, workspaceOptionSet, serializableOptionKeys, serializableOptionValues);
             }
 
-            public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
+            public bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false) => _globalOptionService.SetOptions(optionSet, settingWorkspaceOptions);
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {

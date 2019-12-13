@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Applies a set of options.
         /// </summary>
-        void SetOptions(OptionSet optionSet);
+        /// <returns>True if there was any option change.</returns>
+        bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false);
 
         /// <summary>
         /// Returns the set of all registered options.
@@ -54,17 +55,17 @@ namespace Microsoft.CodeAnalysis.Options
         IEnumerable<IOption> GetRegisteredOptions();
 
         /// <summary>
-        /// Returns the set of all registered serializable options.
+        /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
         /// </summary>
-        ImmutableHashSet<IOption> GetRegisteredSerializableOptions();
+        ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
 
         /// <summary>
-        /// Gets force computed option set for all the registered options by quering the option persisters.
+        /// Gets an option set with force computed values for all registered serializable options applicable for the given <paramref name="languages"/> by quering the option persisters.
         /// </summary>
-        SerializableOptionSet GetSerializableOptions(IEnumerable<string> languages);
+        SerializableOptionSet GetSerializableOptions(ImmutableHashSet<string> languages);
 
         event EventHandler<OptionChangedEventArgs> OptionChanged;
-        event EventHandler<EventArgs> OptionsChanged;
+        event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged;
 
         /// <summary>
         /// Registers a provider that can modify the result of <see cref="Document.GetOptionsAsync(CancellationToken)"/>. Providers registered earlier are queried first

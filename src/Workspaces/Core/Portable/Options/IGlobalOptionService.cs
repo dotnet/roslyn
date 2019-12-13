@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Applies a set of options, invoking serializers if needed.
         /// </summary>
-        void SetOptions(OptionSet optionSet);
+        /// <returns>True if there was any option change.</returns>
+        bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false);
 
         /// <summary>
         /// Returns the set of all registered options.
@@ -47,18 +48,18 @@ namespace Microsoft.CodeAnalysis.Options
         IEnumerable<IOption> GetRegisteredOptions();
 
         /// <summary>
-        /// Returns the set of all registered serializable options.
+        /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
         /// </summary>
-        ImmutableHashSet<IOption> GetRegisteredSerializableOptions();
+        ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
 
         /// <summary>
-        /// Gets force computed serializable options with prefetched values for all the registered options by quering the option persisters.
+        /// Gets force computed serializable options with prefetched values for the given registered <paramref name="optionKeys"/> and <paramref name="languages"/> by quering the option persisters.
         /// </summary>
-        ImmutableDictionary<OptionKey, object?> GetForceComputedRegisteredSerializableOptionValues(IEnumerable<string> languages);
+        ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages);
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 
-        event EventHandler<EventArgs>? OptionsChanged;
+        event EventHandler<BatchOptionsChangedEventArgs>? BatchOptionsChanged;
 
         /// <summary>
         /// Refreshes the stored value of a serialized option. This should only be called from serializers.

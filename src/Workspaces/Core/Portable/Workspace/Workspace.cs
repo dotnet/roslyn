@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
-        private readonly IWorkspaceOptionService? _workspaceOptionService;
+        private readonly IOptionService _optionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
@@ -67,9 +67,8 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            var optionService = _services.GetRequiredService<IOptionService>();
-            optionService.OptionsChanged += OptionService_OptionsChanged;
-            _workspaceOptionService = optionService as IWorkspaceOptionService;
+            _optionService = _services.GetRequiredService<IOptionService>();
+            _optionService.BatchOptionsChanged += OptionService_BatchOptionsChanged;
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
@@ -77,13 +76,6 @@ namespace Microsoft.CodeAnalysis
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
-        }
-
-        private void OptionService_OptionsChanged(object sender, EventArgs e)
-        {
-            var languages = this.CurrentSolution.State.GetProjectLanguages();
-            var newOptions = _services.GetRequiredService<IOptionService>().GetSerializableOptions(languages);
-            this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 
         internal void LogTestMessage(string message)
@@ -128,9 +120,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            var languages = solutionInfo.GetProjectLanguages();
-            var optionsService = this.Services.GetRequiredService<IOptionService>();
-            return new Solution(this, solutionInfo.Attributes, optionsService.GetSerializableOptions(languages));
+            var options = _optionService.GetSerializableOptions(solutionInfo.GetProjectLanguages());
+            return new Solution(this, solutionInfo.Attributes, options);
         }
 
         /// <summary>
@@ -193,19 +184,49 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets or sets the set of all global options.
+        /// Gets or sets the set of all global options and <see cref="Solution.Options"/>.
+        /// Setter also force updates the <see cref="CurrentSolution"/> to have the updated <see cref="Solution.Options"/>.
         /// </summary>
         public OptionSet Options
         {
             get
             {
-                return _services.GetRequiredService<IOptionService>().GetOptions();
+                return this.CurrentSolution.Options;
             }
 
             set
             {
-                _services.GetRequiredService<IOptionService>().SetOptions(value);
+                SetOptions(value);
             }
+        }
+
+        private protected void SetOptions(OptionSet options)
+        {
+            if (_optionService.SetOptions(options, settingWorkspaceOptions: true))
+            {
+                UpdateCurrentSolutionOnOptionsChanged();
+            }
+        }
+
+        private void OptionService_BatchOptionsChanged(object sender, BatchOptionsChangedEventArgs e)
+        {
+            if (e.WorkspaceOptionsChanged)
+            {
+                // This is an event from Workspace.Options setter.
+                // We explicitly handle updating current solution with new options in that setter,
+                // so we avoid a duplicate update from this event.
+                return;
+            }
+
+            // Options were changed directly on the OptionService, outside of Workspace.Options setter.
+            // Update the current solution snaphot with new options.
+            UpdateCurrentSolutionOnOptionsChanged();
+        }
+
+        private void UpdateCurrentSolutionOnOptionsChanged()
+        {
+            var newOptions = _optionService.GetSerializableOptions(this.CurrentSolution.State.GetProjectLanguages());
+            this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 
         /// <summary>
@@ -313,7 +334,7 @@ namespace Microsoft.CodeAnalysis
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
-            _workspaceOptionService?.OnWorkspaceDisposed(this);
+            (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
         }
 
         #region Host API

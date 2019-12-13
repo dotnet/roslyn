@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var optionService = _workspaceServices.GetRequiredService<IOptionService>();
-            return SolutionOptionSet.Deserialize(reader, optionService, cancellationToken);
+            return SerializableOptionSet.Deserialize(reader, optionService, cancellationToken);
         }
     }
 }

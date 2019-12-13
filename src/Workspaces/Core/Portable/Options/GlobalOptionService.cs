@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -17,38 +19,68 @@ namespace Microsoft.CodeAnalysis.Options
     [Export(typeof(IGlobalOptionService)), Shared]
     internal class GlobalOptionService : IGlobalOptionService
     {
-        private readonly Lazy<ImmutableHashSet<IOption>> _options;
-        private readonly Lazy<ImmutableHashSet<IOption>> _serializableOptions;
+        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>> _languageToLazyProvidersMap;
         private readonly ImmutableArray<Lazy<IOptionPersister>> _optionSerializers;
+        private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
+        private readonly Dictionary<string, ImmutableHashSet<IOption>> _languageToSerializableOptionsMap;
+        private readonly HashSet<string> _forceComputedLanguages;
 
         private readonly object _gate = new object();
 
         private ImmutableDictionary<OptionKey, object?> _currentValues;
-        private readonly HashSet<string> _forceComputedLanguages;
 
         [ImportingConstructor]
         public GlobalOptionService(
-            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
+            [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionSerializers)
         {
-            _options = GetLazyOptions(optionProviders, onlySerializable: false);
-            _serializableOptions = GetLazyOptions(optionProviders, onlySerializable: true);
+            _languageToLazyProvidersMap = optionProviders.ToPerLanguageMap();
             _optionSerializers = optionSerializers.ToImmutableArray();
             _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
-            _forceComputedLanguages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _forceComputedLanguages = new HashSet<string>();
+
+            _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() =>
+                optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
+            _languageToSerializableOptionsMap = new Dictionary<string, ImmutableHashSet<IOption>>();
         }
 
-        private static Lazy<ImmutableHashSet<IOption>> GetLazyOptions(IEnumerable<Lazy<IOptionProvider>> optionProviders, bool onlySerializable)
+        private ImmutableHashSet<IOption> GetOrComputeSerializableOptionsForLanguage(string language)
         {
-            return new Lazy<ImmutableHashSet<IOption>>(() =>
+            ImmutableHashSet<IOption> options;
+            lock (_gate)
+            {
+                if (_languageToSerializableOptionsMap.TryGetValue(language, out options))
+                {
+                    return options;
+                }
+            }
+
+            options = ComputeSerializableOptionsForLanguage();
+
+            lock (_gate)
+            {
+                if (!_languageToSerializableOptionsMap.TryGetValue(language, out var savedOptions))
+                {
+                    savedOptions = options;
+                    _languageToSerializableOptionsMap.Add(language, savedOptions);
+                }
+
+                return savedOptions;
+            }
+
+            ImmutableHashSet<IOption> ComputeSerializableOptionsForLanguage()
             {
                 var builder = ImmutableHashSet.CreateBuilder<IOption>();
 
-                foreach (var lazyProvider in optionProviders)
+                if (!_languageToLazyProvidersMap.TryGetValue(language, out var lazyProvidersAndMetadata))
                 {
-                    var provider = lazyProvider.Value;
-                    if (onlySerializable &&
-                        !MefHostServices.DefaultAssemblies.Contains(provider.GetType().Assembly))
+                    return ImmutableHashSet<IOption>.Empty;
+                }
+
+                foreach (var lazyProviderAndMetadata in lazyProvidersAndMetadata)
+                {
+                    var provider = lazyProviderAndMetadata.Value;
+                    if (!MefHostServices.IsDefaultAssembly(provider.GetType().Assembly))
                     {
                         continue;
                     }
@@ -57,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 return builder.ToImmutable();
-            });
+            }
         }
 
         private object? LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)
@@ -78,30 +110,48 @@ namespace Microsoft.CodeAnalysis.Options
 
         public IEnumerable<IOption> GetRegisteredOptions()
         {
-            return _options.Value;
+            return _lazyAllOptions.Value;
         }
 
-        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions()
+        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
         {
-            return _serializableOptions.Value;
+            if (languages.IsEmpty)
+            {
+                return ImmutableHashSet<IOption>.Empty;
+            }
+
+            var builder = ImmutableHashSet.CreateBuilder<IOption>();
+
+            // "string.Empty" for options from language agnostic option providers.
+            builder.AddRange(GetOrComputeSerializableOptionsForLanguage(string.Empty));
+
+            foreach (var language in languages)
+            {
+                builder.AddRange(GetOrComputeSerializableOptionsForLanguage(language));
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
         /// Gets force computed serializable options with prefetched values for all the registered options by quering the option persisters.
         /// </summary>
-        public ImmutableDictionary<OptionKey, object?> GetForceComputedRegisteredSerializableOptionValues(IEnumerable<string> languages)
+        public ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
         {
-            ForceComputeOptions(languages);
+            Debug.Assert(optionKeys.SetEquals(GetRegisteredSerializableOptions(languages)));
+
+            ForceComputeOptionValues(optionKeys, languages);
+
             lock (_gate)
             {
                 return ImmutableDictionary.CreateRange(_currentValues
-                    .Where(kvp => _serializableOptions.Value.Contains(kvp.Key.Option) &&
+                    .Where(kvp => optionKeys.Contains(kvp.Key.Option) &&
                                    (!kvp.Key.Option.IsPerLanguage ||
                                     languages.Contains(kvp.Key.Language!))));
             }
         }
 
-        private void ForceComputeOptions(IEnumerable<string> languages)
+        private void ForceComputeOptionValues(ImmutableHashSet<IOption> options, ImmutableHashSet<string> languages)
         {
             lock (_gate)
             {
@@ -111,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            foreach (var option in GetRegisteredSerializableOptions())
+            foreach (var option in options)
             {
                 if (!option.IsPerLanguage)
                 {
@@ -162,19 +212,19 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public void SetOptions(OptionSet optionSet)
+        public bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false)
         {
             if (optionSet == null)
             {
                 throw new ArgumentNullException(nameof(optionSet));
             }
 
-            var changedOptionKeys = (optionSet as WorkspaceOptionSet)?.GetChangedOptions() ?? (optionSet as SolutionOptionSet)?.GetChangedOptions();
-
-            if (changedOptionKeys == null)
+            var changedOptionKeys = optionSet switch
             {
-                throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_Workspace, paramName: nameof(optionSet));
-            }
+                WorkspaceOptionSet workspaceOptionSet => workspaceOptionSet.GetChangedOptions(),
+                SerializableOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
+                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_Workspace, paramName: nameof(optionSet))
+            };
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
@@ -206,8 +256,14 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
+            if (changedOptions.Count == 0)
+            {
+                return false;
+            }
+
             // Outside of the lock, raise the events on our task queue.
-            RaiseEvents(changedOptions);
+            RaiseEvents(changedOptions, settingWorkspaceOptions);
+            return true;
         }
 
         public void RefreshOption(OptionKey optionKey, object? newValue)
@@ -226,10 +282,10 @@ namespace Microsoft.CodeAnalysis.Options
                 _currentValues = _currentValues.SetItem(optionKey, newValue);
             }
 
-            RaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) });
+            RaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) }, settingWorkspaceOptions: false);
         }
 
-        private void RaiseEvents(List<OptionChangedEventArgs> changedOptions)
+        private void RaiseEvents(List<OptionChangedEventArgs> changedOptions, bool settingWorkspaceOptions)
         {
             if (changedOptions.Count == 0)
             {
@@ -245,10 +301,10 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            OptionsChanged?.Invoke(this, EventArgs.Empty);
+            BatchOptionsChanged?.Invoke(this, new BatchOptionsChangedEventArgs(changedOptions, settingWorkspaceOptions));
         }
 
         public event EventHandler<OptionChangedEventArgs>? OptionChanged;
-        public event EventHandler<EventArgs>? OptionsChanged;
+        public event EventHandler<BatchOptionsChangedEventArgs>? BatchOptionsChanged;
     }
 }

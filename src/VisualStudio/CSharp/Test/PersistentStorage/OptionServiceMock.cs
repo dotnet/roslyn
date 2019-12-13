@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public void SetOptions(OptionSet optionSet)
+        public bool SetOptions(OptionSet optionSet)
         {
             Equals(null, null);
             throw new NotImplementedException();

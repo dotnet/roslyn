@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 
-    [ExportOptionProvider, Shared]
+    [ExportOptionProvider(LanguageNames.CSharp), Shared]
     internal class SplitStringLiteralOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

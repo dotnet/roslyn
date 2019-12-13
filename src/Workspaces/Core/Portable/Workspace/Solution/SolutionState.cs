@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis
 
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= _projectIds;
-            options ??= Options;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
+            options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
@@ -2238,6 +2238,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()
-            => ProjectStates.Select(p => p.Value.Language).ToImmutableHashSet();
+            => GetProjectLanguages(ProjectStates);
+
+        private static ImmutableHashSet<string> GetProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
+            => projectStates.Select(p => p.Value.Language).ToImmutableHashSet();
     }
 }

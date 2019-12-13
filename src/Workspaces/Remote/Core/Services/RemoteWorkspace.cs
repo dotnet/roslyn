@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 this.OnSolutionAdded(solutionInfo);
 
-                Services.GetRequiredService<IOptionService>().SetOptions(options);
+                SetOptions(options);
 
                 solution = this.CurrentSolution;
                 return true;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var newSolution = this.SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 
-                Services.GetRequiredService<IOptionService>().SetOptions(newSolution.Options);
+                SetOptions(newSolution.Options);
 
                 return this.CurrentSolution;
             }

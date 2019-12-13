@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed class WorkspaceOptionSet : OptionSet
     {
-        private readonly IOptionService? _service;
-
         private ImmutableDictionary<OptionKey, object?> _values;
 
         internal WorkspaceOptionSet(IOptionService? service)
@@ -23,9 +21,12 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
+        // Can be null in tests.
+        public IOptionService? OptionService { get; }
+
         private WorkspaceOptionSet(IOptionService? service, ImmutableDictionary<OptionKey, object?> values)
         {
-            _service = service;
+            OptionService = service;
             _values = values;
         }
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return value;
             }
 
-            value = _service != null ? _service.GetOption(optionKey) : optionKey.Option.DefaultValue;
+            value = OptionService != null ? OptionService.GetOption(optionKey) : optionKey.Option.DefaultValue;
             return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
         }
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Options
             // make sure we first load this in current optionset
             this.GetOption(optionAndLanguage);
 
-            return new WorkspaceOptionSet(_service, _values.SetItem(optionAndLanguage, value));
+            return new WorkspaceOptionSet(OptionService, _values.SetItem(optionAndLanguage, value));
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         internal IEnumerable<OptionKey> GetChangedOptions()
         {
-            var optionSet = _service?.GetOptions();
+            var optionSet = OptionService?.GetOptions();
             return GetChangedOptions(optionSet);
         }
 

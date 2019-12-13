@@ -190,6 +190,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
 
+            // Only C# and VB projects are supported in Remote workspace.
+            // See "RemoteSupportedLanguages.IsSupported"
+            Assert.Empty(RemoteWorkspace.CurrentSolution.Projects);
+
+            Assert.NotEqual(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            solution = solution.RemoveProject(solution.ProjectIds.Single());
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
                 await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
@@ -251,8 +260,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                             metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
                     });
 
+                var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
                 var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
-                var options = new SolutionOptionSet(new WorkspaceOptionSet(null), ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty);
+                var options = new SerializableOptionSet(languages, new WorkspaceOptionSet(null), ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty);
 
                 // this shouldn't throw exception
                 remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, options, out var solution);
