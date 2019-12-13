@@ -208,9 +208,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task<CompletionList> GetCompletionListAsync(string markup, string workspaceKind = null)
         {
             var workspace = WorkspaceFixture.GetWorkspace(markup, workspaceKind: workspaceKind);
+            SetWorkspaceOptions(workspace);
             var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
 
             return await GetCompletionListAsync(GetCompletionService(workspace), currentDocument, position, RoslynCompletion.CompletionTrigger.Invoke, workspace.Options).ConfigureAwait(false);
         }
@@ -392,6 +392,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            SetWorkspaceOptions(workspace);
+
             var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
@@ -400,31 +403,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document2 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
                 await VerifyCustomCommitProviderCheckResultsAsync(document2, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
             }
-        }
 
-        private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
-        {
-            var workspace = WorkspaceFixture.GetWorkspace();
-            SetWorkspaceOptions(workspace);
-            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
+            return;
 
-            var service = GetCompletionService(workspace);
-            var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
-            var items = completionLlist.Items;
-
-            Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
-            var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
-
-            if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
             {
-                var completionRules = GetCompletionHelper(document);
-                var textView = WorkspaceFixture.CurrentDocument.GetTextView();
-                VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
+
+                var service = GetCompletionService(workspace);
+                var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
+                var items = completionLlist.Items;
+
+                Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
+                var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
+
+                if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+                {
+                    var completionRules = GetCompletionHelper(document);
+                    var textView = WorkspaceFixture.CurrentDocument.GetTextView();
+                    VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                }
+                else
+                {
+                    await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionLlist.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                }
             }
-            else
-            {
-                await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionLlist.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
-            }
+
         }
 
         protected virtual void SetWorkspaceOptions(TestWorkspace workspace)
