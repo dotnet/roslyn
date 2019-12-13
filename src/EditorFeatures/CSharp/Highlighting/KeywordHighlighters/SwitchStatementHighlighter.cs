@@ -70,8 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             }
             else
             {
-                foreach (var child in node.ChildNodes())
+                foreach (var childNodeOrToken in node.ChildNodesAndTokens())
                 {
+                    if (childNodeOrToken.IsToken)
+                        continue;
+
+                    var child = childNodeOrToken.AsNode();
                     var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
                     var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
 

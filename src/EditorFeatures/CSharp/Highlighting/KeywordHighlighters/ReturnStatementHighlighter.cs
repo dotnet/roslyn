@@ -47,13 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
                     break;
                 default:
-                    foreach (var child in node.ChildNodes())
+                    foreach (var child in node.ChildNodesAndTokens())
                     {
+                        if (child.IsToken)
+                            continue;
+
                         // Only recurse if we have anything to do
-                        if (!child.IsReturnableConstruct())
-                        {
-                            HighlightRelatedKeywords(child, spans);
-                        }
+                        if (!child.AsNode().IsReturnableConstruct())
+                            HighlightRelatedKeywords(child.AsNode(), spans);
                     }
                     break;
             }
