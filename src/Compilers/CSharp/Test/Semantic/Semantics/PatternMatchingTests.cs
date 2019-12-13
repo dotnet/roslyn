@@ -6859,7 +6859,7 @@ public class C
         [WorkItem(39960, "https://github.com/dotnet/roslyn/issues/39960")]
         public void MissingExceptionType()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     void M(bool b, dynamic d)
@@ -6872,7 +6872,8 @@ class C
         void L() => throw d;
     }
 }
-");
+";
+            var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Exception);
             comp.VerifyDiagnostics(
                 // (7,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
@@ -6887,6 +6888,17 @@ class C
                 // (11,27): error CS0518: Predefined type 'System.Exception' is not defined or imported
                 //         void L() => throw d;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Exception").WithLocation(11, 27)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0155: The type caught or thrown must be derived from System.Exception
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "new System.NullReferenceException()").WithLocation(7, 21),
+                // (11,27): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "d").WithLocation(11, 27)
                 );
         }
     }
