@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                 var current = stack.Pop();
                 yield return current;
 
-                foreach (var child in current.ChildNodesAndTokens())
+                // 'Reverse' isn't really necessary, but it means we walk the nodes in document
+                // order, which is nicer when debugging and understanding the results produced.
+                foreach (var child in current.ChildNodesAndTokens().Reverse())
                 {
                     if (child.IsNode)
                     {
