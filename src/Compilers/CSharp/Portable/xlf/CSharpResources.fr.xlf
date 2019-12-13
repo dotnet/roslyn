@@ -298,8 +298,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable' ou implémenter une méthode 'Dispose' appropriée. Vouliez-vous dire 'await using' plutôt que 'using' ?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable' ou implémenter une méthode 'Dispose' appropriée. Vouliez-vous dire 'await using' plutôt que 'using' ?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -1477,16 +1477,6 @@
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
         <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Affectation d'une éventuelle référence null à la variable d'itération</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Affectation d'une éventuelle référence null à la variable d'itération</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
@@ -6098,8 +6088,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable' ou implémenter une méthode 'Dispose' appropriée.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable' ou implémenter une méthode 'Dispose' appropriée.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -7778,8 +7768,8 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">Échec de l'émission du module '{0}'.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="new">Failed to emit module '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">

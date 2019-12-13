@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     // a generic method if the expression 'x' captured any method type variables.
                     var capturedTypeParameters = GetCapturedTypeParameters(cancellationToken);
                     var availableTypeParameters = State.TypeToGenerateIn.GetAllTypeParameters();
-                    var result = capturedTypeParameters.Except<ITypeParameterSymbol>(availableTypeParameters, AllNullabilityIgnoringSymbolComparer.Instance).ToImmutableArray();
+                    var result = capturedTypeParameters.Except<ITypeParameterSymbol>(availableTypeParameters, SymbolEqualityComparer.Default).ToImmutableArray();
                     return result;
                 }
                 else

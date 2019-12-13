@@ -23,19 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 member, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 member.IsParams(),
-                Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableDescription(member, semanticModel, position).ToTaggedText()),
+                Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMemberGroupPreambleParts(member, semanticModel, position),
                 GetSeparatorParts(),
                 GetMemberGroupPostambleParts(member, semanticModel, position),
                 member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
-        End Function
-
-        Private Function GetAwaitableDescription(member As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
-            If member.IsAwaitableNonDynamic(semanticModel, position) Then
-                Return member.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "r", semanticModel, position)
-            End If
-
-            Return SpecializedCollections.EmptyList(Of SymbolDisplayPart)
         End Function
 
         Private Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)

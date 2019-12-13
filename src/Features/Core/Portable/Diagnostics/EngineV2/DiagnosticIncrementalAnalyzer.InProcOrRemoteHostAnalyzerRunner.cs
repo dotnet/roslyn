@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
                 var analyzerMap = pooledObject.Object;
 
-                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace)));
+                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Options)));
                 if (analyzerMap.Count == 0)
                 {
                     return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
@@ -184,10 +184,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 using var reader = ObjectReader.TryGetReader(stream);
-                Debug.Assert(reader != null,
+                RoslynDebug.Assert(reader != null,
 @"We only ge a reader for data transmitted between live processes.
 This data should always be correct as we're never persisting the data between sessions.");
-                return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
+                return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, project, version, cancellationToken);
             }
 
             private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
