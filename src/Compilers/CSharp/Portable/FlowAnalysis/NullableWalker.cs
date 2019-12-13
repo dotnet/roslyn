@@ -2703,7 +2703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
 
-            // since we know for sure the slot is null (we just tested it), we know that dependent slots are not
+            // Since we know for sure the slot is null (we just tested it), we know that dependent slots are not
             // reachable and therefore can be treated as not null.  However, we have not computed the proper
             // (inferred) type for the expression, so we cannot compute the correct symbols for the member slots here
             // (using the incorrect symbols would result in computing an incorrect default state for them).
@@ -2711,7 +2711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LearnFromNullTest(slot, expressionWithoutConversion.Type, ref state, markDependentSlotsNotNull: false);
         }
 
-        private int LearnFromNullTest(int slot, TypeSymbol expressionType, ref LocalState state, bool markDependentSlotsNotNull = false)
+        private int LearnFromNullTest(int slot, TypeSymbol expressionType, ref LocalState state, bool markDependentSlotsNotNull)
         {
             if (slot > 0 && PossiblyNullableType(expressionType))
             {
@@ -2734,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
                 NamedTypeSymbol containingType = this._symbol?.ContainingType;
-                if ((member.Kind == SymbolKind.Property && !((PropertySymbol)member).IsIndexedProperty || member.Kind == SymbolKind.Field) &&
+                if ((member is PropertySymbol { IsIndexedProperty: false } || member.Kind == SymbolKind.Field) &&
                     member.RequiresInstanceReceiver() &&
                     (containingType is null || AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteDiagnostics)))
                 {
