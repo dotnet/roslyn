@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DocumentRefactoring
             Dim matchingTypeDeclarationPair = typeDeclarationPairs.Where(Function(p) String.Equals(p.Item2, Path.GetFileNameWithoutExtension(document.FilePath), StringComparison.OrdinalIgnoreCase))
 
             If (expectMatchingName) Then
-                Assert.Single(matchingTypeDeclarationPair)
+                Assert.NotEmpty(matchingTypeDeclarationPair)
             Else
                 Assert.Empty(matchingTypeDeclarationPair)
             End If
