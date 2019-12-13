@@ -136,7 +136,7 @@
         <source>Entire Solution</source>
         <target state="new">Entire Solution</target>
         <note />
-      </trans-unit>dd ColorScheme dropdown to Advanced Options page
+      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">In fase di valutazione ({0} attività in coda)</target>
@@ -530,6 +530,11 @@
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Mostra l'elenco di completamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
+        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
+        <target state="new">Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">

@@ -247,6 +247,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             return IsKnownTheme(GetThemeId());
         }
 
+        public bool IsThemeCustomized()
+        {
+            return !_colorApplier.AreForegroundColorsDefaultable(GetThemeId());
+        }
+
         public static bool IsKnownTheme(Guid currentTheme)
         {
             return currentTheme == KnownColorThemes.Light ||

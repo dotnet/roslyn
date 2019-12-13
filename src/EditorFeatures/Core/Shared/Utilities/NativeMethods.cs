@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         [DllImport("user32.dll")]
         internal static extern uint GetQueueStatus(uint flags);
 
-
         public static readonly IntPtr HWND_BROADCAST = new IntPtr(0xFFFF);
         public const int WM_SYSCOLORCHANGE = 0x0015;
 

@@ -16,6 +16,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
+        // Now that we are updating the theme's default color for classifications instead of updating the applied classification color, we need to 
+        // update the classifications whose applied color matches the theme's color. These need to be reverted to the default color so that when we
+        // change theme colors it will be reflected in the editor.
         private sealed class ForegroundColorDefaulter : ForegroundThreadAffinitizedObject
         {
             private readonly IVsFontAndColorStorage _fontAndColorStorage;
@@ -28,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private const uint DefaultBackgroundColor = 0x01000001u;
 
             // Colors are in 0x00BBGGRR
+
+            // These colors should match the colors in the Visual Studio 2017.xml and Enhanced.xml scheme files.
             private const uint DarkThemePlainText = 0x00DCDCDCu;
             private const uint DarkThemeIdentifier = DarkThemePlainText;
             private const uint DarkThemeOperator = 0x00B4B4B4u;
@@ -55,18 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private static readonly Guid TextEditorMEFItemsColorCategory = new Guid("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
             // Dark Theme
-            private static ImmutableDictionary<string, uint> DarkThemeEnhancedForegroundChanges =>
-                new Dictionary<string, uint>()
-                {
-                    [ClassificationTypeNames.ControlKeyword] = DarkThemeControlKeyword,
-                    [ClassificationTypeNames.ExtensionMethodName] = DarkThemeMethod,
-                    [ClassificationTypeNames.LocalName] = DarkThemeLocal,
-                    [ClassificationTypeNames.MethodName] = DarkThemeMethod,
-                    [ClassificationTypeNames.OperatorOverloaded] = DarkThemeMethod,
-                    [ClassificationTypeNames.ParameterName] = DarkThemeLocal,
-                    [ClassificationTypeNames.StructName] = DarkThemeStruct,
-                }.ToImmutableDictionary();
 
+            // These classification colors should match the Visual Studio 2017.xml scheme file.
             private static ImmutableDictionary<string, uint> DarkThemeClassicForeground =>
                 new Dictionary<string, uint>()
                 {
@@ -96,18 +91,22 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     [ClassificationTypeNames.TypeParameterName] = DarkThemeEnum,
                 }.ToImmutableDictionary();
 
-            // Light or Blue themes
-            private static ImmutableDictionary<string, uint> BlueLightThemeEnhancedForegroundChanges =>
+            // This represents the changes in classification colors between Visual Studio 2017.xml and Enhanced.xml scheme files.
+            private static ImmutableDictionary<string, uint> DarkThemeEnhancedForegroundChanges =>
                 new Dictionary<string, uint>()
                 {
-                    [ClassificationTypeNames.ControlKeyword] = LightThemeControlKeyword,
-                    [ClassificationTypeNames.ExtensionMethodName] = LightThemeMethod,
-                    [ClassificationTypeNames.LocalName] = LightThemeLocal,
-                    [ClassificationTypeNames.MethodName] = LightThemeMethod,
-                    [ClassificationTypeNames.OperatorOverloaded] = LightThemeMethod,
-                    [ClassificationTypeNames.ParameterName] = LightThemeLocal,
+                    [ClassificationTypeNames.ControlKeyword] = DarkThemeControlKeyword,
+                    [ClassificationTypeNames.ExtensionMethodName] = DarkThemeMethod,
+                    [ClassificationTypeNames.LocalName] = DarkThemeLocal,
+                    [ClassificationTypeNames.MethodName] = DarkThemeMethod,
+                    [ClassificationTypeNames.OperatorOverloaded] = DarkThemeMethod,
+                    [ClassificationTypeNames.ParameterName] = DarkThemeLocal,
+                    [ClassificationTypeNames.StructName] = DarkThemeStruct,
                 }.ToImmutableDictionary();
 
+            // Light or Blue themes
+
+            // These classification colors should match the Visual Studio 2017.xml scheme file.
             private static ImmutableDictionary<string, uint> BlueLightThemeClassicForeground =>
                 new Dictionary<string, uint>()
                 {
@@ -137,7 +136,22 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     [ClassificationTypeNames.TypeParameterName] = LightThemeClass,
                 }.ToImmutableDictionary();
 
+            // This represents the changes in classification colors between Visual Studio 2017.xml and Enhanced.xml scheme files.
+            private static ImmutableDictionary<string, uint> BlueLightThemeEnhancedForegroundChanges =>
+                new Dictionary<string, uint>()
+                {
+                    [ClassificationTypeNames.ControlKeyword] = LightThemeControlKeyword,
+                    [ClassificationTypeNames.ExtensionMethodName] = LightThemeMethod,
+                    [ClassificationTypeNames.LocalName] = LightThemeLocal,
+                    [ClassificationTypeNames.MethodName] = LightThemeMethod,
+                    [ClassificationTypeNames.OperatorOverloaded] = LightThemeMethod,
+                    [ClassificationTypeNames.ParameterName] = LightThemeLocal,
+                }.ToImmutableDictionary();
+
             // AdditionalContrast Theme
+
+            // These classification colors should match the Visual Studio 2017.xml scheme file. The changes for Enhanced.xml are
+            // captured in the `BlueLightThemeEnhancedForegroundChanges` dictionary.
             private static ImmutableDictionary<string, uint> AdditionalContrastThemeClassicForeground =>
                 new Dictionary<string, uint>()
                 {
@@ -222,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     // If a colorItem is not DefaultColor and cannot be defaulted, then the classifications cannot be 
                     // considered Defaulted.
                     if (!IsItemForegroundTheDefaultColor(colorItem)
-                        && !CanItemBeSetToDefault(colorItem, classification, themeClassicForeground, themeEnhancedForegroundChanges))
+                        && !CanItemBeSetToDefaultColors(colorItem, classification, themeClassicForeground, themeEnhancedForegroundChanges))
                     {
                         allDefaulted = false;
                         break;
@@ -246,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             /// Determines if the ColorableItemInfo can be reverted to its default state. This requires checking both color and font configuration,
             /// since reverting will reset all information for the item.
             /// </summary>
-            private bool CanItemBeSetToDefault(ColorableItemInfo colorInfo,
+            private bool CanItemBeSetToDefaultColors(ColorableItemInfo colorInfo,
                 string classification,
                 ImmutableDictionary<string, uint> themeClassicForeground,
                 ImmutableDictionary<string, uint> themeEnhancedForegroundChanges)

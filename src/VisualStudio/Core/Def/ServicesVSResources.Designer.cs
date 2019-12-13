@@ -579,15 +579,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Classifications.
-        /// </summary>
-        internal static string Classifications {
-            get {
-                return ResourceManager.GetString("Classifications", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         internal static string Close {
@@ -3095,6 +3086,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Show_outlining_for_declaration_level_constructs {
             get {
                 return ResourceManager.GetString("Show_outlining_for_declaration_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations..
+        /// </summary>
+        internal static string Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations {
+            get {
+                return ResourceManager.GetString("Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_" +
+                        "Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_t" +
+                        "o_revert_all_customizations", resourceCulture);
             }
         }
         
