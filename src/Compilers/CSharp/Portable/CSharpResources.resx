@@ -4008,7 +4008,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Command line switch is not yet implemented</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
-    <value>Failed to emit module '{0}'.</value>
+    <value>Failed to emit module '{0}': {1}</value>
   </data>
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>

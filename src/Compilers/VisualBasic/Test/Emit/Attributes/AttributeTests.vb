@@ -4365,7 +4365,7 @@ End Class
             Dim emitResult2 = compilation2.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
             Assert.False(emitResult2.Success)
             AssertTheseDiagnostics(emitResult2.Diagnostics, <![CDATA[
-BC36970: Failed to emit module 'Test.dll'.
+BC36970: Failed to emit module 'Test.dll': Module has invalid attributes.
 ]]>)
 
             ' Use different mscorlib to test retargeting scenario
