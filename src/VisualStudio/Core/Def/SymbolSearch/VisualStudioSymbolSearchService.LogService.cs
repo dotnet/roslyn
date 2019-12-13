@@ -24,12 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 _activityLog = activityLog;
             }
 
-            public Task LogInfoAsync(string text, CancellationToken cancellationToken)
+            public Task LogInfoAsync(string text)
             {
                 return LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
             }
 
-            public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
+            public Task LogExceptionAsync(string exception, string text)
             {
                 return LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
             }

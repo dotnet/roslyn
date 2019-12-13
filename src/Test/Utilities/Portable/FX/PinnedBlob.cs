@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -11,28 +10,25 @@ namespace Roslyn.Test.Utilities
 {
     internal class PinnedBlob : IDisposable
     {
-        private MemoryHandle _handle;
-
-        public unsafe IntPtr Pointer => (IntPtr)_handle.Pointer;
+        private GCHandle _bytes; // non-readonly as Free() mutates to prevent double-free.
+        public readonly IntPtr Pointer;
         public readonly int Size;
 
-        public PinnedBlob(ReadOnlyMemory<byte> blob)
+        public PinnedBlob(ImmutableArray<byte> blob)
+            : this(blob.DangerousGetUnderlyingArray())
         {
-            _handle = blob.Pin();
+        }
+
+        public unsafe PinnedBlob(byte[] blob)
+        {
+            _bytes = GCHandle.Alloc(blob, GCHandleType.Pinned);
+            Pointer = _bytes.AddrOfPinnedObject();
             Size = blob.Length;
         }
 
-        public PinnedBlob(ImmutableArray<byte> blob)
-            : this(blob.AsMemory())
-        { }
-
-        public PinnedBlob(byte[] blob)
-            : this(blob.AsMemory())
-        { }
-
         public void Dispose()
         {
-            _handle.Dispose();
+            _bytes.Free();
         }
     }
 }

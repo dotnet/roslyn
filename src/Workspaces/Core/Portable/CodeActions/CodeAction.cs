@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -267,6 +268,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
+                document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+                    document, Simplifier.AddImportsAnnotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation

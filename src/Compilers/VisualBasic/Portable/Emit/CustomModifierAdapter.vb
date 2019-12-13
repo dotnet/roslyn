@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function CciGetModifier(context As EmitContext) As Cci.ITypeReference Implements Cci.ICustomModifier.GetModifier
-            Return DirectCast(context.Module, PEModuleBuilder).Translate(Me.Modifier, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
+            Return DirectCast(context.Module, PEModuleBuilder).Translate(Me.ModifierSymbol, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
         End Function
     End Class
 End Namespace

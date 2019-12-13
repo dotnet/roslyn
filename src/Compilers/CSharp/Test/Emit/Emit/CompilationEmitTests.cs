@@ -9,7 +9,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -839,8 +838,8 @@ public class C
                 AssertEx.NotEqual(image1, image2, message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
             }
 
-            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new ImmutableMemoryStream(image1));
-            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new ImmutableMemoryStream(image2));
+            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image1.DangerousGetUnderlyingArray()));
+            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image2.DangerousGetUnderlyingArray()));
 
             if (!includePrivateMembers)
             {

@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 

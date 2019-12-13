@@ -6,12 +6,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -20,9 +20,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class DebuggingSession : IDisposable
     {
+        public readonly Workspace Workspace;
         public readonly IActiveStatementProvider ActiveStatementProvider;
         public readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
         public readonly ICompilationOutputsProviderService CompilationOutputsProvider;
+
+        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
 
         /// <summary>
         /// MVIDs read from the assembly built for given project id.
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <see cref="_lazyBaselineModuleReaders"/> and dispose them at the end of the debugging session
         /// </summary>
         private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines;
-        private List<IDisposable> _lazyBaselineModuleReaders;
+        private List<IDisposable>? _lazyBaselineModuleReaders;
         private readonly object _projectEmitBaselinesGuard = new object();
 
         // Maps active statement instructions to their latest spans.
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// or the solution which the last changes committed to the debuggee at the end of edit session were calculated from.
         /// The solution reflecting the current state of the modules loaded in the debugee.
         /// </summary>
-        internal Solution LastCommittedSolution { get; private set; }
+        internal readonly CommittedSolution LastCommittedSolution;
 
         internal DebuggingSession(
             Workspace workspace,
@@ -86,9 +89,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             IActiveStatementProvider activeStatementProvider,
             ICompilationOutputsProviderService compilationOutputsProvider)
         {
-            Debug.Assert(workspace != null);
-            Debug.Assert(debugeeModuleMetadataProvider != null);
-
+            Workspace = workspace;
             DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             CompilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             ActiveStatementProvider = activeStatementProvider;
 
-            LastCommittedSolution = workspace.CurrentSolution;
+            LastCommittedSolution = new CommittedSolution(this, workspace.CurrentSolution);
             NonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 
@@ -125,12 +126,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        internal CancellationToken CancellationToken => _cancellationSource.Token;
+        internal void Cancel() => _cancellationSource.Cancel();
+
         public void Dispose()
         {
             foreach (var reader in GetBaselineModuleReaders())
             {
                 reader.Dispose();
             }
+
+            _cancellationSource.Dispose();
         }
 
         internal void PrepareModuleForUpdate(Guid mvid)
@@ -180,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            LastCommittedSolution = update.Solution;
+            LastCommittedSolution.CommitSolution(update.Solution, update.ChangedDocuments);
         }
 
         /// <summary>
@@ -190,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// An MVID and an error message to report, in case an IO exception occurred while reading the binary.
         /// The MVID is default if either project not built, or an it can't be read from the module binary.
         /// </returns>
-        public async Task<(Guid Mvid, Diagnostic Error)> GetProjectModuleIdAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             lock (_projectModuleIdsGuard)
             {
@@ -200,7 +206,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            (Guid Mvid, Diagnostic Error) ReadMvid()
+            (Guid Mvid, Diagnostic? Error) ReadMvid()
             {
                 var outputs = CompilationOutputsProvider.GetCompilationOutputs(projectId);
 
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <returns>Null if the module corresponding to he project hasn't been loaded yet</returns>
         /// <exception cref="IOException">Error reading project's binary.</exception>
-        public EmitBaseline GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid)
+        public EmitBaseline? GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid)
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 

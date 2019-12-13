@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a parameter of a method or indexer.
     /// </summary>
-    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbol
+    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbolInternal
     {
         internal const string ValueParameterName = "value";
 
@@ -58,6 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Determines if the parameter ref, out or neither.
         /// </summary>
         public abstract RefKind RefKind { get; }
+
+        /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        public abstract bool IsDiscard { get; }
 
         /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
@@ -405,43 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #region IParameterSymbol Members
-
-        ITypeSymbol IParameterSymbol.Type
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.Type; }
+            return new PublicModel.ParameterSymbol(this);
         }
-
-        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
-
-        ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
-        {
-            get { return this.TypeWithAnnotations.CustomModifiers; }
-        }
-
-        ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers
-        {
-            get { return this.RefCustomModifiers; }
-        }
-
-        IParameterSymbol IParameterSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitParameter(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitParameter(this);
-        }
-
-        #endregion
     }
 }

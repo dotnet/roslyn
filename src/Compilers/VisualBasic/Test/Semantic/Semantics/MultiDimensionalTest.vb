@@ -1564,7 +1564,7 @@ Test1
   IL_000b:  ldc.i4.s   15
   IL_000d:  newobj     "Double(*)..ctor"
   IL_0012:  dup
-  IL_0013:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=120 <PrivateImplementationDetails>.198EB999C0C49843F4C649E4F9C8292C86A60DC7"
+  IL_0013:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=120 <PrivateImplementationDetails>.834648CEAE9C31873542B1ADBC0668FB21039AD43C50A7D45318910DB18C1DCE"
   IL_0018:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_001d:  call       "Sub C.Print(System.Array)"
   IL_0022:  ret
@@ -2065,67 +2065,67 @@ class C
     End Sub
 
     public overrides Function Test1() As Double(,)
-        System.Console.WriteLine("Overriden 1")
+        System.Console.WriteLine("Overridden 1")
         return Nothing
     End Function
     public overrides Function Test2() As Double(,)
-        System.Console.WriteLine("Overriden 2")
+        System.Console.WriteLine("Overridden 2")
         return Nothing
     End Function
     public overrides Function Test3() As Double(,)
-        System.Console.WriteLine("Overriden 3")
+        System.Console.WriteLine("Overridden 3")
         return Nothing
     End Function
     public overrides Function Test4() As Double(,)
-        System.Console.WriteLine("Overriden 4")
+        System.Console.WriteLine("Overridden 4")
         return Nothing
     End Function
     public overrides Function Test5() As Double(,)
-        System.Console.WriteLine("Overriden 5")
+        System.Console.WriteLine("Overridden 5")
         return Nothing
     End Function
     public overrides Function Test6() As Double(,)
-        System.Console.WriteLine("Overriden 6")
+        System.Console.WriteLine("Overridden 6")
         return Nothing
     End Function
     public overrides Function Test7() As Double(,)
-        System.Console.WriteLine("Overriden 7")
+        System.Console.WriteLine("Overridden 7")
         return Nothing
     End Function
     public overrides Function Test8() As Double(,)
-        System.Console.WriteLine("Overriden 8")
+        System.Console.WriteLine("Overridden 8")
         return Nothing
     End Function
     public overrides Function Test9() As Double(,)
-        System.Console.WriteLine("Overriden 9")
+        System.Console.WriteLine("Overridden 9")
         return Nothing
     End Function
     public overrides Function Test10() As Double(,)
-        System.Console.WriteLine("Overriden 10")
+        System.Console.WriteLine("Overridden 10")
         return Nothing
     End Function
     public overrides Function Test11() As Double(,)
-        System.Console.WriteLine("Overriden 11")
+        System.Console.WriteLine("Overridden 11")
         return Nothing
     End Function
     public overrides Function Test12() As Double(,)
-        System.Console.WriteLine("Overriden 12")
+        System.Console.WriteLine("Overridden 12")
         return Nothing
     End Function
     public overrides Function Test13() As Double(,)
-        System.Console.WriteLine("Overriden 13")
+        System.Console.WriteLine("Overridden 13")
         return Nothing
     End Function
     public overrides Function Test14() As Double(,)
-        System.Console.WriteLine("Overriden 14")
+        System.Console.WriteLine("Overridden 14")
         return Nothing
     End Function
     public overrides Function Test15() As Double(,)
-        System.Console.WriteLine("Overriden 15")
+        System.Console.WriteLine("Overridden 15")
         return Nothing
     End Function
     public overrides Function Test16() As Double(,)
-        System.Console.WriteLine("Overriden 16")
+        System.Console.WriteLine("Overridden 16")
         return Nothing
     End Function
 End Class
@@ -2271,22 +2271,22 @@ Test13
 Test14
 Test15
 Test16
-Overriden 1
-Overriden 2
-Overriden 3
-Overriden 4
-Overriden 5
-Overriden 6
-Overriden 7
-Overriden 8
-Overriden 9
-Overriden 10
-Overriden 11
-Overriden 12
-Overriden 13
-Overriden 14
-Overriden 15
-Overriden 16
+Overridden 1
+Overridden 2
+Overridden 3
+Overridden 4
+Overridden 5
+Overridden 6
+Overridden 7
+Overridden 8
+Overridden 9
+Overridden 10
+Overridden 11
+Overridden 12
+Overridden 13
+Overridden 14
+Overridden 15
+Overridden 16
 ]]>)
         End Sub
 
@@ -2519,52 +2519,52 @@ Class C
     End Sub
 
     public overrides Sub Test1(x As double(,))
-        System.Console.WriteLine("Overriden 1")
+        System.Console.WriteLine("Overridden 1")
     End Sub
     public overrides Sub Test2(x As double(,))
-        System.Console.WriteLine("Overriden 2")
+        System.Console.WriteLine("Overridden 2")
     End Sub
     public overrides Sub Test3(x As double(,))
-        System.Console.WriteLine("Overriden 3")
+        System.Console.WriteLine("Overridden 3")
     End Sub
     public overrides Sub Test4(x As double(,))
-        System.Console.WriteLine("Overriden 4")
+        System.Console.WriteLine("Overridden 4")
     End Sub
     public overrides Sub Test5(x As double(,))
-        System.Console.WriteLine("Overriden 5")
+        System.Console.WriteLine("Overridden 5")
     End Sub
     public overrides Sub Test6(x As double(,))
-        System.Console.WriteLine("Overriden 6")
+        System.Console.WriteLine("Overridden 6")
     End Sub
     public overrides Sub Test7(x As double(,))
-        System.Console.WriteLine("Overriden 7")
+        System.Console.WriteLine("Overridden 7")
     End Sub
     public overrides Sub Test8(x As double(,))
-        System.Console.WriteLine("Overriden 8")
+        System.Console.WriteLine("Overridden 8")
     End Sub
     public overrides Sub Test9(x As double(,))
-        System.Console.WriteLine("Overriden 9")
+        System.Console.WriteLine("Overridden 9")
     End Sub
     public overrides Sub Test10(x As double(,))
-        System.Console.WriteLine("Overriden 10")
+        System.Console.WriteLine("Overridden 10")
     End Sub
     public overrides Sub Test11(x As double(,))
-        System.Console.WriteLine("Overriden 11")
+        System.Console.WriteLine("Overridden 11")
     End Sub
     public overrides Sub Test12(x As double(,))
-        System.Console.WriteLine("Overriden 12")
+        System.Console.WriteLine("Overridden 12")
     End Sub
     public overrides Sub Test13(x As double(,))
-        System.Console.WriteLine("Overriden 13")
+        System.Console.WriteLine("Overridden 13")
     End Sub
     public overrides Sub Test14(x As double(,))
-        System.Console.WriteLine("Overriden 14")
+        System.Console.WriteLine("Overridden 14")
     End Sub
     public overrides Sub Test15(x As double(,))
-        System.Console.WriteLine("Overriden 15")
+        System.Console.WriteLine("Overridden 15")
     End Sub
     public overrides Sub Test16(x As double(,))
-        System.Console.WriteLine("Overriden 16")
+        System.Console.WriteLine("Overridden 16")
     End Sub
 End Class
     </file>
@@ -2588,22 +2588,22 @@ Test13
 Test14
 Test15
 Test16
-Overriden 1
-Overriden 2
-Overriden 3
-Overriden 4
-Overriden 5
-Overriden 6
-Overriden 7
-Overriden 8
-Overriden 9
-Overriden 10
-Overriden 11
-Overriden 12
-Overriden 13
-Overriden 14
-Overriden 15
-Overriden 16
+Overridden 1
+Overridden 2
+Overridden 3
+Overridden 4
+Overridden 5
+Overridden 6
+Overridden 7
+Overridden 8
+Overridden 9
+Overridden 10
+Overridden 11
+Overridden 12
+Overridden 13
+Overridden 14
+Overridden 15
+Overridden 16
 ]]>)
         End Sub
 

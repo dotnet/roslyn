@@ -328,11 +328,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var location = await GetSymbolLocationAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
                 if (location != null && location.IsInSource)
                 {
-                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Count());
+                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Length);
                 }
                 else
                 {
-                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Count());
+                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Length);
                 }
 
                 symbolIndex++;

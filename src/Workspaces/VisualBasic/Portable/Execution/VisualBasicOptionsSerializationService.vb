@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             writer.WriteBoolean(vbOptions.OptionCompareText)
             writer.WriteBoolean(vbOptions.EmbedVbCoreRuntime)
 
-            ' save parse option for embeded types - My types
+            ' save parse option for embedded types - My types
             writer.WriteBoolean(vbOptions.ParseOptions IsNot Nothing)
             If vbOptions.ParseOptions IsNot Nothing Then
                 WriteTo(vbOptions.ParseOptions, writer, cancellationToken)

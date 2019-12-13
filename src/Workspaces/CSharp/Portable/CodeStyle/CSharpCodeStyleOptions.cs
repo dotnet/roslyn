@@ -67,6 +67,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_is_with_cast_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferThrowExpression = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_throw_expression"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferThrowExpression")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferInlinedVariableDeclaration = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferInlinedVariableDeclaration),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_inlined_variable_declaration"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferInlinedVariableDeclaration") });
+
+        public static readonly Option<CodeStyleOption<bool>> PreferDeconstructedVariableDeclaration = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferDeconstructedVariableDeclaration),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_deconstructed_variable_declaration"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferDeconstructedVariableDeclaration)}")});
+
         public static readonly Option<CodeStyleOption<bool>> PreferIndexOperator = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferIndexOperator),
             defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
@@ -286,6 +307,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferPatternMatchingOverIsWithCastCheck;
             yield return PreferSimpleDefaultExpression;
             yield return PreferLocalOverAnonymousFunction;
+            yield return PreferThrowExpression;
+            yield return PreferInlinedVariableDeclaration;
+            yield return PreferDeconstructedVariableDeclaration;
             yield return PreferIndexOperator;
             yield return PreferRangeOperator;
         }

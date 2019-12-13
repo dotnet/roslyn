@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a type other than an array, a pointer, a type parameter, and dynamic.
     /// </summary>
-    internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
+    internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbolInternal
     {
         private bool _hasNoBaseCycles;
 
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetConstructors<MethodSymbol>(includeInstance: true, includeStatic: false);
+                return GetConstructors(includeInstance: true, includeStatic: false);
             }
         }
 
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetConstructors<MethodSymbol>(includeInstance: false, includeStatic: true);
+                return GetConstructors(includeInstance: false, includeStatic: true);
             }
         }
 
@@ -240,11 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetConstructors<MethodSymbol>(includeInstance: true, includeStatic: true);
+                return GetConstructors(includeInstance: true, includeStatic: true);
             }
         }
 
-        private ImmutableArray<TMethodSymbol> GetConstructors<TMethodSymbol>(bool includeInstance, bool includeStatic) where TMethodSymbol : class, IMethodSymbol
+        private ImmutableArray<MethodSymbol> GetConstructors(bool includeInstance, bool includeStatic)
         {
             Debug.Assert(includeInstance || includeStatic);
 
@@ -257,26 +258,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (instanceCandidates.IsEmpty && staticCandidates.IsEmpty)
             {
-                return ImmutableArray<TMethodSymbol>.Empty;
+                return ImmutableArray<MethodSymbol>.Empty;
             }
 
-            ArrayBuilder<TMethodSymbol> constructors = ArrayBuilder<TMethodSymbol>.GetInstance();
+            ArrayBuilder<MethodSymbol> constructors = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (Symbol candidate in instanceCandidates)
             {
-                if (candidate.Kind == SymbolKind.Method)
+                if (candidate is MethodSymbol method)
                 {
-                    TMethodSymbol method = candidate as TMethodSymbol;
-                    Debug.Assert((object)method != null);
                     Debug.Assert(method.MethodKind == MethodKind.Constructor);
                     constructors.Add(method);
                 }
             }
             foreach (Symbol candidate in staticCandidates)
             {
-                if (candidate.Kind == SymbolKind.Method)
+                if (candidate is MethodSymbol method)
                 {
-                    TMethodSymbol method = candidate as TMethodSymbol;
-                    Debug.Assert((object)method != null);
                     Debug.Assert(method.MethodKind == MethodKind.StaticConstructor);
                     constructors.Add(method);
                 }
@@ -846,18 +843,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             if (!IsGenericType)
             {
-                return this;
+                return other.IsDynamic() ? other : this;
             }
 
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            bool haveChanges = MergeTypeArgumentNullability(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments);
+            bool haveChanges = MergeEquivalentTypeArguments(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments);
 
             NamedTypeSymbol result;
             if (haveChanges)
@@ -881,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// type arguments are added to `allTypeArguments`; and the method
         /// returns true if there were changes from the original `typeA`.
         /// </summary>
-        private static bool MergeTypeArgumentNullability(
+        private static bool MergeEquivalentTypeArguments(
             NamedTypeSymbol typeA,
             NamedTypeSymbol typeB,
             VarianceKind variance,
@@ -890,6 +887,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(typeA.IsGenericType);
             Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+
+            // Tuple types act as covariant when merging equivalent types.
+            bool isTuple = typeA.IsTupleCompatible();
 
             var definition = typeA.OriginalDefinition;
             bool haveChanges = false;
@@ -906,8 +906,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         TypeWithAnnotations typeArgumentA = typeArgumentsA[i];
                         TypeWithAnnotations typeArgumentB = typeArgumentsB[i];
-                        VarianceKind typeArgumentVariance = GetTypeArgumentVariance(variance, typeParameters[i].Variance);
-                        TypeWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, typeArgumentVariance);
+                        VarianceKind typeArgumentVariance = GetTypeArgumentVariance(variance, isTuple ? VarianceKind.Out : typeParameters[i].Variance);
+                        TypeWithAnnotations merged = typeArgumentA.MergeEquivalentTypes(typeArgumentB, typeArgumentVariance);
                         allTypeArguments.Add(merged);
                         if (!typeArgumentA.IsSameAs(merged))
                         {
@@ -1524,153 +1524,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        #region INamedTypeSymbol Members
-
-        int INamedTypeSymbol.Arity
+        protected override ISymbol CreateISymbol()
         {
-            get
-            {
-                return this.Arity;
-            }
+            return new PublicModel.NonErrorNamedTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        ImmutableArray<IMethodSymbol> INamedTypeSymbol.InstanceConstructors
+        protected override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get
-            {
-                return this.GetConstructors<IMethodSymbol>(includeInstance: true, includeStatic: false);
-            }
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.NonErrorNamedTypeSymbol(this, nullableAnnotation);
         }
 
-        ImmutableArray<IMethodSymbol> INamedTypeSymbol.StaticConstructors
-        {
-            get
-            {
-                return this.GetConstructors<IMethodSymbol>(includeInstance: false, includeStatic: true);
-            }
-        }
-
-        ImmutableArray<IMethodSymbol> INamedTypeSymbol.Constructors
-        {
-            get
-            {
-                return this.GetConstructors<IMethodSymbol>(includeInstance: true, includeStatic: true);
-            }
-        }
-
-        IEnumerable<string> INamedTypeSymbol.MemberNames
-        {
-            get
-            {
-                return this.MemberNames;
-            }
-        }
-
-        ImmutableArray<ITypeParameterSymbol> INamedTypeSymbol.TypeParameters
-        {
-            get
-            {
-                return StaticCast<ITypeParameterSymbol>.From(this.TypeParameters);
-            }
-        }
-
-        ImmutableArray<ITypeSymbol> INamedTypeSymbol.TypeArguments
-        {
-            get
-            {
-                return this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => (ITypeSymbol)a.Type);
-            }
-        }
-
-        ImmutableArray<CodeAnalysis.NullableAnnotation> INamedTypeSymbol.TypeArgumentNullableAnnotations =>
-            this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.ToPublicAnnotation());
-
-        ImmutableArray<CustomModifier> INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal)
-        {
-            return this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[ordinal].CustomModifiers;
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        IMethodSymbol INamedTypeSymbol.DelegateInvokeMethod
-        {
-            get
-            {
-                return this.DelegateInvokeMethod;
-            }
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.EnumUnderlyingType
+        INamedTypeSymbolInternal INamedTypeSymbolInternal.EnumUnderlyingType
         {
             get
             {
                 return this.EnumUnderlyingType;
             }
         }
-
-        INamedTypeSymbol INamedTypeSymbol.ConstructedFrom
-        {
-            get
-            {
-                return this.ConstructedFrom;
-            }
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.Construct(params ITypeSymbol[] typeArguments)
-        {
-            return Construct(ConstructTypeArguments(typeArguments), unbound: false);
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
-        {
-            return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations), unbound: false);
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.ConstructUnboundGenericType()
-        {
-            return this.ConstructUnboundGenericType();
-        }
-
-        ISymbol INamedTypeSymbol.AssociatedSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns fields that represent tuple elements for types that are tuples.
-        ///
-        /// If this type is not a tuple, then returns default.
-        /// </summary>
-        ImmutableArray<IFieldSymbol> INamedTypeSymbol.TupleElements => StaticCast<IFieldSymbol>.From(this.TupleElements);
-
-        /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
-        /// Otherwise, returns null.
-        /// </summary>
-        INamedTypeSymbol INamedTypeSymbol.TupleUnderlyingType => this.TupleUnderlyingType;
-
-        bool INamedTypeSymbol.IsComImport => IsComImport;
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitNamedType(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamedType(this);
-        }
-
-        #endregion
     }
 }

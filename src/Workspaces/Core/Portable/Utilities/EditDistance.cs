@@ -107,7 +107,7 @@ namespace Roslyn.Utilities
             new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
         // To find swapped characters we make use of a table that keeps track of the last location
-        // we found that character.  For performnace reasons we only do this work for ascii characters
+        // we found that character.  For performance reasons we only do this work for ascii characters
         // (i.e. with value <= 127).  This allows us to just use a simple array we can index into instead
         // of needing something more expensive like a dictionary.
         private const int LastSeenIndexLength = 128;

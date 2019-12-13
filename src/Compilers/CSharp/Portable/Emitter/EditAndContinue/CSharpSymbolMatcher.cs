@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitContext sourceContext,
             SourceAssemblySymbol otherAssembly,
             EmitContext otherContext,
-            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> otherSynthesizedMembersOpt)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembersOpt)
         {
             _defs = new MatchDefsToSource(sourceContext, otherContext);
             _symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        internal override bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
+        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
         {
             return _symbols.TryGetAnonymousTypeName(template, out name, out index);
         }
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             /// Members that are not listed directly on their containing type or namespace symbol as they were synthesized in a lowering phase,
             /// after the symbol has been created.
             /// </summary>
-            private readonly ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> _otherSynthesizedMembersOpt;
+            private readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> _otherSynthesizedMembersOpt;
 
             private readonly SymbolComparer _comparer;
             private readonly ConcurrentDictionary<Symbol, Symbol> _matches;
@@ -290,13 +290,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             /// for caching, and indexing by name, is to avoid searching sequentially
             /// through all members of a given kind each time a member is matched.
             /// </summary>
-            private readonly ConcurrentDictionary<ISymbol, IReadOnlyDictionary<string, ImmutableArray<ISymbol>>> _otherMembers;
+            private readonly ConcurrentDictionary<ISymbolInternal, IReadOnlyDictionary<string, ImmutableArray<ISymbolInternal>>> _otherMembers;
 
             public MatchSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
                 SourceAssemblySymbol sourceAssembly,
                 AssemblySymbol otherAssembly,
-                ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> otherSynthesizedMembersOpt,
+                ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembersOpt,
                 DeepTranslator deepTranslatorOpt)
             {
                 _anonymousTypeMap = anonymousTypeMap;
@@ -305,10 +305,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _otherSynthesizedMembersOpt = otherSynthesizedMembersOpt;
                 _comparer = new SymbolComparer(this, deepTranslatorOpt);
                 _matches = new ConcurrentDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
-                _otherMembers = new ConcurrentDictionary<ISymbol, IReadOnlyDictionary<string, ImmutableArray<ISymbol>>>(ReferenceEqualityComparer.Instance);
+                _otherMembers = new ConcurrentDictionary<ISymbolInternal, IReadOnlyDictionary<string, ImmutableArray<ISymbolInternal>>>(ReferenceEqualityComparer.Instance);
             }
 
-            internal bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal type, out string name, out int index)
+            internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol type, out string name, out int index)
             {
                 if (TryFindAnonymousType(type, out var otherType))
                 {
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 switch (otherContainer.Kind)
                 {
                     case SymbolKind.Namespace:
-                        if (sourceType is IAnonymousTypeTemplateSymbolInternal template)
+                        if (sourceType is AnonymousTypeManager.AnonymousTypeTemplateSymbol template)
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
                             TryFindAnonymousType(template, out var value);
@@ -609,14 +609,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private CustomModifier VisitCustomModifier(CustomModifier modifier)
             {
-                var type = (NamedTypeSymbol)this.Visit((Symbol)modifier.Modifier);
+                var type = (NamedTypeSymbol)this.Visit(((CSharpCustomModifier)modifier).ModifierSymbol);
                 Debug.Assert((object)type != null);
                 return modifier.IsOptional ?
                     CSharpCustomModifier.CreateOptional(type) :
                     CSharpCustomModifier.CreateRequired(type);
             }
 
-            internal bool TryFindAnonymousType(IAnonymousTypeTemplateSymbolInternal type, out AnonymousTypeValue otherType)
+            internal bool TryFindAnonymousType(AnonymousTypeManager.AnonymousTypeTemplateSymbol type, out AnonymousTypeValue otherType)
             {
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
 
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return FindMatchingMember(otherType, member, predicate);
             }
 
-            private T FindMatchingMember<T>(ISymbol otherTypeOrNamespace, T sourceMember, Func<T, T, bool> predicate)
+            private T FindMatchingMember<T>(ISymbolInternal otherTypeOrNamespace, T sourceMember, Func<T, T, bool> predicate)
                 where T : Symbol
             {
                 Debug.Assert(!string.IsNullOrEmpty(sourceMember.MetadataName));
@@ -805,9 +805,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            private IReadOnlyDictionary<string, ImmutableArray<ISymbol>> GetAllEmittedMembers(ISymbol symbol)
+            private IReadOnlyDictionary<string, ImmutableArray<ISymbolInternal>> GetAllEmittedMembers(ISymbolInternal symbol)
             {
-                var members = ArrayBuilder<ISymbol>.GetInstance();
+                var members = ArrayBuilder<ISymbolInternal>.GetInstance();
 
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private CustomModifier VisitCustomModifier(CustomModifier modifier)
             {
-                var translatedType = (NamedTypeSymbol)this.Visit((Symbol)modifier.Modifier);
+                var translatedType = (NamedTypeSymbol)this.Visit(((CSharpCustomModifier)modifier).ModifierSymbol);
                 Debug.Assert((object)translatedType != null);
                 return modifier.IsOptional ?
                     CSharpCustomModifier.CreateOptional(translatedType) :

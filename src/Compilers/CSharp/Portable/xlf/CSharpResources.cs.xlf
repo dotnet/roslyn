@@ -293,13 +293,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync. Neměli jste v úmyslu použít using místo await using?</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync. Neměli jste v úmyslu použít using místo await using?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">{0}: typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable nebo implementovat odpovídající metodu Dispose. Neměli jste v úmyslu použít await using místo using?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">{0}: typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable nebo implementovat odpovídající metodu Dispose. Neměli jste v úmyslu použít await using místo using?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -470,6 +470,11 @@
       <trans-unit id="ERR_VarMayNotBindToType">
         <source>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</source>
         <target state="translated">U syntaxe var pro vzor se nepovoluje odkazování na typ, ale {0} je tady v rámci rozsahu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_VarianceInterfaceNesting">
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
@@ -799,6 +804,11 @@
         <target state="translated">alternativní interpolované doslovné řetězce</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAsyncUsing">
+        <source>asynchronous using</source>
+        <target state="new">asynchronous using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">slučovací přiřazení</target>
@@ -832,6 +842,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">indexování mobilních vyrovnávacích pamětí pevné velikosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1324,16 +1339,6 @@
         <target state="translated">SyntaxTree není součástí kompilace, takže se nedá odebrat.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Operátor as může vytvořit hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">Operátor as může pro parametr typu vytvořit hodnotu null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">Název „_“ odkazuje na konstantu, ne na vzor discard. Zadáním „var _“ hodnotu zahodíte a zadáním „@_“ nastavíte pod tímto názvem odkaz na konstantu.</target>
@@ -1344,16 +1349,6 @@
         <target state="translated">Nepoužívejte „_“ jako konstantu case.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Podmíněný přístup může vytvořit hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">Podmíněný přístup může pro parametr typu vytvořit hodnotu null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
@@ -1362,16 +1357,6 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
-        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Výchozí výraz zavádí hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
-        <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">Výchozí výraz zavádí pro parametr typu hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -1392,16 +1377,6 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">Rozhraní je už uvedené v seznamu rozhraní s různou možností použití hodnoty null u typů odkazů.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
-        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
-        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
-        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1474,16 +1449,6 @@
         <target state="translated">Literál null nejde převést na odkazový typ, který nemůže mít hodnotu null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
-        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Literál null zavádí hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
-        <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">Literál null zavádí pro parametr typu hodnotu null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
         <source>Possible null reference argument for parameter '{0}' in '{1}'.</source>
         <target state="translated">V parametru {0} v {1} může být argument s odkazem null.</target>
@@ -1512,16 +1477,6 @@
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
         <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Možné přiřazení odkazu s hodnotou null k proměnné iterace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Možné přiřazení odkazu s hodnotou null k proměnné iterace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
@@ -6133,8 +6088,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">{0}: typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable nebo implementovat odpovídající metodu Dispose.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">{0}: typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable nebo implementovat odpovídající metodu Dispose.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -7813,8 +7768,8 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">Nepovedlo se vygenerovat modul {0}.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="new">Failed to emit module '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">
@@ -9726,8 +9681,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync.</target>
+        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

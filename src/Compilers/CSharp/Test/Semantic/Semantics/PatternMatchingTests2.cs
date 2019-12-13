@@ -384,7 +384,7 @@ public class Point
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
 
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -620,7 +620,7 @@ public class Point
                 var model = compilation.GetSemanticModel(tree);
                 var symbol = model.GetDeclaredSymbol(designation);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
-                Assert.Equal("int", ((LocalSymbol)symbol).TypeWithAnnotations.ToDisplayString());
+                Assert.Equal("int", ((ILocalSymbol)symbol).Type.ToDisplayString());
             }
             foreach (var ident in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
             {
@@ -1093,7 +1093,7 @@ class Program1
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(expected);
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(expected);
 
             expected = new[]

@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
 
             // We never unsubscribe from these, so we just throw out the cookie. We could consider unsubscribing if/when all our
-            // projects are unloaded, but it seems fairly unecessary -- it'd only be useful if somebody closed one solution but then
+            // projects are unloaded, but it seems fairly unnecessary -- it'd only be useful if somebody closed one solution but then
             // opened other solutions in entirely different languages from there.
             if (ErrorHandler.Succeeded(solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _)))
             {
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return VSConstants.S_OK;
             }
 
-            int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
                 _scopeCreator._solutionLoaded = true;
                 _scopeCreator.StopTrackingAllProjects();
@@ -200,6 +200,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             #region Unimplemented Members
+
+            int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+            {
+                return VSConstants.E_NOTIMPL;
+            }
 
             int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
             {
@@ -227,11 +232,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
-
-            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
                 return VSConstants.E_NOTIMPL;
             }

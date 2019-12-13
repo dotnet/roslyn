@@ -15,16 +15,20 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     {
         private static readonly Func<BaseArgumentListSyntax, SyntaxToken> s_getBaseArgumentListOpenToken = list => list.GetOpenToken();
         private static readonly Func<TypeArgumentListSyntax, SyntaxToken> s_getTypeArgumentListOpenToken = list => list.LessThanToken;
+        private static readonly Func<InitializerExpressionSyntax, SyntaxToken> s_getInitializerExpressionOpenToken = e => e.OpenBraceToken;
         private static readonly Func<AttributeArgumentListSyntax, SyntaxToken> s_getAttributeArgumentListOpenToken = list => list.OpenParenToken;
 
         private static readonly Func<BaseArgumentListSyntax, SyntaxToken> s_getBaseArgumentListCloseToken = list => list.GetCloseToken();
         private static readonly Func<TypeArgumentListSyntax, SyntaxToken> s_getTypeArgumentListCloseToken = list => list.GreaterThanToken;
+        private static readonly Func<InitializerExpressionSyntax, SyntaxToken> s_getInitializerExpressionCloseToken = e => e.CloseBraceToken;
         private static readonly Func<AttributeArgumentListSyntax, SyntaxToken> s_getAttributeArgumentListCloseToken = list => list.CloseParenToken;
 
         private static readonly Func<BaseArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getBaseArgumentListArgumentsWithSeparators =
             list => list.Arguments.GetWithSeparators();
         private static readonly Func<TypeArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getTypeArgumentListArgumentsWithSeparators =
             list => list.Arguments.GetWithSeparators();
+        private static readonly Func<InitializerExpressionSyntax, IEnumerable<SyntaxNodeOrToken>> s_getInitializerExpressionArgumentsWithSeparators =
+            e => e.Expressions.GetWithSeparators();
         private static readonly Func<AttributeArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getAttributeArgumentListArgumentsWithSeparators =
                     list => list.Arguments.GetWithSeparators();
 
@@ -32,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             list => list.Arguments.Select(argument => argument.NameColon?.Name.Identifier.ValueText);
         private static readonly Func<TypeArgumentListSyntax, IEnumerable<string>> s_getTypeArgumentListNames =
             list => list.Arguments.Select(a => (string)null);
+        private static readonly Func<InitializerExpressionSyntax, IEnumerable<string>> s_getInitializerExpressionNames =
+            e => e.Expressions.Select(a => (string)null);
         private static readonly Func<AttributeArgumentListSyntax, IEnumerable<string>> s_getAttributeArgumentListNames =
             list => list.Arguments.Select(
                 argument => argument.NameColon != null
@@ -58,6 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 s_getTypeArgumentListNames);
         }
 
+        internal static SignatureHelpState GetSignatureHelpState(InitializerExpressionSyntax argumentList, int position)
+        {
+            return CommonSignatureHelpUtilities.GetSignatureHelpState(
+                argumentList, position,
+                s_getInitializerExpressionOpenToken,
+                s_getInitializerExpressionCloseToken,
+                s_getInitializerExpressionArgumentsWithSeparators,
+                s_getInitializerExpressionNames);
+        }
+
         internal static SignatureHelpState GetSignatureHelpState(AttributeArgumentListSyntax argumentList, int position)
         {
             return CommonSignatureHelpUtilities.GetSignatureHelpState(
@@ -77,6 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
         }
+
+        internal static TextSpan GetSignatureHelpSpan(InitializerExpressionSyntax initializer)
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getInitializerExpressionCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(AttributeArgumentListSyntax argumentList)
         {

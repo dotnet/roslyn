@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static class ImmutableArrayTestExtensions
     {
+        private const int BufferSize = 4096;
+
         /// <summary>
         /// Writes read-only array of bytes to the specified file.
         /// </summary>
@@ -20,22 +22,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="path">File path.</param>
         internal static void WriteToFile(this ImmutableArray<byte> bytes, string path)
         {
-            Debug.Assert(!bytes.IsDefault);
+            using var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, BufferSize);
+            WriteToStream(bytes, fileStream);
+        }
 
+        internal static void WriteToStream(this ImmutableArray<byte> bytes, Stream stream)
+        {
             const int bufferSize = 4096;
-            using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize))
-            {
-                // PERF: Consider using an ObjectPool<byte[]> here
-                byte[] buffer = new byte[Math.Min(bufferSize, bytes.Length)];
 
-                int offset = 0;
-                while (offset < bytes.Length)
-                {
-                    int length = Math.Min(bufferSize, bytes.Length - offset);
-                    bytes.CopyTo(offset, buffer, 0, length);
-                    fileStream.Write(buffer, 0, length);
-                    offset += length;
-                }
+            // PERF: Consider using an ObjectPool<byte[]> here
+            var buffer = new byte[Math.Min(bufferSize, bytes.Length)];
+
+            int offset = 0;
+            while (offset < bytes.Length)
+            {
+                int length = Math.Min(bufferSize, bytes.Length - offset);
+                bytes.CopyTo(offset, buffer, 0, length);
+                stream.Write(buffer, 0, length);
+                offset += length;
             }
         }
     }

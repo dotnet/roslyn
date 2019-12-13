@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
         public abstract Cci.INamespace MapNamespace(Cci.INamespace @namespace);
 
-        public ISymbol MapDefinitionOrNamespace(ISymbol symbol)
-            => (symbol is Cci.IDefinition definition) ? (ISymbol)MapDefinition(definition) : (ISymbol)MapNamespace((Cci.INamespace)symbol);
+        public ISymbolInternal MapDefinitionOrNamespace(ISymbolInternal symbol)
+            => (symbol is Cci.IDefinition definition) ? (ISymbolInternal)MapDefinition(definition) : (ISymbolInternal)MapNamespace((Cci.INamespace)symbol);
 
         public EmitBaseline MapBaselineToCompilation(
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> mappedSynthesizedMembers)
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -103,8 +103,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        internal abstract bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index);
-
         /// <summary>
         /// Merges synthesized members generated during lowering of the current compilation with aggregate synthesized members 
         /// from all previous source generations (gen >= 1).
@@ -119,9 +117,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
         /// </remarks>
-        internal ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> MapSynthesizedMembers(
-            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> previousMembers,
-            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> newMembers)
+        internal ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedMembers(
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers)
         {
             // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
 
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return newMembers;
             }
 
-            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<ISymbol>>();
+            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
 
             synthesizedMembersBuilder.AddRange(newMembers);
 
@@ -156,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // The container has been updated and synthesized members produced.
                 // They might be new or replacing existing ones. Merge existing with new.
-                var memberBuilder = ArrayBuilder<ISymbol>.GetInstance();
+                var memberBuilder = ArrayBuilder<ISymbolInternal>.GetInstance();
                 memberBuilder.AddRange(newSynthesizedMembers);
 
                 foreach (var member in members)

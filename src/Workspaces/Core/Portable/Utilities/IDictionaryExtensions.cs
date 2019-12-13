@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -47,6 +48,18 @@ namespace Roslyn.Utilities
             }
 
             collection.Add(value);
+        }
+
+        public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ArrayBuilder<TValue>> dictionary, TKey key, TValue value)
+            where TKey : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var builder))
+            {
+                builder = ArrayBuilder<TValue>.GetInstance();
+                dictionary.Add(key, builder);
+            }
+
+            builder.Add(value);
         }
 
         public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value, ImmutableArray<TValue> defaultArray)

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Reflection.Metadata;
 
@@ -63,7 +65,7 @@ namespace Microsoft.Cci
         /// If HandlerKind == HandlerKind.Catch, this is the type of exception to catch. If HandlerKind == HandlerKind.Filter, this is System.Object.
         /// Otherwise this is a Dummy.TypeReference.
         /// </summary>
-        public virtual ITypeReference ExceptionType
+        public virtual ITypeReference? ExceptionType
         {
             get
             {

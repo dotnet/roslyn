@@ -4766,7 +4766,7 @@ class C
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions: SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-            var comp = CreateCompilationWithMscorlib46(text, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            var comp = (Compilation)CreateCompilationWithMscorlib46(text, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
             comp.VerifyDiagnostics();
             var symbol = comp.GetMember("C.f");
 
@@ -4781,7 +4781,7 @@ class C
                 "(int One, C<(object[], B Two)>, int, object Four, int, object, int, object, A Nine) C.f");
 
             // ToMinimalDisplayParts.
-            var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+            var model = comp.GetSemanticModel(comp.SyntaxTrees.First());
             Verify(
                 SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 1"), format),
                 "(int One, C<(object[], NAB Two)>, int, object Four, int, object, int, object, A Nine) f");
@@ -5345,13 +5345,17 @@ class C
 
             public bool IsUnmanagedType => throw new NotImplementedException();
 
+            ITypeSymbol ITypeSymbol.WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation) => throw new NotImplementedException();
+
+            CodeAnalysis.NullableAnnotation ITypeSymbol.NullableAnnotation => CodeAnalysis.NullableAnnotation.None;
+
             #endregion
         }
 
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void NonTupleTypeSymbol()
         {
-            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
+            var comp = (Compilation)CSharpCompilation.Create("test", references: new[] { MscorlibRef });
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
 
@@ -5880,7 +5884,7 @@ class B
     static object?[] F2(object[]? o) => null;
     static A<object>? F3(A<object?> o) => null;
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue());
+            var comp = (Compilation)CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue());
             var formatWithoutNonNullableModifier = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
@@ -5891,7 +5895,7 @@ class B
                 .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-            var method = comp.GetMember<MethodSymbol>("B.F1");
+            var method = comp.GetMember<IMethodSymbol>("B.F1");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
                 "static object F1(object? o)",
@@ -5922,7 +5926,7 @@ class B
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
 
-            method = comp.GetMember<MethodSymbol>("B.F2");
+            method = comp.GetMember<IMethodSymbol>("B.F2");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
                 "static object?[] F2(object[]? o)");
@@ -5930,7 +5934,7 @@ class B
                 SymbolDisplay.ToDisplayParts(method, formatWithNonNullableModifier),
                 "static object?[]! F2(object![]? o)");
 
-            method = comp.GetMember<MethodSymbol>("B.F3");
+            method = comp.GetMember<IMethodSymbol>("B.F3");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutNonNullableModifier),
                 "static A<object>? F3(A<object?> o)");
@@ -5952,7 +5956,7 @@ class B
     static object?[] F2(object[]? o) => null;
     static A<object>? F3(A<object?> o) => null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = (Compilation)CreateCompilation(source, parseOptions: TestOptions.Regular8);
             var formatWithoutNullableModifier = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
@@ -5962,7 +5966,7 @@ class B
             var formatWithNullableModifier = formatWithoutNullableModifier
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-            var method = comp.GetMember<MethodSymbol>("B.F1");
+            var method = comp.GetMember<IMethodSymbol>("B.F1");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutNullableModifier),
                 "static object F1(object o)",
@@ -5991,7 +5995,7 @@ class B
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
 
-            method = comp.GetMember<MethodSymbol>("B.F2");
+            method = comp.GetMember<IMethodSymbol>("B.F2");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutNullableModifier),
                 "static object[] F2(object[] o)");
@@ -5999,7 +6003,7 @@ class B
                 SymbolDisplay.ToDisplayParts(method, formatWithNullableModifier),
                 "static object?[] F2(object[]? o)");
 
-            method = comp.GetMember<MethodSymbol>("B.F3");
+            method = comp.GetMember<IMethodSymbol>("B.F3");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutNullableModifier),
                 "static A<object> F3(A<object> o)");
@@ -6020,7 +6024,7 @@ class C
     static object[,]?[] F2;
     static object[,][]? F3;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = (Compilation)CreateCompilation(source, parseOptions: TestOptions.Regular8);
             var formatWithoutModifiers = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -6106,13 +6110,13 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
             var formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat;
             Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
             var formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
             Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
 
-            var method = compilation.GetMember<MethodSymbol>("C.Method");
+            var method = compilation.GetMember<IMethodSymbol>("C.Method");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutAllowDefaultLiteral),
                 "void C.Method(CancellationToken cancellationToken = default(CancellationToken))");
@@ -6136,13 +6140,13 @@ class C
 }}
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
             var formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat;
             Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
             var formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
             Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
 
-            var method1 = compilation.GetMember<MethodSymbol>("C.Method1");
+            var method1 = compilation.GetMember<IMethodSymbol>("C.Method1");
             Verify(
                 SymbolDisplay.ToDisplayParts(method1, formatWithoutAllowDefaultLiteral),
                 $"void C.Method1({type} parameter = {defaultValue})");
@@ -6150,7 +6154,7 @@ class C
                 SymbolDisplay.ToDisplayParts(method1, formatWithAllowDefaultLiteral),
                 $"void C.Method1({type} parameter = {defaultValue})");
 
-            var method2 = compilation.GetMember<MethodSymbol>("C.Method2");
+            var method2 = compilation.GetMember<IMethodSymbol>("C.Method2");
             Verify(
                 SymbolDisplay.ToDisplayParts(method2, formatWithoutAllowDefaultLiteral),
                 $"void C.Method2({type} parameter = {defaultValue})");
@@ -6158,7 +6162,7 @@ class C
                 SymbolDisplay.ToDisplayParts(method2, formatWithAllowDefaultLiteral),
                 $"void C.Method2({type} parameter = {defaultValue})");
 
-            var method3 = compilation.GetMember<MethodSymbol>("C.Method3");
+            var method3 = compilation.GetMember<IMethodSymbol>("C.Method3");
             Verify(
                 SymbolDisplay.ToDisplayParts(method3, formatWithoutAllowDefaultLiteral),
                 $"void C.Method3({type} parameter = {defaultValue})");
@@ -6180,13 +6184,13 @@ class C
 }}
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
             var formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat;
             Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
             var formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
             Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
 
-            var method = compilation.GetMember<MethodSymbol>("C.Method");
+            var method = compilation.GetMember<IMethodSymbol>("C.Method");
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutAllowDefaultLiteral),
                 $"void C.Method({type} parameter = {defaultValue})");
@@ -6204,7 +6208,7 @@ class B
 {
     static (int, (string, long)) F1((int, int)[] t) => throw null;
 }";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             var formatWithoutLongHandValueTuple = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
@@ -6214,7 +6218,7 @@ class B
             var formatWithLongHandValueTuple = formatWithoutLongHandValueTuple.WithCompilerInternalOptions(
                 SymbolDisplayCompilerInternalOptions.UseValueTuple);
 
-            var method = comp.GetMember<MethodSymbol>("B.F1");
+            var method = comp.GetMember<IMethodSymbol>("B.F1");
 
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutLongHandValueTuple),
@@ -6301,8 +6305,9 @@ class C
             var local = root.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
                 .Single();
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(
-                semanticModel.GetDeclaredSymbol(local));
+            var localSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(local);
+
+            Assert.Equal(MethodKind.LocalFunction, localSymbol.MethodKind);
 
             Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
                 "void Local()",
@@ -6343,8 +6348,9 @@ class C
             var local = root.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
                 .Single();
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(
-                semanticModel.GetDeclaredSymbol(local));
+            var localSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(local);
+
+            Assert.Equal(MethodKind.LocalFunction, localSymbol.MethodKind);
 
             Verify(localSymbol.ToDisplayParts(changeSignatureFormat),
                 "void Local",
@@ -6376,8 +6382,10 @@ class C
             var local = root.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
                 .Single();
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(
-                semanticModel.GetDeclaredSymbol(local));
+
+            var localSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(local);
+
+            Assert.Equal(MethodKind.LocalFunction, localSymbol.MethodKind);
 
             Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
                 "System.Threading.Tasks.Task<System.Int32> Local(ref System.Int32* x, out System.Char? c)",
@@ -6434,8 +6442,7 @@ class C
 
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
             var queryExpression = root.DescendantNodes().OfType<QueryExpressionSyntax>().First();
-            var fromClauseRangeVariableSymbol = Assert.IsType<RangeVariableSymbol>(
-                semanticModel.GetDeclaredSymbol(queryExpression.FromClause));
+            var fromClauseRangeVariableSymbol = (IRangeVariableSymbol)semanticModel.GetDeclaredSymbol(queryExpression.FromClause);
 
             Verify(
                 fromClauseRangeVariableSymbol.ToMinimalDisplayParts(
@@ -6470,8 +6477,9 @@ class C
             var local = root.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
                 .Single();
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(
-                semanticModel.GetDeclaredSymbol(local));
+            var localSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(local);
+
+            Assert.Equal(MethodKind.LocalFunction, localSymbol.MethodKind);
 
             Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
                 "System.Threading.Tasks.Task<System.Int32> Local(in System.Int32* x, out System.Char? c)",
@@ -7364,7 +7372,6 @@ namespace Nested
                 SymbolDisplayPartKind.Punctuation);
         }
 
-
         [Fact]
         public void TestPassingVBSymbolsToStructSymbolDisplay()
         {
@@ -7761,6 +7768,45 @@ class C
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName);
+        }
+
+        [Fact]
+        [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
+        public void LinqGroupVariableDeclaration()
+        {
+            var source =
+@"using System.Linq;
+
+class C
+{
+    void M(string[] a)
+    {
+        var v = from x in a
+                group x by x.Length into g
+                select g;
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var continuation = tree.GetRoot().DescendantNodes().OfType<QueryContinuationSyntax>().Single();
+            var symbol = model.GetDeclaredSymbol(continuation);
+
+            Verify(
+                symbol.ToMinimalDisplayParts(model, continuation.Identifier.SpanStart),
+                "IGrouping<int, string> g",
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RangeVariableName);
+
         }
     }
 }

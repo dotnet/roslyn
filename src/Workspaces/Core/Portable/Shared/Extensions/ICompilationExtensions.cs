@@ -38,13 +38,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<IAssemblySymbol> GetReferencedAssemblySymbols(this Compilation compilation)
+        public static ImmutableArray<IAssemblySymbol> GetReferencedAssemblySymbols(this Compilation compilation, bool excludePreviousSubmissions = false)
         {
-            var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
-
             // The first module of every assembly is its source module and the source
             // module always has the list of all referenced assemblies.
-            builder.AddRange(compilation.Assembly.Modules.First().ReferencedAssemblySymbols);
+            var referencedAssemblySymbols = compilation.Assembly.Modules.First().ReferencedAssemblySymbols;
+
+            if (excludePreviousSubmissions)
+            {
+                return referencedAssemblySymbols;
+            }
+
+            var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
+            builder.AddRange(referencedAssemblySymbols);
 
             var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
             while (previous != null)
@@ -180,5 +186,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? SystemIDisposableType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(IDisposable).FullName);
+
+        public static INamedTypeSymbol? NotNullAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(NotNullAttribute).FullName);
+
+        public static INamedTypeSymbol? MaybeNullAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(MaybeNullAttribute).FullName);
+
+        public static INamedTypeSymbol? MaybeNullWhenAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(MaybeNullWhenAttribute).FullName);
+
+        public static INamedTypeSymbol? AllowNullAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(AllowNullAttribute).FullName);
+
+        public static INamedTypeSymbol? DisallowNullAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName);
     }
 }

@@ -675,8 +675,11 @@ namespace System.Runtime.CompilerServices
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            compilation.VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
+            compilation.VerifyDiagnostics(
+                // (10,12): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>' from assembly comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 12));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -7161,9 +7164,9 @@ public class Derived : Base
             var model = comp.GetSemanticModel(tree);
 
             var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
-            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
         }
 
         [Fact]

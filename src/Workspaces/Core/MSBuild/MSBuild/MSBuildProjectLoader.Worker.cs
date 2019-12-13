@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (string.IsNullOrWhiteSpace(assemblyName))
                     {
                         // if there isn't an assembly name, make one from the file path.
-                        // Note: This may not be necessary any longer if the commmand line args
+                        // Note: This may not be necessary any longer if the command line args
                         // always produce a valid compilation name.
                         assemblyName = GetAssemblyNameFromProjectPath(projectPath);
                     }

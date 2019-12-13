@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization.AssertIsForeground();
 
                 // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
-                // We could be fancy and diff, but the cost is probably neglible.
+                // We could be fancy and diff, but the cost is probably negligible.
                 UnsubscribeFromWatchedHierarchies(moniker);
 
                 if (hierarchy == null)

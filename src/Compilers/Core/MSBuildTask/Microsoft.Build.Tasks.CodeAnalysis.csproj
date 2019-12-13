@@ -39,8 +39,10 @@
     <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs" />
+    <Compile Include="..\Portable\InternalUtilities\NullableAttributes.cs" />
     <Compile Include="..\Portable\InternalUtilities\PlatformInformation.cs" />
     <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\RoslynString.cs" />
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
     <Compile Update="ErrorString.Designer.cs">
       <AutoGen>True</AutoGen>

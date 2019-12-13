@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -163,12 +165,12 @@ namespace Roslyn.Utilities
         //
         // https://github.com/dotnet/corefx/blob/master/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
         //
-        private static string EscapeString(string value)
+        private static string EscapeString(string? value)
         {
-            PooledStringBuilder pooledBuilder = null;
-            StringBuilder b = null;
+            PooledStringBuilder? pooledBuilder = null;
+            StringBuilder? b = null;
 
-            if (string.IsNullOrEmpty(value))
+            if (RoslynString.IsNullOrEmpty(value))
             {
                 return string.Empty;
             }
@@ -183,7 +185,7 @@ namespace Roslyn.Utilities
                 {
                     if (b == null)
                     {
-                        Debug.Assert(pooledBuilder == null);
+                        RoslynDebug.Assert(pooledBuilder == null);
                         pooledBuilder = PooledStringBuilder.GetInstance();
                         b = pooledBuilder.Builder;
                     }
@@ -195,32 +197,34 @@ namespace Roslyn.Utilities
 
                     startIndex = i + 1;
                     count = 0;
-                }
 
-                switch (c)
-                {
-                    case '\"':
-                        b.Append("\\\"");
-                        break;
-                    case '\\':
-                        b.Append("\\\\");
-                        break;
-                    default:
-                        if (ShouldAppendAsUnicode(c))
-                        {
+                    switch (c)
+                    {
+                        case '\"':
+                            b.Append("\\\"");
+                            break;
+                        case '\\':
+                            b.Append("\\\\");
+                            break;
+                        default:
+                            Debug.Assert(ShouldAppendAsUnicode(c));
                             AppendCharAsUnicode(b, c);
-                        }
-                        else
-                        {
-                            count++;
-                        }
-                        break;
+                            break;
+                    }
+                }
+                else
+                {
+                    count++;
                 }
             }
 
             if (b == null)
             {
                 return value;
+            }
+            else
+            {
+                RoslynDebug.Assert(pooledBuilder is object);
             }
 
             if (count > 0)

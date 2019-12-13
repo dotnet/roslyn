@@ -276,7 +276,9 @@ hasBucket:
                 {
                     if (currentNode.Left == null)
                     {
-                        currentNode.Left = currentNode = new AvlNode(hashCode, key, value);
+                        var previousNode = currentNode;
+                        currentNode = new AvlNode(hashCode, key, value);
+                        previousNode.Left = currentNode;
                         break;
                     }
 
@@ -287,7 +289,9 @@ hasBucket:
                 {
                     if (currentNode.Right == null)
                     {
-                        currentNode.Right = currentNode = new AvlNode(hashCode, key, value);
+                        var previousNode = currentNode;
+                        currentNode = new AvlNode(hashCode, key, value);
+                        previousNode.Right = currentNode;
                         break;
                     }
 
