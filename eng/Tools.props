@@ -1,0 +1,13 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+   <!-- TODO: remove this file when arcade changes are merged -->
+   
+    <PropertyGroup>
+        <!-- Prevent arcade from bringing in the default file -->
+        <UsingToolVisualStudioIbcTraining>false</UsingToolVisualStudioIbcTraining>
+    </PropertyGroup>
+    
+    <Import Project="VisualStudio.AcquireOptimizationData.Roslyn.targets" />
+
+
+</Project>

@@ -8,8 +8,7 @@ resources:
 #  SignType: real
 #  SkipTests: false
 #  SkipApplyOptimizationData: false
-#  IbcSourceBranchName: 'default'
-#  IbcDropId: 'default'
+#  IbcDrop: 'default'
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -76,8 +75,7 @@ stages:
                 -officialSkipTests $(SkipTests)
                 -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
                 -officialSourceBranchName $(SourceBranchName)
-                -officialIbcSourceBranchName $(IbcSourceBranchName)
-                -officialIbcDropId $(IbcDropId)
+                -officialIbcDrop $(IbcDrop)
                 -skipAnalyzers
                 /p:RepositoryName=$(Build.Repository.Name)
                 /p:VisualStudioDropAccessToken=$(System.AccessToken)

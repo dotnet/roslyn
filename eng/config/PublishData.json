@@ -79,8 +79,7 @@
       "vsix": [ "https://dotnet.myget.org/F/roslyn-nonnull/vsix/upload" ],
       "channels": [ "nonnull" ],
       "vsBranch": "lab/d16.1stg",
-      "vsMajorVersion": 16,
-      "ibcSourceBranch": "master-vs-deps"
+      "vsMajorVersion": 16
     },
     "features/dataflow": {
       "nugetKind": "PerBuildPreRelease",
@@ -89,8 +88,7 @@
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dataflow" ],
       "vsBranch": "lab/d16.1stg",
-      "vsMajorVersion": 16,
-      "ibcSourceBranch": "master-vs-deps"
+      "vsMajorVersion": 16
     },
     "features/razorSupport2": {
       "nugetKind": [ "Shipping", "NonShipping" ],
@@ -99,8 +97,7 @@
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "razorSupport2" ],
       "vsBranch": "lab/d16.1stg",
-      "vsMajorVersion": 16,
-      "ibcSourceBranch": "master-vs-deps"
+      "vsMajorVersion": 16
     },
     "features/compilerNext": {
       "nugetKind": [ "Shipping", "NonShipping" ],
@@ -109,8 +106,7 @@
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "compilerNext" ],
       "vsBranch": "master",
-      "vsMajorVersion": 16,
-      "ibcSourceBranch": "master-vs-deps"
+      "vsMajorVersion": 16
     },
     "features/dotnetFormat": {
       "nugetKind": [ "Shipping", "NonShipping" ],
@@ -119,8 +115,7 @@
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dotnetFormat" ],
       "vsBranch": "master",
-      "vsMajorVersion": 16,
-      "ibcSourceBranch": "master-vs-deps"
+      "vsMajorVersion": 16
     }
   },
   "releases": {
