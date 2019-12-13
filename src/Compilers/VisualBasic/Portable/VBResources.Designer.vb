@@ -7377,7 +7377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Failed to emit module &apos;{0}&apos;..
+        '''  Looks up a localized string similar to Failed to emit module &apos;{0}&apos;: {1}.
         '''</summary>
         Friend ReadOnly Property ERR_ModuleEmitFailure() As String
             Get

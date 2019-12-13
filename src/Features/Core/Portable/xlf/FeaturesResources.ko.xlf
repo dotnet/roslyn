@@ -347,6 +347,11 @@
         <target state="translated">쿼리 변수 지정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
         <target state="translated">readonly 필드를 쓰기 가능으로 지정</target>
