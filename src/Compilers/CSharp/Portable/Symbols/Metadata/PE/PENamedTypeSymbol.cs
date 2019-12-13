@@ -2303,10 +2303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // PROTOTYPE: Temporary approach for AsNativeInt().
-            private PENamedTypeSymbolNonGeneric(PENamedTypeSymbolNonGeneric other) :
+            private PENamedTypeSymbolNonGeneric(PENamedTypeSymbolNonGeneric other, bool isNativeInt) :
                 base(other)
             {
-                IsNativeInt = true;
+                Debug.Assert(isNativeInt != other.IsNativeInt);
+
+                _underlying = other;
+                IsNativeInt = isNativeInt;
 
                 Debug.Assert(this.Equals(other));
                 Debug.Assert(other.Equals(this));
@@ -2337,13 +2340,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
+            private readonly PENamedTypeSymbolNonGeneric _underlying;
             internal override bool IsNativeInt { get; }
 
-            internal override NamedTypeSymbol AsNativeInt()
+            internal override NamedTypeSymbol AsNativeInt(bool asNativeInt)
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                return IsNativeInt ? this : new PENamedTypeSymbolNonGeneric(this);
+                if (IsNativeInt == asNativeInt)
+                {
+                    return this;
+                }
+
+                return asNativeInt ? new PENamedTypeSymbolNonGeneric(this, isNativeInt: true) : _underlying;
             }
 
             // PROTOTYPE: Temporary approach for AsNativeInt().

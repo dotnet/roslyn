@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol getNativeIntType(SyntaxNode node, bool unsigned, DiagnosticBag diagnostics)
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
-                return this.GetSpecialType(unsigned ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr, diagnostics, node).AsNativeInt();
+                return this.GetSpecialType(unsigned ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr, diagnostics, node).AsNativeInt(true);
             }
         }
 

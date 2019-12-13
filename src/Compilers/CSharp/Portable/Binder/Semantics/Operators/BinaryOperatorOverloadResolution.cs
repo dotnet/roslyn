@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void BinaryOperatorOverloadResolution_NoEasyOut(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, BinaryOperatorOverloadResolutionResult result, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            Debug.Assert(left != null);
+            Debug.Assert(right != null);
+            Debug.Assert(result.Results.Count == 0);
+
             // The following is a slight rewording of the specification to emphasize that not all
             // operands of a binary operation need to have a type.
 
