@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -27,6 +28,169 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
                 );
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeNullableAttributeBasedOnInterfacesToEmit(bool useImageReferences)
+        {
+            Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
+
+            var lib1_source = @"
+using System.Threading.Tasks;
+#nullable enable
+
+public interface I2<T, TResult>
+{
+    Task<TResult> ExecuteAsync(T parameter);
+}
+
+public interface I1<T> : I2<T, object>
+{
+}
+";
+            var lib1_comp = CreateCompilation(lib1_source);
+            lib1_comp.VerifyDiagnostics();
+
+            var lib2_source = @"
+#nullable disable
+public interface I0 : I1<string>
+{
+}";
+            var lib2_comp = CreateCompilation(lib2_source, references: new[] { getReference(lib1_comp) });
+            lib2_comp.VerifyDiagnostics();
+
+            var imc1 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("I0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                imc1.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                imc1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            var client_source = @"
+public class C
+{
+    public void M(I0 imc)
+    {
+        imc.ExecuteAsync("""");
+    }
+}";
+            var client_comp = CreateCompilation(client_source, references: new[] { getReference(lib1_comp), getReference(lib2_comp) });
+            client_comp.VerifyDiagnostics();
+
+            var imc2 = (TypeSymbol)client_comp.GlobalNamespace.GetMember("I0");
+            // Note: it is expected that the symbol shows different Interfaces in PE vs. compilation reference
+            AssertEx.SetEqual(
+                useImageReferences
+                    ? new[] { "I1<System.String>", "I2<System.String, System.Object!>" }
+                    : new[] { "I1<System.String>" },
+                imc2.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                imc2.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeNullableAttributeBasedOnInterfacesToEmit_NotOnAllInterfaces(bool useImageReferences)
+        {
+            Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
+
+            var lib1_source = @"
+#nullable enable
+
+public interface I2<T, TResult>
+{
+}
+
+public interface I1<T> : I2<T, object>
+{
+}
+";
+            var lib1_comp = CreateCompilation(lib1_source);
+            lib1_comp.VerifyDiagnostics();
+
+            var lib2_source = @"
+#nullable disable
+
+public class C0 : I1<string>
+{
+}";
+            var lib2_comp = CreateCompilation(lib2_source, references: new[] { getReference(lib1_comp) });
+            lib2_comp.VerifyDiagnostics();
+
+            var lib2_c0 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("C0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                lib2_c0.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                lib2_c0.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            CompileAndVerify(lib2_comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C0");
+                var interfaceHandles = typeDef.GetInterfaceImplementations();
+
+                var interfaceImpl1 = reader.GetInterfaceImplementation(interfaceHandles.First());
+                Assert.Equal("TypeSpecification:I1`1{String}", reader.Dump(interfaceImpl1.Interface));
+                AssertAttributes(reader, interfaceImpl1.GetCustomAttributes());
+
+                var interfaceImpl2 = reader.GetInterfaceImplementation(interfaceHandles.Last());
+                Assert.Equal("TypeSpecification:I2`2{String, Object}", reader.Dump(interfaceImpl2.Interface));
+                AssertAttributes(reader, interfaceImpl2.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
+
+                assertType(reader, exists: true, "NullableAttribute");
+            });
+
+            var lib3_source = @"
+#nullable disable
+
+public class C1 : C0 
+{
+}";
+            var lib3_comp = CreateCompilation(lib3_source, references: new[] { getReference(lib1_comp), getReference(lib2_comp) });
+            lib3_comp.VerifyDiagnostics();
+
+            var lib3_c0 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("C0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                lib3_c0.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                lib3_c0.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            CompileAndVerify(lib3_comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C1");
+                var interfaceHandles = typeDef.GetInterfaceImplementations();
+                Assert.True(interfaceHandles.IsEmpty());
+
+                assertType(reader, exists: false, "NullableAttribute");
+            });
+
+            void assertType(MetadataReader reader, bool exists, string name)
+            {
+                if (exists)
+                {
+                    _ = reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name));
+                }
+                else
+                {
+                    Assert.False(reader.TypeDefinitions.Any(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));
+                }
+            }
         }
 
         [Fact]
