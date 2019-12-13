@@ -893,6 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             case ConversionKind.Identity:
+                            case ConversionKind.DefaultLiteral:
                             case ConversionKind.ImplicitReference:
                             case ConversionKind.ExplicitReference:
                             case ConversionKind.ImplicitTupleLiteral:

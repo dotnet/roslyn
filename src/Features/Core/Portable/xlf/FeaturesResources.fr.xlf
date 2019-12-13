@@ -347,6 +347,11 @@
         <target state="translated">Introduire la variable de requête</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
         <target state="translated">Rendre les champs readonly accessibles en écriture</target>
