@@ -955,7 +955,19 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId)!;
             var newProject = oldProject.RemoveProjectReference(projectReference);
 
-            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, newProject.ProjectReferences.Select(p => p.ProjectId)));
+            ProjectDependencyGraph newDependencyGraph;
+            if (newProject.ContainsAnyReferenceToProject(projectId))
+            {
+                // The project contained multiple references to the project, and not all of them were removed. The
+                // dependency graph doesn't change.
+                newDependencyGraph = _dependencyGraph;
+            }
+            else
+            {
+                newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
+            }
+
+            return this.ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>

@@ -617,6 +617,17 @@ namespace Microsoft.CodeAnalysis
             return project1.LanguageServices == project2.LanguageServices;
         }
 
+        public bool ContainsAnyReferenceToProject(ProjectId projectId)
+        {
+            foreach (var projectReference in ProjectReferences)
+            {
+                if (projectReference.ProjectId == projectId)
+                    return true;
+            }
+
+            return false;
+        }
+
         public ProjectState RemoveProjectReference(ProjectReference projectReference)
         {
             Debug.Assert(this.ProjectReferences.Contains(projectReference));
