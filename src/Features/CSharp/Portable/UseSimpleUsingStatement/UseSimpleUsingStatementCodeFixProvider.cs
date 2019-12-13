@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
             }
 
-            result[0] = result[0].WithTrailingTrivia(comments);
+            result[0] = result[0].WithLeadingTrivia(comments);
 
             return result;
         }
