@@ -36,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public string Name => ServicesVSResources.LiveShare_CSharp_Visual_Basic_Language_Server_Client;
 
         /// <summary>
-        /// Gets the configuration section names for the language client. This may be null if the language client
-        /// does not provide settings.
+        /// Unused, implementing <see cref="ILanguageClient"/>
         /// </summary>
         public IEnumerable<string>? ConfigurationSections { get; } = null;
 
@@ -48,13 +47,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public object? InitializationOptions { get; } = null;
 
         /// <summary>
-        /// Gets the list of file names to watch for changes.  Changes will be sent to the server via 'workspace/didChangeWatchedFiles'
-        /// message.  The files to watch must be under the current active workspace.  The file names can be specified as a relative
-        /// paths to the exact file, or as glob patterns following the standard in .gitignore see https://www.kernel.org/pub/software/scm/git/docs/gitignore.html files.
+        /// Unused, implementing <see cref="ILanguageClient"/>
         /// </summary>
         public IEnumerable<string>? FilesToWatch { get; } = null;
 
         public event AsyncEventHandler<EventArgs>? StartAsync;
+
+        /// <summary>
+        /// Unused, implementing <see cref="ILanguageClient"/>
+        /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
         [ImportingConstructor]
