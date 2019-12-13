@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefactoring
 Imports Microsoft.VisualStudio.Composition
 Imports System.IO
+Imports System.Xml
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DocumentRefactoring
     <UseExportProvider>
@@ -16,49 +17,84 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DocumentRefactoring
         Private ReadOnly _catalog As ComposableCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(DocumentRefactoringService))
         Private ReadOnly _factory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(_catalog)
 
-        Private Async Function TestDocumentRefactoring(markup As String, Optional expectSuccess As Boolean = True) As Task
+        Private Function TestDocumentRefactoring(markup As String, Optional expectMatchingName As Boolean = True) As Task
             Dim workspace = TestWorkspace.CreateCSharp(markup, exportProvider:=_factory.CreateExportProvider())
+            Return TestDocumentRefactoring(workspace, expectMatchingName:=expectMatchingName)
+        End Function
+
+        Private Function TestDocumentRefactoring(files() As String, Optional ExpectMatchingName As Boolean = True) As Task
+            Dim workspace = TestWorkspace.CreateCSharp(files, exportProvider:=_factory.CreateExportProvider())
+            Return TestDocumentRefactoring(workspace, expectMatchingName:=ExpectMatchingName)
+        End Function
+
+        Private Async Function TestDocumentRefactoring(workspace As TestWorkspace, Optional expectMatchingName As Boolean = True) As Task
             Dim project = workspace.CurrentSolution.Projects.Single()
-
-
-            Dim document = project.Documents.Single()
+            Dim document = project.Documents.First()
             Dim refactorService = workspace.GetService(Of DocumentRefactoringService)
 
             Await refactorService.UpdateAfterInfoChangeAsync(document, document)
 
-            If (expectSuccess) Then
-                document = workspace.CurrentSolution.GetDocument(document.Id)
-                Dim syntaxRoot = Await document.GetSyntaxRootAsync().ConfigureAwait(False)
+            document = workspace.CurrentSolution.GetDocument(document.Id)
 
-                Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)
-                Dim typeDeclarationPairs = syntaxRoot _
+            Dim syntaxRoot = Await document.GetSyntaxRootAsync().ConfigureAwait(False)
+
+            Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)
+            Dim typeDeclarationPairs = syntaxRoot _
                                 .DescendantNodes() _
                                 .Where(Function(n) syntaxFactsService.IsTypeDeclaration(n)) _
                                 .Select(Function(n) Tuple.Create(n, syntaxFactsService.GetDisplayName(n, DisplayNameOptions.None)))
 
-                Assert.True(typeDeclarationPairs.Any())
+            Dim namespaces = syntaxRoot _
+                        .DescendantNodes()
 
-                Dim matchingTypeDeclarationPair = typeDeclarationPairs.Where(Function(p) String.Equals(p.Item2, Path.GetFileNameWithoutExtension(document.FilePath), StringComparison.OrdinalIgnoreCase))
+            Assert.True(typeDeclarationPairs.Any())
+            Dim matchingTypeDeclarationPair = typeDeclarationPairs.Where(Function(p) String.Equals(p.Item2, Path.GetFileNameWithoutExtension(document.FilePath), StringComparison.OrdinalIgnoreCase))
+
+            If (expectMatchingName) Then
                 Assert.Single(matchingTypeDeclarationPair)
+            Else
+                Assert.Empty(matchingTypeDeclarationPair)
             End If
         End Function
 
         <Fact>
         Public Function TestRefactorSingleClass_RenamesClass() As Task
-            Return TestDocumentRefactoring("class Test1
-            {
-            }")
+            Return TestDocumentRefactoring("
+class Test1 { }
+            ")
         End Function
 
         <Fact>
         Public Function TestRefactorMultipleClasses_RenamesClass() As Task
-            Return TestDocumentRefactoring("class Test1
-            {
-            }
+            Return TestDocumentRefactoring("
+class Test1 { }
+class OtherClassName { }
+            ")
+        End Function
 
-            class OtherClassName
-            {
-            }")
+        <Fact>
+        Public Function TestRefactor_NoRename() As Task
+            Return TestDocumentRefactoring("
+class DifferentNamedClass { }
+            ", expectMatchingName:=False)
+        End Function
+
+
+        <Fact>
+        Public Function TestRefactorPartialClass_SingleFile() As Task
+            Return TestDocumentRefactoring("
+partial class Test1 { }
+partial class Test1 { }
+        ")
+        End Function
+
+        <Fact>
+        Public Function TestRefactorPartialClass_MultipleFiles() As Task
+            Dim files = New String() {
+                "partial class Test1 { }",
+                "partial class Test1 { }"
+                }
+            Return TestDocumentRefactoring(files)
         End Function
     End Class
 End Namespace
