@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 
             // Verify there are exactly the number of liveshare request handlers as expected.
             // Liveshare shims will verify there is a matching roslyn request handler when they are created.
-            Assert.Equal(21, handlers.Length);
+            Assert.Equal(19, handlers.Length);
         }
     }
 }
