@@ -52,13 +52,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                 var current = stack.Pop();
                 yield return current;
 
-                foreach (var child in current.ChildNodes())
+                foreach (var child in current.ChildNodesAndTokens())
                 {
-                    // Only process children if they're not the start of another construct
-                    // that async/await would be related to.
-                    if (!child.IsReturnableConstruct())
+                    if (child.IsNode)
                     {
-                        stack.Push(child);
+                        var childNode = child.AsNode();
+
+                        // Only process children if they're not the start of another construct
+                        // that async/await would be related to.
+                        if (!childNode.IsReturnableConstruct())
+                        {
+                            stack.Push(childNode);
+                        }
                     }
                 }
             }
