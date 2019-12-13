@@ -7783,8 +7783,8 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">{0}' modülü gösterilemedi.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="new">Failed to emit module '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">

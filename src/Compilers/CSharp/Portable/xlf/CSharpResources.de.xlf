@@ -7783,8 +7783,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">Fehler beim Ausgeben von Modul "{0}".</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="new">Failed to emit module '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">
