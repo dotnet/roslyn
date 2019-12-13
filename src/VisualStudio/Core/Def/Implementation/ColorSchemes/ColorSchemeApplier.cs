@@ -28,18 +28,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     [Export(typeof(ColorSchemeApplier))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Analyzable)]
-    internal partial class ColorSchemeApplier : ForegroundThreadAffinitizedObject, IWpfTextViewConnectionListener, IDisposable
+    internal sealed partial class ColorSchemeApplier : ForegroundThreadAffinitizedObject, IWpfTextViewConnectionListener, IDisposable
     {
         private const string RoslynTextEditorRegistryKey = "Themes\\{de3dbbcd-f642-433c-8353-8f1df4370aba}\\Roslyn Text Editor MEF Items";
         private const string UseEnhancedColorsSetting = "WindowManagement.Options.UseEnhancedColorsForManagedLanguages";
+        private const string AppliedColorSchemeKeyName = "ColorScheme";
 
         private readonly IServiceProvider _serviceProvider;
         private readonly ForegroundColorDefaulter _colorApplier;
         private readonly ISettingsManager _settingsManager;
-        private readonly object _colorThemeService;
 
         private bool _isDisposed = false;
-        private bool _hasTextViewOpened = false;
+        private bool isInitialized = false;
 
         [ImportingConstructor]
         [Obsolete]
@@ -48,8 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             _serviceProvider = serviceProvider;
             _settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-            _colorThemeService = _serviceProvider.GetService(typeof(SVsColorThemeService));
-            _colorApplier = new ForegroundColorDefaulter(_serviceProvider);
+            _colorApplier = new ForegroundColorDefaulter(threadingContext, _serviceProvider);
         }
 
         public void Dispose()
@@ -63,18 +62,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             AssertIsForeground();
 
-            if (!_hasTextViewOpened)
+            if (!isInitialized)
             {
-                _hasTextViewOpened = true;
+                isInitialized = true;
 
-                // We need to update the theme whenever the Preview Setting changes or the VS Theme changes.
+                // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
                 _settingsManager.GetSubset(ColorSchemeOptions.SettingKey).SettingChangedAsync += ColorSchemeChanged;
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
                 // Check on first connect whether we need to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
                 TryToMigrate();
 
-                VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, UpdateColorScheme);
+                QueueColorSchemeUpdate();
             }
         }
 
@@ -84,13 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
         {
-            // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
-            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, UpdateColorScheme);
+            QueueColorSchemeUpdate();
         }
 
         private async Task ColorSchemeChanged(object sender, PropertyChangedEventArgs args)
         {
-            await VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, UpdateColorScheme);
+            await QueueColorSchemeUpdate();
         }
 
         private bool TryToMigrate()
@@ -109,22 +107,28 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             }
 
             var themeId = GetThemeId();
-            var colorScheme = (useEnhancedColorsSetting != -1 && _colorApplier.AreClassificationsDefaulted(themeId))
+            var colorScheme = (useEnhancedColorsSetting != -1 && _colorApplier.AreForegroundColorsDefaultable(themeId))
                 ? ColorSchemeOptions.Enhanced
                 : ColorSchemeOptions.VisualStudio2017;
 
-            _settingsManager.SetValueAsync(ColorSchemeOptions.SettingKey, colorScheme, false);
-            _settingsManager.SetValueAsync(UseEnhancedColorsSetting, -2, false);
+            _settingsManager.SetValueAsync(ColorSchemeOptions.SettingKey, colorScheme, isMachineLocal: false);
+            _settingsManager.SetValueAsync(UseEnhancedColorsSetting, -2, isMachineLocal: false);
 
             return true;
+        }
+
+        private IVsTask QueueColorSchemeUpdate()
+        {
+            // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
+            return VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, UpdateColorScheme);
         }
 
         private void UpdateColorScheme()
         {
             AssertIsForeground();
 
-            // Simply return if we were queued to run during shutdown.
-            if (_isDisposed)
+            // Simply return if we were queued to run during shutdown or the user is in High Contrast mode.
+            if (_isDisposed || SystemParameters.HighContrast)
             {
                 return;
             }
@@ -137,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             // If this is a known theme then, use the users choosen option. For unknown themes we default to VS2017
             // since themes would have been created with this as the expected base colors.
-            var configuredColorScheme = IsKnowTheme()
+            var configuredColorScheme = IsKnownTheme()
                 ? _settingsManager.GetValueOrDefault(ColorSchemeOptions.SettingKey, defaultValue: ColorSchemeOptions.Enhanced)
                 : ColorSchemeOptions.VisualStudio2017;
 
@@ -149,19 +153,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             // Update Default Colors
             SetColorScheme(configuredColorScheme);
 
-            // Cause the Color Theme Service to reload colors.
-            var themes = _colorThemeService.GetType().GetField("_themes", BindingFlags.Instance | BindingFlags.NonPublic);
-            themes.SetValue(_colorThemeService, null);
-            NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, IntPtr.Zero, IntPtr.Zero);
+            // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
+            NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
         }
 
         private void TryToDefaultThemeColors()
         {
             var themeId = GetThemeId();
 
-            // Do not change when in HighContrast mode, for unknown themes, or if we've already tried to default colors.
-            if (SystemParameters.HighContrast
-                || !IsKnowTheme(themeId)
+            // Do not change for unknown themes or if we've already tried to default colors.
+            if (!IsKnownTheme(themeId)
                 || HasThemeBeenDefaulted(themeId))
             {
                 return;
@@ -170,25 +171,27 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             // The previous method for applying color schemes updated the color of classifications to the expected theme color. 
             // However, this new method relies on theme colors being the default, so classifications should use DefaultColor when
             // possible.
-            _colorApplier.SetDefaultForeground(themeId);
-            SetThemeWasDefaulted(themeId);
+            if (_colorApplier.TrySetForegroundColorsToDefault(themeId))
+            {
+                SetThemeWasDefaulted(themeId);
+            }
         }
 
         private bool HasThemeBeenDefaulted(Guid themeId)
         {
             using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
             using var textEditorKey = registryRoot.CreateSubKey(RoslynTextEditorRegistryKey);
-            return (int)textEditorKey.GetValue(GetDefaultedThemeGuid(themeId), 0) == 1;
+            return (int)textEditorKey.GetValue(GetIsThemeDefaultedKeyName(themeId), 0) == 1;
         }
 
         private void SetThemeWasDefaulted(Guid themeId)
         {
             using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
             using var textEditorKey = registryRoot.CreateSubKey(RoslynTextEditorRegistryKey);
-            textEditorKey.SetValue(GetDefaultedThemeGuid(themeId), 1);
+            textEditorKey.SetValue(GetIsThemeDefaultedKeyName(themeId), 1);
         }
 
-        private string GetDefaultedThemeGuid(Guid themeId)
+        private string GetIsThemeDefaultedKeyName(Guid themeId)
         {
             return $"IsThemeDefaulted.{themeId}";
         }
@@ -222,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             // Set the current Color Scheme in the registry
             using (var itemKey = registryRoot.CreateSubKey(RoslynTextEditorRegistryKey))
             {
-                itemKey.SetValue("ColorScheme", colorSchemeName);
+                itemKey.SetValue(AppliedColorSchemeKeyName, colorSchemeName);
             }
         }
 
@@ -236,21 +239,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
             using var textEditorKey = registryRoot.CreateSubKey(RoslynTextEditorRegistryKey);
-            return (string)textEditorKey.GetValue("ColorScheme", string.Empty);
+            return (string)textEditorKey.GetValue(AppliedColorSchemeKeyName, defaultValue: string.Empty);
         }
 
-        public bool IsKnowTheme()
+        public bool IsKnownTheme()
         {
-            return IsKnowTheme(GetThemeId());
+            return IsKnownTheme(GetThemeId());
         }
 
-        public bool IsKnowTheme(Guid currentTheme)
+        public static bool IsKnownTheme(Guid currentTheme)
         {
             return currentTheme == KnownColorThemes.Light ||
                 currentTheme == KnownColorThemes.Blue ||
                 currentTheme == KnownColorThemes.AdditionalContrast ||
-                currentTheme == KnownColorThemes.Dark ||
-                currentTheme == KnownColorThemes.HighContrast;
+                currentTheme == KnownColorThemes.Dark;
         }
 
         private Guid GetThemeId()
@@ -265,10 +267,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
         }
-
-        // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
-        [Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
-        private class SVsColorThemeService { };
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]

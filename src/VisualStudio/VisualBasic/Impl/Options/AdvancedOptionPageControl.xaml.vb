@@ -81,8 +81,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
         End Sub
 
+        ' Since the VS theme can change after this dialog is constructed, we need to update the
+        ' Color Scheme state based on the current value of the VS Theme before it is rendered.
         Protected Overrides Sub OnRender(drawingContext As DrawingContext)
-            Dim isKnownTheme = _colorSchemeApplier.IsKnowTheme()
+            Dim isKnownTheme = _colorSchemeApplier.IsKnownTheme()
 
             Editor_color_scheme.IsEnabled = isKnownTheme
             Custom_VS_Theme_Warning.Visibility = If(isKnownTheme, Visibility.Collapsed, Visibility.Visible)

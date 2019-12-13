@@ -82,9 +82,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
         }
 
+        // Since the VS theme can change after this dialog is constructed, we need to update the
+        // Color Scheme state based on the current value of the VS Theme before it is rendered.
         protected override void OnRender(DrawingContext drawingContext)
         {
-            var isKnownTheme = _colorSchemeApplier.IsKnowTheme();
+            var isKnownTheme = _colorSchemeApplier.IsKnownTheme();
 
             Editor_color_scheme.IsEnabled = isKnownTheme;
             Custom_VS_Theme_Warning.Visibility = isKnownTheme ? Visibility.Collapsed : Visibility.Visible;
