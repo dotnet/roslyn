@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
-            return type.IsEnumType() ? type.GetEnumUnderlyingType()! : type;
+            return type.GetEnumUnderlyingType() ?? type;
         }
 
         public static bool IsObjectType(this TypeSymbol type)
@@ -508,10 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (type.IsValueType)
             {
-                if (type.IsEnumType())
-                {
-                    type = type.GetEnumUnderlyingType()!;
-                }
+                type = type.EnumUnderlyingTypeOrSelf();
 
                 switch (type.SpecialType)
                 {
@@ -1021,9 +1018,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // User-defined implicit conversion with target type as Enum type is not valid.
-            if (!isTargetTypeOfUserDefinedOp && type.IsEnumType())
+            if (!isTargetTypeOfUserDefinedOp)
             {
-                type = type.GetEnumUnderlyingType()!;
+                type = type.EnumUnderlyingTypeOrSelf();
             }
 
             switch (type.SpecialType)
@@ -1473,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
         {
-            if (!(type is NamedTypeSymbol namedType) || namedType.Arity != 1)
+            if (!(type is NamedTypeSymbol { Arity: 1 } namedType))
             {
                 return false;
             }
@@ -1486,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsIAsyncEnumerableType(this TypeSymbol type, CSharpCompilation compilation)
         {
-            if (!(type is NamedTypeSymbol namedType) || namedType.Arity != 1)
+            if (!(type is NamedTypeSymbol { Arity: 1 } namedType))
             {
                 return false;
             }
@@ -1496,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
         {
-            if (!(type is NamedTypeSymbol namedType) || namedType.Arity != 1)
+            if (!(type is NamedTypeSymbol { Arity: 1 } namedType))
             {
                 return false;
             }
