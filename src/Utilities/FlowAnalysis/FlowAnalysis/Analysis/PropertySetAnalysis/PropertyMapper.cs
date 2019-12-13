@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// TODO(dotpaul): Enable nullable analysis.
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -93,6 +90,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         private PropertyMapper()
         {
+            throw new NotSupportedException();
         }
 
         /// <summary>
@@ -105,12 +103,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Callback for mapping from <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>, or null.
         /// </summary>
-        internal ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
+        internal ValueContentAbstractValueCallback? MapFromValueContentAbstractValue { get; }
 
         /// <summary>
         /// Callback for mapping from <see cref="PointsToAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>, or null.
         /// </summary>
-        internal PointsToAbstractValueCallback MapFromPointsToAbstractValue { get; }
+        internal PointsToAbstractValueCallback? MapFromPointsToAbstractValue { get; }
 
         /// <summary>
         /// Indicates that this <see cref="PropertyMapper"/> uses <see cref="ValueContentAbstractValue"/>s.
@@ -130,7 +128,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return this.Equals(obj as PropertyMapper);
         }
 
-        public bool Equals(PropertyMapper other)
+        public bool Equals(PropertyMapper? other)
         {
             return other != null
                 && this.PropertyName == other.PropertyName

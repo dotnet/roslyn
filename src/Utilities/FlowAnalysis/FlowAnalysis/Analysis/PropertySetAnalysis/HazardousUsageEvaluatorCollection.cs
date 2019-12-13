@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// TODO(dotpaul): Enable nullable analysis.
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -32,7 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
 
             this.HazardousUsageEvaluators =
-                hazardousUsageEvaluators.ToImmutableDictionary<HazardousUsageEvaluator, (HazardousUsageEvaluatorKind Kind, string InstanceTypeName, string MethodName, string ParameterName, bool derivedClasses)>(
+                hazardousUsageEvaluators.ToImmutableDictionary<HazardousUsageEvaluator, (HazardousUsageEvaluatorKind Kind, string? InstanceTypeName, string? MethodName, string? ParameterName, bool derivedClasses)>(
                     h => (h.Kind, h.ContainingTypeName, h.MethodName, h.ParameterNameOfPropertySetObject, h.DerivedClass));
         }
 
@@ -43,9 +41,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         private HazardousUsageEvaluatorCollection()
         {
+            throw new NotSupportedException();
         }
 
-        private ImmutableDictionary<(HazardousUsageEvaluatorKind Kind, string InstanceTypeName, string MethodName, string ParameterName, bool DerivedClasses), HazardousUsageEvaluator> HazardousUsageEvaluators { get; }
+        private ImmutableDictionary<(HazardousUsageEvaluatorKind Kind, string? InstanceTypeName, string? MethodName, string? ParameterName, bool DerivedClasses), HazardousUsageEvaluator> HazardousUsageEvaluators { get; }
 
         internal bool TryGetHazardousUsageEvaluator(string trackedTypeMethodName, out HazardousUsageEvaluator hazardousUsageEvaluator, bool derivedClasses = false)
         {
@@ -54,7 +53,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 out hazardousUsageEvaluator);
         }
 
-        internal bool TryGetHazardousUsageEvaluator(string containingType, string methodName, string parameterName, out HazardousUsageEvaluator hazardousUsageEvaluator)
+        internal bool TryGetHazardousUsageEvaluator(
+            string containingType,
+            string methodName,
+            string parameterName,
+            [NotNullWhen(returnValue: true)] out HazardousUsageEvaluator hazardousUsageEvaluator)
         {
             if (this.HazardousUsageEvaluators.TryGetValue(
                     (HazardousUsageEvaluatorKind.Invocation, containingType, methodName, parameterName, false),
@@ -69,21 +72,27 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return false;
         }
 
-        internal bool TryGetReturnHazardousUsageEvaluator(out HazardousUsageEvaluator hazardousUsageEvaluator, bool derivedClass = false)
+        internal bool TryGetReturnHazardousUsageEvaluator(
+            [NotNullWhen(returnValue: true)] out HazardousUsageEvaluator hazardousUsageEvaluator,
+            bool derivedClass = false)
         {
             return this.HazardousUsageEvaluators.TryGetValue(
                 (HazardousUsageEvaluatorKind.Return, null, null, null, derivedClass),
                 out hazardousUsageEvaluator);
         }
 
-        internal bool TryGetInitializationHazardousUsageEvaluator(out HazardousUsageEvaluator hazardousUsageEvaluator, bool derivedClass = false)
+        internal bool TryGetInitializationHazardousUsageEvaluator(
+            [NotNullWhen(returnValue: true)] out HazardousUsageEvaluator hazardousUsageEvaluator,
+            bool derivedClass = false)
         {
             return this.HazardousUsageEvaluators.TryGetValue(
                 (HazardousUsageEvaluatorKind.Initialization, null, null, null, derivedClass),
                 out hazardousUsageEvaluator);
         }
 
-        internal bool TryGetArgumentHazardousUsageEvaluator(out HazardousUsageEvaluator hazardousUsageEvaluator, bool derivedClass = false)
+        internal bool TryGetArgumentHazardousUsageEvaluator(
+            [NotNullWhen(returnValue: true)] out HazardousUsageEvaluator hazardousUsageEvaluator,
+            bool derivedClass = false)
         {
             return this.HazardousUsageEvaluators.TryGetValue(
                 (HazardousUsageEvaluatorKind.Argument, null, null, null, derivedClass),
@@ -95,7 +104,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PooledDictionary<(INamedTypeSymbol, bool), string> pooledDictionary = PooledDictionary<(INamedTypeSymbol, bool), string>.GetInstance();
             try
             {
-                foreach (KeyValuePair<(HazardousUsageEvaluatorKind Kind, string InstanceTypeName, string MethodName, string ParameterName, bool derivedClasses), HazardousUsageEvaluator> kvp
+                foreach (KeyValuePair<(HazardousUsageEvaluatorKind Kind, string? InstanceTypeName, string? MethodName, string? ParameterName, bool derivedClasses), HazardousUsageEvaluator> kvp
                     in this.HazardousUsageEvaluators)
                 {
                     if (kvp.Key.InstanceTypeName == null || kvp.Key.Kind != HazardousUsageEvaluatorKind.Invocation)
@@ -103,7 +112,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         continue;
                     }
 
-                    if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(kvp.Key.InstanceTypeName, out INamedTypeSymbol namedTypeSymbol))
+                    if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(kvp.Key.InstanceTypeName, out INamedTypeSymbol? namedTypeSymbol))
                     {
                         pooledDictionary[(namedTypeSymbol, kvp.Key.derivedClasses)] = kvp.Key.InstanceTypeName;
                     }
