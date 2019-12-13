@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
@@ -12,41 +14,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     {
         protected sealed override bool IsHighlightableNode(SyntaxNode node) => node is TNode;
 
-        protected sealed override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
-            => GetHighlights((TNode)node, cancellationToken);
+        protected sealed override void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken)
+            => AddHighlights((TNode)node, highlights, cancellationToken);
 
-        protected abstract IEnumerable<TextSpan> GetHighlights(TNode node, CancellationToken cancellationToken);
+        protected abstract void AddHighlights(TNode node, List<TextSpan> highlights, CancellationToken cancellationToken);
     }
 
     internal abstract class AbstractKeywordHighlighter : IHighlighter
     {
+        private static readonly ObjectPool<List<TextSpan>> s_listPool = new ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
+
         protected abstract bool IsHighlightableNode(SyntaxNode node);
 
-        public IEnumerable<TextSpan> GetHighlights(
-            SyntaxNode root, int position, CancellationToken cancellationToken)
+        public void AddHighlights(
+            SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
+            var _ = s_listPool.GetPooledObject();
+            var tempHighlights = _.Object;
+
             foreach (var token in GetTokens(root, position))
             {
                 for (var parent = token.Parent; parent != null; parent = parent.Parent)
                 {
                     if (IsHighlightableNode(parent))
                     {
-                        var highlights = GetHighlightsForNode(parent, cancellationToken);
+                        tempHighlights.Clear();
+                        AddHighlightsForNode(parent, tempHighlights, cancellationToken);
 
-                        // Only return them if any of them matched
-                        if (highlights.Any(span => span.IntersectsWith(position)))
+                        if (AnyIntersects(position, tempHighlights))
                         {
-                            // Return the non-empty spans
-                            return highlights.Where(s => !s.IsEmpty).Distinct();
+                            foreach (var highlight in tempHighlights)
+                            {
+                                highlights.Add(highlight);
+                            }
                         }
                     }
                 }
             }
-
-            return SpecializedCollections.EmptyEnumerable<TextSpan>();
         }
 
-        protected abstract IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken);
+        private static bool AnyIntersects(int position, List<TextSpan> highlights)
+        {
+            foreach (var highlight in highlights)
+            {
+                if (highlight.IntersectsWith(position))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected abstract void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken);
 
         protected TextSpan EmptySpan(int position)
         {

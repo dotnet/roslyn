@@ -20,11 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            SwitchStatementSyntax switchStatement, CancellationToken cancellationToken)
+        protected override void AddHighlights(
+            SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-
             spans.Add(switchStatement.SwitchKeyword.Span);
 
             foreach (var switchSection in switchStatement.Sections)
@@ -37,8 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
                 HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true);
             }
-
-            return spans;
         }
 
         /// <summary>

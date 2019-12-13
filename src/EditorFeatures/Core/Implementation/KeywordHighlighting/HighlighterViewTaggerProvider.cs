@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<KeywordHighlightTag>
     {
         private readonly IHighlightingService _highlightingService;
+        private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new PooledObjects.ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
 
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
@@ -99,8 +101,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var spans = _highlightingService.GetHighlights(root, position, cancellationToken);
-                foreach (var span in spans)
+                using var _ = s_listPool.GetPooledObject();
+                var highlights = _.Object;
+
+                _highlightingService.AddHighlights(root, position, highlights, cancellationToken);
+
+                foreach (var span in highlights)
                 {
                     context.AddTag(new TagSpan<KeywordHighlightTag>(span.ToSnapshotSpan(snapshot), KeywordHighlightTag.Instance));
                 }

@@ -27,17 +27,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         protected override bool IsHighlightableNode(SyntaxNode node)
             => node.IsReturnableConstruct();
 
-        protected override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
+        protected override void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-
             foreach (var current in WalkChildren(node))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                HighlightRelatedKeywords(current, spans);
+                HighlightRelatedKeywords(current, highlights);
             }
-
-            return spans;
         }
 
         private IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)

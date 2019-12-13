@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
@@ -21,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            YieldStatementSyntax yieldStatement, CancellationToken cancellationToken)
+        protected override void AddHighlights(
+            YieldStatementSyntax yieldStatement, List<TextSpan> spans, CancellationToken cancellationToken)
         {
             var parent = yieldStatement
                              .GetAncestorsOrThis<SyntaxNode>()
@@ -30,14 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
             if (parent == null)
             {
-                return SpecializedCollections.EmptyEnumerable<TextSpan>();
+                return;
             }
 
-            var spans = new List<TextSpan>();
-
             HighlightRelatedKeywords(parent, spans);
-
-            return spans;
         }
 
         /// <summary>
