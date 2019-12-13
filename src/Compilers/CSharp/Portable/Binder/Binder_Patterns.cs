@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var constantDiagnostics = DiagnosticBag.GetInstance();
-            var constantPattern = BindConstantPattern(node, inputType, expression, hasErrors, constantDiagnostics, out bool wasExpression);
+            BoundPattern result = BindConstantPattern(node, inputType, expression, hasErrors, constantDiagnostics, out bool wasExpression);
 
             // fall back to a type pattern if it fails as a constant pattern.
             if (!wasExpression && !IsUnderscore(innerExpression))
@@ -152,19 +152,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TryBindAsType(innerExpression, out DiagnosticBag bindAsTypeDiagnostics, out BoundTypeExpression boundType))
                 {
                     diagnostics.AddRangeAndFree(bindAsTypeDiagnostics);
-                    constantDiagnostics.Free();
                     hasErrors |= CheckValidPatternType(innerExpression, inputType, boundType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
-                    return new BoundTypePattern(node, boundType, inputType, hasErrors);
+                    result = new BoundTypePattern(node, boundType, inputType, hasErrors);
                 }
                 else
                 {
                     bindAsTypeDiagnostics.Free();
+                    diagnostics.AddRange(constantDiagnostics);
                 }
             }
+            else
+            {
+                diagnostics.AddRange(constantDiagnostics);
+            }
 
-            diagnostics.AddRangeAndFree(constantDiagnostics);
-            return constantPattern;
+            constantDiagnostics.Free();
+            return result;
         }
 
         internal BoundConstantPattern BindConstantPattern(
@@ -1166,19 +1170,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRelationalPattern(node, kind, value, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
         }
 
-        private BinaryOperatorKind TokenKindToBinaryOperatorKind(SyntaxKind kind)
+        private BinaryOperatorKind TokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
         {
-            return kind switch
-            {
-                SyntaxKind.LessThanEqualsToken => BinaryOperatorKind.LessThanOrEqual,
-                SyntaxKind.LessThanToken => BinaryOperatorKind.LessThan,
-                SyntaxKind.GreaterThanToken => BinaryOperatorKind.GreaterThan,
-                SyntaxKind.GreaterThanEqualsToken => BinaryOperatorKind.GreaterThanOrEqual,
-                // The following occur in error recovery scenarios
-                SyntaxKind.ExclamationEqualsToken => BinaryOperatorKind.NotEqual,
-                _ => BinaryOperatorKind.Equal,
-            };
-        }
+            SyntaxKind.LessThanEqualsToken => BinaryOperatorKind.LessThanOrEqual,
+            SyntaxKind.LessThanToken => BinaryOperatorKind.LessThan,
+            SyntaxKind.GreaterThanToken => BinaryOperatorKind.GreaterThan,
+            SyntaxKind.GreaterThanEqualsToken => BinaryOperatorKind.GreaterThanOrEqual,
+            // The following occur in error recovery scenarios
+            SyntaxKind.ExclamationEqualsToken => BinaryOperatorKind.NotEqual,
+            _ => BinaryOperatorKind.Equal,
+        };
 
         private BoundPattern BindUnaryPattern(
             UnaryPatternSyntax node,
