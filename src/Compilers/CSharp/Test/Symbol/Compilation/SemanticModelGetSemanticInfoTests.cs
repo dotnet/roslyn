@@ -8509,9 +8509,9 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -8551,9 +8551,9 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
