@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 _file = file;
             }
 
-            public bool EndOfFile { get; private set; } = false;
+            public bool CompletedParsing { get; private set; }
 
             protected override void DisposeManagedResources()
             {
@@ -30,35 +30,38 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public PkgDefItem? Read()
             {
-                if (EndOfFile)
-                    return null;
-
                 var currentLine = string.Empty;
-                do
+                while (!CompletedParsing)
                 {
                     do
                     {
                         currentLine = currentLine.TrimEnd(Constants.ContinuationChar);
-                        if (EndOfFile && currentLine == string.Empty)
+                        if (CompletedParsing && currentLine == string.Empty)
+                        {
                             return null;
+                        }
 
                         var tempLine = _file.ReadLine();
                         if (tempLine == null)
                         {
-                            EndOfFile = true;
+                            CompletedParsing = true;
                             tempLine = string.Empty;
                         }
+
                         currentLine += tempLine;
-                    }
-                    while (currentLine.EndsWith(@"\"));
+                    } while (currentLine.EndsWith(@"\"));
 
                     currentLine = currentLine.TrimStart();
 
                     if (currentLine == string.Empty)
+                    {
                         continue;
+                    }
 
                     if (currentLine.StartsWith(Constants.CommentChars) || currentLine.StartsWith(Constants.IniCommentChar))
+                    {
                         continue;
+                    }
 
                     if (IsSectionLine(currentLine))
                     {
@@ -66,12 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                         currentLine = string.Empty;
                         continue;
                     }
-                    else
-                    {
-                        return ParseNameValue(currentLine, _currentSection);
-                    }
+
+                    return ParseNameValue(currentLine, _currentSection);
                 }
-                while (!EndOfFile);
 
                 return null;
             }
@@ -79,7 +79,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private string ParseSectionName(string line)
             {
                 if (line.LastIndexOf(Constants.SectionEndChar) < 0)
+                {
                     return string.Empty;
+                }
 
                 return line.Substring(1, line.LastIndexOf(Constants.SectionEndChar) - 1);
             }
@@ -87,34 +89,45 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private PkgDefItem? ParseNameValue(string line, string sectionName)
             {
                 if (line == string.Empty)
+                {
                     return null;
+                }
 
                 var equalsIndex = line.IndexOf("=", (line[0] == '"') ? line.IndexOf("\"", 1) + 1 : 1);
                 if (equalsIndex < 0)
+                {
                     return null;
+                }
 
                 var valueName = line.Substring(0, equalsIndex).Trim();
                 var valueDataString = line.Substring(equalsIndex + 1).Trim();
 
                 if ((valueName != "@") && !StripQuotes(ref valueName))
+                {
                     return null;
+                }
 
                 if (StripQuotes(ref valueDataString))
                 {
                     return new PkgDefItem(sectionName, valueName, valueDataString, PkgDefItem.PkgDefValueType.String);
                 }
-                else if (valueDataString.StartsWith(Constants.ExpandSzPrefix))
+
+                if (valueDataString.StartsWith(Constants.ExpandSzPrefix))
                 {
                     valueDataString = valueDataString.Substring(Constants.ExpandSzPrefix.Length);
                     valueDataString = valueDataString.Replace("\\\\", "\\");
                     StripQuotes(ref valueDataString);
+
                     return new PkgDefItem(sectionName, valueName, valueDataString, PkgDefItem.PkgDefValueType.ExpandSz);
                 }
-                else if (valueDataString.StartsWith("hex"))
+
+                if (valueDataString.StartsWith("hex"))
                 {
                     var colonIndex = valueDataString.IndexOf(":");
                     if (colonIndex < 0)
+                    {
                         return null;
+                    }
 
                     var binaryDataString = valueDataString.Substring(colonIndex + 1);
                     var binaryData = TransformHexToBinary(binaryDataString);
@@ -124,13 +137,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                         case Constants.DwordBinaryPrefix:
                             {
                                 if (binaryData.Length != 8)
+                                {
                                     return null;
+                                }
 
                                 ulong val = 0;
                                 for (var i = 0; i < binaryData.Length; i++)
                                 {
                                     val = (val << 8) | binaryData[i];
                                 }
+
                                 return new PkgDefItem(sectionName, valueName, val, PkgDefItem.PkgDefValueType.QWord);
                             }
                         case Constants.ExpandSzBinaryPrefix:
@@ -145,7 +161,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                                 var binaryDataLength = binaryData.Length;
                                 if ((Convert.ToUInt32(binaryData.GetValue(binaryDataLength - 1)) != 0) &&
                                     (Convert.ToUInt32(binaryData.GetValue(binaryDataLength - 2)) != 0))
+                                {
                                     return null;
+                                }
+
                                 return new PkgDefItem(sectionName, valueName,
                                                         System.Text.Encoding.UTF8.GetString(binaryData),
                                                         PkgDefItem.PkgDefValueType.MultiSz);
@@ -156,28 +175,32 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                     return new PkgDefItem(sectionName, valueName, binaryData, PkgDefItem.PkgDefValueType.Binary);
                 }
-                else if (valueDataString.StartsWith(Constants.DwordPrefix))
+
+                if (valueDataString.StartsWith(Constants.DwordPrefix))
                 {
                     var numericString = valueDataString.Substring(Constants.DwordPrefix.Length);
                     if (numericString.Length > 8)
+                    {
                         return null;
+                    }
 
                     var dword = Convert.ToUInt32(numericString, 16);
                     return new PkgDefItem(sectionName, valueName, dword, PkgDefItem.PkgDefValueType.DWord);
                 }
-                else if (valueDataString.StartsWith(Constants.QwordPrefix))
+
+                if (valueDataString.StartsWith(Constants.QwordPrefix))
                 {
                     var numericString = valueDataString.Substring(Constants.QwordPrefix.Length);
                     if (numericString.Length > 16)
+                    {
                         return null;
+                    }
 
                     var qword = Convert.ToUInt64(numericString, 16);
                     return new PkgDefItem(sectionName, valueName, qword, PkgDefItem.PkgDefValueType.QWord);
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
 
             private void SetNewSection(string line)
@@ -197,6 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     line = line.Substring(1, line.Length - 2);
                     return true;
                 }
+
                 return false;
             }
 

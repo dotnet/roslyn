@@ -8,15 +8,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private class PkgDefItem
         {
-            public enum PkgDefValueType
-            {
-                String,
-                ExpandSz,
-                MultiSz,
-                Binary,
-                DWord,
-                QWord,
-            };
+            public string SectionName { get; }
+            public string ValueName { get; }
+            public object ValueData { get; }
+            public PkgDefValueType ValueType { get; }
 
             public PkgDefItem(string sectionName, string valueName, object valueData, PkgDefValueType valueType)
             {
@@ -26,10 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 ValueType = valueType;
             }
 
-            public string SectionName { get; private set; }
-            public string ValueName { get; private set; }
-            public object ValueData { get; private set; }
-            public PkgDefValueType ValueType { get; private set; }
+            public enum PkgDefValueType
+            {
+                String,
+                ExpandSz,
+                MultiSz,
+                Binary,
+                DWord,
+                QWord,
+            };
         }
     }
 }
