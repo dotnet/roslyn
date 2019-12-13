@@ -618,6 +618,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets the list of projects that directly or transitively depend on this project, if it has already been
+        /// cached.
+        /// </summary>
+        internal bool TryGetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId, out IEnumerable<ProjectId> projects)
+        {
+            if (projectId is null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            var result = _reverseTransitiveReferencesMap.TryGetValue(projectId, out var reverseTransitiveReferences);
+            projects = reverseTransitiveReferences;
+            return result;
+        }
+
+        /// <summary>
         /// Gets the list of projects that directly or transitively depend on this project.
         /// </summary>
         public IEnumerable<ProjectId> GetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId)
