@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private readonly SyntaxFactoryContext _syntaxFactoryContext; // Fields are resettable.
         private readonly ContextAwareSyntax _syntaxFactory; // Has context, the fields of which are resettable.
+        private readonly bool _throwOnInsufficientExecutionStack;
 
         private int _recursionDepth;
         private TerminatorState _termState; // Resettable
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _syntaxFactoryContext = new SyntaxFactoryContext();
             _syntaxFactory = new ContextAwareSyntax(_syntaxFactoryContext);
+            _throwOnInsufficientExecutionStack = Options.Features.ContainsKey("ThrowOnInsufficientExecutionStack"); // PROTOTYPE: Use explicit property on CSharpParseOptions rather than Features.
         }
 
         private static bool IsSomeWord(SyntaxKind kind)
@@ -224,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxListBuilder modifiers)
         {
             _recursionDepth++;
-            var result = TryEnsureSufficientExecutionStack() ?
+            var result = StackGuard.TryEnsureSufficientExecutionStack(_recursionDepth, _throwOnInsufficientExecutionStack) ?
                 this.ParseNamespaceDeclarationCore(attributeLists, modifiers) :
                 this.ParseNamespaceDeclarationCore_NewExecutionStack(attributeLists, modifiers);
             _recursionDepth--;
@@ -1925,7 +1927,7 @@ tryAgain:
         internal MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind)
         {
             _recursionDepth++;
-            var result = TryEnsureSufficientExecutionStack() ?
+            var result = StackGuard.TryEnsureSufficientExecutionStack(_recursionDepth, _throwOnInsufficientExecutionStack) ?
                 ParseMemberDeclarationOrStatementCore(parentKind) :
                 ParseMemberDeclarationOrStatementCore_NewExecutionStack(parentKind);
             _recursionDepth--;
@@ -6310,33 +6312,32 @@ done:;
             try
             {
                 _recursionDepth++;
-                if (TryEnsureSufficientExecutionStack())
-                {
-                    if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
-                    {
-                        return (StatementSyntax)this.EatNode();
-                    }
 
-                    // First, try to parse as a non-declaration statement. If the statement is a single
-                    // expression then we only allow legal expression statements. (That is, "new C();",
-                    // "C();", "x = y;" and so on.)
-
-                    StatementSyntax result = ParseStatementNoDeclaration(allowAnyExpression: false);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-
-                    // We could not successfully parse the statement as a non-declaration. Try to parse
-                    // it as either a declaration or as an "await X();" statement that is in a non-async
-                    // method. 
-
-                    return ParsePossibleDeclarationOrBadAwaitStatement();
-                }
-                else
+                if (!StackGuard.TryEnsureSufficientExecutionStack(_recursionDepth, _throwOnInsufficientExecutionStack))
                 {
                     return ParseStatementCore_NewExecutionStack();
                 }
+
+                if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
+                {
+                    return (StatementSyntax)this.EatNode();
+                }
+
+                // First, try to parse as a non-declaration statement. If the statement is a single
+                // expression then we only allow legal expression statements. (That is, "new C();",
+                // "C();", "x = y;" and so on.)
+
+                StatementSyntax result = ParseStatementNoDeclaration(allowAnyExpression: false);
+                if (result != null)
+                {
+                    return result;
+                }
+
+                // We could not successfully parse the statement as a non-declaration. Try to parse
+                // it as either a declaration or as an "await X();" statement that is in a non-async
+                // method. 
+
+                return ParsePossibleDeclarationOrBadAwaitStatement();
             }
             finally
             {
@@ -8907,7 +8908,7 @@ tryAgain:
             // Ensure every expression kind is handled in GetPrecedence
             _ = GetPrecedence(result.Kind);
 #endif
-            var result = TryEnsureSufficientExecutionStack() ?
+            var result = StackGuard.TryEnsureSufficientExecutionStack(_recursionDepth, _throwOnInsufficientExecutionStack) ?
                 ParseSubExpressionCore(precedence) :
                 ParseSubExpressionCore_NewExecutionStack(precedence);
             _recursionDepth--;
@@ -11482,14 +11483,6 @@ tryAgain:
         }
 
         private bool IsStrict => this.Options.Features.ContainsKey("strict");
-
-        private bool TryEnsureSufficientExecutionStack()
-        {
-            return StackGuard.TryEnsureSufficientExecutionStack(
-                _recursionDepth,
-                parser => parser.Options.Features.ContainsKey("ThrowOnInsufficientExecutionStack"),
-                this);
-        }
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
         private new bool IsIncremental

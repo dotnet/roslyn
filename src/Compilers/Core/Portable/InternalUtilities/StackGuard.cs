@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static bool TryEnsureSufficientExecutionStack<TArg>(int recursionDepth, Func<TArg, bool> throwOnFailure, TArg arg)
+        internal static bool TryEnsureSufficientExecutionStack(int recursionDepth, bool throwOnFailure)
         {
             try
             {
                 EnsureSufficientExecutionStack(recursionDepth);
                 return true;
             }
-            catch (InsufficientExecutionStackException) when (!throwOnFailure(arg))
+            catch (InsufficientExecutionStackException) when (!throwOnFailure)
             {
                 return false;
             }
