@@ -438,6 +438,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
+        private Document WithChangedOption(Document document, OptionKey optionKey, object? value)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var newOptions = workspace.Options.WithChangedOption(optionKey, value);
+            workspace.TryApplyChanges(document.Project.Solution.WithOptions(newOptions));
+            return workspace.CurrentSolution.GetDocument(document.Id);
+        }
+
         internal async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
             Document document,
@@ -713,7 +721,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                document = document.WithSolutionOptions(document.Project.Solution.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers));
+                var optionKey = new OptionKey(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+                document = WithChangedOption(document, optionKey, hideAdvancedMembers);
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 
