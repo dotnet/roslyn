@@ -6486,11 +6486,7 @@ done:;
                         }
                         else
                         {
-<<<<<<< HEAD
-                            return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeyword());
-=======
-                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword(MessageID.None));
->>>>>>> upstream/master
+                            return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeyword(MessageID.None));
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
