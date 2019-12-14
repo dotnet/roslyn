@@ -177,6 +177,11 @@
         <target state="translated">Drzewo wyrażenia nie może zawierać operatora == ani != krotki.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">Funkcja „{0}” jest obecnie w wersji zapoznawczej i jest *nieobsługiwana*. Aby używać funkcji w wersji zapoznawczej, skorzystaj z wersji języka w wersji zapoznawczej.</target>
@@ -298,8 +303,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">„{0}”: Typ użyty w instrukcji using musi być jawnie konwertowalny na typ „System.IDisposable” lub musi implementować odpowiednią metodę „Dispose”. Czy chodziło Ci o użycie instrukcji „await using”, a nie „using”?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">„{0}”: Typ użyty w instrukcji using musi być jawnie konwertowalny na typ „System.IDisposable” lub musi implementować odpowiednią metodę „Dispose”. Czy chodziło Ci o użycie instrukcji „await using”, a nie „using”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -6088,8 +6093,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">„{0}”: Typ użyty w instrukcji using musi być jawnie konwertowalny na typ „System.IDisposable” lub musi implementować odpowiednią metodę „Dispose”.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">„{0}”: Typ użyty w instrukcji using musi być jawnie konwertowalny na typ „System.IDisposable” lub musi implementować odpowiednią metodę „Dispose”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
