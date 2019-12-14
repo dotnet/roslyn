@@ -6486,7 +6486,11 @@ done:;
                         }
                         else
                         {
+<<<<<<< HEAD
                             return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeyword());
+=======
+                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword(MessageID.None));
+>>>>>>> upstream/master
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
@@ -6529,11 +6533,11 @@ done:;
                     this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
             }
 
-            SyntaxToken parseAwaitKeyword(MessageID? feature = null)
+            SyntaxToken parseAwaitKeyword(MessageID feature)
             {
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
                 SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return feature.HasValue ? CheckFeatureAvailability(awaitToken, feature.GetValueOrDefault()) : awaitToken;
+                return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
             }
         }
 
