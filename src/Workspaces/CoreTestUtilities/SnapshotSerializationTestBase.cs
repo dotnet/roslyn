@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace(hostServices ?? Host.Mef.MefHostServices.DefaultHost).CurrentSolution;
             var languages = ImmutableHashSet.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
-            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetSerializableOptions(languages);
+            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetOptions(languages);
             solution = solution.WithOptions(solutionOptions);
 
             var csCode = "class A { }";

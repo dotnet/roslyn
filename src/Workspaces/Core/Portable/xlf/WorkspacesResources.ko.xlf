@@ -97,6 +97,11 @@
         <target state="translated">새 줄 기본 설정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Options_did_not_come_from_Solution">
+        <source>Options did not come from Solution</source>
+        <target state="new">Options did not come from Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Using 구성</target>
@@ -1860,11 +1865,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">{0}' 문에 중괄호를 추가합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">옵션을 작업 영역에서 가져오지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

@@ -97,6 +97,11 @@
         <target state="translated">Nuevas preferencias de línea</target>
         <note />
       </trans-unit>
+      <trans-unit id="Options_did_not_come_from_Solution">
+        <source>Options did not come from Solution</source>
+        <target state="new">Options did not come from Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Organizar instrucciones Using</target>
@@ -1860,11 +1865,6 @@ Las aserciones posteriores positivas de ancho cero se usan normalmente al princi
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">Agregar llaves a la instrucción '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Las opciones no procedían del área de trabajo</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

@@ -160,22 +160,14 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            public WorkspaceOptionSet GetOptions() => new WorkspaceOptionSet(this);
-
             // Simple forwarding functions.
+            public SerializableOptionSet GetOptions() => GetOptions(ImmutableHashSet<string>.Empty);
+            public SerializableOptionSet GetOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetOptions(languages, this);
             public object? GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
             [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
             [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
-            public SerializableOptionSet GetSerializableOptions(ImmutableHashSet<string> languages)
-            {
-                var serializableOptionKeys = _globalOptionService.GetRegisteredSerializableOptions(languages);
-                var serializableOptionValues = _globalOptionService.GetSerializableOptionValues(serializableOptionKeys, languages);
-                var workspaceOptionSet = this.GetOptions();
-                return new SerializableOptionSet(languages, workspaceOptionSet, serializableOptionKeys, serializableOptionValues);
-            }
-
             public bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false) => _globalOptionService.SetOptions(optionSet, settingWorkspaceOptions);
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
@@ -265,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Options
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {
                     // GetChangedOptions only needs to be supported for OptionSets that need to be compared during application,
-                    // but that's already enforced it must be a full WorkspaceOptionSet.
+                    // but that's already enforced it must be a full SerializableOptionSet.
                     throw new NotSupportedException();
                 }
             }

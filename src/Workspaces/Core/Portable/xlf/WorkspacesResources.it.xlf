@@ -97,6 +97,11 @@
         <target state="translated">Preferenze per nuova riga</target>
         <note />
       </trans-unit>
+      <trans-unit id="Options_did_not_come_from_Solution">
+        <source>Options did not come from Solution</source>
+        <target state="new">Options did not come from Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Organizza using</target>
@@ -1860,11 +1865,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">Aggiunge le parentesi graffe all'istruzione '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Le opzioni non provengono dall'area di lavoro</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

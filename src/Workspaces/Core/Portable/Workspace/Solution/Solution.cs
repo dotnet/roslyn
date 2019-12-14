@@ -1266,6 +1266,19 @@ namespace Microsoft.CodeAnalysis
         public OptionSet Options => _state.Options;
 
         /// <summary>
+        /// Creates a new solution instance with the specified <paramref name="options"/>.
+        /// </summary>
+        public Solution WithOptions(OptionSet options)
+        {
+            return options switch
+            {
+                SerializableOptionSet serializableOptions => WithOptions(serializableOptions),
+                null => throw new ArgumentNullException(nameof(options)),
+                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_Solution, paramName: nameof(options))
+            };
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
         /// </summary>
         internal Solution WithOptions(SerializableOptionSet options)

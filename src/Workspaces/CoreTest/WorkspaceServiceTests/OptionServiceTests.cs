@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void GettingOptionWithChangedOption()
         {
             var optionService = TestOptionService.GetService();
-            var optionSet = optionService.GetOptions();
+            OptionSet optionSet = optionService.GetOptions();
             var option = new Option<bool>("Test Feature", "Test Name", false);
             var key = new OptionKey(option);
             Assert.False(optionSet.GetOption(option));
-            optionSet = (WorkspaceOptionSet)optionSet.WithChangedOption(key, true);
+            optionSet = optionSet.WithChangedOption(key, true);
             Assert.True((bool)optionSet.GetOption(key));
         }
 

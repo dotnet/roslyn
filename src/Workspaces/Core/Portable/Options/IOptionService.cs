@@ -41,7 +41,12 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Fetches an immutable set of all current options.
         /// </summary>
-        WorkspaceOptionSet GetOptions();
+        SerializableOptionSet GetOptions();
+
+        /// <summary>
+        /// Gets an option set with force computed values for all registered serializable options applicable for the given <paramref name="languages"/> by quering the option persisters.
+        /// </summary>
+        SerializableOptionSet GetOptions(ImmutableHashSet<string> languages);
 
         /// <summary>
         /// Applies a set of options.
@@ -58,11 +63,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
         /// </summary>
         ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
-
-        /// <summary>
-        /// Gets an option set with force computed values for all registered serializable options applicable for the given <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        SerializableOptionSet GetSerializableOptions(ImmutableHashSet<string> languages);
 
         event EventHandler<OptionChangedEventArgs> OptionChanged;
         event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged;

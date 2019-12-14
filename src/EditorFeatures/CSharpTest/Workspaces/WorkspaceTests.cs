@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -1180,6 +1182,34 @@ class D { }
             var version5 = version4.GetNewerVersion(version3);
 
             Assert.Equal(version5, version4);
+        }
+
+        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestSolutionWithOptions()
+        {
+            using var workspace = CreateWorkspace();
+
+            var document = new TestHostDocument("class C { }");
+
+            var project1 = new TestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+
+            var solution = workspace.CurrentSolution;
+            var optionKey = new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            var optionValue = solution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.Default, optionValue);
+
+            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+            var newSolution = solution.WithOptions(newOptions);
+            var newOptionValue = newSolution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, newOptionValue);
+
+            var applied = workspace.TryApplyChanges(newSolution);
+            Assert.True(applied);
+
+            var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
         }
     }
 }

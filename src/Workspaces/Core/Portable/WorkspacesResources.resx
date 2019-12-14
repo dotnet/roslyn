@@ -489,8 +489,8 @@
   <data name="Add_braces_to_0_statement" xml:space="preserve">
     <value>Add braces to '{0}' statement.</value>
   </data>
-  <data name="Options_did_not_come_from_Workspace" xml:space="preserve">
-    <value>Options did not come from Workspace</value>
+  <data name="Options_did_not_come_from_Solution" xml:space="preserve">
+    <value>Options did not come from Solution</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Enable</value>

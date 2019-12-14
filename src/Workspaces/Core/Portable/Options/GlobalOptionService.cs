@@ -134,11 +134,21 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         /// <summary>
-        /// Gets force computed serializable options with prefetched values for all the registered options by quering the option persisters.
+        /// Gets force computed serializable options with prefetched values for all the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
         /// </summary>
-        public ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
+        public SerializableOptionSet GetOptions(ImmutableHashSet<string> languages, IOptionService optionService)
         {
-            Debug.Assert(optionKeys.SetEquals(GetRegisteredSerializableOptions(languages)));
+            var serializableOptionKeys = GetRegisteredSerializableOptions(languages);
+            var serializableOptionValues = GetSerializableOptionValues(serializableOptionKeys, languages);
+            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues);
+        }
+
+        private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
+        {
+            if (optionKeys.IsEmpty)
+            {
+                return ImmutableDictionary<OptionKey, object?>.Empty;
+            }
 
             ForceComputeOptionValues(optionKeys, languages);
 
@@ -149,37 +159,38 @@ namespace Microsoft.CodeAnalysis.Options
                                    (!kvp.Key.Option.IsPerLanguage ||
                                     languages.Contains(kvp.Key.Language!))));
             }
-        }
 
-        private void ForceComputeOptionValues(ImmutableHashSet<IOption> options, ImmutableHashSet<string> languages)
-        {
-            lock (_gate)
+            // Local functions
+            void ForceComputeOptionValues(ImmutableHashSet<IOption> options, ImmutableHashSet<string> languages)
             {
-                if (languages.All(_forceComputedLanguages.Contains))
+                lock (_gate)
                 {
-                    return;
-                }
-            }
-
-            foreach (var option in options)
-            {
-                if (!option.IsPerLanguage)
-                {
-                    var key = new OptionKey(option);
-                    var _ = GetOption(key);
-                    continue;
+                    if (languages.All(_forceComputedLanguages.Contains))
+                    {
+                        return;
+                    }
                 }
 
-                foreach (var language in languages)
+                foreach (var option in options)
                 {
-                    var key = new OptionKey(option, language);
-                    var _ = GetOption(key);
-                }
-            }
+                    if (!option.IsPerLanguage)
+                    {
+                        var key = new OptionKey(option);
+                        var _ = GetOption(key);
+                        continue;
+                    }
 
-            lock (_gate)
-            {
-                _forceComputedLanguages.AddRange(languages);
+                    foreach (var language in languages)
+                    {
+                        var key = new OptionKey(option, language);
+                        var _ = GetOption(key);
+                    }
+                }
+
+                lock (_gate)
+                {
+                    _forceComputedLanguages.AddRange(languages);
+                }
             }
         }
 
@@ -214,16 +225,11 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false)
         {
-            if (optionSet == null)
-            {
-                throw new ArgumentNullException(nameof(optionSet));
-            }
-
             var changedOptionKeys = optionSet switch
             {
-                WorkspaceOptionSet workspaceOptionSet => workspaceOptionSet.GetChangedOptions(),
+                null => throw new ArgumentNullException(nameof(optionSet)),
                 SerializableOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
-                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_Workspace, paramName: nameof(optionSet))
+                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_Solution, paramName: nameof(optionSet))
             };
 
             var changedOptions = new List<OptionChangedEventArgs>();

@@ -40,12 +40,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public WorkspaceOptionSet GetOptions()
+        public SerializableOptionSet GetOptions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public SerializableOptionSet GetOptions(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }
@@ -62,16 +72,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
-        {
-            throw new NotImplementedException();
-        }
-
-        public SerializableOptionSet GetSerializableOptions(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }

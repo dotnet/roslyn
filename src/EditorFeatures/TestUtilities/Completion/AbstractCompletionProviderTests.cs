@@ -196,7 +196,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
             var code = WorkspaceFixture.Code;
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
+
+            var newOptions = WithChangedOptions(workspace.Options);
+            var newSolution = workspace.CurrentSolution.WithOptions(newOptions);
+            workspace.TryApplyChanges(newSolution);
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -208,9 +211,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task<CompletionList> GetCompletionListAsync(string markup, string workspaceKind = null)
         {
             var workspace = WorkspaceFixture.GetWorkspace(markup, workspaceKind: workspaceKind);
-            SetWorkspaceOptions(workspace);
             var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
             var position = WorkspaceFixture.Position;
+            var newOptions = WithChangedOptions(workspace.Options);
+            currentDocument = currentDocument.WithSolutionOptions(newOptions);
 
             return await GetCompletionListAsync(GetCompletionService(workspace), currentDocument, position, RoslynCompletion.CompletionTrigger.Invoke, workspace.Options).ConfigureAwait(false);
         }
@@ -392,9 +396,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
-            SetWorkspaceOptions(workspace);
-
             var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
@@ -405,35 +406,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
 
             return;
-
-            async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
-            {
-                var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
-
-                var service = GetCompletionService(workspace);
-                var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
-                var items = completionLlist.Items;
-
-                Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
-                var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
-
-                if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
-                {
-                    var completionRules = GetCompletionHelper(document);
-                    var textView = WorkspaceFixture.CurrentDocument.GetTextView();
-                    VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
-                }
-                else
-                {
-                    await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionLlist.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
-                }
-            }
-
         }
 
-        protected virtual void SetWorkspaceOptions(TestWorkspace workspace)
+        private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var newOptions = WithChangedOptions(workspace.Options);
+            document = document.WithSolutionOptions(newOptions);
+            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
+
+            var service = GetCompletionService(workspace);
+            var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
+            var items = completionLlist.Items;
+
+            Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
+            var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
+
+            if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            {
+                var completionRules = GetCompletionHelper(document);
+                var textView = WorkspaceFixture.CurrentDocument.GetTextView();
+                VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+            }
+            else
+            {
+                await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionLlist.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+            }
         }
+
+        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
 
         internal async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
@@ -710,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
+                document = document.WithSolutionOptions(document.Project.Solution.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers));
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 

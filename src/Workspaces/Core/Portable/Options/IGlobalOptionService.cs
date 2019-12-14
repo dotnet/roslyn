@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Options
         bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false);
 
         /// <summary>
+        /// Gets force computed serializable options with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
+        /// </summary>
+        SerializableOptionSet GetOptions(ImmutableHashSet<string> languages, IOptionService optionService);
+
+        /// <summary>
         /// Returns the set of all registered options.
         /// </summary>
         IEnumerable<IOption> GetRegisteredOptions();
@@ -51,11 +56,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
         /// </summary>
         ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
-
-        /// <summary>
-        /// Gets force computed serializable options with prefetched values for the given registered <paramref name="optionKeys"/> and <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages);
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 

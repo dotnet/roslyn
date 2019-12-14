@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
-        private readonly IOptionService _optionService;
+        // Can be null for tests.
+        private readonly IOptionService? _optionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
@@ -67,8 +68,11 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            _optionService = _services.GetRequiredService<IOptionService>();
-            _optionService.BatchOptionsChanged += OptionService_BatchOptionsChanged;
+            _optionService = _services.GetService<IOptionService>();
+            if (_optionService != null)
+            {
+                _optionService.BatchOptionsChanged += OptionService_BatchOptionsChanged;
+            }
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
@@ -120,7 +124,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            var options = _optionService.GetSerializableOptions(solutionInfo.GetProjectLanguages());
+            var options = _optionService?.GetOptions(solutionInfo.GetProjectLanguages())
+                ?? (SerializableOptionSet?)this.CurrentSolution?.Options
+                ?? new SerializableOptionSet(ImmutableHashSet<string>.Empty, optionService: null, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object?>.Empty);
             return new Solution(this, solutionInfo.Attributes, options);
         }
 
@@ -193,7 +199,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.CurrentSolution.Options;
             }
-
+            // TODO: mark the setter as deprecated, add a new API that clearly indicates to the caller that underlying CurrentSolution changed,
+            //       and migrate all the callsites of this setter to the new API.
             set
             {
                 SetOptions(value);
@@ -202,7 +209,7 @@ namespace Microsoft.CodeAnalysis
 
         private protected void SetOptions(OptionSet options)
         {
-            if (_optionService.SetOptions(options, settingWorkspaceOptions: true))
+            if (_optionService?.SetOptions(options, settingWorkspaceOptions: true) == true)
             {
                 UpdateCurrentSolutionOnOptionsChanged();
             }
@@ -225,7 +232,8 @@ namespace Microsoft.CodeAnalysis
 
         private void UpdateCurrentSolutionOnOptionsChanged()
         {
-            var newOptions = _optionService.GetSerializableOptions(this.CurrentSolution.State.GetProjectLanguages());
+            RoslynDebug.Assert(_optionService != null);
+            var newOptions = _optionService.GetOptions(this.CurrentSolution.State.GetProjectLanguages());
             this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 
@@ -1203,6 +1211,11 @@ namespace Microsoft.CodeAnalysis
                 foreach (var proj in solutionChanges.GetRemovedProjects())
                 {
                     this.ApplyProjectRemoved(proj.Id);
+                }
+
+                if (this.CurrentSolution.Options != newSolution.Options)
+                {
+                    SetOptions(newSolution.Options);
                 }
 
                 return true;

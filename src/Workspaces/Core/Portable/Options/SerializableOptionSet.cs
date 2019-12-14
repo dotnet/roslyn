@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// It contains prepopulated fetched option values for all serializable options and values, and delegates to WorkspaceOptionSet for non-serializable values.
     /// It ensures a contract that values are immutable from this instance once observed.
     /// </summary>
-    internal sealed class SerializableOptionSet : OptionSet
+    internal sealed partial class SerializableOptionSet : OptionSet
     {
         private readonly ImmutableHashSet<string> _languages;
         private readonly WorkspaceOptionSet _workspaceOptionSet;
@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Options
 
         internal SerializableOptionSet(
             ImmutableHashSet<string> languages,
-            WorkspaceOptionSet workspaceOptionSet,
+            IOptionService? optionService,
             ImmutableHashSet<IOption> serializableOptions,
             ImmutableDictionary<OptionKey, object?> values)
-            : this(languages, workspaceOptionSet, serializableOptions, values, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
+            : this(languages, new WorkspaceOptionSet(optionService), serializableOptions, values, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
         {
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return this;
             }
 
-            return _workspaceOptionSet.OptionService!.GetSerializableOptions(languages);
+            return _workspaceOptionSet.OptionService!.GetOptions(languages);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
@@ -247,7 +247,6 @@ namespace Microsoft.CodeAnalysis.Options
 
             var languages = languagesBuilder.ToImmutable();
 
-            var workspaceOptionSet = optionService.GetOptions();
             var serializableOptions = optionService.GetRegisteredSerializableOptions(languages);
             var lookup = serializableOptions.ToLookup(o => o.Name);
 
@@ -316,6 +315,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             var serializableOptionValues = builder.ToImmutable();
             var changedOptionKeys = changedKeysBuilder.ToImmutable();
+            var workspaceOptionSet = new WorkspaceOptionSet(optionService);
 
             return new SerializableOptionSet(languages, workspaceOptionSet, serializableOptions, serializableOptionValues, changedOptionKeys);
 
