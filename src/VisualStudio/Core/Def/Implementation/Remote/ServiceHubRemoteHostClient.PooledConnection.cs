@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient
     {
         private partial class ConnectionManager
         {

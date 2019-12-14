@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // shut it down outside of lock so that
                     // we don't call into different component while
                     // holding onto a lock
-                    client.Shutdown();
+                    client.Dispose();
                 }
             }
 
@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // shutdown 
-                existingClient.Shutdown();
+                existingClient.Dispose();
             }
         }
     }

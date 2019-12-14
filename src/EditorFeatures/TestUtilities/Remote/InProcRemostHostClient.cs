@@ -103,17 +103,19 @@ namespace Roslyn.Test.Utilities.Remote
         {
         }
 
-        protected override void OnStopped()
+        protected override void Dispose(bool disposing)
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
             _remotableDataRpc.Dispose();
+
+            base.Dispose(disposing);
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
-            Stopped();
+            Dispose();
         }
 
         public class ServiceProvider : IServiceProvider

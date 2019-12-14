@@ -12,13 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient
     {
-        private partial class ConnectionManager
+        private partial class ConnectionManager : IDisposable
         {
             private readonly HubClient _hubClient;
             private readonly HostGroup _hostGroup;
-            private readonly TimeSpan _timeout;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
@@ -31,22 +30,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // indicate whether pool should be used.
             private readonly bool _enableConnectionPool;
 
-            // indicate whether connection manager has shutdown
-            private bool _shutdown;
+            private bool _isDisposed;
 
             public ConnectionManager(
                 HubClient hubClient,
                 HostGroup hostGroup,
                 bool enableConnectionPool,
                 int maxPoolConnection,
-                TimeSpan timeout,
                 ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
             {
-                _shutdown = false;
-
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
-                _timeout = timeout;
 
                 _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;
@@ -127,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
-                var serviceStream = await Connections.RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
+                var serviceStream = await RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
                 return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
             }
@@ -136,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (_shutdownLock.DisposableRead())
                 {
-                    if (!_enableConnectionPool || _shutdown)
+                    if (!_enableConnectionPool || _isDisposed)
                     {
                         // pool is not being used or 
                         // manager is already shutdown
@@ -158,11 +152,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            public void Shutdown()
+            public void Dispose()
             {
                 using (_shutdownLock.DisposableWrite())
                 {
-                    _shutdown = true;
+                    _isDisposed = true;
 
                     // let ref count this one is holding go
                     _remotableDataRpc.Dispose();
@@ -178,6 +172,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     _pools.Clear();
                 }
+
+                _hubClient.Dispose();
             }
         }
     }

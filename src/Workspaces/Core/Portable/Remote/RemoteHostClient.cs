@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
-    internal abstract partial class RemoteHostClient
+    internal abstract partial class RemoteHostClient : IDisposable
     {
         public readonly Workspace Workspace;
         public event EventHandler<bool>? StatusChanged;
@@ -46,26 +46,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected abstract void OnStarted();
 
-        protected abstract void OnStopped();
-
-        internal void Shutdown()
-        {
-            // this should be only used by RemoteHostService to shutdown this remote host
-            Stopped();
-        }
-
         protected void Started()
         {
             OnStarted();
 
-            OnStatusChanged(true);
+            OnStatusChanged(started: true);
         }
 
-        protected void Stopped()
+        public void Dispose()
         {
-            OnStopped();
+            Dispose(disposing: true);
+        }
 
-            OnStatusChanged(false);
+        protected virtual void Dispose(bool disposing)
+        {
+            OnStatusChanged(started: false);
         }
 
         private void OnStatusChanged(bool started)
@@ -185,11 +180,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             protected override void OnStarted()
-            {
-                // do nothing
-            }
-
-            protected override void OnStopped()
             {
                 // do nothing
             }
