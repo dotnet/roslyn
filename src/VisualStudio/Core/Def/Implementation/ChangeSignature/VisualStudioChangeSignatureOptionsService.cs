@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var documentText = sourceText.ToString();
 
             var rolesCollection1 = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
-                AddParameterTextViewRole,AddParameterTypeTextViewRole };
+                AddParameterTextViewRole, AddParameterTypeTextViewRole };
             var rolesCollection2 = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterNameTextViewRole };
             var rolesCollections = new[] { rolesCollection1, rolesCollection2 };
