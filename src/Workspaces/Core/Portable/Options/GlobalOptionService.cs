@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Options
     [Export(typeof(IGlobalOptionService)), Shared]
     internal class GlobalOptionService : IGlobalOptionService
     {
-        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>> _languageToLazyProvidersMap;
-        private readonly ImmutableArray<Lazy<IOptionPersister>> _optionSerializers;
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
+        private readonly ImmutableArray<Lazy<IOptionPersister>> _optionSerializers;
+        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>> _languageToLazyProvidersMap;
         private readonly Dictionary<string, ImmutableHashSet<IOption>> _languageToSerializableOptionsMap;
         private readonly HashSet<string> _forceComputedLanguages;
 
@@ -34,14 +34,13 @@ namespace Microsoft.CodeAnalysis.Options
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionSerializers)
         {
-            _languageToLazyProvidersMap = optionProviders.ToPerLanguageMap();
+            _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
             _optionSerializers = optionSerializers.ToImmutableArray();
-            _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
+            _languageToLazyProvidersMap = optionProviders.ToPerLanguageMap();
+            _languageToSerializableOptionsMap = new Dictionary<string, ImmutableHashSet<IOption>>();
             _forceComputedLanguages = new HashSet<string>();
 
-            _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() =>
-                optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
-            _languageToSerializableOptionsMap = new Dictionary<string, ImmutableHashSet<IOption>>();
+            _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
         }
 
         private ImmutableHashSet<IOption> GetOrComputeSerializableOptionsForLanguage(string language)
@@ -79,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Options
 
                 foreach (var lazyProviderAndMetadata in lazyProvidersAndMetadata)
                 {
+                    // We only consider the options defined in the the DefaultAssemblies (Workspaces and Features) as serializable.
+                    // This is due to the fact that other layers above are VS specific and do not execute in OOP.
                     var provider = lazyProviderAndMetadata.Value;
                     if (!MefHostServices.IsDefaultAssembly(provider.GetType().Assembly))
                     {
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets force computed serializable options with prefetched values for all the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
         /// </summary>
-        public SerializableOptionSet GetOptions(ImmutableHashSet<string> languages, IOptionService optionService)
+        public SerializableOptionSet GetForceComputedOptions(ImmutableHashSet<string> languages, IOptionService optionService)
         {
             var serializableOptionKeys = GetRegisteredSerializableOptions(languages);
             var serializableOptionValues = GetSerializableOptionValues(serializableOptionKeys, languages);

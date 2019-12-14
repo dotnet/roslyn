@@ -11,8 +11,11 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed partial class SerializableOptionSet : OptionSet
     {
         /// <summary>
-        /// An implementation of <see cref="OptionSet"/> that fetches values it doesn't know about to the workspace's option service. It ensures a contract
+        /// An implementation of <see cref="OptionSet"/> for non-serializable options that are defined in VS layers.
+        /// It fetches values it doesn't know about to the workspace's option service. It ensures a contract
         /// that values are immutable from this instance once observed.
+        /// TODO: Remove this type once we move all the options from the VS layers into Workspaces/Features, so the entire
+        ///       option set is serializable and becomes pure data snapshot for options.
         /// </summary>
         private sealed class WorkspaceOptionSet : OptionSet
         {

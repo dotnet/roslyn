@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             _solutionAttributes = solutionAttributes;
             _solutionServices = solutionServices;
             _projectIds = projectIds.ToImmutableReadOnlyListOrEmpty();
-            Options = options;
+            Options = options ?? throw new ArgumentNullException(nameof(options));
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;

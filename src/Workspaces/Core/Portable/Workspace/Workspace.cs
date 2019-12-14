@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            var options = _optionService?.GetOptions(solutionInfo.GetProjectLanguages())
+            var options = _optionService?.GetForceComputedOptions(solutionInfo.GetProjectLanguages())
                 ?? (SerializableOptionSet?)this.CurrentSolution?.Options
                 ?? new SerializableOptionSet(ImmutableHashSet<string>.Empty, optionService: null, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object?>.Empty);
             return new Solution(this, solutionInfo.Attributes, options);
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
         private void UpdateCurrentSolutionOnOptionsChanged()
         {
             RoslynDebug.Assert(_optionService != null);
-            var newOptions = _optionService.GetOptions(this.CurrentSolution.State.GetProjectLanguages());
+            var newOptions = _optionService.GetForceComputedOptions(this.CurrentSolution.State.GetProjectLanguages());
             this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 

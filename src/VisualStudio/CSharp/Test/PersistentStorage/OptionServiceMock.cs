@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     {
 #pragma warning disable 67
         public event EventHandler<OptionChangedEventArgs> OptionChanged;
-        public event EventHandler<EventArgs> OptionsChanged;
         public event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged;
 #pragma warning restore 67
 
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public SerializableOptionSet GetOptions(ImmutableHashSet<string> languages)
+        public SerializableOptionSet GetForceComputedOptions(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }

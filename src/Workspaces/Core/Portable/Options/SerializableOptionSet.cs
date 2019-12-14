@@ -24,10 +24,29 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed partial class SerializableOptionSet : OptionSet
     {
+        /// <summary>
+        /// Languages for which all the applicable serializable options have been prefetched and saved in <see cref="_serializableOptionValues"/>.
+        /// </summary>
         private readonly ImmutableHashSet<string> _languages;
+
+        /// <summary>
+        /// Fallback option set for non-serializable options. See comments on <see cref="WorkspaceOptionSet"/> for more details.
+        /// </summary>
         private readonly WorkspaceOptionSet _workspaceOptionSet;
+
+        /// <summary>
+        /// All serializable options for <see cref="_languages"/>.
+        /// </summary>
         private readonly ImmutableHashSet<IOption> _serializableOptions;
+
+        /// <summary>
+        /// Prefetched option values for all <see cref="_serializableOptions"/> applicable for <see cref="_languages"/>.
+        /// </summary>
         private readonly ImmutableDictionary<OptionKey, object?> _serializableOptionValues;
+
+        /// <summary>
+        /// Set of changed options in this option set.
+        /// </summary>
         private readonly ImmutableHashSet<OptionKey> _changedOptionKeys;
 
         private SerializableOptionSet(
@@ -62,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return this;
             }
 
-            return _workspaceOptionSet.OptionService!.GetOptions(languages);
+            return _workspaceOptionSet.OptionService!.GetForceComputedOptions(languages);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
@@ -129,6 +148,13 @@ namespace Microsoft.CodeAnalysis.Options
 
         public void Serialize(ObjectWriter writer, CancellationToken cancellationToken)
         {
+            // We serialize the following contents from this option set:
+            //  1. Languages
+            //  2. Prefetched serializable option key-value pairs
+            //  3. Changed option keys.
+
+            // NOTE: keep the serialization in sync with Deserialize method below.
+
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32(_languages.Count);
@@ -236,6 +262,13 @@ namespace Microsoft.CodeAnalysis.Options
 
         public static SerializableOptionSet Deserialize(ObjectReader reader, IOptionService optionService, CancellationToken cancellationToken)
         {
+            // We deserialize the following contents from this option set:
+            //  1. Languages
+            //  2. Prefetched serializable option key-value pairs
+            //  3. Changed option keys.
+
+            // NOTE: keep the deserialization in sync with Serialize method above.
+
             cancellationToken.ThrowIfCancellationRequested();
 
             var count = reader.ReadInt32();

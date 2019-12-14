@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets force computed serializable options with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
         /// </summary>
-        SerializableOptionSet GetOptions(ImmutableHashSet<string> languages, IOptionService optionService);
+        SerializableOptionSet GetForceComputedOptions(ImmutableHashSet<string> languages, IOptionService optionService);
 
         /// <summary>
         /// Returns the set of all registered options.
