@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Debug.Assert(!localFunctions.IsDefault);
             Debug.Assert(localFunctionsMap != null);
             Debug.Assert(localFunctionsMap.Count == localFunctions.Length);
-            Debug.Assert(localFunctions.Distinct().Count() == localFunctions.Length);
+            Debug.Assert(localFunctions.Distinct().Length == localFunctions.Length);
             Debug.Assert(anonymousFunctionsMap != null);
 #if DEBUG
             foreach (IMethodSymbol method in localFunctions)

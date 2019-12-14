@@ -333,7 +333,7 @@ if (true)
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
-            var snapshot = testDocument.TextBuffer.CurrentSnapshot;
+            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
 
             if (string.IsNullOrEmpty(expectedContent))
             {

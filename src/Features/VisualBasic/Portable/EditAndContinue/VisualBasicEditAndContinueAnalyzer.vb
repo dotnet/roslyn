@@ -454,7 +454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             '   Function(a) [|[|Function(b)|] a + b|]
             ' There are 2 active statements, one spanning the the body of the outer lambda and 
             ' the other on the nested lambda's header.
-            ' Find the parent whose span starts at the same position but it's lenght is at least as long as the active span's length.
+            ' Find the parent whose span starts at the same position but it's length is at least as long as the active span's length.
             While node.Span.Length < span.Length AndAlso node.Parent.SpanStart = position
                 node = node.Parent
                 partnerOpt = partnerOpt?.Parent

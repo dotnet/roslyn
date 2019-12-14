@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisposeAnalysis
     public sealed class DisposableFieldsShouldBeDisposedTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(), null);
+            => (new DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(isEnabledByDefault: true), null);
 
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, parseOptions: null, expectedDiagnostics);

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -189,8 +188,32 @@ class C
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
             var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
-            var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
-            Assert.Equal("System.Int32", symbolV.TypeWithAnnotations.ToTestDisplayString());
+            var symbolV = (ILocalSymbol)semanticModel.GetDeclaredSymbol(decl);
+            Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Dynamic()
+        {
+            string source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        dynamic d = Task.CompletedTask;
+        await d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var info = model.GetAwaitExpressionInfo(expr);
+            Assert.True(info.IsDynamic);
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.Null(info.GetResultMethod);
         }
     }
 }

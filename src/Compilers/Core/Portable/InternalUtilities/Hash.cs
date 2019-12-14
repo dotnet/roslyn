@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +30,7 @@ namespace Roslyn.Utilities
         /// unnecessary boxing operations.  Unfortunately, we can't constrain
         /// T to "non-enum", so we'll use a more restrictive constraint.
         /// </summary>
-        internal static int Combine<T>(T newKeyPart, int currentKey) where T : class
+        internal static int Combine<T>(T newKeyPart, int currentKey) where T : class?
         {
             int hash = unchecked(currentKey * (int)0xA5555529);
 
@@ -40,7 +42,7 @@ namespace Roslyn.Utilities
             return hash;
         }
 
-        internal static int CombineValues<T>(IEnumerable<T> values, int maxItemsToHash = int.MaxValue)
+        internal static int CombineValues<T>(IEnumerable<T>? values, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
             {
@@ -66,7 +68,7 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-        internal static int CombineValues<T>(T[] values, int maxItemsToHash = int.MaxValue)
+        internal static int CombineValues<T>(T[]? values, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
             {
@@ -116,7 +118,7 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-        internal static int CombineValues(IEnumerable<string> values, StringComparer stringComparer, int maxItemsToHash = int.MaxValue)
+        internal static int CombineValues(IEnumerable<string?>? values, StringComparer stringComparer, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
             {

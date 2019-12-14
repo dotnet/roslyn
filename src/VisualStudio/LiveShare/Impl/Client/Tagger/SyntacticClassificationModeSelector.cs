@@ -49,9 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 return SyntacticClassificationMode.TextMate;
             }
 
-            // this is most likely already ran, so it will be no-op
-            RoslynSyntaxClassificationService.EnsureInitializationAsync(_lspClientServiceFactory, CancellationToken.None).Wait(CancellationToken.None);
-
             if (RoslynSyntaxClassificationService.ShouldRunExperiment(_lspClientServiceFactory, experimentService, WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
             {
                 _modeCache = (int)SyntacticClassificationMode.TextMate;

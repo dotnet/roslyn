@@ -9409,6 +9409,191 @@ class Program
             );
         }
 
+        [Fact]
+        [WorkItem(39564, "https://github.com/dotnet/roslyn/issues/39564")]
+        public void OrderOfEvaluationOfTupleAsSwitchExpressionArgument()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        using var sr = new System.IO.StringReader(""foo\nbar"");
+        var r = (sr.ReadLine(), sr.ReadLine()) switch
+        {
+            (""foo"", ""bar"") => ""Yep, all good!"",
+            var (a, b) => $""Wait, what? I got ({a}, {b})!"",
+        };
+        Console.WriteLine(r);
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe)
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "Yep, all good!");
+            compVerifier.VerifyIL("Program.Main",
+@"    {
+      // Code size      142 (0x8e)
+      .maxstack  4
+      .locals init (System.IO.StringReader V_0, //sr
+                    string V_1, //r
+                    string V_2, //a
+                    string V_3, //b
+                    string V_4)
+      IL_0000:  nop
+      IL_0001:  ldstr      ""foo
+    bar""
+      IL_0006:  newobj     ""System.IO.StringReader..ctor(string)""
+      IL_000b:  stloc.0
+      .try
+      {
+        IL_000c:  ldloc.0
+        IL_000d:  callvirt   ""string System.IO.TextReader.ReadLine()""
+        IL_0012:  stloc.2
+        IL_0013:  ldloc.0
+        IL_0014:  callvirt   ""string System.IO.TextReader.ReadLine()""
+        IL_0019:  stloc.3
+        IL_001a:  ldloc.2
+        IL_001b:  brfalse.s  IL_0045
+        IL_001d:  ldloc.2
+        IL_001e:  ldstr      ""foo""
+        IL_0023:  call       ""bool string.op_Equality(string, string)""
+        IL_0028:  brfalse.s  IL_0045
+        IL_002a:  ldloc.3
+        IL_002b:  brfalse.s  IL_0045
+        IL_002d:  ldloc.3
+        IL_002e:  ldstr      ""bar""
+        IL_0033:  call       ""bool string.op_Equality(string, string)""
+        IL_0038:  brtrue.s   IL_003c
+        IL_003a:  br.s       IL_0045
+        IL_003c:  ldstr      ""Yep, all good!""
+        IL_0041:  stloc.s    V_4
+        IL_0043:  br.s       IL_0076
+        IL_0045:  br.s       IL_0047
+        IL_0047:  ldc.i4.5
+        IL_0048:  newarr     ""string""
+        IL_004d:  dup
+        IL_004e:  ldc.i4.0
+        IL_004f:  ldstr      ""Wait, what? I got (""
+        IL_0054:  stelem.ref
+        IL_0055:  dup
+        IL_0056:  ldc.i4.1
+        IL_0057:  ldloc.2
+        IL_0058:  stelem.ref
+        IL_0059:  dup
+        IL_005a:  ldc.i4.2
+        IL_005b:  ldstr      "", ""
+        IL_0060:  stelem.ref
+        IL_0061:  dup
+        IL_0062:  ldc.i4.3
+        IL_0063:  ldloc.3
+        IL_0064:  stelem.ref
+        IL_0065:  dup
+        IL_0066:  ldc.i4.4
+        IL_0067:  ldstr      "")!""
+        IL_006c:  stelem.ref
+        IL_006d:  call       ""string string.Concat(params string[])""
+        IL_0072:  stloc.s    V_4
+        IL_0074:  br.s       IL_0076
+        IL_0076:  ldloc.s    V_4
+        IL_0078:  stloc.1
+        IL_0079:  ldloc.1
+        IL_007a:  call       ""void System.Console.WriteLine(string)""
+        IL_007f:  nop
+        IL_0080:  leave.s    IL_008d
+      }
+      finally
+      {
+        IL_0082:  ldloc.0
+        IL_0083:  brfalse.s  IL_008c
+        IL_0085:  ldloc.0
+        IL_0086:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_008b:  nop
+        IL_008c:  endfinally
+      }
+      IL_008d:  ret
+    }
+");
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe)
+                .VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: "Yep, all good!");
+            compVerifier.VerifyIL("Program.Main",
+@"    {
+      // Code size      128 (0x80)
+      .maxstack  4
+      .locals init (System.IO.StringReader V_0, //sr
+                    string V_1, //a
+                    string V_2, //b
+                    string V_3)
+      IL_0000:  ldstr      ""foo
+    bar""
+      IL_0005:  newobj     ""System.IO.StringReader..ctor(string)""
+      IL_000a:  stloc.0
+      .try
+      {
+        IL_000b:  ldloc.0
+        IL_000c:  callvirt   ""string System.IO.TextReader.ReadLine()""
+        IL_0011:  stloc.1
+        IL_0012:  ldloc.0
+        IL_0013:  callvirt   ""string System.IO.TextReader.ReadLine()""
+        IL_0018:  stloc.2
+        IL_0019:  ldloc.1
+        IL_001a:  brfalse.s  IL_0041
+        IL_001c:  ldloc.1
+        IL_001d:  ldstr      ""foo""
+        IL_0022:  call       ""bool string.op_Equality(string, string)""
+        IL_0027:  brfalse.s  IL_0041
+        IL_0029:  ldloc.2
+        IL_002a:  brfalse.s  IL_0041
+        IL_002c:  ldloc.2
+        IL_002d:  ldstr      ""bar""
+        IL_0032:  call       ""bool string.op_Equality(string, string)""
+        IL_0037:  brfalse.s  IL_0041
+        IL_0039:  ldstr      ""Yep, all good!""
+        IL_003e:  stloc.3
+        IL_003f:  br.s       IL_006d
+        IL_0041:  ldc.i4.5
+        IL_0042:  newarr     ""string""
+        IL_0047:  dup
+        IL_0048:  ldc.i4.0
+        IL_0049:  ldstr      ""Wait, what? I got (""
+        IL_004e:  stelem.ref
+        IL_004f:  dup
+        IL_0050:  ldc.i4.1
+        IL_0051:  ldloc.1
+        IL_0052:  stelem.ref
+        IL_0053:  dup
+        IL_0054:  ldc.i4.2
+        IL_0055:  ldstr      "", ""
+        IL_005a:  stelem.ref
+        IL_005b:  dup
+        IL_005c:  ldc.i4.3
+        IL_005d:  ldloc.2
+        IL_005e:  stelem.ref
+        IL_005f:  dup
+        IL_0060:  ldc.i4.4
+        IL_0061:  ldstr      "")!""
+        IL_0066:  stelem.ref
+        IL_0067:  call       ""string string.Concat(params string[])""
+        IL_006c:  stloc.3
+        IL_006d:  ldloc.3
+        IL_006e:  call       ""void System.Console.WriteLine(string)""
+        IL_0073:  leave.s    IL_007f
+      }
+      finally
+      {
+        IL_0075:  ldloc.0
+        IL_0076:  brfalse.s  IL_007e
+        IL_0078:  ldloc.0
+        IL_0079:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_007e:  endfinally
+      }
+      IL_007f:  ret
+    }
+");
+        }
+
         #endregion "regression tests"
     }
 }

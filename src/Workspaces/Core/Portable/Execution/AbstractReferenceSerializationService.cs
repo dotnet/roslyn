@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation)
                 : base(properties, fullPath, initialDocumentation)
             {
-                // TODO: doc comment provider is a bit wierd.
+                // TODO: doc comment provider is a bit weird.
                 _provider = initialDocumentation;
             }
 

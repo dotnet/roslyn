@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Module CRC32
 
         Public Function ComputeCRC32(names() As String) As UInt32
-            Debug.Assert(names.Count > 0)
+            Debug.Assert(names.Length > 0)
             Dim crc32 As UInt32 = &HFFFFFFFF
 
             For Each name In names

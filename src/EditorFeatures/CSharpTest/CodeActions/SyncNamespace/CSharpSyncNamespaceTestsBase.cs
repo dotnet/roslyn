@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
                     var oldDocument = workspace.Documents[0];
                     var oldDocumentId = oldDocument.Id;
-                    var expectedText = workspace.Documents[0].TextBuffer.CurrentSnapshot.GetText();
+                    var expectedText = workspace.Documents[0].GetTextBuffer().CurrentSnapshot.GetText();
 
                     // a new document with the same text as old document is added.
                     var allResults = await TestOperationAsync(testOptions, workspace, expectedText);

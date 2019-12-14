@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -142,6 +146,49 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             expression = null;
             return false;
+        }
+
+        public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
+            Document document, SyntaxNode initializer, CancellationToken cancellationToken)
+        {
+            if (initializer == null || initializer.Parent == null)
+            {
+                return default;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            if (ienumerableType == null)
+            {
+                return default;
+            }
+
+            // get the regular signature help items
+            var parentOperation = semanticModel.GetOperation(initializer.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
+            var parentType = parentOperation?.Type;
+            if (parentType == null)
+            {
+                return default;
+            }
+
+            if (!parentType.AllInterfaces.Contains(ienumerableType))
+            {
+                return default;
+            }
+
+            var position = initializer.SpanStart;
+            var addSymbols = semanticModel.LookupSymbols(
+                position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
+
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            var addMethods = addSymbols.OfType<IMethodSymbol>()
+                                       .Where(m => m.Parameters.Length >= 1)
+                                       .ToImmutableArray()
+                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                       .Sort(symbolDisplayService, semanticModel, position);
+
+            return addMethods;
         }
     }
 }

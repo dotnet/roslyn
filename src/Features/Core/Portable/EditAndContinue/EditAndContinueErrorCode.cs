@@ -8,5 +8,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         CannotApplyChangesUnexpectedError = 2,
         ChangesNotAppliedWhileRunning = 3,
         ChangesDisallowedWhileStoppedAtException = 4,
+        DocumentIsOutOfSyncWithDebuggee = 5,
     }
 }

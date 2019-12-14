@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,12 +13,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Collections
 {
     internal class KeyedStack<T, R>
+        where T : notnull
     {
         private readonly Dictionary<T, Stack<R>> _dict = new Dictionary<T, Stack<R>>();
 
         public void Push(T key, R value)
         {
-            Stack<R> store;
+            Stack<R>? store;
             if (!_dict.TryGetValue(key, out store))
             {
                 store = new Stack<R>();
@@ -25,16 +29,16 @@ namespace Microsoft.CodeAnalysis.Collections
             store.Push(value);
         }
 
-        public bool TryPop(T key, out R value)
+        public bool TryPop(T key, [MaybeNullWhen(returnValue: false)] out R value)
         {
-            Stack<R> store;
+            Stack<R>? store;
             if (_dict.TryGetValue(key, out store) && store.Count > 0)
             {
                 value = store.Pop();
                 return true;
             }
 
-            value = default(R);
+            value = default(R)!;
             return false;
         }
     }

@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return _workspace;
         }
 
-        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null)
+        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null, string workspaceKind = null)
         {
             if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
             {
-                _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider);
+                _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
-                Code = _currentDocument.TextBuffer.CurrentSnapshot.GetText();
+                Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
                 return _workspace;
             }
             else
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // clear the document
             if (cleanBeforeUpdate)
             {
-                UpdateText(hostDocument.TextBuffer, string.Empty);
+                UpdateText(hostDocument.GetTextBuffer(), string.Empty);
             }
 
             // and set the content
-            UpdateText(hostDocument.TextBuffer, text);
+            UpdateText(hostDocument.GetTextBuffer(), text);
 
             GetWorkspace().OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 
 namespace Roslyn.Utilities
@@ -13,6 +15,7 @@ namespace Roslyn.Utilities
         /// If unsure about adding unique items use APIs such as TryAdd, GetOrAdd, etc...
         /// </summary>
         public static void Add<K, V>(this ConcurrentDictionary<K, V> dict, K key, V value)
+            where K : notnull
         {
             if (!dict.TryAdd(key, value))
             {

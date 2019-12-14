@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DisposeAnalysis
     Public Class DisposableFieldsShouldBeDisposedTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(), Nothing)
+            Return (New DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(isEnabledByDefault:=True), Nothing)
         End Function
 
         ' Ensure that we explicitly test missing diagnostic, which has no corresponding code fix (non-fixable diagnostic).

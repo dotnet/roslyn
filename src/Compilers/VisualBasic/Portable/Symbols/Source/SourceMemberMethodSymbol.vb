@@ -1003,10 +1003,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each attr In attrs
                 If attr.AttributeClass Is compilation.GetWellKnownType(WellKnownType.System_ComponentModel_DesignerSerializationVisibilityAttribute) Then
                     Dim args = attr.CommonConstructorArguments
-                    If args.Count = 1 Then
+                    If args.Length = 1 Then
                         Dim arg = args(0)
                         Const DESIGNERSERIALIZATIONVISIBILITYTYPE_CONTENT As Integer = 2
-                        If arg.Kind <> TypedConstantKind.Array AndAlso CInt(arg.Value) = DESIGNERSERIALIZATIONVISIBILITYTYPE_CONTENT Then
+                        If arg.Kind <> TypedConstantKind.Array AndAlso CInt(arg.ValueInternal) = DESIGNERSERIALIZATIONVISIBILITYTYPE_CONTENT Then
                             Return True
                         End If
                     End If

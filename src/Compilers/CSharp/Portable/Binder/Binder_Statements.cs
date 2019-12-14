@@ -207,19 +207,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected virtual void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            Next?.ValidateYield(node, diagnostics);
+        }
+
         private BoundStatement BindYieldReturnStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = this;
-
-            TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics).Type;
+            ValidateYield(node, diagnostics);
+            TypeSymbol elementType = GetIteratorElementType().Type;
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
-                : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+                : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
-                argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+            }
+            else
+            {
+                argument = BindToTypeForErrorRecovery(argument);
             }
 
             // NOTE: it's possible that more than one of these conditions is satisfied and that
@@ -257,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            GetIteratorElementType(node, diagnostics);
+            ValidateYield(node, diagnostics);
             CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
             return new BoundYieldBreakStatement(node);
         }
@@ -695,12 +703,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr.Type is object);
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
-            // Don't try and lookup if we're not enabled
-            if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
-            {
-                return null;
-            }
-
             var result = PerformPatternMethodLookup(expr,
                                                     hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
                                                     syntaxNode,
@@ -1121,7 +1123,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), typeWithAnnotations: declTypeOpt);
             }
 
-            return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, inferredType: isVar, hasErrors: hasErrors);
+            return new BoundLocalDeclaration(
+                syntax: associatedSyntaxNode,
+                localSymbol: localSymbol,
+                declaredTypeOpt: boundDeclType,
+                initializerOpt: hasErrors ? BindToTypeForErrorRecovery(initializerOpt) : initializerOpt,
+                argumentsOpt: arguments,
+                inferredType: isVar,
+                hasErrors: hasErrors);
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
@@ -1460,6 +1469,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
+            else
+            {
+                op2 = BindToTypeForErrorRecovery(op2);
+            }
 
             TypeSymbol type;
             if ((op1.Kind == BoundKind.EventAccess) &&
@@ -1691,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
-                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType(null, diagnostics);
+                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType();
                 }
                 else
                 {
@@ -1970,7 +1983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
         }
 
-        protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, Compilation compilation, SyntaxNode syntax,
+        protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, CSharpCompilation compilation, SyntaxNode syntax,
             Conversion conversion, TypeSymbol sourceType, TypeSymbol targetType, ConstantValue sourceConstantValueOpt = null)
         {
             Debug.Assert(!conversion.IsImplicit || !conversion.IsValid);
@@ -2640,7 +2653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, arg, hasErrors: true);
+                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), hasErrors: true);
             }
 
             // The return type could be null; we might be attempting to infer the return type either 
@@ -2712,7 +2725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundReturnStatement(syntax, refKind, arg, hasErrors);
+            return new BoundReturnStatement(syntax, refKind, hasErrors ? BindToTypeForErrorRecovery(arg) : arg, hasErrors);
         }
 
         internal BoundExpression CreateReturnConversion(
@@ -2760,7 +2773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        return argument;
+                        return BindToNaturalType(argument, diagnostics);
                     }
                 }
                 else if (!conversion.IsImplicit || !conversion.IsValid)
@@ -2956,7 +2969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Report an extra error on the return if we are in a lambda conversion.
         private void ReportCantConvertLambdaReturn(SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            // UNDONE: Suppress this error if the lambda is a result of a query rewrite.
+            // Suppress this error if the lambda is a result of a query rewrite.
+            if (syntax.Parent is QueryClauseSyntax || syntax.Parent is SelectOrGroupClauseSyntax)
+                return;
 
             var lambda = this.ContainingMemberOrLambda as LambdaSymbol;
             if ((object)lambda != null)
@@ -3047,6 +3062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? ErrorCode.ERR_MustNotHaveRefReturn
                         : ErrorCode.ERR_MustHaveRefReturn;
                     Error(diagnostics, errorCode, syntax);
+                    expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 }
                 else if (returnType.IsVoidType() || IsTaskReturningAsyncMethod())
@@ -3059,6 +3075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool errors = false;
                     if (expressionSyntax == null || !IsValidExpressionBody(expressionSyntax, expression))
                     {
+                        expression = BindToTypeForErrorRecovery(expression);
                         Error(diagnostics, ErrorCode.ERR_IllegalStatement, syntax);
                         errors = true;
                     }
@@ -3072,11 +3089,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
                 {
                     Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
+                    expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
                 }
                 else
                 {
-                    expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                    expression = returnType.IsErrorType()
+                        ? BindToTypeForErrorRecovery(expression)
+                        : CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
                 }
             }

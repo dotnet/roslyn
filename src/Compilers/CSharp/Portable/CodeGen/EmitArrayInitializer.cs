@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return initConstantValueOpt;
             }
 
-            TypeSymbol type = init.Type.EnumUnderlyingType();
+            TypeSymbol type = init.Type.EnumUnderlyingTypeOrSelf();
             return ConstantValue.Default(type.SpecialType);
         }
 
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     return ArrayInitializerStyle.Element;
                 }
-                elementType = elementType.EnumUnderlyingType();
+                elementType = elementType.EnumUnderlyingTypeOrSelf();
             }
 
             if (elementType.SpecialType.IsBlittable())
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (wrappedExpression is BoundArrayCreation ac)
             {
                 var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.EnumUnderlyingType();
+                elementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf();
 
                 // NB: we cannot use this approach for element types larger than one byte
                 //     the issue is that metadata stores blobs in little-endian format
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
-                _builder.EmitArrayBlockFieldRef(data, elementType, wrappedExpression.Syntax, _diagnostics);
+                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics);
                 _builder.EmitIntConstant(elementCount);
 
                 if (inPlace)

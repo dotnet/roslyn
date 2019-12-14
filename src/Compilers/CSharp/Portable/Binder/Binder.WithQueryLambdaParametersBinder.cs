@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node,
                         LookupResultKind.Empty,
                         ImmutableArray.Create<Symbol>(receiver.ExpressionSymbol),
-                        ImmutableArray.Create(receiver),
+                        ImmutableArray.Create(BindToTypeForErrorRecovery(receiver)),
                         new ExtendedErrorTypeSymbol(this.Compilation, "", 0, info));
                 }
 

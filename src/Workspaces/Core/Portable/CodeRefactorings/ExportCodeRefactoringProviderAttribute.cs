@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -15,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// The name of the <see cref="CodeRefactoringProvider"/>.  
         /// </summary>
-        public string Name { get; set; }
+        [DisallowNull]
+        public string? Name { get; set; }
 
         /// <summary>
         /// The source languages for which this provider can provide refactorings. See <see cref="LanguageNames"/>.
@@ -34,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 throw new ArgumentNullException(nameof(additionalLanguages));
             }
-
-            this.Name = null;
 
             var languages = new string[additionalLanguages.Length + 1];
             languages[0] = firstLanguage ?? throw new ArgumentNullException(nameof(firstLanguage));

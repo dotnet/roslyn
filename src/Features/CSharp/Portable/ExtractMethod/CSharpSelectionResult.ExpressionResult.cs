@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable enable 
+#nullable enable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            public override SyntaxNode GetContainingScope()
+            public override SyntaxNode? GetContainingScope()
             {
                 Contract.ThrowIfNull(this.SemanticDocument);
                 Contract.ThrowIfFalse(this.SelectionInExpression);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
             }
 
-            public override ITypeSymbol GetContainingScopeType()
+            public override ITypeSymbol? GetContainingScopeType()
             {
                 var node = this.GetContainingScope();
                 var model = this.SemanticDocument.SemanticModel;
@@ -74,21 +74,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // 2. if it doesn't, even if the cast itself wasn't included in the selection, we will treat it 
                     //    as it was in the selection
                     var regularType = GetRegularExpressionType(model, node);
-                    if (regularType != null && !regularType.IsObjectType())
+                    if (regularType != null)
                     {
                         return regularType;
                     }
 
                     if (node.Parent is CastExpressionSyntax castExpression)
                     {
-                        return model.GetTypeInfo(castExpression.Type).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(castExpression).GetTypeWithFlowNullability();
                     }
                 }
 
                 return GetRegularExpressionType(model, node);
             }
 
-            private static ITypeSymbol GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
+            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.GetUnparenthesizedExpression();

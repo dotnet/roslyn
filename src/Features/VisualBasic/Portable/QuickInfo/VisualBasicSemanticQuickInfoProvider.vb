@@ -106,6 +106,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return False
         End Function
 
+        Protected Overrides Function GetBindableNodeForTokenIndicatingPossibleIndexerAccess(token As SyntaxToken, ByRef found As SyntaxNode) As Boolean
+            If token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken) AndAlso
+                token.Parent?.Parent.IsKind(SyntaxKind.InvocationExpression) = True Then
+                found = token.Parent.Parent
+                Return True
+            End If
+
+            found = Nothing
+            Return False
+        End Function
+
         Private Overloads Async Function BuildContentAsync(
                 document As Document,
                 token As SyntaxToken,

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="fullyQualifiedMetadataName">Type name.</param>
         /// <returns>Symbol for the type or null if type cannot be found or is ambiguous. </returns>
-        INamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName);
+        INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName);
 
         /// <summary>
         /// Determines if the assembly might contain extension methods.
@@ -70,13 +72,13 @@ namespace Microsoft.CodeAnalysis
         /// The name should refer to a non-nested type. If type with this name is not forwarded,
         /// null is returned.
         /// </summary>
-        INamedTypeSymbol ResolveForwardedType(string fullyQualifiedMetadataName);
+        INamedTypeSymbol? ResolveForwardedType(string fullyQualifiedMetadataName);
 
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
         /// Otherwise, this returns <see langword="null"/>.
         /// </summary>
-        AssemblyMetadata GetMetadata();
+        AssemblyMetadata? GetMetadata();
     }
 }

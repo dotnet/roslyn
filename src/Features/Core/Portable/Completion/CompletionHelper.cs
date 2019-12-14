@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
+            return document.Project.Solution.Workspace.Services.GetRequiredService<ICompletionHelperService>()
                 .GetCompletionHelper(document);
         }
 
@@ -87,24 +89,32 @@ namespace Microsoft.CodeAnalysis.Completion
             var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
             var match = patternMatcher.GetFirstMatch(completionItemText);
 
-            if (match != null)
+            // We still have making checks for language having different to English capitalization,
+            // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
+            // Now we escaping from the second check for English languages.
+            // Maybe we can escape as well for more similar languages in case if we meet performance issues.
+            if (culture.ThreeLetterWindowsLanguageName.Equals(EnUSCultureInfo.ThreeLetterWindowsLanguageName))
             {
                 return match;
             }
 
-            // Start with the culture-specific comparison, and fall back to en-US.
-            if (!culture.Equals(EnUSCultureInfo))
-            {
-                patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
-                match = patternMatcher.GetFirstMatch(completionItemText);
+            // Keywords in .NET are always in En-US.
+            // Identifiers can be in user language.
+            // Try to get matches for both and return the best of them.
+            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
+            var enUSCultureMatch = patternMatcher.GetFirstMatch(completionItemText);
 
-                if (match != null)
-                {
-                    return match;
-                }
+            if (match == null)
+            {
+                return enUSCultureMatch;
             }
 
-            return null;
+            if (enUSCultureMatch == null)
+            {
+                return match;
+            }
+
+            return match.Value.CompareTo(enUSCultureMatch.Value) < 0 ? match.Value : enUSCultureMatch.Value;
         }
 
         private PatternMatcher GetPatternMatcher(
@@ -239,22 +249,7 @@ namespace Microsoft.CodeAnalysis.Completion
         // If they both seemed just as good, but they differ on preselection, then
         // item1 is better if it is preselected, otherwise it is worse.
         private int ComparePreselection(CompletionItem item1, CompletionItem item2)
-        {
-            // If they both seemed just as good, but they differ on preselection, then
-            // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
-                item2.Rules.MatchPriority != MatchPriority.Preselect)
-            {
-                return -1;
-            }
-            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
-                     item2.Rules.MatchPriority == MatchPriority.Preselect)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
+            => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
         {
@@ -316,5 +311,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // Non-expanded item is the only exact match, so we definitely prefer it.
             return isItem1Expanded ? 1 : -1;
         }
+
+        public static string ConcatNamespace(string? containingNamespace, string name)
+            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
     }
 }

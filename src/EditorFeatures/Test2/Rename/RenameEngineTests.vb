@@ -7108,5 +7108,32 @@ class C
         End Sub
 #End Region
 
+        <WpfFact>
+        <WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub HandleProjectsWithoutCompilations()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public interface IGoo
+                            {
+                                void [|$$Goo|]();
+                            }
+                            public class C : IGoo
+                            {
+                                public void [|Goo|]() {}
+                            }
+                        </Document>
+                    </Project>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="Cat")
+            End Using
+        End Sub
     End Class
 End Namespace

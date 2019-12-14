@@ -1,26 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract class AbstractLookupSymbolsInfo<TSymbol>
-        where TSymbol : class, ISymbol
+        where TSymbol : class, ISymbolInternal
     {
         public struct ArityEnumerator : IEnumerator<int>
         {
             private int _current;
             private readonly int _low32bits;
-            private int[] _arities;
+            private int[]? _arities;
 
             private const int resetValue = -1;
             private const int reachedEndValue = int.MaxValue;
 
-            internal ArityEnumerator(int bitVector, HashSet<int> arities)
+            internal ArityEnumerator(int bitVector, HashSet<int>? arities)
             {
                 _current = resetValue;
                 _low32bits = bitVector;
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis
 
             public void Dispose() => _arities = null;
 
-            object System.Collections.IEnumerator.Current => _current;
+            object? System.Collections.IEnumerator.Current => _current;
 
             public bool MoveNext()
             {
@@ -118,7 +121,7 @@ namespace Microsoft.CodeAnalysis
             //   Then arityBitVectorOrUniqueArity is interpreted as a bitvector
             //   of arities for arities from zero to 31 and the HashSet contains
             //   arities of 32 or more.
-            private object _uniqueSymbolOrArities;
+            private object? _uniqueSymbolOrArities;
             private int _arityBitVectorOrUniqueArity;
 
             public UniqueSymbolOrArities(int arity, TSymbol uniqueSymbol)
@@ -181,12 +184,14 @@ namespace Microsoft.CodeAnalysis
                 hashSet.Add(arity);
             }
 
-            public void GetUniqueSymbolOrArities(out IArityEnumerable arities, out TSymbol uniqueSymbol)
+            public void GetUniqueSymbolOrArities(out IArityEnumerable? arities, out TSymbol? uniqueSymbol)
             {
                 if (this.HasUniqueSymbol)
                 {
                     arities = null;
+#nullable disable // Can '_uniqueSymbolOrArities' be null? https://github.com/dotnet/roslyn/issues/39166
                     uniqueSymbol = (TSymbol)_uniqueSymbolOrArities;
+#nullable enable
                 }
                 else
                 {
@@ -198,7 +203,7 @@ namespace Microsoft.CodeAnalysis
             public ArityEnumerator GetEnumerator()
             {
                 Debug.Assert(!this.HasUniqueSymbol);
-                return new ArityEnumerator(_arityBitVectorOrUniqueArity, (HashSet<int>)_uniqueSymbolOrArities);
+                return new ArityEnumerator(_arityBitVectorOrUniqueArity, (HashSet<int>?)_uniqueSymbolOrArities);
             }
 
             public int Count
@@ -207,7 +212,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(!this.HasUniqueSymbol);
                     int count = BitArithmeticUtilities.CountBits(_arityBitVectorOrUniqueArity);
-                    var set = (HashSet<int>)_uniqueSymbolOrArities;
+                    var set = (HashSet<int>?)_uniqueSymbolOrArities;
                     if (set != null)
                     {
                         count += set.Count;
@@ -218,13 +223,13 @@ namespace Microsoft.CodeAnalysis
             }
 
 #if DEBUG
-            internal TSymbol UniqueSymbol => _uniqueSymbolOrArities as TSymbol;
+            internal TSymbol? UniqueSymbol => _uniqueSymbolOrArities as TSymbol;
 #endif
         }
 
         private readonly IEqualityComparer<string> _comparer;
         private readonly Dictionary<string, UniqueSymbolOrArities> _nameMap;
-        internal string FilterName { get; set; }
+        internal string? FilterName { get; set; }
 
         protected AbstractLookupSymbolsInfo(IEqualityComparer<string> comparer)
         {
@@ -275,8 +280,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public bool TryGetAritiesAndUniqueSymbol(
             string name,
-            out IArityEnumerable arities,
-            out TSymbol uniqueSymbol)
+            out IArityEnumerable? arities,
+            out TSymbol? uniqueSymbol)
         {
             Debug.Assert(CanBeAdded(name));
 

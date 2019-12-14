@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,7 +28,8 @@ namespace Microsoft.CodeAnalysis
         // as JIT does not know if the write goes to a stack or a heap location.
         // Assigning to Value directly easily avoids all this redundancy.
 
-        public static ArrayElement<T>[] MakeElementArray(T[] items)
+        [return: NotNullIfNotNull(parameterName: "items")]
+        public static ArrayElement<T>[]? MakeElementArray(T[]? items)
         {
             if (items == null)
             {
@@ -41,7 +45,8 @@ namespace Microsoft.CodeAnalysis
             return array;
         }
 
-        public static T[] MakeArray(ArrayElement<T>[] items)
+        [return: NotNullIfNotNull(parameterName: "items")]
+        public static T[]? MakeArray(ArrayElement<T>[]? items)
         {
             if (items == null)
             {

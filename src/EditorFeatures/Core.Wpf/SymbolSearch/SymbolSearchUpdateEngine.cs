@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public SymbolSearchUpdateEngine(
             ISymbolSearchLogService logService,
             ISymbolSearchProgressService progressService)
-            : this(logService, progressService, CancellationToken.None)
-        {
-        }
-
-        public SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService,
-            ISymbolSearchProgressService progressService,
-            CancellationToken updateCancellationToken)
             : this(logService,
                    progressService,
                    new RemoteControlService(),
@@ -47,8 +39,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash,
-                   updateCancellationToken)
+                   FatalError.ReportWithoutCrash)
         {
         }
 
@@ -63,8 +54,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            Func<Exception, bool> reportAndSwallowException,
-            CancellationToken updateCancellationToken)
+            Func<Exception, bool> reportAndSwallowException)
         {
             _delayService = delayService;
             _ioService = ioService;
@@ -74,8 +64,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowException = reportAndSwallowException;
-
-            _updateCancellationToken = updateCancellationToken;
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

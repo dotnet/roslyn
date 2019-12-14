@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var typeInference = this.Document.Document.GetLanguageService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
                     this.Document.SemanticModel, _invocationExpression, objectAsDefault: true,
-                    nameOpt: this.State.IdentifierToken.ValueText, cancellationToken: cancellationToken);
+                    name: this.State.IdentifierToken.ValueText, cancellationToken: cancellationToken);
                 return inferredType;
             }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 CancellationToken cancellationToken)
             {
                 var methodTypeParameter = GetMethodTypeParameter(type, cancellationToken);
-                return methodTypeParameter ?? CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique)).WithNullability(NullableAnnotation.None);
+                return methodTypeParameter ?? CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique));
             }
 
             private ITypeParameterSymbol GetMethodTypeParameter(TypeSyntax type, CancellationToken cancellationToken)

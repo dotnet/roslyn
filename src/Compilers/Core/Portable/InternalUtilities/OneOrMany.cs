@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -15,7 +18,9 @@ namespace Roslyn.Utilities
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
     /// </remarks>
     internal struct OneOrMany<T>
+        where T : notnull
     {
+        [AllowNull, MaybeNull]
         private readonly T _one;
         private readonly ImmutableArray<T> _many;
 
@@ -81,7 +86,7 @@ namespace Roslyn.Utilities
 
         public bool Contains(T item)
         {
-            Debug.Assert(item != null);
+            RoslynDebug.Assert(item != null);
             if (Count == 1)
             {
                 return item.Equals(_one);
@@ -156,11 +161,13 @@ namespace Roslyn.Utilities
     internal static class OneOrMany
     {
         public static OneOrMany<T> Create<T>(T one)
+            where T : notnull
         {
             return new OneOrMany<T>(one);
         }
 
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
+            where T : notnull
         {
             return new OneOrMany<T>(many);
         }

@@ -55,6 +55,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
+        public static bool IsNullable(
+            [NotNullWhen(true)] this ITypeSymbol? symbol,
+            [NotNullWhen(true)] out ITypeSymbol? underlyingType)
+        {
+            if (IsNullable(symbol))
+            {
+                underlyingType = ((INamedTypeSymbol)symbol).TypeArguments[0];
+                return true;
+            }
+
+            underlyingType = null;
+            return false;
+        }
+
         public static bool IsModuleType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
             return symbol?.TypeKind == TypeKind.Module;
@@ -92,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Returns the corresponding symbol in this type or a base type that implements 
+        /// Returns the corresponding symbol in this type or a base type that implements
         /// interfaceMember (either implicitly or explicitly), or null if no such symbol exists
         /// (which might be either because this type doesn't implement the container of
         /// interfaceMember, or this type doesn't supply a member that successfully implements
@@ -105,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             // This method can return multiple results.  Consider the case of:
-            // 
+            //
             // interface IGoo<X> { void Goo(X x); }
             //
             // class C : IGoo<int>, IGoo<string> { void Goo(int x); void Goo(string x); }
@@ -140,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //
             // interface I { void Goo(); }
             //
-            // class B { } 
+            // class B { }
             //
             // class C : B, I { }
             //
@@ -167,11 +181,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructedInterfaces = typeSymbol.AllInterfaces.Where(i =>
                 SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, originalInterfaceType));
 
-            // Try to get the compilation for the symbol we're searching for, 
+            // Try to get the compilation for the symbol we're searching for,
             // which can help identify matches with the call to SymbolFinder.OriginalSymbolsMatch.
             // OriginalSymbolMatch allows types to be matched across different assemblies
             // if they are considered to be the same type, which provides a more accurate
-            // implementations list for interfaces. 
+            // implementations list for interfaces.
             var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
             var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
 
@@ -198,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // Now we need to walk the base type chain, but we start at the first type that actually
                 // has the interface directly in its interface hierarchy.
                 var seenTypeDeclaringInterface = false;
-                for (var currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
+                for (ITypeSymbol? currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
                 {
                     seenTypeDeclaringInterface = seenTypeDeclaringInterface ||
                                                  currentType.GetOriginalInterfacesAndTheirBaseInterfaces().Contains(interfaceType.OriginalDefinition);
@@ -750,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else if (result != r)
                 {
-                    // We have more specific types on both left and right, so we 
+                    // We have more specific types on both left and right, so we
                     // cannot succeed in picking a better type list. Bail out now.
                     return null;
                 }
@@ -781,7 +795,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool? IsMoreSpecificThan(this ITypeSymbol t1, ITypeSymbol t2)
         {
-            // SPEC: A type parameter is less specific than a non-type parameter. 
+            // SPEC: A type parameter is less specific than a non-type parameter.
 
             var isTypeParameter1 = t1 is ITypeParameterSymbol;
             var isTypeParameter2 = t2 is ITypeParameterSymbol;
@@ -813,7 +827,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // UNDONE: Strip off the dynamics.
 
             // SPEC: An array type is more specific than another
-            // SPEC: array type (with the same number of dimensions) 
+            // SPEC: array type (with the same number of dimensions)
             // SPEC: if the element type of the first is
             // SPEC: more specific than the element type of the second.
 
@@ -828,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return arr1.ElementType.IsMoreSpecificThan(arr2.ElementType);
             }
 
-            // SPEC EXTENSION: We apply the same rule to pointer types. 
+            // SPEC EXTENSION: We apply the same rule to pointer types.
 
             if (t1 is IPointerTypeSymbol)
             {
@@ -840,7 +854,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // SPEC: A constructed type is more specific than another
             // SPEC: constructed type (with the same number of type arguments) if at least one type
             // SPEC: argument is more specific and no type argument is less specific than the
-            // SPEC: corresponding type argument in the other. 
+            // SPEC: corresponding type argument in the other.
 
             var n1 = t1 as INamedTypeSymbol;
             var n2 = t2 as INamedTypeSymbol;

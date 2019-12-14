@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         protected override IComparer<SyntaxNode> GetMemberComparer()
             => CSharpDeclarationComparer.WithoutNamesInstance;
 
-        protected override AbstractImportsAdder CreateImportsAdder(
-            Document document)
-        {
-            return new UsingDirectivesAdder(document);
-        }
-
         protected override IList<bool> GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken)
         {
             if (destination is TypeDeclarationSyntax typeDeclaration)
@@ -476,6 +470,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return AddStatementsToMemberDeclaration<TDeclarationNode>(destinationMember, statements, memberDeclaration);
             }
+            else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
+            {
+                return (localFunctionDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(localFunctionDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            }
+            else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
+            {
+                return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            }
             else
             {
                 return AddStatementsWorker(destinationMember, statements, options, cancellationToken);
@@ -588,6 +590,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else if (method.IsConversion())
             {
                 return ConversionGenerator.GenerateConversionDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
+            }
+            else if (method.IsLocalFunction())
+            {
+                return MethodGenerator.GenerateLocalMethodDeclaration(
                     method, destination, Workspace, options, options.ParseOptions);
             }
             else
