@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class SnapshotService
     {
-        private class JsonRpcAssetSource : AssetSource
+        private sealed class JsonRpcAssetSource : AssetSource
         {
             private readonly SnapshotService _owner;
 
@@ -86,9 +87,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using var reader = ObjectReader.TryGetReader(stream, cancellationToken);
 
-                Debug.Assert(reader != null,
-@"We only ge a reader for data transmitted between live processes.
-This data should always be correct as we're never persisting the data between sessions.");
+                // We only get a reader for data transmitted between live processes.
+                // This data should always be correct as we're never persisting the data between sessions.
+                Contract.ThrowIfNull(reader);
 
                 var responseScopeId = reader.ReadInt32();
                 Contract.ThrowIfFalse(scopeId == responseScopeId);

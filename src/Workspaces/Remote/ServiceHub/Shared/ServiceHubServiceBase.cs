@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
         /// </summary>
-        private PinnedSolutionInfo _solutionInfo;
+        private PinnedSolutionInfo? _solutionInfo;
 
-        private RoslynServices _lazyRoslynServices;
+        private RoslynServices? _lazyRoslynServices;
 
         protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
             : this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
@@ -43,21 +45,27 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
+        public virtual void Initialize(PinnedSolutionInfo info)
+        {
+            // set pinned solution info
+            _lazyRoslynServices = null;
+            _solutionInfo = info;
+        }
+
         protected RoslynServices RoslynServices
         {
             get
             {
-                if (_lazyRoslynServices == null)
-                {
-                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-                }
+                // must be initialized
+                Contract.ThrowIfNull(_solutionInfo);
 
-                return _lazyRoslynServices;
+                return _lazyRoslynServices ??= new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
             }
         }
 
         protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
         {
+            // must be initialized
             Contract.ThrowIfNull(_solutionInfo);
 
             return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
@@ -67,13 +75,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
             return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
-        }
-
-        public virtual void Initialize(PinnedSolutionInfo info)
-        {
-            // set pinned solution info
-            _lazyRoslynServices = null;
-            _solutionInfo = info;
         }
 
         private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
@@ -105,15 +106,13 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
 
-        [Obsolete("don't use RPC directly but use it through StartService and InvokeAsync", error: true)]
-        protected readonly JsonRpc Rpc;
-
         private bool _disposed;
+
+        protected event EventHandler? Disconnected;
 
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter> jsonConverters)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
-            _disposed = false;
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -128,18 +127,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // their own converter when they create their own service
             _rpc = stream.CreateStreamJsonRpc(target: this, Logger, jsonConverters);
             _rpc.Disconnected += OnRpcDisconnected;
-
-            // we do this since we want to mark Rpc as obsolete but want to set its value for
-            // partner teams until they move. we can't use Rpc directly since we will get
-            // obsolete error and we can't suppress it since it is an error
-            this.GetType().GetField("Rpc", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this, _rpc);
         }
-
-        protected event EventHandler Disconnected;
 
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
-        protected bool IsDisposed => ((IDisposableObservable)_rpc).IsDisposed;
+        protected bool IsDisposed => _rpc.IsDisposed;
 
         protected void StartService()
         {
@@ -151,15 +143,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return InvokeAsync<TResult>(targetName, SpecializedCollections.EmptyReadOnlyList<object>(), cancellationToken);
         }
 
-        protected Task<TResult> InvokeAsync<TResult>(
-            string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        protected Task<TResult> InvokeAsync<TResult>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
             return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments?.AsArray(), cancellationToken);
         }
 
-        protected Task<TResult> InvokeAsync<TResult>(
-           string targetName, IReadOnlyList<object> arguments,
-           Func<Stream, CancellationToken, TResult> funcWithDirectStream, CancellationToken cancellationToken)
+        protected Task<TResult> InvokeAsync<TResult>(string targetName, IReadOnlyList<object> arguments,
+            Func<Stream, CancellationToken, TResult> funcWithDirectStream, CancellationToken cancellationToken)
         {
             return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStream, cancellationToken);
         }
@@ -169,8 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return InvokeAsync(targetName, arguments: null, cancellationToken);
         }
 
-        protected Task InvokeAsync(
-            string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        protected Task InvokeAsync(string targetName, IReadOnlyList<object>? arguments, CancellationToken cancellationToken)
         {
             return _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken);
         }
@@ -227,12 +216,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var solutionController = (ISolutionController)roslynService.SolutionService;
-            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
-        }
-
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
@@ -282,66 +265,6 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 call();
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
-        protected async Task<T> RunServiceAsync<T>(Func<CancellationToken, Task<T>> callAsync, CancellationToken cancellationToken)
-        {
-            AssetStorage.UpdateLastActivityTime();
-
-            try
-            {
-                return await callAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
-        protected async Task RunServiceAsync(Func<CancellationToken, Task> callAsync, CancellationToken cancellationToken)
-        {
-            AssetStorage.UpdateLastActivityTime();
-
-            try
-            {
-                await callAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
-        protected T RunService<T>(Func<CancellationToken, T> call, CancellationToken cancellationToken)
-        {
-            AssetStorage.UpdateLastActivityTime();
-
-            try
-            {
-                return call(cancellationToken);
-            }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
-        protected void RunService(Action<CancellationToken> call, CancellationToken cancellationToken)
-        {
-            AssetStorage.UpdateLastActivityTime();
-
-            try
-            {
-                call(cancellationToken);
             }
             catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
             {

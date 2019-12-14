@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this service to workspace service
     /// </summary>
-    internal class AssetService : IAssetProvider
+    internal sealed class AssetService : IAssetProvider
     {
         private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // even if it got expired after this for whatever reason, functionality wise everything will still work, 
             // just perf will be impacted since we will fetch it from data source (VS)
-            return _assetStorage.TryGetAsset(checksum, out object unused);
+            return _assetStorage.TryGetAsset<object>(checksum, out _);
         }
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return tuple[0].Item2;
         }
 
-        private async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        private async Task<IList<(Checksum, object)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
             if (checksums.Count == 0)
             {

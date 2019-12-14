@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static JsonRpc CreateStreamJsonRpc(
             this Stream stream,
-            object target,
+            object? target,
             TraceSource logger,
-            IEnumerable<JsonConverter> jsonConverters = null)
+            IEnumerable<JsonConverter>? jsonConverters = null)
         {
             jsonConverters ??= SpecializedCollections.EmptyEnumerable<JsonConverter>();
 
@@ -39,11 +41,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            Task task = null;
-
             using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             using var stream = new ServerDirectStream();
 
+            Task? task = null;
             try
             {
                 // send request by adding direct stream name to end of arguments
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // record reason why task got aborted. use NFW here since we don't want to
                 // crash VS on explicitly killing OOP.
-                task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+                (task?.Exception ?? ex).ReportServiceHubNFW("JsonRpc Invoke Failed");
 
                 throw;
             }
@@ -83,11 +84,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            Task task = null;
-
             using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             using var stream = new ServerDirectStream();
 
+            Task? task = null;
             try
             {
                 // send request to asset source
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // record reason why task got aborted. use NFW here since we don't want to
                 // crash VS on explicitly killing OOP.
-                task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+                (task?.Exception ?? ex).ReportServiceHubNFW("JsonRpc Invoke Failed");
 
                 throw;
             }
@@ -127,11 +127,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Action<Stream, CancellationToken> actionWithDirectStream, CancellationToken cancellationToken)
         {
-            Task task = null;
-
             using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             using var stream = new ServerDirectStream();
 
+            Task? task = null;
             try
             {
                 // send request by adding direct stream name to end of arguments
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // record reason why task got aborted. use NFW here since we don't want to
                 // crash VS on explicitly killing OOP.
-                task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+                (task?.Exception ?? ex).ReportServiceHubNFW("JsonRpc Invoke Failed");
 
                 throw;
             }
@@ -169,11 +168,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, T> funcWithDirectStream, CancellationToken cancellationToken)
         {
-            Task task = null;
-
             using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             using var stream = new ServerDirectStream();
 
+            Task? task = null;
             try
             {
                 // send request to asset source
@@ -203,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // record reason why task got aborted. use NFW here since we don't want to
                 // crash VS on explicitly killing OOP.
-                task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+                (task?.Exception ?? ex).ReportServiceHubNFW("JsonRpc Invoke Failed");
 
                 throw;
             }
