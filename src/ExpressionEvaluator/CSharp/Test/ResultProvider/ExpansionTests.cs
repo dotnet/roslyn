@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var source =
 @"class C
 {
+    // The members suffixed with 0 will appear last because they are not data-members
     object Z0 { get => null; }
     object m_z0 { get => null; }
     object _z0 { get => null; }
@@ -83,6 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     object _0 { get => null; }
     object m_a0 { get => null; }
 
+    object B0 { set {} } // not displayed
+    object C0 { get => null; set {} }
+
+    // Other members appear first because they are data-members
     object Z1 { get; set; }
     object m_z1 { get; set; }
     object _z1 { get; set; }
@@ -90,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     object _a1 { get; set; }
     object _1 { get; set; }
     object m_a1 { get; set; }
+
+    object B1 { get; }
 
     object Z2;
     object _z2;
@@ -120,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult("A2", "null", "object", "(new C()).A2", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("A3", "null", "System.Action", "(new C()).A3", DkmEvaluationResultFlags.CanFavorite),
 
+                EvalResult("B1", "null", "object", "(new C()).B1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+
                 EvalResult("Z1", "null", "object", "(new C()).Z1", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Z2", "null", "object", "(new C()).Z2", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Z3", "null", "System.Action", "(new C()).Z3", DkmEvaluationResultFlags.CanFavorite),
@@ -146,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
                 // non-data properties are last despite name
                 EvalResult("A0", "null", "object", "(new C()).A0", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("C0", "null", "object", "(new C()).C0", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Z0", "null", "object", "(new C()).Z0", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_0", "null", "object", "(new C())._0", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_a0", "null", "object", "(new C())._a0", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),

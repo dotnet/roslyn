@@ -277,30 +277,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return true;
                     }
 
-                    if (member._member is PropertyInfoImpl propertyInfo)
+                    if (member._member is PropertyInfo propertyInfo)
                     {
-                        return IsNullOrCompilerGenerated(propertyInfo.Property.GetMethod) && IsNullOrCompilerGenerated(propertyInfo.Property.SetMethod);
+                        return IsCompilerGenerated(propertyInfo.GetGetMethod(nonPublic: true)) || IsCompilerGenerated(propertyInfo.GetSetMethod(nonPublic: true));
                     }
 
-                    if (member._member is EventInfoImpl eventInfo)
+                    if (member._member is EventInfo eventInfo)
                     {
-                        return IsNullOrCompilerGenerated(eventInfo.Event.AddMethod) && IsNullOrCompilerGenerated(eventInfo.Event.RemoveMethod);
+                        return IsCompilerGenerated(eventInfo.GetAddMethod()) || IsCompilerGenerated(eventInfo.GetRemoveMethod());
                     }
 
                     return false;
                 }
 
-                static bool IsNullOrCompilerGenerated(System.Reflection.MethodInfo method)
+                static bool IsCompilerGenerated(MethodInfo method)
                 {
                     if (method is null)
                     {
-                        return true;
+                        return false;
                     }
 
                     var attributes = method.GetCustomAttributesData();
                     foreach (var attribute in attributes)
                     {
-                        if (attribute.AttributeType.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute")
+                        if (attribute.Constructor.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor")
                         {
                             return true;
                         }

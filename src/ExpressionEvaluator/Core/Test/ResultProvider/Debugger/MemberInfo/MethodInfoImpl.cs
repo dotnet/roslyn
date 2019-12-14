@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override IList<CustomAttributeData> GetCustomAttributesData()
         {
-            throw new NotImplementedException();
+            return this.Method.GetCustomAttributesData().Select(a => new CustomAttributeDataImpl(a)).ToArray();
         }
 
         public override MethodBody GetMethodBody()
