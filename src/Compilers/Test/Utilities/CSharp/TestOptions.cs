@@ -99,12 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeature("nullablePublicOnly");
         }
 
-        public static CSharpParseOptions WithThrowOnInsufficientExecutionStack(this CSharpParseOptions options)
-        {
-            // PROTOTYPE: Add internal property to CSharpParseOptions rather than using Features.
-            return options.WithFeature("ThrowOnInsufficientExecutionStack");
-        }
-
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));

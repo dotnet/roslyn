@@ -1358,6 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
                 kind: IsScriptCommandLineParser ? SourceCodeKind.Script : SourceCodeKind.Regular,
+                throwOnInsufficientExecutionStack: false,
                 features: parsedFeatures
             );
 

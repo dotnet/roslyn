@@ -88,54 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        private static void RunTest(int expectedDepth, Action<int> runTest)
-        {
-            if (runTestAndCatch(expectedDepth))
-            {
-                return;
-            }
-
-            int minDepth = 0;
-            int maxDepth = expectedDepth;
-            int actualDepth;
-            while (true)
-            {
-                int depth = (maxDepth - minDepth) / 2 + minDepth;
-                if (depth <= minDepth)
-                {
-                    actualDepth = minDepth;
-                    break;
-                }
-                if (depth >= maxDepth)
-                {
-                    actualDepth = maxDepth;
-                    break;
-                }
-                if (runTestAndCatch(depth))
-                {
-                    minDepth = depth;
-                }
-                else
-                {
-                    maxDepth = depth;
-                }
-            }
-            Assert.Equal(expectedDepth, actualDepth);
-
-            bool runTestAndCatch(int depth)
-            {
-                try
-                {
-                    runTest(depth);
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-        }
-
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
@@ -272,18 +224,60 @@ public class Test
         [ConditionalFact(typeof(WindowsOnly))]
         public void NestedIfStatements()
         {
-            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            (int nestingLevelLower, int nestingLevelHigher) = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 310,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1650,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 200,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 780,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => (310, 400),
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => (1650, 2000),
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => (200, 300),
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => (780, 1000),
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
-            RunTest(nestingLevel, runTest);
+            var parseOptionsThrow = TestOptions.Regular.WithThrowOnInsufficientExecutionStack(true);
+            var parseOptionsNoThrow = TestOptions.Regular;
 
-            static void runTest(int nestingLevel)
+            // Lower nesting level, single stack. No errors.
+            RunTest(
+                nestingLevelLower,
+                nestingLevel =>
+                {
+                    var source = generateSource(nestingLevel);
+                    RunInThread(() =>
+                    {
+                        var comp = CreateCompilation(source, parseOptions: parseOptionsThrow);
+                        comp.VerifyDiagnostics();
+                    });
+                });
+
+            // Higher nesting level, single stack. Expression too complex error.
+            RunTest(
+                nestingLevelHigher,
+                nestingLevel =>
+                {
+                    var source = generateSource(nestingLevel);
+                    RunInThread(() =>
+                    {
+                        var comp = CreateCompilation(source, parseOptions: parseOptionsThrow);
+                        comp.VerifyDiagnostics(
+                            // error CS8078: An expression is too long or complex to compile
+                            Diagnostic(ErrorCode.ERR_InsufficientStack, ""));
+                    });
+                });
+
+            // Higher nesting level, single stack. No errors.
+            RunTest(
+                nestingLevelHigher,
+                nestingLevel =>
+                {
+                    var source = generateSource(nestingLevel);
+                    RunInThread(() =>
+                    {
+                        var comp = CreateCompilation(source, parseOptions: parseOptionsNoThrow);
+                        comp.VerifyDiagnostics();
+                    });
+                });
+
+            static string generateSource(int nestingLevel)
             {
                 var builder = new StringBuilder();
                 builder.AppendLine(
@@ -301,6 +295,53 @@ $@"        if (F({i}))
                 for (int i = 0; i < nestingLevel; i++)
                 {
                     builder.AppendLine("        }");
+                }
+                builder.AppendLine(
+@"    }
+}");
+                return builder.ToString();
+            }
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NestedSwitchStatements()
+        {
+            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            {
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 310,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1650,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 570,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 2000,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
+
+            runTest(nestingLevel);
+
+            static void runTest(int nestingLevel)
+            {
+                const int nCases = 500;
+                var builder = new StringBuilder();
+                builder.AppendLine(
+@"class Program
+{
+    static bool F(int x, y) => true;
+    static void Main()
+    {");
+                for (int x = 0; x < nestingLevel; x++)
+                {
+                    for (int y = 0; y < nCases; y++)
+                    {
+                        builder.AppendLine(
+$@"        switch (F({x}, {y}))
+        {{");
+                    }
+                }
+                for (int x = 0; x < nestingLevel; x++)
+                {
+                    for (int y = 0; y < nCases; y++)
+                    {
+                        builder.AppendLine("        }");
+                    }
                 }
                 builder.AppendLine(
 @"    }

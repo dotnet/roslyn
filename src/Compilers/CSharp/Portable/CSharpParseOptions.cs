@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<string> PreprocessorSymbols { get; private set; }
 
+        internal bool ThrowOnInsufficientExecutionStack { get; private set; }
+
         /// <summary>
         /// Gets the names of defined preprocessor symbols.
         /// </summary>
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(languageVersion,
                   documentationMode,
                   kind,
+                  throwOnInsufficientExecutionStack: false,
                   preprocessorSymbols.ToImmutableArrayOrEmpty(),
                   ImmutableDictionary<string, string>.Empty)
         {
@@ -61,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion languageVersion,
             DocumentationMode documentationMode,
             SourceCodeKind kind,
+            bool throwOnInsufficientExecutionStack,
             ImmutableArray<string> preprocessorSymbols,
             IReadOnlyDictionary<string, string> features)
             : base(kind, documentationMode)
@@ -68,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.SpecifiedLanguageVersion = languageVersion;
             this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
             this.PreprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty();
+            this.ThrowOnInsufficientExecutionStack = throwOnInsufficientExecutionStack;
             _features = features?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
         }
 
@@ -75,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             languageVersion: other.SpecifiedLanguageVersion,
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
+            throwOnInsufficientExecutionStack: other.ThrowOnInsufficientExecutionStack,
             preprocessorSymbols: other.PreprocessorSymbols,
             features: other.Features)
         {
@@ -152,6 +158,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ParseOptions CommonWithFeatures(IEnumerable<KeyValuePair<string, string>> features)
         {
             return WithFeatures(features);
+        }
+
+        internal CSharpParseOptions WithThrowOnInsufficientExecutionStack(bool throwOnInsufficientExecutionStack)
+        {
+            if (throwOnInsufficientExecutionStack == this.ThrowOnInsufficientExecutionStack)
+            {
+                return this;
+            }
+
+            return new CSharpParseOptions(this) { ThrowOnInsufficientExecutionStack = throwOnInsufficientExecutionStack };
         }
 
         /// <summary>

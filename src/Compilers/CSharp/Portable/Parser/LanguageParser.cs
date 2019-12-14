@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _syntaxFactoryContext = new SyntaxFactoryContext();
             _syntaxFactory = new ContextAwareSyntax(_syntaxFactoryContext);
-            _throwOnInsufficientExecutionStack = Options.Features.ContainsKey("ThrowOnInsufficientExecutionStack"); // PROTOTYPE: Use explicit property on CSharpParseOptions rather than Features.
+            _throwOnInsufficientExecutionStack = Options.ThrowOnInsufficientExecutionStack;
         }
 
         private static bool IsSomeWord(SyntaxKind kind)
