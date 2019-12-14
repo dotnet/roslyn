@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 
 #if CODE_STYLE
@@ -12,10 +10,10 @@ namespace Microsoft.CodeAnalysis.Options
 {
     public struct OptionKey : IEquatable<OptionKey>
     {
-        public IOption? Option { get; }
-        public string? Language { get; }
+        public IOption Option { get; }
+        public string Language { get; }
 
-        public OptionKey(IOption option, string? language = null)
+        public OptionKey(IOption option, string language = null)
         {
             if (language != null && !option.IsPerLanguage)
             {
