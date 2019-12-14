@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim declaredParameters = declarationSymbol.GetParameters()
-            If paramNodes.Count() <> declaredParameters.Count() Then
+            If paramNodes.Count() <> declaredParameters.Length Then
                 Return Nothing
             End If
 

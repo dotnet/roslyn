@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 Contract.ThrowIfFalse(_differenceViewerPreview == null);
 
                 // cache the diff viewer so that we can close it when panel goes away.
-                // this is a bit wierd since we are mutating state here.
+                // this is a bit weird since we are mutating state here.
                 _differenceViewerPreview = (DifferenceViewerPreview)previewItem;
                 PreviewDockPanel.Background = _differenceViewerPreview.Viewer.InlineView.Background;
 

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -33,6 +35,6 @@ namespace Microsoft.Cci
         /// Gets the definition object corresponding to this reference within the given context, 
         /// or null if the referenced entity isn't defined in the context.
         /// </summary>
-        IDefinition AsDefinition(EmitContext context);
+        IDefinition? AsDefinition(EmitContext context);
     }
 }

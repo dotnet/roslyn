@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed partial class DynamicTypeSymbol : TypeSymbol, IDynamicTypeSymbol
+    internal sealed partial class DynamicTypeSymbol : TypeSymbol
     {
         internal static readonly DynamicTypeSymbol Instance = new DynamicTypeSymbol();
 
@@ -226,24 +226,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             return this;
         }
 
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
+        protected override ISymbol CreateISymbol()
         {
-            visitor.VisitDynamicType(this);
+            return new PublicModel.DynamicTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            return visitor.VisitDynamicType(this);
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.DynamicTypeSymbol(this, nullableAnnotation);
         }
-
-        #endregion
     }
 }

@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (parameter?.IsParams == true)
             {
-                // if the method is defined with errors: void M(params int wrongDefined), paramter.IsParams == true but paramter.Type is not an array.
+                // if the method is defined with errors: void M(params int wrongDefined), parameter.IsParams == true but parameter.Type is not an array.
                 // In such cases is better to be conservative and opt out.
                 if (!(parameter.Type is IArrayTypeSymbol parameterType))
                 {
@@ -500,7 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     expressionToCastType.IsImplicit &&
                     (expressionToCastType.IsNumeric || expressionToCastType.IsConstantExpression))
                 {
-                    return true;
+                    // Some implicit numeric conversions can cause loss of precision and must not be removed.
+                    return !IsRequiredImplicitNumericConversion(expressionType, castType);
                 }
 
                 if (!castToOuterType.IsBoxing &&

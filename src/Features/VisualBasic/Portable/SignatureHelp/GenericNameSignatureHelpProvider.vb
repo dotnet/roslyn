@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                             FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                             Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
 
-            If accessibleSymbols.Count = 0 Then
+            If accessibleSymbols.Length = 0 Then
                 Return Nothing
             End If
 

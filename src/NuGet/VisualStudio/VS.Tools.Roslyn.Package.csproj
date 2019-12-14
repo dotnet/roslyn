@@ -10,8 +10,6 @@
     <IsPackable>true</IsPackable>
     <PackageId>VS.Tools.Roslyn</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- https://github.com/NuGet/Home/issues/8583 -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageDescription>CoreXT package for Roslyn compiler toolset.</PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
 

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -104,7 +105,6 @@ namespace Microsoft.Cci
             _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions); //ignores field signatures
 
             _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
-            _exportedTypeList = new List<ITypeReference>(_numTypeDefsEstimate);
 
             this.Context = context;
             this.messageProvider = messageProvider;
@@ -440,7 +440,6 @@ namespace Microsoft.Cci
 
         private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
         private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>();
-        private readonly List<ITypeReference> _exportedTypeList;
         private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
         private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>();
@@ -1444,10 +1443,10 @@ namespace Microsoft.Cci
 
         private static Location GetNamedEntityLocation(INamedEntity errorEntity)
         {
-            return GetSymbolLocation(errorEntity as ISymbol);
+            return GetSymbolLocation(errorEntity as ISymbolInternal);
         }
 
-        protected static Location GetSymbolLocation(ISymbol symbolOpt)
+        protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
             return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
         }

@@ -1,13 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class FailFast
     {
         [DebuggerHidden]
+        [DoesNotReturn]
         internal static void OnFatalException(Exception exception)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="message">An optional message to be recorded in the dump in case of failure. Can be <c>null</c>.</param>
         [Conditional("DEBUG")]
         [DebuggerHidden]
-        internal static void Assert(bool condition, string message = null)
+        internal static void Assert([DoesNotReturnIf(false)] bool condition, string? message = null)
         {
             if (condition)
             {

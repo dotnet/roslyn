@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var potentiallyConfictingProperties =
                 renamedProperty.ContainingType.GetMembers(renamedProperty.Name)
                                             .OfType<IPropertySymbol>()
-                                            .Where(m => !m.Equals(renamedProperty) && m.Parameters.Count() == renamedProperty.Parameters.Count());
+                                            .Where(m => !m.Equals(renamedProperty) && m.Parameters.Length == renamedProperty.Parameters.Length);
 
             return GetConflictLocations(renamedProperty, potentiallyConfictingProperties, isMethod: false,
                 (property) => GetAllSignatures((property as IPropertySymbol).Parameters, trimOptionalParameters));

@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Dim typeInference = Document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
                 Dim inferredType = typeInference.InferType(
                     Document.SemanticModel, Me.InvocationExpression, objectAsDefault:=True,
-                    nameOpt:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
+                    name:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
                 Return inferredType
             End Function
 

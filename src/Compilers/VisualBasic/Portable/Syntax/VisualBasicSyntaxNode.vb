@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If node.ContainsDiagnostics Then
                         Dim errors = DirectCast(node, Syntax.InternalSyntax.VisualBasicSyntaxNode).GetDiagnostics
                         If errors IsNot Nothing Then
-                            For i = 0 To errors.Count - 1
+                            For i = 0 To errors.Length - 1
                                 Dim greenError = errors(i)
                                 Debug.Assert(greenError IsNot Nothing)
                                 errorList.Add(CreateSyntaxError(tree, nodeOrToken, greenError))

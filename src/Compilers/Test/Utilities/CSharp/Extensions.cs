@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -157,14 +158,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return builder.ToImmutableAndFree();
         }
 
-        public static Symbol GetMember(this Compilation compilation, string qualifiedName)
+        public static Symbol GetMember(this CSharpCompilation compilation, string qualifiedName)
         {
-            return ((CSharpCompilation)compilation).GlobalNamespace.GetMember(qualifiedName);
+            return compilation.GlobalNamespace.GetMember(qualifiedName);
         }
 
-        public static T GetMember<T>(this Compilation compilation, string qualifiedName) where T : Symbol
+        public static ISymbol GetMember(this Compilation compilation, string qualifiedName)
         {
-            return (T)((CSharpCompilation)compilation).GlobalNamespace.GetMember(qualifiedName);
+            return compilation.GlobalNamespace.GetMember(qualifiedName);
+        }
+
+        public static T GetMember<T>(this CSharpCompilation compilation, string qualifiedName) where T : Symbol
+        {
+            return (T)compilation.GlobalNamespace.GetMember(qualifiedName);
+        }
+
+        public static T GetMember<T>(this Compilation compilation, string qualifiedName) where T : ISymbol
+        {
+            return (T)compilation.GlobalNamespace.GetMember(qualifiedName);
         }
 
         public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string qualifiedName)
@@ -202,6 +213,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return lastContainer.GetMembers(parts[parts.Length - 1]);
         }
 
+        private static ImmutableArray<ISymbol> GetMembers(INamespaceOrTypeSymbol container, string qualifiedName, out INamespaceOrTypeSymbol lastContainer)
+        {
+            var parts = SplitMemberName(qualifiedName);
+
+            lastContainer = container;
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var nestedContainer = (INamespaceOrTypeSymbol)lastContainer.GetMember(parts[i]);
+                if (nestedContainer == null)
+                {
+                    // If there wasn't a nested namespace or type with that name, assume it's a
+                    // member name that includes dots (e.g. explicit interface implementation).
+                    return lastContainer.GetMembers(string.Join(".", parts.Skip(i)));
+                }
+                else
+                {
+                    lastContainer = nestedContainer;
+                }
+            }
+
+            return lastContainer.GetMembers(parts[parts.Length - 1]);
+        }
+
         public static Symbol GetMember(this NamespaceOrTypeSymbol container, string qualifiedName)
         {
             NamespaceOrTypeSymbol lastContainer;
@@ -218,7 +252,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return members.Single();
         }
 
+        public static ISymbol GetMember(this INamespaceOrTypeSymbol container, string qualifiedName)
+        {
+            INamespaceOrTypeSymbol lastContainer;
+            var members = GetMembers(container, qualifiedName, out lastContainer);
+            if (members.Length == 0)
+            {
+                return null;
+            }
+            else if (members.Length > 1)
+            {
+                Assert.True(false, "Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
+            }
+
+            return members.Single();
+        }
+
         public static T GetMember<T>(this NamespaceOrTypeSymbol symbol, string qualifiedName) where T : Symbol
+        {
+            return (T)symbol.GetMember(qualifiedName);
+        }
+
+        public static T GetMember<T>(this INamespaceOrTypeSymbol symbol, string qualifiedName) where T : ISymbol
         {
             return (T)symbol.GetMember(qualifiedName);
         }
@@ -244,6 +299,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         public static NamedTypeSymbol GetTypeMember(this NamespaceOrTypeSymbol symbol, string name)
+        {
+            return symbol.GetTypeMembers(name).Single();
+        }
+
+        public static INamedTypeSymbol GetTypeMember(this INamespaceOrTypeSymbol symbol, string name)
         {
             return symbol.GetTypeMembers(name).Single();
         }
@@ -317,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 case TypedConstantKind.Enum:
                     return expected.Equals(arg.Value);
                 case TypedConstantKind.Type:
-                    var typeSym = arg.Value as TypeSymbol;
+                    var typeSym = arg.ValueInternal as TypeSymbol;
                     if ((object)typeSym == null)
                     {
                         return false;
@@ -578,5 +638,193 @@ internal static class Extensions
     public static ImmutableArray<TypeSymbol> ConstraintTypes(this TypeParameterSymbol symbol)
     {
         return TypeMap.AsTypeSymbols(symbol.ConstraintTypesNoUseSiteDiagnostics);
+    }
+
+    public static ImmutableArray<INamedTypeSymbol> AllEffectiveInterfacesNoUseSiteDiagnostics(this ITypeParameterSymbol symbol)
+    {
+        return ((Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel.TypeParameterSymbol)symbol).UnderlyingTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics.GetPublicSymbols();
+    }
+
+    public static ITypeSymbol GetParameterType(this IMethodSymbol method, int index) => method.Parameters[index].Type;
+
+    public static bool IsNullableType(this ITypeSymbol typeOpt)
+    {
+        return ITypeSymbolHelpers.IsNullableType(typeOpt);
+    }
+
+    public static ITypeSymbol GetNullableUnderlyingType(this ITypeSymbol type)
+    {
+        return ITypeSymbolHelpers.GetNullableUnderlyingType(type);
+    }
+
+    public static bool IsDynamic(this ITypeSymbol type)
+    {
+        return type.TypeKind == TypeKind.Dynamic;
+    }
+
+    public static bool IsDelegateType(this ITypeSymbol type)
+    {
+        return type.TypeKind == TypeKind.Delegate;
+    }
+
+    public static bool IsErrorType(this ITypeSymbol type)
+    {
+        return type.Kind == SymbolKind.ErrorType;
+    }
+
+    public static ITypeSymbol StrippedType(this ITypeSymbol type)
+    {
+        return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
+    }
+
+    public static string ToTestDisplayString(this Symbol symbol)
+    {
+        return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
+    }
+
+    public static ISymbol GetSpecialTypeMember(this Compilation compilation, SpecialMember specialMember)
+    {
+        return ((CSharpCompilation)compilation).GetSpecialTypeMember(specialMember).GetPublicSymbol();
+    }
+
+    public static INamedTypeSymbol GetWellKnownType(this Compilation compilation, WellKnownType type)
+    {
+        return ((CSharpCompilation)compilation).GetWellKnownType(type).GetPublicSymbol();
+    }
+
+    public static NamedTypeSymbol Modifier(this CustomModifier m)
+    {
+        return ((CSharpCustomModifier)m).ModifierSymbol;
+    }
+
+    public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol member)
+    {
+        switch (member.Kind)
+        {
+            case SymbolKind.Method:
+                return ((IMethodSymbol)member).Parameters;
+            case SymbolKind.Property:
+                return ((IPropertySymbol)member).Parameters;
+            case SymbolKind.Event:
+                return ImmutableArray<IParameterSymbol>.Empty;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(member.Kind);
+        }
+    }
+
+    public static bool IsUnboundGenericType(this ITypeSymbol type)
+    {
+        return type is INamedTypeSymbol namedType && namedType.IsUnboundGenericType;
+    }
+
+    public static bool GivesAccessTo(this AssemblySymbol first, AssemblySymbol second)
+    {
+        return first.GetPublicSymbol().GivesAccessTo(second.GetPublicSymbol());
+    }
+
+    public static INamedTypeSymbol CreateTupleTypeSymbol(
+        this CSharpCompilation comp,
+        NamedTypeSymbol underlyingType,
+        ImmutableArray<string> elementNames = default,
+        ImmutableArray<Location> elementLocations = default)
+    {
+        return comp.CreateTupleTypeSymbol(underlyingType.GetPublicSymbol(), elementNames, elementLocations);
+    }
+
+    public static INamedTypeSymbol CreateTupleTypeSymbol(
+        this CSharpCompilation comp,
+        ImmutableArray<TypeSymbol> elementTypes,
+        ImmutableArray<string> elementNames = default,
+        ImmutableArray<Location> elementLocations = default,
+        ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation> elementNullableAnnotations = default)
+    {
+        return comp.CreateTupleTypeSymbol(elementTypes.GetPublicSymbols(), elementNames, elementLocations, elementNullableAnnotations);
+    }
+
+    public static INamedTypeSymbol Construct(this INamedTypeSymbol definition, params TypeSymbol[] typeArguments)
+    {
+        return definition.Construct(typeArguments.Select(s => s.GetPublicSymbol()).ToArray());
+    }
+
+    public static INamespaceSymbol CreateErrorNamespaceSymbol(this CSharpCompilation comp, NamespaceSymbol container, string name)
+    {
+        return comp.CreateErrorNamespaceSymbol(container.GetPublicSymbol(), name);
+    }
+
+    public static bool Equals(this ITypeSymbol first, ITypeSymbol second, TypeCompareKind typeCompareKind)
+    {
+        return first.Equals(second, new Microsoft.CodeAnalysis.SymbolEqualityComparer(typeCompareKind));
+    }
+
+    public static ITypeSymbol GetTypeOrReturnType(this ISymbol symbol)
+    {
+        switch (symbol.Kind)
+        {
+            case SymbolKind.Field:
+                return ((IFieldSymbol)symbol).Type;
+            case SymbolKind.Method:
+                return ((IMethodSymbol)symbol).ReturnType;
+            case SymbolKind.Property:
+                return ((IPropertySymbol)symbol).Type;
+            case SymbolKind.Event:
+                return ((IEventSymbol)symbol).Type;
+            case SymbolKind.Local:
+                return ((ILocalSymbol)symbol).Type;
+            case SymbolKind.Parameter:
+                return ((IParameterSymbol)symbol).Type;
+            case SymbolKind.ErrorType:
+                return (ITypeSymbol)symbol;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+        }
+    }
+
+    public static ITypeSymbol EnumUnderlyingTypeOrSelf(this ITypeSymbol type)
+    {
+        return type.TypeKind == TypeKind.Enum ? ((INamedTypeSymbol)type).EnumUnderlyingType : type;
+    }
+
+    public static INamedTypeSymbol GetEnumUnderlyingType(this ITypeSymbol type)
+    {
+        var namedType = type as INamedTypeSymbol;
+        return ((object)namedType != null) ? namedType.EnumUnderlyingType : null;
+    }
+
+    public static ISymbol ConstructedFrom(this ISymbol symbol)
+    {
+        switch (symbol.Kind)
+        {
+            case SymbolKind.NamedType:
+                return ((INamedTypeSymbol)symbol).ConstructedFrom;
+
+            case SymbolKind.Method:
+                return ((IMethodSymbol)symbol).ConstructedFrom;
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+        }
+    }
+
+    public static INamespaceSymbol GetNestedNamespace(this INamespaceSymbol ns, string name)
+    {
+        foreach (var sym in ns.GetMembers(name))
+        {
+            if (sym.Kind == SymbolKind.Namespace)
+            {
+                return (INamespaceSymbol)sym;
+            }
+        }
+
+        return null;
+    }
+
+    public static IEnumerable<Microsoft.CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations(this INamedTypeSymbol type)
+    {
+        return type.TypeArguments.Select(t => t.NullableAnnotation);
+    }
+
+    public static IEnumerable<Microsoft.CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations(this IMethodSymbol method)
+    {
+        return method.TypeArguments.Select(t => t.NullableAnnotation);
     }
 }

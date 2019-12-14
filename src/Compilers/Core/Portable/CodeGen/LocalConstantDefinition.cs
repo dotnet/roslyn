@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -20,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<bool> dynamicTransformFlags,
             ImmutableArray<string> tupleElementNames)
         {
-            Debug.Assert(!string.IsNullOrEmpty(name));
-            Debug.Assert(compileTimeValue != null);
+            RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(name));
+            RoslynDebug.Assert(compileTimeValue != null);
 
             Name = name;
             Location = location;
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public int SlotIndex => -1;
 
-        public byte[] Signature => null;
+        public byte[]? Signature => null;
 
         public LocalSlotDebugInfo SlotInfo
             => new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, LocalDebugId.None);

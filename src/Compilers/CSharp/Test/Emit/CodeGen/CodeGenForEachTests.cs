@@ -109,60 +109,61 @@ class C
 8.9");
 
             compilation.VerifyIL("C.Main", @"
-{
-  // Code size       90 (0x5a)
-  .maxstack  3
-  .locals init (double[,] V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                int V_4)
-  IL_0000:  ldc.i4.2
-  IL_0001:  ldc.i4.4
-  IL_0002:  newobj     ""double[*,*]..ctor""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.E19C080DB8DAB85AF7CA3EF40FFB01B0778F9D25""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.0
-  IL_0014:  ldc.i4.0
-  IL_0015:  callvirt   ""int System.Array.GetUpperBound(int)""
-  IL_001a:  stloc.1
-  IL_001b:  ldloc.0
-  IL_001c:  ldc.i4.1
-  IL_001d:  callvirt   ""int System.Array.GetUpperBound(int)""
-  IL_0022:  stloc.2
-  IL_0023:  ldloc.0
-  IL_0024:  ldc.i4.0
-  IL_0025:  callvirt   ""int System.Array.GetLowerBound(int)""
-  IL_002a:  stloc.3
-  IL_002b:  br.s       IL_0055
-  IL_002d:  ldloc.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  callvirt   ""int System.Array.GetLowerBound(int)""
-  IL_0034:  stloc.s    V_4
-  IL_0036:  br.s       IL_004c
-  IL_0038:  ldloc.0
-  IL_0039:  ldloc.3
-  IL_003a:  ldloc.s    V_4
-  IL_003c:  call       ""double[*,*].Get""
-  IL_0041:  call       ""void System.Console.WriteLine(double)""
-  IL_0046:  ldloc.s    V_4
-  IL_0048:  ldc.i4.1
-  IL_0049:  add
-  IL_004a:  stloc.s    V_4
-  IL_004c:  ldloc.s    V_4
-  IL_004e:  ldloc.2
-  IL_004f:  ble.s      IL_0038
-  IL_0051:  ldloc.3
-  IL_0052:  ldc.i4.1
-  IL_0053:  add
-  IL_0054:  stloc.3
-  IL_0055:  ldloc.3
-  IL_0056:  ldloc.1
-  IL_0057:  ble.s      IL_002d
-  IL_0059:  ret
-}");
+    {
+      // Code size       90 (0x5a)
+      .maxstack  3
+      .locals init (double[,] V_0,
+                    int V_1,
+                    int V_2,
+                    int V_3,
+                    int V_4)
+      IL_0000:  ldc.i4.2
+      IL_0001:  ldc.i4.4
+      IL_0002:  newobj     ""double[*,*]..ctor""
+      IL_0007:  dup
+      IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.B600FC1A4E79D6311C0D8211E6ADB6C750C0EDBFD2A8B9DF903CBEAFEC712F98""
+      IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+      IL_0012:  stloc.0
+      IL_0013:  ldloc.0
+      IL_0014:  ldc.i4.0
+      IL_0015:  callvirt   ""int System.Array.GetUpperBound(int)""
+      IL_001a:  stloc.1
+      IL_001b:  ldloc.0
+      IL_001c:  ldc.i4.1
+      IL_001d:  callvirt   ""int System.Array.GetUpperBound(int)""
+      IL_0022:  stloc.2
+      IL_0023:  ldloc.0
+      IL_0024:  ldc.i4.0
+      IL_0025:  callvirt   ""int System.Array.GetLowerBound(int)""
+      IL_002a:  stloc.3
+      IL_002b:  br.s       IL_0055
+      IL_002d:  ldloc.0
+      IL_002e:  ldc.i4.1
+      IL_002f:  callvirt   ""int System.Array.GetLowerBound(int)""
+      IL_0034:  stloc.s    V_4
+      IL_0036:  br.s       IL_004c
+      IL_0038:  ldloc.0
+      IL_0039:  ldloc.3
+      IL_003a:  ldloc.s    V_4
+      IL_003c:  call       ""double[*,*].Get""
+      IL_0041:  call       ""void System.Console.WriteLine(double)""
+      IL_0046:  ldloc.s    V_4
+      IL_0048:  ldc.i4.1
+      IL_0049:  add
+      IL_004a:  stloc.s    V_4
+      IL_004c:  ldloc.s    V_4
+      IL_004e:  ldloc.2
+      IL_004f:  ble.s      IL_0038
+      IL_0051:  ldloc.3
+      IL_0052:  ldc.i4.1
+      IL_0053:  add
+      IL_0054:  stloc.3
+      IL_0055:  ldloc.3
+      IL_0056:  ldloc.1
+      IL_0057:  ble.s      IL_002d
+      IL_0059:  ret
+    }
+");
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]

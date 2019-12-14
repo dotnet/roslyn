@@ -2134,7 +2134,7 @@ class C
                     testData: testData);
 
                 var methodData = testData.GetMethodData("<>x.<>m0<T>(T)");
-                var method = methodData.Method;
+                var method = (MethodSymbol)methodData.Method;
                 Assert.Equal(1, method.Parameters.Length);
                 var eeTypeParameterSymbol = (EETypeParameterSymbol)method.Parameters[0].Type;
                 Assert.Equal(1, eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics.Length);
@@ -3438,7 +3438,7 @@ class B : A
                 var testData = new CompilationTestData();
                 context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal("int[]", methodData.Method.ReturnType.ToDisplayString());
+                Assert.Equal("int[]", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
                 methodData.VerifyIL(
     @"{
   // Code size       18 (0x12)
@@ -3446,7 +3446,7 @@ class B : A
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }");
@@ -4611,7 +4611,7 @@ struct S
                 var testData = new CompilationTestData();
                 context.CompileExpression("x", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((MethodSymbol)methodData.Method).ReturnType.SpecialType);
                 methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -4648,7 +4648,7 @@ struct S
                 var testData = new CompilationTestData();
                 context.CompileExpression("t", out error, testData);
                 var methodData = testData.GetMethodData("<>x<T>.<>m0");
-                Assert.Equal("T", methodData.Method.ReturnType.Name);
+                Assert.Equal("T", ((MethodSymbol)methodData.Method).ReturnType.Name);
                 methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -5036,7 +5036,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(actionType, methodData.Method.ReturnType);
+                Assert.Equal(actionType, ((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -5053,7 +5053,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.True(methodData.Method.ReturnsVoid);
+                Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
                 methodData.VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -5071,7 +5071,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(actionType, methodData.Method.ReturnType);
+                Assert.Equal(actionType, ((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size       11 (0xb)
@@ -5093,7 +5093,7 @@ class C
                 Assert.Null(error);
                 Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.True(methodData.Method.ReturnsVoid);
+                Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
                 methodData.VerifyIL(@"
 {
   // Code size        8 (0x8)
@@ -5170,7 +5170,7 @@ class C
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.Equal(actionType, methodData.Method.ReturnType);
+            Assert.Equal(actionType, ((MethodSymbol)methodData.Method).ReturnType);
             methodData.VerifyIL(@"
 {
   // Code size       17 (0x11)
@@ -5189,7 +5189,7 @@ class C
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(@"
 {
   // Code size       22 (0x16)
@@ -5208,7 +5208,7 @@ class C
             result = context.CompileExpression("E = null", out resultProperties, out error, testData);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(@"
 {
   // Code size       48 (0x30)
@@ -5235,7 +5235,7 @@ class C
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(@"
 {
   // Code size       31 (0x1f)
@@ -6126,7 +6126,7 @@ class C
 }";
             var testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "false ? new { P = 1 } : null");
             var methodData = testData.GetMethodData("<>x.<>m0");
-            var returnType = (NamedTypeSymbol)methodData.Method.ReturnType;
+            var returnType = (NamedTypeSymbol)((MethodSymbol)methodData.Method).ReturnType;
             Assert.True(returnType.IsAnonymousType);
             methodData.VerifyIL(
 @"{

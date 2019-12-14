@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System;
 using System.Threading.Tasks;
@@ -19,11 +21,11 @@ namespace Microsoft.Cci
         private readonly string _location;
         private readonly Guid _language;
         private readonly bool _isComputedChecksum;
-        private readonly Task<DebugSourceInfo> _sourceInfo;
+        private readonly Task<DebugSourceInfo>? _sourceInfo;
 
         public DebugSourceDocument(string location, Guid language)
         {
-            Debug.Assert(location != null);
+            RoslynDebug.Assert(location != null);
 
             _location = location; // If it's a path, it should be normalized.
             _language = language;
@@ -46,46 +48,6 @@ namespace Microsoft.Cci
             : this(location, language)
         {
             _sourceInfo = Task.FromResult(new DebugSourceInfo(checksum, algorithm));
-        }
-
-        internal static bool IsSupportedAlgorithm(SourceHashAlgorithm algorithm)
-        {
-            // Dev12 debugger supports MD5, SHA1.
-            // Dev14 debugger supports MD5, SHA1, SHA256.
-            // MD5 is obsolete.
-
-            switch (algorithm)
-            {
-                case SourceHashAlgorithm.Sha1:
-                case SourceHashAlgorithm.Sha256:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        internal static Guid GetAlgorithmGuid(SourceHashAlgorithm algorithm)
-        {
-            Debug.Assert(IsSupportedAlgorithm(algorithm));
-
-            // Dev12 debugger supports MD5, SHA1.
-            // Dev14 debugger supports MD5, SHA1, SHA256.
-            // MD5 is obsolete.
-
-            unchecked
-            {
-                switch (algorithm)
-                {
-                    case SourceHashAlgorithm.Sha1:
-                        return new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60);
-
-                    case SourceHashAlgorithm.Sha256:
-                        return new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(algorithm);
-                }
-            }
         }
 
         public Guid DocumentType

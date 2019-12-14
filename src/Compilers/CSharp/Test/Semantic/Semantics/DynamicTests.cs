@@ -612,6 +612,7 @@ class C
     static async Task<int> M()
     {
         return await d;     //-fieldAccess: dynamic
+                            //-awaitableValuePlaceholder: dynamic
                             //-awaitExpression: dynamic
                             //-conversion: int
     }
@@ -635,7 +636,9 @@ class C
 	{
 		var x = await await d; //-typeExpression: dynamic
                                //-fieldAccess: dynamic
+                               //-awaitableValuePlaceholder: dynamic
                                //-awaitExpression: dynamic
+                               //-awaitableValuePlaceholder: dynamic
                                //-awaitExpression: dynamic
 	}
 }";

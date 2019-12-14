@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //if a label is marked before any branches to the label have been seen
             //the stack is considered to be 0.
             internal readonly int stack;
-            internal readonly BasicBlock bb;
+            internal readonly BasicBlock? bb;
 
             /// <summary>
             /// Sometimes we need to know if a label is targeted by conditional branches.
@@ -37,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Used when label is marked to the code.
             /// </summary>
-            internal LabelInfo(BasicBlock bb, int stack, bool targetOfConditionalBranches)
+            internal LabelInfo(BasicBlock? bb, int stack, bool targetOfConditionalBranches)
             {
                 this.stack = stack;
                 this.bb = bb;
                 this.targetOfConditionalBranches = targetOfConditionalBranches;
             }
 
-            internal LabelInfo WithNewTarget(BasicBlock bb)
+            internal LabelInfo WithNewTarget(BasicBlock? bb)
             {
                 return new LabelInfo(bb, this.stack, this.targetOfConditionalBranches);
             }

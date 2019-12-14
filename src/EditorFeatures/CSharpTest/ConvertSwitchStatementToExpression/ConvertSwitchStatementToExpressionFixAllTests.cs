@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         {
             await TestInCSharp8(
 @"class Program
-{    
+{
     int M(int i, int j)
     {
         int r;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     }
 }",
 @"class Program
-{    
+{
     int M(int i, int j)
     {
         var r = i switch
@@ -125,35 +126,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 y = 1;
                 break;
         }
-        switch (i)
+        return i switch
         {
-            default:
-                throw null;
-            case 1:
-                return j switch
-                {
-                    10 => 10,
-                    20 => 20,
-                    30 => 30,
-                    _ => 0,
-                };
-            case 2:
-                return j switch
-                {
-                    10 => 10,
-                    20 => 20,
-                    30 => 30,
-                    var _ => 0,
-                };
-            case 3:
-                return j switch
-                {
-                    10 => 10,
-                    20 => 20,
-                    30 => 30,
-                    var v => 0,
-                };
-        }
+            1 => j switch
+            {
+                10 => 10,
+                20 => 20,
+                30 => 30,
+                _ => 0,
+            },
+            2 => j switch
+            {
+                10 => 10,
+                20 => 20,
+                30 => 30,
+                var _ => 0,
+            },
+            3 => j switch
+            {
+                10 => 10,
+                20 => 20,
+                30 => 30,
+                var v => 0,
+            },
+            _ => throw null,
+        };
     }
 }");
         }
@@ -168,7 +165,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     {
         {|FixAllInDocument:switch|} (i)
         {
-            default:
+            // 1
+            default: // 2
                 return () =>
                 {
                     switch (j)
@@ -186,16 +184,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     {
         return i switch
         {
+            // 1
+            // 2
             _ => () =>
-                 {
-                     switch (j)
-                     {
-                         default:
-                             return 3;
-                     }
-                 }
+                              {
+                                  switch (j)
+                                  {
+                                      default:
+                                          return 3;
+                                  }
+                              }
+
             ,
         };
+    }
+}");
+        }
+
+        [WorkItem(37907, "https://github.com/dotnet/roslyn/issues/37907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNested_03()
+        {
+            await TestInCSharp8(
+@"using System;
+
+class Program
+{
+    public static void Main() { }
+    public DayOfWeek StatusValue() => DayOfWeek.Monday;
+    public short Value => 0;
+    public bool ValueBoolean()
+    {
+        bool value;
+        {|FixAllInDocument:switch|} (StatusValue())
+        {
+            case DayOfWeek.Monday:
+                switch (Value)
+                {
+                    case 0:
+                        value = false;
+                        break;
+                    case 1:
+                        value = true;
+                        break;
+                    default:
+                        throw new Exception();
+                }
+                break;
+            default:
+                throw new Exception();
+        }
+        return value;
+    }
+}",
+@"using System;
+
+class Program
+{
+    public static void Main() { }
+    public DayOfWeek StatusValue() => DayOfWeek.Monday;
+    public short Value => 0;
+    public bool ValueBoolean()
+    {
+        var value = (StatusValue()) switch
+        {
+            DayOfWeek.Monday => Value switch
+            {
+                0 => false,
+                1 => true,
+                _ => throw new Exception(),
+            },
+            _ => throw new Exception(),
+        };
+        return value;
     }
 }");
         }

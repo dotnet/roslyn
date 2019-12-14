@@ -104,14 +104,14 @@ class C
                 EvalResult("c", "{C}", "C", "c", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("o", "{B}", "I {B}", "c.o", DkmEvaluationResultFlags.Expandable));
+                EvalResult("o", "{B}", "I {B}", "c.o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             children = GetChildren(children[0]);
             Verify(children,
                 EvalResult("I.P2", "2", "object {int}", "c.o.P2", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("I.P3", "3", "object {int}", "c.o.P3", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P1", "1", "object {int}", "((B)c.o).P1", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P5", "5", "object {int}", "((B)c.o).P5", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P6", "6", "object {int}", "((B)c.o).P6", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P1", "1", "object {int}", "((B)c.o).P1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P5", "5", "object {int}", "((B)c.o).P5", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P6", "6", "object {int}", "((B)c.o).P6", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -395,7 +395,7 @@ class B : I<A>
                 EvalResult("F", "1", "object {int}", "((I<A>)o).P.F"),
                 EvalResult("I<A>.Q", "{A}", "A", "((I<A>)o).Q", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             Verify(GetChildren(children[1]),
-                EvalResult("F", "2", "object {int}", "((I<A>)o).Q.F"));
+                EvalResult("F", "2", "object {int}", "((I<A>)o).Q.F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -651,7 +651,7 @@ public class C<T>
                 EvalResult("o", "{C<int>}", "C<int>", "o", DkmEvaluationResultFlags.Expandable));
 
             Verify(GetChildren(evalResult),
-                EvalResult("X", "0", "int", "o.X"));
+                EvalResult("X", "0", "int", "o.X", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(18581, "https://github.com/dotnet/roslyn/issues/18581")]

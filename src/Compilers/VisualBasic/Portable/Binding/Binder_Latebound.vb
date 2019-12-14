@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not arguments.IsDefault)
 
-            If argumentNames.IsDefault OrElse argumentNames.Count = 0 Then
+            If argumentNames.IsDefault OrElse argumentNames.Length = 0 Then
                 Return
             End If
 
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim seenName As Boolean = False
-            For i As Integer = 0 To argumentNames.Count - 1
+            For i As Integer = 0 To argumentNames.Length - 1
 
                 If argumentNames(i) IsNot Nothing Then
                     seenName = True

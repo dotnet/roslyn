@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return ArrayInitializerStyle.Element;
             }
 
-            elementType = elementType.EnumUnderlyingType();
+            elementType = elementType.EnumUnderlyingTypeOrSelf();
 
             if (elementType.SpecialType.IsBlittable())
             {

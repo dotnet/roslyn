@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 Dim match = matches(i)
 
                 Dim rightValue = match.Initializer
-                If i < matches.Count - 1 Then
+                If i < matches.Length - 1 Then
                     rightValue = rightValue.WithoutTrailingTrivia()
                 End If
 

@@ -164,5 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for Paste in Paste Tracking.
         /// </summary>
         public const string PasteTrackingPaste = "Paste Tracking Paste Command Handler";
+
+        /// <summary>
+        /// Command handler name for Edit and Continue file save handler.
+        /// </summary>
+        public const string EditAndContinueFileSave = "Edit and Continue Save File Handler";
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
             var visitor = TestOperationVisitor.Singleton;
 
             foreach (var root in roots)
@@ -307,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            explictNodeMap.Add(operation.Syntax, operation);
+                            explicitNodeMap.Add(operation.Syntax, operation);
                         }
                         catch (ArgumentException)
                         {

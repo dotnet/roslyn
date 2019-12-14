@@ -127,13 +127,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 BasicBlockAnalysisData currentAnalysisData,
                 CancellationToken cancellationToken)
             {
+                // Ensure that we use distinct input BasicBlockAnalysisData instances with identical analysis data for both AnalyzeBranch invocations.
+                using var savedCurrentAnalysisData = BasicBlockAnalysisData.GetInstance();
+                savedCurrentAnalysisData.SetAnalysisDataFrom(currentAnalysisData);
+
                 var newCurrentAnalysisData = AnalyzeBranch(basicBlock.FallThroughSuccessor, basicBlock, currentAnalysisData, cancellationToken);
 
                 // Ensure that we use different instances of block analysis data for fall through successor and conditional successor.
                 _analysisData.AdditionalConditionalBranchAnalysisData.SetAnalysisDataFrom(newCurrentAnalysisData);
                 var fallThroughSuccessorData = _analysisData.AdditionalConditionalBranchAnalysisData;
 
-                var conditionalSuccessorData = AnalyzeBranch(basicBlock.ConditionalSuccessor, basicBlock, currentAnalysisData, cancellationToken);
+                var conditionalSuccessorData = AnalyzeBranch(basicBlock.ConditionalSuccessor, basicBlock, savedCurrentAnalysisData, cancellationToken);
 
                 return (fallThroughSuccessorData, conditionalSuccessorData);
             }
@@ -174,6 +178,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         foreach (var local in region.Locals)
                         {
                             _analysisData.CurrentBlockAnalysisData.Clear(local);
+                        }
+
+                        if (region.Kind == ControlFlowRegionKind.TryAndFinally)
+                        {
+                            // Locals defined in the outer regions of try/finally might be used in finally region.
+                            break;
                         }
                     }
                 }

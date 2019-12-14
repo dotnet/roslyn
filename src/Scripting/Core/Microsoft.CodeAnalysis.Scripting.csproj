@@ -20,14 +20,7 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <!-- 
-      Workaround for https://github.com/NuGet/Home/issues/1471.
-
-      RoslynTools.LightUp.System.Runtime.Loader distributes System.Runtime.Loader in ref/netstandard1.3 directory,
-      so that it can be referenced in libraries targeting netstandard1.3 once they check that the executing runtime 
-      is .NET Core.
-    -->
-    <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs" />
