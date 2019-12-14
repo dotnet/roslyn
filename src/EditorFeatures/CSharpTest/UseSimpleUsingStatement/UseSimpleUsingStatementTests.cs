@@ -935,5 +935,30 @@ class Program
 }",
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/37678")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyTrivia()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+    {
+        static void Main(string[] args)
+        {
+            using (var x = y)
+            {
+               // comment
+            }
+        }
+}",
+@"class Program
+    {
+        static void Main(string[] args)
+        {
+            using (var x = y)
+            // comment
+        }
+}");
+        }
     }
 }

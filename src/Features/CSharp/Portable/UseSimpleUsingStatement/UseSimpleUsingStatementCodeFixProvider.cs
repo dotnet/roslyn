@@ -84,24 +84,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             var result = new List<StatementSyntax>();
             Expand(result, usingStatement);
 
-            var decendentTrivia = usingStatement.DescendantTrivia().ToList();
-            var comments = new List<SyntaxTrivia>();
-
-            decendentTrivia.ForEach(x =>
-            {
-                if (x.Kind() == SyntaxKind.SingleLineCommentTrivia || x.Kind() == SyntaxKind.MultiLineCommentTrivia)
-                {
-                    comments.Add(x);
-                    comments.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
-                }
-            });
+            var blockStatement = usingStatement.ChildNodes().Where(x => x.Kind() == SyntaxKind.Block);
+            var closingBrace = blockStatement.First().GetLastToken();
+            var triviaToAdd = new List<SyntaxTrivia>();
 
             for (int i = 0, n = result.Count; i < n; i++)
             {
-                result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
+                if (i == 0)
+                {
+                    // Copy any leading trivia from the end of the using block to preserve comments and add a new line
+                    triviaToAdd.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+                    triviaToAdd.AddRange(closingBrace.LeadingTrivia);
+                    result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation).WithTrailingTrivia(triviaToAdd);
+                }
+                else
+                {
+                    result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
+                }
             }
-
-            result[0] = result[0].WithLeadingTrivia(comments);
 
             return result;
         }
