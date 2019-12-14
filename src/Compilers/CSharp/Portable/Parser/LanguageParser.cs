@@ -8662,7 +8662,7 @@ tryAgain:
         enum Precedence : uint
         {
             Expression = 0, // Loosest possible precedence, used to accept all expressions
-            Assignment,
+            Assignment = Expression,
             Lambda = Assignment, // "The => operator has the same precedence as assignment (=) and is right-associative."
             Conditional,
             Coalescing,
@@ -9009,8 +9009,6 @@ tryAgain:
                 }
 
                 var newPrecedence = GetPrecedence(opKind);
-
-                Debug.Assert(newPrecedence > 0);      // All binary operators must have precedence > 0!
 
                 // check for >> or >>=
                 bool doubleOp = false;
