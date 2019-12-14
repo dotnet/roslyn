@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Options
 {
     public struct OptionKey : IEquatable<OptionKey>
     {
-        public IOption Option { get; }
+        public IOption? Option { get; }
         public string? Language { get; }
 
         public OptionKey(IOption option, string? language = null)
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override int GetHashCode()
         {
-            var hash = Option.GetHashCode();
+            var hash = Option?.GetHashCode() ?? 0;
 
             if (Language != null)
             {
@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override string ToString()
         {
+            if (Option is null)
+            {
+                return "";
+            }
+
             var languageDisplay = Option.IsPerLanguage
                 ? $"({Language}) "
                 : string.Empty;

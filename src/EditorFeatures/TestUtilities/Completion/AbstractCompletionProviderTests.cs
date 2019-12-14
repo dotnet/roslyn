@@ -198,8 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var position = WorkspaceFixture.Position;
 
             var newOptions = WithChangedOptions(workspace.Options);
-            var newSolution = workspace.CurrentSolution.WithOptions(newOptions);
-            workspace.TryApplyChanges(newSolution);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptions));
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -213,8 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = WorkspaceFixture.GetWorkspace(markup, workspaceKind: workspaceKind);
             var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
             var position = WorkspaceFixture.Position;
-            var newOptions = WithChangedOptions(workspace.Options);
-            currentDocument = currentDocument.WithSolutionOptions(newOptions);
+            currentDocument = WithChangedOptions(currentDocument);
 
             return await GetCompletionListAsync(GetCompletionService(workspace), currentDocument, position, RoslynCompletion.CompletionTrigger.Invoke, workspace.Options).ConfigureAwait(false);
         }
@@ -409,8 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var newOptions = WithChangedOptions(workspace.Options);
-            document = document.WithSolutionOptions(newOptions);
+            document = WithChangedOptions(document);
             var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
 
             var service = GetCompletionService(workspace);
@@ -433,6 +430,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
+        private Document WithChangedOptions(Document document)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var newOptions = WithChangedOptions(workspace.Options);
+            workspace.TryApplyChanges(document.Project.Solution.WithOptions(newOptions));
+            return workspace.CurrentSolution.GetDocument(document.Id);
+        }
 
         internal async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
