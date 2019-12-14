@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
-        private Document WithChangedOption(Document document, OptionKey optionKey, object? value)
+        private Document WithChangedOption(Document document, OptionKey optionKey, object value)
         {
             var workspace = document.Project.Solution.Workspace;
             var newOptions = workspace.Options.WithChangedOption(optionKey, value);
