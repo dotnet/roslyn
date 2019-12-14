@@ -45,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     options = GetDefaultParseOptions()
                 End If
 
+                ' NOTE: Unlike the C# SyntaxFactory.ParseSyntaxTree API, the VB version does not currently support the flag 'isGeneratedCode' from analyzer options.
                 Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, analyzerConfigOptionsResult?.TreeOptions, cancellationToken)
             End Function
 
@@ -52,6 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
+
+                ' NOTE: Unlike the CSharpSyntaxTree.Create API, the VB version does not currently support the flag 'isGeneratedCode' from analyzer options.
                 Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, analyzerConfigOptionsResult.TreeOptions)
             End Function
 

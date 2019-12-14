@@ -1555,57 +1555,6 @@ public class C : A {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
-        public void TestAnalyzerConfigOptions()
-        {
-            // get one to get to syntax tree factory
-            var dummyProject = CreateNotKeptAliveSolution().AddProject("dummy", "dummy", LanguageNames.CSharp);
-
-            var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
-
-            // create the origin tree
-            var testDir = Temp.CreateDirectory();
-            var sourceFile = testDir.CreateFile("test.cs").WriteAllText(@"
-class C
-{
-    void M(C? c)
-    {
-        _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
-    }
-}");
-            using var fileStream = File.OpenRead(sourceFile.Path);
-            var text = SourceText.From(fileStream);
-            var tree = factory.ParseSyntaxTree(sourceFile.Path, dummyProject.ParseOptions, text, analyzerConfigOptionsResult: null, CancellationToken.None);
-
-            var compilation = CSharpCompilation.Create("TestProject", new[] { tree }, references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib },
-                    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
-
-            // warning CS8602: Dereference of a possibly null reference.
-            var diagnostics = compilation.GetDiagnostics();
-            Assert.Equal(1, diagnostics.Length);
-            Assert.Contains("CS8602", diagnostics[0].Id);
-
-            // analyzer config file
-            var analyzerConfigFile = testDir.CreateFile(".editorconfig");
-            var analyzerConfigText = @"
-[*.cs]
-generated_code = true";
-            var analyzerConfig = AnalyzerConfig.Parse(analyzerConfigText, analyzerConfigFile.Path);
-            var analyzerConfigSet = AnalyzerConfigSet.Create(new[] { analyzerConfig });
-            var analyzerConfigOptionsResult = analyzerConfigSet.GetOptionsForSourcePath(sourceFile.Path);
-
-            tree = factory.ParseSyntaxTree(sourceFile.Path, dummyProject.ParseOptions, text, analyzerConfigOptionsResult, CancellationToken.None);
-
-            compilation = CSharpCompilation.Create("TestProject", new[] { tree }, references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib },
-                    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
-
-            // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-            diagnostics = compilation.GetDiagnostics();
-            Assert.Equal(1, diagnostics.Length);
-            Assert.Contains("CS8669", diagnostics[0].Id);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestUpdateDocumentsOrder()
         {
             var solution = CreateSolution();
@@ -1860,6 +1809,57 @@ generated_code = true";
             var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
 
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterUpdateRoot));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
+                .WithProjectMetadataReferences(projectId, new[] { TestReferences.NetFx.v4_0_30319.mscorlib })
+                .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
+            var src = @"
+class C
+{
+    void M(C? c)
+    {
+        _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
+    }
+}";
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", src, filePath: @"Z:\Test.cs");
+
+            var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            // warning CS8602: Dereference of a possibly null reference.
+            var diagnostics = originalCompilation.GetDiagnostics();
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal("CS8602", diagnostic.Id);
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".editorconfig",
+                    filePath: @"Z:\.editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ngenerated_code = true"), VersionStamp.Default)))));
+
+            var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            Assert.NotSame(originalSyntaxTree, newSyntaxTree);
+            Assert.NotSame(originalCompilation, newCompilation);
+
+            Assert.True(newCompilation.ContainsSyntaxTree(newSyntaxTree));
+
+            // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+            diagnostics = newCompilation.GetDiagnostics();
+            Assert.Equal(1, diagnostics.Length);
+            Assert.Contains("CS8669", diagnostics[0].Id);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
