@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                     return false;
-                }, typePredicateOpt: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
+                }, typePredicate: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
             }
         }
 

@@ -350,6 +350,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
 
                     default:
+                        // Include the document regardless of whether the module it was built into has been loaded or not.
+                        // If the module has been built it might get loaded later during the debugging session,
+                        // at which point we apply all changes that have been made to the project so far.
                         changedDocuments.Add((oldDocument, document));
                         break;
                 }
@@ -476,6 +479,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
+                    if (baseProject == project)
+                    {
+                        continue;
+                    }
 
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 
                     // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied

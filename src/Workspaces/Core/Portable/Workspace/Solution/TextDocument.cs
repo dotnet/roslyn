@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default)
         {
-            return State.GetTextAsync(cancellationToken);
+            return State.GetTextAsync(cancellationToken).AsTask();
         }
 
         /// <summary>

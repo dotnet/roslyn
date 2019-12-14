@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">Nie wszystkie ścieżki kodu zwracają</target>
+        <target state="translated">Nie wszystkie ścieżki w kodzie zwracają wartość</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -1347,7 +1347,7 @@ Return -lub- Return &lt;wyrażenie&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">Gdy ustawiono na wartość On, ogranicza niejawne konwersje typów danych tylko do konwersji poszerzających.
+        <target state="translated">Gdy ustawiono na wartość On, ogranicza niejawne konwersje typów danych tylko do konwersji rozszerzających.
 Option Strict {On | Off}</target>
         <note />
       </trans-unit>

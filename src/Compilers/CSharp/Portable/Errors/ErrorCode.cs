@@ -1641,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
-        WRN_NullReferenceIterationVariable = 8606,
+        // WRN_NullReferenceIterationVariable = 8606 (unavailable, may be used in warning suppressions in early C# 8.0 code)
         WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
@@ -1736,6 +1736,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 8.0
 
         ERR_InternalError = 8751,
+
+        ERR_ExternEventInitializer = 8760,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

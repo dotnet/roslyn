@@ -759,6 +759,11 @@ namespace BoundTreeGenerator
 
             if (f.Null != null)
             {
+                if (_targetLang == TargetLanguage.CSharp && f.Null.ToUpperInvariant() == "ALLOW" && !f.Type.EndsWith('?') && !IsValueType(f.Type))
+                {
+                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow");
+                }
+
                 switch (f.Null.ToUpperInvariant())
                 {
                     case "ALLOW":
