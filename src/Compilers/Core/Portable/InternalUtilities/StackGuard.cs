@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static bool TryEnsureSufficientExecutionStack<TArg>(int recursionDepth, Func<TArg, bool> throwOnFailure, TArg arg)
+        internal static bool TryEnsureSufficientExecutionStack<TArg>(int recursionDepth, Func<TArg, bool> throwOnFailure, TArg arg)
         {
             try
             {
@@ -44,24 +44,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static TResult Execute<TResult, TArg1, TArg2>(ref int recursionDepth, Func<TArg1, bool> throwOnFailure, Func<TArg1, TArg2, TResult> execute, TArg1 arg1, TArg2 arg2)
+        internal static TResult ExecuteOnNewExecutionStack<TResult>(Func<TResult> execute)
         {
-            recursionDepth++;
-            TResult result;
-            if (TryEnsureSufficientExecutionStack(recursionDepth, throwOnFailure, arg1))
-            {
-                result = execute(arg1, arg2);
-            }
-            else
-            {
-                var task = Task.Run(() => execute(arg1, arg2));
-                // Wait on the task without inlining the task on this thread.
-                Task.WhenAny(task).Wait();
-                // Return result, propagating any exception.
-                result = task.GetAwaiter().GetResult();
-            }
-            recursionDepth--;
-            return result;
+            var task = Task.Run(() => execute());
+            // Wait on the task without inlining the task on this thread.
+            Task.WhenAny(task).Wait();
+            // Return result, propagating any exception.
+            return task.GetAwaiter().GetResult();
         }
     }
 }
