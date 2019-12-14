@@ -16,17 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public readonly AddParameterDialogViewModel ViewModel;
         private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxView;
         private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxView;
-        private bool _isValid;
-
-        private bool IsValid
-        {
-            get { return _isValid; }
-            set
-            {
-                this.OKButton.IsEnabled = value;
-                _isValid = value;
-            }
-        }
 
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
@@ -50,9 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             this.Loaded += AddParameterDialog_Loaded;
             DataContext = ViewModel;
 
-            // This is for Add. For edit, it should be true by default.
-            _isValid = false;
-
             InitializeComponent();
         }
 
@@ -65,8 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IntellisenseTextBox nameTextBox = new IntellisenseTextBox(
                 _nameIntellisenseTextBoxView, NameContentControl);
             this.NameContentControl.Content = nameTextBox;
-
-            this.OKButton.IsEnabled = _isValid;
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
@@ -74,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             if (ViewModel.TrySubmit())
             {
                 ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
+                ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
                 DialogResult = true;
             }
         }
@@ -112,16 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     }
                 }
             }
-        }
-
-        private void TextBox_ParameterNameChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            // check for empty
-            // check for starting with non-letter
-            // check for special symbols
-            // check for matching other parameter names
-            // if not valid and _isValid, then _isValid = false;
-            // if valid and !_isValid, then validate all controls
         }
     }
 }

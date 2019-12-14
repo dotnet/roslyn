@@ -23,8 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ParameterConfiguration _originalParameterConfiguration;
 
         private readonly ParameterViewModel _thisParameter;
-        private readonly List<ParameterViewModel> _parameterGroup1;
-        private readonly List<ParameterViewModel> _parameterGroup2;
+        private readonly List<ParameterViewModel> _parametersWithoutDefaultValues;
+        private readonly List<ParameterViewModel> _parametersWithDefaultValues;
         private readonly ParameterViewModel _paramsParameter;
         private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
         public readonly int InsertPosition;
@@ -58,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             _declarationParts = symbol.ToDisplayParts(s_symbolDeclarationDisplayFormat);
 
-            _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
-            _parameterGroup2 = parameters.RemainingEditableParameters.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
+            _parametersWithoutDefaultValues = parameters.ParametersWithoutDefaultValues.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
+            _parametersWithDefaultValues = parameters.RemainingEditableParameters.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
 
             if (parameters.ParamsParameter != null)
             {
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
 
                 // Cannot edit params parameter
-                if (index >= (_thisParameter == null ? 0 : 1) + _parameterGroup1.Count + _parameterGroup2.Count)
+                if (index >= (_thisParameter == null ? 0 : 1) + _parametersWithoutDefaultValues.Count + _parametersWithDefaultValues.Count)
                 {
                     return false;
                 }
@@ -172,7 +172,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (AllParameters[_selectedIndex.Value] is AddedParameterViewModel)
             {
-                AllParameters.Remove(AllParameters[_selectedIndex.Value]);
+                ParameterViewModel parameterToRemove = AllParameters[_selectedIndex.Value];
+                _parametersWithoutDefaultValues.Remove(parameterToRemove);
             }
             else
             {
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal void AddParameter(AddedParameter addedParameter)
         {
-            _parameterGroup1.Add(new AddedParameterViewModel(this, addedParameter));
+            _parametersWithoutDefaultValues.Add(new AddedParameterViewModel(this, addedParameter));
 
             RemoveRestoreNotifyPropertyChanged();
         }
@@ -213,8 +214,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             return new ParameterConfiguration(
                 _originalParameterConfiguration.ThisParameter,
-                _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
-                _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
+                _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
+                _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
                 (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).CreateParameter(),
                 selectedIndex: -1);
         }
@@ -312,8 +313,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     list.Add(_thisParameter);
                 }
 
-                list.AddRange(_parameterGroup1);
-                list.AddRange(_parameterGroup2);
+                list.AddRange(_parametersWithoutDefaultValues);
+                list.AddRange(_parametersWithDefaultValues);
 
                 if (_paramsParameter != null)
                 {
@@ -335,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
                 var index = SelectedIndex.Value;
                 index = _thisParameter == null ? index : index - 1;
-                if (index <= 0 || index == _parameterGroup1.Count || index >= _parameterGroup1.Count + _parameterGroup2.Count)
+                if (index <= 0 || index == _parametersWithoutDefaultValues.Count || index >= _parametersWithoutDefaultValues.Count + _parametersWithDefaultValues.Count)
                 {
                     return false;
                 }
@@ -355,7 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
                 var index = SelectedIndex.Value;
                 index = _thisParameter == null ? index : index - 1;
-                if (index < 0 || index == _parameterGroup1.Count - 1 || index >= _parameterGroup1.Count + _parameterGroup2.Count - 1)
+                if (index < 0 || index == _parametersWithoutDefaultValues.Count - 1 || index >= _parametersWithoutDefaultValues.Count + _parametersWithDefaultValues.Count - 1)
                 {
                     return false;
                 }
@@ -370,7 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             var index = SelectedIndex.Value;
             index = _thisParameter == null ? index : index - 1;
-            Move(index < _parameterGroup1.Count ? _parameterGroup1 : _parameterGroup2, index < _parameterGroup1.Count ? index : index - _parameterGroup1.Count, delta: -1);
+            Move(index < _parametersWithoutDefaultValues.Count ? _parametersWithoutDefaultValues : _parametersWithDefaultValues, index < _parametersWithoutDefaultValues.Count ? index : index - _parametersWithoutDefaultValues.Count, delta: -1);
         }
 
         internal void MoveDown()
@@ -379,7 +380,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             var index = SelectedIndex.Value;
             index = _thisParameter == null ? index : index - 1;
-            Move(index < _parameterGroup1.Count ? _parameterGroup1 : _parameterGroup2, index < _parameterGroup1.Count ? index : index - _parameterGroup1.Count, delta: 1);
+            Move(index < _parametersWithoutDefaultValues.Count ? _parametersWithoutDefaultValues : _parametersWithDefaultValues, index < _parametersWithoutDefaultValues.Count ? index : index - _parametersWithoutDefaultValues.Count, delta: 1);
         }
 
         private void Move(List<ParameterViewModel> list, int index, int delta)
@@ -410,7 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             var index = SelectedIndex;
             index = _thisParameter == null ? index : index - 1;
-            return index < _parameterGroup1.Count ? _parameterGroup1 : index < _parameterGroup1.Count + _parameterGroup2.Count ? _parameterGroup2 : SpecializedCollections.EmptyList<ParameterViewModel>();
+            return index < _parametersWithoutDefaultValues.Count ? _parametersWithoutDefaultValues : index < _parametersWithoutDefaultValues.Count + _parametersWithDefaultValues.Count ? _parametersWithDefaultValues : SpecializedCollections.EmptyList<ParameterViewModel>();
         }
 
         public bool IsOkButtonEnabled
@@ -673,13 +674,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         return true;
                     }
 
-                    if (this == changeSignatureDialogViewModel._parameterGroup1.LastOrDefault() &&
-                        (changeSignatureDialogViewModel._parameterGroup2.Any() || changeSignatureDialogViewModel._paramsParameter != null))
+                    if (this == changeSignatureDialogViewModel._parametersWithoutDefaultValues.LastOrDefault() &&
+                        (changeSignatureDialogViewModel._parametersWithDefaultValues.Any() || changeSignatureDialogViewModel._paramsParameter != null))
                     {
                         return true;
                     }
 
-                    if (this == changeSignatureDialogViewModel._parameterGroup2.LastOrDefault() &&
+                    if (this == changeSignatureDialogViewModel._parametersWithDefaultValues.LastOrDefault() &&
                         changeSignatureDialogViewModel._paramsParameter != null)
                     {
                         return true;
