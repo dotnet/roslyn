@@ -8690,10 +8690,11 @@ tryAgain:
             switch (op)
             {
                 case SyntaxKind.QueryExpression:
+                    return Precedence.Expression;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
-                    return Precedence.Expression;
+                    return Precedence.Lambda;
                 case SyntaxKind.SimpleAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
