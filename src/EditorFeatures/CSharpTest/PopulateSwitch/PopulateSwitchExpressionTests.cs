@@ -863,6 +863,53 @@ class MyClass
         }
 
         [Fact]
+        public async Task NotAllMembersExist_NotDefault_WithMismatchingConstantType()
+        {
+            await TestInRegularAndScriptAsync(
+@"enum MyEnum
+{
+    Fizz,
+    Buzz,
+    FizzBuzz
+}
+
+class MyClass
+{
+    void Method()
+    {
+        var e = MyEnum.Fizz;
+        _ = e [||]switch
+        {
+            (MyEnum)0 => 1,
+            (MyEnum)1 => 2,
+            ""Mismatching constant"" => 3,
+        }
+    }
+}",
+@"enum MyEnum
+{
+    Fizz,
+    Buzz,
+    FizzBuzz
+}
+
+class MyClass
+{
+    void Method()
+    {
+        var e = MyEnum.Fizz;
+        _ = e switch
+        {
+            (MyEnum)0 => 1,
+            (MyEnum)1 => 2,
+            ""Mismatching constant"" => 3,
+            _ => throw new System.NotImplementedException(),
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task AllMissingTokens()
         {
             await TestInRegularAndScriptAsync(
