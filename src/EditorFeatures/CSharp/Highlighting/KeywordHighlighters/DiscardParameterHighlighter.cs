@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Highlighting.KeywordHighlighters
             {
                 var syntax = (IdentifierNameSyntax)node.Expression;
 
-                if(syntax.Identifier.Text == "_")
+                if (syntax.Identifier.Text == "_")
                 {
                     return ImmutableArray.Create(syntax.Identifier.Span);
                 }
