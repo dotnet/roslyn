@@ -936,7 +936,7 @@ class Program
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/37678")]
+        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
         public async Task TestCopyTrivia()
         {
@@ -945,20 +945,47 @@ parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
     {
         static void Main(string[] args)
         {
-            using (var x = y)
+            [||]using (var x = y)
             {
                // comment
             }
         }
-}",
+    }",
 @"class Program
     {
         static void Main(string[] args)
         {
-            using (var x = y)
+            using var x = y;               
             // comment
         }
-}");
+    }");
+        }
+
+        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestMultiCopyTrivia()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+    {
+        static void Main(string[] args)
+        {
+            [||]using (var x = y)
+            using (var a = b)
+            {
+                // comment
+            }
+        }
+    }",
+@"class Program
+    {
+        static void Main(string[] args)
+        {
+            using var x = y;
+            using var a = b;
+            // comment
+        }
+    }");
         }
     }
 }

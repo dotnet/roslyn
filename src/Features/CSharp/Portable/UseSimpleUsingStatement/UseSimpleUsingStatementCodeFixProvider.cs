@@ -82,31 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         private static IEnumerable<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
         {
             var result = new List<StatementSyntax>();
-            Expand(result, usingStatement);
-
-            var blockStatement = usingStatement.ChildNodes().Where(x => x.Kind() == SyntaxKind.Block);
-            var closingBrace = blockStatement.First().GetLastToken();
-            var triviaToAdd = new List<SyntaxTrivia>();
+            var trivia = Expand(result, usingStatement);
 
             for (int i = 0, n = result.Count; i < n; i++)
             {
-                if (i == 0)
-                {
-                    // Copy any leading trivia from the end of the using block to preserve comments and add a new line
-                    triviaToAdd.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
-                    triviaToAdd.AddRange(closingBrace.LeadingTrivia);
-                    result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation).WithTrailingTrivia(triviaToAdd);
-                }
+                if(i == result.Count - 1) // if this is the last statement in the block add any trivia present in the block
+                    result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation).WithTrailingTrivia(trivia);
                 else
-                {
                     result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
-                }
             }
 
             return result;
         }
 
-        private static void Expand(List<StatementSyntax> result, UsingStatementSyntax usingStatement)
+        private static SyntaxTriviaList Expand(List<StatementSyntax> result, UsingStatementSyntax usingStatement)
         {
             // First, convert the using-statement into a using-declaration.
             result.Add(Convert(usingStatement));
@@ -115,19 +104,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 case BlockSyntax blockSyntax:
                     // if we hit a block, then inline all the statements in the block into
                     // the final list of statements.
+
+                    var closingBrace = blockSyntax.GetLastToken();
+                    var trivia = closingBrace.LeadingTrivia.Insert(0, SyntaxFactory.EndOfLine(Environment.NewLine));
+
                     result.AddRange(blockSyntax.Statements);
-                    return;
+                    return trivia;
                 case UsingStatementSyntax childUsing when childUsing.Declaration != null:
                     // If we have a directly nested using-statement, then recurse into that
                     // expanding it and handle its children as well.
-                    Expand(result, childUsing);
-                    return;
+                    return Expand(result, childUsing);
                 case StatementSyntax anythingElse:
                     // Any other statement should be untouched and just be placed next in the
                     // final list of statements.
                     result.Add(anythingElse);
-                    return;
+                    return new SyntaxTriviaList();
             }
+            return new SyntaxTriviaList();
         }
 
         private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
