@@ -35,12 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private RoslynServices? _lazyRoslynServices;
 
-        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
-            : this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
-        {
-        }
-
-        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter> jsonConverters)
+        // Used by Razor: https://github.com/aspnet/AspNetCore-Tooling/blob/master/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/RazorServiceBase.cs
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
             : base(serviceProvider, stream, jsonConverters)
         {
         }
@@ -99,18 +95,12 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        private readonly JsonRpc _rpc;
-
+        protected readonly RemoteEndPoint EndPoint;
         protected readonly int InstanceId;
-
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
 
-        private bool _disposed;
-
-        protected event EventHandler? Disconnected;
-
-        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter> jsonConverters)
+        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
@@ -120,53 +110,17 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
-            // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
-            // all sub type must explicitly start JsonRpc once everything is
-            // setup. 
-            // we also wires given json converters when creating JsonRpc so that razor or SBD can register
-            // their own converter when they create their own service
-            _rpc = stream.CreateStreamJsonRpc(target: this, Logger, jsonConverters);
-            _rpc.Disconnected += OnRpcDisconnected;
+            // invoke all calls incoming over the stream on this service instance:
+            EndPoint = new RemoteEndPoint(stream, Logger, incomingCallTarget: this, jsonConverters);
         }
 
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
-        protected bool IsDisposed => _rpc.IsDisposed;
+        protected bool IsDisposed => EndPoint.IsDisposed;
 
         protected void StartService()
         {
-            _rpc.StartListening();
-        }
-
-        protected Task<TResult> InvokeAsync<TResult>(string targetName, CancellationToken cancellationToken)
-        {
-            return InvokeAsync<TResult>(targetName, SpecializedCollections.EmptyReadOnlyList<object>(), cancellationToken);
-        }
-
-        protected Task<TResult> InvokeAsync<TResult>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-        {
-            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments?.AsArray(), cancellationToken);
-        }
-
-        protected Task<TResult> InvokeAsync<TResult>(string targetName, IReadOnlyList<object> arguments,
-            Func<Stream, CancellationToken, TResult> funcWithDirectStream, CancellationToken cancellationToken)
-        {
-            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStream, cancellationToken);
-        }
-
-        protected Task InvokeAsync(string targetName, CancellationToken cancellationToken)
-        {
-            return InvokeAsync(targetName, arguments: null, cancellationToken);
-        }
-
-        protected Task InvokeAsync(string targetName, IReadOnlyList<object>? arguments, CancellationToken cancellationToken)
-        {
-            return _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            // do nothing here
+            EndPoint.StartListening();
         }
 
         protected void LogError(string message)
@@ -176,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
-            if (_disposed)
+            if (IsDisposed)
             {
                 // guard us from double disposing. this can happen in unit test
                 // due to how we create test mock service hub stream that tied to
@@ -184,10 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            _disposed = true;
-            _rpc.Dispose();
-
-            Dispose(disposing: true);
+            EndPoint.Dispose();
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
         }
@@ -195,25 +146,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void Log(TraceEventType errorType, string message)
         {
             Logger.TraceEvent(errorType, 0, $"{DebugInstanceString} : " + message);
-        }
-
-        private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
-        {
-            Disconnected?.Invoke(this, EventArgs.Empty);
-
-            // either service naturally went away since nobody is using 
-            // or the other side closed the connection such as closing VS
-            if (e.Reason != DisconnectedReason.LocallyDisposed &&
-                e.Reason != DisconnectedReason.RemotePartyTerminated)
-            {
-                // we no longer close connection forcefully. so connection shouldn't go away 
-                // in normal situation. if it happens, log why it did in more detail.
-                LogError($@"Client stream disconnected unexpectedly: 
-{nameof(e.Description)}: {e.Description}
-{nameof(e.Reason)}: {e.Reason}
-{nameof(e.LastMessage)}: {e.LastMessage}
-{nameof(e.Exception)}: {e.Exception?.ToString()}");
-            }
         }
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)

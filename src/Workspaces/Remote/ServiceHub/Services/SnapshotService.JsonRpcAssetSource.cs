@@ -40,9 +40,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         return await _owner.RunServiceAsync(() =>
                         {
-                            return _owner.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                            return _owner.EndPoint.InvokeAsync(
+                                WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                                 new object[] { scopeId, checksums.ToArray() },
-                                (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c), cancellationToken);
+                                (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c),
+                                cancellationToken);
+
                         }, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception ex) when (ReportUnlessCanceled(ex))
@@ -58,8 +61,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     return await _owner.RunServiceAsync(() =>
                     {
-                        return _owner.InvokeAsync<bool>(WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync,
-                            new object[] { experimentName }, cancellationToken);
+                        return _owner.EndPoint.InvokeAsync<bool>(
+                            WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync,
+                            new object[] { experimentName },
+                            cancellationToken);
+
                     }, cancellationToken).ConfigureAwait(false);
                 }
             }

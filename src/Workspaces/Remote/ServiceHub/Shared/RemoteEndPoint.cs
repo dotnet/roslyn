@@ -122,6 +122,22 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public Task<TResult> InvokeAsync<TResult>(
+            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, TResult> funcWithDirectStream, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(_startedListening);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStream, cancellationToken);
+            }
+            catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
+            {
+                throw CreateSoftCrashException(ex, cancellationToken);
+            }
+        }
+
         // these are for debugging purpose. once we find out root cause of the issue
         // we will remove these.
         private static JsonRpcDisconnectedEventArgs? s_debuggingLastDisconnectReason;
@@ -194,7 +210,8 @@ namespace Microsoft.CodeAnalysis.Remote
             _debuggingLastDisconnectReason = e;
             _debuggingLastDisconnectCallstack = new StackTrace().ToString();
 
-            if (e.Reason != DisconnectedReason.LocallyDisposed)
+            if (e.Reason != DisconnectedReason.LocallyDisposed &&
+                e.Reason != DisconnectedReason.RemotePartyTerminated)
             {
                 // log when this happens
                 LogDisconnectInfo(e, new StackTrace().ToString());
