@@ -17,6 +17,19 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
         }
 
+        protected override void InitializeWorker(AnalysisContext context)
+        {
+            base.InitializeWorker(context);
+            context.RegisterOperationAction(AnalyzeSwitchOperation, OperationKind.Switch);
+        }
+
+
+        private void AnalyzeSwitchOperation(OperationAnalysisContext context)
+        {
+            var syntax = context.Operation.Syntax;
+            ;
+        }
+
         protected sealed override OperationKind OperationKind => OperationKind.SwitchExpression;
 
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
