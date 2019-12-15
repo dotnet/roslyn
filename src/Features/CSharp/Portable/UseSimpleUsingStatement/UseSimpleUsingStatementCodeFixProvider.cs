@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -47,9 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
             var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
 
+            // Process blocks in reverse order so we rewrite from inside-to-outside with nested
+            // usings.d
             var root = editor.OriginalRoot;
             var updatedRoot = root.ReplaceNodes(
-                blocks,
+                blocks.OrderByDescending(b => b.SpanStart),
                 (original, current) => RewriteBlock(original, current, topmostUsingStatements));
 
             editor.ReplaceNode(root, updatedRoot);
@@ -82,14 +85,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         private static IEnumerable<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
         {
             var result = new List<StatementSyntax>();
-            var trivia = Expand(result, usingStatement);
+            var remainingTrivia = Expand(result, usingStatement);
+
+            if (remainingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+            {
+                var lastStatement = result[result.Count - 1];
+                result[result.Count - 1] = lastStatement.WithAppendedTrailingTrivia(
+                    remainingTrivia.Insert(0, CSharpSyntaxFactsService.Instance.ElasticCarriageReturnLineFeed));
+            }
 
             for (int i = 0, n = result.Count; i < n; i++)
             {
-                if(i == result.Count - 1) // if this is the last statement in the block add any trivia present in the block
-                    result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation).WithTrailingTrivia(trivia);
-                else
-                    result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
+                result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
             }
 
             return result;
@@ -104,12 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 case BlockSyntax blockSyntax:
                     // if we hit a block, then inline all the statements in the block into
                     // the final list of statements.
-
-                    var closingBrace = blockSyntax.GetLastToken();
-                    var trivia = closingBrace.LeadingTrivia.Insert(0, SyntaxFactory.EndOfLine(Environment.NewLine));
-
                     result.AddRange(blockSyntax.Statements);
-                    return trivia;
+                    return blockSyntax.CloseBraceToken.LeadingTrivia;
                 case UsingStatementSyntax childUsing when childUsing.Declaration != null:
                     // If we have a directly nested using-statement, then recurse into that
                     // expanding it and handle its children as well.
@@ -118,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     // Any other statement should be untouched and just be placed next in the
                     // final list of statements.
                     result.Add(anythingElse);
-                    return new SyntaxTriviaList();
+                    return default;
             }
-            return new SyntaxTriviaList();
+            return default;
         }
 
         private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
