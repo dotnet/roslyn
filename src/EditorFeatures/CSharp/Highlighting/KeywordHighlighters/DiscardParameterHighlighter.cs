@@ -13,52 +13,34 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Highlighting.KeywordHighlighters
 {
     [ExportHighlighter(LanguageNames.CSharp)]
-    internal class DiscardParameterHighlighter : AbstractKeywordHighlighter
+    internal class DiscardParameterHighlighter : AbstractKeywordHighlighter<ArgumentSyntax>
     {
         [ImportingConstructor]
         public DiscardParameterHighlighter()
         {
         }
 
-        protected override bool IsHighlightableNode(SyntaxNode node)
+        protected override IEnumerable<TextSpan> GetHighlights(ArgumentSyntax node, CancellationToken cancellationToken)
         {
-            if (!node.IsKind(CodeAnalysis.CSharp.SyntaxKind.Argument) || !(node is ArgumentSyntax syntax))
+            if (node.Expression.IsKind(SyntaxKind.IdentifierName))
             {
-                return false;
+                var syntax = (IdentifierNameSyntax)node.Expression;
+
+                if(syntax.Identifier.Text == "_")
+                {
+                    return ImmutableArray.Create(syntax.Identifier.Span);
+                }
             }
 
-            if (!syntax.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
+            if (node.Expression.IsKind(SyntaxKind.DeclarationExpression))
             {
-                return false;
+                var syntax = (DeclarationExpressionSyntax)node.Expression;
+
+                if (syntax.Designation.IsKind(SyntaxKind.DiscardDesignation))
+                {
+                    return ImmutableArray.Create(syntax.Designation.Span);
+                }
             }
-
-            if (syntax.Expression.IsKind(SyntaxKind.IdentifierName) && syntax.Expression is IdentifierNameSyntax name)
-            {
-                return name.Identifier.Text == "_";
-            }
-
-            if (syntax.Expression.IsKind(SyntaxKind.DeclarationExpression) && syntax.Expression is DeclarationExpressionSyntax declaration)
-            {
-                return declaration.Designation.IsKind(SyntaxKind.DiscardDesignation);
-            }
-
-            return false;
-        }
-
-        protected override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var argument = (ArgumentSyntax)node;
-
-            if (argument.Expression.IsKind(SyntaxKind.IdentifierName))
-            {
-                return ImmutableArray.Create(((IdentifierNameSyntax)argument.Expression).Identifier.Span);
-            }
-
-            if (argument.Expression.IsKind(SyntaxKind.DeclarationExpression))
-            {
-                return ImmutableArray.Create(((DeclarationExpressionSyntax)argument.Expression).Designation.Span);
-            }
-
 
             return SpecializedCollections.EmptyEnumerable<TextSpan>();
         }
