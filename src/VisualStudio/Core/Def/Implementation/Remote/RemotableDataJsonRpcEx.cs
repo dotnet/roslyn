@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -25,23 +27,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// 
     /// all connection will share one remotable data channel
     /// </summary>
-    internal sealed class RemotableDataJsonRpc : JsonRpcEx
+    internal sealed class RemotableDataJsonRpc : IDisposable
     {
+        private readonly Workspace _workspace;
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _shutdownCancellationSource;
+        private readonly RemoteEndPoint _endPoint;
 
-        public RemotableDataJsonRpc(Workspace workspace, TraceSource logger, Stream stream)
-            : base(workspace, logger, stream, callbackTarget: null, useThisAsCallback: true)
+        public RemotableDataJsonRpc(Workspace workspace, TraceSource logger, Stream snapshotServiceStream)
         {
-            _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
+            _workspace = workspace;
+            _remotableDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
 
             _shutdownCancellationSource = new CancellationTokenSource();
 
-            StartListening();
+            _endPoint = new RemoteEndPoint(snapshotServiceStream, logger, incomingCallTarget: this);
+            _endPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
+            _endPoint.Disconnected += Disconnected;
+            _endPoint.StartListening();
+        }
+
+        private void UnexpectedExceptionThrown(Exception exception)
+            => RemoteHostCrashInfoBar.ShowInfoBar(_workspace, exception);
+
+        private void Disconnected(JsonRpcDisconnectedEventArgs e)
+        {
+            _shutdownCancellationSource.Cancel();
+        }
+
+        public void Dispose()
+        {
+            _endPoint.Disconnected -= Disconnected;
+            _endPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
+            _endPoint.Dispose();
         }
 
         /// <summary>
-        /// this is callback from remote host side to get asset associated with checksum from VS.
+        /// Called remotely: <see cref="WellKnownServiceHubServices.AssetService_RequestAssetAsync"/>.
         /// </summary>
         public async Task RequestAssetAsync(int scopeId, Checksum[] checksums, string streamName, CancellationToken cancellationToken)
         {
@@ -68,9 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
+        /// <summary>
+        /// Called remotely: <see cref="WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync"/>.
+        /// </summary>
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken _)
         {
-            return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            return Task.FromResult(_workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
         }
 
         private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
@@ -89,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             // log the exception
-            LogError("unexpected exception from RequestAsset: " + ex.ToString());
+            _endPoint.LogError("unexpected exception from RequestAsset: " + ex.ToString());
 
             // report NFW
             ex.ReportServiceHubNFW("RequestAssetFailed");
@@ -143,19 +168,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 await remotableData.WriteObjectToAsync(writer, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        protected override void Disconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            // we don't expect OOP side to disconnect the connection. 
-            // Host (VS) always initiate or disconnect the connection.
-            if (e.Reason != DisconnectedReason.LocallyDisposed)
-            {
-                // log when this happens
-                LogDisconnectInfo(e, new StackTrace().ToString());
-            }
-
-            _shutdownCancellationSource.Cancel();
         }
     }
 }

@@ -8,57 +8,61 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Remote;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
-namespace Microsoft.VisualStudio.LanguageServices.Remote
+namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
     /// Helper type that abstract out JsonRpc communication with extra capability of
     /// using raw stream to move over big chunk of data
     /// </summary>
-    internal abstract class JsonRpcEx : IDisposable
+    internal sealed class RemoteEndPoint : IDisposable
     {
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
 
+        private bool _startedListening;
         private JsonRpcDisconnectedEventArgs? _debuggingLastDisconnectReason;
         private string? _debuggingLastDisconnectCallstack;
 
-        public JsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object? callbackTarget, bool useThisAsCallback)
+        public event Action<JsonRpcDisconnectedEventArgs>? Disconnected;
+        public event Action<Exception>? UnexpectedExceptionThrown;
+
+        public RemoteEndPoint(Stream stream, TraceSource logger, object? incomingCallTarget, IEnumerable<JsonConverter>? jsonConverters = null)
         {
-            RoslynDebug.Assert(workspace != null);
-            RoslynDebug.Assert(logger != null);
             RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(logger != null);
 
-            var target = useThisAsCallback ? this : callbackTarget;
-
-            Workspace = workspace;
             _logger = logger;
 
-            _rpc = stream.CreateStreamJsonRpc(target, logger);
+            _rpc = stream.CreateStreamJsonRpc(incomingCallTarget, logger, jsonConverters);
             _rpc.Disconnected += OnDisconnected;
         }
 
-        public Workspace Workspace
+        /// <summary>
+        /// Must be called before any communication commences.
+        /// See https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950.
+        /// </summary>
+        public void StartListening()
         {
-            get;
+            _rpc.StartListening();
+            _startedListening = true;
         }
 
-        protected virtual void Disconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            // do nothing
-        }
+        public bool IsDisposed
+            => _rpc.IsDisposed;
 
         public void Dispose()
         {
+            _rpc.Disconnected -= OnDisconnected;
             _rpc.Dispose();
         }
 
         public async Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(_startedListening);
             cancellationToken.ThrowIfCancellationRequested();
 
             try
@@ -73,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(_startedListening);
             cancellationToken.ThrowIfCancellationRequested();
 
             try
@@ -88,6 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public async Task InvokeAsync(
             string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(_startedListening);
             cancellationToken.ThrowIfCancellationRequested();
 
             try
@@ -103,6 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public async Task<T> InvokeAsync<T>(
             string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(_startedListening);
             cancellationToken.ThrowIfCancellationRequested();
 
             try
@@ -143,7 +150,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)
         {
-
             // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
             // we decided to do soft crash where we show info bar to users saying "VS got corrupted and users should save
             // their works and close VS"
@@ -151,7 +157,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             cancellationToken.ThrowIfCancellationRequested();
 
             LogError($"exception: {ex.ToString()}");
-            RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
+
+            UnexpectedExceptionThrown?.Invoke(ex);
 
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);
@@ -160,23 +167,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return new SoftCrashException("remote host call failed", ex, cancellationToken);
         }
 
-        protected void StartListening()
-        {
-            // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
-            // _rpc need to be explicitly started
-            _rpc.StartListening();
-        }
-
-        protected void LogError(string message)
+        public void LogError(string message)
         {
             _logger.TraceEvent(TraceEventType.Error, 1, message);
         }
 
-        protected void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e, string? callstack)
+        private void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e, string? callstack)
         {
             if (e != null)
             {
-                LogError($"disconnect exception: {e.Description}, {e.Reason}, {e.LastMessage}, {e.Exception?.ToString()}");
+                LogError($@"Stream disconnected unexpectedly: 
+{nameof(e.Description)}: {e.Description}
+{nameof(e.Reason)}: {e.Reason}
+{nameof(e.LastMessage)}: {e.LastMessage}
+{nameof(e.Exception)}: {e.Exception?.ToString()}");
             }
 
             if (callstack != null)
@@ -190,8 +194,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _debuggingLastDisconnectReason = e;
             _debuggingLastDisconnectCallstack = new StackTrace().ToString();
 
-            // tell we got disconnected
-            Disconnected(e);
+            if (e.Reason != DisconnectedReason.LocallyDisposed)
+            {
+                // log when this happens
+                LogDisconnectInfo(e, new StackTrace().ToString());
+            }
+
+            Disconnected?.Invoke(e);
         }
     }
 }

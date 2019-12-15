@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Roslyn.Utilities;
@@ -18,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly HubClient _hubClient;
             private readonly HostGroup _hostGroup;
+            private readonly Workspace _workspace;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
@@ -33,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private bool _isDisposed;
 
             public ConnectionManager(
+                Workspace workspace,
                 HubClient hubClient,
                 HostGroup hostGroup,
                 bool enableConnectionPool,
@@ -41,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
+                _workspace = workspace;
 
                 _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;
@@ -121,9 +125,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
-                var serviceStream = await RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
+                var serviceStream = await RequestServiceAsync(_workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
-                return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
+                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream, dataRpc);
             }
 
             private void Free(string serviceName, JsonRpcConnection connection)

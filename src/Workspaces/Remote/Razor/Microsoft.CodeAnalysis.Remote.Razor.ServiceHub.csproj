@@ -43,6 +43,9 @@
     <Compile Include="..\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\ServiceHub\Shared\RemoteEndPoint.cs">
+      <Link>Shared\RemoteEndPoint.cs</Link>
+    </Compile>
     <Compile Include="..\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>

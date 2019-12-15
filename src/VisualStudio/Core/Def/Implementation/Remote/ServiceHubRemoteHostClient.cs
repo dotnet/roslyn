@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
 
                 var remotableDataRpc = new RemotableDataJsonRpc(workspace, hubClient.Logger, snapshotServiceStream);
-                var connectionManager = new ConnectionManager(hubClient, hostGroup, enableConnectionPool, maxConnection, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
 
                 var client = new ServiceHubRemoteHostClient(workspace, hubClient.Logger, connectionManager, remoteHostStream);
 
