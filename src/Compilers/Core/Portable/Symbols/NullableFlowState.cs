@@ -26,6 +26,12 @@ namespace Microsoft.CodeAnalysis
 
     internal static class NullableFlowStateExtensions
     {
+        /// <summary>
+        /// This method directly converts a <see cref="NullableFlowState"/> to a <see cref="NullableAnnotation"/>,
+        /// ignoring the <see cref="ITypeSymbol"/> to which it is attached. It should only be used when converting
+        /// an RValue flow state to an RValue annotation for returning via the public API. For general use, please
+        /// use Microsoft.CodeAnalysis.CSharp.Symbols.TypeWithState.ToTypeWithAnnotations.
+        /// </summary>
         public static NullableAnnotation ToAnnotation(this NullableFlowState nullableFlowState)
         {
             switch (nullableFlowState)
