@@ -22,24 +22,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Highlighting.KeywordHighlighters
 
         protected override IEnumerable<TextSpan> GetHighlights(ArgumentSyntax node, CancellationToken cancellationToken)
         {
-            if (node.Expression.IsKind(SyntaxKind.IdentifierName))
+            if (node.Expression is IdentifierNameSyntax nameSyntax
+                && nameSyntax.Identifier.Text == "_")
             {
-                var syntax = (IdentifierNameSyntax)node.Expression;
-
-                if (syntax.Identifier.Text == "_")
-                {
-                    return ImmutableArray.Create(syntax.Identifier.Span);
-                }
+                return ImmutableArray.Create(nameSyntax.Identifier.Span);
             }
 
-            if (node.Expression.IsKind(SyntaxKind.DeclarationExpression))
+            if (node.Expression is DeclarationExpressionSyntax declarationSyntax
+                && declarationSyntax.Designation.IsKind(SyntaxKind.DiscardDesignation))
             {
-                var syntax = (DeclarationExpressionSyntax)node.Expression;
-
-                if (syntax.Designation.IsKind(SyntaxKind.DiscardDesignation))
-                {
-                    return ImmutableArray.Create(syntax.Designation.Span);
-                }
+                return ImmutableArray.Create(declarationSyntax.Designation.Span);
             }
 
             return SpecializedCollections.EmptyEnumerable<TextSpan>();
