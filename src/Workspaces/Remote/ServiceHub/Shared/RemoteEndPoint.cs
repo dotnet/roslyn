@@ -147,8 +147,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return true;
+                // let cancellation exception thru if they are associated with our cancellation token
+                return false;
             }
+
+            _logger.TraceEvent(TraceEventType.Error, 1, ex.ToString());
 
             s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
             s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;

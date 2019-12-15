@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Finished
         }
 
-        private readonly JsonRpc _rpc;
+        private readonly RemoteEndPoint _endPoint;
         private readonly ConnectionManager _connectionManager;
         private readonly CancellationTokenSource _shutdownCancellationTokenSource;
 
@@ -54,13 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _connectionManager = connectionManager;
 
-            _rpc = stream.CreateStreamJsonRpc(target: this, logger);
-
-            // handle disconnected situation
-            _rpc.Disconnected += OnRpcDisconnected;
-
-            _rpc.StartListening();
+            _endPoint = new RemoteEndPoint(stream, logger, incomingCallTarget: this);
+            _endPoint.Disconnected += OnDisconnected;
+            _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
+            _endPoint.StartListening();
         }
+
+        private void OnUnexpectedExceptionThrown(Exception unexpectedException)
+            => RemoteHostCrashInfoBar.ShowInfoBar(Workspace, unexpectedException);
 
         public static async Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
@@ -91,17 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 try
                 {
                     // make sure connection is done right
-                    _ = await client._rpc.InvokeWithCancellationAsync<string>(
-                        nameof(IRemoteHostService.Connect), new object[] { clientId, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
+                    _ = await client._endPoint.InvokeAsync<string>(
+                        nameof(IRemoteHostService.Connect),
+                        new object[] { clientId, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() },
+                        cancellationToken).ConfigureAwait(false);
 
                     success = true;
-                }
-                catch (Exception e)
-                {
-                    // translate to our own cancellation if it is raised.
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    throw SoftCrash(workspace, hubClient, e, "Failed to connect to ServiceHub", cancellationToken);
                 }
                 finally
                 {
@@ -183,8 +179,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // we don't need the event, otherwise, Disconnected event will be called twice.
             UnregisterGlobalOperationNotifications();
 
-            _rpc.Disconnected -= OnRpcDisconnected;
-            _rpc.Dispose();
+            _endPoint.Disconnected -= OnDisconnected;
+            _endPoint.UnexpectedExceptionThrown -= OnUnexpectedExceptionThrown;
+            _endPoint.Dispose();
 
             _connectionManager.Dispose();
 
@@ -235,26 +232,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             localTask.Wait();
         }
 
-        private async Task RpcInvokeAsync(string targetName, params object[] arguments)
-        {
-            // handle exception gracefully. don't crash VS due to this.
-            // especially on shutdown time. because of pending async BG work such as 
-            // OnGlobalOperationStarted and more, we can get into a situation where either
-            // we are in the middle of call when we are disconnected, or we runs
-            // after shutdown.
-            try
-            {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ReportUnlessCanceled(ex))
-            {
-                if (!_shutdownCancellationTokenSource.IsCancellationRequested)
-                {
-                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
-                }
-            }
-        }
-
         private void OnGlobalOperationStarted(object sender, EventArgs e)
         {
             lock (_globalNotificationsGate)
@@ -272,7 +249,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                await RpcInvokeAsync(nameof(IRemoteHostService.OnGlobalOperationStarted), "").ConfigureAwait(false);
+                await _endPoint.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStarted),
+                    new object[] { "" },
+                    _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
 
                 return GlobalNotificationState.Started;
             }
@@ -295,27 +275,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                await RpcInvokeAsync(nameof(IRemoteHostService.OnGlobalOperationStopped), e.Operations, e.Cancelled).ConfigureAwait(false);
+                await _endPoint.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStopped),
+                    new object[] { e.Operations, e.Cancelled },
+                    _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
 
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
             }
         }
 
-        private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
             Dispose();
-        }
-
-        private bool ReportUnlessCanceled(Exception ex)
-        {
-            if (_shutdownCancellationTokenSource.IsCancellationRequested)
-            {
-                return true;
-            }
-
-            ex.ReportServiceHubNFW("JsonRpc invoke Failed");
-            return true;
         }
     }
 }
