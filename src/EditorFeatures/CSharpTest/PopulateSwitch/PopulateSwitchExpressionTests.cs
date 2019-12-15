@@ -909,7 +909,7 @@ class MyClass
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40399")]
         public async Task AllMissingTokens()
         {
             await TestInRegularAndScriptAsync(
