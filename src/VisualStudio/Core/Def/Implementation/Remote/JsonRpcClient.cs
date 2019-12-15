@@ -47,11 +47,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             get;
         }
 
-        protected abstract void Dispose(bool disposing);
-
         protected virtual void Disconnected(JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
+        }
+
+        public void Dispose()
+        {
+            _rpc.Dispose();
         }
 
         public async Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
@@ -157,11 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return new SoftCrashException("remote host call failed", ex, cancellationToken);
         }
 
-        protected void Disconnect()
-        {
-            _rpc.Dispose();
-        }
-
         protected void StartListening()
         {
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
@@ -194,12 +192,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // tell we got disconnected
             Disconnected(e);
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

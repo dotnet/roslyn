@@ -145,12 +145,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            Contract.ThrowIfFalse(disposing);
-            Disconnect();
-        }
-
         protected override void Disconnected(JsonRpcDisconnectedEventArgs e)
         {
             // we don't expect OOP side to disconnect the connection. 

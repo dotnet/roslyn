@@ -78,12 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 StartListening();
             }
-
-            protected override void Dispose(bool disposing)
-            {
-                Contract.ThrowIfFalse(disposing);
-                Disconnect();
-            }
         }
     }
 }
