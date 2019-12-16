@@ -763,25 +763,25 @@ End Class
         End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestPressingEnter_Indentation5_UseTabs()
             Const code = "
 Class C
-    ''' <summary>
+	''' <summary>
 	'''     hello world$$
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             Const expected = "
 Class C
-    ''' <summary>
+	''' <summary>
 	'''     hello world
 	'''     $$
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             VerifyPressingEnter(code, expected, useTabs:=True)
@@ -1083,25 +1083,25 @@ End Class
         End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineAbove4_Tabs()
             Const code = "
 Class C
 		  ''' <summary>
-    ''' $$stuff
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' $$stuff
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             Const expected = "
 Class C
 		  ''' <summary>
 		  ''' $$
-    ''' stuff
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' stuff
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             VerifyOpenLineAbove(code, expected, useTabs:=True)
@@ -1173,25 +1173,25 @@ End Class
         End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineBelow4_Tabs()
             Const code = "
 Class C
-    ''' <summary>
+	''' <summary>
 		  ''' $$stuff
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             Const expected = "
 Class C
-    ''' <summary>
+	''' <summary>
 		  ''' stuff
 		  ''' $$
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             VerifyOpenLineBelow(code, expected, useTabs:=True)
