@@ -245,14 +245,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return this.SpecifiedLanguageVersion == other.SpecifiedLanguageVersion;
+            return this.SpecifiedLanguageVersion == other.SpecifiedLanguageVersion &&
+                this.ThrowOnInsufficientExecutionStack == other.ThrowOnInsufficientExecutionStack;
         }
 
         public override int GetHashCode()
         {
             return
                 Hash.Combine(base.GetHashCodeHelper(),
-                Hash.Combine((int)this.SpecifiedLanguageVersion, 0));
+                Hash.Combine((int)this.SpecifiedLanguageVersion,
+                Hash.Combine(this.ThrowOnInsufficientExecutionStack, 0)));
         }
     }
 }

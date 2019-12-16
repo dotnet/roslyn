@@ -6483,7 +6483,7 @@ class Test
 
 ");
 
-            var parsedTree = Parse(builder.ToString());
+            var parsedTree = Parse(builder.ToString(), options: TestOptions.Regular.WithThrowOnInsufficientExecutionStack(true));
             var actualErrors = parsedTree.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
@@ -6516,7 +6516,7 @@ class Program
 
             builder.Append(@"} }");
 
-            var parsedTree = Parse(builder.ToString());
+            var parsedTree = Parse(builder.ToString(), options: TestOptions.Regular.WithThrowOnInsufficientExecutionStack(true));
             var actualErrors = parsedTree.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
@@ -6543,7 +6543,7 @@ class Program
 
             builder.Append(@"}");
 
-            var expr = SyntaxFactory.ParseExpression(builder.ToString());
+            var expr = SyntaxFactory.ParseExpression(builder.ToString(), options: TestOptions.Regular.WithThrowOnInsufficientExecutionStack(true));
             var actualErrors = expr.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
@@ -6570,7 +6570,7 @@ class Program
 
             builder.Append(@"}");
 
-            var stmt = SyntaxFactory.ParseStatement(builder.ToString());
+            var stmt = SyntaxFactory.ParseStatement(builder.ToString(), options: TestOptions.Regular.WithThrowOnInsufficientExecutionStack(true));
             var actualErrors = stmt.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);

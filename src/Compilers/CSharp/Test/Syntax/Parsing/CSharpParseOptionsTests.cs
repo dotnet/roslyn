@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols",
-                "SpecifiedLanguageVersion");
+                "SpecifiedLanguageVersion",
+                "ThrowOnInsufficientExecutionStack");
         }
 
         [Fact]
