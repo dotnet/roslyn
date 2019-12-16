@@ -37,13 +37,12 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             foreach (var arm in operation.Arms)
             {
-                if (arm.Pattern is IConstantPatternOperation constantPattern &&
-                    constantPattern.Value is IFieldReferenceOperation)
+                if (arm.Pattern is IConstantPatternOperation constantPattern)
                 {
                     var constantValue = constantPattern.Value.ConstantValue;
                     if (!constantValue.HasValue)
                     {
-                        // We had a case which didn't resolve properly.  
+                        // We had a case which didn't resolve properly.
                         // Assume the switch is complete.
                         return false;
                     }

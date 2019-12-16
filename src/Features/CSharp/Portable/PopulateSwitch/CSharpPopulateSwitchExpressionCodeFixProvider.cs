@@ -5,9 +5,9 @@
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PopulateSwitch;
 
 namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
@@ -31,6 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             => SwitchExpressionArm(ConstantPattern(caseLabel), Exception(generator, compilation));
 
         protected override SwitchExpressionSyntax InsertSwitchArms(SyntaxGenerator generator, SwitchExpressionSyntax switchNode, int insertLocation, List<SwitchExpressionArmSyntax> newArms)
-            => switchNode.WithArms(switchNode.Arms.InsertRange(insertLocation, newArms));
+            => switchNode.WithArms(switchNode.Arms.InsertRangeWithTrailingSeparator(insertLocation, newArms));
     }
 }
