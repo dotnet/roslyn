@@ -6405,6 +6405,31 @@ class C
 }", options: PreferDiscard);
         }
 
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        for (int [|i|] = 0; ; ) 
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        for (; ; ) 
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
         [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NullCoalesceAssignment_01()

@@ -422,7 +422,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             nodesToRemove.Add(variableDeclarator);
 
                             // Local declaration statement containing the declarator might be a candidate for removal if all its variables get marked for removal.
-                            candidateDeclarationStatementsForRemoval.Add(variableDeclarator.GetAncestor<TLocalDeclarationStatementSyntax>());
+                            // The check for null is necessary for cases where the ancestor tree doesn't contain any TLocalDeclarationStatementSyntax nodes.
+                            // This is the case for variables declared inside a ForStatementSyntax' VariableDeclaration.
+                            // The null would lead to a NPE inside syntaxFacts.GetVariablesOfLocalDeclarationStatement later on when ShouldRemoveStatement passes it along.
+                            var ancestor = variableDeclarator.GetAncestor<TLocalDeclarationStatementSyntax>();
+                            if (ancestor != null)
+                            {
+                                candidateDeclarationStatementsForRemoval.Add(ancestor);
+                            }
                         }
                         else
                         {
@@ -633,6 +640,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool ShouldRemoveStatement(TLocalDeclarationStatementSyntax localDeclarationStatement, out SeparatedSyntaxList<SyntaxNode> variables)
             {
                 Debug.Assert(removeAssignments);
+                Debug.Assert(localDeclarationStatement != null, "We should never get a null here.");
 
                 // We should remove the entire local declaration statement if all its variables are marked for removal.
                 variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
