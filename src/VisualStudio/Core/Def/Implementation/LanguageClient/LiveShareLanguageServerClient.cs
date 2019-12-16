@@ -35,17 +35,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
+        /// No additional settings are provided for this server, so we do not need any configuration section names.
         /// </summary>
         public IEnumerable<string>? ConfigurationSections { get; } = null;
 
         /// <summary>
         /// Gets the initialization options object the client wants to send when 'initialize' message is sent.
-        /// This may be null if the client does not need custom initialization options.
+        /// See https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#initialize
+        /// We do not provide any additional initialization options.
         /// </summary>
         public object? InitializationOptions { get; } = null;
 
         /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
+        /// Files that we care about are already provided and watched by the workspace.
         /// </summary>
         public IEnumerable<string>? FilesToWatch { get; } = null;
 
@@ -84,16 +87,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// <summary>
         /// Signals the extension that the language server has been successfully initialized.
         /// </summary>
+        /// <returns>A <see cref="Task"/> which completes when actions that need to be performed when the server is ready are done.</returns>
         public Task OnServerInitializedAsync()
         {
+            // We don't have any tasks that need to be triggered after the server has successfully initialized.
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Signals the extension that the language server failed to initialize.
         /// </summary>
+        /// <returns>A <see cref="Task"/> which completes when additional actions that need to be performed when the server fails to initialize are done.</returns>
         public Task OnServerInitializeFailedAsync(Exception e)
         {
+            // We don't need to provide additional exception handling here, liveshare already handles failure cases for this server.
             return Task.CompletedTask;
         }
     }
