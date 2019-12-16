@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Add_reference_to_0", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
         /// </summary>
@@ -1500,29 +1500,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Interface....
+        ///   Looks up a localized string similar to Extract interface....
         /// </summary>
-        internal static string Extract_Interface {
+        internal static string Extract_interface {
             get {
-                return ResourceManager.GetString("Extract_Interface", resourceCulture);
+                return ResourceManager.GetString("Extract_interface", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method.
+        ///   Looks up a localized string similar to Extract local function.
         /// </summary>
-        internal static string Extract_Method {
+        internal static string Extract_local_function {
             get {
-                return ResourceManager.GetString("Extract_Method", resourceCulture);
+                return ResourceManager.GetString("Extract_local_function", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method + Local.
+        ///   Looks up a localized string similar to Extract method.
         /// </summary>
-        internal static string Extract_Method_plus_Local {
+        internal static string Extract_method {
             get {
-                return ResourceManager.GetString("Extract_Method_plus_Local", resourceCulture);
+                return ResourceManager.GetString("Extract_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract method + local.
+        /// </summary>
+        internal static string Extract_method_plus_local {
+            get {
+                return ResourceManager.GetString("Extract_method_plus_local", resourceCulture);
             }
         }
         
@@ -2558,6 +2567,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_local_function_static {
             get {
                 return ResourceManager.GetString("Make_local_function_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make static.
+        /// </summary>
+        internal static string Make_member_static {
+            get {
+                return ResourceManager.GetString("Make_member_static", resourceCulture);
             }
         }
         
@@ -3888,6 +3906,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_member_is_defined_in_metadata {
             get {
                 return ResourceManager.GetString("The_member_is_defined_in_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selection contains a local function call without its declaration..
+        /// </summary>
+        internal static string The_selection_contains_a_local_function_call_without_its_declaration {
+            get {
+                return ResourceManager.GetString("The_selection_contains_a_local_function_call_without_its_declaration", resourceCulture);
             }
         }
         

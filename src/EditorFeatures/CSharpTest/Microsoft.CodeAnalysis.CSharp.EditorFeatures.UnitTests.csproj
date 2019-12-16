@@ -80,5 +80,9 @@
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationErrors.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationLocation.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Debugging\Resources\*.*" />
+    <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
 </Project>

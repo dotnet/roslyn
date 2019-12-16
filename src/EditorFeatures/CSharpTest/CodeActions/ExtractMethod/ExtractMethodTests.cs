@@ -17,6 +17,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public async Task LocalFuncExtract()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int Testing;
+
+    void M()
+    {
+        local();
+
+        [|NewMethod();|]
+        
+        Testing = 5;
+
+        void local()
+        { }
+    }
+
+    void NewMethod()
+    {
+    }
+}", @"
+class C
+{
+    int Testing;
+
+    void M()
+    {
+        local();
+        {|Rename:NewMethod1|}();
+
+        Testing = 5;
+
+        void local()
+        { }
+    }
+
+    private void NewMethod1()
+    {
+        NewMethod();
+    }
+
+    void NewMethod()
+    {
+    }
+}");
+        }
+
         [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()
@@ -1478,7 +1529,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCall()
         {
-            await TestInRegularAndScriptAsync(@"
+            var code = @"
 class C
 {
     public static void Main()
@@ -1486,18 +1537,33 @@ class C
         void Local() { }
         [|Local();|]
     }
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+        }
+
+        [Fact]
+        public async Task ExtractLocalFunctionCall_2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main()
+    {
+        [|void Local() { }
+        Local();|]
+    }
 }", @"
 class C
 {
     public static void Main()
     {
-        void Local() { }
         {|Rename:NewMethod|}();
     }
 
     private static void NewMethod()
     {
-        {|Warning:Local();|}
+        void Local() { }
+        Local();
     }
 }");
         }
@@ -1506,7 +1572,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
-            await TestInRegularAndScriptAsync(@"
+            var code = @"
 class C
 {
     public static void Main(string[] args)
@@ -1514,20 +1580,8 @@ class C
         bool Local() => args == null;
         [|Local();|]
     }
-}", @"
-class C
-{
-    public static void Main(string[] args)
-    {
-        bool Local() => args == null;
-        {|Rename:NewMethod|}(args);
-    }
-
-    private static void NewMethod(string[] args)
-    {
-        {|Warning:Local();|}
-    }
-}");
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
         }
 
         [Fact]
@@ -1567,9 +1621,9 @@ class C
     public static void Main()
     {
         void Local()
-        {|Warning:{
+        {
             {|Rename:NewMethod|}();
-        }|}
+        }
         Local();
     }
 
@@ -1616,7 +1670,7 @@ class Test
 
     private static int NewMethod(int v, int i)
     {
-        {|Warning:v = v + i;|}
+        v = v + i;
         return v;
     }
 }");
@@ -1650,7 +1704,7 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Warning:v = {|Rename:NewMethod|}(v, i)|};
+                v = {|Rename:NewMethod|}(v, i);
             }
         }
     }
@@ -1690,7 +1744,7 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Warning:i = {|Rename:NewMethod|}(ref v, i)|};
+                i = {|Rename:NewMethod|}(ref v, i);
             }
         }
     }
@@ -3125,6 +3179,116 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
+        {
+            await TestInRegularAndScriptAsync(
+    @"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+    @"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b)
+    {
+        return b != true;
+    }
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSuggestionEnforcement));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39946"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task ExtractLocalFunctionCallAndDeclaration()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public static void Main()
+    {
+        static void LocalParent()
+        {
+            [|void Local() { }
+            Local();|]
+        }
+    }
+}", @"
+class C
+{
+    public static void Main()
+    {
+        static void LocalParent()
+        {
+            {|Rename:NewMethod|}();
+        }
+    }
+
+    private static void NewMethod()
+    {
+        void Local() { }
+        Local();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
+        {
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Local();|]
+        static void Local()
+        {
+        }
+    }
+}";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Local();
+        var test = 5;
+        static void Local()
+        {
+        }|]
+    }
+}", @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private static void NewMethod()
+    {
+        Local();
+        var test = 5;
+        static void Local()
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -3139,9 +3303,9 @@ class C
 @"class C
 {
     void M()
-    {|Warning:{
+    {
         {|Rename:NewMethod|}();
-    }|}
+    }
 
     private static void NewMethod()
     {
@@ -3347,9 +3511,9 @@ class C
 class C
 {
     async Task MyDelay(TimeSpan duration)
-    {|Warning:{
+    {
         await {|Rename:NewMethod|}(duration);
-    }|}
+    }
 
     private static async Task NewMethod(TimeSpan duration)
     {

@@ -964,10 +964,10 @@ class C
         }
         else
         {
-            t1 = default; // 1
+            t1 = default;
         }
 
-        t1.ToString(); // 2
+        t1.ToString(); // 1
 
         if (!(o is T t2))
         {
@@ -977,7 +977,7 @@ class C
         {
             t2.ToString();
         }
-        t2.ToString(); // 3
+        t2.ToString(); // 2
 
         if (!(o is T t3)) return;
         t3.ToString();
@@ -986,14 +986,11 @@ class C
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
-                //             t1 = default; // 1
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(12, 18),
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
-                //         t1.ToString(); // 2
+                //         t1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(15, 9),
                 // (25,9): warning CS8602: Dereference of a possibly null reference.
-                //         t2.ToString(); // 3
+                //         t2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(25, 9)
                 );
         }
@@ -1849,6 +1846,7 @@ class Program
 
         [Fact]
         [WorkItem(34233, "https://github.com/dotnet/roslyn/issues/34233")]
+        [WorkItem(39888, "https://github.com/dotnet/roslyn/issues/39888")]
         public void SwitchExpressionResultType_01()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -1895,8 +1893,8 @@ class Test
 
     void Test7<T>(int i, T x)
     {
-        _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
-        _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
+        _ = i switch { 1 => x, _ => default }/*T:T*/;
+        _ = i switch { 1 => default, _ => x }/*T:T*/;
     }
 }
 
@@ -1923,13 +1921,7 @@ public interface IOut<out T> { }
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(39, 37),
                 // (40,29): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => y, _ => x }/*T:I<string!>!*/; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29),
-                // (45,37): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
-                //         _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(45, 37),
-                // (46,29): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
-                //         _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(46, 29));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29));
         }
     }
 }

@@ -101,7 +101,7 @@
   This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
@@ -861,7 +861,7 @@
     [async] using var x = ..., y = ...;
   -->
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
-    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol?" Null="Allow"/>
     <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
   </Node>
@@ -1267,7 +1267,7 @@
     <!-- Converted switch expression must have a type, even if that's `void` for a statement. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
-    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
   </Node>
 
@@ -1592,7 +1592,7 @@
     Ex: 
      (a:=1, b:= (c:=1, d:=Nothing))  does not have a natural type, because "Nothing" does not have one
     -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
   </Node>
 
   <!-- 
@@ -1604,7 +1604,7 @@
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
     <!-- Original tuple is preserved for the purpose of semantic model.
          When tuples are created as part of lowering, this could be null. -->
-    <Field Name="SourceTuple" Type="BoundTupleLiteral" Null="allow" SkipInVisitor="ExceptNullabilityRewriter" />
+    <Field Name="SourceTuple" Type="BoundTupleLiteral?" Null="allow" SkipInVisitor="ExceptNullabilityRewriter" />
     <Field Name="WasTargetTyped" Type="bool" />
   </Node>
 

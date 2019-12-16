@@ -33,5 +33,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             base.ErrorsDuringMethodBodyEditing();
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WorkItem(39902, "https://github.com/dotnet/roslyn/issues/39902")]
+        public override void ErrorsAfterClosingFile()
+        {
+            base.ErrorsAfterClosingFile();
+        }
     }
 }

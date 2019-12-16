@@ -595,6 +595,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var inferredState = BestTypeInferrer.GetNullableState(resultTypes);
             var resultType = TypeWithState.Create(inferredType, inferredState);
             inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
+            if (resultType.State == NullableFlowState.MaybeDefault)
+            {
+                inferredTypeWithAnnotations = inferredTypeWithAnnotations.AsAnnotated();
+            }
 
             for (int i = 0; i < numSwitchArms; i++)
             {

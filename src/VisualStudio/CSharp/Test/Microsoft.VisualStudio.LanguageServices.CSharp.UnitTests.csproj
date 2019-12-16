@@ -76,22 +76,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
-    <Compile Remove="Debugging\ProximityExpressionsGetterTestFile.cs" />
-    <Compile Update="Debugging\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Debugging\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging</CustomToolNamespace>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
 </Project>

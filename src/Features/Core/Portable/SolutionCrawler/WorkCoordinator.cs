@@ -212,8 +212,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var solution = _registration.Workspace.CurrentSolution;
 
                 // Check if we are only performing backgroung analysis for active file.
-                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Options) == BackgroundAnalysisScope.ActiveFile &&
-                    activeDocumentId != null)
+                if (activeDocumentId != null)
                 {
                     // Change to active document needs to trigger following events in active file analysis scope:
                     //  1. Request analysis for newly active file, similar to a newly opened file.
@@ -223,7 +222,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // As soon as user switches to a source document, we will perform the appropriate analysis callbacks
                     // on the next active document changed event.
                     var activeDocument = solution.GetDocument(activeDocumentId);
-                    if (activeDocument != null)
+                    if (activeDocument != null &&
+                        SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeDocument.Project) == BackgroundAnalysisScope.ActiveFile)
                     {
                         lock (_gate)
                         {
@@ -575,7 +575,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
                     !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
                     !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
-                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
+                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
+                    oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
                 }
@@ -654,7 +655,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     foreach (var document in project.Documents)
                     {
-                        list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, false, EmptyAsyncToken.Instance));
+                        list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
                     }
                 }
 

@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -66,7 +66,7 @@ End Interface");
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -87,7 +87,7 @@ End Class");
     End Sub
 End Class");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -122,7 +122,7 @@ End Class");
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -157,7 +157,7 @@ End Class");
 End Namespace");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 

@@ -4163,7 +4163,7 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
             Assert.Equal(TypeKind.Pointer, type.TypeKind);
             Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)type).PointedAtType.SpecialType);
@@ -4230,7 +4230,7 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
@@ -4268,7 +4268,7 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
@@ -4305,7 +4305,7 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
@@ -4441,7 +4441,7 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
             Assert.Equal(SpecialType.System_Int32, type.SpecialType);
         }

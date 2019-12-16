@@ -317,13 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the element type of this iterator.
         /// </summary>
-        /// <param name="node">Node to report diagnostics, if any, such as "yield statement cannot be used
-        /// inside a lambda expression"</param>
-        /// <param name="diagnostics">Where to place any diagnostics</param>
         /// <returns>Element type of the current iterator, or an error type.</returns>
-        internal virtual TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal virtual TypeWithAnnotations GetIteratorElementType()
         {
-            return Next.GetIteratorElementType(node, diagnostics);
+            return Next.GetIteratorElementType();
         }
 
         /// <summary>

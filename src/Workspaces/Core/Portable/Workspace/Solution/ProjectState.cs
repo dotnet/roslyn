@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ValueSource<AnalyzerConfigSet> _lazyAnalyzerConfigSet;
 
-        // this will be initialized lazily.
-        private AnalyzerOptions? _analyzerOptionsDoNotAccessDirectly;
+        private AnalyzerOptions? _lazyAnalyzerOptions;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -250,19 +249,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public AnalyzerOptions AnalyzerOptions
-        {
-            get
-            {
-                if (_analyzerOptionsDoNotAccessDirectly == null)
-                {
-                    _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(
-                        _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
-                        new WorkspaceAnalyzerConfigOptionsProvider(this));
-                }
-
-                return _analyzerOptionsDoNotAccessDirectly;
-            }
-        }
+            => _lazyAnalyzerOptions ??= new AnalyzerOptions(
+                additionalFiles: _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
+                optionsProvider: new WorkspaceAnalyzerConfigOptionsProvider(this));
 
         public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
         {
@@ -446,13 +435,13 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<DocumentId> AnalyzerConfigDocumentIds => _analyzerConfigDocumentStates.Keys;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
+        public ImmutableSortedDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
+        public ImmutableSortedDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IImmutableDictionary<DocumentId, AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates => _analyzerConfigDocumentStates;
+        public ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates => _analyzerConfigDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
         {

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -113,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             AttachRunningDocTableEvents();
 
             var wpfTextView = _editorAdaptersFactory.GetWpfTextView(vsTextView);
-            var target = new XamlOleCommandTarget(wpfTextView, _editorAdaptersFactory, _serviceProvider);
+            var target = new XamlOleCommandTarget(wpfTextView, (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel)));
             target.AttachToVsTextView();
         }
 

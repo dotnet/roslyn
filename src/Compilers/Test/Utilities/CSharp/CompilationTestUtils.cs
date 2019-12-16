@@ -203,7 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public CandidateReason CandidateReason;
             public ImmutableArray<ISymbol> CandidateSymbols = ImmutableArray.Create<ISymbol>();
             public ITypeSymbol Type;
+            public NullabilityInfo Nullability;
             public ITypeSymbol ConvertedType;
+            public NullabilityInfo ConvertedNullability;
             public Conversion ImplicitConversion = default(Conversion);
             public IAliasSymbol Alias;
             public Optional<object> ConstantValue = default(Optional<object>);
@@ -230,6 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var typeInfo = semanticModel.GetTypeInfo(expr);
                 summary.Type = typeInfo.Type;
                 summary.ConvertedType = typeInfo.ConvertedType;
+                summary.Nullability = typeInfo.Nullability;
+                summary.ConvertedNullability = typeInfo.ConvertedNullability;
                 summary.ImplicitConversion = semanticModel.GetConversion(expr);
                 summary.MemberGroup = semanticModel.GetMemberGroup(expr);
             }
@@ -291,6 +295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var typeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, bindingOption);
                 summary.Type = typeInfo.Type;
                 summary.ConvertedType = typeInfo.ConvertedType;
+                summary.Nullability = typeInfo.Nullability;
+                summary.ConvertedNullability = typeInfo.ConvertedNullability;
                 summary.ImplicitConversion = semanticModel.GetSpeculativeConversion(position, expr, bindingOption);
                 //summary.MethodGroup = semanticModel.GetSpeculativeMethodGroup(expr);
             }

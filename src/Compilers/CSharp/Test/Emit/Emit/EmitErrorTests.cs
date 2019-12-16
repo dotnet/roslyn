@@ -234,8 +234,8 @@ public class B
 
                 result.Diagnostics.Verify(expectedDiagnostics.Concat(new[]
                 {
-                    // error CS7038: Failed to emit module 'Test'.
-                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation2.AssemblyName)
+                    // error CS7038: Failed to emit module 'Test': Unable to determine specific cause of the failure.
+                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation2.AssemblyName, "Unable to determine specific cause of the failure.")
                 }).ToArray());
             }
 
