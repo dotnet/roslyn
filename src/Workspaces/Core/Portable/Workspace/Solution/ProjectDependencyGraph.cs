@@ -35,7 +35,12 @@ namespace Microsoft.CodeAnalysis
 
         internal static readonly ProjectDependencyGraph Empty = new ProjectDependencyGraph(
             ImmutableHashSet<ProjectId>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty);
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            ImmutableArray<ProjectId>.Empty,
+            ImmutableArray<IEnumerable<ProjectId>>.Empty);
 
         internal ProjectDependencyGraph(
             ImmutableHashSet<ProjectId> projectIds,
