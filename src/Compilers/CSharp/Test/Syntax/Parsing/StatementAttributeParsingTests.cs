@@ -14,15 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void AttributeOnBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]{}
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -81,15 +80,14 @@ class C
         [Fact]
         public void AttributeOnEmptyStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A];
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -147,7 +145,7 @@ class C
         [Fact]
         public void AttributeOnLabeledStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -156,8 +154,7 @@ class C
         bar:
             Goo();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -235,7 +232,7 @@ class C
         [Fact]
         public void AttributeOnGotoStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -245,8 +242,7 @@ class C
         bar:
             Goo();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -331,7 +327,7 @@ class C
         [Fact]
         public void AttributeOnBreakStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -342,8 +338,7 @@ class C
             break;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -417,7 +412,7 @@ class C
         [Fact]
         public void AttributeOnContinueStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -428,8 +423,7 @@ class C
             continue;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -503,15 +497,14 @@ class C
         [Fact]
         public void AttributeOnReturn()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]return;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -570,15 +563,14 @@ class C
         [Fact]
         public void AttributeOnThrow()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]throw;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -640,15 +632,14 @@ class C
         [Fact]
         public void AttributeOnYieldReturn()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]yield return 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -715,15 +706,14 @@ class C
         [Fact]
         public void AttributeOnYieldBreak()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]yield return 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -790,15 +780,14 @@ class C
         [Fact]
         public void AttributeOnNakedYield()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]yield
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -866,15 +855,14 @@ class C
         [Fact]
         public void AttributeOnWhileStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]while (true);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -942,15 +930,14 @@ class C
         [Fact]
         public void AttributeOnDoStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]do { } while (true);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1021,15 +1008,14 @@ class C
         [Fact]
         public void AttributeOnForStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]for (;;) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1096,15 +1082,14 @@ class C
         [Fact]
         public void AttributeOnNormalForEachStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string[] vals)
     {
         [A]foreach (var v in vals) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1199,15 +1184,14 @@ class C
         [Fact]
         public void AttributeOnForEachVariableStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo((int, string)[] vals)
     {
         [A]foreach (var (i, s) in vals) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1334,15 +1318,14 @@ class C
         [Fact]
         public void AttributeOnUsingStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]using (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1411,15 +1394,14 @@ class C
         [Fact]
         public void AttributeOnAwaitUsingStatement1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]await using (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1498,15 +1480,14 @@ class C
         [Fact]
         public void AttributeOnAwaitUsingStatement2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     async void Goo()
     {
         [A]await using (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1583,15 +1564,14 @@ class C
         [Fact]
         public void AttributeOnFixedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     unsafe void Goo(int[] vals)
     {
         [A]fixed (int* p = vals) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1703,15 +1683,14 @@ class C
         [Fact]
         public void AttributeOnCheckedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]checked { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1774,15 +1753,14 @@ class C
         [Fact]
         public void AttributeOnCheckedBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         checked [A]{ }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1845,15 +1823,14 @@ class C
         [Fact]
         public void AttributeOnUncheckedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]unchecked { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1916,15 +1893,14 @@ class C
         [Fact]
         public void AttributeOnUnsafeStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]unsafe { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1990,15 +1966,14 @@ class C
         [Fact]
         public void AttributeOnUnsafeBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         unsafe [A]{ }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2088,15 +2063,14 @@ class C
         [Fact]
         public void AttributeOnLockStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]lock (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2165,15 +2139,14 @@ class C
         [Fact]
         public void AttributeOnIfStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]if (true) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2242,15 +2215,14 @@ class C
         [Fact]
         public void AttributeOnSwitchStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]switch (0) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2319,7 +2291,7 @@ class C
         [Fact]
         public void AttributeOnStatementInSwitchSection()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -2330,8 +2302,7 @@ class C
                 [A]return;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2410,7 +2381,7 @@ class C
         [Fact]
         public void AttributeOnStatementAboveCase()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -2422,8 +2393,7 @@ class C
                 return;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2534,7 +2504,7 @@ class C
         [Fact]
         public void AttributeOnStatementAboveDefaultCase()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -2546,8 +2516,7 @@ class C
                 return;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2644,15 +2613,14 @@ class C
         [Fact]
         public void AttributeOnTryStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]try { } finally { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2724,15 +2692,14 @@ class C
         [Fact]
         public void AttributeOnTryBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try [A] { } finally { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2804,15 +2771,14 @@ class C
         [Fact]
         public void AttributeOnFinally()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } [A] finally { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2914,15 +2880,14 @@ class C
         [Fact]
         public void AttributeOnFinallyBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } finally [A] { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2994,15 +2959,14 @@ class C
         [Fact]
         public void AttributeOnCatch()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } [A] catch { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3104,15 +3068,14 @@ class C
         [Fact]
         public void AttributeOnCatchBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } catch [A] { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3184,15 +3147,14 @@ class C
         [Fact]
         public void AttributeOnEmbeddedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         if (true) [A]return;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3261,15 +3223,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousMethod_NoParameters()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]delegate { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3339,15 +3300,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousMethod_NoBody()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]delegate
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3420,15 +3380,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousMethod_Parameters()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]delegate () { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3503,15 +3462,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Lambda_NoParameters()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]() => { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3586,15 +3544,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Lambda_Parameters1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A](int i) => { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3677,15 +3634,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Lambda_Parameters2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]i => { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3759,15 +3715,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousObject()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3834,15 +3789,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ArrayCreation()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new int[] { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3928,15 +3882,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousArrayCreation()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new [] { 0 };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4012,15 +3965,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Assignment()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a = 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4098,15 +4050,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_CompoundAssignment()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a += 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4184,15 +4135,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AwaitExpression_NonAsyncContext()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]await a;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4267,15 +4217,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AwaitExpression_AsyncContext()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     async void Goo()
     {
         [A]await a;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4345,15 +4294,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_BinaryExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a + a;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4434,15 +4382,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_CastExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A](object)a;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4524,15 +4471,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ConditionalAccess()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string a)
     {
         [A]a?.ToString();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4622,15 +4568,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_DefaultExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]default(int);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4701,15 +4646,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_DefaultLiteral()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]default;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4777,15 +4721,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ElementAccess()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string s)
     {
         [A]s[0];
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4873,15 +4816,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ElementBinding()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string s)
     {
         [A]s?[0];
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4973,15 +4915,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Invocation()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]Goo();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5051,15 +4992,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Literal()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5124,15 +5064,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_MemberAccess()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int i)
     {
         [A]i.ToString;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5213,15 +5152,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ObjectCreation_Builtin()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new int();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5292,15 +5230,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ObjectCreation_TypeName()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new System.Int32();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5379,15 +5316,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Parenthesized()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A](1);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5457,15 +5393,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_PostfixUnary()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int i)
     {
         [A]i++;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5539,15 +5474,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_PrefixUnary()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int i)
     {
         [A]++i;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5621,7 +5555,7 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Query()
         {
-            var test = @"
+            var test = UsingTree(@"
 using System.Linq;
 class C
 {
@@ -5629,8 +5563,7 @@ class C
     {
         [A]from c in s select c;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5740,15 +5673,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]a..b;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5847,15 +5779,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]a..;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5947,15 +5878,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range3()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]..b;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6047,15 +5977,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range4()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]..;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6140,15 +6069,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Sizeof()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]sizeof(int);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6219,15 +6147,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_SwitchExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a switch { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6312,15 +6239,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_TypeOf()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]typeof(int);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6391,15 +6317,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int i;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6471,15 +6396,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int i, j;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6559,15 +6483,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember3()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int i = 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6647,15 +6570,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember4()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int this[int i] => 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6787,15 +6709,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember5()
         {
-            var test = @"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]const int i = 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6864,7 +6785,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(tree).GetDiagnostics().Verify(
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]const int i = 0;
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
@@ -7228,15 +7149,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember8()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(System.IAsyncDisposable d)
     {
         [A]await using var i = d;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7340,15 +7260,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember9()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     async void Goo(System.IAsyncDisposable d)
     {
         [A]await using var i = d;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
