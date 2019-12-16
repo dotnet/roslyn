@@ -1,38 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+#nullable enable
+
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SeparatedSyntaxListExtensions
     {
-        private static Tuple<List<T>, List<SyntaxToken>> GetNodesAndSeparators<T>(this SeparatedSyntaxList<T> separatedList) where T : SyntaxNode
+        public static SeparatedSyntaxList<T> InsertRangeWithTrailingSeparator<T>(this SeparatedSyntaxList<T> separatedList, int index, IEnumerable<T> nodes)
+            where T : SyntaxNode
         {
-            Debug.Assert(separatedList.Count == separatedList.SeparatorCount ||
-                              separatedList.Count == separatedList.SeparatorCount + 1);
+            // Could be implemented more efficiently by parameterizing the implementation of SeparatedSyntaxList<>.InsertRange
+            var newList = separatedList.InsertRange(index, nodes);
 
-            var nodes = new List<T>(separatedList.Count);
-            var separators = new List<SyntaxToken>(separatedList.SeparatorCount);
-
-            for (var i = 0; i < separatedList.Count; i++)
+            if (index >= separatedList.Count)
             {
-                nodes.Add(separatedList[i]);
+                var nodesAndTokens = newList.GetWithSeparators();
 
-                if (i < separatedList.SeparatorCount)
+                if (nodesAndTokens.Last().IsNode)
                 {
-                    separators.Add(separatedList.GetSeparator(i));
+                    return SyntaxFactory.SeparatedList<T>(nodesAndTokens.Add(SyntaxFactory.Token(SyntaxKind.CommaToken)));
                 }
             }
 
-            return Tuple.Create(nodes, separators);
+            return newList;
         }
     }
 }
