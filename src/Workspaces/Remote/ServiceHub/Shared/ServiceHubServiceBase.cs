@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
 
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
-            Logger.TraceInformation($"{DebugInstanceString} Service instance created");
+            Logger.TraceInformation($"{DebugInstanceString}: Service instance created");
 
             // invoke all calls incoming over the stream on this service instance:
             EndPoint = new RemoteEndPoint(stream, Logger, incomingCallTarget: this, jsonConverters);
