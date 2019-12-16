@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal class LiveShareLanguageServerClient : ILanguageClient
     {
         private readonly IDiagnosticService _diagnosticService;
-        private readonly IThreadingContext _threadingContext;
         private readonly LanguageServerProtocol _languageServerProtocol;
         private readonly Workspace _workspace;
 
@@ -60,18 +59,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService, IThreadingContext threadingContext)
+        public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
         {
             _languageServerProtocol = languageServerProtocol;
             _workspace = workspace;
             _diagnosticService = diagnosticService;
-            _threadingContext = threadingContext;
         }
 
         public Task<Connection> ActivateAsync(CancellationToken token)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _ = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, _threadingContext);
+            _ = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService);
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
 

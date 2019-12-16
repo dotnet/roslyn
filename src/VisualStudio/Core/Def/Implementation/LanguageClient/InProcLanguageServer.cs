@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,17 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         private readonly IDiagnosticService _diagnosticService;
         private readonly JsonRpc _jsonRpc;
-        private readonly IThreadingContext _threadingContext;
         private readonly LanguageServerProtocol _protocol;
         private readonly Workspace _workspace;
 
         private VSClientCapabilities? _clientCapabilities;
 
-        public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol, Workspace workspace, IDiagnosticService diagnosticService, IThreadingContext threadingContext)
+        public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol, Workspace workspace, IDiagnosticService diagnosticService)
         {
             _protocol = protocol;
             _workspace = workspace;
-            _threadingContext = threadingContext;
 
             _jsonRpc = new JsonRpc(outputStream, inputStream, this);
             _jsonRpc.StartListening();
@@ -67,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     DefinitionProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                     ImplementationProvider = true,
-                    ReferencesProvider = true,
                     SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                     WorkspaceSymbolProvider = true,
                 }
@@ -146,18 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var documentRangeFormattingParams = input.ToObject<DocumentRangeFormattingParams>();
             return _protocol.FormatDocumentRangeAsync(_workspace.CurrentSolution, documentRangeFormattingParams, _clientCapabilities, cancellationToken);
-        }
-
-        /// <summary>
-        /// FAR calls to get third party references (xaml) and to get those references it expectes to be called on the UI thread.
-        /// <see cref="AbstractFindUsagesService.FindReferencesAsync"/>
-        /// </summary>
-        [JsonRpcMethod(Methods.TextDocumentReferencesName)]
-        public async Task<object[]> GetTextDocumentReferencesAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var referenceParams = input.ToObject<ReferenceParams>();
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await _protocol.FindReferencesAsync(_workspace.CurrentSolution, referenceParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName)]

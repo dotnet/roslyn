@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
@@ -10,7 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
-    public class FindAllReferencesHandlerTests : AbstractLanguageServerProtocolTests
+    public class FindAllReferencesHandlerTests : AbstractLiveShareRequestHandlerTests
     {
         [WpfFact]
         public async Task TestFindAllReferencesAsync()
@@ -117,7 +116,7 @@ class B
                 }
             };
 
-            var references = await GetLanguageServer(solution).FindReferencesAsync(solution, request, new LSP.ClientCapabilities(), CancellationToken.None);
+            var references = await TestHandleAsync<LSP.ReferenceParams, object[]>(solution, request);
             return references.Select(o => (LSP.Location)o).ToArray();
         }
     }
