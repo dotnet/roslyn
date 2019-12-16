@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -208,12 +207,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private protected void SetOptions(OptionSet options)
-        {
-            if (_optionService?.SetOptions(options, settingWorkspaceOptions: true) == true)
-            {
-                UpdateCurrentSolutionOnOptionsChanged();
-            }
-        }
+            => _optionService?.SetOptions(options, beforeOptionsChangedEvents: UpdateCurrentSolutionOnOptionsChanged, settingWorkspaceOptions: true);
 
         private void OptionService_BatchOptionsChanged(object sender, BatchOptionsChangedEventArgs e)
         {

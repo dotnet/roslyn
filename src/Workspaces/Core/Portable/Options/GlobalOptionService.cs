@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false)
+        public bool SetOptions(OptionSet optionSet, Action? beforeOptionsChangedEvents = null, bool settingWorkspaceOptions = false)
         {
             var changedOptionKeys = optionSet switch
             {
@@ -267,6 +267,9 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 return false;
             }
+
+            // Invoke the optional delegate provided by the option setter before options changed events are raised.
+            beforeOptionsChangedEvents?.Invoke();
 
             // Outside of the lock, raise the events on our task queue.
             RaiseEvents(changedOptions, settingWorkspaceOptions);

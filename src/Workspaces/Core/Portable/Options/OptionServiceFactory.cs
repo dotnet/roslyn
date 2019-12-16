@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Options
             [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
-            public bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false) => _globalOptionService.SetOptions(optionSet, settingWorkspaceOptions);
+            public bool SetOptions(OptionSet optionSet, Action? beforeOptionsChangedEvents = null, bool settingWorkspaceOptions = false) => _globalOptionService.SetOptions(optionSet, beforeOptionsChangedEvents, settingWorkspaceOptions);
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {

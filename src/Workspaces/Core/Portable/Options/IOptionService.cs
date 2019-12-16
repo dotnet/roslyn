@@ -51,8 +51,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Applies a set of options.
         /// </summary>
+        /// <param name="optionSet">New options to set.</param>
+        /// <param name="beforeOptionsChangedEvents">
+        /// Optional delegate to invoke before option changed event handlers are invoked.
+        /// This delegate will be invoked only if any option changed in the new <paramref name="optionSet"/>.
+        /// </param>
+        /// <param name="settingWorkspaceOptions">Boolean flag indicating if this API is invoked from the workspace options setter.</param>
         /// <returns>True if there was any option change.</returns>
-        bool SetOptions(OptionSet optionSet, bool settingWorkspaceOptions = false);
+        bool SetOptions(OptionSet optionSet, Action? beforeOptionsChangedEvents = null, bool settingWorkspaceOptions = false);
 
         /// <summary>
         /// Returns the set of all registered options.
