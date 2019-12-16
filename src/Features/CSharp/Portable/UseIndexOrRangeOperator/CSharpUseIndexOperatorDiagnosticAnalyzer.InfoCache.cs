@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                         compilation.GetSpecialType(SpecialType.System_Int32),
                         compilation.GetSpecialType(SpecialType.System_Char));
 
-                    _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod, requireIndexMember: false);
+                    _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod);
                 }
             }
 
@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
                 if (IsIntIndexingMethod(methodSymbol))
                 {
-                    memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m, requireIndexMember: true));
+                    memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m));
                 }
 
                 return memberInfo.LengthLikeProperty != null;
             }
 
-            private MemberInfo ComputeMemberInfo(IMethodSymbol method, bool requireIndexMember)
+            private MemberInfo ComputeMemberInfo(IMethodSymbol method)
             {
                 Debug.Assert(IsIntIndexingMethod(method));
 
@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 if (lengthLikeProperty == null)
                 {
                     return default;
-                }
-
-                if (!requireIndexMember)
-                {
-                    return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                 }
 
                 if (method.MethodKind == MethodKind.PropertyGet)
