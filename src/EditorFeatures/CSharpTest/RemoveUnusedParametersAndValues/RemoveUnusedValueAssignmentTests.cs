@@ -6488,6 +6488,64 @@ class C
 }", options: PreferDiscard);
         }
 
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUsedLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            for (int [|i|] = 0; ; )
+            {
+            }
+        };
+        a();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            for (; ; )
+            {
+            }
+        };
+        a();
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUnusedLambda()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            for (int [|i|] = 0; ; )
+            {
+            }
+        };
+    }
+}");
+        }
+
         [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NullCoalesceAssignment_01()
