@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectIds = projectDependencyGraph.GetTopologicallySortedProjects(CancellationToken.None);
 
-            var actualResult = string.Concat(projectIds.Select(id => solution.GetProject(id).AssemblyName));
+            var actualResult = string.Concat(projectIds.Select(id => solution.GetProject(id)!.AssemblyName));
             Assert.Contains<string>(actualResult, expectedResults);
         }
 
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var actualResult = string.Join(" ",
                 projectIds.Select(
                     group => string.Concat(
-                        group.Select(p => solution.GetProject(p).AssemblyName).OrderBy(n => n))).OrderBy(n => n));
+                        group.Select(p => solution.GetProject(p)!.AssemblyName).OrderBy(n => n))).OrderBy(n => n));
             Assert.Equal(expectedResult, actualResult);
         }
 
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var solution = CreateSolutionFromReferenceMap("");
 
             Assert.Throws<ArgumentNullException>("projectId",
-                () => solution.GetProjectDependencyGraph().GetProjectsThatThisProjectDirectlyDependsOn(null));
+                () => solution.GetProjectDependencyGraph().GetProjectsThatThisProjectDirectlyDependsOn(null!));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatThisProjectDirectlyDependsOn(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
+            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
                 actualResults.OrderBy(n => n));
@@ -296,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
+            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
                 actualResults.OrderBy(n => n));
@@ -336,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var solution = CreateSolutionFromReferenceMap("");
 
             Assert.Throws<ArgumentNullException>("projectId",
-                () => solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(null));
+                () => solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(null!));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -403,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
+            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
                 actualResults.OrderBy(n => n));
@@ -415,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
+            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
 
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
@@ -436,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             foreach (var projectDefinition in projectDefinitions)
             {
                 var projectDefinitionParts = projectDefinition.Split(':');
-                string[] referencedProjectNames = null;
+                string[]? referencedProjectNames = null;
 
                 if (projectDefinitionParts.Length == 2)
                 {

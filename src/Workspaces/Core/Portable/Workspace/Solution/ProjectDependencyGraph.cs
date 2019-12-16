@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         private readonly NonReentrantLock _dataLock = new NonReentrantLock();
 
         // These are computed fully on demand. null or ImmutableArray.IsDefault indicates the item needs to be realized
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _lazyReverseReferencesMap;
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? _lazyReverseReferencesMap;
         private ImmutableArray<ProjectId> _lazyTopologicallySortedProjects;
 
         // This is not typed ImmutableArray<ImmutableArray<...>> because GetDependencySets() wants to return
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         private ProjectDependencyGraph(
             ImmutableHashSet<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseReferencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? reverseReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseTransitiveReferencesMap,
             ImmutableArray<ProjectId> topologicallySortedProjects,
@@ -285,7 +288,7 @@ namespace Microsoft.CodeAnalysis
             // of projects. First, let's just compute the new set of transitive references. It's possible while doing so we'll discover that we don't
             // know the transitive project references for one of our new references. In that case, we'll use null as a sentinel to mean "we don't know" and
             // we propagate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
-            var newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
+            HashSet<ProjectId>? newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
 
             foreach (var referencedProjectId in referencedProjectIds)
             {
@@ -626,7 +629,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the list of projects that directly or transitively depend on this project, if it has already been
         /// cached.
         /// </summary>
-        internal bool TryGetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId, out IEnumerable<ProjectId> projects)
+        internal bool TryGetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId, [NotNullWhen(true)] out IEnumerable<ProjectId>? projects)
         {
             if (projectId is null)
             {
