@@ -257,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SmartIndent = nameof(SmartIndent);
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
+            public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
