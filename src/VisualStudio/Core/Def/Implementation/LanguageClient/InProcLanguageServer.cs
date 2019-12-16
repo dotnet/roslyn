@@ -31,15 +31,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol, Workspace workspace, IDiagnosticService diagnosticService, IThreadingContext threadingContext)
         {
-            this._protocol = protocol;
-            this._workspace = workspace;
-            this._threadingContext = threadingContext;
+            _protocol = protocol;
+            _workspace = workspace;
+            _threadingContext = threadingContext;
 
-            this._jsonRpc = new JsonRpc(outputStream, inputStream, this);
-            this._jsonRpc.StartListening();
+            _jsonRpc = new JsonRpc(outputStream, inputStream, this);
+            _jsonRpc.StartListening();
 
-            this._diagnosticService = diagnosticService;
-            this._diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
+            _diagnosticService = diagnosticService;
+            _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
-            this._clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
+            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
 
             return new InitializeResult
             {
@@ -157,21 +157,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var referenceParams = input.ToObject<ReferenceParams>();
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await this._protocol.FindReferencesAsync(_workspace.CurrentSolution, referenceParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+            return await _protocol.FindReferencesAsync(_workspace.CurrentSolution, referenceParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName)]
         public async Task<SignatureHelp> GetTextDocumentSignatureHelpAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
-            return await this._protocol.GetSignatureHelpAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+            return await _protocol.GetSignatureHelpAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         [JsonRpcMethod(Methods.WorkspaceSymbolName)]
         public async Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(JToken input, CancellationToken cancellationToken)
         {
             var workspaceSymbolParams = input.ToObject<WorkspaceSymbolParams>();
-            return await this._protocol.GetWorkspaceSymbolsAsync(_workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
+            return await _protocol.GetWorkspaceSymbolsAsync(_workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods
@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
                     var diagnostics = await GetDiagnosticsAsync(e.Solution, document, CancellationToken.None).ConfigureAwait(false);
                     var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
-                    await this._jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+                    await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private async Task<LanguageServer.Protocol.Diagnostic[]> GetDiagnosticsAsync(Solution solution, Document document, CancellationToken cancellationToken)
         {
-            var diagnostics = this._diagnosticService.GetDiagnostics(solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
+            var diagnostics = _diagnosticService.GetDiagnostics(solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic
