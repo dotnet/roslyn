@@ -25,29 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// Mapping from a method like 'MyType.Get(int)' to the Length/Count property for
             /// 'MyType' as well as the optional 'MyType.Get(System.Index)' member if it exists.
             /// </summary>
-            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
+            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo =
+                new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 
             public InfoCache(Compilation compilation)
             {
                 IndexType = compilation.GetTypeByMetadataName("System.Index");
-
-                _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
-
-                // Always allow using System.Index indexers with System.String.  The compiler has
-                // hard-coded knowledge on how to use this type, even if there is no this[Index]
-                // indexer declared on it directly.
-                //
-                // Ensure that we can actually get the 'string' type. We may fail if there is no
-                // proper mscorlib reference (for example, while a project is loading).
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                if (!stringType.IsErrorType())
-                {
-                    var indexer = GetIndexer(stringType,
-                        compilation.GetSpecialType(SpecialType.System_Int32),
-                        compilation.GetSpecialType(SpecialType.System_Char));
-
-                    _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod);
-                }
             }
 
             public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
