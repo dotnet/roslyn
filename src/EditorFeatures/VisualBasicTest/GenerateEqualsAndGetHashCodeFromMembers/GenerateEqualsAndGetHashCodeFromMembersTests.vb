@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
@@ -464,12 +466,19 @@ index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.Dynam
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestMultipleValuesWithoutValueTuple() As Task
-            Await TestInRegularAndScriptAsync(
-"Class Z
+
+            Await TestInRegularAndScriptAsync("
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferencesWithoutValueTuple=""true"">
+        <Document>
+Class Z
     [|Private a As Integer
     Private b As Integer|]
-End Class",
-"Class Z
+End Class
+        </Document>
+    </Project>
+</Workspace>", "
+Class Z
     Private a As Integer
     Private b As Integer
 
@@ -481,10 +490,15 @@ End Class",
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Return (a, b).GetHashCode()
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        Return hashCode
     End Function
-End Class",
+End Class
+        ",
 index:=1)
+
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
