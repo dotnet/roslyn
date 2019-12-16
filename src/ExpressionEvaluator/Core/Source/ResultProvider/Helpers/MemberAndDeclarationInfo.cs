@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
     }
 
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal struct MemberAndDeclarationInfo
     {
         public static readonly IComparer<MemberAndDeclarationInfo> Comparer = new MemberNameComparer();
@@ -252,66 +251,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return y._inheritanceLevel - x._inheritanceLevel;
                 }
 
-                // Data members come first
-                var xHoldsData = HoldsData(x);
-                var yHoldsData = HoldsData(y);
-                if (xHoldsData && yHoldsData)
+                // Field members come first
+                var xIsField = x.MemberType == MemberTypes.Field;
+                var yIsField = y.MemberType == MemberTypes.Field;
+                if (xIsField && yIsField)
                 {
                     return comp;
                 }
-                if (xHoldsData)
+                if (xIsField)
                 {
                     return -1;
                 }
-                if (yHoldsData)
+                if (yIsField)
                 {
                     return 1;
                 }
 
                 return comp;
-
-                static bool HoldsData(MemberAndDeclarationInfo member)
-                {
-                    if (member.MemberType == MemberTypes.Field)
-                    {
-                        return true;
-                    }
-
-                    if (member._member is PropertyInfo propertyInfo)
-                    {
-                        return IsCompilerGenerated(propertyInfo.GetGetMethod(nonPublic: true)) || IsCompilerGenerated(propertyInfo.GetSetMethod(nonPublic: true));
-                    }
-
-                    if (member._member is EventInfo eventInfo)
-                    {
-                        return IsCompilerGenerated(eventInfo.GetAddMethod()) || IsCompilerGenerated(eventInfo.GetRemoveMethod());
-                    }
-
-                    return false;
-                }
-
-                static bool IsCompilerGenerated(MethodInfo method)
-                {
-                    if (method is null)
-                    {
-                        return false;
-                    }
-
-                    var attributes = method.GetCustomAttributesData();
-                    foreach (var attribute in attributes)
-                    {
-                        if (attribute.Constructor.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor")
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                }
             }
         }
-
-        private string GetDebuggerDisplay()
-            => $"MemberAndDeclarationInfo '{Name}'";
     }
 }
