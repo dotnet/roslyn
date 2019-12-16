@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (destination is TTypeDeclarationSyntax typeDecl)
             {
                 var insertionIndices = GetInsertionIndices(typeDecl, cancellationToken);
+                // We can generate into a containing type as long as there is at least one non-hidden location in it.
                 if (insertionIndices.Contains(true))
                 {
                     return true;
