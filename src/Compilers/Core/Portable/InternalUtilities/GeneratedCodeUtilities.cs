@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -149,7 +147,7 @@ namespace Roslyn.Utilities
 
         internal static bool? GetIsGeneratedCodeFromOptions(ImmutableDictionary<string, string> options)
         {
-            // First check for explicit user configuration for generated code.
+            // Check for explicit user configuration for generated code.
             //     generated_code = true | false
             if (options.TryGetValue("generated_code", out string optionValue) &&
                 bool.TryParse(optionValue, out var boolValue))
@@ -163,7 +161,7 @@ namespace Roslyn.Utilities
 
         internal static bool? GetIsGeneratedCodeFromOptions(AnalyzerConfigOptions options)
         {
-            // First check for explicit user configuration for generated code.
+            // Check for explicit user configuration for generated code.
             //     generated_code = true | false
             if (options.TryGetValue("generated_code", out string optionValue) &&
                 bool.TryParse(optionValue, out var boolValue))
