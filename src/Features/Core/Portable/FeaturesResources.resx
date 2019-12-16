@@ -1753,4 +1753,7 @@ This version used in: {2}</value>
   <data name="Simplify_interpolation" xml:space="preserve">
     <value>Simplify interpolation</value>
   </data>
+  <data name="Make_member_static" xml:space="preserve">
+    <value>Make static</value>
+  </data>
 </root>

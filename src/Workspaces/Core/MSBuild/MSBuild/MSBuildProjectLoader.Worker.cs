@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private partial class Worker
         {
-            private readonly HostWorkspaceServices _workspaceServices;
+            private readonly Workspace _workspace;
             private readonly DiagnosticReporter _diagnosticReporter;
             private readonly PathResolver _pathResolver;
             private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToDiscoveredProjectInfosMap;
 
             public Worker(
-                HostWorkspaceServices services,
+                Workspace workspace,
                 DiagnosticReporter diagnosticReporter,
                 PathResolver pathResolver,
                 ProjectFileLoaderRegistry projectFileLoaderRegistry,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 DiagnosticReportingOptions discoveredProjectOptions,
                 bool preferMetadataForReferencesOfDiscoveredProjects)
             {
-                _workspaceServices = services;
+                _workspace = workspace;
                 _diagnosticReporter = diagnosticReporter;
                 _pathResolver = pathResolver;
                 _projectFileLoaderRegistry = projectFileLoaderRegistry;
@@ -494,13 +494,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private TLanguageService GetLanguageService<TLanguageService>(string languageName)
                 where TLanguageService : ILanguageService
-                => _workspaceServices
+                => _workspace.Services
                     .GetLanguageServices(languageName)
                     .GetService<TLanguageService>();
 
             private TWorkspaceService GetWorkspaceService<TWorkspaceService>()
                 where TWorkspaceService : IWorkspaceService
-                => _workspaceServices
+                => _workspace.Services
                     .GetService<TWorkspaceService>();
         }
     }

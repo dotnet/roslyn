@@ -352,6 +352,11 @@
         <target state="translated">クエリ変数を導入します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
         <target state="translated">readonly フィールドを書き込み可能にします</target>

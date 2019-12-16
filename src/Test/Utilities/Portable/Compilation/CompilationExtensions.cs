@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
             var visitor = TestOperationVisitor.Singleton;
 
             foreach (var root in roots)
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            explictNodeMap.Add(operation.Syntax, operation);
+                            explicitNodeMap.Add(operation.Syntax, operation);
                         }
                         catch (ArgumentException)
                         {

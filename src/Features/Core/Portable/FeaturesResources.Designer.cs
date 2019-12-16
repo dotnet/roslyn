@@ -2580,6 +2580,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make static.
+        /// </summary>
+        internal static string Make_member_static {
+            get {
+                return ResourceManager.GetString("Make_member_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {

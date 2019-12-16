@@ -571,7 +571,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var compilation = binder.Compilation;
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
+#if DEBUG
+                // Always run analysis in debug builds so that we can more reliably catch
+                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
+                diagnostics = new DiagnosticBag();
+#else
                 return;
+#endif
             }
 
             Analyze(
@@ -887,6 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             case ConversionKind.Identity:
+                            case ConversionKind.DefaultLiteral:
                             case ConversionKind.ImplicitReference:
                             case ConversionKind.ExplicitReference:
                             case ConversionKind.ImplicitTupleLiteral:
@@ -1083,25 +1090,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (useLegacyWarnings && isMaybeDefaultValue(valueType))
-            {
-                // No W warning reported assigning or casting [MaybeNull]T value to T
-                // because there is no syntax for declaring the target type as [MaybeNull]T.
-                return;
-            }
-
-            if (value.ConstantValue?.IsNull == true)
+            if (value.ConstantValue?.IsNull == true && !useLegacyWarnings)
             {
                 // Report warning converting null literal to non-nullable reference type.
                 // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
-                if (useLegacyWarnings)
-                {
-                    ReportNonSafetyDiagnostic(location);
-                }
-                else
-                {
-                    ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
-                }
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
             }
             else if (assignmentKind == AssignmentKind.Argument)
             {
@@ -1111,17 +1104,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (useLegacyWarnings)
             {
+                if (isMaybeDefaultValue(valueType))
+                {
+                    // No W warning reported assigning or casting [MaybeNull]T value to T
+                    // because there is no syntax for declaring the target type as [MaybeNull]T.
+                    return;
+                }
                 ReportNonSafetyDiagnostic(location);
-            }
-            else if (assignmentKind == AssignmentKind.ForEachIterationVariable && isMaybeDefaultValue(valueType))
-            {
-                // No warning reported assigning [MaybeNull]T value to foreach iteration variable
-                // because there is no syntax for declaring the variable as [MaybeNull]T.
-                return;
             }
             else
             {
-                ReportDiagnostic(assignmentKind switch { AssignmentKind.Return => ErrorCode.WRN_NullReferenceReturn, AssignmentKind.ForEachIterationVariable => ErrorCode.WRN_NullReferenceIterationVariable, _ => ErrorCode.WRN_NullReferenceAssignment }, location);
+                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, location);
             }
 
             static bool isMaybeDefaultValue(TypeWithState valueType)
@@ -3613,7 +3606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (method is object && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
+            if (!IsAnalyzingAttribute && method is object && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
             {
                 SetUnreachable();
             }
@@ -6997,7 +6990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sourceState,
                                 checkConversion: true,
                                 fromExplicitCast: !conversion.IsImplicit,
-                                useLegacyWarnings: false,
+                                useLegacyWarnings: true,
                                 AssignmentKind.ForEachIterationVariable,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,

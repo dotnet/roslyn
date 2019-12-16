@@ -257,7 +257,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (compiler.GlobalHasErrors OrElse moduleBeingBuiltOpt.SourceModule.HasBadAttributes) AndAlso Not hasDeclarationErrors AndAlso Not diagnostics.HasAnyErrors Then
                     ' If there were errors but no diagnostics, explicitly add
                     ' a "Failed to emit module" error to prevent emitting.
-                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuiltOpt.SourceModule.Name)
+                    Dim messageResourceName = If(compiler.GlobalHasErrors, NameOf(CodeAnalysisResources.UnableToDetermineSpecificCauseOfFailure), NameOf(CodeAnalysisResources.ModuleHasInvalidAttributes))
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuiltOpt.SourceModule.Name,
+                        New LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, GetType(CodeAnalysisResources)))
                 End If
             End If
         End Sub
