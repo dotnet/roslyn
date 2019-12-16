@@ -238,8 +238,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             }
 
             const int ReadOnlyFlags = 0;
-            var dbName = database.GetName();
-            var result = raw.sqlite3_blob_open(_handle, dbName, tableName, columnName, rowId, ReadOnlyFlags, out var blob);
+            var result = raw.sqlite3_blob_open(_handle, database.GetName(), tableName, columnName, rowId, ReadOnlyFlags, out var blob);
             if (result == raw.SQLITE_ERROR)
             {
                 // can happen when rowId points to a row that hasn't been written to yet.
