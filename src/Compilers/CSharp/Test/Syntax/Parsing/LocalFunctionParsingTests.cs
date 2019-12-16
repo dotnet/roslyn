@@ -885,7 +885,13 @@ class C
             }
             EOF();
 
-            tree.GetDiagnostics().Verify(); // TODO: get binding diagnostics
+            CreateCompilation(tree).VerifyDiagnostics(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A] object local;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,20): warning CS0168: The variable 'local' is declared but never used
+                //         [A] object local;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(6, 20));
         }
 
         [Fact]
@@ -964,7 +970,16 @@ class C
             }
             EOF();
 
-            tree.GetDiagnostics().Verify(); // TODO: get binding diagnostics
+            CreateCompilation(tree).VerifyDiagnostics(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,20): warning CS0168: The variable 'local1' is declared but never used
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local1").WithArguments("local1").WithLocation(6, 20),
+                // (6,28): warning CS0168: The variable 'local2' is declared but never used
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local2").WithArguments("local2").WithLocation(6, 28));
         }
 
         [Fact]
