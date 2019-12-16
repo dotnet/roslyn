@@ -609,9 +609,9 @@ class B
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("f", "false", "bool", "o.f", DkmEvaluationResultFlags.Boolean | DkmEvaluationResultFlags.CanFavorite),
                     EvalResult("Name", "Value", "Type", "o.P", DkmEvaluationResultFlags.ReadOnly),
-                    EvalFailedResult("Q", "Function evaluation timed out", "A", "o.Q", DkmEvaluationResultFlags.CanFavorite));
+                    EvalFailedResult("Q", "Function evaluation timed out", "A", "o.Q", DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("f", "false", "bool", "o.f", DkmEvaluationResultFlags.Boolean | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 

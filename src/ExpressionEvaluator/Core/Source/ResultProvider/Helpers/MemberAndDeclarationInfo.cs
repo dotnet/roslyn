@@ -245,24 +245,42 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             public int Compare(MemberAndDeclarationInfo x, MemberAndDeclarationInfo y)
             {
-                var comp = string.Compare(x.Name, y.Name, StringComparison.Ordinal);
+                var xName = x.Name;
+                var yName = y.Name;
+                var comp = string.Compare(xName, yName, StringComparison.Ordinal);
                 if (comp == 0)
                 {
                     return y._inheritanceLevel - x._inheritanceLevel;
                 }
 
-                // Field members come first
-                var xIsField = x.MemberType == MemberTypes.Field;
-                var yIsField = y.MemberType == MemberTypes.Field;
-                if (xIsField && yIsField)
+                // Members with underscore prefix come first
+                var xUnderscore = xName.Length > 0 && xName[0] == '_';
+                var yUnderscore = yName.Length > 0 && yName[0] == '_';
+                if (xUnderscore && yUnderscore)
                 {
                     return comp;
                 }
-                if (xIsField)
+                if (xUnderscore)
                 {
                     return -1;
                 }
-                if (yIsField)
+                if (yUnderscore)
+                {
+                    return 1;
+                }
+
+                // Members with letter+underscore prefix (ie. m_member) come second
+                var xLetterUnderscore = xName.Length > 1 && xName[1] == '_';
+                var yLetterUnderscore = yName.Length > 1 && yName[1] == '_';
+                if (xLetterUnderscore && yLetterUnderscore)
+                {
+                    return comp;
+                }
+                if (xLetterUnderscore)
+                {
+                    return -1;
+                }
+                if (yLetterUnderscore)
                 {
                     return 1;
                 }

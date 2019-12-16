@@ -562,8 +562,8 @@ End Class
             Dim value = CreateDkmClrValue(instanceC, type)
             Dim result = FormatResult("c", value)
             Verify(GetChildren(result),
-                EvalResult("F (A)", "Nothing", "String", "DirectCast(c, A).F"),
                 EvalResult("_F", "0", "Double", "c._F", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F (A)", "Nothing", "String", "DirectCast(c, A).F"),
                 EvalResult("F", "0", "Double", "c.F", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
