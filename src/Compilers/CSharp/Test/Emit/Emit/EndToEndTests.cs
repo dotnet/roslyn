@@ -308,10 +308,10 @@ $@"        if (F({i}))
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 310,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1650,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 570,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 2000,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 500,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 2000,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 750,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 3000,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
@@ -319,29 +319,35 @@ $@"        if (F({i}))
 
             static void runTest(int nestingLevel)
             {
-                const int nCases = 500;
+                const int nCases = 5;
                 var builder = new StringBuilder();
                 builder.AppendLine(
 @"class Program
 {
-    static bool F(int x, y) => true;
+    static int F(int i) => i;
     static void Main()
     {");
                 for (int x = 0; x < nestingLevel; x++)
                 {
-                    for (int y = 0; y < nCases; y++)
-                    {
-                        builder.AppendLine(
-$@"        switch (F({x}, {y}))
+                    builder.AppendLine(
+$@"        switch (F({x}))
         {{");
-                    }
-                }
-                for (int x = 0; x < nestingLevel; x++)
-                {
-                    for (int y = 0; y < nCases; y++)
+                    for (int y = 0; y < x; y++)
                     {
-                        builder.AppendLine("        }");
+                        writeCaseStart(builder, y);
+                        writeCaseEnd(builder);
                     }
+                    writeCaseStart(builder, x);
+                }
+                for (int x = nestingLevel - 1; x >= 0; x--)
+                {
+                    writeCaseEnd(builder);
+                    for (int y = x + 1; y < nCases; y++)
+                    {
+                        writeCaseStart(builder, y);
+                        writeCaseEnd(builder);
+                    }
+                    builder.AppendLine("        }");
                 }
                 builder.AppendLine(
 @"    }
@@ -352,6 +358,15 @@ $@"        switch (F({x}, {y}))
                     var comp = CreateCompilation(source);
                     comp.VerifyDiagnostics();
                 });
+
+                static void writeCaseStart(StringBuilder builder, int i)
+                {
+                    builder.AppendLine($@"        case {i}:");
+                }
+                static void writeCaseEnd(StringBuilder builder)
+                {
+                    builder.AppendLine(@"            break;");
+                }
             }
         }
     }
