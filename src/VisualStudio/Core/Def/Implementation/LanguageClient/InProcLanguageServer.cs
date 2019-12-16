@@ -50,29 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName)]
-        public InitializeResult Initialize(JToken input)
+        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
-
-            return new InitializeResult
-            {
-                Capabilities = new VSServerCapabilities
-                {
-                    DocumentHighlightProvider = true,
-                    DocumentSymbolProvider = true,
-                    DocumentFormattingProvider = true,
-                    DocumentRangeFormattingProvider = true,
-                    DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
-                    DefinitionProvider = true,
-                    CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
-                    ImplementationProvider = true,
-                    SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
-                    WorkspaceSymbolProvider = true,
-                }
-            };
+            return _protocol.InitializeAsync(_workspace.CurrentSolution, null, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
