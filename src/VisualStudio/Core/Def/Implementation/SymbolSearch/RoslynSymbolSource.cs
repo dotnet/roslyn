@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.GoToBase;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,15 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             ServiceProvider = symbolSourceProvider;
         }
 
-        ImageId IDecorated.DisplayIcon => throw new NotImplementedException();
+        public ImageId Icon => default;
 
-        string IDecorated.DescriptionText => ServicesVSResources.Symbol_search_source_description;
+        public string DescriptionText => ServicesVSResources.Symbol_search_source_description;
 
         string INamed.DisplayName => ServicesVSResources.Symbol_search_source_name;
 
         string ISymbolSource.UniqueId => nameof(RoslynSymbolSource);
 
-        public async Task<SymbolSearchStatus> FindSymbolsAsync(string navigationKind, VisualStudio.Language.Intellisense.SymbolSearch.Location sourceLocation, IStreamingSymbolSearchSink sink, CancellationToken token)
+        public async Task<SymbolSearchStatus> FindSymbolsAsync(string navigationKind, VisualStudio.Language.Intellisense.SymbolSearch.Location sourceLocation, ISymbolSearchCallback callback, CancellationToken token)
         {
             // This method is called off the UI thread
             var snapshot = sourceLocation.PersistentSpan.Document.TextBuffer.CurrentSnapshot;
@@ -44,23 +43,25 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 ? string.Format(ServicesVSResources.Symbol_search_known_solution, Path.GetFileNameWithoutExtension(solutionPath))
                 : ServicesVSResources.Symbol_search_current_solution;
 
-            var symbolSearchContext = new SymbolSearchContext(this, sink, rootNodeName);
+            var symbolSearchContext = new SymbolSearchContext(this, callback, rootNodeName, token);
 
             try
             {
                 switch (navigationKind)
                 {
-                    case PredefinedSymbolNavigationKinds.Definition:
+                    case PredefinedNavigationKinds.Definition:
                         {
-                            // This is not supported until after demo on December 10th
+                            // This is not yet supported,
+                            // because Roslyn implementation depends on UI thread.
                             return SymbolSearchStatus.Withheld;
+                            // Existing Roslyn implementation, disabled to not interfere with demos
                             /*
                             var goToDefinitionService = roslynDocument.GetLanguageService<IGoToDefinitionService>();
                             goToDefinitionService.TryGoToDefinition(roslynDocument, sourceLocation.PersistentSpan.Span.GetStartPoint(snapshot).Position, token);
                             return SymbolSearchStatus.Completed;
                             */
                         }
-                    case PredefinedSymbolNavigationKinds.Implementation:
+                    case PredefinedNavigationKinds.Implementation:
                         {
                             var findUsagesService = roslynDocument.GetLanguageService<IFindUsagesService>();
                             var context = new SimpleFindUsagesContext(token);
@@ -68,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                                 .ConfigureAwait(false);
                             return SymbolSearchStatus.Completed;
                         }
-                    case PredefinedSymbolNavigationKinds.Reference:
+                    case PredefinedNavigationKinds.Reference:
                         {
                             var findUsagesService = roslynDocument.GetLanguageService<IFindUsagesService>();
                             var context = new SimpleFindUsagesContext(token);
@@ -76,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                                 .ConfigureAwait(false);
                             return SymbolSearchStatus.Completed;
                         }
-                    case PredefinedSymbolNavigationKinds.Base:
+                    case PredefinedNavigationKinds.Base:
                         {
                             var goToBaseService = roslynDocument.GetLanguageService<IGoToBaseService>();
                             var context = new SimpleFindUsagesContext(token);

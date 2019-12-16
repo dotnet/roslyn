@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         /// <summary>
         /// <see cref="GetOrCreate(ITextBuffer)"/> is capable of returning multiple <see cref="ISymbolSource"/>s,
-        /// and each source can return <see cref="SymbolSearchResult"/>s with varying <see cref="ISymbolOrigin"/>s.
+        /// and each source can return <see cref="SymbolSearchResult"/>s with varying <see cref="SymbolOriginData"/>.
         /// Currently, we are using only <see cref="RoslynSymbolSource"/> 
         /// and will cache the return value of <see cref="GetOrCreate(ITextBuffer)"/> in this variable.
         /// </summary>

@@ -25,15 +25,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private RoslynSymbolSource SourceInternal { get; }
         private string PlainText { get; set; }
 
-        public override ISymbolOrigin Origin { get; }
         public override ISymbolSource Source => SourceInternal;
         public override string Text => PlainText;
+        public override SymbolOriginData Origin { get; }
 
         private RoslynSymbolResult(SymbolSearchContext context)
         {
             this.Context = context;
             this.SourceInternal = context.SymbolSource;
-            this.Origin = context.RootSymbolOrigin;
+            this.Origin = context.LocalOrigin;
         }
 
         internal static async Task<RoslynSymbolResult> MakeAsync(SymbolSearchContext context, DefinitionItem definition, DocumentSpan documentSpan, CancellationToken token)

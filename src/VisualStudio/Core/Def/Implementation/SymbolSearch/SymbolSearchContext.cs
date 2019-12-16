@@ -12,19 +12,19 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     internal class SymbolSearchContext : FindUsagesContext
     {
         internal RoslynSymbolSource SymbolSource { get; }
-        internal LocalCodeSymbolOrigin RootSymbolOrigin { get; }
+        internal SymbolOriginData LocalOrigin { get; }
 
-        private readonly IStreamingSymbolSearchSink SymbolSink;
+        private readonly ISymbolSearchCallback Callback;
         public new readonly CancellationToken CancellationToken;
         private readonly Dictionary<DefinitionItem, RoslynSymbolResult> DefinitionResults = new Dictionary<DefinitionItem, RoslynSymbolResult>();
         private object Gate = new object();
 
-        public SymbolSearchContext(RoslynSymbolSource symbolSource, IStreamingSymbolSearchSink sink, string rootNodeName)
+        public SymbolSearchContext(RoslynSymbolSource symbolSource, ISymbolSearchCallback callback, string rootNodeName, CancellationToken token)
         {
             this.SymbolSource = symbolSource;
-            this.SymbolSink = sink;
-            this.CancellationToken = sink.CancellationToken;
-            this.RootSymbolOrigin = new LocalCodeSymbolOrigin(rootNodeName);
+            this.Callback = callback;
+            this.CancellationToken = token;
+            this.LocalOrigin = new SymbolOriginData(PredefinedSymbolOriginIds.LocalCode, rootNodeName, string.Empty);
         }
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 var result = await RoslynSymbolResult.MakeAsync(this, definition, definition.SourceSpans[0], CancellationToken)
                     .ConfigureAwait(false);
-                this.SymbolSink.Add(result);
+                this.Callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
                 lock (Gate)
                 {
                     this.DefinitionResults.Add(definition, result);
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                         .ConfigureAwait(false);
                     builder.Add(result);
                 }
-                this.SymbolSink.AddRange(builder.ToImmutable());
+                this.Callback.AddRange(builder.ToImmutable());
             }
 
             return;
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var result = await RoslynSymbolResult.MakeAsync(this, reference, reference.SourceSpan, CancellationToken)
                 .ConfigureAwait(false);
-            this.SymbolSink.Add(result);
+            this.Callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
             return;
         }
 
