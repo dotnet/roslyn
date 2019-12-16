@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var storage = _assetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    return new PinnedRemotableDataScope(_assetStorages, storage, checksum);
+                    return PinnedRemotableDataScope.Create(_assetStorages, storage, checksum);
                 }
             }
 
