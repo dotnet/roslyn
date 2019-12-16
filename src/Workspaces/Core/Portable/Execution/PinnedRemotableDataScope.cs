@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 _storage.SolutionState.WorkspaceVersion,
                 solutionChecksum);
 
-            _storages.RegisterSnapshot(this, storage);
+            _storages.RegisterSnapshot(SolutionInfo.ScopeId, storage);
         }
 
         public Workspace Workspace => _storage.SolutionState.Workspace;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Execution
             if (!_disposed)
             {
                 _disposed = true;
-                _storages.UnregisterSnapshot(this);
+                _storages.UnregisterSnapshot(SolutionInfo.ScopeId);
             }
 
             GC.SuppressFinalize(this);
