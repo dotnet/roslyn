@@ -1211,5 +1211,62 @@ class D { }
             var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
             Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
         }
+
+        [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testUsingWorkspaceOptionsSetter)
+        {
+            using var workspace = CreateWorkspace();
+
+            var document = new TestHostDocument("class C { }");
+
+            var project1 = new TestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+
+            var beforeSolution = workspace.CurrentSolution;
+            var optionKey = new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            Assert.Equal(BackgroundAnalysisScope.Default, workspace.Options.GetOption(optionKey));
+
+            // Hook up the option changed event handler.
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            optionService.OptionChanged += OptionService_OptionChanged;
+
+            // Change workspace options
+            if (testUsingWorkspaceOptionsSetter)
+            {
+                workspace.Options = workspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+            }
+            else
+            {
+                var applied = workspace.TryApplyChanges(beforeSolution.WithOptions(beforeSolution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile)));
+                Assert.True(applied);
+            }
+
+            // Verify current solution and option change.
+            VerifyCurrentSolutionAndOptionChange(workspace, beforeSolution);
+
+            optionService.OptionChanged -= OptionService_OptionChanged;
+            return;
+
+            void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                // Verify current solution and option changes happen prior to option changed event handler being invoked.
+                VerifyCurrentSolutionAndOptionChange(workspace, beforeSolution);
+            }
+
+            static void VerifyCurrentSolutionAndOptionChange(Workspace workspace, Solution beforeOptionChangedSolution)
+            {
+                // Verify that workspace.CurrentSolution has been updated with a new solution instance with changed option.
+                var currentSolution = workspace.CurrentSolution;
+                Assert.NotEqual(beforeOptionChangedSolution, currentSolution);
+
+                // Verify workspace.CurrentSolution has changed option.
+                var optionKey = new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+                Assert.Equal(BackgroundAnalysisScope.Default, beforeOptionChangedSolution.Options.GetOption(optionKey));
+                Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentSolution.Options.GetOption(optionKey));
+            }
+        }
     }
 }
