@@ -1356,8 +1356,8 @@ I agree to all of the foregoing:</value>
   <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>C#/Visual Basic Language Server Client</value>
   </data>
-  <data name="LiveShare_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>LiveShare C#/Visual Basic Language Server Client</value>
-    <comment>'LiveShare' is a product name and does not need to be localized.</comment>
+    <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
 </root>

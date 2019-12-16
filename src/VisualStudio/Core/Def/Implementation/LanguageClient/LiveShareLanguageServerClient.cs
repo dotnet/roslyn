@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote;
@@ -32,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
-        public string Name => ServicesVSResources.LiveShare_CSharp_Visual_Basic_Language_Server_Client;
+        public string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
 
         /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
