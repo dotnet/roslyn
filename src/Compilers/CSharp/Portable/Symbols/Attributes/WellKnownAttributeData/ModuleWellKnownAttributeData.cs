@@ -7,26 +7,11 @@ using System.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Information decoded from well-known custom attributes applied on a method.
+    /// Information decoded from well-known custom attributes applied on a module.
     /// </summary>
-    internal sealed class MethodWellKnownAttributeData : CommonMethodWellKnownAttributeData, ISkipLocalsInitAttributeTarget
+    internal sealed class ModuleWellKnownAttributeData : CommonModuleWellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
-        private bool _hasDoesNotReturnAttribute;
-        public bool HasDoesNotReturnAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasDoesNotReturnAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasDoesNotReturnAttribute = value;
-                SetDataStored();
-            }
-        }
-
+        #region SkipLocalsInitAttribute
         private bool _hasSkipLocalsInitAttribute;
         public bool HasSkipLocalsInitAttribute
         {
@@ -42,6 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
-
+        #endregion
     }
 }
