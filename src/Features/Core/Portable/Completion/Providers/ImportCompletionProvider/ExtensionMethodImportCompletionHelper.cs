@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
                         project.Solution,
                         new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue)

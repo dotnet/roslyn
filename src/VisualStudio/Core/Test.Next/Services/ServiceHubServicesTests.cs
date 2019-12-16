@@ -106,6 +106,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
+                    callbackTarget: null,
                     CancellationToken.None);
 
                 // apply change to solution
@@ -134,6 +135,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                     solution,
                     new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
+                    callbackTarget: null,
                     CancellationToken.None);
 
                 Assert.Equal(1, comments.Value.Count);
@@ -157,6 +159,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
                     solution,
                     new[] { solution.Projects.First().DocumentIds.First() },
+                    callbackTarget: null,
                     CancellationToken.None);
 
                 Assert.Equal("Form", result.Value.DesignerAttributeArgument);
@@ -177,6 +180,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     workspace.CurrentSolution,
                     new object[] { new Checksum[0] { } },
+                    callbackTarget: null,
                     CancellationToken.None));
 
                 var storage = client.AssetStorage;
@@ -377,6 +381,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
+                callbackTarget: null,
                 CancellationToken.None));
         }
 

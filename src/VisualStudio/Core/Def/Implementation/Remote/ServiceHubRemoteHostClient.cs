@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// stop prior to hearing about the relevant start).
         /// </summary>
         private readonly object _globalNotificationsGate = new object();
-        private readonly Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
+        private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
         public static async Task<ServiceHubRemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {

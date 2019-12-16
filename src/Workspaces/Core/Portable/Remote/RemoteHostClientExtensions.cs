@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                     solution,
                     new object[] { checksum, solution.WorkspaceVersion },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
         }

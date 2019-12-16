@@ -179,6 +179,7 @@ End Class";
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     workspace.CurrentSolution,
                     new[] { new Checksum[] { asset.Checksum } },
+                    callbackTarget: null,
                     CancellationToken.None));
 
                 // set option
@@ -234,6 +235,7 @@ End Class";
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     workspace.CurrentSolution,
                     new[] { new Checksum[] { asset.Checksum } },
+                    callbackTarget: null,
                     CancellationToken.None));
 
                 // run analysis

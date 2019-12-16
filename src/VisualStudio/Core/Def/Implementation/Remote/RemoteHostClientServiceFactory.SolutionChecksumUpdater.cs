@@ -184,8 +184,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
                     _ = await client.TryRunRemoteAsync(
-                        WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
-                        new object[] { oldDocument.Id, state.Text, textChanges }, CancellationToken).ConfigureAwait(false);
+                        WellKnownRemoteHostServices.RemoteHostService,
+                        nameof(IRemoteHostService.SynchronizeTextAsync),
+                        new object[] { oldDocument.Id, state.Text, textChanges },
+                        callbackTarget: null,
+                        CancellationToken).ConfigureAwait(false);
 
                 }, CancellationToken).CompletesAsyncOperation(token);
             }

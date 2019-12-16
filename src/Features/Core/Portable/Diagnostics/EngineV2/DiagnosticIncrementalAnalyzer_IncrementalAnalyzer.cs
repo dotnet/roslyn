@@ -540,6 +540,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(AnalyzerService), /* unit count */ 1 },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))

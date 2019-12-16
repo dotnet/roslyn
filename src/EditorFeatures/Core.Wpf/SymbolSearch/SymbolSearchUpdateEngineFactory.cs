@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (client != null)
             {
                 var callbackObject = new CallbackObject(logService, progressService);
-                var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, cancellationToken, callbackObject).ConfigureAwait(false);
+                var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
                 if (session != null)
                 {
                     return new RemoteUpdateEngine(workspace, session);

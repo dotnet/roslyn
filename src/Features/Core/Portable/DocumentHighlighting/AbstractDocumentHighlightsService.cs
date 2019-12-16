@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                         position,
                         documentsToSearch.Select(d => d.Id).ToArray()
                     },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)

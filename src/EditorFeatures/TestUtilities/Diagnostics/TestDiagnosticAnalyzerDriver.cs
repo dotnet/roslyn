@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                 workspace.CurrentSolution,
                 new[] { (object)checksums },
+                callbackTarget: null,
                 CancellationToken.None).ConfigureAwait(false);
         }
 

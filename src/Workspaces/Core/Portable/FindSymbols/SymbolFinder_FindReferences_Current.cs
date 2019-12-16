@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 documents?.Select(d => d.Id).ToArray(),
                                 SerializableFindReferencesSearchOptions.Dehydrate(options),
                             },
-                            cancellationToken,
-                            serverCallback).ConfigureAwait(false);
+                            serverCallback,
+                            cancellationToken).ConfigureAwait(false);
 
                         if (success)
                         {

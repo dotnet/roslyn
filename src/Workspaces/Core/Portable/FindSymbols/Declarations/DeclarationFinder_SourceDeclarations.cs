@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                     solution,
                     new object[] { name, ignoreCase, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                     project.Solution,
                     new object[] { project.Id, name, ignoreCase, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
@@ -119,6 +121,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithPatternAsync),
                     solution,
                     new object[] { pattern, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
@@ -152,6 +155,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                     project.Solution,
                     new object[] { project.Id, pattern, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)

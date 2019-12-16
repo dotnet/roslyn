@@ -120,6 +120,7 @@ End Class";
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
+                callbackTarget: null,
                 CancellationToken.None));
         }
 

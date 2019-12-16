@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
                         solution,
                         new object[] { value, typeCode },
-                        cancellationToken,
-                        serverCallback).ConfigureAwait(false);
+                        serverCallback,
+                        cancellationToken).ConfigureAwait(false);
 
                     if (success)
                     {

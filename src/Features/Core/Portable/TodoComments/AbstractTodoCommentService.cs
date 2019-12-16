@@ -51,7 +51,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
                         WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                         document.Project.Solution,
-                        new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
+                        new object[] { document.Id, commentDescriptors },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue)
                     {

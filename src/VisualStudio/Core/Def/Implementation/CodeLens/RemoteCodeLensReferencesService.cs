@@ -42,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                         nameof(IRemoteCodeLensReferencesService.GetReferenceCountAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span, maxSearchResults },
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue)
@@ -88,6 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                         nameof(IRemoteCodeLensReferencesService.FindReferenceMethodsAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue)
@@ -118,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                         nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedName),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue)
@@ -251,6 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     nameof(IRemoteCodeLensReferencesService.FindReferenceLocationsAsync),
                     solution,
                     new object[] { documentId, syntaxNode.Span },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)

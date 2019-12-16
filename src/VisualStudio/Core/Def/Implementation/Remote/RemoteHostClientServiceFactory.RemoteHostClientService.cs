@@ -210,6 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                         _workspace.CurrentSolution,
                         new[] { (object)checksums },
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (success)

@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                     solution,
                     new object[] { project.Id, query.Name, query.Kind, criteria },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)

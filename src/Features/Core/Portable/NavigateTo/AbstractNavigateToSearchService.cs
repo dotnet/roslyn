@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                     solution,
                     new object[] { document.Id, searchPattern, kinds.ToArray() },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                     solution,
                     new object[] { project.Id, priorityDocuments.Select(d => d.Id).ToArray(), searchPattern, kinds.ToArray() },
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)

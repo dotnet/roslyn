@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Creates <see cref="SessionWithSolution"/> for the <paramref name="serviceName"/> if possible, otherwise returns <see langword="null"/>.
         /// </summary>
-        public async Task<SessionWithSolution?> TryCreateSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken, object? callbackTarget = null)
+        public async Task<SessionWithSolution?> TryCreateSessionAsync(string serviceName, Solution solution, object? callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Creates <see cref="KeepAliveSession"/> for the <paramref name="serviceName"/>, otherwise returns <see langword="null"/>.
         /// </summary>
-        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(string serviceName, CancellationToken cancellationToken, object? callbackTarget = null)
+        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, Solution solution,
-            IReadOnlyList<object> arguments, CancellationToken cancellationToken, object? callbackTarget = null)
+            IReadOnlyList<object> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
-            using var session = await TryCreateSessionAsync(serviceName, solution, cancellationToken, callbackTarget).ConfigureAwait(false);
+            using var session = await TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (session == null)
             {
                 return false;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken, object? callbackTarget = null)
+        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, IReadOnlyList<object> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
             using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -152,9 +152,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken, object? callbackTarget = null)
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution solution, IReadOnlyList<object> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
-            using var session = await TryCreateSessionAsync(serviceName, solution, cancellationToken, callbackTarget).ConfigureAwait(false);
+            using var session = await TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (session == null)
             {
                 return default;

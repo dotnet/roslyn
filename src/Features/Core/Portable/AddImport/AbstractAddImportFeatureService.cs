@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                         searchReferenceAssemblies,
                         packageSources
                     },
-                    cancellationToken,
-                    callbackTarget).ConfigureAwait(false);
+                    callbackTarget,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
                 {

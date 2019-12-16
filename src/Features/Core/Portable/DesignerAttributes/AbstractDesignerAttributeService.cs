@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
                         document.Project.Solution,
                         new[] { document.Id },
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue)
