@@ -4728,7 +4728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(tupleType.IsTupleType);
             Debug.Assert(values.Length == types.Length);
-            Debug.Assert(values.Length == (useRestField ? Math.Min(tupleType.TupleElements.Length, NamedTypeSymbol.RestPosition) : tupleType.TupleElements.Length));
+            Debug.Assert(values.Length == (useRestField ? Math.Min(tupleType.TupleElements.Length, NamedTypeSymbol.ValueTupleRestPosition) : tupleType.TupleElements.Length));
 
             if (slot > 0)
             {
@@ -4736,15 +4736,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int n = values.Length;
                 if (useRestField)
                 {
-                    n = Math.Min(n, NamedTypeSymbol.RestPosition - 1);
+                    n = Math.Min(n, NamedTypeSymbol.ValueTupleRestPosition - 1);
                 }
                 for (int i = 0; i < n; i++)
                 {
                     trackState(values[i], tupleElements[i], types[i]);
                 }
-                if (useRestField && values.Length == NamedTypeSymbol.RestPosition)
+                if (useRestField && values.Length == NamedTypeSymbol.ValueTupleRestPosition)
                 {
-                    var restField = tupleType.GetMembers(NamedTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
+                    var restField = tupleType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() as FieldSymbol;
                     if ((object)restField != null)
                     {
                         trackState(values.Last(), restField, types.Last());

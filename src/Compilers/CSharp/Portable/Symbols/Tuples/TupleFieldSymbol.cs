@@ -224,10 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int currentIndex = TupleElementIndex;
             NamedTypeSymbol newUnderlyingOwner = newOwner;
-            while (currentIndex >= NamedTypeSymbol.RestIndex)
+            while (currentIndex >= NamedTypeSymbol.ValueTupleRestIndex)
             {
-                newUnderlyingOwner = (NamedTypeSymbol)newUnderlyingOwner.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.RestIndex].Type;
-                currentIndex -= NamedTypeSymbol.RestIndex;
+                newUnderlyingOwner = (NamedTypeSymbol)newUnderlyingOwner.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.ValueTupleRestIndex].Type;
+                currentIndex -= NamedTypeSymbol.ValueTupleRestIndex;
             }
 
             return newUnderlyingOwner;

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // make a creation expression for the smallest type
                 NamedTypeSymbol smallestType = underlyingTupleTypeChain.Pop();
                 ImmutableArray<BoundExpression> smallestCtorArguments = ImmutableArray.Create(rewrittenArguments,
-                                                                                              underlyingTupleTypeChain.Count * (NamedTypeSymbol.RestPosition - 1),
+                                                                                              underlyingTupleTypeChain.Count * (NamedTypeSymbol.ValueTupleRestPosition - 1),
                                                                                               smallestType.Arity);
                 var smallestCtor = (MethodSymbol)NamedTypeSymbol.GetWellKnownMemberInType(smallestType.OriginalDefinition,
                                                                                             NamedTypeSymbol.GetTupleCtor(smallestType.Arity),
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     NamedTypeSymbol tuple8Type = underlyingTupleTypeChain.Peek();
                     var tuple8Ctor = (MethodSymbol)NamedTypeSymbol.GetWellKnownMemberInType(tuple8Type.OriginalDefinition,
-                                                                                            NamedTypeSymbol.GetTupleCtor(NamedTypeSymbol.RestPosition),
+                                                                                            NamedTypeSymbol.GetTupleCtor(NamedTypeSymbol.ValueTupleRestPosition),
                                                                                             _diagnostics,
                                                                                             syntax);
                     if ((object)tuple8Ctor == null)
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     do
                     {
                         ImmutableArray<BoundExpression> ctorArguments = ImmutableArray.Create(rewrittenArguments,
-                                                                                              (underlyingTupleTypeChain.Count - 1) * (NamedTypeSymbol.RestPosition - 1),
-                                                                                              NamedTypeSymbol.RestPosition - 1)
+                                                                                              (underlyingTupleTypeChain.Count - 1) * (NamedTypeSymbol.ValueTupleRestPosition - 1),
+                                                                                              NamedTypeSymbol.ValueTupleRestPosition - 1)
                                                                                       .Add(currentCreation);
 
                         MethodSymbol constructor = tuple8Ctor.AsMember(underlyingTupleTypeChain.Pop());

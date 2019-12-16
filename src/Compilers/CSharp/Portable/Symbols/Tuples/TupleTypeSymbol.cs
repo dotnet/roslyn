@@ -2,7 +2,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -15,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract partial class NamedTypeSymbol
     {
-        internal const int RestPosition = 8; // The Rest field is in 8th position
-        internal const int RestIndex = RestPosition - 1;
-        internal const string TupleTypeName = "ValueTuple";
-        internal const string RestFieldName = "Rest";
+        internal const int ValueTupleRestPosition = 8; // The Rest field is in 8th position
+        internal const int ValueTupleRestIndex = ValueTupleRestPosition - 1;
+        internal const string ValueTupleTypeName = "ValueTuple";
+        internal const string ValueTupleRestFieldName = "Rest";
 
         private TupleExtraData? _lazyTupleData;
 
@@ -50,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = getTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
 
-            if (numElements >= RestPosition && diagnostics != null && !underlyingType.IsErrorType())
+            if (numElements >= ValueTupleRestPosition && diagnostics != null && !underlyingType.IsErrorType())
             {
-                WellKnownMember wellKnownTupleRest = GetTupleTypeMember(RestPosition, RestPosition);
+                WellKnownMember wellKnownTupleRest = GetTupleTypeMember(ValueTupleRestPosition, ValueTupleRestPosition);
                 _ = GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
             }
 
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NamedTypeSymbol? chainedTupleType = null;
                 if (chainLength > 1)
                 {
-                    chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                    chainedTupleType = compilation.GetWellKnownType(GetTupleType(ValueTupleRestPosition));
                     if (diagnostics is object && syntax is object)
                     {
                         ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol? chainedTupleType;
-            if (Arity < NamedTypeSymbol.RestPosition)
+            if (Arity < NamedTypeSymbol.ValueTupleRestPosition)
             {
                 firstTupleType = OriginalDefinition;
                 chainedTupleType = null;
@@ -144,9 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlyingType = this;
                 do
                 {
-                    underlyingType = ((NamedTypeSymbol)underlyingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.RestIndex].Type);
+                    underlyingType = ((NamedTypeSymbol)underlyingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.ValueTupleRestIndex].Type);
                 }
-                while (underlyingType.Arity >= NamedTypeSymbol.RestPosition);
+                while (underlyingType.Arity >= NamedTypeSymbol.ValueTupleRestPosition);
 
                 firstTupleType = underlyingType.OriginalDefinition;
             }
@@ -210,9 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (true)
             {
                 underlyingTupleTypeChain.Add(currentType);
-                if (currentType.Arity == NamedTypeSymbol.RestPosition)
+                if (currentType.Arity == NamedTypeSymbol.ValueTupleRestPosition)
                 {
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.RestPosition - 1].Type;
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.ValueTupleRestPosition - 1].Type;
                 }
                 else
                 {
@@ -227,23 +226,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static int NumberOfValueTuples(int numElements, out int remainder)
         {
-            remainder = (numElements - 1) % (RestPosition - 1) + 1;
-            return (numElements - 1) / (RestPosition - 1) + 1;
+            remainder = (numElements - 1) % (ValueTupleRestPosition - 1) + 1;
+            return (numElements - 1) / (ValueTupleRestPosition - 1) + 1;
         }
 
         private static NamedTypeSymbol ConstructTupleUnderlyingType(NamedTypeSymbol firstTupleType, NamedTypeSymbol? chainedTupleTypeOpt, ImmutableArray<TypeWithAnnotations> elementTypes)
         {
-            Debug.Assert(chainedTupleTypeOpt is null == elementTypes.Length < RestPosition);
+            Debug.Assert(chainedTupleTypeOpt is null == elementTypes.Length < ValueTupleRestPosition);
 
             int numElements = elementTypes.Length;
             int remainder;
             int chainLength = NumberOfValueTuples(numElements, out remainder);
 
-            NamedTypeSymbol currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
+            NamedTypeSymbol currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (ValueTupleRestPosition - 1), remainder));
             int loop = chainLength - 1;
             while (loop > 0)
             {
-                var chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (RestPosition - 1), RestPosition - 1).Add(TypeWithAnnotations.Create(currentSymbol));
+                var chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (ValueTupleRestPosition - 1), ValueTupleRestPosition - 1).Add(TypeWithAnnotations.Create(currentSymbol));
                 currentSymbol = chainedTupleTypeOpt!.Construct(chainedTypes);
                 loop--;
             }
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (chainLength > 1)
             {
-                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(ValueTupleRestPosition));
                 ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
             }
         }
@@ -311,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static WellKnownType GetTupleType(int arity)
         {
-            if (arity > RestPosition)
+            if (arity > ValueTupleRestPosition)
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -614,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // adjust tuple index for nesting
                                 if (currentNestingLevel != 0)
                                 {
-                                    tupleFieldIndex += (RestPosition - 1) * currentNestingLevel;
+                                    tupleFieldIndex += (ValueTupleRestPosition - 1) * currentNestingLevel;
                                 }
 
                                 var providedName = elementNames.IsDefault ? null : elementNames[tupleFieldIndex];
@@ -718,16 +717,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (currentValueTuple.Arity != RestPosition)
+                if (currentValueTuple.Arity != ValueTupleRestPosition)
                 {
                     break;
                 }
 
                 var oldUnderlying = currentValueTuple;
-                currentValueTuple = (NamedTypeSymbol)oldUnderlying.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestIndex].Type;
+                currentValueTuple = (NamedTypeSymbol)oldUnderlying.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[ValueTupleRestIndex].Type;
                 currentNestingLevel++;
 
-                if (currentValueTuple.Arity != RestPosition)
+                if (currentValueTuple.Arity != ValueTupleRestPosition)
                 {
                     // refresh members and target fields
                     currentMembers = currentValueTuple.GetMembers();
@@ -806,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NamedTypeSymbol found = topLevelUnderlyingType;
                 for (int i = 0; i < depth; i++)
                 {
-                    found = (NamedTypeSymbol)found.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestPosition - 1].Type;
+                    found = (NamedTypeSymbol)found.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[ValueTupleRestPosition - 1].Type;
                 }
 
                 return found;
@@ -814,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void collectTargetTupleFields(int arity, ImmutableArray<Symbol> members, ArrayBuilder<FieldSymbol> fieldsForElements)
             {
-                int fieldsPerType = Math.Min(arity, RestPosition - 1);
+                int fieldsPerType = Math.Min(arity, ValueTupleRestPosition - 1);
 
                 for (int i = 0; i < fieldsPerType; i++)
                 {
@@ -983,12 +982,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     ImmutableArray<TypeWithAnnotations> elementTypes;
 
-                    if (tuple.Arity == RestPosition)
+                    if (tuple.Arity == ValueTupleRestPosition)
                     {
                         // Ensure all Rest extensions are tuples
-                        var extensionTupleElementTypes = tuple.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestPosition - 1].Type.TupleElementTypesWithAnnotations;
-                        var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
-                        typesBuilder.AddRange(tuple.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, RestPosition - 1);
+                        var extensionTupleElementTypes = tuple.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[ValueTupleRestPosition - 1].Type.TupleElementTypesWithAnnotations;
+                        var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ValueTupleRestPosition - 1 + extensionTupleElementTypes.Length);
+                        typesBuilder.AddRange(tuple.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, ValueTupleRestPosition - 1);
                         typesBuilder.AddRange(extensionTupleElementTypes);
                         elementTypes = typesBuilder.ToImmutableAndFree();
                     }

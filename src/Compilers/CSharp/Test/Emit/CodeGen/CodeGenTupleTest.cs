@@ -12862,7 +12862,7 @@ partial class C
             Assert.True(sym.TupleElementIndex >= 0);
 
             //if it was 8th or after, it would be virtual
-            Assert.True(sym.TupleElementIndex < NamedTypeSymbol.RestPosition - 1);
+            Assert.True(sym.TupleElementIndex < NamedTypeSymbol.ValueTupleRestPosition - 1);
         }
 
         [Fact]

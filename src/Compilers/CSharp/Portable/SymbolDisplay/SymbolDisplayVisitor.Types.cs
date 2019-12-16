@@ -459,9 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            while (currentUnderlying.Arity == NamedTypeSymbol.RestPosition)
+            while (currentUnderlying.Arity == NamedTypeSymbol.ValueTupleRestPosition)
             {
-                tupleSymbol = (INamedTypeSymbol)currentUnderlying.TypeArguments[NamedTypeSymbol.RestPosition - 1];
+                tupleSymbol = (INamedTypeSymbol)currentUnderlying.TypeArguments[NamedTypeSymbol.ValueTupleRestPosition - 1];
                 Debug.Assert(tupleSymbol.IsTupleType);
 
                 if (tupleSymbol.TypeKind == TypeKind.Error ||

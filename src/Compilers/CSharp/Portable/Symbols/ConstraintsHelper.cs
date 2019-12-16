@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 populateDiagnosticsAndClear(diagnosticsBuilder, diagnosticsOpt);
                 populateDiagnosticsAndClear(nullabilityDiagnosticsBuilder, nullabilityDiagnosticsOpt);
 
-                offset += NamedTypeSymbol.RestIndex;
+                offset += NamedTypeSymbol.ValueTupleRestIndex;
 
                 void populateDiagnosticsAndClear(ArrayBuilder<TypeParameterDiagnosticInfo> builder, DiagnosticBag bag)
                 {
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // If this is the TRest type parameter, we report it on 
                         // the entire type syntax as it does not map to any tuple element.
-                        var location = ordinal == NamedTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
+                        var location = ordinal == NamedTypeSymbol.ValueTupleRestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
                         bag.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
                     }
 

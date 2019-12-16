@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            Debug.Assert(false);
-            return this; // default implementation to avoid a crash
+            return this;
         }
 
         internal override DiagnosticInfo ErrorInfo
