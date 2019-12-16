@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   spans As ArrayBuilder(Of BlockSpan),
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
-            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()
+            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNull()
+            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNull()
             If firstCommentToken Is Nothing Then
                 Return
             End If

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Reflection;
 using Roslyn.Utilities;
 using System.Threading;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var symbol = _arguments[i] as ISymbol;
+                var symbol = _arguments[i] as ISymbol ?? (_arguments[i] as ISymbolInternal)?.GetISymbol();
                 if (symbol != null)
                 {
                     argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);

@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool SupportsThrowExpression(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public bool SupportsLocalFunctionDeclaration(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -199,6 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.IsParentKind(SyntaxKind.UsingDirective) &&
                 ((UsingDirectiveSyntax)node.Parent).Name == node;
         }
+
+        public bool IsUsingAliasDirective(SyntaxNode node)
+            => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
 
         public bool IsForEachStatement(SyntaxNode node)
             => node is ForEachStatementSyntax;
@@ -1262,6 +1268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (node as QualifiedNameSyntax)?.Right ??
                 (node as MemberAccessExpressionSyntax)?.Name;
+        }
+
+        public SyntaxNode GetLeftSideOfDot(SyntaxNode node, bool allowImplicitTarget)
+        {
+            return (node as QualifiedNameSyntax)?.Left ??
+                (node as MemberAccessExpressionSyntax)?.Expression;
         }
 
         public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)

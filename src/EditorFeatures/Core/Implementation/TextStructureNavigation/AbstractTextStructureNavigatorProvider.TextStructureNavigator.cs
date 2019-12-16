@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 if (node != null)
                 {
                     // Take first child if possible, otherwise default to node itself.
-                    var firstChild = node.Value.ChildNodesAndTokens().FirstOrNullable();
+                    var firstChild = node.Value.ChildNodesAndTokens().FirstOrNull();
                     if (firstChild.HasValue)
                     {
                         node = firstChild.Value;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                             .ChildNodesAndTokens()
                             .SkipWhile(child => child != node)
                             .Skip(1)
-                            .FirstOrNullable();
+                            .FirstOrNull();
 
                         if (nodeOrToken.HasValue)
                         {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                             .Reverse()
                             .SkipWhile(child => child != node)
                             .Skip(1)
-                            .FirstOrNullable();
+                            .FirstOrNull();
 
                         if (nodeOrToken.HasValue)
                         {

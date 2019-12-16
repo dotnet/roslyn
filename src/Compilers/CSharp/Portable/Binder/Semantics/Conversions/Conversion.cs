@@ -238,7 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitDynamic => new Conversion(ConversionKind.ImplicitDynamic);
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
-        internal static Conversion SwitchExpression => new Conversion(ConversionKind.SwitchExpression);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
 
@@ -304,6 +303,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new Conversion(kind, nested);
+        }
+
+        internal static Conversion MakeSwitchExpression(ImmutableArray<Conversion> innerConversions)
+        {
+            return new Conversion(ConversionKind.SwitchExpression, innerConversions);
         }
 
         internal ConversionKind Kind
@@ -774,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Method;
+                return this.Method.GetPublicSymbol();
             }
         }
 

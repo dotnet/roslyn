@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Utilities;
@@ -229,6 +229,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // The set of type definitions we've read out of the current metadata reader.
             private readonly List<MetadataDefinition> _allTypeDefinitions;
 
+            // Map from node represents extension method to list of possible parameter type info.
+            // We can have more than one if there's multiple methods with same name but different target type.
+            // e.g.
+            //
+            //      public static bool AnotherExtensionMethod1(this int x);
+            //      public static bool AnotherExtensionMethod1(this bool x);
+            //
+            private MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
+            private bool _containsExtensionsMethod;
+
             public MetadataInfoCreator(
                 Solution solution, Checksum checksum, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
@@ -238,9 +248,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken = cancellationToken;
                 _metadataReader = null;
                 _allTypeDefinitions = new List<MetadataDefinition>();
+                _containsExtensionsMethod = false;
 
                 _inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
                 _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
+                _extensionMethodToParameterTypeInfo = new MultiDictionary<MetadataNode, ParameterTypeInfo>();
                 _rootNode = MetadataNode.Allocate(name: "");
             }
 
@@ -295,9 +307,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var unsortedNodes = GenerateUnsortedNodes();
+                var simpleMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                var complexBuilder = ArrayBuilder<ExtensionMethodInfo>.GetInstance();
+                var unsortedNodes = GenerateUnsortedNodes(complexBuilder, simpleMap);
+
                 return CreateSymbolTreeInfo(
-                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap);
+                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, simpleMap, complexBuilder.ToImmutableAndFree());
             }
 
             public void Dispose()
@@ -356,6 +371,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     foreach (var definition in definitionsWithSameName)
                     {
+                        if (definition.Kind == MetadataDefinitionKind.Member)
+                        {
+                            // We need to support having multiple methods with same name but different target type.
+                            _extensionMethodToParameterTypeInfo.Add(childNode, definition.TargetTypeInfo);
+                        }
+
                         LookupMetadataDefinitions(definition, definitionMap);
                     }
 
@@ -407,12 +428,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // we just pull in methods that have attributes on them.
                         if ((method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public &&
                             (method.Attributes & MethodAttributes.Static) != 0 &&
+                            method.GetParameters().Count > 0 &&
                             method.GetCustomAttributes().Count > 0)
                         {
-                            var definition = new MetadataDefinition(
-                                MetadataDefinitionKind.Member, _metadataReader.GetString(method.Name));
+                            // Decode method signature to get the target type name (i.e. type name for the first parameter)
+                            var blob = _metadataReader.GetBlobReader(method.Signature);
+                            var decoder = new SignatureDecoder<ParameterTypeInfo, object>(ParameterTypeInfoProvider.Instance, _metadataReader, genericContext: null);
+                            var signature = decoder.DecodeMethodSignature(ref blob);
 
-                            definitionMap.Add(definition.Name, definition);
+                            // It'd be good if we don't need to go through all parameters and make unnecessary allocations.
+                            // However, this is not possible with meatadata reader API right now (although it's possible by copying code from meatadata reader implementaion)
+                            if (signature.ParameterTypes.Length > 0)
+                            {
+                                _containsExtensionsMethod = true;
+                                var firstParameterTypeInfo = signature.ParameterTypes[0];
+                                var definition = new MetadataDefinition(MetadataDefinitionKind.Member, _metadataReader.GetString(method.Name), firstParameterTypeInfo);
+                                definitionMap.Add(definition.Name, definition);
+                            }
                         }
                     }
                 }
@@ -665,26 +697,59 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<BuilderNode> GenerateUnsortedNodes()
+            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(ArrayBuilder<ExtensionMethodInfo> complexBuilder, MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToMethodMap)
             {
                 var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
                 unsortedNodes.Add(BuilderNode.RootNode);
 
-                AddUnsortedNodes(unsortedNodes, parentNode: _rootNode, parentIndex: 0);
-
+                AddUnsortedNodes(unsortedNodes, simpleTypeNameToMethodMap, complexBuilder, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
                 return unsortedNodes.ToImmutableAndFree();
             }
 
-            private void AddUnsortedNodes(
-                ArrayBuilder<BuilderNode> unsortedNodes, MetadataNode parentNode, int parentIndex)
+            private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
+                MultiDictionary<string, ExtensionMethodInfo> simpleBuilder,
+                ArrayBuilder<ExtensionMethodInfo> complexBuilder,
+                MetadataNode parentNode,
+                int parentIndex,
+                string fullyQualifiedContainerName)
             {
                 foreach (var child in _parentToChildren[parentNode])
                 {
-                    var childNode = new BuilderNode(child.Name, parentIndex);
+                    var childNode = new BuilderNode(child.Name, parentIndex, _extensionMethodToParameterTypeInfo[child]);
                     var childIndex = unsortedNodes.Count;
                     unsortedNodes.Add(childNode);
 
-                    AddUnsortedNodes(unsortedNodes, child, childIndex);
+                    if (fullyQualifiedContainerName != null)
+                    {
+                        foreach (var parameterTypeInfo in _extensionMethodToParameterTypeInfo[child])
+                        {
+                            if (parameterTypeInfo.IsComplexType)
+                            {
+                                complexBuilder.Add(new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
+                            }
+                            else
+                            {
+                                simpleBuilder.Add(parameterTypeInfo.Name, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
+                            }
+                        }
+                    }
+
+                    AddUnsortedNodes(unsortedNodes, simpleBuilder, complexBuilder, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
+                }
+
+                static string Concat(string containerName, string name)
+                {
+                    if (containerName == null)
+                    {
+                        return null;
+                    }
+
+                    if (containerName.Length == 0)
+                    {
+                        return name;
+                    }
+
+                    return containerName + "." + name;
                 }
             }
         }
@@ -727,14 +792,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public string Name { get; }
             public MetadataDefinitionKind Kind { get; }
 
+            /// <summary>
+            /// Only applies to member kind. Represents the type info of the first parameter.
+            /// </summary>
+            public ParameterTypeInfo TargetTypeInfo { get; }
+
             public NamespaceDefinition Namespace { get; private set; }
             public TypeDefinition Type { get; private set; }
 
-            public MetadataDefinition(MetadataDefinitionKind kind, string name)
+            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo targetTypeInfo = default)
                 : this()
             {
                 Kind = kind;
                 Name = name;
+                TargetTypeInfo = targetTypeInfo;
             }
 
             public static MetadataDefinition Create(

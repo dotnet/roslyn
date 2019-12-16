@@ -100,7 +100,7 @@ dotnet_style_object_initializer = true:suggestion
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
             Public Async Function ConfigureEditorconfig_RuleExists_True() As Task
                 Dim input = "
 <Workspace>
@@ -227,7 +227,7 @@ dotnet_style_object_initializer = true:suggestion
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
             Public Async Function ConfigureEditorconfig_MaintainCurrentSeverity_True() As Task
                 Dim input = "
 <Workspace>

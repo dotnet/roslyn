@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Add_reference_to_0", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
         /// </summary>
@@ -1275,6 +1275,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to discard.
+        /// </summary>
+        internal static string discard {
+            get {
+                return ResourceManager.GetString("discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
         /// </summary>
         internal static string Disposable_field_0_is_never_disposed {
@@ -1329,7 +1338,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The file is likely being updated by a background build. The debug session can&apos;t continue until the update is completed..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
@@ -1491,29 +1500,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Interface....
+        ///   Looks up a localized string similar to Extract interface....
         /// </summary>
-        internal static string Extract_Interface {
+        internal static string Extract_interface {
             get {
-                return ResourceManager.GetString("Extract_Interface", resourceCulture);
+                return ResourceManager.GetString("Extract_interface", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method.
+        ///   Looks up a localized string similar to Extract local function.
         /// </summary>
-        internal static string Extract_Method {
+        internal static string Extract_local_function {
             get {
-                return ResourceManager.GetString("Extract_Method", resourceCulture);
+                return ResourceManager.GetString("Extract_local_function", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract Method + Local.
+        ///   Looks up a localized string similar to Extract method.
         /// </summary>
-        internal static string Extract_Method_plus_Local {
+        internal static string Extract_method {
             get {
-                return ResourceManager.GetString("Extract_Method_plus_Local", resourceCulture);
+                return ResourceManager.GetString("Extract_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract method + local.
+        /// </summary>
+        internal static string Extract_method_plus_local {
+            get {
+                return ResourceManager.GetString("Extract_method_plus_local", resourceCulture);
             }
         }
         
@@ -1950,6 +1968,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;GetHashCode&apos; implementation can be simplified.
+        /// </summary>
+        internal static string GetHashCode_implementation_can_be_simplified {
+            get {
+                return ResourceManager.GetString("GetHashCode_implementation_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Global Namespace.
         /// </summary>
         internal static string Global_Namespace {
@@ -1968,11 +1995,65 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; explicitly.
+        /// </summary>
+        internal static string Implement_0_explicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement &apos;{0}&apos; implicitly.
+        /// </summary>
+        internal static string Implement_0_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_0_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string Implement_Abstract_Class {
             get {
                 return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces explicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_explicitly {
+            get {
+                return ResourceManager.GetString("Implement all interfaces explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement all interfaces implicitly.
+        /// </summary>
+        internal static string Implement_all_interfaces_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_all_interfaces_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement explicitly.
+        /// </summary>
+        internal static string Implement_explicitly {
+            get {
+                return ResourceManager.GetString("Implement explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement implicitly.
+        /// </summary>
+        internal static string Implement_implicitly {
+            get {
+                return ResourceManager.GetString("Implement_implicitly", resourceCulture);
             }
         }
         
@@ -2486,6 +2567,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_local_function_static {
             get {
                 return ResourceManager.GetString("Make_local_function_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make static.
+        /// </summary>
+        internal static string Make_member_static {
+            get {
+                return ResourceManager.GetString("Make_member_static", resourceCulture);
             }
         }
         
@@ -3820,6 +3910,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The selection contains a local function call without its declaration..
+        /// </summary>
+        internal static string The_selection_contains_a_local_function_call_without_its_declaration {
+            get {
+                return ResourceManager.GetString("The_selection_contains_a_local_function_call_without_its_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection contains an error or unknown type..
         /// </summary>
         internal static string The_selection_contains_an_error_or_unknown_type {
@@ -4627,6 +4726,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;System.HashCode&apos;.
+        /// </summary>
+        internal static string Use_System_HashCode {
+            get {
+                return ResourceManager.GetString("Use_System_HashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -4645,7 +4753,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string UseRecommendedDisposePatternDescription {
             get {

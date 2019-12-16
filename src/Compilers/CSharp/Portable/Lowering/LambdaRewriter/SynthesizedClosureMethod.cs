@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 
         // The lambda method body needs to be updated when the containing top-level method body is updated.
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;

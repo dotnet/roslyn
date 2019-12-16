@@ -12,12 +12,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         private abstract class AbstractItemEntry : Entry
         {
-            protected readonly StreamingFindUsagesPresenter _presenter;
+            protected readonly StreamingFindUsagesPresenter Presenter;
 
             public AbstractItemEntry(RoslynDefinitionBucket definitionBucket, StreamingFindUsagesPresenter presenter)
                 : base(definitionBucket)
             {
-                _presenter = presenter;
+                Presenter = presenter;
             }
 
             public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
                     var inlines = CreateLineTextInlines();
-                    var textBlock = inlines.ToTextBlock(_presenter.ClassificationFormatMap, wrap: false);
+                    var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, wrap: false);
 
                     content = textBlock;
                     return true;

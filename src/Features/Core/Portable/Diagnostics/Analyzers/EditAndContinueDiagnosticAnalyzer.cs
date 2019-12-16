@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace)
+        public bool OpenFileOnly(OptionSet options)
             => false;
 
         // No syntax diagnostics produced by the EnC engine.  

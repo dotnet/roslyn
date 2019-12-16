@@ -500,7 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     expressionToCastType.IsImplicit &&
                     (expressionToCastType.IsNumeric || expressionToCastType.IsConstantExpression))
                 {
-                    return true;
+                    // Some implicit numeric conversions can cause loss of precision and must not be removed.
+                    return !IsRequiredImplicitNumericConversion(expressionType, castType);
                 }
 
                 if (!castToOuterType.IsBoxing &&

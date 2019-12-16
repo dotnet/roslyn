@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -87,8 +89,8 @@ namespace Roslyn.Test.Utilities.Remote
 
         public override string ClientId { get; }
 
-        public override async Task<Connection> TryCreateConnectionAsync(
-            string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public override async Task<Connection?> TryCreateConnectionAsync(
+            string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
@@ -159,8 +161,7 @@ namespace Roslyn.Test.Utilities.Remote
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubServices.SnapshotService, (s, p) => new SnapshotService(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
-                RegisterService(WellKnownServiceHubServices.CSharpLanguageServer, (s, p) => new CSharpLanguageServer(s, p));
-                RegisterService(WellKnownServiceHubServices.VisualBasicLanguageServer, (s, p) => new VisualBasicLanguageServer(s, p));
+                RegisterService(WellKnownServiceHubServices.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;

@@ -31,11 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             bool ISupportsNavigation.TryNavigateTo(bool isPreview)
-                => DefinitionBucket.DefinitionItem.TryNavigateTo(_presenter._workspace, isPreview);
+                => DefinitionBucket.DefinitionItem.TryNavigateTo(Presenter._workspace, isPreview);
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts
-                .ToInlines(_presenter.ClassificationFormatMap, _presenter.TypeMap);
+                .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
         }
     }
 }

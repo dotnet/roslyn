@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -488,6 +489,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                     Assert.Empty(attributes)
                 End If
             End If
+        End Sub
+
+        Friend Shared Sub CheckAttribute(assembly As IEnumerable(Of Byte), method As IMethodSymbolInternal, description As AttributeDescription, expected As Boolean)
+            CheckAttribute(assembly, DirectCast(method, IMethodSymbol), description, expected)
+        End Sub
+
+        Friend Shared Sub CheckAttribute(assembly As IEnumerable(Of Byte), method As MethodSymbol, description As AttributeDescription, expected As Boolean)
+            CheckAttribute(assembly, DirectCast(method, IMethodSymbolInternal), description, expected)
         End Sub
     End Class
 End Namespace

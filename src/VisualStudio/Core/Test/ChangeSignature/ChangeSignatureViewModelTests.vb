@@ -18,7 +18,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     <[UseExportProvider]>
-    Public Class ReorderParametersViewModelTests
+    Public Class ChangeSignatureViewModelTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_UpDownArrowsNotOfferedWhenNoSelection() As Tasks.Task
@@ -237,6 +237,27 @@ class MyClass
                 type:="int[,]")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem(30315, "https://github.com/dotnet/roslyn/issues/30315")>
+        Public Async Function ChangeSignature_ParameterDisplay_Nullable() As Tasks.Task
+            Dim markup = <Text><![CDATA[
+#nullable enable
+class MyClass
+{
+    public string? $$M(string? x)
+    {
+    }
+}"]]></Text>
+
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+            VerifyOpeningState(viewModel, "public string? M(string? x)")
+            VerifyParameterInfo(
+                viewModel,
+                parameterIndex:=0,
+                type:="string?")
+        End Function
+
         Private Sub VerifyAlteredState(
            viewModelTestState As ChangeSignatureViewModelTestState,
            Optional monitor As PropertyChangedTestMonitor = Nothing,
@@ -339,7 +360,7 @@ class MyClass
 
             Dim workspaceXml =
             <Workspace>
-                <Project Language=<%= languageName %> CommonReferences="true" Features="refLocalsAndReturns">
+                <Project Language=<%= languageName %> CommonReferences="true">
                     <Document><%= markup.NormalizedValue.Replace(vbCrLf, vbLf) %></Document>
                 </Project>
             </Workspace>
