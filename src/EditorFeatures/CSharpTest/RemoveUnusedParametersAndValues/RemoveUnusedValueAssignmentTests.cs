@@ -6407,7 +6407,7 @@ class C
 
         [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        public async Task RedundantAssignment_ForStatementVariableDeclaration()
+        public async Task RedundantAssignment_ForStatementVariableDeclarationConstant()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -6424,6 +6424,64 @@ class C
     void M()
     {
         for (; ; ) 
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int GetValue() => 0;
+
+    void M()
+    {
+        for (int [|i|] = GetValue(); ; )
+        {
+        }
+    }
+}",
+@"class C
+{
+    int GetValue() => 0;
+
+    void M()
+    {
+        for (int _ = GetValue(); ; )
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationStaticMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static int GetValue() => 0;
+
+    void M()
+    {
+        for (int [|i|] = GetValue(); ; )
+        {
+        }
+    }
+}",
+@"class C
+{
+    static int GetValue() => 0;
+
+    void M()
+    {
+        for (int _ = GetValue(); ; )
         {
         }
     }
