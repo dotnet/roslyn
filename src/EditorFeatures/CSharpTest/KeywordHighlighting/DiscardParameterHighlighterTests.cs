@@ -24,7 +24,7 @@ class DiscardExample
 {
     void Method()
     {
-        int i = int.TryParse("""", out {|Cursor:[|_|]|});
+        bool b = int.TryParse("""", out {|Cursor:[|_|]|});
     }
 }");
         }
@@ -39,7 +39,7 @@ class DiscardExample
 {
     void Method()
     {
-        int i = int.TryParse("""", out var {|Cursor:[|_|]|});
+        bool b = int.TryParse("""", out var {|Cursor:[|_|]|});
     }
 }");
         }
@@ -54,7 +54,23 @@ class DiscardExample
 {
     void Method()
     {
-        int i = int.TryParse("""", out int {|Cursor:[|_|]|});
+        bool b = int.TryParse("""", out int {|Cursor:[|_|]|});
+    }
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestAtPrefixedDiscardWithVarType()
+        {
+            await TestAsync(
+@"using System;
+
+class DiscardExample
+{
+    void Method()
+    {
+        bool b = int.TryParse("""", out var {|Cursor:@_|});
     }
 }");
         }
