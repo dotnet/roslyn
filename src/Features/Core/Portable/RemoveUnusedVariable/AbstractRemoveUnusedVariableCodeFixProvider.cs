@@ -154,8 +154,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             var candidateLocalDeclarationsToRemove = new HashSet<TLocalDeclarationStatement>();
             foreach (var variableDeclarator in nodesToRemove.OfType<TVariableDeclarator>())
             {
-                var localDeclaration = (TLocalDeclarationStatement)variableDeclarator.Parent.Parent;
-                candidateLocalDeclarationsToRemove.Add(localDeclaration);
+                //NOTE: we can't cast directly here since in for loops the daclarator.Parent.Parent
+                //is the ForStatementSyntax instead of the TLocalDeclarationStatement
+                if (variableDeclarator.Parent.Parent is TLocalDeclarationStatement localDeclaration)
+                {
+                    candidateLocalDeclarationsToRemove.Add(localDeclaration);
+                }
             }
 
             foreach (var candidate in candidateLocalDeclarationsToRemove)
