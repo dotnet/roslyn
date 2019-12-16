@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.SQLite
         public static string GetName(this Database database)
             => database switch
             {
-                // Name of the on-disk db.  "main" is the default that sqlite uses.  This just allows us to
-                // be explicit that we want this db.
                 Database.Main => "main",
                 Database.WriteCache => "writecache",
                 _ => throw ExceptionUtilities.UnexpectedValue(database),
