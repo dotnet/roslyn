@@ -754,22 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var elementNames = TupleElementNames;
                     var otherElementNames = other.TupleElementNames;
-                    if (elementNames.IsDefault)
-                    {
-                        if (!otherElementNames.IsDefault)
-                        {
-                            return false;
-                        }
-                    }
-                    else if (otherElementNames.IsDefault)
-                    {
-                        Debug.Assert(!elementNames.IsDefault);
-                        return false;
-                    }
-                    else if (!elementNames.SequenceEqual(otherElementNames))
-                    {
-                        return false;
-                    }
+                    return elementNames.IsDefault ? otherElementNames.IsDefault : !otherElementNames.IsDefault && elementNames.SequenceEqual(otherElementNames);
                 }
 
                 return true;

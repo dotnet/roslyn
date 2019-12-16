@@ -443,9 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // but element names has not changed and locations of their declarations 
                 // should not be confused with element locations on the target type.
 
-                var sourceType = sourceTuple.Type as NamedTypeSymbol;
-
-                if (sourceTuple.Type is { IsTupleType: true })
+                if (sourceTuple.Type is NamedTypeSymbol { IsTupleType: true } sourceType)
                 {
                     targetType = targetType.WithTupleDataFrom(sourceType);
                 }

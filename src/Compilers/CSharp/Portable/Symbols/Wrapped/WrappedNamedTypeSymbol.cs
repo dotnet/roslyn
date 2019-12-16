@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return TupleData.Locations;
                 }
+
                 return _underlyingType.Locations;
             }
         }
@@ -140,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(TupleData.Locations);
                 }
+
                 return _underlyingType.DeclaringSyntaxReferences;
             }
         }

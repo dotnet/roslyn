@@ -80,3 +80,6 @@ could be different than the one that compiler used to find.
 11. Previously, the language version was not checked for `this ref` and `this in` orderings of parameter modifiers. In *Visual Studio 2019 version 16.4* these orderings produce an error with langversion below 7.2. See https://github.com/dotnet/roslyn/issues/38486
 
 12. In Visual Studio version 15.0 and onwards, the compiler would allow compiling some malformed definitions of the `System.ValueTuple` types. For instance, one with a private `Item1` field. In *Visual Studio 2019 version 16.5* such definitions produce warnings.
+
+13. In Visual Studio version 15.0 and onwards, the compiler APIs would produce non-generic tuple symbols (`Arity` would be 0, would have no type arguments, would be original definitions). In *Visual Studio 2019 version 16.5* a 2-tuple symbol has `Arity` 2, and a 9-tuple symbol has `Arity` 8 (since it is a `ValueTuple'8`).
+
