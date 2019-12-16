@@ -11,12 +11,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
+    /// <summary>
+    /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.
+    /// This runs in proc as not all features provided by this server are available out of proc (e.g. some diagnostics).
+    /// </summary>
     internal class InProcLanguageServer
     {
         private readonly IDiagnosticService _diagnosticService;
@@ -26,7 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private VSClientCapabilities? _clientCapabilities;
 
-        public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol, Workspace workspace, IDiagnosticService diagnosticService)
+        public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
+            Workspace workspace, IDiagnosticService diagnosticService)
         {
             _protocol = protocol;
             _workspace = workspace;
