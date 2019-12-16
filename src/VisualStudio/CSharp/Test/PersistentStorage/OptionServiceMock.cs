@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public bool SetOptions(OptionSet optionSet, Action? beforeOptionsChangedEvents = null, bool settingWorkspaceOptions = false)
+        public bool SetOptions(OptionSet optionSet, Action beforeOptionsChangedEvents = null, bool settingWorkspaceOptions = false)
         {
             Equals(null, null);
             throw new NotImplementedException();
