@@ -21,17 +21,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
     internal abstract class AbstractKeywordHighlighter : IHighlighter
     {
-        private static readonly ObjectPool<List<TextSpan>> s_listPool = new ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
+        private static readonly ObjectPool<List<TextSpan>> s_textSpanListPool = new ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
+        private static readonly ObjectPool<List<SyntaxToken>> s_tokenListPool = new ObjectPool<List<SyntaxToken>>(() => new List<SyntaxToken>());
 
         protected abstract bool IsHighlightableNode(SyntaxNode node);
 
         public void AddHighlights(
             SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            var _ = s_listPool.GetPooledObject();
-            var tempHighlights = _.Object;
+            var _1 = s_textSpanListPool.GetPooledObject();
+            var _2 = s_tokenListPool.GetPooledObject();
 
-            foreach (var token in GetTokens(root, position))
+            var tempHighlights = _1.Object;
+            var touchingTokens = _2.Object;
+            AddTouchingTokens(root, position, touchingTokens);
+
+            foreach (var token in touchingTokens)
             {
                 for (var parent = token.Parent; parent != null; parent = parent.Parent)
                 {
@@ -42,10 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
                         if (AnyIntersects(position, tempHighlights))
                         {
-                            foreach (var highlight in tempHighlights)
-                            {
-                                highlights.Add(highlight);
-                            }
+                            highlights.AddRange(tempHighlights);
+                            return;
                         }
                     }
                 }
@@ -72,26 +75,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             return new TextSpan(position, 0);
         }
 
-        internal static IEnumerable<SyntaxToken> GetTokens(
-            SyntaxNode root,
-            int position)
+        internal static void AddTouchingTokens(SyntaxNode root, int position, List<SyntaxToken> tokens)
         {
-            var tokens1 = GetTokens(root, position, findInsideTrivia: true);
-            var tokens2 = GetTokens(root, position, findInsideTrivia: false);
-            return tokens1.Concat(tokens2);
+            AddTouchingTokens(root, position, tokens, findInsideTrivia: true);
+            AddTouchingTokens(root, position, tokens, findInsideTrivia: false);
         }
 
-        private static IEnumerable<SyntaxToken> GetTokens(
-            SyntaxNode root,
-            int position,
-            bool findInsideTrivia)
+        private static void AddTouchingTokens(SyntaxNode root, int position, List<SyntaxToken> tokens, bool findInsideTrivia)
         {
-            yield return root.FindToken(position - 0, findInsideTrivia);
+            var token = root.FindToken(position, findInsideTrivia);
+            if (!tokens.Contains(token))
+                tokens.Add(token);
 
-            if (position > 0)
-            {
-                yield return root.FindToken(position - 1, findInsideTrivia);
-            }
+            if (position == 0)
+                return;
+
+            var previous = root.FindToken(position - 1, findInsideTrivia);
+            if (previous.Span.End == position && !tokens.Contains(previous))
+                tokens.Add(previous);
         }
     }
 }
