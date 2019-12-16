@@ -97,9 +97,9 @@
         <target state="translated">Předvolby nových řádků</target>
         <note />
       </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Solution">
-        <source>Options did not come from Solution</source>
-        <target state="new">Options did not come from Solution</target>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="new">Options did not come from specified Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
