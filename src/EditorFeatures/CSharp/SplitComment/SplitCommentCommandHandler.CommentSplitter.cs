@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
         {
             protected static readonly SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
 
-            protected static readonly SyntaxToken NewLineCommentToken = SyntaxFactory.Token(
-                leading: default,
-                SyntaxFactory.ElasticCarriageReturnLineFeed.Kind(),
-                SyntaxFactory.TriviaList(SyntaxFactory.Comment(string.Empty)));
-
             protected readonly Document Document;
             protected readonly int CursorPosition;
             protected readonly SourceText SourceText;
