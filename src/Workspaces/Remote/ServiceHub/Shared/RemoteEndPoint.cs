@@ -20,6 +20,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RemoteEndPoint : IDisposable
     {
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        {
+            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
+            NotifyClientOfEvents = false,
+
+            // Only allow public methods (may be on internal types) to be invoked remotely.
+            AllowNonPublicInvocation = false
+        };
+
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
 
@@ -37,7 +46,26 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _logger = logger;
 
-            _rpc = stream.CreateStreamJsonRpc(incomingCallTarget, logger, jsonConverters);
+            var jsonFormatter = new JsonMessageFormatter();
+
+            if (jsonConverters != null)
+            {
+                jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters);
+            }
+
+            jsonFormatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+
+            _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
+            {
+                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+                TraceSource = logger
+            };
+
+            if (incomingCallTarget != null)
+            {
+                _rpc.AddLocalRpcTarget(incomingCallTarget, s_jsonRpcTargetOptions);
+            }
+
             _rpc.Disconnected += OnDisconnected;
         }
 

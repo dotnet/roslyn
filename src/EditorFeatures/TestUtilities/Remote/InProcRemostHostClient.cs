@@ -23,7 +23,7 @@ namespace Roslyn.Test.Utilities.Remote
     {
         private readonly InProcRemoteServices _inprocServices;
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
-        private readonly JsonRpc _rpc;
+        private readonly RemoteEndPoint _endPoint;
 
         public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
         {
@@ -37,11 +37,14 @@ namespace Roslyn.Test.Utilities.Remote
             var instance = new InProcRemoteHostClient(current, workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
             // make sure connection is done right
-            var telemetrySession = default(string);
+            var telemetrySession = "";
             var uiCultureLCIDE = 0;
             var cultureLCID = 0;
 
-            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, uiCultureLCIDE, cultureLCID, telemetrySession).ConfigureAwait(false);
+            var host = await instance._endPoint.InvokeAsync<string>(
+                nameof(IRemoteHostService.Connect),
+                new object[] { current, uiCultureLCIDE, cultureLCID, telemetrySession },
+                CancellationToken.None).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
@@ -67,12 +70,9 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices = inprocServices;
             _remotableDataRpc = remotableDataRpc;
 
-            _rpc = stream.CreateStreamJsonRpc(target: this, inprocServices.Logger);
-
-            // handle disconnected situation
-            _rpc.Disconnected += OnRpcDisconnected;
-
-            _rpc.StartListening();
+            _endPoint = new RemoteEndPoint(stream, inprocServices.Logger, incomingCallTarget: this);
+            _endPoint.Disconnected += OnRpcDisconnected;
+            _endPoint.StartListening();
         }
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
@@ -106,14 +106,14 @@ namespace Roslyn.Test.Utilities.Remote
         protected override void Dispose(bool disposing)
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
-            _rpc.Disconnected -= OnRpcDisconnected;
-            _rpc.Dispose();
+            _endPoint.Disconnected -= OnRpcDisconnected;
+            _endPoint.Dispose();
             _remotableDataRpc.Dispose();
 
             base.Dispose(disposing);
         }
 
-        private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        private void OnRpcDisconnected(JsonRpcDisconnectedEventArgs e)
         {
             Dispose();
         }

@@ -110,10 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task TrackCodeLensAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
-            {
-                await WorkspaceChangeTracker.TrackAsync(EndPoint, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+            return RunServiceAsync(() => WorkspaceChangeTracker.TrackAsync(EndPoint, SolutionService.PrimaryWorkspace, documentId, cancellationToken), cancellationToken);
         }
 
         /// <summary>

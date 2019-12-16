@@ -19,40 +19,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static partial class Extensions
     {
-        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
-        {
-            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
-            NotifyClientOfEvents = false,
-
-            // Only allow public methods (may be on internal types) to be invoked remotely.
-            AllowNonPublicInvocation = false
-        };
-
-        public static JsonRpc CreateStreamJsonRpc(
-            this Stream stream,
-            object? target,
-            TraceSource logger,
-            IEnumerable<JsonConverter>? jsonConverters = null)
-        {
-            jsonConverters ??= SpecializedCollections.EmptyEnumerable<JsonConverter>();
-
-            var jsonFormatter = new JsonMessageFormatter();
-            jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters.Concat(AggregateJsonConverter.Instance));
-
-            var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
-            {
-                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
-                TraceSource = logger
-            };
-
-            if (target != null)
-            {
-                rpc.AddLocalRpcTarget(target, s_jsonRpcTargetOptions);
-            }
-
-            return rpc;
-        }
-
         public static async Task InvokeAsync(
             this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
