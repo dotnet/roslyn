@@ -13,10 +13,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Highlighting.KeywordHighlighters
 {
     [ExportHighlighter(LanguageNames.CSharp)]
-    internal class DiscardParameterHighlighter : AbstractKeywordHighlighter<ArgumentSyntax>
+    internal class DiscardArgumentHighlighter : AbstractKeywordHighlighter<ArgumentSyntax>
     {
         [ImportingConstructor]
-        public DiscardParameterHighlighter()
+        public DiscardArgumentHighlighter()
         {
         }
 

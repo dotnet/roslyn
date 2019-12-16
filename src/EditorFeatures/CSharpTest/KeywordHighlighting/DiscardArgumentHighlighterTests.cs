@@ -7,11 +7,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
-    public class DiscardParameterHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    public class DiscardArgumentHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override IHighlighter CreateHighlighter()
         {
-            return new DiscardParameterHighlighter();
+            return new DiscardArgumentHighlighter();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
