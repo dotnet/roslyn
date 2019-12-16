@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
@@ -124,6 +123,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 MyEnum.Buzz => 2,
                 MyEnum.FizzBuzz => 3,
                 _ => throw new System.NotImplementedException(),
+            };
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task AllMembersExist_NotDefault_NoComma()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz,
+        Buzz,
+        FizzBuzz
+    }
+
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            _ = e [||]switch
+            {
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3
+            };
+        }
+    }
+}",
+@"namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz,
+        Buzz,
+        FizzBuzz
+    }
+
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            _ = e switch
+            {
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException()
             };
         }
     }

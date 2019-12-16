@@ -31,7 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             => SwitchExpressionArm(ConstantPattern(caseLabel), Exception(generator, compilation));
 
         protected override SwitchExpressionSyntax InsertSwitchArms(SyntaxGenerator generator, SwitchExpressionSyntax switchNode, int insertLocation, List<SwitchExpressionArmSyntax> newArms)
-            => switchNode.WithArms(switchNode.Arms.InsertRangeWithTrailingSeparator(
-                insertLocation, newArms, SyntaxKind.CommaToken));
+        {
+            // If the existing switch expression ends with a comma, then ensure that we preserve
+            // that.  Also do this for an empty switch statement.
+            if (switchNode.Arms.Count == 0 ||
+                !switchNode.Arms.GetWithSeparators().LastOrDefault().IsNode)
+            {
+                return switchNode.WithArms(switchNode.Arms.InsertRangeWithTrailingSeparator(
+                    insertLocation, newArms, SyntaxKind.CommaToken));
+            }
+
+            return switchNode.WithArms(switchNode.Arms.InsertRange(insertLocation, newArms));
+        }
     }
 }
