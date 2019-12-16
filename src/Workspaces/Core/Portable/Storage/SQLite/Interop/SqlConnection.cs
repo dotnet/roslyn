@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // this, another connection will see that data when reading.  Without this, each
             // connection would get their own private memory db independent of all other
             // connections.
-            this.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {SQLitePersistentStorage.WriteCacheDBName};");
+            this.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};");
         }
 
         ~SqlConnection()
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             => (int)raw.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Stream ReadBlob_MustRunInTransaction(bool writeCacheDB, string tableName, string columnName, long rowId)
+        public Stream ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
             // following: https://www.sqlite.org/c3ref/blob_open.html
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             }
 
             const int ReadOnlyFlags = 0;
-            var dbName = writeCacheDB ? SQLitePersistentStorage.WriteCacheDBName : SQLitePersistentStorage.MainDBName;
+            var dbName = database.GetName();
             var result = raw.sqlite3_blob_open(_handle, dbName, tableName, columnName, rowId, ReadOnlyFlags, out var blob);
             if (result == raw.SQLITE_ERROR)
             {

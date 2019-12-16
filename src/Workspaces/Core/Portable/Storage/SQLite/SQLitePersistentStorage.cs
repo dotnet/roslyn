@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
@@ -96,43 +97,6 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string DataIdColumnName = "DataId";
         private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
-
-        /// <summary>
-        /// Name of the on-disk db.  "main" is the default that sqlite uses.  This just allows us to
-        /// be explicit that we want this db.
-        /// </summary>
-        public const string MainDBName = "main";
-
-        /// <summary>
-        /// Name for the in-memory write-cache db.  Writes will be staged there and will be
-        /// periodically flushed to the real on-disk db to help with perf.
-        ///
-        /// Perf measurements show this as significantly better than all other design options. It's
-        /// also one of the simplest in terms of the design.
-        ///
-        /// The design options in order of performance (slowest to fastest) are:
-        ///
-        /// 1. send writes directly to the main db. this is incredibly slow (since each write incurs
-        /// the full IO overhead of a transaction). It is the absolute simplest in terms of
-        /// implementation though.
-        ///
-        /// 2. send writes to a temporary on-disk db (with synchronous=off and journal_mode=memory),
-        /// then flush those to the main db.  This is also quite slow due to their still needing to
-        /// be disk IO with each write.  Implementation is fairly simple, with writes just going to
-        /// the temp db and reads going to both.
-        ///
-        /// 3. Buffer writes in (.net) memory and flush them to disk.  This is much faster than '1'
-        /// or '2' but requires a lot of manual book-keeping and extra complexity. For example, any
-        /// reads go to the db.  So that means that reads have to ensure that any writes to the same
-        /// rows have been persisted so they can observe them.
-        ///
-        /// 4. send writes to an sqlite in-memory cache DB.  This is extremely fast for sqlite as
-        /// there is no actual IO that is performed.  It is also easy in terms of bookkeeping as
-        /// both DBs have the same schema and are easy to move data between. '4' is faster than all
-        /// of the above. Complexity is minimized as reading can be done just by examining both DBs
-        /// in the same way. It's not as simple as '1' but it's much simpler than '3'.
-        /// </summary>
-        public const string WriteCacheDBName = "writecache";
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
@@ -334,8 +298,8 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             // Now make sure we have the individual tables for the solution/project/document info.
             // We put this in both our persistent table and our in-memory table so that they have
             // the same shape.
-            EnsureTables(connection, MainDBName);
-            EnsureTables(connection, WriteCacheDBName);
+            EnsureTables(connection, Database.Main);
+            EnsureTables(connection, Database.WriteCache);
 
             // Also get the known set of string-to-id mappings we already have in the DB.
             // Do this in one batch if possible.
@@ -351,8 +315,9 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             return;
 
-            static void EnsureTables(SqlConnection connection, string dbName)
+            static void EnsureTables(SqlConnection connection, Database database)
             {
+                var dbName = database.GetName();
                 connection.ExecuteCommand(
 $@"create table if not exists {dbName}.{SolutionDataTableName}(
     ""{DataIdColumnName}"" varchar primary key not null,
