@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
             => SwitchExpressionArm(ConstantPattern(caseLabel), Exception(generator, compilation));
 
         protected override SwitchExpressionSyntax InsertSwitchArms(SyntaxGenerator generator, SwitchExpressionSyntax switchNode, int insertLocation, List<SwitchExpressionArmSyntax> newArms)
-            => switchNode.WithArms(switchNode.Arms.InsertRangeWithTrailingSeparator(insertLocation, newArms));
+            => switchNode.WithArms(switchNode.Arms.InsertRangeWithTrailingSeparator(
+                insertLocation, newArms, SyntaxKind.CommaToken));
     }
 }
