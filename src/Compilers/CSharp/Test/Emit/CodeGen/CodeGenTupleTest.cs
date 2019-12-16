@@ -12923,7 +12923,7 @@ System.ValueTuple`8[T1,T2,T3,T4,T5,T6,T7,TRest]
                 var t = typeofNodes[i];
                 var typeInfo = model.GetTypeInfo(t.Type);
                 var symbolInfo = model.GetSymbolInfo(t.Type);
-                Assert.Same(typeInfo.Type, symbolInfo.Symbol);
+                Assert.Equal(typeInfo.Type, symbolInfo.Symbol);
 
                 switch (i)
                 {
@@ -23076,7 +23076,7 @@ static class Program
             var typeInfo = model.GetTypeInfo(type);
             Assert.Equal("(System.Int32 elem1, System.Int32 elem2)", typeInfo.Type.ToTestDisplayString());
 
-            Assert.Same(symbolInfo.Symbol, typeInfo.Type);
+            Assert.Equal(symbolInfo.Symbol, typeInfo.Type);
 
             Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem1", model.GetDeclaredSymbol(type.Elements.First()).ToTestDisplayString());
             Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem2", model.GetDeclaredSymbol(type.Elements.Last()).ToTestDisplayString());
