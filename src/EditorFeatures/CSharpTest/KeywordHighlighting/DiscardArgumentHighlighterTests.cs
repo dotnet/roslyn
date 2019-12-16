@@ -74,5 +74,21 @@ class DiscardExample
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestAtPrefixedDiscardWithoutType()
+        {
+            await TestAsync(
+@"using System;
+
+class DiscardExample
+{
+    void Method()
+    {
+        int @_;
+        bool b = int.TryParse("""", out {|Cursor:@_|});
+    }
+}");
+        }
     }
 }
