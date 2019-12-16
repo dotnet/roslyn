@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool ShouldRemoveStatement(TLocalDeclarationStatementSyntax localDeclarationStatement, out SeparatedSyntaxList<SyntaxNode> variables)
             {
                 Debug.Assert(removeAssignments);
-                Debug.Assert(localDeclarationStatement != null, "We should never get a null here.");
+                Debug.Assert(localDeclarationStatement != null);
 
                 // We should remove the entire local declaration statement if all its variables are marked for removal.
                 variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
