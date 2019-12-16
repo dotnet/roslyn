@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,9 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
 
         private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
-
-        private static readonly TestParameters s_testParameters =
-            new TestParameters(parseOptions: s_parseOptions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestNotInCSharp7()
@@ -220,6 +218,94 @@ class C
     void Goo(string s, string t)
     {
         var v = t.Substring(s[1..^1][0], t.Length - s[1..^1][0]);
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWithTypeWithActualSliceMethod1()
+        {
+            await TestAsync(
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([||]1, s.Length - 1);
+    }
+}",
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..];
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWithTypeWithActualSliceMethod2()
+        {
+            await TestAsync(
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([||]1, s.Length - 2);
+    }
+}",
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..^1];
     }
 }", parseOptions: s_parseOptions);
         }
