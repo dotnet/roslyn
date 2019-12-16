@@ -473,5 +473,31 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(List<int> s)
+    {
+        var v = s[[||]s.Count - 1];
+    }
+}",
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(List<int> s)
+    {
+        var v = s[^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }

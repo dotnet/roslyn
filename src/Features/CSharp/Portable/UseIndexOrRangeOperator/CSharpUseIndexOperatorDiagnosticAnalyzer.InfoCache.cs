@@ -83,15 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 if (method.MethodKind == MethodKind.PropertyGet)
                 {
                     // this is the getter for an indexer.  i.e. the user is calling something
-                    // like s[...].  We need to see if there's an indexer that takes a System.Index
-                    // value.
-                    var indexer = GetIndexer(containingType, IndexType, method.ReturnType);
-                    if (indexer != null)
-                    {
-                        // Type had a matching indexer.  We can convert calls to the int-indexer to
-                        // calls to this System.Index-indexer.
-                        return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
-                    }
+                    // like s[...].
+                    //
+                    // These can always be converted to use a System.Index.  Either because the
+                    // type itself has a System.Index-based indexer, or because the language just
+                    // allows types to implicitly seem like they support this through:
+                    //
+                    // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-index-support
+                    return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                 }
                 else
                 {
