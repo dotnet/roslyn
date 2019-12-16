@@ -1,22 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PopulateSwitch;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
-    public partial class PopulateSwitchTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+    public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new PopulateSwitchDiagnosticAnalyzer(), new PopulateSwitchCodeFixProvider());
+            => (new CSharpPopulateSwitchExpressionDiagnosticAnalyzer(), new CSharpPopulateSwitchExpressionCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task OnlyOnFirstToken()
+        [Fact]
+        public async Task NotOnRangeToken()
         {
             await TestMissingInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
@@ -33,19 +35,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([||]e)
+            _ = [||]e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                _ => 3,
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task AllMembersAndDefaultExist()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -63,20 +64,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => 4,
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task AllMembersExist_NotDefault()
         {
             await TestInRegularAndScriptAsync(
@@ -94,13 +94,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }",
@@ -118,21 +117,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
+        public async Task AllMembersExist_NotDefault_NoComma()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz,
+        Buzz,
+        FizzBuzz
+    }
+
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            _ = e [||]switch
+            {
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3
+            };
+        }
+    }
+}",
+@"namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz,
+        Buzz,
+        FizzBuzz
+    }
+
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            _ = e switch
+            {
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException()
+            };
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotAllMembersExist_NotDefault()
         {
             await TestInRegularAndScriptAsync(
@@ -150,12 +200,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+            };
         }
     }
 }",
@@ -173,22 +222,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_WithDefault()
         {
             await TestInRegularAndScriptAsync(
@@ -206,14 +252,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                _ => 3,
+            };
         }
     }
 }",
@@ -231,22 +275,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+                _ => 3,
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
         {
             await TestInRegularAndScriptAsync(
@@ -264,12 +305,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+            };
         }
     }
 }",
@@ -287,22 +327,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
         {
             await TestInRegularAndScriptAsync(
@@ -320,13 +357,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                _ => 3,
+            };
         }
     }
 }",
@@ -344,21 +380,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.FizzBuzz:
-                    break;
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+                _ => 3,
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
         {
             await TestInRegularAndScriptAsync(
@@ -376,14 +410,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                default:
-                    break;
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
+                _ => 1,
+                MyEnum.Fizz => 2,
+                MyEnum.Buzz => 3,
+            };
         }
     }
 }",
@@ -401,22 +433,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e [||]switch
             {
-                default:
-                    break;
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                _ => 1,
+                MyEnum.Fizz => 2,
+                MyEnum.Buzz => 3,
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NoMembersExist0()
         {
             await TestInRegularAndScriptAsync(
@@ -434,9 +463,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-            }
+            };
         }
     }
 }",
@@ -454,21 +483,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                    break;
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => throw new System.NotImplementedException(),
+                MyEnum.Buzz => throw new System.NotImplementedException(),
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NoMembersExist1()
         {
             await TestInRegularAndScriptAsync(
@@ -486,9 +512,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-            }
+            };
         }
     }
 }",
@@ -506,17 +532,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                default:
-                    break;
-            }
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NoMembersExist2()
         {
             await TestInRegularAndScriptAsync(
@@ -534,9 +559,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-            }
+            };
         }
     }
 }",
@@ -554,23 +579,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                    break;
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => throw new System.NotImplementedException(),
+                MyEnum.Buzz => throw new System.NotImplementedException(),
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_AllMembersExist()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -583,29 +604,22 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Append:
-                    break;
-                default:
-                    break;
-            }
+                CreateNew => 1,
+                Create => 2,
+                Open => 3,
+                OpenOrCreate => 4,
+                Truncate => 5,
+                Append => 6,
+                _ => 7,
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -618,29 +632,22 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case CreateNew:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Open:
-                    break;
-                case Append:
-                    break;
-                case Create:
-                    break;
-                default:
-                    break;
-            }
+                CreateNew => 1,
+                OpenOrCreate => 2,
+                Truncate => 3,
+                Open => 4,
+                Append => 5,
+                Create => 6,
+                _ => 7,
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_MembersExist()
         {
             await TestInRegularAndScriptAsync(
@@ -653,19 +660,14 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                default:
-                    break;
-            }
+                CreateNew => 1,
+                Create => 2,
+                Open => 3,
+                OpenOrCreate => 4,
+                _ => 5,
+            };
         }
     }
 }",
@@ -678,29 +680,22 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch (e)
+            _ = e switch
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Append:
-                    break;
-                default:
-                    break;
-            }
+                CreateNew => 1,
+                Create => 2,
+                Open => 3,
+                OpenOrCreate => 4,
+                Truncate => throw new System.NotImplementedException(),
+                Append => throw new System.NotImplementedException(),
+                _ => 5,
+            };
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task UsingStaticEnum_NoMembersExist()
         {
             await TestInRegularAndScriptAsync(
@@ -713,9 +708,9 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            [||]switch (e)
+            _ = e [||]switch
             {
-            }
+            };
         }
     }
 }",
@@ -728,29 +723,22 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch (e)
+            _ = e switch
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Append:
-                    break;
-                default:
-                    break;
-            }
+                CreateNew => throw new System.NotImplementedException(),
+                Create => throw new System.NotImplementedException(),
+                Open => throw new System.NotImplementedException(),
+                OpenOrCreate => throw new System.NotImplementedException(),
+                Truncate => throw new System.NotImplementedException(),
+                Append => throw new System.NotImplementedException(),
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -769,12 +757,11 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+            };
         }
     }
 }",
@@ -793,22 +780,19 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_EnumIsNested()
         {
             await TestInRegularAndScriptAsync(
@@ -826,12 +810,11 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+            };
         }
     }
 }",
@@ -849,22 +832,19 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_SwitchIsNotEnum()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -877,19 +857,18 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = ""test"";
-            [||]switch (e)
+            _ = e [||]switch
             {
-                case ""test1"":
-                case ""test1"":
-                default:
-                    break;
+                ""test1"" => 1,
+                ""test2"" => 2,
+                _ => 3,
             }
         }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [Fact]
         public async Task NotAllMembersExist_NotDefault_UsingConstants()
         {
             await TestInRegularAndScriptAsync(
@@ -905,11 +884,10 @@ class MyClass
     void Method()
     {
         var e = MyEnum.Fizz;
-        [||]switch (e)
+        _ = e [||]switch
         {
-            case (MyEnum)0:
-            case (MyEnum)1:
-                break;
+            (MyEnum)0 => 1,
+            (MyEnum)1 => 2,
         }
     }
 }",
@@ -925,22 +903,65 @@ class MyClass
     void Method()
     {
         var e = MyEnum.Fizz;
-        switch (e)
+        _ = e switch
         {
-            case (MyEnum)0:
-            case (MyEnum)1:
-                break;
-            case MyEnum.FizzBuzz:
-                break;
-            default:
-                break;
+            (MyEnum)0 => 1,
+            (MyEnum)1 => 2,
+            MyEnum.FizzBuzz => throw new System.NotImplementedException(),
+            _ => throw new System.NotImplementedException(),
         }
     }
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        [WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
+        [Fact]
+        public async Task NotAllMembersExist_NotDefault_WithMismatchingConstantType()
+        {
+            await TestInRegularAndScriptAsync(
+@"enum MyEnum
+{
+    Fizz,
+    Buzz,
+    FizzBuzz
+}
+
+class MyClass
+{
+    void Method()
+    {
+        var e = MyEnum.Fizz;
+        _ = e [||]switch
+        {
+            (MyEnum)0 => 1,
+            (MyEnum)1 => 2,
+            ""Mismatching constant"" => 3,
+        }
+    }
+}",
+@"enum MyEnum
+{
+    Fizz,
+    Buzz,
+    FizzBuzz
+}
+
+class MyClass
+{
+    void Method()
+    {
+        var e = MyEnum.Fizz;
+        _ = e switch
+        {
+            (MyEnum)0 => 1,
+            (MyEnum)1 => 2,
+            ""Mismatching constant"" => 3,
+            _ => throw new System.NotImplementedException(),
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40399")]
         public async Task AllMissingTokens()
         {
             await TestInRegularAndScriptAsync(
@@ -954,7 +975,7 @@ class MyClass
     void Method()
     {
         var e = MyEnum.Fizz;
-        [||]switch (e)
+        _ = e [||]switch
     }
 }
 ",
@@ -968,11 +989,10 @@ class MyClass
     void Method()
     {
         var e = MyEnum.Fizz;
-        switch (e)
+        _ = e switch
         {
-            case MyEnum.Fizz:
-                break;
-        }
+            MyEnum.Fizz => throw new System.NotImplementedException(),
+        };
     }
 }");
         }

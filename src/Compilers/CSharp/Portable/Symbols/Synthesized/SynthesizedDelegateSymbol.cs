@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             => ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate);
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor
         {
             private readonly ImmutableArray<ParameterSymbol> _parameters;

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -17,14 +18,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class SyntaxGeneratorExtensions
     {
         public static SyntaxNode CreateThrowNotImplementedStatement(
-            this SyntaxGenerator codeDefinitionFactory,
-            Compilation compilation)
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
             return codeDefinitionFactory.ThrowStatement(
-               codeDefinitionFactory.ObjectCreationExpression(
-                   codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
-                   SpecializedCollections.EmptyList<SyntaxNode>()));
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
         }
+
+        public static SyntaxNode CreateThrowNotImplementedExpression(
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+        {
+            return codeDefinitionFactory.ThrowExpression(
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
+        }
+
+        private static SyntaxNode CreateNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+            => codeDefinitionFactory.ObjectCreationExpression(
+                    codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
+                    SpecializedCollections.EmptyList<SyntaxNode>());
 
         public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
