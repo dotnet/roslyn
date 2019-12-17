@@ -17,8 +17,6 @@ namespace Roslyn.Utilities
         public abstract bool TryGetValue([MaybeNullWhen(false)]out T value);
         public abstract T GetValue(CancellationToken cancellationToken = default);
         public abstract Task<T> GetValueAsync(CancellationToken cancellationToken = default);
-
-        public bool HasValue => TryGetValue(out _);
     }
 
     internal static class ValueSourceExtensions

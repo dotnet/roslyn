@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     var state = this.ReadState();
-                    return state.Compilation != null && state.Compilation.HasValue || state.DeclarationOnlyCompilation != null;
+                    return state.Compilation != null && state.Compilation.TryGetValue(out _) || state.DeclarationOnlyCompilation != null;
                 }
             }
 

@@ -52,10 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             /// <summary>
-            /// Gets specified metadata from the cache, or retrieves metadata from given <paramref name="metadataSource"/>
-            /// and adds it to the cache if it's not there yet.
+            /// <para>Gets specified metadata from the cache, or retrieves metadata from given <paramref name="metadataSource"/>
+            /// and adds it to the cache if it's not there yet.</para>
             /// 
-            /// <paramref name="metadataSource"/> is epxected to to provide metadata at least until this method returns.
+            /// <para><paramref name="metadataSource"/> is expected to to provide metadata at least until this method returns.</para>
             /// </summary>
             /// <returns>
             /// True if the metadata is retrieved from <paramref name="metadataSource"/> source, false if it already exists in the cache.
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 foreach (var (fileKey, metadataSource) in _metadataCache)
                 {
                     // metadata doesn't exist anymore. delete it from cache
-                    if (!metadataSource.HasValue)
+                    if (!metadataSource.TryGetValue(out _))
                     {
                         keysToRemove.Add(fileKey);
                     }
