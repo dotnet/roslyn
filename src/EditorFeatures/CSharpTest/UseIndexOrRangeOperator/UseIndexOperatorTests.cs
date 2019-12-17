@@ -499,5 +499,21 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task NotOnConstructedIndexer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(Dictionary<int, string> s)
+    {
+        var v = s[[||]s.Count - 1];
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
     }
 }
