@@ -39,14 +39,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Applies a set of options, invoking serializers if needed.
         /// </summary>
-        /// <param name="optionSet">New options to set.</param>
-        /// <param name="sourceWorkspace">The source workspace from which the API was invoked, if any.</param>
-        /// <param name="beforeOptionsChangedEvents">
-        /// Optional delegate to invoke before option changed event handlers are invoked.
-        /// This delegate will be invoked only if any option changed in the new <paramref name="optionSet"/>.
-        /// </param>
-        /// <returns>True if there was any option change.</returns>
-        bool SetOptions(OptionSet optionSet, Workspace? sourceWorkspace = null, Action? beforeOptionsChangedEvents = null);
+        void SetOptions(OptionSet optionSet);
 
         /// <summary>
         /// Gets force computed serializable options with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
@@ -65,11 +58,19 @@ namespace Microsoft.CodeAnalysis.Options
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 
-        event EventHandler<BatchOptionsChangedEventArgs>? BatchOptionsChanged;
-
         /// <summary>
         /// Refreshes the stored value of a serialized option. This should only be called from serializers.
         /// </summary>
         void RefreshOption(OptionKey optionKey, object? newValue);
+
+        /// <summary>
+        /// Registers a workspace with the option service.
+        /// </summary>
+        void RegisterWorkspace(Workspace workspace);
+
+        /// <summary>
+        /// Unregisters a workspace from the option service.
+        /// </summary>
+        void UnregisterWorkspace(Workspace workspace);
     }
 }

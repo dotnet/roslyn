@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     {
 #pragma warning disable 67
         public event EventHandler<OptionChangedEventArgs> OptionChanged;
-        public event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged;
 #pragma warning restore 67
 
         // Feel free to add other option storages
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public bool SetOptions(OptionSet optionSet, Workspace sourceWorkspace = null, Action beforeOptionsChangedEvents = null)
+        public void SetOptions(OptionSet optionSet)
         {
             Equals(null, null);
             throw new NotImplementedException();
@@ -71,6 +70,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RegisterWorkspace(Workspace workspace)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UnregisterWorkspace(Workspace workspace)
         {
             throw new NotImplementedException();
         }

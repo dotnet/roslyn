@@ -68,10 +68,7 @@ namespace Microsoft.CodeAnalysis
             _services = host.CreateWorkspaceServices(this);
 
             _optionService = _services.GetService<IOptionService>();
-            if (_optionService != null)
-            {
-                _optionService.BatchOptionsChanged += OptionService_BatchOptionsChanged;
-            }
+            _optionService?.RegisterWorkspace(this);
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
@@ -211,24 +208,9 @@ namespace Microsoft.CodeAnalysis
         /// NOTE: This method also updates <see cref="CurrentSolution"/> to a new solution instance with updated <see cref="Solution.Options"/>.
         /// </summary>
         internal void SetOptions(OptionSet options)
-            => _optionService?.SetOptions(options, sourceWorkspace: this, beforeOptionsChangedEvents: UpdateCurrentSolutionOnOptionsChanged);
+            => _optionService?.SetOptions(options);
 
-        private void OptionService_BatchOptionsChanged(object sender, BatchOptionsChangedEventArgs e)
-        {
-            if (e.SourceWorkspace == this)
-            {
-                // This is an event from Workspace.Options setter for this workspace.
-                // We explicitly handle updating current solution with new options in that setter,
-                // so we avoid a duplicate update from this event.
-                return;
-            }
-
-            // Options were changed directly on the OptionService, outside of Workspace.Options setter.
-            // Update the current solution snaphot with new options.
-            UpdateCurrentSolutionOnOptionsChanged();
-        }
-
-        private void UpdateCurrentSolutionOnOptionsChanged()
+        internal void UpdateCurrentSolutionOnOptionsChanged()
         {
             RoslynDebug.Assert(_optionService != null);
             var newOptions = _optionService.GetForceComputedOptions(this.CurrentSolution.State.GetProjectLanguages());

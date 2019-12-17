@@ -52,13 +52,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// Applies a set of options.
         /// </summary>
         /// <param name="optionSet">New options to set.</param>
-        /// <param name="sourceWorkspace">The source workspace from which the API was invoked, if any.</param>
-        /// <param name="beforeOptionsChangedEvents">
-        /// Optional delegate to invoke before option changed event handlers are invoked.
-        /// This delegate will be invoked only if any option changed in the new <paramref name="optionSet"/>.
-        /// </param>
-        /// <returns>True if there was any option change.</returns>
-        bool SetOptions(OptionSet optionSet, Workspace? sourceWorkspace = null, Action? beforeOptionsChangedEvents = null);
+        void SetOptions(OptionSet optionSet);
 
         /// <summary>
         /// Returns the set of all registered options.
@@ -71,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Options
         ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
 
         event EventHandler<OptionChangedEventArgs> OptionChanged;
-        event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged;
 
         /// <summary>
         /// Registers a provider that can modify the result of <see cref="Document.GetOptionsAsync(CancellationToken)"/>. Providers registered earlier are queried first
@@ -83,5 +76,15 @@ namespace Microsoft.CodeAnalysis.Options
         /// Returns the <see cref="OptionSet"/> that applies to a specific document, given that document and the global options.
         /// </summary>
         Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Registers a workspace with the option service.
+        /// </summary>
+        void RegisterWorkspace(Workspace workspace);
+
+        /// <summary>
+        /// Unregisters a workspace from the option service.
+        /// </summary>
+        void UnregisterWorkspace(Workspace workspace);
     }
 }

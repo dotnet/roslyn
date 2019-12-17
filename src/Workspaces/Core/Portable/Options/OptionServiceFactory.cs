@@ -51,9 +51,6 @@ namespace Microsoft.CodeAnalysis.Options
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
 
-            private ImmutableArray<EventHandler<BatchOptionsChangedEventArgs>> _batchOptionsChangedEventHandlers =
-                ImmutableArray<EventHandler<BatchOptionsChangedEventArgs>>.Empty;
-
             private ImmutableArray<IDocumentOptionsProvider> _documentOptionsProviders =
                 ImmutableArray<IDocumentOptionsProvider>.Empty;
 
@@ -67,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Options
                 _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
-                _globalOptionService.BatchOptionsChanged += OnGlobalOptionServiceBatchOptionsChanged;
             }
 
             public void OnWorkspaceDisposed(Workspace workspace)
@@ -75,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Options
                 // Disconnect us from the underlying global service.  That way it doesn't 
                 // keep us around (and all the event handlers we're holding onto) forever.
                 _globalOptionService.OptionChanged -= OnGlobalOptionServiceOptionChanged;
-                _globalOptionService.BatchOptionsChanged -= OnGlobalOptionServiceBatchOptionsChanged;
             }
 
             private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
@@ -119,47 +114,6 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            private void OnGlobalOptionServiceBatchOptionsChanged(object sender, BatchOptionsChangedEventArgs e)
-            {
-                _taskQueue.ScheduleTask(() =>
-                {
-                    // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
-                    // but getting the event later on the UI thread
-                    var eventHandlers = GetBatchOptionsChangedEventHandlers();
-                    foreach (var handler in eventHandlers)
-                    {
-                        handler(this, e);
-                    }
-                }, "OptionsService.OnGlobalOptionServiceBatchOptionsChanged");
-            }
-
-            private ImmutableArray<EventHandler<BatchOptionsChangedEventArgs>> GetBatchOptionsChangedEventHandlers()
-            {
-                lock (_gate)
-                {
-                    return _batchOptionsChangedEventHandlers;
-                }
-            }
-
-            public event EventHandler<BatchOptionsChangedEventArgs> BatchOptionsChanged
-            {
-                add
-                {
-                    lock (_gate)
-                    {
-                        _batchOptionsChangedEventHandlers = _batchOptionsChangedEventHandlers.Add(value);
-                    }
-                }
-
-                remove
-                {
-                    lock (_gate)
-                    {
-                        _batchOptionsChangedEventHandlers = _batchOptionsChangedEventHandlers.Remove(value);
-                    }
-                }
-            }
-
             // Simple forwarding functions.
             public SerializableOptionSet GetOptions() => GetForceComputedOptions(ImmutableHashSet<string>.Empty);
             public SerializableOptionSet GetForceComputedOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetForceComputedOptions(languages, this);
@@ -168,7 +122,9 @@ namespace Microsoft.CodeAnalysis.Options
             [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
-            public bool SetOptions(OptionSet optionSet, Workspace? sourceWorkspace = null, Action? beforeOptionsChangedEvents = null) => _globalOptionService.SetOptions(optionSet, sourceWorkspace, beforeOptionsChangedEvents);
+            public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
+            public void RegisterWorkspace(Workspace workspace) => _globalOptionService.RegisterWorkspace(workspace);
+            public void UnregisterWorkspace(Workspace workspace) => _globalOptionService.UnregisterWorkspace(workspace);
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {

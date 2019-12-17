@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -24,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>> _languageToLazyProvidersMap;
         private readonly Dictionary<string, ImmutableHashSet<IOption>> _languageToSerializableOptionsMap;
         private readonly HashSet<string> _forceComputedLanguages;
+        private readonly ImmutableHashSet<Workspace>.Builder _registeredWorkspacesBuilder;
 
         private readonly object _gate = new object();
 
@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Options
             _languageToLazyProvidersMap = optionProviders.ToPerLanguageMap();
             _languageToSerializableOptionsMap = new Dictionary<string, ImmutableHashSet<IOption>>();
             _forceComputedLanguages = new HashSet<string>();
+            _registeredWorkspacesBuilder = ImmutableHashSet.CreateBuilder<Workspace>();
 
             _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
         }
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public bool SetOptions(OptionSet optionSet, Workspace? sourceWorkspace = null, Action? beforeOptionsChangedEvents = null)
+        public void SetOptions(OptionSet optionSet)
         {
             var changedOptionKeys = optionSet switch
             {
@@ -263,17 +264,8 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            if (changedOptions.Count == 0)
-            {
-                return false;
-            }
-
-            // Invoke the optional delegate provided by the option setter before options changed events are raised.
-            beforeOptionsChangedEvents?.Invoke();
-
             // Outside of the lock, raise the events on our task queue.
-            RaiseEvents(changedOptions, sourceWorkspace);
-            return true;
+            UpdateRegisteredWorkspacesAndRaiseEvents(changedOptions);
         }
 
         public void RefreshOption(OptionKey optionKey, object? newValue)
@@ -292,16 +284,30 @@ namespace Microsoft.CodeAnalysis.Options
                 _currentValues = _currentValues.SetItem(optionKey, newValue);
             }
 
-            RaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) }, sourceWorkspace: null);
+            UpdateRegisteredWorkspacesAndRaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) });
         }
 
-        private void RaiseEvents(List<OptionChangedEventArgs> changedOptions, Workspace? sourceWorkspace)
+        private void UpdateRegisteredWorkspacesAndRaiseEvents(List<OptionChangedEventArgs> changedOptions)
         {
             if (changedOptions.Count == 0)
             {
                 return;
             }
 
+            // Ensure that the Workspace's CurrentSolution snapshot is updated with new options for all registered workspaces
+            // prior to raising option changed event handlers.
+            ImmutableHashSet<Workspace> registeredWorkspaces;
+            lock (_gate)
+            {
+                registeredWorkspaces = _registeredWorkspacesBuilder.ToImmutable();
+            }
+
+            foreach (var workspace in registeredWorkspaces)
+            {
+                workspace.UpdateCurrentSolutionOnOptionsChanged();
+            }
+
+            // Raise option changed events.
             var optionChanged = OptionChanged;
             if (optionChanged != null)
             {
@@ -310,11 +316,24 @@ namespace Microsoft.CodeAnalysis.Options
                     optionChanged(this, changedOption);
                 }
             }
+        }
 
-            BatchOptionsChanged?.Invoke(this, new BatchOptionsChangedEventArgs(changedOptions, sourceWorkspace));
+        public void RegisterWorkspace(Workspace workspace)
+        {
+            lock (_gate)
+            {
+                _registeredWorkspacesBuilder.Add(workspace);
+            }
+        }
+
+        public void UnregisterWorkspace(Workspace workspace)
+        {
+            lock (_gate)
+            {
+                _registeredWorkspacesBuilder.Remove(workspace);
+            }
         }
 
         public event EventHandler<OptionChangedEventArgs>? OptionChanged;
-        public event EventHandler<BatchOptionsChangedEventArgs>? BatchOptionsChanged;
     }
 }

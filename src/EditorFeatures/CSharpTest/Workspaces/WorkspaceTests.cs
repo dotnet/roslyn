@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     [UseExportProvider]
     public partial class WorkspaceTests : TestBase
     {
-        private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
+        private TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
         {
-            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
+            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind, disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
@@ -1212,48 +1212,46 @@ class D { }
             Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
         }
 
-        [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testUsingWorkspaceOptionsSetter)
+        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged()
         {
-            using var workspace = CreateWorkspace();
+            // Create workspaces with shared global options to replicate the true global options service shared between workspaces.
+            using var primaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
+            using var secondaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
 
             var document = new TestHostDocument("class C { }");
 
-            var project1 = new TestHostProject(workspace, document, name: "project1");
+            var project1 = new TestHostProject(primaryWorkspace, document, name: "project1");
 
-            workspace.AddTestProject(project1);
+            primaryWorkspace.AddTestProject(project1);
+            secondaryWorkspace.AddTestProject(project1);
 
-            var beforeSolution = workspace.CurrentSolution;
+            var beforeSolutionForPrimaryWorkspace = primaryWorkspace.CurrentSolution;
+            var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
+
             var optionKey = new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
-            Assert.Equal(BackgroundAnalysisScope.Default, workspace.Options.GetOption(optionKey));
+            Assert.Equal(BackgroundAnalysisScope.Default, primaryWorkspace.Options.GetOption(optionKey));
+            Assert.Equal(BackgroundAnalysisScope.Default, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
             optionService.OptionChanged += OptionService_OptionChanged;
 
-            // Change workspace options
-            if (testUsingWorkspaceOptionsSetter)
-            {
-                workspace.Options = workspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
-            }
-            else
-            {
-                var applied = workspace.TryApplyChanges(beforeSolution.WithOptions(beforeSolution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile)));
-                Assert.True(applied);
-            }
+            // Change workspace options through primary workspace
+            primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile));
 
-            // Verify current solution and option change.
-            VerifyCurrentSolutionAndOptionChange(workspace, beforeSolution);
+            // Verify current solution and option change for both workspaces.
+            VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+            VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
 
             optionService.OptionChanged -= OptionService_OptionChanged;
             return;
 
             void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
             {
-                // Verify current solution and option changes happen prior to option changed event handler being invoked.
-                VerifyCurrentSolutionAndOptionChange(workspace, beforeSolution);
+                // Verify current solution and option change for both workspaces.
+                VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+                VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
             }
 
             static void VerifyCurrentSolutionAndOptionChange(Workspace workspace, Solution beforeOptionChangedSolution)
