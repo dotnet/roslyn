@@ -96,7 +96,6 @@ namespace Roslyn.Utilities
 
         public ImmutableArray<T> AsImmutable() => _elements.ToImmutableArrayOrEmpty();
 
-        [MaybeNull]
-        public T this[int i] => _elements is null ? default : _elements[i];
+        public T this[int i] => _elements![i];
     }
 }
